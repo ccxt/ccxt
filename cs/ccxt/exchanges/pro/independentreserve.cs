@@ -49,15 +49,15 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
-        string? url = ((string)add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), GetValue(market, "base")), "-"), GetValue(market, "quote")));
+        symbolVar = GetValue(market, "symbol");
+        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), GetValue(market, "base")), "-"), GetValue(market, "quote"));
         string messageHash = add("trades:", symbolVar);
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
@@ -87,7 +87,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? marketId = this.safeString(data, "Pair");
         string? symbol = this.safeSymbol(marketId, null, "-");
         string messageHash = add("trades:", symbol);
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -144,26 +144,26 @@ public partial class independentreserve : ccxt.independentreserve
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         string? limitString = this.numberToString(limitVar);
-        string? url = ((string)add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), GetValue(market, "base")), "-"), GetValue(market, "quote")));
+        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), GetValue(market, "base")), "-"), GetValue(market, "quote"));
         string messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, null, messageHash, subscription));
+        object orderbook = await this.watch(url, messageHash, null, messageHash, subscription);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -203,7 +203,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? quoteId = this.safeString(parts, 3);
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         string messageHash = add(add(add("orderbook:", symbol), ":"), depth);
         object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});

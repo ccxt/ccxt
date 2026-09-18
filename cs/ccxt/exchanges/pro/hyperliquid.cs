@@ -121,8 +121,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrdersWs(new List<object>() {((object)order)}, globalParams));
-        int ordersLength = orders?.Count ?? 0;
+        object orders = ccxt.BaseExchange.FromOrderList(await this.CreateOrdersWs(new List<object>() {((object)order)}, globalParams));
+        int ordersLength = getArrayLength(orders);
         if ((ordersLength == 0))
         {
             // not sure why but it is happening sometimes
@@ -234,7 +234,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
+        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 
@@ -250,14 +250,14 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string messageHash = add("orderbook:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -268,7 +268,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash));
+        object orderbook = await this.watch(url, messageHash, message, messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -367,14 +367,14 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         // the single-symbolVar path subscribes to the per-coin context channel, which hyperliquid
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
@@ -518,7 +518,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string? userAddress = null;
         List<object> userAddressResult = this.handlePublicAddress("watchMyTrades", parameters);
@@ -551,7 +551,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object trades = await this.watch(url, messageHash, message, subscribeHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -728,7 +728,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> parsed = this.parseWsTrade(rawTrade);
-            string? symbol = ((string)GetValue(parsed, "symbol"));
+            object symbol = GetValue(parsed, "symbol");
             symbols[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
@@ -756,15 +756,15 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string messageHash = add("trade:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -778,7 +778,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -850,7 +850,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object trades = getValue(this.trades, symbol);
         for (int i = 0; isLessThan(i, entry.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> data = this.safeDict(entry, i, new Dictionary<string, object>() {});
@@ -902,7 +902,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(trade, "coin");
         string? marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? id = this.safeString(trade, "tid");
         string? side = this.safeString(trade, "side");
         if ((side != null))
@@ -944,9 +944,9 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        string timeframeVar = timeframe;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -954,7 +954,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -969,7 +969,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -986,7 +986,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        string timeframeVar = timeframe;
+        object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1044,7 +1044,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             var stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCache ohlcv = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
         IList<object> parsed = this.parseOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         string messageHash = add(add(add("candles:", timeframe), ":"), symbol);
@@ -1427,7 +1427,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 continue;
             }
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            IList<object> positions = ((IList<object>)this.filterByArray(newPositions, "symbol", symbols, false));
+            object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
                 callDynamically(client, "resolve", new object[] {positions, messageHash});
@@ -1487,8 +1487,8 @@ public partial class hyperliquid : ccxt.hyperliquid
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1499,11 +1499,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         userAddress = this.safeString(userAddressResult, 0);
         parameters = this.safeDict(userAddressResult, 1, parameters);
         IDictionary<string, object> market = null;
-        string messageHash = "order";
+        object messageHash = "order";
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -1529,7 +1529,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object orders = await this.watch(url, messageHash, message, subscribeHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1959,7 +1959,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "clearinghouseState", this.handleBalance },
             { "spotState", this.handleBalance },
         };
-        Delegate exacMethod = ((Delegate)this.safeValue(methods, topic));
+        object exacMethod = this.safeValue(methods, topic);
         if ((exacMethod != null))
         {
             DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});

@@ -1520,7 +1520,7 @@ public partial class extended : Exchange
     {
         string symbolVar = symbol;
         object sinceVar = since;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
@@ -1539,7 +1539,7 @@ public partial class extended : Exchange
         symbolVar = ((string)GetValue(market, "symbol"));
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(parameters, "endTime", until);
@@ -1629,7 +1629,7 @@ public partial class extended : Exchange
     {
         string timeframeVar = timeframe;
         object sinceVar = since;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1641,7 +1641,7 @@ public partial class extended : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
         Int64? endTime = this.safeInteger(parameters, "endTime", until);

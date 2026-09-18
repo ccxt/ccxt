@@ -377,10 +377,10 @@ public partial class mudrex : Exchange
         };
         // the endpoint requires an explicit time window (in seconds)
         int duration = this.parseTimeframe(timeframeVar);
-        object requestLimit = limit;
+        Int64? requestLimit = limit;
         if (isEqual(requestLimit, null))
         {
-            requestLimit = 500;
+            requestLimit = ((Int64?)500);
         }
         Int64 now = this.seconds();
         object startTime = null;

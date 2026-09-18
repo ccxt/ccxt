@@ -67,7 +67,7 @@ public partial class hollaex : ccxt.hollaex
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add("orderbook", ":"), GetValue(market, "id"));
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHash, parameters));
+        object orderbook = await this.watchPublic(messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -137,20 +137,20 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string messageHash = add(add("trade", ":"), GetValue(market, "id"));
         object trades = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -176,7 +176,7 @@ public partial class hollaex : ccxt.hollaex
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -207,8 +207,8 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -219,13 +219,13 @@ public partial class hollaex : ccxt.hollaex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -307,8 +307,8 @@ public partial class hollaex : ccxt.hollaex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -319,13 +319,13 @@ public partial class hollaex : ccxt.hollaex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -675,7 +675,7 @@ public partial class hollaex : ccxt.hollaex
             { "usertrade", this.handleMyTrades },
         };
         object topic = this.safeValue(message, "topic");
-        Delegate method = ((Delegate)this.safeValue(methods, topic));
+        object method = this.safeValue(methods, topic);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

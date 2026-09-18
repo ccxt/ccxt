@@ -212,14 +212,14 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string topic = add(add("ticker", "."), GetValue(market, "id"));
         string messageHash = add(add("ticker", ":"), symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {topic}, new List<object>() {messageHash}, parameters));
@@ -291,7 +291,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             string? marketId = this.marketId(symbol);
             ((IList<object>)topics).Add(add("ticker.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
@@ -425,7 +425,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             string? marketId = this.marketId(symbol);
             ((IList<object>)topics).Add(add("bookTicker.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", symbol));
@@ -513,7 +513,7 @@ public partial class backpack : ccxt.backpack
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
@@ -656,7 +656,7 @@ public partial class backpack : ccxt.backpack
             var stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = stored;
         }
-        ccxt.pro.ArrayCache ohlcv = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
         List<object> parsed = this.parseWsOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         string messageHash = add(add(add("candles:", symbol), ":"), timeframe);
@@ -729,7 +729,7 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -753,9 +753,9 @@ public partial class backpack : ccxt.backpack
         object trades = await this.watchPublic(topics, messageHashes, parameters);
         if (isTrue(this.newUpdates))
         {
-            IDictionary<string, object> first = this.safeDict(trades, 0);
+            object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         IList<object> result = this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
         return ccxt.BaseExchange.ToTradeList(this.sortBy(result, "timestamp"));  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
@@ -787,7 +787,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             string? marketId = this.marketId(symbol);
             ((IList<object>)topics).Add(add("trade.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
@@ -824,7 +824,7 @@ public partial class backpack : ccxt.backpack
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object cache = getValue(this.trades, symbol);
         Dictionary<string, object> trade = this.parseWsTrade(data, market);
         callDynamically(cache, "append", new object[] {trade});
         string messageHash = add("trades:", symbol);
@@ -939,11 +939,11 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
-            string? marketId = ((string)getValue(marketIds, i));
+            object marketId = getValue(marketIds, i);
             string topic = add("depth.", marketId);
             ((IList<object>)topics).Add(topic);
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topics, messageHashes, parameters));
+        object orderbook = await this.watchPublic(topics, messageHashes, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());  // todo check if limit is needed
     }
 
@@ -983,9 +983,9 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
-            string? marketId = ((string)getValue(marketIds, i));
+            object marketId = getValue(marketIds, i);
             string topic = add("depth.", marketId);
             ((IList<object>)topics).Add(topic);
         }
@@ -1115,8 +1115,8 @@ public partial class backpack : ccxt.backpack
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1126,7 +1126,7 @@ public partial class backpack : ccxt.backpack
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
         }
         string topic = "account.orderUpdate";
         string messageHash = "orders";
@@ -1138,7 +1138,7 @@ public partial class backpack : ccxt.backpack
         object orders = await this.watchPrivate(new List<object>() {topic}, new List<object>() {messageHash}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1255,7 +1255,7 @@ public partial class backpack : ccxt.backpack
         string? status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         string? marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? type = this.safeStringLower(order, "o");
         string? timeInForce = this.safeString(order, "f");
         string? side = this.parseWsOrderSide(this.safeString(order, "S"));
@@ -1386,7 +1386,7 @@ public partial class backpack : ccxt.backpack
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                string? symbol = ((string)getValue(symbols, i));
+                object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add(add("unsubscribe:positions", ":"), symbol));
                 ((IList<object>)topics).Add(add("account.positionUpdate.", this.marketId(symbol)));
             }
@@ -1467,7 +1467,7 @@ public partial class backpack : ccxt.backpack
         string? marketId = this.safeString(position, "s");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        string? symbol = ((string)GetValue(marketResolved, "symbol"));
+        object symbol = GetValue(marketResolved, "symbol");
         string? notional = this.safeString(position, "n");
         string? liquidationPrice = this.safeString(position, "l");
         string? entryPrice = this.safeString(position, "b");

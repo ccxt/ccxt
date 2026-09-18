@@ -1083,6 +1083,23 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
 // Int32 box on the ArrayCache min path; 76 int literals; 9 mathMin; 10 ternaries; 6 others).
 const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
 
+// cs90 U65: the `limit` core-arg shadow (`object limitVar = limit;`). The escalation the user
+// approved (WAVE1 USER DECISIONS 2026-09-18 #1) admits two write forms for this ONE source --
+// the copy is the same box as the parameter, and both forms hand the copy an Int64 box:
+//
+//   * `limitVar = callDynamically (<cache>, "getLimit", new object[] { … })` -- the hand-written
+//     ws cache accessor. cs/ccxt/ws/ArrayCache.cs now declares `Int64? getLimit` (ArrayCache,
+//     ArrayCache.getLimit/_getLimit and ArrayCacheByTimestamp.getLimit; every getLimit in cs/**),
+//     so the `((Int64?)…)` unbox-cast names the box the value already has and null stays null.
+//   * `limitVar = <integer literal>` (`??=` included) -- `Int64? x = 100` converts the literal
+//     and boxes an Int64 where the `object` spelling boxed an Int32: the one deliberate box
+//     change of the unit, and the emitted cast keeps it visible at the site.
+//
+// Keyed by the SOURCE parameter name, so every sibling copy keeps the rules it had.
+const CORE_ARG_SHADOW_LIMIT_SOURCE = 'limit';
+const CORE_ARG_SHADOW_LIMIT_GETLIMIT_RE = /^callDynamically\s*\(\s*[A-Za-z_]\w*\s*,\s*"getLimit"\s*,/;
+const CORE_ARG_SHADOW_LIMIT_LITERAL_RE = /^-?\d+$/;
+
 // `castCoreArgCallSites` wraps an argument whenever its printed form does not already look like a
 // string literal or a `(string)` cast -- it has no type knowledge. A bare identifier the enclosing
 // generated declaration already types with the target (`string symbol` after `typeCoreArgs`
@@ -3108,6 +3125,27 @@ class NewTranspiler {
         return cast === null ? null : m[1] + alias + ' = ((' + cast + ')' + m[2].trim () + ');';
     }
 
+    // U65: the `limit` shadow's two admitted write forms (getLimit / integer literal), or null
+    // when the RHS is not one of them. `coreArgShadowLimitCastWrite` is the same predicate on a
+    // whole line, with the `((T)…)` cast the typed declaration needs; it reproduces the raw line
+    // byte-for-byte (a trailing `//` comment included), so the caller can bail out -- and keep
+    // the declaration `object` -- whenever the printed line is not the shape the scan proved.
+    coreArgShadowLimitWriteRhs (rhs: string): string | null {
+        if (CORE_ARG_SHADOW_LIMIT_GETLIMIT_RE.test (rhs) || CORE_ARG_SHADOW_LIMIT_LITERAL_RE.test (rhs)) {
+            return rhs;
+        }
+        return null;
+    }
+
+    coreArgShadowLimitCastWrite (line: string, alias: string, targetType: string): string | null {
+        const m = new RegExp ('^(\\s*)' + alias + '\\s*(\\?\\?=|=)\\s*(.*?)\\s*;(\\s*(?://.*)?)$').exec (line);
+        if (m === null) {
+            return null;
+        }
+        const rhs = this.coreArgShadowLimitWriteRhs (m[3]);
+        return rhs === null ? null : m[1] + alias + ' ' + m[2] + ' ((' + targetType + ')' + rhs + ');' + m[4];
+    }
+
     // True when the shadow `alias` (copy of the narrowed parameter, targetType its type) is used
     // only in the proven ways above and is read at least once (a write-only local is CS0219).
     // `newRules` is false for a `timeframe` copy: that shadow belongs to campaign unit S04
@@ -3115,7 +3153,9 @@ class NewTranspiler {
     // `castCasts` (U24) enables the write forms above and collects the line index of every write
     // that needs the `((T)…)` cast the typed declaration implies; the caller re-inserts it and
     // only then retypes the declaration.
-    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, newRules = true, castCasts?: number[]): boolean {
+    // `limitCasts` (U65) is the `limit` twin: the `getLimit` read and the integer literals, whose
+    // cast is `((Int64?)…)`; only the caller's `source === 'limit'` step offers it.
+    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, newRules = true, castCasts?: number[], limitCasts?: number[]): boolean {
         if (CORE_ARG_SHADOW_TYPES.indexOf (targetType) === -1) {
             return false;
         }
@@ -3159,6 +3199,10 @@ class NewTranspiler {
         const marketRows = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE) : [];
         const stringHolders = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE) : [];
         const tagContext = CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 ? this.coreArgShadowTagContext (lines) : undefined;
+        // U65: only the `limit` copy offers its write forms (the caller passes the collector);
+        // they are re-checked on the RAW line by coreArgShadowLimitCastWrite before anything is
+        // retyped, so a line the rewrite cannot reproduce keeps the whole site `object`.
+        const limitWrites = limitCasts !== undefined;
         for (let k = 0; k < lines.length; k++) {
             if (k === skipLine) {
                 continue;
@@ -3171,6 +3215,13 @@ class NewTranspiler {
                         const post = /^\s*=\s*([^;]+?)\s*;\s*$/.exec (line.slice (at + alias.length));
                         if (post !== null && this.coreArgShadowWriteCastType (post[1].trim (), targetType, marketRows, stringHolders) !== null) {
                             castCasts.push (k);
+                            continue;
+                        }
+                    }
+                    if (limitWrites && line.slice (0, at).trim () === '') {
+                        const post = /^\s*(?:\?\?=|=)\s*(.*?)\s*;(\s*(?:\/\/.*)?)$/.exec (line.slice (at + alias.length));
+                        if (post !== null && this.coreArgShadowLimitWriteRhs (post[1]) !== null) {
+                            limitCasts.push (k);
                             continue;
                         }
                     }
@@ -3648,9 +3699,16 @@ class NewTranspiler {
                 // round); this unit owns that copy now, so every source gets them. `castCasts` is
                 // offered only for the sources this unit owns, so a sibling copy (`limit` -- U23)
                 // keeps its write forms untyped.
+                // cs90 U65: that sibling is resolved -- `limitCasts` offers the `getLimit` read +
+                // integer-literal write forms (the `((Int64?)...)` cast), keyed on
+                // source === 'limit' alone, so no other source's rules move. All-or-nothing per
+                // source: a write line the cast insertion cannot reproduce keeps the declaration
+                // `object`.
                 const owned = CORE_ARG_SHADOW_OWNED_SOURCES.indexOf (source) !== -1;
+                const limitOwned = source === CORE_ARG_SHADOW_LIMIT_SOURCE;
                 const casts: number[] = [];
-                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, true, owned ? casts : undefined)) {
+                const limitCasts: number[] = [];
+                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, true, owned ? casts : undefined, limitOwned ? limitCasts : undefined)) {
                     const rewrites: Array<[ number, string ]> = [];
                     let ok = true;
                     for (const li of casts) {
@@ -3661,7 +3719,15 @@ class NewTranspiler {
                         }
                         rewrites.push ([ li, rewritten ]);
                     }
-                    if (ok && rewrites.length === casts.length) {
+                    for (const li of limitCasts) {
+                        const rewritten = this.coreArgShadowLimitCastWrite (bodyLines[li], alias, type);
+                        if (rewritten === null) {
+                            ok = false;
+                            break;
+                        }
+                        rewrites.push ([ li, rewritten ]);
+                    }
+                    if (ok && rewrites.length === casts.length + limitCasts.length) {
                         bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
                         for (const [ li, rewritten ] of rewrites) {
                             bodyLines[li] = rewritten;

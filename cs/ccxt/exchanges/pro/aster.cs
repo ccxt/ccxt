@@ -116,7 +116,7 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -248,7 +248,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@ticker"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", GetValue(market, "symbol")));
@@ -277,7 +277,7 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
+        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -344,7 +344,7 @@ public partial class aster : ccxt.aster
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((use1sFreq == true)) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
@@ -405,7 +405,7 @@ public partial class aster : ccxt.aster
         bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((use1sFreq == true)) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
@@ -451,7 +451,7 @@ public partial class aster : ccxt.aster
         string marketType = this.getAccountTypeFromUrl(client.url);
         object ticker = message;
         Dictionary<string, object> parsed = this.parseWsTicker(ticker, marketType);
-        string? symbol = ((string)GetValue(parsed, "symbol"));
+        object symbol = GetValue(parsed, "symbol");
         string messageHash = add("ticker:", symbol);
         if ((symbol != null))
         {
@@ -597,7 +597,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", GetValue(market, "symbol")));
@@ -625,7 +625,7 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         Dictionary<string, object> ticker = this.parseWsBidAsk(data, market);
-        string? symbol = ((string)GetValue(ticker, "symbol"));
+        object symbol = GetValue(ticker, "symbol");
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -703,7 +703,7 @@ public partial class aster : ccxt.aster
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -741,9 +741,9 @@ public partial class aster : ccxt.aster
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
-            IDictionary<string, object> first = this.safeDict(trades, 0);
+            object first = this.safeValue(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -787,7 +787,7 @@ public partial class aster : ccxt.aster
         };
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@aggTrade"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", GetValue(market, "symbol")));
@@ -816,7 +816,7 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
-        string? symbol = ((string)GetValue(parsed, "symbol"));
+        object symbol = GetValue(parsed, "symbol");
         if ((symbol == null))
         {
             return;
@@ -826,7 +826,7 @@ public partial class aster : ccxt.aster
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object stored = getValue(this.trades, symbol);
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client, "resolve", new object[] {stored, add("trade::", symbol)});
     }
@@ -1043,7 +1043,7 @@ public partial class aster : ccxt.aster
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1071,16 +1071,16 @@ public partial class aster : ccxt.aster
         };
         if (isEqual(limitVar, null) || (!isEqual(limitVar, 5) && !isEqual(limitVar, 10) && !isEqual(limitVar, 20)))
         {
-            limitVar = 20;
+            limitVar = ((Int64?)20);
         }
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limitVar.ToString()));
+            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), ((object)limitVar).ToString()));
             ((IList<object>)messageHashes).Add(add("orderbook:", GetValue(market, "symbol")));
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes));
+        object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -1132,7 +1132,7 @@ public partial class aster : ccxt.aster
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limit));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", GetValue(market, "symbol")));
@@ -1208,7 +1208,7 @@ public partial class aster : ccxt.aster
             await this.loadMarkets();
         }
         symbolVar = this.safeSymbol(symbolVar);
-        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
+        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbolVar), timeframeVar));
     }
 
@@ -1395,7 +1395,7 @@ public partial class aster : ccxt.aster
         {
             return;
         }
-        IDictionary<string, object> ohlcvsByTimeframe = ((IDictionary<string, object>)this.safeValue(this.ohlcvs, symbol));
+        object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
         if ((ohlcvsByTimeframe == null))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1405,7 +1405,7 @@ public partial class aster : ccxt.aster
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
         List<object> parsed = this.parseWsOHLCV(kline);
         callDynamically(stored, "append", new object[] {parsed});
         string messageHash = add(add(add("ohlcv:", symbol), ":"), timeframe);
@@ -1598,7 +1598,7 @@ public partial class aster : ccxt.aster
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", type },
         };
-        Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))
@@ -1771,12 +1771,12 @@ public partial class aster : ccxt.aster
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
+            object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
             if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
             {
@@ -1933,8 +1933,8 @@ public partial class aster : ccxt.aster
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1944,7 +1944,7 @@ public partial class aster : ccxt.aster
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
         }
         string messageHash = "orders";
         string? type = null;
@@ -1962,7 +1962,7 @@ public partial class aster : ccxt.aster
         object orders = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1982,8 +1982,8 @@ public partial class aster : ccxt.aster
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1993,7 +1993,7 @@ public partial class aster : ccxt.aster
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
         }
         string messageHash = "myTrades";
         string? type = null;
@@ -2011,7 +2011,7 @@ public partial class aster : ccxt.aster
         object trades = await this.watchMultiple(url, new List<object>() {messageHash}, null, new List<object>() {type});
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -2199,7 +2199,7 @@ public partial class aster : ccxt.aster
         }
         ccxt.pro.ArrayCache cache = this.orders;
         Dictionary<string, object> parsed = this.parseWsOrder(message, market);
-        string? symbol = ((string)GetValue(market, "symbol"));
+        object symbol = GetValue(market, "symbol");
         callDynamically(cache, "append", new object[] {parsed});
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))

@@ -103,7 +103,7 @@ public partial class alpaca : ccxt.alpaca
         //    ]
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        string? symbol = ((string)GetValue(ticker, "symbol"));
+        object symbol = GetValue(ticker, "symbol");
         string messageHash = add("ticker:", symbol);
         if ((symbol != null))
         {
@@ -165,9 +165,9 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         object timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
@@ -177,7 +177,7 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "bars", new List<object>() {GetValue(market, "id")} },
@@ -186,7 +186,7 @@ public partial class alpaca : ccxt.alpaca
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -209,7 +209,7 @@ public partial class alpaca : ccxt.alpaca
         //
         string? marketId = this.safeString(message, "S");
         string? symbol = this.safeSymbol(marketId);
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.ohlcvs, symbol));
+        object stored = this.safeValue(this.ohlcvs, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -234,7 +234,7 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
@@ -243,13 +243,13 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string messageHash = add(add("orderbook", ":"), symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "orderbooks", new List<object>() {GetValue(market, "id")} },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
+        object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -331,8 +331,8 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "crypto"));
         await this.authenticate(url);
@@ -341,7 +341,7 @@ public partial class alpaca : ccxt.alpaca
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string messageHash = add("trade:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -350,7 +350,7 @@ public partial class alpaca : ccxt.alpaca
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -370,7 +370,7 @@ public partial class alpaca : ccxt.alpaca
         //
         string? marketId = this.safeString(message, "S");
         string? symbol = this.safeSymbol(marketId);
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -398,7 +398,7 @@ public partial class alpaca : ccxt.alpaca
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
         await this.authenticate(url);
@@ -421,7 +421,7 @@ public partial class alpaca : ccxt.alpaca
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -438,8 +438,8 @@ public partial class alpaca : ccxt.alpaca
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "trading"));
         await this.authenticate(url);
@@ -451,7 +451,7 @@ public partial class alpaca : ccxt.alpaca
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
             messageHash = add("orders:", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -463,7 +463,7 @@ public partial class alpaca : ccxt.alpaca
         object orders = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -521,7 +521,7 @@ public partial class alpaca : ccxt.alpaca
         //        }
         //      }
         //
-        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object rawOrder = this.safeValue(data, "order", new Dictionary<string, object>() {});
         if (isEqual(this.orders, null))
         {
@@ -584,7 +584,7 @@ public partial class alpaca : ccxt.alpaca
         //        }
         //      }
         //
-        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         string? eventVar = this.safeString(data, "event");
         if (eventVar != "fill" && eventVar != "partial_fill")
         {
@@ -762,7 +762,7 @@ public partial class alpaca : ccxt.alpaca
                 { "t", this.handleTrades },
                 { "o", this.handleOrderBook },
             };
-            Delegate method = ((Delegate)this.safeValue(methods, T));
+            object method = this.safeValue(methods, T);
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, data});
@@ -778,7 +778,7 @@ public partial class alpaca : ccxt.alpaca
             { "listening", this.handleSubscription },
             { "trade_updates", this.handleTradeUpdate },
         };
-        Delegate method = ((Delegate)this.safeValue(methods, stream));
+        object method = this.safeValue(methods, stream);
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -823,7 +823,7 @@ public partial class alpaca : ccxt.alpaca
         //    }
         //
         string? T = this.safeString(message, "T");
-        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         string? status = this.safeString(data, "status");
         if (T == "success" || status == "authorized")
         {

@@ -913,7 +913,7 @@ public partial class apex : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -927,7 +927,7 @@ public partial class apex : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 200; // default is 200 when requested with `since`
+            limitVar = ((Int64?)200); // default is 200 when requested with `since`
         }
         request["limit"] = limitVar; // max 200, default 200
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
@@ -973,7 +973,7 @@ public partial class apex : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -985,7 +985,7 @@ public partial class apex : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 100; // default is 200 when requested with `since`
+            limitVar = ((Int64?)100); // default is 200 when requested with `since`
         }
         request["limit"] = limitVar; // max 100, default 100
         Dictionary<string, object> response = await this.publicGetV3Depth(this.extend(request, parameters));
@@ -1037,7 +1037,7 @@ public partial class apex : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1049,7 +1049,7 @@ public partial class apex : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 500; // default is 50
+            limitVar = ((Int64?)500); // default is 50
         }
         request["limit"] = limitVar;
         Dictionary<string, object> response = await this.publicGetV3Trades(this.extend(request, parameters));

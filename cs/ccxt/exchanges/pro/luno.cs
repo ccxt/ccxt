@@ -47,8 +47,8 @@ public partial class luno : ccxt.luno
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isEqual(this.markets, null))
@@ -56,12 +56,12 @@ public partial class luno : ccxt.luno
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string subscriptionHash = add("/stream/", GetValue(market, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash));
+        object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
         string messageHash = add("trades:", symbolVar);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
@@ -71,7 +71,7 @@ public partial class luno : ccxt.luno
         object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -102,7 +102,7 @@ public partial class luno : ccxt.luno
         object symbol = getValue(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("trades:", symbol);
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -163,7 +163,7 @@ public partial class luno : ccxt.luno
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isEqual(this.markets, null))
@@ -171,19 +171,19 @@ public partial class luno : ccxt.luno
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string subscriptionHash = add("/stream/", GetValue(market, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
-        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash));
+        object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
         string messageHash = add("orderbook:", symbolVar);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, subscriptionHash, subscription));
+        object orderbook = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 

@@ -177,7 +177,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         string? listenKey = await this.authenticate();
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
         return await this.watch(url, messageHash, null, "private", parameters);
     }
 
@@ -419,7 +419,7 @@ public partial class deepcoin : ccxt.deepcoin
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -430,7 +430,7 @@ public partial class deepcoin : ccxt.deepcoin
         object trades = await this.watchPublic(market, messageHash, "2", parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -492,7 +492,7 @@ public partial class deepcoin : ccxt.deepcoin
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache strored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object strored = getValue(this.trades, symbol);
         if ((data != null))
         {
             Dictionary<string, object> trade = this.parseWsTrade(data, market);
@@ -598,9 +598,9 @@ public partial class deepcoin : ccxt.deepcoin
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        string timeframeVar = timeframe;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -608,7 +608,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = add(add(add(add("ohlcv", "::"), symbolVar), "::"), timeframeVar);
@@ -616,7 +616,7 @@ public partial class deepcoin : ccxt.deepcoin
         object ohlcv = await this.watchPublic(market, messageHash, "11", parameters, suffix);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -633,7 +633,7 @@ public partial class deepcoin : ccxt.deepcoin
      */
     public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        string timeframeVar = timeframe;
+        object timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -695,7 +695,7 @@ public partial class deepcoin : ccxt.deepcoin
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
         if ((data != null))
         {
             List<object> ohlcv = this.parseWsOHLCV(data, market);
@@ -747,7 +747,7 @@ public partial class deepcoin : ccxt.deepcoin
         var suffixparametersVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
         suffix = ((IList<object>)suffixparametersVariable)[0];
         parameters = ((IList<object>)suffixparametersVariable)[1];
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(market, messageHash, "25", parameters, suffix));
+        object orderbook = await this.watchPublic(market, messageHash, "25", parameters, suffix);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -965,7 +965,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
         if (isEqual(this.markets, null))
@@ -980,7 +980,7 @@ public partial class deepcoin : ccxt.deepcoin
         object trades = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -1054,7 +1054,7 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "orders";
         if (isEqual(this.markets, null))
@@ -1069,7 +1069,7 @@ public partial class deepcoin : ccxt.deepcoin
         object orders = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1228,7 +1228,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             ((IList<object>)messageHashes).Add(messageHash);
         }
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
         if (isTrue(this.newUpdates))
         {

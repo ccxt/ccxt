@@ -159,7 +159,10 @@ public class ArrayCache : BaseCache
         }
     }
 
-    public object getLimit(object symbol2, object limit2)
+    // Int64? (not object/int): the generated `limitVar` shadows receive this through
+    // callDynamically and are declared Int64? -- every path must hand back an Int64 box or null,
+    // and ToInt64Arg normalises the incoming object without turning a null limit into 0.
+    public Int64? getLimit(object symbol2, object limit2)
     {
         lock (this.lockObject)
         {
@@ -167,7 +170,7 @@ public class ArrayCache : BaseCache
         }
     }
 
-    private object _getLimit(object symbol2, object limit2)
+    private Int64? _getLimit(object symbol2, object limit2)
     {
         // var limit = (int)limit2;
         int? newUpdatesValue = null;
@@ -192,7 +195,7 @@ public class ArrayCache : BaseCache
 
         if (newUpdatesValue == null)
         {
-            return limit2;
+            return ccxt.BaseExchange.ToInt64Arg(limit2);
         }
         else if (limit2 != null)
         {
@@ -279,7 +282,9 @@ public class ArrayCacheByTimestamp : BaseCache
         }
     }
 
-    public int getLimit(object symbol, object limit2)
+    // Int64? for the same reason as ArrayCache.getLimit: callDynamically feeds the generated
+    // Int64? `limitVar` shadows, so every path hands back an Int64 box or null.
+    public Int64? getLimit(object symbol, object limit2)
     {
         lock (this.lockObject)
         {
@@ -287,7 +292,7 @@ public class ArrayCacheByTimestamp : BaseCache
         }
     }
 
-    private int _getLimit(object symbol, object limit2)
+    private Int64? _getLimit(object symbol, object limit2)
     {
         this.clearUpdates = true;
         if (limit2 == null)

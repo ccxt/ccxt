@@ -144,9 +144,9 @@ public partial class blockchaincom : ccxt.blockchaincom
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -154,7 +154,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = add("ohlcv:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -168,7 +168,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         object ohlcv = await this.watch(url, messageHash, request, messageHash, request);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -235,14 +235,14 @@ public partial class blockchaincom : ccxt.blockchaincom
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = add("ticker:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -356,14 +356,14 @@ public partial class blockchaincom : ccxt.blockchaincom
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string messageHash = add("trades:", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -408,7 +408,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string messageHash = add("trades:", symbol);
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -468,8 +468,8 @@ public partial class blockchaincom : ccxt.blockchaincom
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -479,7 +479,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -491,7 +491,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -721,7 +721,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "symbol", GetValue(market, "id") },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
+        object orderbook = await this.watch(url, messageHash, request, messageHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -823,7 +823,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "balances", this.handleBalance },
             { "trading", this.handleOrders },
         };
-        Delegate handler = ((Delegate)this.safeValue(handlers, channel));
+        object handler = this.safeValue(handlers, channel);
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

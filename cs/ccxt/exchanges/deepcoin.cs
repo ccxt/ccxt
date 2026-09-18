@@ -763,7 +763,7 @@ public partial class deepcoin : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -772,7 +772,7 @@ public partial class deepcoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = 400;
+            limitVar = ((Int64?)400);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", GetValue(market, "id") },

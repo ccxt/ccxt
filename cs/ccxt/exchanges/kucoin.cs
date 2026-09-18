@@ -12016,7 +12016,7 @@ public partial class kucoin : Exchange
      */
     public async override Task<List<ccxt.Position>> FetchPositionsHistory(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -12083,7 +12083,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(limitVar, null))
             {
-                limitVar = 200;
+                limitVar = ((Int64?)200);
             }
             request["limit"] = limitVar;
             if (!isEqual(since, null))

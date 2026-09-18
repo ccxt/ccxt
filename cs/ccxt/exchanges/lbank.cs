@@ -1054,7 +1054,7 @@ public partial class lbank : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1063,7 +1063,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = 60;
+            limitVar = ((Int64?)60);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -2320,7 +2320,7 @@ public partial class lbank : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         // default query is for canceled and completely filled orders
         // does not return open orders unless specified explicitly
         parameters ??= new Dictionary<string, object>();
@@ -2335,7 +2335,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -2388,7 +2388,7 @@ public partial class lbank : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
@@ -2401,7 +2401,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },

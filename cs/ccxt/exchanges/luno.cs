@@ -1506,7 +1506,7 @@ public partial class luno : Exchange
 
     public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         // by default without entry number or limitVar number, return most recent entry
         parameters ??= new Dictionary<string, object>();
         if (isEqual(entry, null))
@@ -1515,7 +1515,7 @@ public partial class luno : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 1;
+            limitVar = ((Int64?)1);
         }
         object since = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {

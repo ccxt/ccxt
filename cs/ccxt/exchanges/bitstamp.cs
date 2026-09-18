@@ -1898,7 +1898,7 @@ public partial class bitstamp : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1918,7 +1918,7 @@ public partial class bitstamp : Exchange
                 request["limit"] = 1000; // we need to specify an allowed amount of `limitVar` if no `since` is set and there is no default limitVar by exchange
             } else
             {
-                limitVar = 1000;
+                limitVar = ((Int64?)1000);
                 Int64? start = this.parseToInt(divide(since, 1000));
                 request["start"] = start;
                 request["end"] = this.sum(start, multiply(duration, (subtract(limitVar, 1))));

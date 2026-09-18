@@ -3915,7 +3915,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string outcomeVar = outcome;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         string messageHash = "orders";
@@ -3928,7 +3928,7 @@ public partial class polymarket : PredictionExchange
         object orders = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {outcomeVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {outcomeVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeVar, since, limitVar, true));
     }
@@ -3947,7 +3947,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string outcomeVar = outcome;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         string messageHash = "myTrades";
@@ -3960,7 +3960,7 @@ public partial class polymarket : PredictionExchange
         object trades = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {outcomeVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {outcomeVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeVar, since, limitVar, true));
     }

@@ -89,9 +89,9 @@ public partial class hashkey : ccxt.hashkey
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        string timeframeVar = timeframe;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        object timeframeVar = timeframe;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -99,14 +99,14 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string topic = add("kline_", interval);
         string messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
         object ohlcv = await this.wathPublic(market, topic, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -155,7 +155,7 @@ public partial class hashkey : ccxt.hashkey
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
+        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             IDictionary<string, object> candle = this.safeDict(data, i, new Dictionary<string, object>() {});
@@ -195,14 +195,14 @@ public partial class hashkey : ccxt.hashkey
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string topic = "realtimes";
         string messageHash = add("ticker:", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.wathPublic(market, topic, messageHash, parameters));
@@ -240,7 +240,7 @@ public partial class hashkey : ccxt.hashkey
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
-        string? symbol = ((string)GetValue(ticker, "symbol"));
+        object symbol = GetValue(ticker, "symbol");
         string messageHash = add("ticker:", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
@@ -260,21 +260,21 @@ public partial class hashkey : ccxt.hashkey
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string topic = "trade";
         string messageHash = add("trades:", symbolVar);
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -313,7 +313,7 @@ public partial class hashkey : ccxt.hashkey
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object stored = getValue(this.trades, symbol);
         List<object> data = this.safeList(message, "data");
         if ((data != null))
         {
@@ -341,17 +341,17 @@ public partial class hashkey : ccxt.hashkey
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string topic = "depth";
         string messageHash = add("orderbook:", symbolVar);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.wathPublic(market, topic, messageHash, parameters));
+        object orderbook = await this.wathPublic(market, topic, messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -418,13 +418,13 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        string messageHash = "orders";
+        object messageHash = "orders";
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
@@ -433,7 +433,7 @@ public partial class hashkey : ccxt.hashkey
         object orders = await this.watchPrivate(messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -485,7 +485,7 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(orders, "append", new object[] {parsed});
         string messageHash = "orders";
         callDynamically(client, "resolve", new object[] {orders, messageHash});
-        string? symbol = ((string)GetValue(parsed, "symbol"));
+        object symbol = GetValue(parsed, "symbol");
         string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client, "resolve", new object[] {orders, symbolSpecificMessageHash});
     }
@@ -558,7 +558,7 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -573,7 +573,7 @@ public partial class hashkey : ccxt.hashkey
         object trades = await this.watchPrivate(messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -608,7 +608,7 @@ public partial class hashkey : ccxt.hashkey
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         callDynamically(client, "resolve", new object[] {tradesArray, messageHash});
-        string? symbol = ((string)GetValue(parsed, "symbol"));
+        object symbol = GetValue(parsed, "symbol");
         string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client, "resolve", new object[] {tradesArray, symbolSpecificMessageHash});
     }
@@ -751,7 +751,7 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(positions, "append", new object[] {parsed});
         string messageHash = "positions";
         callDynamically(client, "resolve", new object[] {parsed, messageHash});
-        string? symbol = ((string)GetValue(parsed, "symbol"));
+        object symbol = GetValue(parsed, "symbol");
         callDynamically(client, "resolve", new object[] {parsed, add(add(messageHash, ":"), symbol)});
     }
 
@@ -854,7 +854,7 @@ public partial class hashkey : ccxt.hashkey
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
+        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
         if (inOp(client.futures, messageHash))

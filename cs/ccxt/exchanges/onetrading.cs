@@ -1146,7 +1146,7 @@ public partial class onetrading : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1166,7 +1166,7 @@ public partial class onetrading : Exchange
         Int64 duration = multiply(durationInSeconds, 1000);
         if (isEqual(limitVar, null))
         {
-            limitVar = 1500;
+            limitVar = ((Int64?)1500);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_code", GetValue(market, "id") },

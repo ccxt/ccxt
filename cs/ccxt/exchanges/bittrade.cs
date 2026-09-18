@@ -1256,8 +1256,8 @@ public partial class bittrade : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 1000;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)1000);
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1342,9 +1342,9 @@ public partial class bittrade : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
-        limitVar ??= 1000;
+        limitVar ??= ((Int64?)1000);
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2207,11 +2207,11 @@ public partial class bittrade : Exchange
      */
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         if (isEqual(this.markets, null))
         {
@@ -2252,11 +2252,11 @@ public partial class bittrade : Exchange
      */
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(limitVar, null) || isGreaterThan(limitVar, 100))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         if (isEqual(this.markets, null))
         {

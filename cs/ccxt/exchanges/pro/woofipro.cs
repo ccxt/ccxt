@@ -83,7 +83,7 @@ public partial class woofipro : ccxt.woofipro
         {
             id = this.accountId;
         }
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -111,13 +111,13 @@ public partial class woofipro : ccxt.woofipro
         }
         string name = "orderbook";
         Dictionary<string, object> market = this.market(symbol);
-        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
+        object topic = add(add(GetValue(market, "id"), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, message));
+        object orderbook = await this.watchPublic(topic, message);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -171,7 +171,7 @@ public partial class woofipro : ccxt.woofipro
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -179,8 +179,8 @@ public partial class woofipro : ccxt.woofipro
         }
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
-        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
+        symbolVar = GetValue(market, "symbol");
+        object topic = add(add(GetValue(market, "id"), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -420,7 +420,7 @@ public partial class woofipro : ccxt.woofipro
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -434,7 +434,7 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        string? topic = ((string)add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval));
+        object topic = add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -443,7 +443,7 @@ public partial class woofipro : ccxt.woofipro
         object ohlcv = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {GetValue(market, "symbol"), limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {GetValue(market, "symbol"), limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -504,16 +504,16 @@ public partial class woofipro : ccxt.woofipro
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
-        string? topic = ((string)add(GetValue(market, "id"), "@trade"));
+        symbolVar = GetValue(market, "symbol");
+        object topic = add(GetValue(market, "id"), "@trade");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -522,7 +522,7 @@ public partial class woofipro : ccxt.woofipro
         object trades = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {GetValue(market, "symbol"), limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -556,7 +556,7 @@ public partial class woofipro : ccxt.woofipro
             var stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
+        object trades = getValue(this.trades, symbol);
         callDynamically(trades, "append", new object[] {trade});
         ((IDictionary<string,object>)this.trades)[(string)symbol] = trades;
         callDynamically(client, "resolve", new object[] {trades, topic});
@@ -602,7 +602,7 @@ public partial class woofipro : ccxt.woofipro
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? price = this.safeString2(trade, "executedPrice", "price");
         string? amount = this.safeString2(trade, "executedQuantity", "size");
         string? cost = Precise.stringMul(price, amount);
@@ -672,7 +672,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -707,7 +707,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -720,7 +720,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -744,8 +744,8 @@ public partial class woofipro : ccxt.woofipro
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -758,7 +758,7 @@ public partial class woofipro : ccxt.woofipro
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -769,7 +769,7 @@ public partial class woofipro : ccxt.woofipro
         object orders = await this.watchPrivate(messageHash, message);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -789,8 +789,8 @@ public partial class woofipro : ccxt.woofipro
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -803,7 +803,7 @@ public partial class woofipro : ccxt.woofipro
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = ((string)GetValue(market, "symbol"));
+            symbolVar = GetValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -814,7 +814,7 @@ public partial class woofipro : ccxt.woofipro
         object orders = await this.watchPrivate(messageHash, message);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -889,7 +889,7 @@ public partial class woofipro : ccxt.woofipro
         string? orderId = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         market = this.market(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeInteger(order, "timestamp");
         Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(order, "totalFee") },
@@ -1125,7 +1125,7 @@ public partial class woofipro : ccxt.woofipro
         {
             ((IList<object>)messageHashes).Add("positions");
         }
-        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1166,12 +1166,12 @@ public partial class woofipro : ccxt.woofipro
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
+        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
+            object position = getValue(positions, i);
             string? contracts = this.safeString(position, "contracts", "0");
             if (isTrue(Precise.stringGt(contracts, "0")))
             {

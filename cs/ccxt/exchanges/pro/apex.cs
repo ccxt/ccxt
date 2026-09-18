@@ -82,7 +82,7 @@ public partial class apex : ccxt.apex
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -111,7 +111,7 @@ public partial class apex : ccxt.apex
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -231,7 +231,7 @@ public partial class apex : ccxt.apex
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(object symbols, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -252,9 +252,9 @@ public partial class apex : ccxt.apex
             Dictionary<string, object> market = this.market(symbol);
             if (isEqual(limitVar, null))
             {
-                limitVar = 25;
+                limitVar = ((Int64?)25);
             }
-            string topic = add(add(add("orderBook", limitVar.ToString()), ".H."), getValue(market, "id2"));
+            string topic = add(add(add("orderBook", ((object)limitVar).ToString()), ".H."), getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
             string messageHash = add("orderbook:", symbol);
             ((IList<object>)messageHashes).Add(messageHash);
@@ -674,7 +674,7 @@ public partial class apex : ccxt.apex
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         string messageHash = "myTrades";
         if (isEqual(this.markets, null))
@@ -691,7 +691,7 @@ public partial class apex : ccxt.apex
         object trades = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {"myTrades"}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -754,7 +754,7 @@ public partial class apex : ccxt.apex
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -772,7 +772,7 @@ public partial class apex : ccxt.apex
         object orders = await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }

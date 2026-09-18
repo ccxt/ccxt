@@ -60,14 +60,14 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         // only supports a limit of 150 at this time
         string messageHash = add(add("market.", GetValue(market, "id")), ".detail");
         string? api = this.safeString(this.options, "api", "api");
@@ -121,7 +121,7 @@ public partial class bittrade : ccxt.bittrade
         object timestamp = this.safeValue(message, "ts");
         ticker["timestamp"] = timestamp;
         ticker["datetime"] = this.iso8601(timestamp);
-        string? symbol = ((string)GetValue(ticker, "symbol"));
+        object symbol = GetValue(ticker, "symbol");
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         callDynamically(client, "resolve", new object[] {ticker, ch});
         return message;
@@ -139,15 +139,15 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
-        object limitVar = limit;
+        object symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         // only supports a limitVar of 150 at this time
         string messageHash = add(add("market.", GetValue(market, "id")), ".trade.detail");
         string? api = this.safeString(this.options, "api", "api");
@@ -169,7 +169,7 @@ public partial class bittrade : ccxt.bittrade
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -207,7 +207,7 @@ public partial class bittrade : ccxt.bittrade
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
+        object tradesCache = this.safeValue(this.trades, symbol);
         if ((tradesCache == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -236,9 +236,9 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -246,7 +246,7 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = add(add(add("market.", GetValue(market, "id")), ".kline."), interval);
         string? api = this.safeString(this.options, "api", "api");
@@ -269,7 +269,7 @@ public partial class bittrade : ccxt.bittrade
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -328,7 +328,7 @@ public partial class bittrade : ccxt.bittrade
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        string symbolVar = symbol;
+        object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if ((!isEqual(limitVar, null)) && (!isEqual(limitVar, 150)))
@@ -340,7 +340,7 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = ((string)GetValue(market, "symbol"));
+        symbolVar = GetValue(market, "symbol");
         // only supports a limitVar of 150 at this time
         limitVar = (isEqual(limitVar, null)) ? 150 : limitVar;
         string messageHash = add(add(add("market.", GetValue(market, "id")), ".mbp."), limitVar.ToString());
@@ -362,7 +362,7 @@ public partial class bittrade : ccxt.bittrade
             { "params", parameters },
             { "method", this.handleOrderBookSubscription },
         };
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
+        object orderbook = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -437,7 +437,7 @@ public partial class bittrade : ccxt.bittrade
                 { "params", parameters },
                 { "method", this.handleOrderBookSnapshot },
             };
-            ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, requestId, request, requestId, snapshotSubscription));
+            object orderbook = await this.watch(url, requestId, request, requestId, snapshotSubscription);
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
@@ -493,8 +493,8 @@ public partial class bittrade : ccxt.bittrade
         }
         if ((isLessThanOrEqual(prevSeqNum, getValue(orderbook, "nonce"))) && (isGreaterThan(seqNum, getValue(orderbook, "nonce"))))
         {
-            List<object> asks = this.safeList(tick, "asks", new List<object>() {});
-            List<object> bids = this.safeList(tick, "bids", new List<object>() {});
+            object asks = this.safeValue(tick, "asks", new List<object>() {});
+            object bids = this.safeValue(tick, "bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["nonce"] = seqNum;
@@ -644,7 +644,7 @@ public partial class bittrade : ccxt.bittrade
                 { "trade", this.handleTrades },
                 { "kline", this.handleOHLCV },
             };
-            Delegate method = ((Delegate)this.safeValue(methods, methodName));
+            object method = this.safeValue(methods, methodName);
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

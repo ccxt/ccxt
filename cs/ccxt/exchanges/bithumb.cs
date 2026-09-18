@@ -2558,7 +2558,7 @@ public partial class bithumb : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -2596,7 +2596,7 @@ public partial class bithumb : Exchange
             }
             if (isEqual(limitVar, null))
             {
-                limitVar = 100;
+                limitVar = ((Int64?)100);
             }
             request["count"] = limitVar;
             request["order_currency"] = GetValue(market, "base");

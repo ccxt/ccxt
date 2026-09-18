@@ -11002,7 +11002,7 @@ public partial class okx : Exchange
      */
     public async override Task<List<ccxt.Position>> FetchPositionsHistory(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -11013,7 +11013,7 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
         if (isEqual(limitVar, null))
         {
-            limitVar = 100;
+            limitVar = ((Int64?)100);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", limitVar },

@@ -838,7 +838,7 @@ public partial class independentreserve : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -854,7 +854,7 @@ public partial class independentreserve : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 50;
+            limitVar = ((Int64?)50);
         }
         request["pageIndex"] = 1;
         request["pageSize"] = limitVar;
@@ -875,7 +875,7 @@ public partial class independentreserve : Exchange
      */
     public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -891,7 +891,7 @@ public partial class independentreserve : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = 50;
+            limitVar = ((Int64?)50);
         }
         request["pageIndex"] = 1;
         request["pageSize"] = limitVar;
@@ -912,8 +912,8 @@ public partial class independentreserve : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 50;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)50);
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -922,7 +922,7 @@ public partial class independentreserve : Exchange
         Int64? pageIndex = this.safeInteger(parameters, "pageIndex", 1);
         if (isEqual(limitVar, null))
         {
-            limitVar = 50;
+            limitVar = ((Int64?)50);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pageIndex", pageIndex },

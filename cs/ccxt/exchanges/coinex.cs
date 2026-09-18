@@ -1786,8 +1786,8 @@ public partial class coinex : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
-        limitVar ??= 20;
+        Int64? limitVar = limit;
+        limitVar ??= ((Int64?)20);
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1796,7 +1796,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = 20; // default
+            limitVar = ((Int64?)20); // default
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", GetValue(market, "id") },
