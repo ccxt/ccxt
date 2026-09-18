@@ -685,7 +685,7 @@ public partial class coinsph : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }
@@ -1957,7 +1957,7 @@ public partial class coinsph : Exchange
         Int64? timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills");
         string? triggerPrice = this.safeString(order, "stopPrice");
-        if (isTrue(Precise.stringEq(triggerPrice, "0")))
+        if (Precise.stringEq(triggerPrice, "0"))
         {
             triggerPrice = null;
         }

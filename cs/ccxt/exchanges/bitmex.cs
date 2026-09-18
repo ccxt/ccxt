@@ -1761,7 +1761,7 @@ public partial class bitmex : Exchange
         }
         double? before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         string? direction = null;
-        if (isTrue(Precise.stringLt(amountString, "0")))
+        if (Precise.stringLt(amountString, "0"))
         {
             direction = "out";
             amount = this.convertToRealAmount(((string)code), Precise.stringAbs(amountString));
@@ -2289,7 +2289,7 @@ public partial class bitmex : Exchange
         string? takerOrMaker = null;
         if ((feeCostString != null) && (execType == "Trade"))
         {
-            takerOrMaker = ((bool) isTrue(Precise.stringLt(feeCostString, "0"))) ? "maker" : "taker";
+            takerOrMaker = ((bool) Precise.stringLt(feeCostString, "0")) ? "maker" : "taker";
         }
         string? type = this.safeStringLower(trade, "ordType");
         return this.safeTrade(new Dictionary<string, object>() {

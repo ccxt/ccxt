@@ -622,7 +622,7 @@ public partial class bigone : Exchange
             type = "fiat";
         } else if ((chainLength == 0))
         {
-            if (isTrue(this.isLeveragedCurrency(id)))
+            if (this.isLeveragedCurrency(id))
             {
                 type = "leveraged";
             } else
@@ -1627,7 +1627,7 @@ public partial class bigone : Exchange
             side = "sell";
         }
         string? triggerPrice = this.safeString(order, "stop_price");
-        if (isTrue(Precise.stringEq(triggerPrice, "0")))
+        if (Precise.stringEq(triggerPrice, "0"))
         {
             triggerPrice = null;
         }

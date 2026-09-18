@@ -4721,7 +4721,7 @@ public partial class woo : Exchange
         market = this.safeMarket(contract, market);
         string? size = this.safeString(position, "holding");
         string? side = null;
-        if (isTrue(Precise.stringGt(size, "0")))
+        if (Precise.stringGt(size, "0"))
         {
             side = "long";
         } else

@@ -1132,7 +1132,7 @@ public partial class hyperliquid : PredictionExchange
                 continue;
             }
             string? totalStr = this.safeString(balance, "total");
-            if (((totalStr == null)) || isTrue(Precise.stringEq(totalStr, "0")))
+            if (((totalStr == null)) || Precise.stringEq(totalStr, "0"))
             {
                 continue;
             }
@@ -1174,7 +1174,7 @@ public partial class hyperliquid : PredictionExchange
         double? total = this.parseNumber(totalStr);
         string? entryNtlStr = this.safeString(position, "entryNtl");
         double? entryPrice = null;
-        if (((entryNtlStr != null)) && ((totalStr != null)) && !isTrue(Precise.stringEq(totalStr, "0")))
+        if (((entryNtlStr != null)) && ((totalStr != null)) && !Precise.stringEq(totalStr, "0"))
         {
             entryPrice = this.parseNumber(Precise.stringDiv(entryNtlStr, totalStr));
         }

@@ -1140,7 +1140,7 @@ public partial class toobit : ccxt.toobit
         await this.authenticate();
         string type = "swap"; // the only account type that carries positions here
         string messageHash = "";
-        if (!isTrue(this.isEmpty(symbols)))
+        if (!this.isEmpty(symbols))
         {
             symbols = this.marketSymbols(symbols);
             if ((symbols == null))
@@ -1280,7 +1280,7 @@ public partial class toobit : ccxt.toobit
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(filtered)))
+            if (!this.isEmpty(filtered))
             {
                 (client as WebSocketClient).resolve(filtered, messageHash);
             }

@@ -1847,7 +1847,7 @@ public partial class bitvavo : Exchange
             ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(symbol, triggerPrice);
         }
         request = this.extend(request, parameters);
-        if (isTrue(this.isEmpty(request)))
+        if (this.isEmpty(request))
         {
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
         }

@@ -1197,7 +1197,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(order, "fee");
         string? feeSymbol = this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
-        if (isTrue(Precise.stringGt(feeAmount, "0")))
+        if (Precise.stringGt(feeAmount, "0"))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", feeSymbol },

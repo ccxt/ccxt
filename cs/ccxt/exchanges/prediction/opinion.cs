@@ -242,7 +242,7 @@ public partial class opinion : PredictionExchange
         if (isEqual(this.outcomeSearchQuery(outcomeSymbol), null))
         {
             await this.loadOutcomes();
-            if (isTrue(this.hasOutcome(outcomeSymbol)))
+            if (this.hasOutcome(outcomeSymbol))
             {
                 return ccxt.BaseExchange.ToDict(this.safeOutcome(outcomeSymbol));
             }
@@ -1814,7 +1814,7 @@ public partial class opinion : PredictionExchange
      */
     public async virtual Task<object> loadApiKey()
     {
-        bool hasDirectApiKey = !isTrue(this.isEmptyString(this.apiKey));
+        bool hasDirectApiKey = !this.isEmptyString(this.apiKey);
         if (hasDirectApiKey)
         {
             return this.apiKey;
@@ -1866,7 +1866,7 @@ public partial class opinion : PredictionExchange
      */
     public virtual object opinionWsUrl()
     {
-        bool hasDirectApiKey = !isTrue(this.isEmptyString(this.apiKey));
+        bool hasDirectApiKey = !this.isEmptyString(this.apiKey);
         object apiKey = ((bool) (hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
         if ((apiKey == null))
         {
@@ -2468,7 +2468,7 @@ public partial class opinion : PredictionExchange
             {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
-                bool hasDirectApiKey = !isTrue(this.isEmptyString(this.apiKey));
+                bool hasDirectApiKey = !this.isEmptyString(this.apiKey);
                 object apiKey = ((bool) (hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if ((apiKey == null))
                 {

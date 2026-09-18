@@ -807,7 +807,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? filled = this.safeString(order, "amount_traded");
         string? eventVar = this.safeString(order, "event");
         string? status = null;
-        if (isTrue(Precise.stringEq(filled, amount)))
+        if (Precise.stringEq(filled, amount))
         {
             status = "closed";
         } else if ((eventVar == "order_deleted"))

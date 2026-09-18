@@ -364,7 +364,7 @@ public partial class testMainClass : BaseTest
             assert((value != null) || isTrue(allowNull), add("value is null", logText));
             if ((value != null))
             {
-                assert(!isTrue(Precise.stringEq(value, compareTo)), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected not to be equal to "), stringValue(compareTo)), logText));
+                assert(!Precise.stringEq(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected not to be equal to "), stringValue(compareTo)), logText));
             }
         }
         public void assertInArray(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object expectedArray, object allowNull = null)
@@ -597,7 +597,7 @@ public partial class testMainClass : BaseTest
             // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
             bool strictOpen = statusOpen && (filledDefined && amountDefined && isLessThan(filled, amount));
             // if non-strict check, then accept & ignore undefined values
-            bool nonstrictOpen = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || isTrue(Precise.stringLt(filled, amount)));
+            bool nonstrictOpen = (statusOpen || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt(filled, amount));
             // check
             if (isEqual(assertedStatus, "open"))
             {
@@ -609,9 +609,9 @@ public partial class testMainClass : BaseTest
             // ### CLOSED STATUS
             //
             // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-            bool closedStrict = statusClosed && (filledDefined && amountDefined && isTrue(Precise.stringEq(filled, amount)));
+            bool closedStrict = statusClosed && (filledDefined && amountDefined && Precise.stringEq(filled, amount));
             // if non-strict check, then accept & ignore undefined values
-            bool closedNonStrict = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || isTrue(Precise.stringEq(filled, amount)));
+            bool closedNonStrict = (statusClosed || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringEq(filled, amount));
             // check
             if (isEqual(assertedStatus, "closed"))
             {
@@ -623,9 +623,9 @@ public partial class testMainClass : BaseTest
             // ### CANCELED STATUS
             //
             // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-            bool canceledStrict = statusClanceled && (filledDefined && amountDefined && isTrue(Precise.stringLt(filled, amount)));
+            bool canceledStrict = statusClanceled && (filledDefined && amountDefined && Precise.stringLt(filled, amount));
             // if non-strict check, then accept & ignore undefined values
-            bool canceledNonStrict = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || isTrue(Precise.stringLt(filled, amount)));
+            bool canceledNonStrict = (statusClanceled || statusUndefined) && ((!filledDefined || !amountDefined) || Precise.stringLt(filled, amount));
             // check
             if (isEqual(assertedStatus, "canceled"))
             {

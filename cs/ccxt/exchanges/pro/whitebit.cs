@@ -754,7 +754,7 @@ public partial class whitebit : ccxt.whitebit
             unifiedStatus = "open";
         } else
         {
-            if (isTrue(Precise.stringEquals(remaining, "0")))
+            if (Precise.stringEquals(remaining, "0"))
             {
                 unifiedStatus = "closed";
             } else

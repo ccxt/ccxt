@@ -584,7 +584,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? side = null;
         if (!isEqual(amount, null))
         {
-            side = ((bool) isTrue(Precise.stringGt(amountString, "0"))) ? "buy" : "sell";
+            side = ((bool) Precise.stringGt(amountString, "0")) ? "buy" : "sell";
         }
         string? symbol = this.safeSymbol(marketId, market);
         string? feeValue = this.safeString(trade, 9);
@@ -825,7 +825,7 @@ public partial class bitfinex : ccxt.bitfinex
                 string side = ((bool) (isLessThan(deltas2, 0))) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
                 // price = 0 means that you have to remove the order from your book
-                object amount = ((bool) isTrue(Precise.stringGt(price, "0"))) ? size : "0";
+                object amount = ((bool) Precise.stringGt(price, "0")) ? size : "0";
                 string? idString = this.safeString(deltas, 0);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), idString});
             } else
@@ -833,8 +833,8 @@ public partial class bitfinex : ccxt.bitfinex
                 string? amount = this.safeString(deltas, 2);
                 string? counter = this.safeString(deltas, 1);
                 string? price = this.safeString(deltas, 0);
-                string? size = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
-                string side = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? "asks" : "bids";
+                string? size = ((bool) Precise.stringLt(amount, "0")) ? Precise.stringNeg(amount) : amount;
+                string side = ((bool) Precise.stringLt(amount, "0")) ? "asks" : "bids";
                 object bookside = getValue(orderbookItem, side);
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)});
             }
@@ -1350,7 +1350,7 @@ public partial class bitfinex : ccxt.bitfinex
         market = this.safeMarket(symbol);
         string? amount = this.safeString(order, 7);
         string side = "buy";
-        if (isTrue(Precise.stringLt(amount, "0")))
+        if (Precise.stringLt(amount, "0"))
         {
             amount = Precise.stringAbs(amount);
             side = "sell";

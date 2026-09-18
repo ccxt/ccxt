@@ -2523,7 +2523,7 @@ public partial class kucoin : ccxt.kucoin
             string? costString = Precise.stringAdd(previousCost, matchCost);
             ((IDictionary<string,object>)parsed)["cost"] = this.parseNumber(costString);
             string? filledString = this.numberToString(getValue(parsed, "filled"));
-            if (((filledString != null)) && isTrue((Precise.stringGt(filledString, "0"))))
+            if (((filledString != null)) && (Precise.stringGt(filledString, "0")))
             {
                 ((IDictionary<string,object>)parsed)["average"] = this.parseNumber(Precise.stringDiv(costString, filledString));
             }
@@ -3244,7 +3244,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void setPositionsCache(WebSocketClient client, object uta)
     {
-        if (!isTrue((this.isEmpty(this.positions))))
+        if (!(this.isEmpty(this.positions)))
         {
             return;
         }
@@ -3515,7 +3515,7 @@ public partial class kucoin : ccxt.kucoin
         Int64? timestamp = this.safeIntegerProduct(position, "O", 0.000001);
         string? amountString = this.safeString(position, "q");
         string? size = Precise.stringAbs(amountString);
-        string side = ((bool) isTrue(Precise.stringGt(amountString, "0"))) ? "long" : "short";
+        string side = ((bool) Precise.stringGt(amountString, "0")) ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "pi") },

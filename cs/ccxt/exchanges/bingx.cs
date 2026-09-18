@@ -1246,7 +1246,7 @@ public partial class bingx : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }

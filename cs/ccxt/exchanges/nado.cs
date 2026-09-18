@@ -1237,7 +1237,7 @@ public partial class nado : Exchange
         for (int i = 0; i < orders.Count; i++)
         {
             object order = getValue(orders, i);
-            if (isTrue(this.isArchiveOrderClosed(order)))
+            if (this.isArchiveOrderClosed(order))
             {
                 ((IList<object>)closedOrders).Add(this.extend(new Dictionary<string, object>() {
                     { "status", "closed" },
@@ -1621,7 +1621,7 @@ public partial class nado : Exchange
             object position = getValue(positions, i);
             IDictionary<string, object> balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
             string? amount = this.safeString(balance, "amount");
-            if (((amount == null)) || isTrue(Precise.stringEquals(amount, "0")))
+            if (((amount == null)) || Precise.stringEquals(amount, "0"))
             {
                 continue;
             }
@@ -2424,7 +2424,7 @@ public partial class nado : Exchange
         string? side = this.safeString(trade, "trade_type");
         if (((side == null)) && ((rawOrderAmount != null)))
         {
-            if (isTrue(Precise.stringLt(rawOrderAmount, "0")))
+            if (Precise.stringLt(rawOrderAmount, "0"))
             {
                 side = "sell";
             } else
@@ -2827,16 +2827,16 @@ public partial class nado : Exchange
         double? notional = null;
         if ((amountString != null))
         {
-            if (isTrue(Precise.stringGt(amountString, "0")))
+            if (Precise.stringGt(amountString, "0"))
             {
                 side = "long";
-            } else if (isTrue(Precise.stringLt(amountString, "0")))
+            } else if (Precise.stringLt(amountString, "0"))
             {
                 side = "short";
             }
             string? absoluteAmount = Precise.stringAbs(amountString);
             contracts = this.parseX18(absoluteAmount);
-            if (((vQuoteBalance != null)) && !isTrue(Precise.stringEquals(absoluteAmount, "0")))
+            if (((vQuoteBalance != null)) && !Precise.stringEquals(absoluteAmount, "0"))
             {
                 entryPrice = this.parseNumber(Precise.stringDiv(Precise.stringAbs(vQuoteBalance), absoluteAmount));
             }
@@ -2979,7 +2979,7 @@ public partial class nado : Exchange
             string? amountString = this.safeString(order, "amount");
             if ((amountString != null))
             {
-                side = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
+                side = ((bool) Precise.stringLt(amountString, "0")) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
@@ -2999,7 +2999,7 @@ public partial class nado : Exchange
             status = this.safeString(order, "status");
             if ((status == null))
             {
-                if (isTrue(this.isArchiveOrderClosed(order)))
+                if (this.isArchiveOrderClosed(order))
                 {
                     status = "closed";
                 }
@@ -3020,7 +3020,7 @@ public partial class nado : Exchange
             string? amountString = this.safeString(order, "amount");
             if ((amountString != null))
             {
-                side = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
+                side = ((bool) Precise.stringLt(amountString, "0")) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
             string? unfilledAmount = this.safeString(order, "unfilled_amount");
@@ -3051,7 +3051,7 @@ public partial class nado : Exchange
             string? amountString = this.safeString(rawOrder, "amount");
             if ((amountString != null))
             {
-                side = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "sell" : "buy";
+                side = ((bool) Precise.stringLt(amountString, "0")) ? "sell" : "buy";
                 amount = this.parseX18(Precise.stringAbs(amountString));
             }
             IDictionary<string, object> triggerStatus = this.safeDict(order, "status");

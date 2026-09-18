@@ -2339,7 +2339,7 @@ public partial class mexc : ccxt.mexc
                 return;
             }
         }
-        if (isTrue(this.isBinaryMessage(message)))
+        if (this.isBinaryMessage(message))
         {
             message = this.decodeProtoMsg(message);
             this.handleProtobufMessage(client as WebSocketClient, message);

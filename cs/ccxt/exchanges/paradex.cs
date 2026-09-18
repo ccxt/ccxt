@@ -1411,7 +1411,7 @@ public partial class paradex : Exchange
         object hours = this.safeString(this.safeDict(market, "info", new Dictionary<string, object>() {}), "funding_period_hours");
         // zero hours is not an interval, and a caller annualising a rate divides by it
         object interval = null;
-        if (((hours != null)) && isTrue(Precise.stringGt(hours, "0")))
+        if (((hours != null)) && Precise.stringGt(hours, "0"))
         {
             interval = add(hours, "h");
         }

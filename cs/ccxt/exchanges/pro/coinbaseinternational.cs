@@ -154,7 +154,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         this.checkRequiredCredentials();
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             symbols = this.symbols;
         } else

@@ -482,7 +482,7 @@ public partial class upbit : Exchange
         string? maxDailyWithdrawal = this.safeString(withdrawLimits, "daily", maxOnetimeWithdrawal);
         string? remainingDailyWithdrawal = this.safeString(withdrawLimits, "remaining_daily", maxDailyWithdrawal);
         string? maxWithdrawLimit = null;
-        if (isTrue(Precise.stringGt(remainingDailyWithdrawal, "0")))
+        if (Precise.stringGt(remainingDailyWithdrawal, "0"))
         {
             maxWithdrawLimit = remainingDailyWithdrawal;
         } else

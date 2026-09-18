@@ -2667,7 +2667,7 @@ public partial class bybit : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.checkRequiredCredentials(false)))
+        if (!this.checkRequiredCredentials(false))
         {
             return new Dictionary<string, object>() {};
         }
@@ -4335,7 +4335,7 @@ public partial class bybit : Exchange
             object feeCurrencyCode = null;
             if (isEqual(getValue(market, "spot"), true))
             {
-                if (isTrue(Precise.stringGt(feeCostString, "0")))
+                if (Precise.stringGt(feeCostString, "0"))
                 {
                     if ((side == "buy"))
                     {
@@ -5384,7 +5384,7 @@ public partial class bybit : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder requires a price argument for limit orders")) ;
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
-        if (!isTrue(Precise.stringGt(this.numberToString(amount), "0")))
+        if (!Precise.stringGt(this.numberToString(amount), "0"))
         {
             amount = null;
         }
@@ -7859,7 +7859,7 @@ public partial class bybit : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? amountString = this.safeString2(item, "amount", "change");
         string? afterString = this.safeString2(item, "wallet_balance", "cashBalance");
-        string direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
+        string direction = ((bool) Precise.stringLt(amountString, "0")) ? "out" : "in";
         object before = null;
         object after = null;
         object amount = null;

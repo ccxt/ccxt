@@ -1520,7 +1520,7 @@ public partial class coinbaseexchange : Exchange
             if ((until == null))
             {
                 object parsedTimeframeMilliseconds = multiply(parsedTimeframe, 1000);
-                if (isTrue(this.isRoundNumber(mod(since, parsedTimeframeMilliseconds))))
+                if (this.isRoundNumber(mod(since, parsedTimeframeMilliseconds)))
                 {
                     ((IDictionary<string,object>)request)["end"] = this.iso8601(this.sum(multiply((subtract(limitVar, 1)), parsedTimeframeMilliseconds), since));
                 } else
@@ -2080,7 +2080,7 @@ public partial class coinbaseexchange : Exchange
         string? direction = null;
         string? afterString = this.safeString(item, "balance");
         string? beforeString = Precise.stringSub(afterString, amountString);
-        if (isTrue(Precise.stringLt(amountString, "0")))
+        if (Precise.stringLt(amountString, "0"))
         {
             direction = "out";
             amountString = Precise.stringAbs(amountString);

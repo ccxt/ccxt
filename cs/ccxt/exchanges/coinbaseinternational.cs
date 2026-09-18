@@ -492,7 +492,7 @@ public partial class coinbaseinternational : Exchange
             if ((network == null))
             {
                 // find default network
-                if (isTrue(this.isEmpty(networks)))
+                if (this.isEmpty(networks))
                 {
                     throw new BadRequest ((string)(((this.id + " createDepositAddress network not found for currency ") + (currencyCode)) + " please specify networkId in params")) ;
                 }
@@ -1321,7 +1321,7 @@ public partial class coinbaseinternational : Exchange
         string? quantity = this.safeString(position, "net_size");
         market = this.safeMarket(marketId, market, "-");
         string side = "long";
-        if (isTrue(Precise.stringLe(quantity, "0")))
+        if (Precise.stringLe(quantity, "0"))
         {
             side = "short";
             quantity = Precise.stringMul("-1", quantity);
@@ -1395,7 +1395,7 @@ public partial class coinbaseinternational : Exchange
         //    ]
         //
         object positions = this.parsePositions(response);
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             return ccxt.BaseExchange.ToPositionList(positions);
         }

@@ -926,7 +926,7 @@ public partial class grvt : Exchange
         //            ...
         //
         List<object> promises = new List<object>() {marketsPromise};
-        if (!isTrue(this.isEmptyString(this.apiKey)) || !isTrue(this.isEmptyString(this.privateKey)))
+        if (!this.isEmptyString(this.apiKey) || !this.isEmptyString(this.privateKey))
         {
             ((IList<object>)promises).Add(this.signIn());
         }

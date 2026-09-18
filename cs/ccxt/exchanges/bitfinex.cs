@@ -1477,7 +1477,7 @@ public partial class bitfinex : Exchange
             double? price = this.safeNumber(order, priceIndex);
             string? signedAmount = this.safeString(order, 2);
             string? amount = Precise.stringAbs(signedAmount);
-            string side = ((bool) isTrue(Precise.stringGt(signedAmount, "0"))) ? "bids" : "asks";
+            string side = ((bool) Precise.stringGt(signedAmount, "0")) ? "bids" : "asks";
             ((IList<object>)getValue(result, side)).Add(new List<object>() {price, this.parseNumber(amount)});
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
@@ -1992,7 +1992,7 @@ public partial class bitfinex : Exchange
         string? remaining = Precise.stringAbs(this.safeString(orderList, 6));
         string? signedAmount = this.safeString(orderList, 7);
         string? amount = Precise.stringAbs(signedAmount);
-        string side = ((bool) isTrue(Precise.stringLt(signedAmount, "0"))) ? "sell" : "buy";
+        string side = ((bool) Precise.stringLt(signedAmount, "0")) ? "sell" : "buy";
         string? orderType = this.safeString(orderList, 8);
         string? type = this.safeString(this.safeValue(this.options, "exchangeTypes"), orderType);
         string? timeInForce = this.parseTimeInForce(orderType);
@@ -3043,7 +3043,7 @@ public partial class bitfinex : Exchange
             amount = Precise.stringAbs(signedAmount);
             if ((signedAmount != null))
             {
-                if (isTrue(Precise.stringLt(signedAmount, "0")))
+                if (Precise.stringLt(signedAmount, "0"))
                 {
                     type = "withdrawal";
                 } else
@@ -3498,7 +3498,7 @@ public partial class bitfinex : Exchange
             { "contractSize", null },
             { "markPrice", null },
             { "lastPrice", null },
-            { "side", ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "long" : "short" },
+            { "side", ((bool) Precise.stringGt(amount, "0")) ? "long" : "short" },
             { "hedged", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

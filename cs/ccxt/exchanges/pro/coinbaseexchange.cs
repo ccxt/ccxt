@@ -762,7 +762,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                             totalCost = this.safeString(tradeEntry, "cost", "0");
                             totalAmount = this.safeString(tradeEntry, "amount", "0");
                         }
-                        if (!isTrue(Precise.stringEq(totalAmount, "0")))
+                        if (!Precise.stringEq(totalAmount, "0"))
                         {
                             ((IDictionary<string,object>)previousOrder)["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                         }

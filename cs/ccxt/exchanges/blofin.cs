@@ -819,7 +819,7 @@ public partial class blofin : Exchange
         string? maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         bool isActive = ((this.safeString(market, "state") == "live"));
-        bool isMargin = spot && isTrue((Precise.stringGt(maxLeverage, "1")));
+        bool isMargin = spot && (Precise.stringGt(maxLeverage, "1"));
         string? contractType = this.safeString(market, "contractType");
         double? maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         double? maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -3039,10 +3039,10 @@ public partial class blofin : Exchange
         {
             if ((side == "net"))
             {
-                if (isTrue(Precise.stringGt(pos, "0")))
+                if (Precise.stringGt(pos, "0"))
                 {
                     side = "long";
-                } else if (isTrue(Precise.stringLt(pos, "0")))
+                } else if (Precise.stringLt(pos, "0"))
                 {
                     side = "short";
                 } else
@@ -3688,7 +3688,7 @@ public partial class blofin : Exchange
         // const type = this.getPathAuthenticationType (path);
         if (isEqual(api, "public"))
         {
-            if (!isTrue(this.isEmpty(query)))
+            if (!this.isEmpty(query))
             {
                 url = add(url, ("?" + this.urlencode(query)));
             }
@@ -3705,7 +3705,7 @@ public partial class blofin : Exchange
             object sign_body = "";
             if (isEqual(method, "GET"))
             {
-                if (!isTrue(this.isEmpty(query)))
+                if (!this.isEmpty(query))
                 {
                     string urlencodedQuery = ("?" + this.urlencode(query));
                     url = add(url, urlencodedQuery);
@@ -3713,7 +3713,7 @@ public partial class blofin : Exchange
                 }
             } else
             {
-                if (!isTrue(this.isEmpty(query)))
+                if (!this.isEmpty(query))
                 {
                     body = this.json(query);
                     sign_body = body;

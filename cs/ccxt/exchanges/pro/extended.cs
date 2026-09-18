@@ -500,7 +500,7 @@ public partial class extended : ccxt.extended
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!isTrue(this.isEmpty(filtered)))
+            if (!this.isEmpty(filtered))
             {
                 (client as WebSocketClient).resolve(filtered, messageHash);
             }

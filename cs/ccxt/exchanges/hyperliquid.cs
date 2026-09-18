@@ -441,7 +441,7 @@ public partial class hyperliquid : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             await this.initializeClient();
         }
@@ -800,7 +800,7 @@ public partial class hyperliquid : Exchange
             return 0;
         }
         List<object> priceSplitted = ((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        if (isTrue(Precise.stringEq(priceStr, "0")))
+        if (Precise.stringEq(priceStr, "0"))
         {
             // Significant digits is always 5 in this case
             object significantDigits = 5;
@@ -808,7 +808,7 @@ public partial class hyperliquid : Exchange
             object integerDigits = 0;
             // Calculate the price precision
             pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), subtract(significantDigits, integerDigits));
-        } else if (isTrue(Precise.stringGt(priceStr, "0")) && isTrue(Precise.stringLt(priceStr, "1")))
+        } else if (Precise.stringGt(priceStr, "0") && Precise.stringLt(priceStr, "1"))
         {
             // Significant digits, always 5 in this case
             int significantDigits = 5;
@@ -1728,7 +1728,7 @@ public partial class hyperliquid : Exchange
         // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
-        if (isTrue(Precise.stringEq(result, "0")) && isTrue(Precise.stringGt(this.numberToString(amount), "0")))
+        if (Precise.stringEq(result, "0") && Precise.stringGt(this.numberToString(amount), "0"))
         {
             throw new InvalidOrder ((string)((add((this.id + " amount of "), getValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
         }
@@ -4292,7 +4292,7 @@ public partial class hyperliquid : Exchange
         string? side = null;
         if ((size != null))
         {
-            side = ((bool) isTrue(Precise.stringGt(rawSize, "0"))) ? "long" : "short";
+            side = ((bool) Precise.stringGt(rawSize, "0")) ? "long" : "short";
             size = Precise.stringAbs(size);
         }
         string? rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");

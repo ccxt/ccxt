@@ -2111,7 +2111,7 @@ public partial class binance : PredictionExchange
             return null;
         }
         string? errorCode = this.safeString(response, "code");
-        if (((errorCode != null)) && isTrue(Precise.stringLt(errorCode, "0")))
+        if (((errorCode != null)) && Precise.stringLt(errorCode, "0"))
         {
             string? message = this.safeString(response, "msg", "");
             string feedback = ((this.id + " ") + (body));

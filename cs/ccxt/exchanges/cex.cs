@@ -1661,7 +1661,7 @@ public partial class cex : Exchange
     {
         string? amount = this.safeString(item, "amount");
         string? direction = null;
-        if (isTrue(Precise.stringLe(amount, "0")))
+        if (Precise.stringLe(amount, "0"))
         {
             direction = "out";
             amount = Precise.stringMul("-1", amount);

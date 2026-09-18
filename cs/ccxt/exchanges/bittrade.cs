@@ -794,7 +794,7 @@ public partial class bittrade : Exchange
             string? state = this.safeString(market, "state");
             string? leverageRatio = this.safeString(market, "leverage-ratio", "1");
             string? superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-            bool margin = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
+            bool margin = Precise.stringGt(leverageRatio, "1") || Precise.stringGt(superLeverageRatio, "1");
             double? fee = ((bool) (isEqual(bs, "OMG"))) ? this.parseNumber("0") : this.parseNumber("0.002");
             if ((baseId == null))
             {
@@ -1149,7 +1149,7 @@ public partial class bittrade : Exchange
         string? filledPoints = this.safeString(trade, "filled-points");
         if ((filledPoints != null))
         {
-            if (((feeCost == null)) || isTrue((Precise.stringEq(feeCost, "0.0"))))
+            if (((feeCost == null)) || (Precise.stringEq(feeCost, "0.0")))
             {
                 feeCost = filledPoints;
                 feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-deduct-currency"));

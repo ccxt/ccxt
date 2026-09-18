@@ -1555,7 +1555,7 @@ public partial class lighter : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetAssetDetails(parameters);
-        if (isTrue(this.checkRequiredCredentials(false)))
+        if (this.checkRequiredCredentials(false))
         {
             await this.preLoadLighterLibrary();
         }

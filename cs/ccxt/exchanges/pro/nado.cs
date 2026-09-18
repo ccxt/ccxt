@@ -1620,7 +1620,7 @@ public partial class nado : ccxt.nado
         } else if ((reason == "filled"))
         {
             status = "open";
-            if (((amountString != null)) && isTrue(Precise.stringEq(amountString, "0")))
+            if (((amountString != null)) && Precise.stringEq(amountString, "0"))
             {
                 status = "closed";
             }
@@ -1694,16 +1694,16 @@ public partial class nado : ccxt.nado
         double? entryPrice = null;
         if ((amountString != null))
         {
-            if (isTrue(Precise.stringGt(amountString, "0")))
+            if (Precise.stringGt(amountString, "0"))
             {
                 side = "long";
-            } else if (isTrue(Precise.stringLt(amountString, "0")))
+            } else if (Precise.stringLt(amountString, "0"))
             {
                 side = "short";
             }
             string? absoluteAmount = Precise.stringAbs(amountString);
             contracts = this.parseX18(absoluteAmount);
-            if (((vQuoteAmount != null)) && !isTrue(Precise.stringEquals(absoluteAmount, "0")))
+            if (((vQuoteAmount != null)) && !Precise.stringEquals(absoluteAmount, "0"))
             {
                 entryPrice = this.parseNumber(Precise.stringDiv(Precise.stringAbs(vQuoteAmount), absoluteAmount));
             }
@@ -1837,7 +1837,7 @@ public partial class nado : ccxt.nado
             string? bid = this.safeString(bbo, "bid");
             string? ask = this.safeString(bbo, "ask");
             string maxPrice = "170141183460469231731687303715884105727";
-            if (isTrue(Precise.stringGt(bid, "0")) && isTrue(Precise.stringGt(ask, "0")) && !isTrue(Precise.stringEquals(bid, maxPrice)) && !isTrue(Precise.stringEquals(ask, maxPrice)))
+            if (Precise.stringGt(bid, "0") && Precise.stringGt(ask, "0") && !Precise.stringEquals(bid, maxPrice) && !Precise.stringEquals(ask, maxPrice))
             {
                 Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
                     { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },

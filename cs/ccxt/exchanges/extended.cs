@@ -1930,7 +1930,7 @@ public partial class extended : Exchange
         string? direction = null;
         if ((amountString != null))
         {
-            direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
+            direction = ((bool) Precise.stringLt(amountString, "0")) ? "out" : "in";
         }
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(item, "fee");
@@ -2263,7 +2263,7 @@ public partial class extended : Exchange
         string? counterpartyAccountId = this.safeString(transfer, "counterpartyAccountId");
         string? fromAccount = accountId;
         string? toAccount = counterpartyAccountId;
-        if (((amountString != null)) && !isTrue(Precise.stringLt(amountString, "0")))
+        if (((amountString != null)) && !Precise.stringLt(amountString, "0"))
         {
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
@@ -2803,7 +2803,7 @@ public partial class extended : Exchange
         string? resolutionString = this.numberToString(resolution);
         string? precise = Precise.stringMul(amount, resolutionString);
         string result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
-        if (isTrue(roundUp) && isTrue(Precise.stringGt(precise, result)))
+        if (isTrue(roundUp) && Precise.stringGt(precise, result))
         {
             result = ((string)Precise.stringAdd(result, "1"));
         }
@@ -3826,7 +3826,7 @@ public partial class extended : Exchange
         // Cairo prime offset for i64 negative encoding.
         string prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
         string? valueString = this.numberToString(value);
-        if (isTrue(Precise.stringLt(valueString, "0")))
+        if (Precise.stringLt(valueString, "0"))
         {
             return Precise.stringAdd(prime, valueString);
         }

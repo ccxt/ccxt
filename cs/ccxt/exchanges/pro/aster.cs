@@ -1845,7 +1845,7 @@ public partial class aster : ccxt.aster
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
-        if (!isTrue(this.isEmpty(messageHashes)))
+        if (!this.isEmpty(messageHashes))
         {
             for (int i = 0; i < getArrayLength(newPositions); i++)
             {
@@ -1880,9 +1880,9 @@ public partial class aster : ccxt.aster
         if ((positionSide == "both"))
         {
             hedged = false;
-            if (!isTrue(Precise.stringEq(contracts, "0")))
+            if (!Precise.stringEq(contracts, "0"))
             {
-                if (isTrue(Precise.stringLt(contracts, "0")))
+                if (Precise.stringLt(contracts, "0"))
                 {
                     positionSide = "short";
                 } else
@@ -2056,7 +2056,7 @@ public partial class aster : ccxt.aster
                         // accumulate order fees
                         object fees = this.safeValue(order, "fees");
                         object fee = this.safeValue(order, "fee");
-                        if (!isTrue(this.isEmpty(fees)))
+                        if (!this.isEmpty(fees))
                         {
                             bool insertNewFeeCurrency = true;
                             for (int i = 0; isLessThan(i, getArrayLength(fees)); i++)
@@ -2202,7 +2202,7 @@ public partial class aster : ccxt.aster
         string? symbol = ((string)getValue(market, "symbol"));
         callDynamically(cache, "append", new object[] {parsed});
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
-        if (!isTrue(this.isEmpty(messageHashes)))
+        if (!this.isEmpty(messageHashes))
         {
             string symbolMessageHash = ((messageHash + "::") + symbol);
             (client as WebSocketClient).resolve(cache, symbolMessageHash);
@@ -2231,7 +2231,7 @@ public partial class aster : ccxt.aster
         Int64? lastUpdateTimestamp = T;
         Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "n");
-        if (((feeCost != null)) && isTrue((Precise.stringGt(feeCost, "0"))))
+        if (((feeCost != null)) && (Precise.stringGt(feeCost, "0")))
         {
             string? feeCurrencyId = this.safeString(order, "N");
             string? feeCurrency = this.safeCurrencyCode(feeCurrencyId);

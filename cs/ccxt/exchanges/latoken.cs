@@ -814,7 +814,7 @@ public partial class latoken : Exchange
         {
             object askEntry = getValue(rawAsks, i);
             string? askQuantity = this.safeString(askEntry, "quantity");
-            if (isTrue(Precise.stringGt(askQuantity, "0")))
+            if (Precise.stringGt(askQuantity, "0"))
             {
                 ((IList<object>)asks).Add(askEntry);
             }
@@ -823,7 +823,7 @@ public partial class latoken : Exchange
         {
             object bidEntry = getValue(rawBids, i);
             string? bidQuantity = this.safeString(bidEntry, "quantity");
-            if (isTrue(Precise.stringGt(bidQuantity, "0")))
+            if (Precise.stringGt(bidQuantity, "0"))
             {
                 ((IList<object>)bids).Add(bidEntry);
             }

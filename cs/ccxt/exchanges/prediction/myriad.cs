@@ -1089,18 +1089,18 @@ public partial class myriad : PredictionExchange
             }
         }
         string? priceWei = this.toOrderbookWei(priceValue);
-        if (isTrue(Precise.stringLt(priceWei, "1")))
+        if (Precise.stringLt(priceWei, "1"))
         {
             priceWei = "1";
         }
         // price is a fraction in (0, 1] encoded as 1..1e18 wei (tick is 1 wei); reject out-of-range early
-        if (isTrue(Precise.stringGt(priceWei, "1000000000000000000")))
+        if (Precise.stringGt(priceWei, "1000000000000000000"))
         {
             throw new InvalidOrder ((string)(this.id + " createOrder() price must be a fraction between 0 and 1")) ;
         }
         string? amountWei = this.toOrderbookWei(amount);
         // shares are integer wei (1e18 = 1 share); a sub-wei amount that rounds to zero is invalid
-        if (isTrue(Precise.stringLt(amountWei, "1")))
+        if (Precise.stringLt(amountWei, "1"))
         {
             throw new InvalidOrder ((string)(this.id + " createOrder() amount is too small (rounds to zero shares)")) ;
         }
@@ -1624,7 +1624,7 @@ public partial class myriad : PredictionExchange
         string? amountStr = this.safeString(trade, "shares");
         string? costStr = this.safeString(trade, "value");
         string? priceStr = null;
-        if (((amountStr != null)) && ((costStr != null)) && !isTrue(Precise.stringEq(amountStr, "0")))
+        if (((amountStr != null)) && ((costStr != null)) && !Precise.stringEq(amountStr, "0"))
         {
             priceStr = Precise.stringDiv(costStr, amountStr);
         }
@@ -3348,7 +3348,7 @@ public partial class myriad : PredictionExchange
         string? amountStr = this.safeString(trade, "shares");
         string? costStr = this.safeString(trade, "value");
         string? priceStr = null;
-        if (((amountStr != null)) && ((costStr != null)) && !isTrue(Precise.stringEq(amountStr, "0")))
+        if (((amountStr != null)) && ((costStr != null)) && !Precise.stringEq(amountStr, "0"))
         {
             priceStr = Precise.stringDiv(costStr, amountStr);
         }

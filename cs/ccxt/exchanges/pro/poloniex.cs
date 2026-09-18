@@ -154,7 +154,7 @@ public partial class poloniex : ccxt.poloniex
             { "channel", new List<object>() {name} },
         };
         object marketIds = new List<object>() {};
-        if (isTrue(this.isEmpty(symbols)))
+        if (this.isEmpty(symbols))
         {
             ((IList<object>)marketIds).Add("all");
         } else
@@ -989,7 +989,7 @@ public partial class poloniex : ccxt.poloniex
                         totalCost = Precise.stringAdd(totalCost, cost);
                         totalAmount = Precise.stringAdd(totalAmount, amount);
                     }
-                    if (isTrue(Precise.stringGt(totalAmount, "0")))
+                    if (Precise.stringGt(totalAmount, "0"))
                     {
                         ((IDictionary<string,object>)previousOrder)["average"] = this.parseNumber(Precise.stringDiv(totalCost, totalAmount));
                     }
@@ -1078,7 +1078,7 @@ public partial class poloniex : ccxt.poloniex
         string? filledAmount = this.safeString(order, "filledAmount");
         string? status = this.safeString(order, "state");
         List<object> trades = null;
-        if (!isTrue(Precise.stringEq(filledAmount, "0")))
+        if (!Precise.stringEq(filledAmount, "0"))
         {
             trades = new List<object>() {};
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsOrderTrade(order));
@@ -1166,7 +1166,7 @@ public partial class poloniex : ccxt.poloniex
             string? symbolsString = ((string)(parts != null && 1 < parts.Count ? parts[1] : null));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            if (!isTrue(this.isEmpty(tickers)))
+            if (!this.isEmpty(tickers))
             {
                 (client as WebSocketClient).resolve(tickers, messageHash);
             }

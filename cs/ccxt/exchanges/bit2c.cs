@@ -459,7 +459,7 @@ public partial class bit2c : Exchange
         {
             object bidRow = getValue(rawBids, i);
             string? bidAmount = this.safeString(bidRow, 1);
-            if (isTrue(Precise.stringGt(bidAmount, "0")))
+            if (Precise.stringGt(bidAmount, "0"))
             {
                 ((IList<object>)bids).Add(bidRow);
             }
@@ -468,7 +468,7 @@ public partial class bit2c : Exchange
         {
             object askRow = getValue(rawAsks, i);
             string? askAmount = this.safeString(askRow, 1);
-            if (isTrue(Precise.stringGt(askAmount, "0")))
+            if (Precise.stringGt(askAmount, "0"))
             {
                 ((IList<object>)asks).Add(askRow);
             }
@@ -1143,7 +1143,7 @@ public partial class bit2c : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (isTrue(this.isFiat(code)))
+        if (this.isFiat(code))
         {
             throw new NotSupported ((string)(this.id + " fetchDepositAddress() does not support fiat currencies")) ;
         }

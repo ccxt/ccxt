@@ -2967,7 +2967,7 @@ public partial class okx : Exchange
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
         bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        if (!isTrue(this.checkRequiredCredentials(false)) || ((isSandboxMode == true)))
+        if (!this.checkRequiredCredentials(false) || ((isSandboxMode == true)))
         {
             return new Dictionary<string, object>() {};
         }
@@ -7721,10 +7721,10 @@ public partial class okx : Exchange
             {
                 if ((side == "net"))
                 {
-                    if (isTrue(Precise.stringGt(pos, "0")))
+                    if (Precise.stringGt(pos, "0"))
                     {
                         side = "long";
-                    } else if (isTrue(Precise.stringLt(pos, "0")))
+                    } else if (Precise.stringLt(pos, "0"))
                     {
                         side = "short";
                     } else
@@ -8453,7 +8453,7 @@ public partial class okx : Exchange
             string? balanceChange = this.safeString(entry, "balChg");
             string? positionBalanceChange = this.safeString(entry, "posBalChg");
             string? amount = null;
-            if (((balanceChange != null)) && (!isTrue(Precise.stringEq(balanceChange, "0"))))
+            if (((balanceChange != null)) && (!Precise.stringEq(balanceChange, "0")))
             {
                 amount = balanceChange;
             } else
@@ -9018,7 +9018,7 @@ public partial class okx : Exchange
         string? type = null;
         if ((typeRaw == "6"))
         {
-            type = ((bool) isTrue(Precise.stringGt(amountRaw, "0"))) ? "add" : "reduce";
+            type = ((bool) Precise.stringGt(amountRaw, "0")) ? "add" : "reduce";
         } else
         {
             type = typeRaw;
