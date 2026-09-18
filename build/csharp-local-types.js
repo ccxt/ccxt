@@ -7157,6 +7157,9 @@ function destructuredStringElementProof (csharp, declaration, idNode, assignment
 // `string?` local, handleParamBool/2 + handleHfAndParams a `bool?` local, handleParamInteger/2
 // an `Int64?` local, handlePostOnly a bool LITERAL. The value is the helper's own local (or
 // literal), so the cast names the box that already exists; nothing else can reach the slot.
+// Slot 1 is NOT provable for the same helpers: on every path it holds the CALLER's own
+// `parameters` argument, and omit(object,object) / SafeValueN hand an `IList<object>` back
+// unchanged, so an `object query = null` target keeps `object` (cs90/U15 census).
 export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamString': 'string?',
     'handleParamString2': 'string?',
