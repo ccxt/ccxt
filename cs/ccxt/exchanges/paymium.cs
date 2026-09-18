@@ -215,12 +215,12 @@ public partial class paymium : Exchange
         {
             string? code = ((string)getValue(currencies, i));
             Dictionary<string, object> currency = this.currency(((string)code));
-            object currencyId = getValue(currency, "id");
-            string free = add("balance_", currencyId);
+            string? currencyId = ((string)getValue(currency, "id"));
+            string free = ("balance_" + currencyId);
             if (inOp(response, free))
             {
                 Dictionary<string, object> account = this.account();
-                string used = add("locked_", currencyId);
+                string used = ("locked_" + currencyId);
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, free);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(response, used);
                 ((IDictionary<string,object>)result)[(string)code] = account;

@@ -240,8 +240,8 @@ public partial class hashkey : ccxt.hashkey
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> ticker = this.parseTicker(this.safeDict(data, 0));
-        object symbol = getValue(ticker, "symbol");
-        string messageHash = add("ticker:", symbol);
+        string? symbol = ((string)getValue(ticker, "symbol"));
+        string messageHash = ("ticker:" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
     }
@@ -485,8 +485,8 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(orders, "append", new object[] {parsed});
         string messageHash = "orders";
         (client as WebSocketClient).resolve(orders, messageHash);
-        object symbol = getValue(parsed, "symbol");
-        string symbolSpecificMessageHash = add((messageHash + ":"), symbol);
+        string? symbol = ((string)getValue(parsed, "symbol"));
+        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         (client as WebSocketClient).resolve(orders, symbolSpecificMessageHash);
     }
 
@@ -608,8 +608,8 @@ public partial class hashkey : ccxt.hashkey
         this.myTrades = tradesArray;
         string messageHash = "myTrades";
         (client as WebSocketClient).resolve(tradesArray, messageHash);
-        object symbol = getValue(parsed, "symbol");
-        string symbolSpecificMessageHash = add((messageHash + ":"), symbol);
+        string? symbol = ((string)getValue(parsed, "symbol"));
+        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         (client as WebSocketClient).resolve(tradesArray, symbolSpecificMessageHash);
     }
 
@@ -751,8 +751,8 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(positions, "append", new object[] {parsed});
         string messageHash = "positions";
         (client as WebSocketClient).resolve(parsed, messageHash);
-        object symbol = getValue(parsed, "symbol");
-        (client as WebSocketClient).resolve(parsed, add((messageHash + ":"), symbol));
+        string? symbol = ((string)getValue(parsed, "symbol"));
+        (client as WebSocketClient).resolve(parsed, ((messageHash + ":") + symbol));
     }
 
     public virtual object parseWsPosition(object position, object market = null)

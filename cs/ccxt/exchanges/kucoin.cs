@@ -4239,7 +4239,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object currencyId = getValue(currency, "id");
+        string? currencyId = ((string)getValue(currency, "id"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", currencyId },
         };

@@ -530,8 +530,8 @@ public partial class whitebit : ccxt.whitebit
         object stored = this.myTrades;
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade));
         callDynamically(stored, "append", new object[] {parsed});
-        object symbol = getValue(parsed, "symbol");
-        string messageHash = add("myTrades:", symbol);
+        string? symbol = ((string)getValue(parsed, "symbol"));
+        string messageHash = ("myTrades:" + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 
@@ -683,8 +683,8 @@ public partial class whitebit : ccxt.whitebit
             { "status", status },
         }));
         callDynamically(stored, "append", new object[] {parsed});
-        object symbol = getValue(parsed, "symbol");
-        string messageHash = add("orders:", symbol);
+        string? symbol = ((string)getValue(parsed, "symbol"));
+        string messageHash = ("orders:" + symbol);
         (client as WebSocketClient).resolve(this.orders, messageHash);
     }
 

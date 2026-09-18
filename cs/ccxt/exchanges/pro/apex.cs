@@ -807,7 +807,7 @@ public partial class apex : ccxt.apex
         {
             object rawTrade = getValue(lists, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(trades, "append", new object[] {parsed});
         }
@@ -863,7 +863,7 @@ public partial class apex : ccxt.apex
         for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             Dictionary<string, object> parsed = this.parseOrder(getValue(lists, i));
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             callDynamically(orders, "append", new object[] {parsed});
         }

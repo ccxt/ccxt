@@ -301,12 +301,12 @@ public partial class bitget : ccxt.bitget
         //
         this.handleBidAsk(client as WebSocketClient, message);
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -504,12 +504,12 @@ public partial class bitget : ccxt.bitget
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(message));
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         }
-        string messageHash = add("bidask:", symbol);
+        string messageHash = ("bidask:" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -1989,7 +1989,7 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order, market));
             callDynamically(stored, "append", new object[] {parsed});
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
@@ -2527,8 +2527,8 @@ public partial class bitget : ccxt.bitget
             }
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
             callDynamically(stored, "append", new object[] {parsed});
-            object symbol = getValue(parsed, "symbol");
-            string symbolSpecificMessageHash = add("myTrades:", symbol);
+            string? symbol = ((string)getValue(parsed, "symbol"));
+            string symbolSpecificMessageHash = ("myTrades:" + symbol);
             (client as WebSocketClient).resolve(stored, symbolSpecificMessageHash);
         }
         (client as WebSocketClient).resolve(stored, messageHash);

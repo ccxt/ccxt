@@ -322,8 +322,8 @@ public partial class bydfi : ccxt.bydfi
         //     }
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        object symbol = getValue(ticker, "symbol");
-        string messageHash = add("ticker::", symbol);
+        string? symbol = ((string)getValue(ticker, "symbol"));
+        string messageHash = ("ticker::" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
         (client as WebSocketClient).resolve(this.tickers, "ticker::all");

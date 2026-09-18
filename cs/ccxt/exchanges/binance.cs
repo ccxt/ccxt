@@ -4712,7 +4712,7 @@ public partial class binance : Exchange
             {
                 throw new ExchangeError ((string)(this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            object code = getValue(parsed, "code");
+            string? code = ((string)getValue(parsed, "code"));
             if ((parsed == null))
             {
                 throw new ExchangeError ((string)(this.id + " parseCurrenciesCustom() could not resolve parsed")) ;

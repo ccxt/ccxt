@@ -451,8 +451,8 @@ public partial class aster : ccxt.aster
         string marketType = this.getAccountTypeFromUrl(client.url);
         object ticker = message;
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker, marketType));
-        object symbol = getValue(parsed, "symbol");
-        string messageHash = add("ticker:", symbol);
+        string? symbol = ((string)getValue(parsed, "symbol"));
+        string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
@@ -625,12 +625,12 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(data, market));
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         }
-        string messageHash = add("bidask:", symbol);
+        string messageHash = ("bidask:" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -816,7 +816,7 @@ public partial class aster : ccxt.aster
         string? marketId = this.safeString(trade, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));
-        object symbol = getValue(parsed, "symbol");
+        string? symbol = ((string)getValue(parsed, "symbol"));
         if ((symbol == null))
         {
             return;
@@ -828,7 +828,7 @@ public partial class aster : ccxt.aster
         }
         object stored = getValue(this.trades, symbol);
         callDynamically(stored, "append", new object[] {parsed});
-        (client as WebSocketClient).resolve(stored, add("trade::", symbol));
+        (client as WebSocketClient).resolve(stored, ("trade::" + symbol));
     }
 
     public override object parseWsTrade(object trade, object market = null)
@@ -2199,12 +2199,12 @@ public partial class aster : ccxt.aster
         }
         object cache = this.orders;
         Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message, market));
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         callDynamically(cache, "append", new object[] {parsed});
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            string symbolMessageHash = add((messageHash + "::"), symbol);
+            string symbolMessageHash = ((messageHash + "::") + symbol);
             (client as WebSocketClient).resolve(cache, symbolMessageHash);
             (client as WebSocketClient).resolve(cache, messageHash);
         }

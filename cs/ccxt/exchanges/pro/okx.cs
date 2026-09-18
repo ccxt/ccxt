@@ -807,12 +807,12 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(ticker, market));
-        object symbol = getValue(parsedTicker, "symbol");
+        string? symbol = ((string)getValue(parsedTicker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
         }
-        string messageHash = add("bidask::", symbol);
+        string messageHash = ("bidask::" + symbol);
         (client as WebSocketClient).resolve(parsedTicker, messageHash);
     }
 

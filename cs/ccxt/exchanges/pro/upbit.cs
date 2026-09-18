@@ -248,12 +248,12 @@ public partial class upbit : ccxt.upbit
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
         Dictionary<string, object> ticker = this.parseTicker(message);
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -332,7 +332,7 @@ public partial class upbit : ccxt.upbit
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
         Dictionary<string, object> trade = this.parseTrade(message);
-        object symbol = getValue(trade, "symbol");
+        string? symbol = ((string)getValue(trade, "symbol"));
         if ((symbol == null))
         {
             return;
@@ -345,7 +345,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 

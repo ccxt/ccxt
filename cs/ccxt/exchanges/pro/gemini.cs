@@ -178,7 +178,7 @@ public partial class gemini : ccxt.gemini
         //     }
         //
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
-        object symbol = getValue(trade, "symbol");
+        string? symbol = ((string)getValue(trade, "symbol"));
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -190,7 +190,7 @@ public partial class gemini : ccxt.gemini
             }
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 

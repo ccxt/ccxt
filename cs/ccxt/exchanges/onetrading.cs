@@ -992,7 +992,7 @@ public partial class onetrading : Exchange
         for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;

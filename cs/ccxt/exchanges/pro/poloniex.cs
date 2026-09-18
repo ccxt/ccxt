@@ -743,9 +743,9 @@ public partial class poloniex : ccxt.poloniex
             if ((marketId != null))
             {
                 Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(item));
-                object symbol = getValue(trade, "symbol");
+                string? symbol = ((string)getValue(trade, "symbol"));
                 string type = "trades";
-                string messageHash = add((type + "::"), symbol);
+                string messageHash = ((type + "::") + symbol);
                 object tradesArray = ((bool) ((symbol == null))) ? null : this.safeValue(this.trades, symbol);
                 if ((tradesArray == null))
                 {
@@ -1147,7 +1147,7 @@ public partial class poloniex : ccxt.poloniex
             if ((marketId != null))
             {
                 Dictionary<string, object> ticker = this.parseTicker(item);
-                object symbol = getValue(ticker, "symbol");
+                string? symbol = ((string)getValue(ticker, "symbol"));
                 if ((symbol != null))
                 {
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;

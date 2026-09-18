@@ -1008,7 +1008,7 @@ public partial class xt : ccxt.xt
             string? cv = this.safeString(data, "cv");
             bool isSpot = (cv != null);
             Dictionary<string, object> ticker = this.parseTicker(data);
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1099,7 +1099,7 @@ public partial class xt : ccxt.xt
         {
             object tickerData = getValue(data, i);
             Dictionary<string, object> ticker = this.parseTicker(tickerData);
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1672,7 +1672,7 @@ public partial class xt : ccxt.xt
             this.myTrades = stored;
         }
         Dictionary<string, object> parsedTrade = this.parseTrade(data);
-        object tradeSymbol = getValue(parsedTrade, "symbol");
+        string? tradeSymbol = ((string)getValue(parsedTrade, "symbol"));
         if ((tradeSymbol == null))
         {
             return;

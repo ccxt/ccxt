@@ -3115,8 +3115,8 @@ public partial class modetrade : Exchange
     public virtual object signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        object r = getValue(signature, "r");
-        object s = getValue(signature, "s");
+        string? r = ((string)getValue(signature, "r"));
+        string? s = ((string)getValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }

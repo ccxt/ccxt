@@ -204,9 +204,9 @@ public partial class coinone : ccxt.coinone
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
     }
 
@@ -326,7 +326,7 @@ public partial class coinone : ccxt.coinone
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
-        object symbol = getValue(trade, "symbol");
+        string? symbol = ((string)getValue(trade, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -335,7 +335,7 @@ public partial class coinone : ccxt.coinone
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         (client as WebSocketClient).resolve(stored, messageHash);
     }
 

@@ -103,8 +103,8 @@ public partial class alpaca : ccxt.alpaca
         //    ]
         //
         Dictionary<string, object> ticker = this.parseTicker(message);
-        object symbol = getValue(ticker, "symbol");
-        string messageHash = add("ticker:", symbol);
+        string? symbol = ((string)getValue(ticker, "symbol"));
+        string messageHash = ("ticker:" + symbol);
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;

@@ -121,7 +121,7 @@ public partial class bittrade : ccxt.bittrade
         object timestamp = this.safeValue(message, "ts");
         ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
         ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
         (client as WebSocketClient).resolve(ticker, ch);
         return message;

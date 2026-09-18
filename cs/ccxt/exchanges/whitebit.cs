@@ -1982,7 +1982,7 @@ public partial class whitebit : Exchange
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> ticker = this.parseTicker(getValue(response, marketId), market);
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             ((IDictionary<string,object>)result)[(string)((string)symbol)] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));

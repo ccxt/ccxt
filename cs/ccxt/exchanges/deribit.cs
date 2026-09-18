@@ -1796,7 +1796,7 @@ public partial class deribit : Exchange
         for (int i = 0; i < result.Count; postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(result, i));
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)tickers)[(string)symbol] = ticker;

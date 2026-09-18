@@ -1219,7 +1219,7 @@ public partial class coinex : ccxt.coinex
             { "status", this.safeString(data, "event") },
         }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         Dictionary<string, object> parsedOrder = ((Dictionary<string, object>)this.parseWsOrder(order));
-        object symbol = getValue(parsedOrder, "symbol");
+        string? symbol = ((string)getValue(parsedOrder, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(this.orders, null))
         {
@@ -1231,7 +1231,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "orders";
         string messageWithType = add((messageHash + ":"), getValue(market, "type"));
         (client as WebSocketClient).resolve(this.orders, messageWithType);
-        messageHash = messageHash + add(":", symbol);
+        messageHash = messageHash + (":" + symbol);
         (client as WebSocketClient).resolve(this.orders, messageHash);
     }
 
@@ -1453,9 +1453,9 @@ public partial class coinex : ccxt.coinex
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(data));
-        object symbol = getValue(parsedTicker, "symbol");
+        string? symbol = ((string)getValue(parsedTicker, "symbol"));
         ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = parsedTicker;
-        string messageHash = add("bidsasks:", symbol);
+        string messageHash = ("bidsasks:" + symbol);
         (client as WebSocketClient).resolve(parsedTicker, messageHash);
     }
 

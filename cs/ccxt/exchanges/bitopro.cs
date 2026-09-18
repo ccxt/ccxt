@@ -1384,7 +1384,7 @@ public partial class bitopro : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object id = getValue(market, "uppercaseId");
+        string? id = ((string)getValue(market, "uppercaseId"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((id != null))
         {

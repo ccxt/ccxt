@@ -1231,7 +1231,7 @@ public partial class bitmex : ccxt.bitmex
                 }
                 Dictionary<string, object> order = this.parseOrder(rawOrder);
                 callDynamically(stored, "append", new object[] {order});
-                object symbol = getValue(order, "symbol");
+                string? symbol = ((string)getValue(order, "symbol"));
                 ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = true;
             }
             (client as WebSocketClient).resolve(this.orders, messageHash);

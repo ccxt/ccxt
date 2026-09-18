@@ -280,7 +280,7 @@ public partial class derive : ccxt.derive
         {
             ticker = this.parseTicker(data);
         }
-        object tickerSymbol = getValue(ticker, "symbol");
+        string? tickerSymbol = ((string)getValue(ticker, "symbol"));
         if ((tickerSymbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)tickerSymbol] = ticker;

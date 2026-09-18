@@ -1539,9 +1539,9 @@ public partial class nado : ccxt.nado
         }
         object trades = this.myTrades;
         callDynamically(trades, "append", new object[] {trade});
-        object symbol = getValue(trade, "symbol");
+        string? symbol = ((string)getValue(trade, "symbol"));
         (client as WebSocketClient).resolve(trades, "myTrades");
-        (client as WebSocketClient).resolve(trades, add("myTrades:", symbol));
+        (client as WebSocketClient).resolve(trades, ("myTrades:" + symbol));
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -1665,9 +1665,9 @@ public partial class nado : ccxt.nado
         }
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
-        object symbol = getValue(order, "symbol");
+        string? symbol = ((string)getValue(order, "symbol"));
         (client as WebSocketClient).resolve(orders, "orders");
-        (client as WebSocketClient).resolve(orders, add("orders:", symbol));
+        (client as WebSocketClient).resolve(orders, ("orders:" + symbol));
     }
 
     public virtual object parseWsPosition(object position, object market = null)
@@ -1763,9 +1763,9 @@ public partial class nado : ccxt.nado
         {
             callDynamically(positions, "append", new object[] {position});
         }
-        object symbol = getValue(position, "symbol");
+        string? symbol = ((string)getValue(position, "symbol"));
         (client as WebSocketClient).resolve(positions, "positions");
-        (client as WebSocketClient).resolve(positions, add("positions:", symbol));
+        (client as WebSocketClient).resolve(positions, ("positions:" + symbol));
     }
 
     public virtual object parseWsBidAsk(object bidask, object market = null)
