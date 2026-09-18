@@ -1077,13 +1077,13 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    public async virtual Task<object> unWatchOrders(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async virtual Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchTrades() is not supported yet")) ;
@@ -1101,7 +1101,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    public async virtual Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;
@@ -1125,7 +1125,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " unWatchTicker() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    public async virtual Task<object> unWatchMarkPrice(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchMarkPrice() is not supported yet")) ;
@@ -2799,7 +2799,7 @@ public partial class BaseExchange
         };
     }
 
-    public virtual object calculateFee(object symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object parameters = null)
+    public virtual object calculateFee(string? symbol, string? type, string? side, object amount, object price, object takerOrMaker = null, object parameters = null)
     {
         /**
         * @method
@@ -3241,7 +3241,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " repayCrossMargin is not support yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> repayIsolatedMargin(object symbol, string code, double amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> repayIsolatedMargin(string? symbol, string code, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " repayIsolatedMargin is not support yet")) ;
@@ -3253,7 +3253,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " borrowCrossMargin is not support yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> borrowIsolatedMargin(object symbol, string code, double amount, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> borrowIsolatedMargin(string? symbol, string code, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " borrowIsolatedMargin is not support yet")) ;
@@ -3265,7 +3265,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
     }
 
-    public async virtual Task<Dictionary<string, object>> repayMargin(string code, double amount, object symbol = null, object parameters = null)
+    public async virtual Task<Dictionary<string, object>> repayMargin(string code, double amount, string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
@@ -5215,7 +5215,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " unWatchTickers() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    public async virtual Task<object> unWatchFundingRate(string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchFundingRate() is not supported yet")) ;
@@ -5374,13 +5374,13 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " cancelContractOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelAllSpotOrders(object symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelAllSpotOrders(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " cancelAllSpotOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelAllContractOrders(object symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelAllContractOrders(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " cancelAllContractOrders() is not supported yet")) ;
@@ -5398,7 +5398,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Liquidation>> FetchMyLiquidations(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Liquidation>> FetchMyLiquidations(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " fetchMyLiquidations() is not supported yet")) ;
@@ -5476,7 +5476,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " fetchFundingRateHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " fetchFundingHistory() is not supported yet")) ;
@@ -7724,7 +7724,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " withdrawWs () is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    public async virtual Task<object> unWatchMyTrades(string? symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchMyTrades () is not supported yet")) ;

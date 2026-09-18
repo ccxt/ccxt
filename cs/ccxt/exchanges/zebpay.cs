@@ -1280,7 +1280,7 @@ public partial class zebpay : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual List<object> orderRequest(object symbol, object type, object amount, object request, object price = null, object parameters = null)
+    public virtual List<object> orderRequest(string? symbol, object type, object amount, object request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string upperCaseType = ((string)type).ToUpper();

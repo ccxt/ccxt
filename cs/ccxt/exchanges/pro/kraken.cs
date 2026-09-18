@@ -112,7 +112,7 @@ public partial class kraken : ccxt.kraken
         });
     }
 
-    public virtual List<object> orderRequestWs(object method, object symbol, object type, object request, object amount, object price = null, object parameters = null)
+    public virtual List<object> orderRequestWs(object method, string? symbol, object type, object request, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimitOrder = ((string)type).EndsWith("limit"); // supporting limit, stop-loss-limit, take-profit-limit, etc
@@ -1250,17 +1250,18 @@ public partial class kraken : ccxt.kraken
         return this.safeString(subscription, "token");
     }
 
-    public async virtual Task<IList<object>> watchPrivate(object name, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<IList<object>> watchPrivate(string? name, string? symbol = null, object since = null, object limit = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         string? token = await this.authenticate();
         string subscriptionHash = "executions";
         object messageHash = name;
-        if (!isEqual(symbol, null))
+        if (!isEqual(symbolVar, null))
         {
-            symbol = this.symbol(symbol);
-            messageHash = add(messageHash, add(":", symbol));
+            symbolVar = this.symbol(symbolVar);
+            messageHash = add(messageHash, add(":", symbolVar));
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
         Int64 requestId = ((Int64)this.requestId());
@@ -1279,9 +1280,9 @@ public partial class kraken : ccxt.kraken
         object result = await this.watch(url, messageHash, subscribe, subscriptionHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(result, "getLimit", new object[] {symbol, limit});
+            limit = callDynamically(result, "getLimit", new object[] {symbolVar, limit});
         }
-        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbol, since, limit, true))));
+        return ((IList<object>)((object)(this.filterBySymbolSinceLimit(result, symbolVar, since, limit, true))));
     }
 
     /**

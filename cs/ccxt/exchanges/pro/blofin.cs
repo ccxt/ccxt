@@ -874,7 +874,7 @@ public partial class blofin : ccxt.blofin
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
-    public virtual Dictionary<string, object> getSubscriptionRequest(object args)
+    public virtual Dictionary<string, object> getSubscriptionRequest(IList<object> args)
     {
         return new Dictionary<string, object>() {
             { "op", "subscribe" },

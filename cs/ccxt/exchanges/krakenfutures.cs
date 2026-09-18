@@ -1422,8 +1422,9 @@ public partial class krakenfutures : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
@@ -1433,8 +1434,8 @@ public partial class krakenfutures : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
         }
-        Dictionary<string, object> market = this.market(symbol);
-        symbol = GetValue(market, "symbol");
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = GetValue(market, "symbol");
         type = this.safeString(parameters, "orderType", type);
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool? postOnly = false;
@@ -1457,7 +1458,7 @@ public partial class krakenfutures : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
             { "side", side },
-            { "size", this.amountToPrecision(symbol, amount) },
+            { "size", this.amountToPrecision(symbolVar, amount) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "cliOrdId");
         if ((clientOrderId != null))
@@ -1480,18 +1481,18 @@ public partial class krakenfutures : Exchange
         if (isTriggerOrder)
         {
             type = "stp";
-            request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
+            request["stopPrice"] = this.priceToPrecision(symbolVar, triggerPrice);
         } else if (isStopLossOrTakeProfitTrigger)
         {
             reduceOnly = true;
             if (isStopLossTriggerOrder)
             {
                 type = "stp";
-                request["stopPrice"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request["stopPrice"] = this.priceToPrecision(symbolVar, stopLossTriggerPrice);
             } else if (isTakeProfitTriggerOrder)
             {
                 type = "take_profit";
-                request["stopPrice"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request["stopPrice"] = this.priceToPrecision(symbolVar, takeProfitTriggerPrice);
             }
         }
         if (isEqual(reduceOnly, true))
@@ -1509,7 +1510,7 @@ public partial class krakenfutures : Exchange
         bool isMarketOrder = (isEqual(type, "mkt"));
         if ((!isEqual(price, null)) && !isMarketOrder)
         {
-            request["limitPrice"] = this.priceToPrecision(symbol, price);
+            request["limitPrice"] = this.priceToPrecision(symbolVar, price);
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
         return this.extend(request, parameters);
@@ -2910,7 +2911,7 @@ public partial class krakenfutures : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding payment
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

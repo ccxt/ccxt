@@ -212,7 +212,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watch(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivateUta(object messageHashes, object subscribeHash, object channel, object symbol = null, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePrivateUta(IList<object> messageHashes, object subscribeHash, object channel, object symbol = null, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -320,7 +320,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
     }
 
-    public async virtual Task<object> unSubscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object parameters = null, object subscription = null)
+    public async virtual Task<object> unSubscribeMultiple(object url, object messageHashes, object topic, IList<object> subscriptionHashes, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -336,7 +336,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)subscription)[requestId] = requestId;
         }
         var client = this.client(url);
-        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, subscriptionHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!(inOp(client.subscriptions, subscriptionHash)))
@@ -543,7 +543,7 @@ public partial class kucoin : ccxt.kucoin
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbols));
     }
 
-    public async virtual Task<object> subscribePublicMultipleUta(object messageHashes, object channel, IList<object> symbols, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublicMultipleUta(IList<object> messageHashes, object channel, IList<object> symbols, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -1369,8 +1369,9 @@ public partial class kucoin : ccxt.kucoin
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
@@ -1379,9 +1380,9 @@ public partial class kucoin : ccxt.kucoin
         if (isTrue(uta))
         {
             await this.loadMarkets();
-            Dictionary<string, object> market = this.market(symbol);
-            symbol = GetValue(market, "symbol");
-            string subMessageHash = add("uta:trades:", symbol);
+            Dictionary<string, object> market = this.market(symbolVar);
+            symbolVar = GetValue(market, "symbol");
+            string subMessageHash = add("uta:trades:", symbolVar);
             string messageHash = add("unsubscribe:", subMessageHash);
             string channel = "trade";
             Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1389,11 +1390,11 @@ public partial class kucoin : ccxt.kucoin
                 { "subMessageHashes", new List<object>() {subMessageHash} },
                 { "topic", "trades" },
                 { "unsubscribe", true },
-                { "symbols", new List<object>() {symbol} },
+                { "symbols", new List<object>() {symbolVar} },
             };
-            return await this.subscribePublicUta(messageHash, channel, symbol, parameters, subscription);
+            return await this.subscribePublicUta(messageHash, channel, symbolVar, parameters, subscription);
         }
-        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+        return await this.unWatchTradesForSymbols(new List<object>() {symbolVar}, parameters);
     }
 
     public virtual void handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -3579,25 +3580,26 @@ public partial class kucoin : ccxt.kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    public async override Task<object> unWatchFundingRate(string? symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        symbol = this.safeSymbol(symbol);
+        symbolVar = this.safeSymbol(symbolVar);
         string channel = "funding-fee";
-        string subMessageHash = add("fundingRate:", symbol);
+        string subMessageHash = add("fundingRate:", symbolVar);
         string unSubMessageHash = add("unsubscribe:", subMessageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "symbols", new List<object>() {symbol} },
+            { "symbols", new List<object>() {symbolVar} },
             { "topic", "fundingRate" },
             { "unsubscribe", true },
             { "subMessageHashes", new List<object>() {subMessageHash} },
             { "messageHashes", new List<object>() {unSubMessageHash} },
         };
-        return await this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription);
+        return await this.subscribePublicUta(unSubMessageHash, channel, symbolVar, parameters, subscription);
     }
 
     public virtual void handleUtaFundingRate(WebSocketClient client, Dictionary<string, object> message)
@@ -3699,25 +3701,26 @@ public partial class kucoin : ccxt.kucoin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
+    public async override Task<object> unWatchMarkPrice(string? symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        symbol = this.safeSymbol(symbol);
+        symbolVar = this.safeSymbol(symbolVar);
         string channel = "mark-price";
-        string subMessageHash = add("uta:ticker:", symbol);
+        string subMessageHash = add("uta:ticker:", symbolVar);
         string unSubMessageHash = add("unsubscribe:", subMessageHash);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
-            { "symbols", new List<object>() {symbol} },
+            { "symbols", new List<object>() {symbolVar} },
             { "topic", "ticker" },
             { "unsubscribe", true },
             { "subMessageHashes", new List<object>() {subMessageHash} },
             { "messageHashes", new List<object>() {unSubMessageHash} },
         };
-        return await this.subscribePublicUta(unSubMessageHash, channel, symbol, parameters, subscription);
+        return await this.subscribePublicUta(unSubMessageHash, channel, symbolVar, parameters, subscription);
     }
 
     public virtual void handleSubject(WebSocketClient client, Dictionary<string, object> message)

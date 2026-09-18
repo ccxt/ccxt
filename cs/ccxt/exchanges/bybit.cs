@@ -5329,8 +5329,9 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null, object isUTA = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, object type, object side, object amount, object price = null, object parameters = null, object isUTA = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         isUTA ??= true;
         if (isEqual(type, null))
@@ -5341,8 +5342,8 @@ public partial class bybit : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
         }
-        Dictionary<string, object> market = this.market(symbol);
-        symbol = GetValue(market, "symbol");
+        Dictionary<string, object> market = this.market(symbolVar);
+        symbolVar = GetValue(market, "symbol");
         string lowerCaseType = ((string)type).ToLower();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5388,8 +5389,8 @@ public partial class bybit : Exchange
         {
             amount = null;
         }
-        string? amountString = (!isEqual(amount, null)) ? this.getAmount(symbol, amount) : null;
-        object priceString = (!isEqual(price, null)) ? this.getPrice(symbol, this.numberToString(price)) : null;
+        string? amountString = (!isEqual(amount, null)) ? this.getAmount(symbolVar, amount) : null;
+        object priceString = (!isEqual(price, null)) ? this.getPrice(symbolVar, this.numberToString(price)) : null;
         if (endpointIsTradingStop)
         {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || (isEqual(GetValue(market, "spot"), true)))
@@ -5402,7 +5403,7 @@ public partial class bybit : Exchange
                 string? tpslModeTp = null;
                 if (isStopLossOrder)
                 {
-                    request["stopLoss"] = this.getPrice(symbol, stopLossTriggerPrice);
+                    request["stopLoss"] = this.getPrice(symbolVar, stopLossTriggerPrice);
                     string? stopLossLimitPrice = this.safeString2(parameters, "stopLossLimitPrice", "slLimitPrice");
                     if ((stopLossLimitPrice != null))
                     {
@@ -5425,7 +5426,7 @@ public partial class bybit : Exchange
                 }
                 if (isTakeProfitOrder)
                 {
-                    request["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    request["takeProfit"] = this.getPrice(symbolVar, takeProfitTriggerPrice);
                     string? takeProfitLimitPrice = this.safeString2(parameters, "takeProfitLimitPrice", "tpLimitPrice");
                     if ((takeProfitLimitPrice != null))
                     {
@@ -5531,7 +5532,7 @@ public partial class bybit : Exchange
                     string? quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
-                request["qty"] = this.getCost(symbol, orderCost);
+                request["qty"] = this.getCost(symbolVar, orderCost);
             } else
             {
                 request["marketUnit"] = "baseCoin";
@@ -5554,16 +5555,16 @@ public partial class bybit : Exchange
                 {
                     string? quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
                     string? costRequest = ((cost != null)) ? cost : quoteAmount;
-                    request["qty"] = this.getCost(symbol, costRequest);
+                    request["qty"] = this.getCost(symbolVar, costRequest);
                 }
             } else
             {
                 if ((cost != null))
                 {
-                    request["qty"] = this.getCost(symbol, this.numberToString(cost));
+                    request["qty"] = this.getCost(symbolVar, this.numberToString(cost));
                 } else if (!isEqual(price, null))
                 {
-                    request["qty"] = this.getCost(symbol, Precise.stringMul(amountString, priceString));
+                    request["qty"] = this.getCost(symbolVar, Precise.stringMul(amountString, priceString));
                 } else
                 {
                     request["qty"] = amountString;
@@ -5580,7 +5581,7 @@ public partial class bybit : Exchange
         {
             if ((trailingTriggerPrice != null))
             {
-                request["activePrice"] = this.getPrice(symbol, trailingTriggerPrice);
+                request["activePrice"] = this.getPrice(symbolVar, trailingTriggerPrice);
             }
             request["trailingStop"] = trailingAmount;
         } else if (isTriggerOrder && !endpointIsTradingStop)
@@ -5602,7 +5603,7 @@ public partial class bybit : Exchange
                 bool isAsending = ((triggerDirection == "ascending") || (triggerDirection == "above") || (triggerDirection == "1"));
                 request["triggerDirection"] = isAsending ? 1 : 2;
             }
-            request["triggerPrice"] = this.getPrice(symbol, triggerPrice);
+            request["triggerPrice"] = this.getPrice(symbolVar, triggerPrice);
         } else if ((isStopLossOrder || isTakeProfitOrder) && !endpointIsTradingStop)
         {
             if (isBuy)
@@ -5613,7 +5614,7 @@ public partial class bybit : Exchange
                 request["triggerDirection"] = isStopLossOrder ? 2 : 1;
             }
             triggerPrice = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-            request["triggerPrice"] = this.getPrice(symbol, triggerPrice);
+            request["triggerPrice"] = this.getPrice(symbolVar, triggerPrice);
             request["reduceOnly"] = true;
         }
         if ((hasStopLoss || hasTakeProfit) && !endpointIsTradingStop)
@@ -5621,13 +5622,13 @@ public partial class bybit : Exchange
             if (hasStopLoss)
             {
                 object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                request["stopLoss"] = this.getPrice(symbol, slTriggerPrice);
+                request["stopLoss"] = this.getPrice(symbolVar, slTriggerPrice);
                 object slLimitPrice = this.safeValue(stopLoss, "price");
                 if ((slLimitPrice != null))
                 {
                     request["tpslMode"] = "Partial";
                     request["slOrderType"] = "Limit";
-                    request["slLimitPrice"] = this.getPrice(symbol, slLimitPrice);
+                    request["slLimitPrice"] = this.getPrice(symbolVar, slLimitPrice);
                 } else
                 {
                     // for spot market, we need to add this
@@ -5645,13 +5646,13 @@ public partial class bybit : Exchange
             if (hasTakeProfit)
             {
                 object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                request["takeProfit"] = this.getPrice(symbol, tpTriggerPrice);
+                request["takeProfit"] = this.getPrice(symbolVar, tpTriggerPrice);
                 object tpLimitPrice = this.safeValue(takeProfit, "price");
                 if ((tpLimitPrice != null))
                 {
                     request["tpslMode"] = "Partial";
                     request["tpOrderType"] = "Limit";
-                    request["tpLimitPrice"] = this.getPrice(symbol, tpLimitPrice);
+                    request["tpLimitPrice"] = this.getPrice(symbolVar, tpLimitPrice);
                 } else
                 {
                     // for spot market, we need to add this
@@ -8749,7 +8750,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToDict(response);
     }
 
-    public async virtual Task<List<ccxt.OpenInterest>> FetchDerivativesOpenInterestHistory(object symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OpenInterest>> FetchDerivativesOpenInterestHistory(string? symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1h";
@@ -9817,7 +9818,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchSettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -9884,7 +9885,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<Dictionary<string, object>>> FetchMySettlementHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -10297,7 +10298,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> FetchMyLiquidations(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -10599,7 +10600,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> FetchFundingHistory(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
