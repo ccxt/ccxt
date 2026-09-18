@@ -459,7 +459,7 @@ impl CoincheckCore {
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let mut data: Value = self.safe_value(message.clone(), Value::Int(0), &[]);
-        if !(is_array(&data)) {
+        if !is_true(&(matches!(&data, Value::Arr(_)))) {
             self.handle_order_book(client.clone(), message.clone());
         }  else {
             self.handle_trades(client.clone(), message.clone());

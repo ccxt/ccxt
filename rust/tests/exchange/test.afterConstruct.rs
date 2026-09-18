@@ -34,7 +34,7 @@ pub fn testOptionsNetworks(mut exchange: Value, mut skippedProperties: Value) {
             return;
         }
         // 2) ensure 'networksById' dictionary exists in options
-        assert!(ccxt::runtime::is_true(&((in_op(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
+        assert!(ccxt::runtime::is_true(&((matches!(&get_value(&exchange, &Value::Str("options".to_string())), Value::Dict(__d) if __d.contains_key("networksById"))))));
         assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&get_value(&exchange, &Value::Str("options".to_string())), &Value::Str("networksById".to_string()))))));
         //
         let mut networkCodes: Value = object_keys(&get_value(&exchange, &Value::Str("options".to_string())).as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null));

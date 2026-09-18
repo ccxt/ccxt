@@ -360,8 +360,8 @@ impl BlockchaincomCore {
         //         "total_balance_local": 87.696634168
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("subscribed")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("subscribed")) {
             return;
         }
         let mut result: Value = Value::Map({
@@ -369,7 +369,7 @@ impl BlockchaincomCore {
                 m.insert("info".to_string(), message.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(message, "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(message, "balances", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_183: bool = true;
@@ -457,18 +457,18 @@ impl BlockchaincomCore {
         //         "price": [ 1660085580000, 23185.215, 23185.935, 23164.79, 23169.97, 0 ]
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() == Some("rejected")) {
-            let mut jsonMessage: Value = self.json(message.clone());
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("rejected")) {
+            let mut jsonMessage: Value = json_stringify(&message);
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), jsonMessage)));
-        }  else if (event.as_str() == Some("updated")) {
+        }  else if (event.as_deref() == Some("updated")) {
             let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol));
             let mut request: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
             let mut timeframeId: Value = self.safe_string_k(request.clone(), "granularity", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[]);
-            let mut ohlcv: Value = self.safe_value_k(message.clone(), "price", &[Value::List(vec![])]);
+            let mut ohlcv: Value = self.safe_value_k(message.clone(), "price", &[Value::from(vec![])]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -481,8 +481,8 @@ impl BlockchaincomCore {
             }
             stored.append(ohlcv.clone());
             client.resolve(&[stored.clone(), messageHash.clone()]);
-        }  else if (event.as_str() != Some("subscribed")) {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
+        }  else if (event.as_deref() != Some("subscribed")) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message))));
         }
 }
 
@@ -549,16 +549,16 @@ impl BlockchaincomCore {
         //         "mark_price": 23935.242443617
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut ticker: Value = Value::Null;
-        if (event.as_str() == Some("subscribed")) {
+        if (event.as_deref() == Some("subscribed")) {
             return;
-        }  else if (event.as_str() == Some("snapshot")) {
+        }  else if (event.as_deref() == Some("snapshot")) {
             ticker = self.parse_ticker(message.clone(), &[market.clone()]);
-        }  else if (event.as_str() == Some("updated")) {
+        }  else if (event.as_deref() == Some("updated")) {
             let mut lastTicker: Value = self.safe_value(self.tickers.clone(), symbol.clone(), &[]);
             ticker = self.parse_ws_updated_ticker(message.clone(), &[lastTicker.clone(), market.clone()]);
         }
@@ -675,8 +675,8 @@ impl BlockchaincomCore {
         //         "trade_id": "563078810223444"
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() != Some("updated")) {
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() != Some("updated")) {
             return;
         }
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
@@ -852,7 +852,7 @@ impl BlockchaincomCore {
         //         "closePositionOrder": false
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut cachedOrders: Value = self.orders.clone();
         if (cachedOrders == Value::Null) {
@@ -860,12 +860,12 @@ impl BlockchaincomCore {
             cachedOrders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = cachedOrders.clone();
         }
-        if (event.as_str() == Some("subscribed")) {
+        if (event.as_deref() == Some("subscribed")) {
             return;
-        }  else if (event.as_str() == Some("rejected")) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
-        }  else if (event.as_str() == Some("snapshot")) {
-            let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
+        }  else if (event.as_deref() == Some("rejected")) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message))));
+        }  else if (event.as_deref() == Some("snapshot")) {
+            let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_184: bool = true;
@@ -876,7 +876,7 @@ impl BlockchaincomCore {
                 cachedOrders.append(parsedOrder.clone());
             }
             }
-        }  else if (event.as_str() == Some("updated")) {
+        }  else if (event.as_deref() == Some("updated")) {
             let mut parsedOrder: Value = self.parse_ws_order(message.clone(), &[]);
             cachedOrders.append(parsedOrder.clone());
         }
@@ -922,7 +922,7 @@ impl BlockchaincomCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut tradeId: Value = self.safe_string_k(order.clone(), "tradeId", &[]);
-        let mut trades: Value = Value::List(vec![]);
+        let mut trades: Value = Value::from(vec![]);
         if (tradeId.as_str() != Some("0")) {
             append_to_array(&mut trades, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1063,7 +1063,7 @@ impl BlockchaincomCore {
         let mut type_var: Value = self.safe_string_k(message.clone(), "channel", &[]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), &type_var);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), symbol)), Value::Str(":".to_string()))), type_var));
         let mut datetime: Value = self.safe_string_k(message.clone(), "timestamp", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         if (self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]) == Value::Null) {
@@ -1074,14 +1074,14 @@ impl BlockchaincomCore {
             let mut snapshot: Value = self.parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("px".to_string()), Value::Str("qty".to_string()), Value::Str("num".to_string())]);
             orderbook.reset(snapshot.clone());
         }  else if (event.as_str() == Some("updated")) {
-            let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(message, "bids", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(message, "bids", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), datetime.clone());
         }  else {
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".to_string()))), &event), Value::Str(" yet".to_string()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBook() does not support ".to_string()))), event)), Value::Str(" yet".to_string()))));
         }
         client.resolve(&[orderbook.clone(), messageHash.clone()]);
 }
@@ -1120,7 +1120,7 @@ impl BlockchaincomCore {
             self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
             return;
         }
-        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), self.json(message.clone()))));
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an unsupported message: ".to_string()))), json_stringify(&message))));
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
@@ -1132,9 +1132,9 @@ impl BlockchaincomCore {
         //         "readOnly": false
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        if (event.as_str() != Some("subscribed")) {
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an authentication error: ".to_string()))), self.json(message.clone()))));
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() != Some("subscribed")) {
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" received an authentication error: ".to_string()))), json_stringify(&message))));
         }
         let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);
         if (future != Value::Null) {

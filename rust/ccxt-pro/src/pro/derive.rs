@@ -367,7 +367,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -451,7 +451,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -612,7 +612,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -651,7 +651,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("unsubscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -737,9 +737,9 @@ impl DeriveCore {
                 while { if !__for_first_320 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_320 = false; i.as_f64().unwrap_or(f64::NAN) < ((topics.len() as i64) as f64) } {
                 let mut topic: Value = get_value(&topics, &i);
                 let mut topic: Value = get_value(&topics, &i);
-                if get_index_of(&topic, &Value::Str("orderbook".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                if Value::Int(topic.as_str().and_then(|__s| __s.find("orderbook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     self.handle_order_book_un_subscription(client.clone(), topic.clone());
-                }  else if get_index_of(&topic, &Value::Str("trades".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                }  else if Value::Int(topic.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     self.handle_trades_un_subscription(client.clone(), topic.clone());
                 }
             }
@@ -778,7 +778,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -928,7 +928,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -993,7 +993,7 @@ impl DeriveCore {
         //
         let mut params: Value = self.safe_dict_k(message, "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_322: bool = true;
@@ -1073,7 +1073,7 @@ impl DeriveCore {
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
     m
 }));
             m
@@ -1104,7 +1104,7 @@ impl DeriveCore {
         }
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
-        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(params.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_323: bool = true;
@@ -1174,7 +1174,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
             if (channel != Value::Null) {
                 let mut parsedChannel: Value = split(&channel, &Value::Str(".".to_string()));
-                if is_true(&(get_index_of(&channel, &Value::Str("orders".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || get_index_of(&channel, &Value::Str("trades".to_string())).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+                if is_true(&(Value::Int(channel.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) || Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]);
                     // {subaccounr_id}.trades
                     if (event.as_str() == Some("trades")) {
@@ -1218,7 +1218,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // }
         //
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        let mut ids: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut ids: Value = self.safe_list_k(message.clone(), "result", &[Value::from(vec![])]);
         if ((ids.len() as i64) as f64) > ((0i64) as f64) {
             // client.resolve (message, messageHash);
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), Value::Str("authenticated".to_string()), &[]);

@@ -424,7 +424,7 @@ impl GrvtCore {
         m.insert("callerMethodName".to_string(), Value::Str("watchTicker".to_string()));
     m
 })]);
-        let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), __ws_arg_1]).await;
+        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), __ws_arg_1]).await;
         return get_value(&tickers, &symbol);
 
     Value::Null
@@ -456,12 +456,12 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut rawHashes: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_370: bool = true;
-            while { if !__for_first_370 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_370 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_370 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_370 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -607,7 +607,7 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -635,12 +635,12 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut rawHashes: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_371: bool = true;
-            while { if !__for_first_371 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_371 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_371 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_371 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -742,7 +742,7 @@ impl GrvtCore {
         }
         symbol = self.symbol(symbol.clone());
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOHLCV".to_string())); }
-        let mut result: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
+        let mut result: Value = self.watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
         return get_value(&get_value(&result, &symbol), &timeframe);
 
     Value::Null
@@ -769,12 +769,12 @@ impl GrvtCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut rawHashes: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_372: bool = true;
-            while { if !__for_first_372 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_372 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbolsAndTimeframes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_372 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_372 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
@@ -851,7 +851,7 @@ impl GrvtCore {
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         let mut parsed: Value = self.parse_ws_ohlcv(data.clone(), &[market.clone()]);
         stored.append(parsed.clone());
-        let mut resolveData: Value = Value::List(vec![symbol.clone(), timeframe.clone(), stored.clone()]);
+        let mut resolveData: Value = Value::from(vec![symbol.clone(), timeframe.clone(), stored.clone()]);
         client.resolve(&[resolveData.clone(), messageHash.clone()]);
 }
 
@@ -883,7 +883,7 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -911,8 +911,8 @@ impl GrvtCore {
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("channel".to_string()), &[Value::Str("v1.book.d".to_string())]); channel = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut isSnapshot: bool = channel.as_str() == Some("v1.book.s");
-        let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) {
+        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+        if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (limit == Value::Null) {
@@ -922,12 +922,12 @@ impl GrvtCore {
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("interval".to_string()), &[interval.clone()]); interval = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut extraPart: Value = (if isSnapshot { (Value::Str(format!("{}{}", Value::Str(format!("{}{}", to_string_val(&interval), Value::Str("-".to_string()))), to_string_val(&limit)))) } else { to_string_val(&interval) });
-        let mut rawHashes: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_373: bool = true;
-            while { if !__for_first_373 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_373 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_373 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_373 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -993,13 +993,13 @@ impl GrvtCore {
         let mut sequenceNumber: Value = self.safe_integer_k(message.clone(), "sequence_number", &[Value::Int(0)]);
         let mut stream: Option<String> = self.safe_string_k(message.clone(), "stream", &[]).as_str().map(str::to_owned);
         let mut isSnapshotChannel: bool = stream.as_deref() == Some("v1.book.s");
-        let mut isSnapshotMessage: bool = sequenceNumber.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut isSnapshotMessage: bool = sequenceNumber.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64);
         if isSnapshotChannel || isSnapshotMessage {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("size".to_string())]);
             orderbook.reset(snapshot.clone());
         }  else {
-            let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone(), &[Value::Str("price".to_string()), Value::Str("size".to_string())]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone(), &[Value::Str("price".to_string()), Value::Str("size".to_string())]);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1088,8 +1088,8 @@ impl GrvtCore {
         }
         self.authenticate(&[]).await;
         let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut rawHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
             append_to_array(&mut rawHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", subAccountId, Value::Str("-".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
@@ -1154,7 +1154,7 @@ impl GrvtCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_equal(&self.myTrades, &Value::Null) {
+        if (self.myTrades.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
@@ -1196,13 +1196,13 @@ impl GrvtCore {
         }
         let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut rawHashes: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_374: bool = true;
-                while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_374 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_374 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -1266,7 +1266,7 @@ impl GrvtCore {
         let mut position: Value = self.parse_ws_position(data.clone(), &[]);
         let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         self.positions.append(position.clone());
-        let mut newPositions: Value = Value::List(vec![]);
+        let mut newPositions: Value = Value::from(vec![]);
         append_to_array(&mut newPositions, position.clone());
         client.resolve(&[newPositions.clone(), Value::Str(format!("{}{}", Value::Str("positions::".to_string()), symbol))]);
         client.resolve(&[newPositions.clone(), Value::Str("positions".to_string())]);
@@ -1303,8 +1303,8 @@ impl GrvtCore {
         }
         self.authenticate(&[]).await;
         let mut subAccountId: Value = self.parent.get_sub_account_id(params.clone());
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut rawHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut rawHashes: Value = Value::from(vec![]);
         if (symbol == Value::Null) {
             append_to_array(&mut messageHashes, Value::Str("orders".to_string()));
             append_to_array(&mut rawHashes, subAccountId.clone());
@@ -1395,7 +1395,7 @@ impl GrvtCore {
         //    }
         //
         let mut data: Value = self.safe_dict_k(message, "feed", &[]);
-        if is_equal(&self.orders, &Value::Null) {
+        if (self.orders.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }

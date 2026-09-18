@@ -585,8 +585,8 @@ impl BlockchaincomCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut numericId: Value = self.safe_number_k(market.clone(), "id", &[]);
             let mut active: Value = Value::Null;
-            let mut marketState: Value = self.safe_string_k(market.clone(), "status", &[]);
-            if (marketState.as_str() == Some("open")) {
+            let mut marketState: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+            if (marketState.as_deref() == Some("open")) {
                 active = Value::Bool(true);
             }  else {
                 active = Value::Bool(false);
@@ -734,7 +734,7 @@ impl BlockchaincomCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("depth".to_string(), limit.clone()); }
         }
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_l3_symbol(&[__ws_arg_0]).await;
@@ -759,7 +759,7 @@ impl BlockchaincomCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("depth".to_string(), limit.clone()); }
         }
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_l2_symbol(&[__ws_arg_1]).await;
@@ -909,7 +909,7 @@ impl BlockchaincomCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string())]);
         let mut exchangeOrderId: Value = self.safe_string_k(order.clone(), "exOrdId", &[]);
-        let mut price: Value = (if is_true(&(Value::Bool(type_var.as_str() != Some("market")))) { self.safe_string_k(order.clone(), "price", &[]) } else { Value::Null });
+        let mut price: Value = (if is_true(&(type_var.as_str() != Some("market"))) { self.safe_string_k(order.clone(), "price", &[]) } else { Value::Null });
         let mut average: Value = self.safe_number_k(order.clone(), "avgPx", &[]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "timestamp", &[]);
         let mut datetime: Value = self.iso8601(timestamp.clone());
@@ -991,9 +991,9 @@ impl BlockchaincomCore {
         }
         if (triggerPrice != Value::Null) {
             if (uppercaseOrderType.as_str() == Some("MARKET")) {
-                add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("STOP".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ordType".to_string(), Value::Str("STOP".to_string())); }
             }  else if (uppercaseOrderType.as_str() == Some("LIMIT")) {
-                add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("STOPLIMIT".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ordType".to_string(), Value::Str("STOPLIMIT".to_string())); }
             }
         }
         let mut priceRequired: bool = false;
@@ -1005,10 +1005,10 @@ impl BlockchaincomCore {
             stopPriceRequired = true;
         }
         if priceRequired {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
         }
         if stopPriceRequired {
-            add_element_to_object(&mut request, &Value::Str("stopPx".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("stopPx".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
         let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_orders(&[__ws_arg_3]).await;
@@ -1076,7 +1076,7 @@ impl BlockchaincomCore {
         });
         if (symbol != Value::Null) {
             let mut marketId: Value = self.market_id(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), marketId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), marketId.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_5]).await;
@@ -1236,7 +1236,7 @@ impl BlockchaincomCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_6]).await;
@@ -1329,11 +1329,11 @@ impl BlockchaincomCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.market_id(symbol.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), self.market_id(symbol.clone())); }
             market = self.market(symbol);
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
@@ -1439,14 +1439,14 @@ impl BlockchaincomCore {
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut state: Value = self.safe_string_k(transaction.clone(), "state", &[]);
-        if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositId")))) {
+        if is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("depositId")))) {
             type_var = Value::Str("deposit".to_string());
             id = self.safe_string_k(transaction.clone(), "depositId", &[]);
-        }  else if is_true(&Value::Bool(matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawalId")))) {
+        }  else if is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("withdrawalId")))) {
             type_var = Value::Str("withdrawal".to_string());
             id = self.safe_string_k(transaction.clone(), "withdrawalId", &[]);
         }
-        let mut feeCost: Value = (if is_true(&(Value::Bool(type_var.as_str() == Some("withdrawal")))) { self.safe_number_k(transaction.clone(), "fee", &[]) } else { Value::Null });
+        let mut feeCost: Value = (if is_true(&(type_var.as_str() == Some("withdrawal"))) { self.safe_number_k(transaction.clone(), "fee", &[]) } else { Value::Null });
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -1550,7 +1550,7 @@ impl BlockchaincomCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("from".to_string(), since.clone()); }
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -1621,7 +1621,7 @@ impl BlockchaincomCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("from".to_string(), since.clone()); }
         }
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -1790,7 +1790,7 @@ impl BlockchaincomCore {
                     m.insert("X-API-Token".to_string(), self.secret.clone());
                 m
             });
-            if is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
+            if is_true(&(method.as_str() == Some("GET"))) {
                 if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
@@ -1816,9 +1816,9 @@ impl BlockchaincomCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut text: Value = self.safe_string_k(response.clone(), "text", &[]);
-        if (text != Value::Null) {
-            if (text.as_str() == Some("Insufficient Balance")) {
+        let mut text: Option<String> = self.safe_string_k(response.clone(), "text", &[]).as_str().map(str::to_owned);
+        if (text.is_some()) {
+            if (text.as_deref() == Some("Insufficient Balance")) {
                 panic!("{}", crate::exchange_errors::insufficient_funds(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body)));
             }
         }

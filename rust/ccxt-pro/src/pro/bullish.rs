@@ -479,7 +479,7 @@ impl BullishCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.market(symbol.clone());
-        let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades.clone(), &[market.clone()]);
         if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -490,7 +490,7 @@ impl BullishCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_194: bool = true;
-            while { if !__for_first_194 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_194 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_194 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_194 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             tradesArray.append(get_value(&trades, &i));
         }
         }
@@ -570,7 +570,7 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut updateType: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
+        let mut updateType: Option<String> = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -579,7 +579,7 @@ impl BullishCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut parsed: Value = self.parse_ticker(data.clone(), &[market.clone()]);
-        if (updateType.as_str() == Some("update")) {
+        if (updateType.as_deref() == Some("update")) {
             let mut ticker: Value = self.safe_dict(self.tickers.clone(), symbol.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -665,8 +665,8 @@ impl BullishCore {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]));
-        let mut asks: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]));
+        let mut bids: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]));
+        let mut asks: Value = self.separate_bids_or_asks(self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]));
         let mut snapshot: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("bids".to_string(), bids.clone());
@@ -674,8 +674,8 @@ impl BullishCore {
             m
         });
         let mut parsed: Value = self.parse_order_book(snapshot.clone(), symbol.clone(), &[timestamp.clone()]);
-        let mut sequenceNumberRange: Value = self.safe_list_k(data, "sequenceNumberRange", &[Value::List(vec![])]);
-        if Value::Int(sequenceNumberRange.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        let mut sequenceNumberRange: Value = self.safe_list_k(data, "sequenceNumberRange", &[Value::from(vec![])]);
+        if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), self.safe_integer(sequenceNumberRange.clone(), lastIndex.clone(), &[]));
         }
@@ -685,7 +685,7 @@ impl BullishCore {
 }
 
     pub fn separate_bids_or_asks(&self, mut entry: Value) -> Value {
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_195: bool = true;
@@ -695,7 +695,7 @@ impl BullishCore {
             }
             let mut price: Value = self.safe_string(entry.clone(), i.clone(), &[]);
             let mut amount: Value = self.safe_string(entry.clone(), (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }), &[]);
-            append_to_array(&mut result, Value::List(vec![price.clone(), amount.clone()]));
+            append_to_array(&mut result, Value::from(vec![price.clone(), amount.clone()]));
         }
         }
         return result;
@@ -796,19 +796,19 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut rawOrders: Value = Value::List(vec![]);
-        if (type_var.as_str() == Some("update")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut rawOrders: Value = Value::from(vec![]);
+        if (type_var.as_deref() == Some("update")) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             append_to_array(&mut rawOrders, data.clone()); // update is a single order
         }  else {
-            rawOrders = self.safe_list_k(message, "data", &[Value::List(vec![])]); // snapshot is a list of orders
+            rawOrders = self.safe_list_k(message, "data", &[Value::from(vec![])]); // snapshot is a list of orders
         }
-        let mut numRawOrders: Value = Value::Int(rawOrders.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        if numRawOrders.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        let mut numRawOrders: f64 = ((rawOrders.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawOrders > ((0i64) as f64) {
             if (self.orders.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
                 self.orders = ArrayCacheBySymbolById::new(limit.clone());
@@ -821,7 +821,7 @@ impl BullishCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_196: bool = true;
-                while { if !__for_first_196 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_196 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_196 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_196 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
                 let mut rawOrder: Value = get_value(&rawOrders, &i);
                 let mut rawOrder: Value = get_value(&rawOrders, &i);
                 let mut parsedOrder: Value = self.parse_order(rawOrder.clone(), &[]);
@@ -838,7 +838,7 @@ impl BullishCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_197: bool = true;
-                while { if !__for_first_197 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_197 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_197 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_197 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), hashSymbol));
@@ -934,19 +934,19 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut rawTrades: Value = Value::List(vec![]);
-        if (type_var.as_str() == Some("update")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut rawTrades: Value = Value::from(vec![]);
+        if (type_var.as_deref() == Some("update")) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             append_to_array(&mut rawTrades, data.clone()); // update is a single trade
         }  else {
-            rawTrades = self.safe_list_k(message, "data", &[Value::List(vec![])]); // snapshot is a list of trades
+            rawTrades = self.safe_list_k(message, "data", &[Value::from(vec![])]); // snapshot is a list of trades
         }
-        let mut numRawTrades: Value = Value::Int(rawTrades.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-        if numRawTrades.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        let mut numRawTrades: f64 = ((rawTrades.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        if numRawTrades > ((0i64) as f64) {
             if (self.myTrades.clone() == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
@@ -959,7 +959,7 @@ impl BullishCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_198: bool = true;
-                while { if !__for_first_198 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_198 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_198 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_198 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
                 let mut rawTrade: Value = get_value(&rawTrades, &i);
                 let mut rawTrade: Value = get_value(&rawTrades, &i);
                 let mut parsedTrade: Value = self.parse_trade(rawTrade.clone(), &[]);
@@ -976,7 +976,7 @@ impl BullishCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_199: bool = true;
-                while { if !__for_first_199 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_199 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_199 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_199 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut hashSymbol: Value = get_value(&keys, &i);
                 let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), hashSymbol));
@@ -1072,9 +1072,9 @@ impl BullishCore {
     m
 }));
         }
-        let mut messageType: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (messageType.as_str() == Some("snapshot")) {
-            let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut messageType: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (messageType.as_deref() == Some("snapshot")) {
+            let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
             { let __be_tmp = self.parse_balance(data.clone()); add_element_to_object(&mut self.balance, &tradingAccountId, __be_tmp); };
         }  else {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
@@ -1087,9 +1087,9 @@ impl BullishCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "lockedQuantity", &[])); }
             let mut code: Value = self.safe_currency_code(assetId.clone(), &[]);
             if is_true(&(tradingAccountId != Value::Null)) && is_true(&(code != Value::Null)) {
-                add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());
+                add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &code, account.clone());
             }
-            add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
+            add_element_to_object(get_value_mut(&mut self.balance, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
             { let __be_tmp = self.safe_balance(get_value(&self.balance, &tradingAccountId)); add_element_to_object(&mut self.balance, &tradingAccountId, __be_tmp); };
         }
         let mut messageHash: Value = Value::Str("balance".to_string());
@@ -1144,26 +1144,26 @@ impl BullishCore {
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
-        let mut messageType: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut rawPositions: Value = Value::List(vec![]);
-        if (messageType.as_str() == Some("update")) {
+        let mut messageType: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut rawPositions: Value = Value::from(vec![]);
+        if (messageType.as_deref() == Some("update")) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             append_to_array(&mut rawPositions, data.clone());
         }  else {
-            rawPositions = self.safe_list_k(message, "data", &[Value::List(vec![])]);
+            rawPositions = self.safe_list_k(message, "data", &[Value::from(vec![])]);
         }
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut positions: Value = self.positions.clone();
-        let mut newPositions: Value = Value::List(vec![]);
+        let mut newPositions: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_200: bool = true;
-            while { if !__for_first_200 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_200 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawPositions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_200 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_200 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_position(rawPosition.clone(), &[]);
@@ -1175,7 +1175,7 @@ impl BullishCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_201: bool = true;
-            while { if !__for_first_201 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_201 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_201 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_201 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1220,33 +1220,33 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut dataType: Value = self.safe_string_k(message.clone(), "dataType", &[]);
+        let mut dataType: Option<String> = self.safe_string_k(message.clone(), "dataType", &[]).as_str().map(str::to_owned);
         let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
         if (result != Value::Null) {
-            let mut response: Value = self.safe_string_k(result.clone(), "message", &[]);
-            if (response.as_str() == Some("Keep alive pong")) {
+            let mut response: Option<String> = self.safe_string_k(result.clone(), "message", &[]).as_str().map(str::to_owned);
+            if (response.as_deref() == Some("Keep alive pong")) {
                 self.handle_pong(client.clone(), message.clone());
             }
-        }  else if (dataType != Value::Null) {
-            if (dataType.as_str() == Some("V1TAAnonymousTradeUpdate")) {
+        }  else if (dataType.is_some()) {
+            if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
                 self.handle_trades(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TATickerResponse")) {
+            if (dataType.as_deref() == Some("V1TATickerResponse")) {
                 self.handle_ticker(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TALevel2")) {
+            if (dataType.as_deref() == Some("V1TALevel2")) {
                 self.handle_order_book(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TAOrder")) {
+            if (dataType.as_deref() == Some("V1TAOrder")) {
                 self.handle_orders(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TATrade")) {
+            if (dataType.as_deref() == Some("V1TATrade")) {
                 self.handle_my_trades(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TAAssetAccount")) {
+            if (dataType.as_deref() == Some("V1TAAssetAccount")) {
                 self.handle_balance(client.clone(), message.clone());
             }
-            if (dataType.as_str() == Some("V1TAErrorResponse")) {
+            if (dataType.as_deref() == Some("V1TAErrorResponse")) {
                 self.handle_error_message(client.clone(), message.clone());
             }
         }

@@ -664,7 +664,7 @@ impl ZaifCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), balance.clone()); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), balance.clone()); }
             if (deposit != Value::Null) {
-                if is_true(&Value::Bool(in_op(&deposit, &currencyId))) {
+                if (in_op(&deposit, &currencyId)) {
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(deposit.clone(), currencyId.clone(), &[])); }
                 }
             }
@@ -823,7 +823,7 @@ impl ZaifCore {
         //      }
         //
         let mut side: Value = self.safe_string_k(trade.clone(), "trade_type", &[]);
-        side = (if is_true(&(Value::Bool(side.as_str() == Some("bid")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        side = (if is_true(&(side.as_str() == Some("bid"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("date".to_string()), &[]);
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("id".to_string()), Value::Str("tid".to_string()), &[]);
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -937,7 +937,7 @@ impl ZaifCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("action".to_string(), (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("bid".to_string()) } else { Value::Str("ask".to_string()) }));
+                m.insert("action".to_string(), (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("bid".to_string()) } else { Value::Str("ask".to_string()) }));
                 m.insert("amount".to_string(), amount.clone());
                 m.insert("price".to_string(), price.clone());
             m
@@ -1029,7 +1029,7 @@ impl ZaifCore {
         //    }
         //
         let mut side: Value = self.safe_string_k(order.clone(), "action", &[]);
-        side = (if is_true(&(Value::Bool(side.as_str() == Some("bid")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        side = (if is_true(&(side.as_str() == Some("bid"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("timestamp".to_string()), &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "currency_pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]);
@@ -1094,7 +1094,7 @@ impl ZaifCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_active_orders(&[__ws_arg_5]).await;
@@ -1136,7 +1136,7 @@ impl ZaifCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(&mut request, &Value::Str("currency_pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency_pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_6]).await;
@@ -1184,7 +1184,7 @@ impl ZaifCore {
             m
         });
         if (tag != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("message".to_string()), tag.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("message".to_string(), tag.clone()); }
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.private_post_withdraw(&[__ws_arg_7]).await;

@@ -432,7 +432,7 @@ impl HollaexCore {
             stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
-        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::from(vec![])]);
         let mut parsedTrades: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut j: Value = Value::Int(0);
@@ -669,8 +669,8 @@ impl HollaexCore {
         }
         let mut stored: Value = self.orders.clone();
         let mut rawOrders: Value = Value::Null;
-        if !(is_array(&data)) {
-            rawOrders = Value::List(vec![data.clone()]);
+        if !is_true(&(matches!(&data, Value::Arr(_)))) {
+            rawOrders = Value::from(vec![data.clone()]);
         }  else {
             rawOrders = data.clone();
         }
@@ -765,8 +765,8 @@ impl HollaexCore {
             if is_true(&(code != Value::Null)) && (in_op(&self.balance, &code)) {
                 account = get_value(&self.balance, &code);
             }
-            let mut second: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
-            let mut freeOrTotal: Value = (if is_true(&(second.as_str() == Some("available"))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
+            let mut second: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut freeOrTotal: Value = (if is_true(&(second.as_deref() == Some("available"))) { Value::Str("free".to_string()) } else { Value::Str("total".to_string()) });
             add_element_to_object(&mut account, &freeOrTotal, self.safe_string(data.clone(), key.clone(), &[]));
             if (code != Value::Null) {
                 add_element_to_object(&mut self.balance, &code, account.clone());
@@ -786,7 +786,7 @@ impl HollaexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
@@ -827,7 +827,7 @@ impl HollaexCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
+                m.insert("args".to_string(), Value::from(vec![messageHash.clone()]));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
@@ -844,7 +844,7 @@ impl HollaexCore {
         let mut error: Value = self.safe_integer_k(message.clone(), "error", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (error != Value::Null) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message)));
                 self.throw_exactly_matched_exception(crate::value::get_value_k(&self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "exact"), error.clone(), feedback.clone());
             }
          #[allow(unreachable_code)] { Value::Null }}));
@@ -947,8 +947,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() != Some(true)) {
             return;
         }
-        let mut content: Value = self.safe_string_k(message.clone(), "message", &[]);
-        if (content.as_str() == Some("pong")) {
+        let mut content: Option<String> = self.safe_string_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
+        if (content.as_deref() == Some("pong")) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }

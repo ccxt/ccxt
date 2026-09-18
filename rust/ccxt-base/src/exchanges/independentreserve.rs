@@ -122,7 +122,7 @@ impl IndependentreserveCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("independentreserve".to_string()));
         m.insert("name".to_string(), Value::Str("Independent Reserve".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("AU".to_string()), Value::Str("NZ".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("AU".to_string()), Value::Str("NZ".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
@@ -676,7 +676,7 @@ impl IndependentreserveCore {
         let mut quoteCurrenciesPromise: Value = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await;
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
         let mut limitsPromise: Value = self.public_get_get_order_minimum_volumes(&[params.clone()]).await;
-        let mut baseCurrenciesquoteCurrencieslimitsVariable = promise_all(&Value::List(vec![baseCurrenciesPromise.clone(), quoteCurrenciesPromise.clone(), limitsPromise.clone()])).await;
+        let mut baseCurrenciesquoteCurrencieslimitsVariable = promise_all(&Value::from(vec![baseCurrenciesPromise.clone(), quoteCurrenciesPromise.clone(), limitsPromise.clone()])).await;
         let mut baseCurrencies: Value = baseCurrenciesquoteCurrencieslimitsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut quoteCurrencies: Value = baseCurrenciesquoteCurrencieslimitsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut limits: Value = baseCurrenciesquoteCurrencieslimitsVariable.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
@@ -688,7 +688,7 @@ impl IndependentreserveCore {
         //         "Xrp": 1.0,
         //     }
         //
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut baseCurrencyIds: Value = self.to_array(baseCurrencies.clone());
         let mut quoteCurrencyIds: Value = self.to_array(quoteCurrencies.clone());
         {
@@ -1011,14 +1011,14 @@ impl IndependentreserveCore {
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".to_string()), Value::Str("OrderType".to_string()), &[]);
         let mut side: Value = Value::Null;
         if (orderType != Value::Null) {
-            if get_index_of(&orderType, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&orderType, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("sell".to_string());
             }
-            if get_index_of(&orderType, &Value::Str("Market".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(orderType.as_str().and_then(|__s| __s.find("Market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 orderType = Value::Str("market".to_string());
-            }  else if get_index_of(&orderType, &Value::Str("Limit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(orderType.as_str().and_then(|__s| __s.find("Limit")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 orderType = Value::Str("limit".to_string());
             }
         }
@@ -1157,17 +1157,17 @@ impl IndependentreserveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(&mut request, &Value::Str("primaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut request, &Value::Str("secondaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit == Value::Null) {
             limit = Value::Int(50);
         }
-        add_element_to_object(&mut request, &Value::Str("pageIndex".to_string()), Value::Int(1));
-        add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageIndex".to_string(), Value::Int(1)); }
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_list_k(response, "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1201,17 +1201,17 @@ impl IndependentreserveCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(&mut request, &Value::Str("primaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut request, &Value::Str("secondaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit == Value::Null) {
             limit = Value::Int(50);
         }
-        add_element_to_object(&mut request, &Value::Str("pageIndex".to_string()), Value::Int(1));
-        add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageIndex".to_string(), Value::Int(1)); }
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pageSize".to_string(), limit.clone()); }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response, "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1254,7 +1254,7 @@ impl IndependentreserveCore {
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut data: Value = self.safe_list_k(response, "Data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "Data", &[Value::from(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1279,9 +1279,9 @@ impl IndependentreserveCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("/".to_string())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "OrderType", &[]);
         if (side != Value::Null) {
-            if get_index_of(&side, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(side.as_str().and_then(|__s| __s.find("Bid")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&side, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(side.as_str().and_then(|__s| __s.find("Offer")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("sell".to_string());
             }
         }
@@ -1336,7 +1336,7 @@ impl IndependentreserveCore {
         });
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_recent_trades(&[__ws_arg_6]).await;
-        let mut trades: Value = self.safe_list_k(response, "Trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "Trades", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1456,9 +1456,9 @@ impl IndependentreserveCore {
             m
         });
         let mut response: Value = Value::Null;
-        add_element_to_object(&mut request, &Value::Str("volume".to_string()), amount.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), amount.clone()); }
         if (type_var.as_str() == Some("limit")) {
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), price.clone()); }
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_place_limit_order(&[__ws_arg_7]).await;
         }  else {
@@ -1595,7 +1595,7 @@ impl IndependentreserveCore {
             m
         });
         if (tag != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("destinationTag".to_string()), tag.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("destinationTag".to_string(), tag.clone()); }
         }
         let mut networkCode: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); networkCode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1686,7 +1686,7 @@ impl IndependentreserveCore {
         }  else {
             self.check_required_credentials(&[]);
             let mut nonce: Value = self.nonce();
-            let mut auth: Value = Value::List(vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".to_string()), self.apiKey.clone())), Value::Str(format!("{}{}", Value::Str("nonce=".to_string()), to_string_val(&nonce)))]);
+            let mut auth: Value = Value::from(vec![url.clone(), Value::Str(format!("{}{}", Value::Str("apiKey=".to_string()), self.apiKey.clone())), Value::Str(format!("{}{}", Value::Str("nonce=".to_string()), to_string_val(&nonce)))]);
             let mut keys: Value = object_keys(&params);
             {
                                 let mut i: Value = Value::Int(0);

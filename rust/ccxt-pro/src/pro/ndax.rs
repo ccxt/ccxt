@@ -398,7 +398,7 @@ impl NdaxCore {
 }
 
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
-        let mut payload: Value = self.safe_list_k(message, "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::from(vec![])]);
         //
         // initial snapshot
         //
@@ -429,7 +429,7 @@ impl NdaxCore {
             while { if !__for_first_523 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_523 = false; i.as_f64().unwrap_or(f64::NAN) < ((payload.len() as i64) as f64) } {
             let mut trade: Value = self.parse_trade(get_value(&payload, &i), &[]);
             let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut tradesArray: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
+            let mut tradesArray: Value = (if is_true(&(symbol == Value::Null)) { Value::Null } else { self.safe_value(self.trades.clone(), symbol.clone(), &[]) });
             if (tradesArray == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 tradesArray = ArrayCache::new(limit.clone());
@@ -523,7 +523,7 @@ impl NdaxCore {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: Value = self.safe_list_k(message, "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::from(vec![])]);
         //
         //     [
         //         [
@@ -576,29 +576,29 @@ impl NdaxCore {
                 if (timestamp == Value::Null) {
                     continue;
                 }
-                let mut parsed: Value = Value::List(vec![self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
-                let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::List(vec![])]);
+                let mut parsed: Value = Value::from(vec![self.parse_to_int((match (&(((match ((timestamp).as_f64(), (duration).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), self.safe_float(ohlcv.clone(), Value::Int(3), &[]), self.safe_float(ohlcv.clone(), Value::Int(1), &[]), self.safe_float(ohlcv.clone(), Value::Int(2), &[]), self.safe_float(ohlcv.clone(), Value::Int(4), &[]), self.safe_float(ohlcv.clone(), Value::Int(5), &[])]);
+                let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::from(vec![])]);
                 let mut length: Value = get_array_length(&stored);
-                if (is_greater_than(&length, &Value::Int(0))) && (is_equal(&match &parsed { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }, &get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0)))) {
+                if is_true(&(length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) && (is_equal(&parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0)))) {
                     let mut previous: Value = get_value(&stored, &subtract(&length, &Value::Int(1)));
-                    let mut high: Value = match &parsed { Value::Arr(__a15) => __a15.get(1).cloned().unwrap_or(Value::Null), _ => Value::Null };
-                    if (match &parsed { Value::Arr(__a15) => __a15.get(1).cloned().unwrap_or(Value::Null), _ => Value::Null } == Value::Null) {
+                    let mut high: Value = parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+                    if (parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) == Value::Null) {
                         high = get_value(&previous, &Value::Int(1));
                     }  else if (get_value(&previous, &Value::Int(1)) != Value::Null) {
-                        high = crate::runtime::Math::max(&match &parsed { Value::Arr(__a15) => __a15.get(1).cloned().unwrap_or(Value::Null), _ => Value::Null }, &get_value(&previous, &Value::Int(1)));
+                        high = crate::runtime::Math::max(&parsed.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), &get_value(&previous, &Value::Int(1)));
                     }
-                    let mut low: Value = match &parsed { Value::Arr(__a15) => __a15.get(2).cloned().unwrap_or(Value::Null), _ => Value::Null };
-                    if (match &parsed { Value::Arr(__a15) => __a15.get(2).cloned().unwrap_or(Value::Null), _ => Value::Null } == Value::Null) {
+                    let mut low: Value = parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null);
+                    if (parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) == Value::Null) {
                         low = get_value(&previous, &Value::Int(2));
                     }  else if (get_value(&previous, &Value::Int(2)) != Value::Null) {
-                        low = crate::runtime::Math::min(&match &parsed { Value::Arr(__a15) => __a15.get(2).cloned().unwrap_or(Value::Null), _ => Value::Null }, &get_value(&previous, &Value::Int(2)));
+                        low = crate::runtime::Math::min(&parsed.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null), &get_value(&previous, &Value::Int(2)));
                     }
-                    add_element_to_object(&mut stored, &subtract(&length, &Value::Int(1)), Value::List(vec![match &parsed { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }, get_value(&previous, &Value::Int(1)), high.clone(), low.clone(), match &parsed { Value::Arr(__a15) => __a15.get(4).cloned().unwrap_or(Value::Null), _ => Value::Null }, self.sum(&[match &parsed { Value::Arr(__a15) => __a15.get(5).cloned().unwrap_or(Value::Null), _ => Value::Null }, get_value(&previous, &Value::Int(5))])]));
-                    if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(timeframe != Value::Null))) {
+                    add_element_to_object(&mut stored, &subtract(&length, &Value::Int(1)), Value::from(vec![parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(1)), high.clone(), low.clone(), parsed.as_array().and_then(|__arr| __arr.get(4)).cloned().unwrap_or(Value::Null), self.sum(&[parsed.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null), get_value(&previous, &Value::Int(5))])]));
+                    if is_true(&(marketId != Value::Null)) && is_true(&(timeframe != Value::Null)) {
                         add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                     }
                 }  else {
-                    if (is_greater_than(&length, &Value::Int(0))) && is_true(&(self.parse_to_int(match &parsed { Value::Arr(__a15) => __a15.get(0).cloned().unwrap_or(Value::Null), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < self.parse_to_int(get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0))).as_f64().unwrap_or(f64::NAN))) {
+                    if is_true(&(length.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) && is_true(&(self.parse_to_int(parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) < self.parse_to_int(get_value(&get_value(&stored, &subtract(&length, &Value::Int(1))), &Value::Int(0))).as_f64().unwrap_or(f64::NAN))) {
                         continue;
                     }  else {
                         append_to_array(&mut stored, parsed.clone());
@@ -606,7 +606,7 @@ impl NdaxCore {
                         if is_greater_than_or_equal(&length, &limit) {
                             shift(stored.clone());
                         }
-                        if is_true(&(Value::Bool(marketId != Value::Null))) && is_true(&(Value::Bool(timeframe != Value::Null))) {
+                        if is_true(&(marketId != Value::Null)) && is_true(&(timeframe != Value::Null)) {
                             add_element_to_object(get_value_mut(&mut updates, &marketId), &timeframe, Value::Bool(true));
                         }
                     }
@@ -634,7 +634,7 @@ impl NdaxCore {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), timeframe)), Value::Str(":".to_string()))), marketId));
                 let mut market: Value = self.safe_market(&[marketId.clone()]);
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::List(vec![])]);
+                let mut stored: Value = self.safe_value(get_value(&self.ohlcvs, &symbol), timeframe.clone(), &[Value::from(vec![])]);
                 client.resolve(&[stored.clone(), messageHash.clone()]);
             }
             }
@@ -668,7 +668,7 @@ impl NdaxCore {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut requestId: Value = self.request_id();
-        limit = (if is_true(&(Value::Bool(limit == Value::Null))) { Value::Int(100) } else { limit.clone() });
+        limit = (if is_true(&(limit == Value::Null)) { Value::Int(100) } else { limit.clone() });
         let mut payload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), omsId.clone());
@@ -712,7 +712,7 @@ impl NdaxCore {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        let mut payload: Value = self.safe_list_k(message, "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_list_k(message, "o", &[Value::from(vec![])]);
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -727,7 +727,7 @@ impl NdaxCore {
         //         0,   // 9 Side
         //     ],
         //
-        let mut firstBidAsk: Value = self.safe_value(payload.clone(), Value::Int(0), &[Value::List(vec![])]);
+        let mut firstBidAsk: Value = self.safe_value(payload.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut marketId: Value = self.safe_string(firstBidAsk.clone(), Value::Int(7), &[]);
         if (marketId == Value::Null) {
             return;
@@ -750,16 +750,16 @@ impl NdaxCore {
                 timestamp = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
             }  else {
                 let mut newTimestamp: Value = self.safe_integer(bidask.clone(), Value::Int(2), &[]);
-                let mut currentTimestampValue: Value = (if is_true(&(Value::Bool(timestamp == Value::Null))) { Value::Int(0) } else { timestamp.clone() });
-                let mut newTimestampValue: Value = (if is_true(&(Value::Bool(newTimestamp == Value::Null))) { Value::Int(0) } else { newTimestamp.clone() });
+                let mut currentTimestampValue: Value = (if is_true(&(timestamp == Value::Null)) { Value::Int(0) } else { timestamp.clone() });
+                let mut newTimestampValue: Value = (if is_true(&(newTimestamp == Value::Null)) { Value::Int(0) } else { newTimestamp.clone() });
                 timestamp = crate::runtime::Math::max(&currentTimestampValue, &newTimestampValue);
             }
             if (nonce == Value::Null) {
                 nonce = self.safe_integer(bidask.clone(), Value::Int(0), &[]);
             }  else {
                 let mut newNonce: Value = self.safe_integer(bidask.clone(), Value::Int(0), &[]);
-                let mut currentNonceValue: Value = (if is_true(&(Value::Bool(nonce == Value::Null))) { Value::Int(0) } else { nonce.clone() });
-                let mut newNonceValue: Value = (if is_true(&(Value::Bool(newNonce == Value::Null))) { Value::Int(0) } else { newNonce.clone() });
+                let mut currentNonceValue: Value = (if is_true(&(nonce == Value::Null)) { Value::Int(0) } else { nonce.clone() });
+                let mut newNonceValue: Value = (if is_true(&(newNonce == Value::Null)) { Value::Int(0) } else { newNonce.clone() });
                 nonce = crate::runtime::Math::max(&currentNonceValue, &newNonceValue);
             }
             // 0 new, 1 update, 2 remove
@@ -768,7 +768,7 @@ impl NdaxCore {
             let mut amount: Value = self.safe_float(bidask.clone(), Value::Int(8), &[]);
             let mut side: Option<i64> = self.safe_integer(bidask.clone(), Value::Int(9), &[]).as_i64();
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
-            let mut orderbookSide: Value = (if is_true(&(Value::Bool(side == Some(0)))) { crate::value::get_value_k(&orderbook, "bids") } else { crate::value::get_value_k(&orderbook, "asks") });
+            let mut orderbookSide: Value = (if is_true(&(side == Some(0))) { crate::value::get_value_k(&orderbook, "bids") } else { crate::value::get_value_k(&orderbook, "asks") });
             // 0 new, 1 update, 2 remove
             if (type_var == Some(0)) {
                 orderbookSide.store(price.clone(), amount.clone());
@@ -797,7 +797,7 @@ impl NdaxCore {
         //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
-        let mut payload: Value = self.safe_value_k(message, "o", &[Value::List(vec![])]);
+        let mut payload: Value = self.safe_value_k(message, "o", &[Value::from(vec![])]);
         //
         //     [
         //         [
@@ -836,7 +836,7 @@ impl NdaxCore {
         //
         let mut subscriptionsById: Value = self.index_by(get_value(&client, &Value::Str("subscriptions".to_string())), Value::Str("id".to_string()));
         let mut id: Value = self.safe_integer_k(message.clone(), "i", &[]);
-        let mut subscription: Value = (if is_true(&(Value::Bool(id == Value::Null))) { Value::Null } else { self.safe_value(subscriptionsById.clone(), id.clone(), &[]) });
+        let mut subscription: Value = (if is_true(&(id == Value::Null)) { Value::Null } else { self.safe_value(subscriptionsById.clone(), id.clone(), &[]) });
         if (subscription != Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
             if (method != Value::Null) {
@@ -886,7 +886,7 @@ impl NdaxCore {
             m
         });
         let mut event: Value = self.safe_string_k(message.clone(), "n", &[]);
-        let mut method: Value = (if is_true(&(Value::Bool(event == Value::Null))) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
+        let mut method: Value = (if is_true(&(event == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), event.clone(), &[]) });
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
         }

@@ -126,7 +126,7 @@ impl MercadoCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("mercado".to_string()));
         m.insert("name".to_string(), Value::Str("Mercado Bitcoin".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("BR".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("BR".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(1000));
         m.insert("version".to_string(), Value::Str("v3".to_string()));
         m.insert("has".to_string(), Value::Map({
@@ -251,7 +251,7 @@ impl MercadoCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.mercadobitcoin.com.br".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.mercadobitcoin.com.br/api-doc".to_string()), Value::Str("https://www.mercadobitcoin.com.br/trade-api".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.mercadobitcoin.com.br/api-doc".to_string()), Value::Str("https://www.mercadobitcoin.com.br/trade-api".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -582,7 +582,7 @@ impl MercadoCore {
         //         "LINK"
         //     ]
         //
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut amountLimits: Value = self.safe_value_k(self.options.clone(), "limits", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -598,7 +598,7 @@ impl MercadoCore {
             let mut quoteId: Value = Value::Str("BRL".to_string());
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            if is_true(&(Value::Bool(base == Value::Null))) || is_true(&(Value::Bool(quote == Value::Null))) {
+            if is_true(&(base == Value::Null)) || is_true(&(quote == Value::Null)) {
                 continue;
             }
             let mut id: Value = Value::Str(format!("{}{}", quote, base));
@@ -852,7 +852,7 @@ impl MercadoCore {
         }
         let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(since != Value::Null))) && is_true(&(Value::Bool(to.is_some()))) {
+        if is_true(&(since != Value::Null)) && is_true(&(to.is_some())) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
         }  else if (since != Value::Null) {
@@ -889,7 +889,7 @@ impl MercadoCore {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            if is_true(&Value::Bool(in_op(&balances, &currencyId))) {
+            if (in_op(&balances, &currencyId)) {
                 let mut balance: Value = self.safe_value(balances.clone(), currencyId.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1101,10 +1101,10 @@ impl MercadoCore {
         //     }
         //
         let mut id: Value = self.safe_string_k(order.clone(), "order_id", &[]);
-        let mut order_type: Value = self.safe_string_k(order.clone(), "order_type", &[]);
+        let mut order_type: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("order_type")))) {
-            side = (if is_true(&(Value::Bool(order_type.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("order_type")))) {
+            side = (if is_true(&(order_type.as_deref() == Some("1"))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         let mut marketId: Value = self.safe_string_k(order.clone(), "coin_pair", &[]);
@@ -1122,7 +1122,7 @@ impl MercadoCore {
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
         let mut filled: Value = self.safe_string_k(order.clone(), "executed_quantity", &[]);
         let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("updated_timestamp".to_string()), &[]);
-        let mut rawTrades: Value = self.safe_value_k(order.clone(), "operations", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_value_k(order.clone(), "operations", &[Value::from(vec![])]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1235,7 +1235,7 @@ impl MercadoCore {
             }
             if (code.as_str() == Some("XRP")) {
                 if (tag == Value::Null) {
-                    if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("destination_tag"))))) {
+                    if !is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("destination_tag")))) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a tag argument or destination_tag parameter to withdraw ".to_string()))), code)));
                     }
                 }  else {
@@ -1320,7 +1320,7 @@ impl MercadoCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1407,7 +1407,7 @@ impl MercadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(responseData, "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(responseData, "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1450,7 +1450,7 @@ impl MercadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(responseData, "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(responseData, "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1493,7 +1493,7 @@ impl MercadoCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ordersRaw: Value = self.safe_value_k(responseData, "orders", &[Value::List(vec![])]);
+        let mut ordersRaw: Value = self.safe_value_k(responseData, "orders", &[Value::from(vec![])]);
         let mut orders: Value = self.parse_orders(ordersRaw.clone(), &[market.clone(), since.clone(), limit.clone()]);
         let mut trades: Value = self.orders_to_trades(orders.clone());
         return self.filter_by_symbol_since_limit(trades.clone(), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), since.clone(), limit.clone()]);
@@ -1502,12 +1502,12 @@ impl MercadoCore {
 }
 
     pub fn orders_to_trades(&self, mut orders: Value) -> Value {
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_937: bool = true;
             while { if !__for_first_937 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_937 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orders).as_f64().unwrap_or(f64::NAN) } {
-            let mut trades: Value = self.safe_list_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
+            let mut trades: Value = self.safe_list_k(get_value(&orders, &i), "trades", &[Value::from(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
                 let mut __for_first_936: bool = true;
@@ -1533,7 +1533,7 @@ impl MercadoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if is_true(&(Value::Bool(api.as_str() == Some("public")))) || is_true(&(Value::Bool(api.as_str() == Some("v4Public")))) || is_true(&(Value::Bool(api.as_str() == Some("v4PublicNet")))) {
+        if is_true(&(api.as_str() == Some("public"))) || is_true(&(api.as_str() == Some("v4Public"))) || is_true(&(api.as_str() == Some("v4PublicNet"))) {
             url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())));
             if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
@@ -1581,7 +1581,7 @@ impl MercadoCore {
         //
         let mut errorMessage: Value = self.safe_value_k(response.clone(), "error_message", &[]);
         if (errorMessage != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response))));
         }
         return Value::Null;
 

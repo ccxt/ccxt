@@ -24,7 +24,7 @@ pub fn testUuid() {
     assert!(ccxt::runtime::is_true(&((to_string_val(&id2).as_str() == id2.as_str()))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id1.len() as i64).as_f64() == Some(36.0)))));
     assert!(ccxt::runtime::is_true(&((Value::Int(id2.len() as i64).as_f64() == Some(36.0)))));
-    assert!(ccxt::runtime::is_true(&((get_index_of(&id1, &Value::Str("-".to_string())).as_f64() == Some(8.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(id1.as_str().and_then(|__s| __s.find("-")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(8.0)))));
     // uuid16() - 16-char hex string
     let mut id16a: Value = exchange.uuid16(&[]);
     let mut id16b: Value = exchange.uuid16(&[]);

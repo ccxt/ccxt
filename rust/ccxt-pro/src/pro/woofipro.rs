@@ -458,7 +458,7 @@ impl WoofiproCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -761,7 +761,7 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if is_true(&(Value::Bool(timeframe.as_str() != Some("1m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("5m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("15m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("30m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1h")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1d")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1w")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1M")))) {
+        if is_true(&(timeframe.as_str() != Some("1m"))) && is_true(&(timeframe.as_str() != Some("5m"))) && is_true(&(timeframe.as_str() != Some("15m"))) && is_true(&(timeframe.as_str() != Some("30m"))) && is_true(&(timeframe.as_str() != Some("1h"))) && is_true(&(timeframe.as_str() != Some("1d"))) && is_true(&(timeframe.as_str() != Some("1w"))) && is_true(&(timeframe.as_str() != Some("1M"))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".to_string()))));
         }
         let mut market: Value = self.market(symbol.clone());
@@ -813,7 +813,7 @@ impl WoofiproCore {
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut interval: Value = self.safe_string_k(data.clone(), "type", &[]);
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(data.clone(), "startTime", &[]), self.safe_number_k(data.clone(), "open", &[]), self.safe_number_k(data.clone(), "high", &[]), self.safe_number_k(data.clone(), "low", &[]), self.safe_number_k(data.clone(), "close", &[]), self.safe_number_k(data.clone(), "volume", &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_integer_k(data.clone(), "startTime", &[]), self.safe_number_k(data.clone(), "open", &[]), self.safe_number_k(data.clone(), "high", &[]), self.safe_number_k(data.clone(), "low", &[]), self.safe_number_k(data.clone(), "close", &[]), self.safe_number_k(data, "volume", &[])]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -822,7 +822,7 @@ impl WoofiproCore {
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "OHLCVLimit", &[Value::Int(1000)]);
             stored = ArrayCacheByTimestamp::new(limit.clone());
-            if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(timeframe != Value::Null))) {
+            if is_true(&(symbol != Value::Null)) && is_true(&(timeframe != Value::Null)) {
                 add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &timeframe, stored.clone());
             }
         }
@@ -885,7 +885,7 @@ impl WoofiproCore {
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -898,7 +898,7 @@ impl WoofiproCore {
     m
 })]);
         let mut trade: Value = self.parse_ws_trade(__ws_arg_2, &[market.clone()]);
-        if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+        if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
@@ -1009,7 +1009,7 @@ impl WoofiproCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &Value::Str("authenticated".to_string()));
             }
         }
@@ -1031,7 +1031,7 @@ impl WoofiproCore {
             let mut ts: Value = to_string_val(&self.nonce());
             let mut auth: Value = ts.clone();
             let mut secret: Value = self.secret.clone();
-            if get_index_of(&secret, &Value::Str("ed25519:".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(secret.as_str().and_then(|__s| __s.find("ed25519:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut parts: Value = split(&secret, &Value::Str("ed25519:".to_string()));
                 secret = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             }
@@ -1119,7 +1119,7 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
+        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
         params = self.omit(params.clone(), Value::from(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
@@ -1168,7 +1168,7 @@ impl WoofiproCore {
             self.load_markets(&[]).await;
         }
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[Value::Bool(false)]);
-        let mut topic: Value = (if is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
+        let mut topic: Value = (if is_true(&(trigger.as_bool() == Some(true))) { Value::Str("algoexecutionreport".to_string()) } else { Value::Str("executionreport".to_string()) });
         params = self.omit(params.clone(), Value::Str("stop".to_string()), &[]);
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if (symbol != Value::Null) {
@@ -1273,7 +1273,7 @@ impl WoofiproCore {
         let mut priceString: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut price: Value = self.safe_number_k(order.clone(), "price", &[]);
         let mut avgPrice: Value = self.safe_number_k(order.clone(), "avgPrice", &[]);
-        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && is_true(&(Value::Bool(avgPrice != Value::Null))) {
+        if is_true(&crate::precise::Precise::stringEq(&priceString, &Value::Str("0".to_string()))) && is_true(&(avgPrice != Value::Null)) {
             price = avgPrice.clone();
         }
         let mut amount: Value = self.safe_string_k(order.clone(), "quantity", &[]);
@@ -1350,8 +1350,8 @@ impl WoofiproCore {
         //     }
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
-        if is_true(&Value::Bool(matches!(&data, Value::Arr(_)))) {
+        let mut data: Value = self.safe_value_k(message, "data", &[]);
+        if is_true(&(matches!(&data, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_675: bool = true;
@@ -1504,7 +1504,7 @@ impl WoofiproCore {
         self.set_positions_cache(client.clone(), &[symbols.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(Value::Bool(self.positions.clone() == Value::Null))) {
+        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(self.positions.clone() == Value::Null)) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".to_string())])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
@@ -1528,7 +1528,7 @@ impl WoofiproCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(false)]);
         if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".to_string());
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone()]);
             }
@@ -1554,7 +1554,7 @@ impl WoofiproCore {
         }
         }
         // don't remove the future from the .futures cache
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
             future.resolve(&[cache.clone()]);
             client.resolve(&[cache.clone(), Value::Str("positions".to_string())]);
@@ -1596,11 +1596,11 @@ impl WoofiproCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawPositions: Value = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(data, "positions", &[Value::from(vec![])]);
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
@@ -1685,7 +1685,7 @@ impl WoofiproCore {
         m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "estLiqPrice", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "estLiqPrice", &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
@@ -1783,7 +1783,7 @@ impl WoofiproCore {
             let mut value: Value = get_value(&balances, &key);
             let mut code: Value = self.safe_currency_code(key.clone(), &[]);
             let mut account: Value = self.account();
-            if is_true(&(Value::Bool(code != Value::Null))) && is_true(&(Value::Bool(in_op(&self.balance, &code)))) {
+            if is_true(&(code != Value::Null)) && (in_op(&self.balance, &code)) {
                 account = get_value(&self.balance, &code);
             }
             let mut total: Value = self.safe_string_k(value.clone(), "holding", &[]);
@@ -1804,7 +1804,7 @@ impl WoofiproCore {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
-        if !is_true(&(Value::Bool(in_op(&message, &Value::Str("success".to_string()))))) {
+        if !(in_op(&message, &Value::Str("success".to_string()))) {
             return Value::Bool(false);
         }
         let mut success: Value = self.safe_bool_k(message.clone(), "success", &[]);
@@ -1823,7 +1823,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_instance(&error, &Value::Str("AuthenticationError".to_string())) {
                 let mut messageHash: Value = Value::Str("authenticated".to_string());
                 client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+                if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                     remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                 }
             }  else {

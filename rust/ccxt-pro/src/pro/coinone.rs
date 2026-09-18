@@ -366,8 +366,8 @@ impl CoinoneCore {
             orderbook.reset0();
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
-        let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_value_k(data, "bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_value_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());

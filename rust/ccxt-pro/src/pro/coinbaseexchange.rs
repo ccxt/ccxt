@@ -333,7 +333,7 @@ impl CoinbaseexchangeCore {
         let mut productIds: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)))));
             append_to_array(&mut productIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -371,12 +371,12 @@ impl CoinbaseexchangeCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_265: bool = true;
-            while { if !__for_first_265 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_265 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_265 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_265 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             market = self.market(symbol.clone());
             append_to_array(&mut productIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", add(&messageHashStart, &Value::Str(":".to_string())), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
+            append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
@@ -437,8 +437,8 @@ impl CoinbaseexchangeCore {
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTickers() symbols is required".to_string()))));
         }
-        let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) {
+        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+        if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" watchTickers requires a non-empty symbols array".to_string()))));
         }
         let mut channel: Value = Value::Str("ticker".to_string());
@@ -505,8 +505,8 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) {
+        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+        if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -688,8 +688,8 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) {
+        let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+        if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
         }
         let mut name: Value = Value::Str("level2".to_string());
@@ -702,7 +702,7 @@ impl CoinbaseexchangeCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_266: bool = true;
-            while { if !__for_first_266 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_266 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_266 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_266 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), marketId)));
@@ -754,7 +754,7 @@ impl CoinbaseexchangeCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut subscribe: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1030,7 +1030,7 @@ impl CoinbaseexchangeCore {
             currentOrders = ArrayCacheBySymbolById::new(limit.clone());
             self.orders = currentOrders.clone();
         }
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         if (marketId != Value::Null) {
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), marketId));
@@ -1065,7 +1065,7 @@ impl CoinbaseexchangeCore {
                 })]);
                 let mut previousSequence: Value = self.safe_integer_k(previousInfo.clone(), "sequence", &[]);
                 if is_true(&(previousSequence == Value::Null)) || is_true(&(sequence.as_f64().unwrap_or(f64::NAN) > previousSequence.as_f64().unwrap_or(f64::NAN))) {
-                    if (type_var.as_str() == Some("match")) {
+                    if (type_var.as_deref() == Some("match")) {
                         let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
                         if (crate::value::get_value_k(&previousOrder, "trades") == Value::Null) {
                             add_element_to_object(&mut previousOrder, &Value::Str("trades".to_string()), Value::from(vec![]));
@@ -1113,14 +1113,14 @@ impl CoinbaseexchangeCore {
                         // update the newUpdates count
                         orders.append(previousOrder.clone());
                         client.resolve(&[orders.clone(), messageHash.clone()]);
-                    }  else if is_true(&(type_var.as_str() == Some("received"))) || is_true(&(type_var.as_str() == Some("done"))) {
+                    }  else if is_true(&(type_var.as_deref() == Some("received"))) || is_true(&(type_var.as_deref() == Some("done"))) {
                         let mut info: Value = self.extend(crate::value::get_value_k(&previousOrder, "info"), &[message.clone()]);
                         let mut order: Value = self.parse_ws_order(info.clone(), &[]);
                         let mut keys: Value = object_keys(&order);
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_268: bool = true;
-                            while { if !__for_first_268 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_268 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                            while { if !__for_first_268 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_268 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                             let mut key: Value = get_value(&keys, &i);
                             let mut key: Value = get_value(&keys, &i);
                             if (get_value(&order, &key) != Value::Null) {
@@ -1155,11 +1155,11 @@ impl CoinbaseexchangeCore {
         let mut status: Value = self.parse_ws_order_status(reason.clone());
         let mut orderType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_size", &[]);
-        let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut filled: Value = Value::Null;
         if is_true(&(amount != Value::Null)) && is_true(&(remaining != Value::Null)) {
             filled = crate::precise::Precise::stringSub(&amount, &remaining);
-        }  else if (type_var.as_str() == Some("received")) {
+        }  else if (type_var.as_deref() == Some("received")) {
             filled = Value::Str("0".to_string());
             if (amount != Value::Null) {
                 remaining = crate::precise::Precise::stringSub(&amount, &filled);
@@ -1222,7 +1222,7 @@ impl CoinbaseexchangeCore {
             if (symbol != Value::Null) {
                 add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
             }
-            let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
             let mut idMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), marketId));
             client.resolve(&[ticker.clone(), messageHash.clone()]);
             client.resolve(&[ticker.clone(), idMessageHash.clone()]);
@@ -1255,8 +1255,8 @@ impl CoinbaseexchangeCore {
         //         "last_size": "0.00352175"
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(ticker.clone(), "type", &[]);
-        if (type_var == Value::Null) {
+        let mut type_var: Option<String> = self.safe_string_k(ticker.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.is_none()) {
             return self.parent.parse_ticker(ticker.clone(), &[market.clone()]);
         }
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "product_id", &[]);
@@ -1333,18 +1333,18 @@ impl CoinbaseexchangeCore {
         //         ]
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Str("-".to_string())]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut name: Value = Value::Str("level2".to_string());
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), &marketId);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), marketId));
         let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-        if (type_var.as_str() == Some("snapshot")) {
+        if (type_var.as_deref() == Some("snapshot")) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1356,7 +1356,7 @@ impl CoinbaseexchangeCore {
             add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), Value::Null);
             add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
-        }  else if (type_var.as_str() == Some("l2update")) {
+        }  else if (type_var.as_deref() == Some("l2update")) {
             let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(message.clone(), "time", &[]));
             let mut changes: Value = self.safe_list_k(message.clone(), "changes", &[Value::from(vec![])]);
@@ -1369,7 +1369,7 @@ impl CoinbaseexchangeCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_270: bool = true;
-                while { if !__for_first_270 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_270 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(changes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_270 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_270 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
                 let mut change: Value = get_value(&changes, &i);
                 let mut change: Value = get_value(&changes, &i);
                 let mut key: Value = self.safe_string(change.clone(), Value::Int(0), &[]);
@@ -1408,13 +1408,13 @@ impl CoinbaseexchangeCore {
         //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
-        let mut errMsg: Value = self.safe_string_k(message.clone(), "message", &[]);
+        let mut errMsg: Option<String> = self.safe_string_k(message.clone(), "message", &[]).as_str().map(str::to_owned);
         let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if (errMsg.as_str() == Some("Authentication Failed")) {
-                panic!("{}", crate::exchange_errors::authentication_error(add(&Value::Str("Authentication failed: ".to_string()), &reason)));
+            if (errMsg.as_deref() == Some("Authentication Failed")) {
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str("Authentication failed: ".to_string()), reason)));
             }  else {
-                panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &reason)));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), reason)));
             }
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);

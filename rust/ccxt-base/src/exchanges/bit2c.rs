@@ -124,7 +124,7 @@ impl Bit2cCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bit2c".to_string()));
         m.insert("name".to_string(), Value::Str("Bit2C".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("IL".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("IL".to_string())]));
         m.insert("rateLimit".to_string(), Value::Int(3000));
         m.insert("pro".to_string(), Value::Bool(false));
         m.insert("has".to_string(), Value::Map({
@@ -232,7 +232,7 @@ impl Bit2cCore {
 }));
         m.insert("www".to_string(), Value::Str("https://www.bit2c.co.il".to_string()));
         m.insert("referral".to_string(), Value::Str("https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://www.bit2c.co.il/home/api".to_string()), Value::Str("https://github.com/OferE/bit2c".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://www.bit2c.co.il/home/api".to_string()), Value::Str("https://github.com/OferE/bit2c".to_string())]));
     m
 }));
         m.insert("api".to_string(), Value::Map({
@@ -451,8 +451,8 @@ impl Bit2cCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.03".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.03".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.0275".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.025".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.0225".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250000".to_string()), &[]), self.parse_number(Value::Str("0.015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0125".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3000000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.025".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.0225".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.0175".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("250000".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0075".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0.005".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("3000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("4000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.03".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.0275".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.0225".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("250000".to_string()), &[]), self.parse_number(Value::Str("0.015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0125".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("4000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000".to_string()), &[]), self.parse_number(Value::Str("0.0225".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("50000".to_string()), &[]), self.parse_number(Value::Str("0.02".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("75000".to_string()), &[]), self.parse_number(Value::Str("0.0175".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000".to_string()), &[]), self.parse_number(Value::Str("0.015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("250000".to_string()), &[]), self.parse_number(Value::Str("0.01".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0075".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("750000".to_string()), &[]), self.parse_number(Value::Str("0.005".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.004".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2000000".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("3000000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("4000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])])]));
     m
 }));
     m
@@ -586,7 +586,7 @@ impl Bit2cCore {
             let mut account: Value = self.account();
             let mut currency: Value = self.currency(code.clone());
             let mut uppercase: Value = to_upper(&get_value(&currency, &Value::Str("id".to_string())));
-            if is_true(&Value::Bool(in_op(&response, &uppercase))) {
+            if (in_op(&response, &uppercase)) {
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), Value::Str(format!("{}{}", Value::Str("AVAILABLE_".to_string()), uppercase)), &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string(response.clone(), uppercase.clone(), &[])); }
             }
@@ -654,10 +654,10 @@ impl Bit2cCore {
         // feed filters these rows out, so a non-positive amount is a dead order
         // their full snapshot failed to purge - it is removed here, which also
         // uncrosses the book. rows are positional price and amount pairs
-        let mut rawBids: Value = self.safe_list_k(orderbook.clone(), "bids", &[Value::List(vec![])]);
-        let mut rawAsks: Value = self.safe_list_k(orderbook, "asks", &[Value::List(vec![])]);
-        let mut bids: Value = Value::List(vec![]);
-        let mut asks: Value = Value::List(vec![]);
+        let mut rawBids: Value = self.safe_list_k(orderbook.clone(), "bids", &[Value::from(vec![])]);
+        let mut rawAsks: Value = self.safe_list_k(orderbook, "asks", &[Value::from(vec![])]);
+        let mut bids: Value = Value::from(vec![]);
+        let mut asks: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_307: bool = true;
@@ -788,12 +788,12 @@ impl Bit2cCore {
             m
         });
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("date".to_string()), self.parse_to_int(since.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("date".to_string(), self.parse_to_int(since.clone())); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 100000
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // max 100000
         }
-        let mut responseList: Value = Value::List(vec![]);
+        let mut responseList: Value = Value::from(vec![]);
         if (method.as_str() == Some("public_get_exchanges_pair_trades")) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             let mut response: Value = self.public_get_exchanges_pair_trades(&[__ws_arg_2]).await;
@@ -931,11 +931,11 @@ impl Bit2cCore {
                 response = self.private_post_order_add_order_market_price_sell(&[__ws_arg_5]).await;
             }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("Price".to_string()), price.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("Price".to_string(), price.clone()); }
             let mut amountString: Value = self.number_to_string(amount.clone());
             let mut priceString: Value = self.number_to_string(price.clone());
-            add_element_to_object(&mut request, &Value::Str("Total".to_string()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)));
-            add_element_to_object(&mut request, &Value::Str("IsBid".to_string()), (Value::Bool(side.as_str() == Some("buy"))));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("Total".to_string(), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString))); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("IsBid".to_string(), (Value::Bool(side.as_str() == Some("buy")))); }
             let __ws_arg_6 = self.extend(request, &[params.clone()]);
             response = self.private_post_order_add_order(&[__ws_arg_6]).await;
         }
@@ -1009,8 +1009,8 @@ impl Bit2cCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut asks: Value = self.safe_value_k(orders.clone(), "ask", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(orders, "bid", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_value_k(orders.clone(), "ask", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(orders, "bid", &[Value::from(vec![])]);
         return self.parse_orders(self.array_concat(asks.clone(), bids.clone()), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1082,7 +1082,7 @@ impl Bit2cCore {
         //
         let mut orderUnified: Value = Value::Null;
         let mut isNewOrder: bool = false;
-        if is_true(&Value::Bool(matches!(&order, Value::Dict(__d) if __d.contains_key("NewOrder")))) {
+        if is_true(&(matches!(&order, Value::Dict(__d) if __d.contains_key("NewOrder")))) {
             orderUnified = order.as_map().and_then(|__m| __m.get("NewOrder")).cloned().unwrap_or(Value::Null);
             isNewOrder = true;
         }  else {
@@ -1195,16 +1195,16 @@ impl Bit2cCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("take".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("take".to_string(), limit.clone()); }
         }
-        add_element_to_object(&mut request, &Value::Str("take".to_string()), limit.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("take".to_string(), limit.clone()); }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("toTime".to_string()), self.yyyymmdd(self.milliseconds(), &[Value::Str(".".to_string())]));
-            add_element_to_object(&mut request, &Value::Str("fromTime".to_string()), self.yyyymmdd(since.clone(), &[Value::Str(".".to_string())]));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("toTime".to_string(), self.yyyymmdd(self.milliseconds(), &[Value::Str(".".to_string())])); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("fromTime".to_string(), self.yyyymmdd(since.clone(), &[Value::Str(".".to_string())])); }
         }
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(&mut request, &Value::Str("pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_order_order_history(&[__ws_arg_10]).await;
@@ -1246,7 +1246,7 @@ impl Bit2cCore {
         //         }
         //     ]
         //
-        let mut responseList: Value = Value::List(vec![]);
+        let mut responseList: Value = Value::from(vec![]);
         if (response != Value::Null) {
             responseList = self.to_array(response.clone());
         }
@@ -1348,7 +1348,7 @@ impl Bit2cCore {
             amount = self.safe_string_k(trade.clone(), "amount", &[]);
             side = self.safe_value_k(trade.clone(), "isBid", &[]);
             if (side != Value::Null) {
-                if is_true(&(Value::Bool(side != Value::Null))) && is_true(&(Value::Bool(side.as_str() != Some("")))) {
+                if is_true(&(side != Value::Null)) && is_true(&(side.as_str() != Some(""))) {
                     side = Value::Str("buy".to_string());
                 }  else {
                     side = Value::Str("sell".to_string());

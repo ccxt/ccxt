@@ -521,8 +521,8 @@ impl ParadexCore {
         }
         let mut orderbookData: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("bids".to_string(), Value::List(vec![]));
-                m.insert("asks".to_string(), Value::List(vec![]));
+                m.insert("bids".to_string(), Value::from(vec![]));
+                m.insert("asks".to_string(), Value::from(vec![]));
             m
         });
         let mut inserts: Value = self.safe_list_k(data.clone(), "inserts", &[]);
@@ -535,9 +535,9 @@ impl ParadexCore {
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
             let mut size: Value = self.safe_string_k(insert.clone(), "size", &[]);
             if (side.as_deref() == Some("BUY")) {
-                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::from(vec![price.clone(), size.clone()]));
             }  else {
-                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), size.clone()]));
+                crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::from(vec![price.clone(), size.clone()]));
             }
         }
         }
@@ -619,8 +619,8 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHashes: Value = Value::List(vec![]);
-        if (symbols != Value::Null) && (is_array(&symbols)) {
+        let mut messageHashes: Value = Value::from(vec![]);
+        if (symbols != Value::Null) && is_true(&(matches!(&symbols, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_585: bool = true;
@@ -870,7 +870,7 @@ impl ParadexCore {
 }));
             m
         });
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
             if symbolsLength > ((0i64) as f64) {
@@ -1002,7 +1002,7 @@ impl ParadexCore {
         }  else {
             let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
             if (errorCode.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone())));
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&error)));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".to_string()), feedback.clone());
                 let mut messageString: Value = self.safe_value_k(error, "message", &[]);
                 if (messageString != Value::Null) {

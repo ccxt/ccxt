@@ -13,7 +13,7 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
     let mut method: Value = Value::Str("loadMarkets".to_string());
     let mut markets: Value = crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![]).await;
     assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(get_value(&exchange, &Value::Str("markets".to_string()))))));
-    assert!(ccxt::runtime::is_true(&((is_array(&get_value(&exchange, &Value::Str("symbols".to_string())))))));
+    assert!(ccxt::runtime::is_true(&((matches!(&get_value(&exchange, &Value::Str("symbols".to_string())), Value::Arr(_))))));
     let mut symbolsLength: Value = Value::Int(get_value(&exchange, &Value::Str("symbols".to_string())).len() as i64);
     assert!(ccxt::runtime::is_true(&((get_value(&exchange, &Value::Str("markets".to_string())) != Value::Null))));
     let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".to_string())));
@@ -48,7 +48,7 @@ pub async fn testLoadMarkets(mut exchange: Value, mut skippedProperties: Value) 
         let mut __for_first_1481: bool = true;
         while { if !__for_first_1481 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1481 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketTypes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut mType: Value = get_value(&marketTypes, &i);
-        if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType) != Value::Null) && !is_equal(&get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType), &Value::Bool(false)) {
+        if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType) != Value::Null) && (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType).as_bool() != Some(false)) {
             let mut skipMarketTypes: Value = Value::Bool((in_op(&skippedProperties, &Value::Str("optionsNotLoadedByDefault".to_string()))) && (mType.as_str() == Some("option")));
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_true(&exchange.in_array(mType.clone(), collectedTypes.clone())) || is_true(&skipMarketTypes)))));
         }  else if (get_value(&get_value(&exchange, &Value::Str("has".to_string())), &mType).as_bool() == Some(false)) {

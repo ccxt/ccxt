@@ -55,7 +55,7 @@ impl TestMainClass {
         privateTestOnly: Value::Bool(false),
         loadKeys: Value::Bool(false),
         sandbox: Value::Bool(false),
-        onlySpecificTests: Value::List(vec![]),
+        onlySpecificTests: Value::from(vec![]),
         skippedSettingsForExchange: Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -178,7 +178,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (methodArgv != Value::Null) {
             let mut testFileNames: Value = object_keys(&self.testFiles);
             let mut possibleMethodNames: Value = split(&methodArgv, &Value::Str(",".to_string())); // i.e. `test.ts binance fetchBalance,fetchDeposits`
-            if is_greater_than_or_equal(&get_array_length(&possibleMethodNames), &Value::Int(1)) {
+            if get_array_length(&possibleMethodNames).as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1494: bool = true;
@@ -187,7 +187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     {
                                                 let mut j: Value = Value::Int(0);
                         let mut __for_first_1493: bool = true;
-                        while { if !__for_first_1493 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1493 = false; is_less_than(&j, &get_array_length(&possibleMethodNames)) } {
+                        while { if !__for_first_1493 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1493 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&possibleMethodNames).as_f64().unwrap_or(f64::NAN) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
                         methodName = replace_str(&methodName, &Value::Str("()".to_string()), &Value::Str("".to_string()));
                         if is_equal(&testFileName, &methodName) {
@@ -342,11 +342,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub async fn test_method(&mut self, mut methodName: Value, mut exchange: Value, mut args: Value, mut isPublic: Value) -> Value {
         // todo: temporary skip for c#
-        if get_index_of(&methodName, &Value::Str("OrderBook".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
+        if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("cs")) {
             add_element_to_object(get_value_mut(&mut exchange, &Value::Str("options".to_string())), &Value::Str("checksum".to_string()), Value::Bool(false));
         }
         // todo: temporary skip for php
-        if get_index_of(&methodName, &Value::Str("OrderBook".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("php")) {
+        if Value::Int(methodName.as_str().and_then(|__s| __s.find("OrderBook")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) && (self.ext.as_str() == Some("php")) {
             return Value::Bool(true);
         }
         let mut skippedPropertiesForMethod: Value = self.get_skips(exchange.clone(), methodName.clone());
@@ -365,7 +365,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             skipMessage = Value::Str("[INFO] IGNORED_TEST".to_string());
         }  else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
             skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".to_string()); // keep it aligned with the longest message
-        }  else if is_string(&skippedPropertiesForMethod) {
+        }  else if matches!(&skippedPropertiesForMethod, Value::Str(_)) {
             skipMessage = Value::Str("[INFO] SKIPPED_TEST".to_string());
         }  else if !(in_op(&self.testFiles, &methodName)) {
             skipMessage = Value::Str("[INFO] UNIMPLEMENTED_TEST".to_string());
@@ -409,7 +409,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
-        let mut methodNames: Value = Value::List(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".to_string()))), self.ext.clone()))]);
+        let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".to_string()))), self.ext.clone()))]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1498: bool = true;
@@ -417,7 +417,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut mName: Value = get_value(&methodNames, &i);
             if (in_op(&self.skippedMethods, &mName)) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
-                if is_string(&get_value(&self.skippedMethods, &mName)) {
+                if matches!(&get_value(&self.skippedMethods, &mName), Value::Str(_)) {
                     return get_value(&self.skippedMethods, &mName);
                 }  else {
                     finalSkips = exchange.deep_extend(finalSkips.clone(), &[get_value(&self.skippedMethods, &mName)]);
@@ -428,13 +428,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // get "object-specific" skips
         let mut objectSkips: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderBook".to_string(), Value::List(vec![Value::Str("fetchOrderBook".to_string()), Value::Str("fetchOrderBooks".to_string()), Value::Str("fetchL2OrderBook".to_string()), Value::Str("watchOrderBook".to_string()), Value::Str("watchOrderBookForSymbols".to_string())]));
-                m.insert("ticker".to_string(), Value::List(vec![Value::Str("fetchTicker".to_string()), Value::Str("fetchTickers".to_string()), Value::Str("watchTicker".to_string()), Value::Str("watchTickers".to_string())]));
-                m.insert("trade".to_string(), Value::List(vec![Value::Str("fetchTrades".to_string()), Value::Str("watchTrades".to_string()), Value::Str("watchTradesForSymbols".to_string())]));
-                m.insert("ohlcv".to_string(), Value::List(vec![Value::Str("fetchOHLCV".to_string()), Value::Str("watchOHLCV".to_string()), Value::Str("watchOHLCVForSymbols".to_string())]));
-                m.insert("ledger".to_string(), Value::List(vec![Value::Str("fetchLedger".to_string()), Value::Str("fetchLedgerEntry".to_string())]));
-                m.insert("depositWithdraw".to_string(), Value::List(vec![Value::Str("fetchDepositsWithdrawals".to_string()), Value::Str("fetchDeposits".to_string()), Value::Str("fetchWithdrawals".to_string())]));
-                m.insert("depositWithdrawFee".to_string(), Value::List(vec![Value::Str("fetchDepositWithdrawFee".to_string()), Value::Str("fetchDepositWithdrawFees".to_string())]));
+                m.insert("orderBook".to_string(), Value::from(vec![Value::Str("fetchOrderBook".to_string()), Value::Str("fetchOrderBooks".to_string()), Value::Str("fetchL2OrderBook".to_string()), Value::Str("watchOrderBook".to_string()), Value::Str("watchOrderBookForSymbols".to_string())]));
+                m.insert("ticker".to_string(), Value::from(vec![Value::Str("fetchTicker".to_string()), Value::Str("fetchTickers".to_string()), Value::Str("watchTicker".to_string()), Value::Str("watchTickers".to_string())]));
+                m.insert("trade".to_string(), Value::from(vec![Value::Str("fetchTrades".to_string()), Value::Str("watchTrades".to_string()), Value::Str("watchTradesForSymbols".to_string())]));
+                m.insert("ohlcv".to_string(), Value::from(vec![Value::Str("fetchOHLCV".to_string()), Value::Str("watchOHLCV".to_string()), Value::Str("watchOHLCVForSymbols".to_string())]));
+                m.insert("ledger".to_string(), Value::from(vec![Value::Str("fetchLedger".to_string()), Value::Str("fetchLedgerEntry".to_string())]));
+                m.insert("depositWithdraw".to_string(), Value::from(vec![Value::Str("fetchDepositsWithdrawals".to_string()), Value::Str("fetchDeposits".to_string()), Value::Str("fetchWithdrawals".to_string())]));
+                m.insert("depositWithdrawFee".to_string(), Value::from(vec![Value::Str("fetchDepositWithdrawFee".to_string()), Value::Str("fetchDepositWithdrawFees".to_string())]));
             m
         });
         let mut objectNames: Value = object_keys(&objectSkips);
@@ -446,7 +446,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut objectMethods: Value = get_value(&objectSkips, &objectName);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
-                if (in_op(&self.skippedMethods, &objectName)) && (is_string(&get_value(&self.skippedMethods, &objectName))) {
+                if (in_op(&self.skippedMethods, &objectName)) && is_true(&(matches!(&get_value(&self.skippedMethods, &objectName), Value::Str(_)))) {
                     return get_value(&self.skippedMethods, &objectName);
                 }
                 let mut extraSkips: Value = exchange.safe_dict(self.skippedMethods.clone(), objectName.clone(), &[Value::Map({
@@ -460,13 +460,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // extend related skips
         // - if 'timestamp' is skipped, we should do so for 'datetime' too
         // - if 'bid' is skipped, skip 'ask' too
-        if (in_op(&finalSkips, &Value::Str("timestamp".to_string()))) && !(in_op(&finalSkips, &Value::Str("datetime".to_string()))) {
+        if is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("timestamp")))) && !is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("datetime")))) {
             { let __be_tmp = get_value(&finalSkips, &Value::Str("timestamp".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("datetime".to_string()), __be_tmp); };
         }
-        if (in_op(&finalSkips, &Value::Str("bid".to_string()))) && !(in_op(&finalSkips, &Value::Str("ask".to_string()))) {
+        if is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("bid")))) && !is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("ask")))) {
             { let __be_tmp = get_value(&finalSkips, &Value::Str("bid".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("ask".to_string()), __be_tmp); };
         }
-        if (in_op(&finalSkips, &Value::Str("baseVolume".to_string()))) && !(in_op(&finalSkips, &Value::Str("quoteVolume".to_string()))) {
+        if is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("baseVolume")))) && !is_true(&(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("quoteVolume")))) {
             { let __be_tmp = get_value(&finalSkips, &Value::Str("baseVolume".to_string())); add_element_to_object(&mut finalSkips, &Value::Str("quoteVolume".to_string()), __be_tmp); };
         }
         return finalSkips;
@@ -475,7 +475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub async fn test_safe(&mut self, mut methodName: Value, mut exchange: Value, optional_args: &[Value]) -> Value {
-        let mut args = get_arg(optional_args, 0, Value::List(vec![]));
+        let mut args = get_arg(optional_args, 0, Value::from(vec![]));
         let mut isPublic = get_arg(optional_args, 1, Value::Bool(false));
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
@@ -499,13 +499,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut e: Value = getRootException(ex);
                 let mut isLoadMarkets: bool = methodName.as_str() == Some("loadMarkets");
                 let mut isAuthError: bool = is_instance(&e, &Value::Str("AuthenticationError".to_string()));
-                let mut isNotSupported: bool = is_instance(&e, &Value::Str("NotSupported".to_string()));
+                let mut isNotSupported: bool = matches!(&e, Value::Str(__s) if __s.contains("[NotSupported]"));
                 let mut isOperationFailed: bool = is_instance(&e, &Value::Str("OperationFailed".to_string())); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
                 let mut lastUrlMsg: Value = (if is_true(&self.wsTests) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(" (Last url: ".to_string()), self.get_last_request_url(exchange.clone()))), Value::Str(" )".to_string()))) });
                 if isOperationFailed {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
-                        let mut isOnMaintenance: bool = is_instance(&e, &Value::Str("OnMaintenance".to_string()));
+                        let mut isOnMaintenance: bool = matches!(&e, Value::Str(__s) if __s.contains("[OnMaintenance]"));
                         let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".to_string()));
                         let mut shouldFail: Value = Value::Null;
                         let mut retSuccess: Value = Value::Null;
@@ -576,7 +576,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn get_last_request_url(&self, mut exchange: Value) -> Value {
         let mut fetchCache: Value = exchange.get_fetch_cache();
         let mut url: Value = Value::Str("".to_string());
-        if is_greater_than(&get_array_length(&fetchCache), &Value::Int(0)) {
+        if get_array_length(&fetchCache).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut lastEntry: Value = get_value(&fetchCache, &subtract(&get_array_length(&fetchCache), &Value::Int(1)));
             let mut lastRequest: Value = lastEntry.as_map().and_then(|__m| __m.get("request")).cloned().unwrap_or(Value::Null);
             if (lastRequest != Value::Null) {
@@ -592,33 +592,33 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut primarySymbol: Value = get_value(&symbols, &Value::Int(0));
         let mut tests: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("features".to_string(), Value::List(vec![]));
-                m.insert("afterConstruct".to_string(), Value::List(vec![]));
-                m.insert("fetchCurrencies".to_string(), Value::List(vec![]));
-                m.insert("fetchTicker".to_string(), Value::List(vec![primarySymbol.clone()]));
-                m.insert("fetchTickers".to_string(), Value::List(vec![primarySymbol.clone()]));
-                m.insert("fetchLastPrices".to_string(), Value::List(vec![primarySymbol.clone()]));
-                m.insert("fetchOHLCV".to_string(), Value::List(vec![primarySymbol.clone()]));
-                m.insert("fetchTrades".to_string(), Value::List(vec![primarySymbol.clone()]));
-                m.insert("fetchOrderBook".to_string(), Value::List(vec![primarySymbol.clone()]));
-                m.insert("fetchOrderBooks".to_string(), Value::List(vec![]));
-                m.insert("fetchBidsAsks".to_string(), Value::List(vec![]));
-                m.insert("fetchStatus".to_string(), Value::List(vec![]));
-                m.insert("fetchTime".to_string(), Value::List(vec![]));
+                m.insert("features".to_string(), Value::from(vec![]));
+                m.insert("afterConstruct".to_string(), Value::from(vec![]));
+                m.insert("fetchCurrencies".to_string(), Value::from(vec![]));
+                m.insert("fetchTicker".to_string(), Value::from(vec![primarySymbol.clone()]));
+                m.insert("fetchTickers".to_string(), Value::from(vec![primarySymbol.clone()]));
+                m.insert("fetchLastPrices".to_string(), Value::from(vec![primarySymbol.clone()]));
+                m.insert("fetchOHLCV".to_string(), Value::from(vec![primarySymbol.clone()]));
+                m.insert("fetchTrades".to_string(), Value::from(vec![primarySymbol.clone()]));
+                m.insert("fetchOrderBook".to_string(), Value::from(vec![primarySymbol.clone()]));
+                m.insert("fetchOrderBooks".to_string(), Value::from(vec![]));
+                m.insert("fetchBidsAsks".to_string(), Value::from(vec![]));
+                m.insert("fetchStatus".to_string(), Value::from(vec![]));
+                m.insert("fetchTime".to_string(), Value::from(vec![]));
             m
         });
         if is_true(&self.wsTests) {
             tests = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("watchOHLCV".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchOHLCVForSymbols".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchTicker".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchTickers".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchBidsAsks".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchOrderBook".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchOrderBookForSymbols".to_string(), Value::List(vec![symbols.clone()]));
-                    m.insert("watchTrades".to_string(), Value::List(vec![primarySymbol.clone()]));
-                    m.insert("watchTradesForSymbols".to_string(), Value::List(vec![symbols.clone()]));
+                    m.insert("watchOHLCV".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchOHLCVForSymbols".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchTicker".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchTickers".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchBidsAsks".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchOrderBook".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchOrderBookForSymbols".to_string(), Value::from(vec![symbols.clone()]));
+                    m.insert("watchTrades".to_string(), Value::from(vec![primarySymbol.clone()]));
+                    m.insert("watchTradesForSymbols".to_string(), Value::from(vec![symbols.clone()]));
                 m
             });
         }
@@ -626,14 +626,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isSpot: Value = get_value(&market, &Value::Str("spot".to_string()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                add_element_to_object(&mut tests, &Value::Str("fetchCurrencies".to_string()), Value::List(vec![]));
+                add_element_to_object(&mut tests, &Value::Str("fetchCurrencies".to_string()), Value::from(vec![]));
             }  else {
-                add_element_to_object(&mut tests, &Value::Str("fetchFundingRates".to_string()), Value::List(vec![primarySymbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchFundingRate".to_string()), Value::List(vec![primarySymbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchFundingRateHistory".to_string()), Value::List(vec![primarySymbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchIndexOHLCV".to_string()), Value::List(vec![primarySymbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchMarkOHLCV".to_string()), Value::List(vec![primarySymbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchPremiumIndexOHLCV".to_string()), Value::List(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRates".to_string()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRate".to_string()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRateHistory".to_string()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchIndexOHLCV".to_string()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchMarkOHLCV".to_string()), Value::from(vec![primarySymbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchPremiumIndexOHLCV".to_string()), Value::from(vec![primarySymbol.clone()]));
             }
         }
         self.publicTests = tests.clone();
@@ -645,7 +645,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub async fn run_tests(&mut self, mut exchange: Value, mut tests: Value, mut isPublicTest: Value) -> Value {
         let mut testNames: Value = object_keys(&tests);
-        let mut promises: Value = Value::List(vec![]);
+        let mut promises: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1501: bool = true;
@@ -659,7 +659,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // promises.push (testThrottle ());
         let mut results: Value = promise_all(&promises).await;
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        let mut failedMethods: Value = Value::List(vec![]);
+        let mut failedMethods: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1502: bool = true;
@@ -685,7 +685,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub async fn load_exchange(&mut self, mut exchange: Value) -> Value {
-        let mut result: Value = self.test_safe(Value::Str("loadMarkets".to_string()), exchange.clone(), &[Value::List(vec![]), Value::Bool(true)]).await;
+        let mut result: Value = self.test_safe(Value::Str("loadMarkets".to_string()), exchange.clone(), &[Value::from(vec![]), Value::Bool(true)]).await;
         if !is_true(&result) {
             return Value::Bool(false);
         }
@@ -708,7 +708,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1503: bool = true;
-            while { if !__for_first_1503 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1503 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            while { if !__for_first_1503 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1503 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
             let mut s: Value = get_value(&symbols, &i);
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".to_string())), s.clone(), &[]);
             if (market != Value::Null) {
@@ -728,7 +728,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn get_exchange_code(&self, mut exchange: Value, optional_args: &[Value]) -> Value {
         let mut codes = get_arg(optional_args, 0, Value::Null);
         if (codes == Value::Null) {
-            codes = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("XRP".to_string()), Value::Str("LTC".to_string()), Value::Str("BCH".to_string()), Value::Str("EOS".to_string()), Value::Str("BNB".to_string()), Value::Str("BSV".to_string()), Value::Str("USDT".to_string())]);
+            codes = Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("XRP".to_string()), Value::Str("LTC".to_string()), Value::Str("BCH".to_string()), Value::Str("EOS".to_string()), Value::Str("BNB".to_string()), Value::Str("BSV".to_string()), Value::Str("USDT".to_string())]);
         }
         let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         {
@@ -774,9 +774,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     pub fn get_valid_symbol(&self, mut exchange: Value, optional_args: &[Value]) -> Value {
         let mut spot = get_arg(optional_args, 0, Value::Bool(true));
         let mut currentTypeMarkets: Value = self.get_markets_from_exchange(exchange.clone(), &[spot.clone()]);
-        let mut codes: Value = Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("XRP".to_string()), Value::Str("LTC".to_string()), Value::Str("BNB".to_string()), Value::Str("DASH".to_string()), Value::Str("DOGE".to_string()), Value::Str("ETC".to_string()), Value::Str("TRX".to_string()), Value::Str("USDT".to_string()), Value::Str("USDC".to_string()), Value::Str("USD".to_string()), Value::Str("GUSD".to_string()), Value::Str("EUR".to_string()), Value::Str("TUSD".to_string()), Value::Str("CNY".to_string()), Value::Str("JPY".to_string()), Value::Str("BRL".to_string())]);
-        let mut spotSymbols: Value = Value::List(vec![Value::Str("BTC/USDT".to_string()), Value::Str("BTC/USDC".to_string()), Value::Str("BTC/USD".to_string()), Value::Str("BTC/CNY".to_string()), Value::Str("BTC/EUR".to_string()), Value::Str("BTC/AUD".to_string()), Value::Str("BTC/BRL".to_string()), Value::Str("BTC/JPY".to_string()), Value::Str("ETH/USDT".to_string()), Value::Str("ETH/USDC".to_string()), Value::Str("ETH/USD".to_string()), Value::Str("ETH/CNY".to_string()), Value::Str("ETH/EUR".to_string()), Value::Str("ETH/AUD".to_string()), Value::Str("ETH/BRL".to_string()), Value::Str("ETH/JPY".to_string()), Value::Str("EUR/USDT".to_string()), Value::Str("EUR/USD".to_string()), Value::Str("EUR/USDC".to_string()), Value::Str("USDT/EUR".to_string()), Value::Str("USD/EUR".to_string()), Value::Str("USDC/EUR".to_string()), Value::Str("BTC/ETH".to_string()), Value::Str("ETH/BTC".to_string())]);
-        let mut swapSymbols: Value = Value::List(vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("BTC/USD:USDT".to_string()), Value::Str("BTC/USDC:USDC".to_string()), Value::Str("BTC/USD:USDC".to_string()), Value::Str("BTC/USD:USD".to_string()), Value::Str("ETH/USDT:USDT".to_string()), Value::Str("ETH/USD:USDT".to_string()), Value::Str("ETH/USDC:USDC".to_string()), Value::Str("ETH/USD:USDC".to_string()), Value::Str("ETH/USD:USD".to_string()), Value::Str("BTC/USD:BTC".to_string()), Value::Str("ETH/USD:ETH".to_string())]);
+        let mut codes: Value = Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("XRP".to_string()), Value::Str("LTC".to_string()), Value::Str("BNB".to_string()), Value::Str("DASH".to_string()), Value::Str("DOGE".to_string()), Value::Str("ETC".to_string()), Value::Str("TRX".to_string()), Value::Str("USDT".to_string()), Value::Str("USDC".to_string()), Value::Str("USD".to_string()), Value::Str("GUSD".to_string()), Value::Str("EUR".to_string()), Value::Str("TUSD".to_string()), Value::Str("CNY".to_string()), Value::Str("JPY".to_string()), Value::Str("BRL".to_string())]);
+        let mut spotSymbols: Value = Value::from(vec![Value::Str("BTC/USDT".to_string()), Value::Str("BTC/USDC".to_string()), Value::Str("BTC/USD".to_string()), Value::Str("BTC/CNY".to_string()), Value::Str("BTC/EUR".to_string()), Value::Str("BTC/AUD".to_string()), Value::Str("BTC/BRL".to_string()), Value::Str("BTC/JPY".to_string()), Value::Str("ETH/USDT".to_string()), Value::Str("ETH/USDC".to_string()), Value::Str("ETH/USD".to_string()), Value::Str("ETH/CNY".to_string()), Value::Str("ETH/EUR".to_string()), Value::Str("ETH/AUD".to_string()), Value::Str("ETH/BRL".to_string()), Value::Str("ETH/JPY".to_string()), Value::Str("EUR/USDT".to_string()), Value::Str("EUR/USD".to_string()), Value::Str("EUR/USDC".to_string()), Value::Str("USDT/EUR".to_string()), Value::Str("USD/EUR".to_string()), Value::Str("USDC/EUR".to_string()), Value::Str("BTC/ETH".to_string()), Value::Str("ETH/BTC".to_string())]);
+        let mut swapSymbols: Value = Value::from(vec![Value::Str("BTC/USDT:USDT".to_string()), Value::Str("BTC/USD:USDT".to_string()), Value::Str("BTC/USDC:USDC".to_string()), Value::Str("BTC/USD:USDC".to_string()), Value::Str("BTC/USD:USD".to_string()), Value::Str("ETH/USDT:USDT".to_string()), Value::Str("ETH/USD:USDT".to_string()), Value::Str("ETH/USDC:USDC".to_string()), Value::Str("ETH/USD:USDC".to_string()), Value::Str("ETH/USD:USD".to_string()), Value::Str("BTC/USD:BTC".to_string()), Value::Str("ETH/USD:ETH".to_string())]);
         let mut targetSymbols: Value = (if is_true(&spot) { spotSymbols.clone() } else { swapSymbols.clone() });
         let mut symbol: Value = self.get_test_symbol(exchange.clone(), spot.clone(), targetSymbols.clone());
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
@@ -800,11 +800,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol == Value::Null) {
             let mut activeMarkets: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".to_string()), Value::Bool(true), &[]);
-            let mut activeSymbols: Value = Value::List(vec![]);
+            let mut activeSymbols: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1507: bool = true;
-                while { if !__for_first_1507 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1507 = false; is_less_than(&i, &get_array_length(&activeMarkets)) } {
+                while { if !__for_first_1507 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1507 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
                 append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".to_string())));
             }
             }
@@ -876,7 +876,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             // dynamic dispatch: `fetchTickers` is not on the base exchange type in
             // the statically typed ports (c#/go/java), same as the other call sites
-            tickers = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".to_string()), Value::List(vec![])).await;
+            tickers = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".to_string()), Value::from(vec![])).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // choosing a symbol must never fail the run, keep the static choice
@@ -888,7 +888,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketType: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("type".to_string()), &[]);
         let mut quote: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("quote".to_string()), &[]);
         let mut settle: Value = exchange.safe_string(defaultMarket.clone(), Value::Str("settle".to_string()), &[]);
-        let mut candidates: Value = Value::List(vec![]);
+        let mut candidates: Value = Value::from(vec![]);
         let mut tickerSymbols: Value = object_keys(&tickers);
         {
                         let mut i: Value = Value::Int(0);
@@ -909,7 +909,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m
                     })]);
                     let mut volume: Value = self.get_ticker_volume(exchange.clone(), ticker.clone());
-                    if is_greater_than(&volume, &Value::Int(0)) {
+                    if volume.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                         let mut entry: Value = Value::Map({
                             let mut m = indexmap::IndexMap::new();
                             m
@@ -927,8 +927,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_equal(&rankedLength, &Value::Int(0)) {
             return defaultSymbols;
         }
-        let mut result: Value = Value::List(vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".to_string()), &[])]);
-        if is_greater_than(&rankedLength, &Value::Int(1)) {
+        let mut result: Value = Value::from(vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".to_string()), &[])]);
+        if rankedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
             append_to_array(&mut result, exchange.safe_string(get_value(&ranked, &Value::Int(1)), Value::Str("symbol".to_string()), &[]));
         }
         return result;
@@ -952,16 +952,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (providedSymbol != Value::Null) {
             let mut market: Value = exchange.market(providedSymbol.clone());
             if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
-                spotSymbols = Value::List(vec![providedSymbol.clone()]);
+                spotSymbols = Value::from(vec![providedSymbol.clone()]);
             }  else {
-                swapSymbols = Value::List(vec![providedSymbol.clone()]);
+                swapSymbols = Value::from(vec![providedSymbol.clone()]);
             }
         }  else {
             if hasSpot {
                 let mut primarySymbol: Value = self.get_valid_symbol(exchange.clone(), &[Value::Bool(true)]);
                 if (primarySymbol != Value::Null) {
                     let mut secondarySymbol: Value = replace_str(&primarySymbol, &Value::Str("BTC".to_string()), &Value::Str("ETH".to_string())); // this should work any exchange
-                    spotSymbols = Value::List(vec![primarySymbol.clone(), secondarySymbol.clone()]);
+                    spotSymbols = Value::from(vec![primarySymbol.clone(), secondarySymbol.clone()]);
                 }
             }
             if hasSwap {
@@ -973,7 +973,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // tests rather than crashing on `undefined.replace(...)`.
                 if (primarySymbol != Value::Null) {
                     let mut secondarySymbol: Value = replace_all_str(&primarySymbol, &Value::Str("BTC".to_string()), &Value::Str("ETH".to_string())); // this should work any exchange
-                    swapSymbols = Value::List(vec![primarySymbol.clone(), secondarySymbol.clone()]);
+                    swapSymbols = Value::from(vec![primarySymbol.clone(), secondarySymbol.clone()]);
                 }
             }
             // ws tests subscribe with `watch*`, which only resolves on an update,
@@ -1044,11 +1044,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1510: bool = true;
                 while { if !__for_first_1510 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1510 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(pinnedKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".to_string())), &get_value(&pinnedKeys, &i));
-                let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".to_string()), &[Value::List(vec![])]);
+                let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".to_string()), &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1509: bool = true;
-                    while { if !__for_first_1509 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1509 = false; is_less_than(&j, &get_array_length(&pinnedOutcomes)) } {
+                    while { if !__for_first_1509 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1509 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
                     if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &j), Value::Str("outcome".to_string()), &[]), &outcomeSymbol) {
                         pinFound = Value::Bool(true);
                         break;
@@ -1072,9 +1072,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut __for_first_1511: bool = true;
                 while { if !__for_first_1511 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1511 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".to_string())), &get_value(&marketKeys, &i));
-                let mut outcomesList: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".to_string()), &[Value::List(vec![])]);
+                let mut outcomesList: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".to_string()), &[Value::from(vec![])]);
                 let mut outcomesListLength: Value = get_array_length(&outcomesList);
-                if is_greater_than(&outcomesListLength, &Value::Int(0)) {
+                if outcomesListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     outcomeSymbol = exchange.safe_string(get_value(&outcomesList, &Value::Int(0)), Value::Str("outcome".to_string()), &[]);
                     if (outcomeSymbol != Value::Null) {
                         break;
@@ -1104,7 +1104,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if !is_equal(&allowUnscopedFetchEvents, &Value::Bool(true)) {
                     let mut unscopedError: Value = Value::Str("".to_string());
                     let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                        callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::List(vec![Value::Map({
+                        callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])).await;
@@ -1112,7 +1112,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         unscopedError = exceptionMessage(e.clone());
                     }
-                    assert((get_index_of(&unscopedError, &Value::Str("requires at least one of".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".to_string())), unscopedError))]);
+                    assert((Value::Int(unscopedError.as_str().and_then(|__s| __s.find("requires at least one of")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents () without a scope must throw ArgumentsRequired, got: ".to_string())), unscopedError))]);
                 }
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
@@ -1133,21 +1133,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (eventQuery != Value::Null) {
                     add_element_to_object(&mut eventParams, &Value::Str("query".to_string()), eventQuery.clone());
                 }
-                let mut events: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::List(vec![eventParams.clone()])).await;
+                let mut events: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![eventParams.clone()])).await;
                 assert((events != Value::Null), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents returned undefined".to_string()))]);
                 // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
                 let mut eventsList: Value = exchange.safe_list(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("events".to_string(), events.clone());
                     m
-                }), Value::Str("events".to_string()), &[Value::List(vec![])]);
+                }), Value::Str("events".to_string()), &[Value::from(vec![])]);
                 self.assert_prediction_events(exchange.clone(), eventsList.clone());
                 let mut eventsLength: Value = get_array_length(&eventsList);
-                if is_greater_than(&eventsLength, &Value::Int(0)) {
+                if eventsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     eventId = exchange.safe_string(get_value(&eventsList, &Value::Int(0)), Value::Str("id".to_string()), &[]);
                 }
                 if is_true(&(eventId != Value::Null)) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchEvent".to_string()), &[Value::Bool(false)]), &Value::Bool(true))) {
-                    let mut event: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvent".to_string()), Value::List(vec![eventId.clone()])).await;
+                    let mut event: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvent".to_string()), Value::from(vec![eventId.clone()])).await;
                     self.assert_prediction_event(exchange.clone(), event.clone());
                 }
                 // exercise EACH scoping parameter path, not just the initial query. a scope that
@@ -1155,7 +1155,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // series filter) is a real bug that only surfaces if the path is actually asserted.
                 // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
                 // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
-                let mut scopesToTest: Value = Value::List(vec![]);
+                let mut scopesToTest: Value = Value::from(vec![]);
                 if (eventId != Value::Null) {
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                     // since eventId is reassigned above. every venue must refetch an event by its own id
@@ -1168,12 +1168,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
                 // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
-                let mut extraScopes: Value = exchange.safe_list(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventScopes".to_string()), &[Value::List(vec![])]);
+                let mut extraScopes: Value = exchange.safe_list(self.skippedSettingsForExchange.clone(), Value::Str("preferredEventScopes".to_string()), &[Value::from(vec![])]);
                 let mut extraScopesLength: Value = get_array_length(&extraScopes);
                 {
                                         let mut si: Value = Value::Int(0);
                     let mut __for_first_1512: bool = true;
-                    while { if !__for_first_1512 { si = (match (&(si), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1512 = false; is_less_than(&si, &extraScopesLength) } {
+                    while { if !__for_first_1512 { si = (match (&(si), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1512 = false; si.as_f64().unwrap_or(f64::NAN) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
                     append_to_array(&mut scopesToTest, get_value(&extraScopes, &si));
                 }
                 }
@@ -1184,20 +1184,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     while { if !__for_first_1513 { sj = (match (&(sj), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1513 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
                     let mut scope: Value = get_value(&scopesToTest, &sj);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
-                    let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::List(vec![scope.clone()])).await;
+                    let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![scope.clone()])).await;
                     let mut scopedList: Value = exchange.safe_list(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("events".to_string(), scopedEvents.clone());
                         m
-                    }), Value::Str("events".to_string()), &[Value::List(vec![])]);
+                    }), Value::Str("events".to_string()), &[Value::from(vec![])]);
                     let mut scopedListLength: Value = get_array_length(&scopedList);
-                    assert(Value::Bool(is_greater_than(&scopedListLength, &Value::Int(0))), &[Value::Str(format!("{}{}", add(&add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents scoped by ".to_string())), &exchange.json(scope.clone())), Value::Str(" returned no events - the parameter path may be broken".to_string())))]);
+                    assert((scopedListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents scoped by ".to_string())), &exchange.json(scope.clone())), Value::Str(" returned no events - the parameter path may be broken".to_string())))]);
                     self.assert_prediction_events(exchange.clone(), scopedList.clone());
                 }
                 }
                 if (eventQuery != Value::Null) {
                     // limit must bound the number of events returned (applied by applyEventFetchParams)
-                    let mut limited: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::List(vec![Value::Map({
+                    let mut limited: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".to_string()), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("query".to_string(), eventQuery.clone());
         m.insert("limit".to_string(), Value::Int(1));
@@ -1207,9 +1207,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut m = indexmap::IndexMap::new();
                             m.insert("events".to_string(), limited.clone());
                         m
-                    }), Value::Str("events".to_string()), &[Value::List(vec![])]);
+                    }), Value::Str("events".to_string()), &[Value::from(vec![])]);
                     let mut limitedListLength: Value = get_array_length(&limitedList);
-                    assert(Value::Bool(is_less_than_or_equal(&limitedListLength, &Value::Int(1))), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents did not honour limit=1".to_string()))]);
+                    assert((limitedListLength.as_f64().unwrap_or(f64::NAN) <= Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents did not honour limit=1".to_string()))]);
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -1223,34 +1223,34 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (!is_equal(&canServeAllTickers, &Value::Bool(true))) && (is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchTickers".to_string()), &[Value::Bool(false)]), &Value::Bool(true))) {
                 let mut tickersError: Value = Value::Str("".to_string());
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                    callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".to_string()), Value::List(vec![])).await;
+                    callExchangeMethodDynamically(&mut exchange, Value::Str("fetchTickers".to_string()), Value::from(vec![])).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     tickersError = exceptionMessage(e.clone());
                 }
-                assert((get_index_of(&tickersError, &Value::Str("requires an outcomes argument".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".to_string())), tickersError))]);
+                assert((Value::Int(tickersError.as_str().and_then(|__s| __s.find("requires an outcomes argument")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchTickers () without outcomes must throw ArgumentsRequired, got: ".to_string())), tickersError))]);
             }
         }
         dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".to_string()), outcomeSymbol.clone(), Value::Str("| EVENT:".to_string()), exchange.json(eventId.clone())]);
         let mut publicTests: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("fetchStatus".to_string(), Value::List(vec![]));
-                m.insert("fetchTime".to_string(), Value::List(vec![]));
-                m.insert("fetchTradingFee".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                m.insert("fetchOpenInterest".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                m.insert("fetchTicker".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                m.insert("fetchTickers".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                m.insert("fetchOrderBook".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                m.insert("fetchOHLCV".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                m.insert("fetchTrades".to_string(), Value::List(vec![outcomeSymbol.clone()]));
+                m.insert("fetchStatus".to_string(), Value::from(vec![]));
+                m.insert("fetchTime".to_string(), Value::from(vec![]));
+                m.insert("fetchTradingFee".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                m.insert("fetchOpenInterest".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                m.insert("fetchTicker".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                m.insert("fetchTickers".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                m.insert("fetchOrderBook".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                m.insert("fetchOHLCV".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                m.insert("fetchTrades".to_string(), Value::from(vec![outcomeSymbol.clone()]));
             m
         });
         if is_true(&self.wsTests) {
             publicTests = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("watchTicker".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("watchOrderBook".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("watchTrades".to_string(), Value::List(vec![outcomeSymbol.clone()]));
+                    m.insert("watchTicker".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("watchOrderBook".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("watchTrades".to_string(), Value::from(vec![outcomeSymbol.clone()]));
                 m
             });
         }
@@ -1260,13 +1260,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (is_true(&self.privateTest) || is_true(&self.privateTestOnly)) && !is_true(&self.wsTests) {
             let mut privateTests: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("fetchBalance".to_string(), Value::List(vec![]));
-                    m.insert("fetchPositions".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("fetchMyTrades".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("fetchOrders".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("fetchOpenOrders".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("fetchClosedOrders".to_string(), Value::List(vec![outcomeSymbol.clone()]));
-                    m.insert("fetchOrder".to_string(), Value::List(vec![outcomeSymbol.clone()]));
+                    m.insert("fetchBalance".to_string(), Value::from(vec![]));
+                    m.insert("fetchPositions".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("fetchMyTrades".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("fetchOrders".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("fetchOpenOrders".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("fetchClosedOrders".to_string(), Value::from(vec![outcomeSymbol.clone()]));
+                    m.insert("fetchOrder".to_string(), Value::from(vec![outcomeSymbol.clone()]));
                 m
             });
             self.run_tests(exchange.clone(), privateTests.clone(), Value::Bool(false)).await;
@@ -1281,7 +1281,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn assert_prediction_events(&self, mut exchange: Value, mut events: Value) -> Value {
-        assert((is_array(&events)), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents/fetchEvent should return a list".to_string()))]);
+        assert((matches!(&events, Value::Arr(_))), &[add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" fetchEvents/fetchEvent should return a list".to_string()))]);
         let mut eventsLength: Value = Value::Int(events.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1309,7 +1309,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1516: bool = true;
-            while { if !__for_first_1516 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1516 = false; is_less_than(&i, &marketsLength) } {
+            while { if !__for_first_1516 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1516 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&markets, &i);
             assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event market should be a dict".to_string())), logText))]);
             assert((exchange.safe_string(market.clone(), Value::Str("market".to_string()), &[]) != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event market missing the unified market handle".to_string())), logText))]);
@@ -1321,7 +1321,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1515: bool = true;
-                while { if !__for_first_1515 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1515 = false; is_less_than(&j, &outcomesLength) } {
+                while { if !__for_first_1515 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1515 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
                 assert((exchange.safe_string(get_value(&outcomes, &j), Value::Str("symbol".to_string()), &[]) == Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event outcome must not carry the deprecated symbol key".to_string())), logText))]);
             }
             }
@@ -1332,11 +1332,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (active != Value::Null) {
             // typeof check, not `=== true || === false` — the latter transpiles to `== False`
             // in Python, which ruff rejects (E712)
-            assert(Value::Bool(is_bool(&active)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event active must be a bool".to_string())), logText))]);
+            assert((matches!(&active, Value::Bool(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event active must be a bool".to_string())), logText))]);
         }
         let mut tags: Value = exchange.safe_value(event.clone(), Value::Str("tags".to_string()), &[]);
         if (tags != Value::Null) {
-            assert((is_array(&tags)), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event tags must be a list".to_string())), logText))]);
+            assert((matches!(&tags, Value::Arr(_))), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event tags must be a list".to_string())), logText))]);
         }
         let mut info: Value = exchange.safe_value(event.clone(), Value::Str("info".to_string()), &[]);
         assert((info != Value::Null), &[Value::Str(format!("{}{}", add(&get_value(&exchange, &Value::Str("id".to_string())), &Value::Str(" event missing info".to_string())), logText))]);
@@ -1357,7 +1357,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
         // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
         let mut createOrderSkip: Value = self.get_skips(exchange.clone(), Value::Str("createOrder".to_string()));
-        if is_string(&createOrderSkip) {
+        if matches!(&createOrderSkip, Value::Str(_)) {
             dump(&[Value::Str("[INFO] skipping prediction createOrder test".to_string()), get_value(&exchange, &Value::Str("id".to_string())), createOrderSkip.clone()]);
             return Value::Bool(true);
         }
@@ -1390,7 +1390,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut placedId: Value = Value::Null;
         let mut failure: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            order = callExchangeMethodDynamically(&mut exchange, Value::Str("createOrder".to_string()), Value::List(vec![outcome.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), price.clone()])).await;
+            order = callExchangeMethodDynamically(&mut exchange, Value::Str("createOrder".to_string()), Value::from(vec![outcome.clone(), Value::Str("limit".to_string()), Value::Str("buy".to_string()), amount.clone(), price.clone()])).await;
             assert((order != Value::Null), &[add(&Value::Str("createOrder returned undefined for ".to_string()), &get_value(&exchange, &Value::Str("id".to_string())))]);
             assert(Value::Bool(is_equal(&exchange.is_dictionary(order.clone()), &Value::Bool(true))), &[add(&Value::Str("createOrder did not return an order structure for ".to_string()), &get_value(&exchange, &Value::Str("id".to_string())))]);
             placedId = exchange.safe_string(order.clone(), Value::Str("id".to_string()), &[]);
@@ -1418,9 +1418,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if is_equal(&exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("cancelOrder".to_string()), &[Value::Bool(false)]), &Value::Bool(true)) {
-                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelOrder".to_string()), Value::List(vec![orderId.clone(), outcome.clone()])).await;
+                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelOrder".to_string()), Value::from(vec![orderId.clone(), outcome.clone()])).await;
             }  else {
-                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelAllOrders".to_string()), Value::List(vec![outcome.clone()])).await;
+                callExchangeMethodDynamically(&mut exchange, Value::Str("cancelAllOrders".to_string()), Value::from(vec![outcome.clone()])).await;
             }
             dump(&[Value::Str("[INFO:MAIN] prediction order cancelled".to_string()), get_value(&exchange, &Value::Str("id".to_string())), orderId.clone()]);
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -1450,47 +1450,47 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // }
         let mut tests: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("signIn".to_string(), Value::List(vec![]));
-                m.insert("fetchBalance".to_string(), Value::List(vec![]));
-                m.insert("fetchAccounts".to_string(), Value::List(vec![]));
-                m.insert("fetchTransactionFees".to_string(), Value::List(vec![]));
-                m.insert("fetchTradingFees".to_string(), Value::List(vec![]));
-                m.insert("fetchStatus".to_string(), Value::List(vec![]));
-                m.insert("fetchOrders".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchOpenOrders".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchClosedOrders".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchMyTrades".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchLeverageTiers".to_string(), Value::List(vec![Value::List(vec![symbol.clone()])]));
-                m.insert("fetchLedger".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchTransactions".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchDeposits".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchWithdrawals".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchTransfers".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchBorrowInterest".to_string(), Value::List(vec![code.clone(), symbol.clone()]));
-                m.insert("cancelAllOrders".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchCanceledOrders".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchMarginModes".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchPosition".to_string(), Value::List(vec![symbol.clone()]));
-                m.insert("fetchDeposit".to_string(), Value::List(vec![code.clone()]));
-                m.insert("createDepositAddress".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchDepositAddress".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchDepositAddresses".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchDepositAddressesByNetwork".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchBorrowRateHistory".to_string(), Value::List(vec![code.clone()]));
-                m.insert("fetchLedgerEntry".to_string(), Value::List(vec![code.clone()]));
+                m.insert("signIn".to_string(), Value::from(vec![]));
+                m.insert("fetchBalance".to_string(), Value::from(vec![]));
+                m.insert("fetchAccounts".to_string(), Value::from(vec![]));
+                m.insert("fetchTransactionFees".to_string(), Value::from(vec![]));
+                m.insert("fetchTradingFees".to_string(), Value::from(vec![]));
+                m.insert("fetchStatus".to_string(), Value::from(vec![]));
+                m.insert("fetchOrders".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchOpenOrders".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchClosedOrders".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchMyTrades".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchLeverageTiers".to_string(), Value::from(vec![Value::from(vec![symbol.clone()])]));
+                m.insert("fetchLedger".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchTransactions".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchDeposits".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchWithdrawals".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchTransfers".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchBorrowInterest".to_string(), Value::from(vec![code.clone(), symbol.clone()]));
+                m.insert("cancelAllOrders".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchCanceledOrders".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchMarginModes".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchPosition".to_string(), Value::from(vec![symbol.clone()]));
+                m.insert("fetchDeposit".to_string(), Value::from(vec![code.clone()]));
+                m.insert("createDepositAddress".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchDepositAddress".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchDepositAddresses".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchDepositAddressesByNetwork".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchBorrowRateHistory".to_string(), Value::from(vec![code.clone()]));
+                m.insert("fetchLedgerEntry".to_string(), Value::from(vec![code.clone()]));
             m
         });
         if is_true(&getCliArgValue(Value::Str("--fundedTests".to_string()))) {
-            add_element_to_object(&mut tests, &Value::Str("createOrder".to_string()), Value::List(vec![symbol.clone()]));
+            add_element_to_object(&mut tests, &Value::Str("createOrder".to_string()), Value::from(vec![symbol.clone()]));
         }
         if is_true(&self.wsTests) {
             tests = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("watchBalance".to_string(), Value::List(vec![code.clone()]));
-                    m.insert("watchMyTrades".to_string(), Value::List(vec![symbol.clone()]));
-                    m.insert("watchOrders".to_string(), Value::List(vec![symbol.clone()]));
-                    m.insert("watchPosition".to_string(), Value::List(vec![symbol.clone()]));
-                    m.insert("watchPositions".to_string(), Value::List(vec![symbol.clone()]));
+                    m.insert("watchBalance".to_string(), Value::from(vec![code.clone()]));
+                    m.insert("watchMyTrades".to_string(), Value::from(vec![symbol.clone()]));
+                    m.insert("watchOrders".to_string(), Value::from(vec![symbol.clone()]));
+                    m.insert("watchPosition".to_string(), Value::from(vec![symbol.clone()]));
+                    m.insert("watchPositions".to_string(), Value::from(vec![symbol.clone()]));
                 m
             });
         }
@@ -1498,17 +1498,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isSpot: Value = get_value(&market, &Value::Str("spot".to_string()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                add_element_to_object(&mut tests, &Value::Str("fetchCurrencies".to_string()), Value::List(vec![]));
+                add_element_to_object(&mut tests, &Value::Str("fetchCurrencies".to_string()), Value::from(vec![]));
             }  else {
                 // derivatives only
-                add_element_to_object(&mut tests, &Value::Str("fetchPositions".to_string()), Value::List(vec![symbol.clone()])); // this test fetches all positions for 1 symbol
-                add_element_to_object(&mut tests, &Value::Str("fetchPosition".to_string()), Value::List(vec![symbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchPositionRisk".to_string()), Value::List(vec![symbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("setPositionMode".to_string()), Value::List(vec![symbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("setMarginMode".to_string()), Value::List(vec![symbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchOpenInterestHistory".to_string()), Value::List(vec![symbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchFundingRateHistory".to_string()), Value::List(vec![symbol.clone()]));
-                add_element_to_object(&mut tests, &Value::Str("fetchFundingHistory".to_string()), Value::List(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchPositions".to_string()), Value::from(vec![symbol.clone()])); // this test fetches all positions for 1 symbol
+                add_element_to_object(&mut tests, &Value::Str("fetchPosition".to_string()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchPositionRisk".to_string()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("setPositionMode".to_string()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("setMarginMode".to_string()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchOpenInterestHistory".to_string()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingRateHistory".to_string()), Value::from(vec![symbol.clone()]));
+                add_element_to_object(&mut tests, &Value::Str("fetchFundingHistory".to_string()), Value::from(vec![symbol.clone()]));
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
@@ -1533,7 +1533,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_1517: bool = true;
             while { if !__for_first_1517 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1517 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                self.test_method(proxyTestName.clone(), exchange.clone(), Value::List(vec![]), Value::Bool(true)).await;
+                self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), Value::Bool(true)).await;
                 return Value::Bool(true);
              #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
@@ -1561,7 +1561,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             assert((get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.com/api/v3")), &[add(&Value::Str("https://api.binance.com/api/v3 does not match: ".to_string()), &get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null))]);
             assert((in_op(&get_value(&get_value(&exchange, &Value::Str("api".to_string())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null), &Value::Str("get".to_string())), &Value::Str("lending/union/account".to_string()))), &[Value::Str(format!("{}{}", Value::Str("SAPI should contain the endpoint lending/union/account, ".to_string()), jsonStringify(get_value(&get_value(&exchange, &Value::Str("api".to_string())).as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null), &Value::Str("get".to_string())))))]);
         }  else if (get_value(&exchange, &Value::Str("id".to_string())).as_str() == Some("binanceus")) {
-            assert((get_value(&exchange, &Value::Str("hostname".to_string())).as_str() == Some("binance.us")), &[add(&Value::Str("binance.us hostname does not match ".to_string()), &get_value(&exchange, &Value::Str("hostname".to_string())))]);
+            assert((get_value(&exchange, &Value::Str("hostname".to_string())).as_str() == Some("binance.us")), &[Value::Str(format!("{}{}", Value::Str("binance.us hostname does not match ".to_string()), get_value(&exchange, &Value::Str("hostname".to_string()))))]);
             assert((get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null).as_str() == Some("https://api.binance.us/api/v3")), &[add(&Value::Str("https://api.binance.us/api/v3 does not match: ".to_string()), &get_value(&exchange, &Value::Str("urls".to_string())).as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null))]);
         }
 }
@@ -1627,10 +1627,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut watchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("watchOrderBook".to_string()));
         let mut fetchOrderBookSkips: Value = self.get_skips(exchange.clone(), Value::Str("fetchOrderBook".to_string()));
         // ensure with hardcoded list of required methods
-        if is_true(&self.wsTests) && is_true(&(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("watchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true))) && !is_string(&watchOrderBookSkips) {
+        if is_true(&self.wsTests) && is_true(&(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("watchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true))) && !matches!(&watchOrderBookSkips, Value::Str(_)) {
             dump(&[Value::Str("[TEST_FAILURE] Method \"watchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
             exitScript(Value::Int(1));
-        }  else if !is_true(&self.wsTests) && is_true(&(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true))) && !is_string(&fetchOrderBookSkips) {
+        }  else if !is_true(&self.wsTests) && is_true(&(exchange.safe_bool(get_value(&exchange, &Value::Str("has".to_string())), Value::Str("fetchOrderBook".to_string()), &[Value::Bool(false)]).as_bool() != Some(true))) && !matches!(&fetchOrderBookSkips, Value::Str(_)) {
             dump(&[Value::Str("[TEST_FAILURE] Method \"fetchOrderBook\" is not set in \"has\", please check the \"has\" property of exchange".to_string())]);
             exitScript(Value::Int(1));
         }
@@ -1743,7 +1743,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_1519 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1519 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
                 let mut current: Value = get_value(&urlParts, &i);
-                if get_index_of(&current, &Value::Str("?".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+                if Value::Int(current.as_str().and_then(|__s| __s.find("?")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
                     // handle urls like this: /v1/account/accounts?AccessK
                     let mut currentParts: Value = split(&current, &Value::Str("?".to_string()));
                     res = Value::Str(format!("{}{}", res, Value::Str("/".to_string())));
@@ -1797,13 +1797,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&(value == Value::Null)) || (is_equal(&value, &Value::Bool(false))) || is_true(&(value.as_str() == Some(""))) {
             return Value::Bool(true);
         }
-        if is_true(&exchange.is_dictionary(value.clone())) || (is_array(&value)) {
+        if is_true(&exchange.is_dictionary(value.clone())) || is_true(&(matches!(&value, Value::Arr(_)))) {
             return Value::Bool(false);
         }
-        if (is_string(&value)) || (is_bool(&value)) {
+        if is_true(&(matches!(&value, Value::Str(_)))) || is_true(&(matches!(&value, Value::Bool(_)))) {
             return Value::Bool(false);
         }
-        return Value::Bool((is_less_than_or_equal(&value, &Value::Int(0))) && (is_greater_than_or_equal(&value, &Value::Int(0))));
+        return Value::Bool(is_true(&(value.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(value.as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))));
 
     Value::Null
 }
@@ -1821,7 +1821,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&isNullValue(value.clone())) {
             return Value::Bool(true);
         }
-        if (is_array(&value)) {
+        if is_true(&(matches!(&value, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1521: bool = true;
@@ -1893,7 +1893,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
         }
         // if needed convert stringified jsons to objects
-        if (is_string(&storedOutput)) && (is_string(&newOutput)) && (starts_with(&storedOutput, &Value::Str("{".to_string()))) && (starts_with(&newOutput, &Value::Str("{".to_string()))) {
+        if is_true(&(matches!(&storedOutput, Value::Str(_)))) && is_true(&(matches!(&newOutput, Value::Str(_)))) && (starts_with(&storedOutput, &Value::Str("{".to_string()))) && (starts_with(&newOutput, &Value::Str("{".to_string()))) {
             storedOutput = jsonParse(storedOutput.clone());
             newOutput = jsonParse(newOutput.clone());
         }
@@ -1936,7 +1936,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newValue.clone(), storedValue.clone(), &[strictTypeCheck.clone(), key.clone()]);
             }
             }
-        }  else if is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) && (is_array(&storedOutput)) && (is_array(&newOutput)) {
+        }  else if is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) && is_true(&(matches!(&storedOutput, Value::Arr(_)))) && is_true(&(matches!(&newOutput, Value::Arr(_)))) {
             let mut storedArrayLength: Value = Value::Int(storedOutput.len() as i64);
             let mut newArrayLength: Value = Value::Int(newOutput.len() as i64);
             self.assert_static_error(Value::Bool(storedArrayLength.as_f64() == newArrayLength.as_f64()), Value::Str("output length mismatch".to_string()), storedOutput.clone(), newOutput.clone(), &[]);
@@ -1964,10 +1964,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(Value::Bool(is_equal(&sanitizedNewOutput, &sanitizedStoredOutput)), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
             }  else {
-                let mut isComputedBool: Value = Value::Bool(is_bool(&sanitizedNewOutput));
-                let mut isStoredBool: Value = Value::Bool(is_bool(&sanitizedStoredOutput));
-                let mut isComputedString: Value = Value::Bool(is_string(&sanitizedNewOutput));
-                let mut isStoredString: Value = Value::Bool(is_string(&sanitizedStoredOutput));
+                let mut isComputedBool: Value = (Value::Bool(matches!(&sanitizedNewOutput, Value::Bool(_))));
+                let mut isStoredBool: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Bool(_))));
+                let mut isComputedString: Value = (Value::Bool(matches!(&sanitizedNewOutput, Value::Str(_))));
+                let mut isStoredString: Value = (Value::Bool(matches!(&sanitizedStoredOutput, Value::Str(_))));
                 let mut isComputedUndefined: Value = (Value::Bool(sanitizedNewOutput == Value::Null));
                 let mut isStoredUndefined: Value = (Value::Bool(sanitizedStoredOutput == Value::Null));
                 let mut shouldBeSame: Value = Value::Bool(is_true(&(isComputedBool.as_bool() == isStoredBool.as_bool())) && is_true(&(isComputedString.as_bool() == isStoredString.as_bool())) && is_true(&(isComputedUndefined.as_bool() == isStoredUndefined.as_bool())));
@@ -2106,10 +2106,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if (type_var.as_str() == Some("json")) && is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) {
-            if is_string(&storedOutput) {
+            if matches!(&storedOutput, Value::Str(_)) {
                 storedOutput = jsonParse(storedOutput.clone());
             }
-            if is_string(&newOutput) {
+            if matches!(&newOutput, Value::Str(_)) {
                 newOutput = jsonParse(newOutput.clone());
             }
         }  else if (type_var.as_str() == Some("urlencoded")) && is_true(&(storedOutput != Value::Null)) && is_true(&(newOutput != Value::Null)) {
@@ -2139,11 +2139,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (input == Value::Null) {
             return Value::Null;
         }
-        let mut newInput: Value = Value::List(vec![]);
+        let mut newInput: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1526: bool = true;
-            while { if !__for_first_1526 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1526 = false; is_less_than(&i, &get_array_length(&input)) } {
+            while { if !__for_first_1526 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1526 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&input, &i);
             if is_true(&isNullValue(current.clone())) {
                 append_to_array(&mut newInput, Value::Null);
@@ -2171,7 +2171,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if !(is_instance(&e, &Value::Str("InvalidProxySettings".to_string()))) {
+            if !(matches!(&e, Value::Str(__s) if __s.contains("[InvalidProxySettings]"))) {
                 panic!("{}", e);
             }
             output = get_value(&exchange, &Value::Str("last_request_body".to_string()));
@@ -2333,7 +2333,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         // ids/signatures/timestamps inside outgoing frames can be volatile —
         // exclude them per entry without touching the response skipKeys
-        let mut sentSkipKeys: Value = exchange.safe_list(data.clone(), Value::Str("sentSkipKeys".to_string()), &[Value::List(vec![])]);
+        let mut sentSkipKeys: Value = exchange.safe_list(data.clone(), Value::Str("sentSkipKeys".to_string()), &[Value::from(vec![])]);
         let mut sentMessages: Value = getWsSentMessages(exchange.clone(), url.clone());
         let mut sentLength: Value = get_array_length(&sentMessages);
         let mut expectedLength: Value = get_array_length(&expectedSent);
@@ -2341,7 +2341,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1530: bool = true;
-            while { if !__for_first_1530 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1530 = false; is_less_than(&i, &expectedLength) } {
+            while { if !__for_first_1530 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1530 = false; i.as_f64().unwrap_or(f64::NAN) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
             let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &i)));
             self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent.clone(), get_value(&expectedSent, &i));
         }
@@ -2360,7 +2360,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             dump(&[Value::Str("[INFO] STATIC WS TEST:".to_string()), method.clone(), Value::Str(":".to_string()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)]);
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut messages: Value = exchange.safe_list(data.clone(), Value::Str("messages".to_string()), &[Value::List(vec![])]);
+            let mut messages: Value = exchange.safe_list(data.clone(), Value::Str("messages".to_string()), &[Value::from(vec![])]);
             let mut input: Value = self.sanitize_data_input(data.as_map().and_then(|__m| __m.get("input")).cloned().unwrap_or(Value::Null));
             let mut expectedResults: Value = exchange.safe_list(data.clone(), Value::Str("parsedResponses".to_string()), &[]);
             if (expectedResults != Value::Null) {
@@ -2371,14 +2371,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // worker could execute it inline on the blocked stack and the
                 // rejection loop would then wait on the very watch side it is
                 // buried on top of
-                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::List(vec![Value::Bool(true), self.watch_and_assert_sequence(exchange.clone(), url.clone(), method.clone(), input.clone(), skipKeys.clone(), expectedResults.clone()).await]);
+                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut promises: Value = Value::from(vec![Value::Bool(true), self.watch_and_assert_sequence(exchange.clone(), url.clone(), method.clone(), input.clone(), skipKeys.clone(), expectedResults.clone()).await]);
                 promise_all(&promises).await;
                 self.assert_ws_sent_messages(exchange.clone(), url.clone(), data.clone());
             }  else {
                 // 'parsedResponse' asserts the final state after every frame
                 // was replayed — live structures like orderbooks keep updating
                 // after the first resolution, so serialize only at the end
-                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; let mut __g = 0; while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; __g += 1; } let mut promises: Value = Value::List(vec![__w, Value::Bool(true)]);
+                preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; let mut __g = 0; while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; __g += 1; } let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);
                 let mut results: Value = promise_all(&promises).await;
                 let mut unifiedResult: Value = jsonParse(jsonStringify(results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)));
                 self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), data.as_map().and_then(|__m| __m.get("parsedResponse")).cloned().unwrap_or(Value::Null));
@@ -2416,7 +2416,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1531: bool = true;
-                while { if !__for_first_1531 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1531 = false; is_less_than(&j, &get_array_length(&results)) } {
+                while { if !__for_first_1531 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1531 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = get_value(&result, &Value::Str("description".to_string()));
                 if is_true(&(testName != Value::Null)) && (!is_equal(&testName, &description)) {
@@ -2460,7 +2460,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]);
                 exchange.extend_exchange_options(testExchangeOptions.clone());
-                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
+                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::from(vec![])]);
                 self.test_ws_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone()).await;
                 if !is_true(&isSync()) {
                     close(exchange.clone()).await;
@@ -2538,7 +2538,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("token".to_string(), Value::Str("token".to_string()));
                 m.insert("login".to_string(), Value::Str("login".to_string()));
                 m.insert("accountId".to_string(), Value::Str("12345".to_string()));
-                m.insert("accounts".to_string(), Value::List(vec![Value::Map({
+                m.insert("accounts".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("myAccount".to_string()));
         m.insert("code".to_string(), Value::Str("USDT".to_string()));
@@ -2576,12 +2576,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (predictionEvents != Value::Null) {
-            let mut eventMarkets: Value = Value::List(vec![]);
+            let mut eventMarkets: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1534: bool = true;
                 while { if !__for_first_1534 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1534 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(predictionEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut evMarkets: Value = exchange.safe_list(get_value(&predictionEvents, &i), Value::Str("markets".to_string()), &[Value::List(vec![])]);
+                let mut evMarkets: Value = exchange.safe_list(get_value(&predictionEvents, &i), Value::Str("markets".to_string()), &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1533: bool = true;
@@ -2656,7 +2656,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1535: bool = true;
-                while { if !__for_first_1535 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1535 = false; is_less_than(&j, &get_array_length(&results)) } {
+                while { if !__for_first_1535 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1535 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".to_string()), &[Value::Map({
@@ -2695,7 +2695,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     continue;
                 }
                 let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".to_string()), &[]);
-                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
+                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::from(vec![])]);
                 match std::panic::AssertUnwindSafe(self.test_request_statically(exchange.clone(), method.clone(), result.clone(), type_var.clone(), skipKeys.clone())).catch_unwind().await {
             Ok(_) => {},
             Err(__e) => {
@@ -2766,7 +2766,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1537: bool = true;
-                while { if !__for_first_1537 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1537 = false; is_less_than(&j, &get_array_length(&results)) } {
+                while { if !__for_first_1537 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1537 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".to_string()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".to_string())); // snapshot options;
@@ -2804,7 +2804,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_true(&(isDisabledJava.as_bool() == Some(true))) && is_true(&(self.lang.as_str() == Some("java"))) {
                     continue;
                 }
-                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::List(vec![])]);
+                let mut skipKeys: Value = exchange.safe_value(exchangeData.clone(), Value::Str("skipKeys".to_string()), &[Value::from(vec![])]);
                 match std::panic::AssertUnwindSafe(self.test_response_statically(exchange.clone(), method.clone(), skipKeys.clone(), result.clone())).catch_unwind().await {
             Ok(_) => {},
             Err(__e) => {
@@ -2930,7 +2930,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]); // tmp to do the calculations until we have the ast-transpiler transpiling this code
-        let mut promises: Value = Value::List(vec![]);
+        let mut promises: Value = Value::from(vec![]);
         let mut sum: Value = Value::Int(0);
         if (targetExchange != Value::Null) && (targetExchange.as_str() != Some("")) {
             dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Exchange to test: ".to_string()), targetExchange))]);
@@ -3016,7 +3016,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        let mut promises: Value = Value::List(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await]);
+        let mut promises: Value = Value::from(vec![self.test_binance().await, self.test_okx().await, self.test_cryptocom().await, self.test_bybit().await, self.test_kucoin().await, self.test_kucoinfutures().await, self.test_bitget().await, self.test_mexc().await, self.test_htx().await, self.test_woo().await, self.test_coinex().await, self.test_bingx().await, self.test_phemex().await, self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await, self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await]);
         promise_all(&promises).await;
         let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), self.lang.clone())), Value::Str("][TEST_SUCCESS] brokerId tests passed.".to_string())));
         dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".to_string()), successMessage))]);
@@ -3097,7 +3097,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut orders: Value = Value::List(vec![Value::Map({
+            let mut orders: Value = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::Str("BTC/USDT:USDT".to_string()));
         m.insert("type".to_string(), Value::Str("limit".to_string()));
@@ -3122,7 +3122,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1541: bool = true;
-            while { if !__for_first_1541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1541 = false; is_less_than(&i, &get_array_length(&batchOrders)) } {
+            while { if !__for_first_1541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1541 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".to_string()));
             assert(Value::Bool(is_equal(&Value::Bool(starts_with(&currentClientOrderId, &swapIdString)), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("binance createOrders - clientOrderId: ".to_string()), &currentClientOrderId), Value::Str(" does not start with swapId".to_string()))), swapIdString))]);
@@ -3795,7 +3795,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("paraclear_account_proxy_hash".to_string(), Value::Str("0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9".to_string()));
         m.insert("paraclear_account_hash".to_string(), Value::Str("0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e".to_string()));
         m.insert("oracle_address".to_string(), Value::Str("0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f".to_string()));
-        m.insert("bridged_tokens".to_string(), Value::List(vec![Value::Map({
+        m.insert("bridged_tokens".to_string(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("TEST USDC".to_string()));
         m.insert("symbol".to_string(), Value::Str("USDC".to_string()));

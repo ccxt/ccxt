@@ -473,7 +473,7 @@ impl WeexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.clone());
                 m.insert("method".to_string(), method.clone());
-                m.insert("params".to_string(), Value::List(vec![channel.clone()]));
+                m.insert("params".to_string(), Value::from(vec![channel.clone()]));
             m
         });
         subscription = self.extend(subscription.clone(), &[Value::Map({
@@ -489,7 +489,7 @@ impl WeexCore {
 
     pub fn authenticate(&mut self, mut url: Value) {
         self.check_required_credentials(&[]);
-        if is_true(&(Value::Bool(self.clients.clone() != Value::Null))) && is_true(&(Value::Bool(in_op(&self.clients, &url)))) {
+        if is_true(&(self.clients.clone() != Value::Null)) && (in_op(&self.clients, &url)) {
             return;
         }
         let mut timestamp: Value = self.nonce();
@@ -562,7 +562,7 @@ impl WeexCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut tickers: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut tickers: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return get_value(&tickers, &symbol);
 
     Value::Null
@@ -591,8 +591,8 @@ impl WeexCore {
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("ticker".to_string());
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_633: bool = true;
@@ -635,7 +635,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        return self.un_watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
 
     Value::Null
 }
@@ -663,9 +663,9 @@ impl WeexCore {
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("ticker".to_string());
-        let mut subHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
-        let mut unSubHashes: Value = Value::List(vec![]);
+        let mut subHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
+        let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_634: bool = true;
@@ -725,7 +725,7 @@ impl WeexCore {
         if (market == Value::Null) {
             return;
         }
-        let mut tickers: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
         let mut data: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -759,7 +759,7 @@ impl WeexCore {
         //
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "C", &[]);
         let mut close: Value = self.safe_string_k(ticker.clone(), "c", &[]);
-        let mut symbol: Value = (if is_true(&(Value::Bool(market == Value::Null))) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -809,7 +809,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -840,8 +840,8 @@ impl WeexCore {
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("trade".to_string());
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_635: bool = true;
@@ -881,7 +881,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        return self.un_watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -908,9 +908,9 @@ impl WeexCore {
         let mut firstMarket: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut topic: Value = Value::Str("trade".to_string());
-        let mut subHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
-        let mut unSubHashes: Value = Value::List(vec![]);
+        let mut subHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
+        let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_636: bool = true;
@@ -964,13 +964,13 @@ impl WeexCore {
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".to_string()), symbol));
-        if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+        if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
-        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
-        let mut newTrades: Value = Value::List(vec![]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
+        let mut newTrades: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_637: bool = true;
@@ -1010,7 +1010,7 @@ impl WeexCore {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "T", &[]);
-        let mut symbol: Value = (if is_true(&(Value::Bool(market == Value::Null))) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         let mut isBuyerMaker: Value = self.safe_bool_k(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
@@ -1065,7 +1065,7 @@ impl WeexCore {
                 m.insert("callerMethodName".to_string(), Value::Str("watchOHLCV".to_string()));
             m
         })]);
-        let mut result: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), extendedParams.clone()]).await;
+        let mut result: Value = self.watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), extendedParams.clone()]).await;
         return get_value(&get_value(&result, &symbol), &timeframe);
 
     Value::Null
@@ -1095,9 +1095,9 @@ impl WeexCore {
         }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("watchOHLCVForSymbols".to_string())]);
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
-        let mut channels: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::List(vec![])]);
+        let mut channels: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut firstSymbol: Value = self.safe_string(firstEntry.clone(), Value::Int(0), &[]);
         let mut firstMarket: Value = self.market(firstSymbol);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
@@ -1155,7 +1155,7 @@ impl WeexCore {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("unWatchOHLCV".to_string())); }
-        return self.un_watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[params.clone()]).await;
+        return self.un_watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -1180,10 +1180,10 @@ impl WeexCore {
         }
         let mut callerMethodName: Value = self.safe_string_k(params.clone(), "callerMethodName", &[Value::Str("unWatchOHLCVForSymbols".to_string())]);
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
-        let mut channels: Value = Value::List(vec![]);
-        let mut subHashes: Value = Value::List(vec![]);
-        let mut unSubHashes: Value = Value::List(vec![]);
-        let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::List(vec![])]);
+        let mut channels: Value = Value::from(vec![]);
+        let mut subHashes: Value = Value::from(vec![]);
+        let mut unSubHashes: Value = Value::from(vec![]);
+        let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut firstSymbol: Value = self.safe_string(firstEntry.clone(), Value::Int(0), &[]);
         let mut firstMarket: Value = self.market(firstSymbol);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
@@ -1257,13 +1257,13 @@ impl WeexCore {
             return;
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
+        if !(in_op(&self.ohlcvs, &symbol)) {
             add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         }
-        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
         let mut firstEntry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1291,13 +1291,13 @@ impl WeexCore {
         }
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".to_string()), symbol)), Value::Str("::".to_string()))), timeframe));
-        let mut resolveData: Value = Value::List(vec![symbol.clone(), timeframe.clone(), stored.clone()]);
+        let mut resolveData: Value = Value::from(vec![symbol.clone(), timeframe.clone(), stored.clone()]);
         client.resolve(&[resolveData.clone(), messageHash.clone()]);
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1324,7 +1324,7 @@ impl WeexCore {
                 m.insert("callerMethodName".to_string(), Value::Str("watchOrderBook".to_string()));
             m
         })]);
-        return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1356,8 +1356,8 @@ impl WeexCore {
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         let mut depth: Value = Value::Str("200".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName.clone(), Value::Str("depth".to_string()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_642: bool = true;
@@ -1402,7 +1402,7 @@ impl WeexCore {
                 m.insert("callerMethodName".to_string(), Value::Str("unWatchOrderBook".to_string()));
             m
         })]);
-        return self.un_watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[params.clone()]).await;
+        return self.un_watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[params.clone()]).await;
 
     Value::Null
 }
@@ -1432,9 +1432,9 @@ impl WeexCore {
         params = self.omit(params.clone(), Value::Str("callerMethodName".to_string()), &[]);
         let mut depth: Value = Value::Str("200".to_string());
         { let __destr_tmp = self.handle_option_and_params(params.clone(), callerMethodName.clone(), Value::Str("depth".to_string()), &[depth.clone()]); depth = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut subHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
-        let mut unSubHashes: Value = Value::List(vec![]);
+        let mut subHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
+        let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_643: bool = true;
@@ -1484,7 +1484,7 @@ impl WeexCore {
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), symbol));
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1511,8 +1511,8 @@ impl WeexCore {
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), nonce.clone());
             orderbook.reset(parsed.clone());
         }  else {
-            let mut asks: Value = self.safe_list_k(message.clone(), "a", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(message, "b", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_list_k(message.clone(), "a", &[Value::from(vec![])]);
+            let mut bids: Value = self.safe_list_k(message, "b", &[Value::from(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1550,8 +1550,8 @@ impl WeexCore {
         if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks is supported for spot markets only".to_string()))));
         }
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_644: bool = true;
@@ -1602,9 +1602,9 @@ impl WeexCore {
         if (firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchBidsAsks is supported for spot markets only".to_string()))));
         }
-        let mut subHashes: Value = Value::List(vec![]);
-        let mut channels: Value = Value::List(vec![]);
-        let mut unSubHashes: Value = Value::List(vec![]);
+        let mut subHashes: Value = Value::from(vec![]);
+        let mut channels: Value = Value::from(vec![]);
+        let mut unSubHashes: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_645: bool = true;
@@ -1663,7 +1663,7 @@ impl WeexCore {
     pub fn parse_ws_bid_ask(&self, mut message: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        let mut symbol: Value = (if is_true(&(Value::Bool(market == Value::Null))) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -1756,8 +1756,8 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("messageHashes".to_string(), Value::List(vec![unSubHash.clone()]));
-                m.insert("subMessageHashes".to_string(), Value::List(vec![subHash.clone()]));
+                m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![subHash.clone()]));
                 m.insert("topic".to_string(), Value::Str("myTrades".to_string()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
@@ -1819,7 +1819,7 @@ impl WeexCore {
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut trades: Value = self.myTrades.clone();
-        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2003,8 +2003,8 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("messageHashes".to_string(), Value::List(vec![unSubHash.clone()]));
-                m.insert("subMessageHashes".to_string(), Value::List(vec![subHash.clone()]));
+                m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![subHash.clone()]));
                 m.insert("topic".to_string(), Value::Str("orders".to_string()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
@@ -2062,7 +2062,7 @@ impl WeexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2295,7 +2295,7 @@ impl WeexCore {
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
         let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
-        if is_true(&(Value::Bool(fetchBalanceSnapshot.as_bool() == Some(true)))) && is_true(&(Value::Bool(awaitBalanceSnapshot.as_bool() == Some(true)))) {
+        if is_true(&(fetchBalanceSnapshot.as_bool() == Some(true))) && is_true(&(awaitBalanceSnapshot.as_bool() == Some(true))) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".to_string())))])).await;
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", type_var, Value::Str(":".to_string()))), Value::Str("balance".to_string())));
@@ -2305,14 +2305,14 @@ impl WeexCore {
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, mut type_var: Value) {
-        if is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &type_var)))) && is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &type_var)) && (in_op(&self.balance, &type_var)) {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if (fetchBalanceSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_balance_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), type_var.clone()]);
             }
@@ -2337,7 +2337,7 @@ impl WeexCore {
 })]);
         { let __be_tmp = self.extend(response, &[__ws_arg_2]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         // don't remove the future from the .futures cache
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
             future.resolve(&[]);
             client.resolve(&[get_value(&self.balance, &type_var), add(&type_var, &Value::Str(":balance".to_string()))]);
@@ -2406,7 +2406,7 @@ impl WeexCore {
         //
         let mut url: Value = get_value(&client, &Value::Str("url".to_string()));
         let mut accountType: Value = Value::Str("spot".to_string());
-        if get_index_of(&url, &Value::Str("contract".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if Value::Int(url.as_str().and_then(|__s| __s.find("contract")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             accountType = Value::Str("swap".to_string());
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", accountType, Value::Str(":balance".to_string())));
@@ -2417,7 +2417,7 @@ impl WeexCore {
 }));
         }
         add_element_to_object(get_value_mut(&mut self.balance, &accountType), &Value::Str("info".to_string()), message.clone());
-        let mut balanceUpdates: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut balanceUpdates: Value = self.safe_list_k(message.clone(), "d", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_650: bool = true;
@@ -2429,7 +2429,7 @@ impl WeexCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string2(entry.clone(), Value::Str("available".to_string()), Value::Str("amount".to_string()), &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(entry.clone(), "frozen", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string2(entry.clone(), Value::Str("equity".to_string()), Value::Str("legacyAmount".to_string()), &[])); }
-            if is_true(&(Value::Bool(accountType != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
+            if is_true(&(accountType != Value::Null)) && is_true(&(code != Value::Null)) {
                 add_element_to_object(get_value_mut(&mut self.balance, &accountType), &code, account.clone());
             }
         }
@@ -2477,7 +2477,7 @@ impl WeexCore {
         self.set_positions_cache(client.clone(), &[params.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("awaitPositionsSnapshot".to_string()), &[Value::Bool(true)]);
-        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(Value::Bool(self.positions.clone() == Value::Null))) {
+        if (is_equal(&fetchPositionsSnapshot, &Value::Bool(true))) && (is_equal(&awaitPositionsSnapshot, &Value::Bool(true))) && is_true(&(self.positions.clone() == Value::Null)) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".to_string())])).await;
             return self.filter_by_symbols_since_limit(snapshot.clone(), &[symbols.clone(), since.clone(), limit.clone(), Value::Bool(true)]);
         }
@@ -2498,7 +2498,7 @@ impl WeexCore {
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".to_string()), Value::Str("fetchPositionsSnapshot".to_string()), &[Value::Bool(false)]);
         if is_equal(&fetchPositionsSnapshot, &Value::Bool(true)) {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".to_string());
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
+            if !(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 client.future(&[messageHash.clone()]);
                 self.spawn(&[Value::Str("load_positions_snapshot".to_string()).clone(), client.clone(), messageHash.clone(), params.clone()]);
             }
@@ -2552,8 +2552,8 @@ impl WeexCore {
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
-                m.insert("messageHashes".to_string(), Value::List(vec![unSubHash.clone()]));
-                m.insert("subMessageHashes".to_string(), Value::List(vec![subHash.clone()]));
+                m.insert("messageHashes".to_string(), Value::from(vec![unSubHash.clone()]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![subHash.clone()]));
                 m.insert("topic".to_string(), Value::Str("positions".to_string()));
                 m.insert("subHashIsPrefix".to_string(), Value::Bool(true));
             m
@@ -2606,8 +2606,8 @@ impl WeexCore {
             self.positions = ArrayCacheBySymbolById::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut newPositions: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
+        let mut newPositions: Value = Value::from(vec![]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_652: bool = true;
@@ -2650,7 +2650,7 @@ impl WeexCore {
     pub fn get_market_from_client_and_message(&self, mut client: Value, mut message: Value) -> Value {
         let mut url: Value = get_value(&client, &Value::Str("url".to_string()));
         let mut marketType: Value = Value::Str("spot".to_string());
-        if get_index_of(&url, &Value::Str("contract".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+        if Value::Int(url.as_str().and_then(|__s| __s.find("contract")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             marketType = Value::Str("swap".to_string());
         }
         let mut marketId: Value = self.safe_string_k(message.clone(), "s", &[]);
@@ -2694,8 +2694,8 @@ impl WeexCore {
         let mut unsubscribe: Value = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]);
         if (unsubscribe.as_bool() == Some(true)) {
             let mut subHashIsPrefix: Value = self.safe_bool_k(subscription.clone(), "subHashIsPrefix", &[Value::Bool(false)]);
-            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::List(vec![])]);
-            let mut subHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
+            let mut messageHashes: Value = self.safe_list_k(subscription.clone(), "messageHashes", &[Value::from(vec![])]);
+            let mut subHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_654: bool = true;
@@ -2759,16 +2759,16 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             self.handle_subscription_status(client.clone(), message.clone());
             return;
         }
-        let mut event: Option<String> = self.safe_string_n(message.clone(), Value::List(vec![Value::Str("e".to_string()), Value::Str("event".to_string()), Value::Str("type".to_string())]), &[]).as_str().map(str::to_owned);
+        let mut event: Option<String> = self.safe_string_n(message.clone(), Value::from(vec![Value::Str("e".to_string()), Value::Str("event".to_string()), Value::Str("type".to_string())]), &[]).as_str().map(str::to_owned);
         if (event.as_deref() == Some("ping")) {
             self.handle_ping(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("ticker")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(event.as_deref() == Some("trade")))) || is_true(&(Value::Bool(event.as_deref() == Some("tradeSnapshot")))) {
+        }  else if is_true(&(event.as_deref() == Some("trade"))) || is_true(&(event.as_deref() == Some("tradeSnapshot"))) {
             self.handle_trade(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(event.as_deref() == Some("kline")))) || is_true(&(Value::Bool(event.as_deref() == Some("klineSnapshot")))) {
+        }  else if is_true(&(event.as_deref() == Some("kline"))) || is_true(&(event.as_deref() == Some("klineSnapshot"))) {
             self.handle_ohlcv(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(event.as_deref() == Some("depth")))) || is_true(&(Value::Bool(event.as_deref() == Some("depthSnapshot")))) {
+        }  else if is_true(&(event.as_deref() == Some("depth"))) || is_true(&(event.as_deref() == Some("depthSnapshot"))) {
             self.handle_order_book(client.clone(), message.clone());
         }  else if (event.as_deref() == Some("bookTicker")) {
             self.handle_bid_ask(client.clone(), message.clone());

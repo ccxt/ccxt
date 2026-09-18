@@ -1597,7 +1597,7 @@ impl BitflyerCore {
         let mut type_var: Value = Value::Null;
         let mut status: Value = Value::Null;
         let mut fee: Value = Value::Null;
-        if (in_op(&transaction, &Value::Str("fee".to_string()))) {
+        if is_true(&(matches!(&transaction, Value::Dict(__d) if __d.contains_key("fee")))) {
             type_var = Value::Str("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.clone());
             let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);

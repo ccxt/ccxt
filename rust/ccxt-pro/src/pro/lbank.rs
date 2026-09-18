@@ -325,7 +325,7 @@ impl LbankCore {
     pub fn check_contract_market(&self, mut market: Value, mut methodName: Value) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) {
+        if is_true(&(market != Value::Null)) && is_true(&(market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null).as_bool() == Some(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), methodName)), Value::Str("() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets yet".to_string()))));
         }
 }
@@ -505,8 +505,8 @@ impl LbankCore {
         })]);
         let mut records: Value = self.safe_value_k(message.clone(), "records", &[]);
         if (records != Value::Null) {
-            let mut rawOHLCV: Value = self.safe_value(records.clone(), Value::Int(0), &[Value::List(vec![])]);
-            let mut parsed: Value = Value::List(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
+            let mut rawOHLCV: Value = self.safe_value(records.clone(), Value::Int(0), &[Value::from(vec![])]);
+            let mut parsed: Value = Value::from(vec![self.safe_integer(rawOHLCV.clone(), Value::Int(0), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(1), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(2), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(3), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(4), &[]), self.safe_number(rawOHLCV.clone(), Value::Int(5), &[])]);
             let mut timeframeId: Value = self.safe_string_k(message.clone(), "kbar", &[]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
@@ -529,7 +529,7 @@ impl LbankCore {
             })]);
             let mut timeframeId: Value = self.safe_string_k(rawOHLCV.clone(), "slot", &[]);
             let mut datetime: Value = self.safe_string_k(rawOHLCV.clone(), "t", &[]);
-            let mut parsed: Value = Value::List(vec![self.parse8601(datetime.clone()), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
+            let mut parsed: Value = Value::from(vec![self.parse8601(datetime.clone()), self.safe_number_k(rawOHLCV.clone(), "o", &[]), self.safe_number_k(rawOHLCV.clone(), "h", &[]), self.safe_number_k(rawOHLCV.clone(), "l", &[]), self.safe_number_k(rawOHLCV.clone(), "c", &[]), self.safe_number_k(rawOHLCV, "v", &[])]);
             let mut timeframe: Value = self.find_timeframe(timeframeId.clone(), &[timeframes.clone()]);
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -824,7 +824,7 @@ impl LbankCore {
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         let mut rawTrade: Value = self.safe_value_k(message.clone(), "trade", &[]);
-        let mut rawTrades: Value = self.safe_value_k(message, "trades", &[Value::List(vec![rawTrade.clone()])]);
+        let mut rawTrades: Value = self.safe_value_k(message, "trades", &[Value::from(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_474: bool = true;
@@ -856,7 +856,7 @@ impl LbankCore {
         //    }
         //
         let mut timestamp: Value = self.safe_integer(trade.clone(), Value::Int(0), &[]);
-        let mut datetime: Value = (if is_true(&(Value::Bool(timestamp != Value::Null))) { (self.iso8601(timestamp.clone())) } else { (self.safe_string_k(trade.clone(), "TS", &[])) });
+        let mut datetime: Value = (if is_true(&(timestamp != Value::Null)) { (self.iso8601(timestamp.clone())) } else { (self.safe_string_k(trade.clone(), "TS", &[])) });
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(datetime.clone());
         }
@@ -867,7 +867,7 @@ impl LbankCore {
         let mut side: Value = firstPart.clone();
         // reverse if it was 'maker'
         if (secondPart.is_some()) && (secondPart.as_deref() == Some("maker")) {
-            side = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+            side = (if is_true(&(side.as_str() == Some("buy"))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1029,7 +1029,7 @@ impl LbankCore {
         let mut exchangeType: Option<String> = self.safe_string(typeParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         if (rawType.as_str() != Some("buy")) && (rawType.as_str() != Some("sell")) {
-            type_var = (if is_true(&(Value::Bool(exchangeType.as_deref() == Some("market")))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
+            type_var = (if is_true(&(exchangeType.as_deref() == Some("market"))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]);
@@ -1037,7 +1037,7 @@ impl LbankCore {
         let mut status: Value = self.safe_string_k(orderUpdate.clone(), "orderStatus", &[]);
         let mut orderAmount: Value = self.safe_string_k(orderUpdate.clone(), "orderAmt", &[]);
         let mut cost: Value = Value::Null;
-        if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(side.as_str() == Some("buy")))) {
+        if is_true(&(type_var.as_str() == Some("market"))) && is_true(&(side.as_str() == Some("buy"))) {
             cost = orderAmount.clone();
         }
         return self.safe_order(Value::Map({
@@ -1299,7 +1299,7 @@ impl LbankCore {
         let mut datetime: Value = self.safe_string_k(message.clone(), "TS", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         // let orderbook = this.safeValue (this.orderbooks, symbol);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1393,7 +1393,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut client: Value = self.client(&[url.clone()]);
         let mut now: Value = self.milliseconds();
         let mut messageHash: Value = Value::Str("authenticateFlight".to_string());
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+        if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

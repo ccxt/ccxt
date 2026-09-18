@@ -428,7 +428,7 @@ impl BitrueCore {
         //      "u": 2285311
         //    }
         //
-        let mut balances: Value = self.safe_value_k(message, "B", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_value_k(message, "B", &[Value::from(vec![])]);
         self.parse_ws_balances(balances.clone());
         let mut messageHash: Value = Value::Str("balance".to_string());
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -463,10 +463,10 @@ impl BitrueCore {
             let mut account: Value = self.account();
             let mut free: Value = self.safe_string_k(balance.clone(), "F", &[]);
             let mut used: Value = self.safe_string_k(balance.clone(), "L", &[]);
-            let mut balanceUpdateTime: Value = self.safe_integer_k(balance.clone(), "T", &[Value::Int(0)]);
-            let mut lockBalanceUpdateTime: Value = self.safe_integer_k(balance.clone(), "t", &[Value::Int(0)]);
-            let mut updateFree: bool = balanceUpdateTime.as_f64() != Some(0.0);
-            let mut updateUsed: bool = lockBalanceUpdateTime.as_f64() != Some(0.0);
+            let mut balanceUpdateTime: Option<i64> = self.safe_integer_k(balance.clone(), "T", &[Value::Int(0)]).as_i64();
+            let mut lockBalanceUpdateTime: Option<i64> = self.safe_integer_k(balance.clone(), "t", &[Value::Int(0)]).as_i64();
+            let mut updateFree: bool = balanceUpdateTime != Some(0);
+            let mut updateUsed: bool = lockBalanceUpdateTime != Some(0);
             if updateFree || updateUsed {
                 if updateFree {
                     if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), free.clone()); }
@@ -594,10 +594,10 @@ impl BitrueCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "E", &[]);
         let mut marketId: Value = self.safe_string_upper(order.clone(), Value::Str("s".to_string()), &[]);
         let mut typeId: Value = self.safe_string_k(order.clone(), "o", &[]);
-        let mut sideId: Value = self.safe_integer_k(order.clone(), "S", &[]);
+        let mut sideId: Option<i64> = self.safe_integer_k(order.clone(), "S", &[]).as_i64();
         // 1: buy
         // 2: sell
-        let mut side: Value = (if is_true(&(sideId.as_f64() == Some(1.0))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if is_true(&(sideId == Some(1))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         let mut statusId: Value = self.safe_string_k(order.clone(), "X", &[]);
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "N", &[]);
         return self.safe_order(Value::Map({
@@ -731,8 +731,8 @@ impl BitrueCore {
         })]);
         let mut parseable: Value = tick.clone();
         if isFutures {
-            let mut rawAsks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::List(vec![])]);
-            let mut rawBuys: Value = self.safe_list_k(tick, "buys", &[Value::List(vec![])]);
+            let mut rawAsks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::from(vec![])]);
+            let mut rawBuys: Value = self.safe_list_k(tick, "buys", &[Value::from(vec![])]);
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asks".to_string(), self.parse_contract_bids_asks(rawAsks.clone(), symbol.clone()));
@@ -777,7 +777,7 @@ impl BitrueCore {
 }
 
     pub fn parse_contract_bids_asks(&self, mut bidsAsks: Value, mut symbol: Value) -> Value {
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_156: bool = true;
@@ -787,7 +787,7 @@ impl BitrueCore {
             let mut price: Value = self.safe_number(level.clone(), Value::Int(0), &[]);
             let mut rawAmount: Value = self.safe_number(level.clone(), Value::Int(1), &[]);
             let mut amount: Value = self.convert_from_raw_quantity(symbol.clone(), rawAmount.clone());
-            append_to_array(&mut result, Value::List(vec![price.clone(), amount.clone()]));
+            append_to_array(&mut result, Value::from(vec![price.clone(), amount.clone()]));
         }
         }
         return result;
@@ -895,7 +895,7 @@ impl BitrueCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_list_k(tick, "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(tick, "data", &[Value::from(vec![])]);
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
@@ -1075,7 +1075,7 @@ impl BitrueCore {
         let mut close: Value = self.safe_number_k(tick.clone(), "close", &[]);
         let mut rawVol: Value = self.safe_number_k(tick, "vol", &[]);
         let mut baseVolume: Value = self.convert_from_raw_quantity(symbol.clone(), rawVol.clone());
-        return Value::List(vec![timestamp.clone(), open.clone(), high.clone(), low.clone(), close.clone(), baseVolume.clone()]);
+        return Value::from(vec![timestamp.clone(), open.clone(), high.clone(), low.clone(), close.clone(), baseVolume.clone()]);
 
     Value::Null
 }
@@ -1252,13 +1252,13 @@ impl BitrueCore {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if (in_op(&message, &Value::Str("channel".to_string()))) {
             let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-            if get_index_of(&channel, &Value::Str("_depth_step".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            if Value::Int(channel.as_str().and_then(|__s| __s.find("_depth_step")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_trade_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("_trade_ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_trades(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_kline_".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("_kline_")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
+            }  else if Value::Int(channel.as_str().and_then(|__s| __s.find("_ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_ticker(client.clone(), message.clone());
             }
         }  else if (in_op(&message, &Value::Str("ping".to_string()))) {

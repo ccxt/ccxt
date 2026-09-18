@@ -321,8 +321,8 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".to_string()));
-                m.insert("params".to_string(), Value::List(vec![Value::Str("ticker@1s".to_string())]));
-                m.insert("assets".to_string(), Value::List(vec![assetId.clone()]));
+                m.insert("params".to_string(), Value::from(vec![Value::Str("ticker@1s".to_string())]));
+                m.insert("assets".to_string(), Value::from(vec![assetId.clone()]));
             m
         });
         let mut request: Value = self.extend(subscribe, &[params.clone()]);
@@ -341,8 +341,8 @@ impl MudrexCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut messageHashes: Value = Value::List(vec![]);
-        let mut assets: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
+        let mut assets: Value = Value::from(vec![]);
         if (symbols != Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -362,7 +362,7 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".to_string()));
-                m.insert("params".to_string(), Value::List(vec![Value::Str("ticker@1s".to_string())]));
+                m.insert("params".to_string(), Value::from(vec![Value::Str("ticker@1s".to_string())]));
                 m.insert("assets".to_string(), assets.clone());
             m
         });
@@ -394,14 +394,14 @@ impl MudrexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut priceType: Value = self.safe_string_k(params.clone(), "price", &[]);
+        let mut priceType: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
         params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (interval.as_str() != Some("1s")) && (interval.as_str() != Some("1m")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV() supports 1s and 1m timeframes only".to_string()))));
         }
         let mut prefix: Value = Value::Str("kline".to_string());
-        if (priceType.as_str() == Some("mark")) {
+        if (priceType.as_deref() == Some("mark")) {
             prefix = Value::Str("markKline".to_string());
         }
         let mut streamBaseId: Value = (if is_true(&(market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) != Value::Null)) { market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null) } else { Value::Str("".to_string()) });
@@ -414,7 +414,7 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".to_string()));
-                m.insert("params".to_string(), Value::List(vec![stream.clone()]));
+                m.insert("params".to_string(), Value::from(vec![stream.clone()]));
             m
         });
         let mut request: Value = self.extend(subscribe, &[params.clone()]);
@@ -438,9 +438,9 @@ impl MudrexCore {
         }
         let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
         if (stream != Value::Null) {
-            if get_index_of(&stream, &Value::Str("kline".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || get_index_of(&stream, &Value::Str("markKline".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            if Value::Int(stream.as_str().and_then(|__s| __s.find("kline")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || Value::Int(stream.as_str().and_then(|__s| __s.find("markKline")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if get_index_of(&stream, &Value::Str("ticker".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            }  else if Value::Int(stream.as_str().and_then(|__s| __s.find("ticker")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 self.handle_ticker(client.clone(), message.clone());
             }
         }
@@ -451,10 +451,10 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
+        let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut msg: Value = self.safe_string_k(error.clone(), "msg", &[]);
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg));
-        if (code.as_str() == Some("429")) {
+        if (code.as_deref() == Some("429")) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
@@ -478,7 +478,7 @@ impl MudrexCore {
         }
         let mut market: Value = self.safe_market(&[to_upper(&s)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut parsed: Value = Value::List(vec![self.safe_timestamp(data.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
+        let mut parsed: Value = Value::from(vec![self.safe_timestamp(data.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(data.clone(), "o", &[]), self.safe_number_k(data.clone(), "h", &[]), self.safe_number_k(data.clone(), "l", &[]), self.safe_number_k(data.clone(), "c", &[]), self.safe_number_k(data, "v", &[])]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -497,7 +497,7 @@ impl MudrexCore {
 }
 
     pub fn handle_ticker(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_506: bool = true;

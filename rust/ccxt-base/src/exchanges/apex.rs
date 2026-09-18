@@ -173,7 +173,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("apex".to_string()));
         m.insert("name".to_string(), Value::Str("Apex".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![]));
+        m.insert("countries".to_string(), Value::from(vec![]));
         m.insert("version".to_string(), Value::Str("v3".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(20));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -702,8 +702,8 @@ impl ApexCore {
         });
         let mut code: Value = Value::Str("USDT".to_string());
         let mut account: Value = self.account();
-        add_element_to_object(&mut account, &Value::Str("free".to_string()), self.safe_string_k(response.clone(), "availableBalance", &[]));
-        add_element_to_object(&mut account, &Value::Str("total".to_string()), self.safe_string_k(response.clone(), "totalEquityValue", &[]));
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string_k(response.clone(), "availableBalance", &[])); }
+        if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(response.clone(), "totalEquityValue", &[])); }
         add_element_to_object(&mut result, &code, account.clone());
         return self.safe_balance(result.clone());
 
@@ -891,9 +891,9 @@ impl ApexCore {
         //        }
         //     ]
         // }
-        let mut rows: Value = self.safe_list_k(spotConfig, "assets", &[Value::List(vec![])]);
-        let mut chains: Value = self.safe_list_k(multiChain, "chains", &[Value::List(vec![])]);
-        add_element_to_object(&mut self.options, &Value::Str("_temp_currencies_chains".to_string()), chains.clone());
+        let mut rows: Value = self.safe_list_k(spotConfig, "assets", &[Value::from(vec![])]);
+        let mut chains: Value = self.safe_list_k(multiChain, "chains", &[Value::from(vec![])]);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("_temp_currencies_chains".to_string(), chains.clone()); }
         let mut result: Value = self.parse_currencies(rows.clone());
         remove(&mut self.options, &Value::Str("_temp_currencies_chains".to_string()));
         return result;
@@ -916,7 +916,7 @@ impl ApexCore {
             while { if !__for_first_218 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_218 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&chains).as_f64().unwrap_or(f64::NAN) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
-            let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::List(vec![])]);
+            let mut tokens: Value = self.safe_list_k(chain.clone(), "tokens", &[Value::from(vec![])]);
             {
                                 let mut f: Value = Value::Int(0);
                 let mut __for_first_217: bool = true;
@@ -1029,7 +1029,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut perpetualContract: Value = self.safe_list_k(contractConfig, "perpetualContract", &[Value::List(vec![])]);
+        let mut perpetualContract: Value = self.safe_list_k(contractConfig, "perpetualContract", &[Value::from(vec![])]);
         return self.parse_markets(perpetualContract.clone());
 
     Value::Null
@@ -1072,8 +1072,8 @@ impl ApexCore {
         m.insert("taker".to_string(), takerFee.clone());
         m.insert("maker".to_string(), makerFee.clone());
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "minOrderSize", &[]));
-        m.insert("expiry".to_string(), (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Null } else { expiry.clone() }));
-        m.insert("expiryDatetime".to_string(), (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Null } else { self.iso8601(expiry.clone()) }));
+        m.insert("expiry".to_string(), (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Null } else { expiry.clone() }));
+        m.insert("expiryDatetime".to_string(), (if is_true(&(expiry.as_f64() == Some(0.0))) { Value::Null } else { self.iso8601(expiry.clone()) }));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
@@ -1203,7 +1203,7 @@ impl ApexCore {
         });
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_0]).await;
-        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1232,7 +1232,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.public_get_v3_data_all_ticker_info(&[params.clone()]).await;
-        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1283,7 +1283,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut OHLCVs: Value = self.safe_list(data.clone(), self.safe_string_k(market.clone(), "id2", &[]), &[Value::List(vec![])]);
+        let mut OHLCVs: Value = self.safe_list(data.clone(), self.safe_string_k(market.clone(), "id2", &[]), &[Value::from(vec![])]);
         return self.parse_ohlc_vs(OHLCVs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1291,7 +1291,7 @@ impl ApexCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("t".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("open".to_string()), Value::Str("o".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("high".to_string()), Value::Str("h".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("low".to_string()), Value::Str("l".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("close".to_string()), Value::Str("c".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("volume".to_string()), Value::Str("v".to_string()), &[])]);
+        return Value::from(vec![self.safe_integer2(ohlcv.clone(), Value::Str("start".to_string()), Value::Str("t".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("open".to_string()), Value::Str("o".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("high".to_string()), Value::Str("h".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("low".to_string()), Value::Str("l".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("close".to_string()), Value::Str("c".to_string()), &[]), self.safe_number2(ohlcv.clone(), Value::Str("volume".to_string()), Value::Str("v".to_string()), &[])]);
 
     Value::Null
 }
@@ -1324,7 +1324,7 @@ impl ApexCore {
         if (limit == Value::Null) {
             limit = Value::Int(100); // default is 200 when requested with `since`
         }
-        add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 100, default 100
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // max 100, default 100
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_depth(&[__ws_arg_2]).await;
         //
@@ -1397,7 +1397,7 @@ impl ApexCore {
         if (limit == Value::Null) {
             limit = Value::Int(500); // default is 50
         }
-        add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_trades(&[__ws_arg_3]).await;
         //
@@ -1420,7 +1420,7 @@ impl ApexCore {
         //  }
         //  ]
         //
-        let mut trades: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1443,7 +1443,7 @@ impl ApexCore {
         let mut marketId: Value = self.safe_string2(trade.clone(), Value::Str("s".to_string()), Value::Str("symbol".to_string()), &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut id: Value = self.safe_string2(trade.clone(), Value::Str("i".to_string()), Value::Str("id".to_string()), &[]);
-        let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::List(vec![Value::Str("t".to_string()), Value::Str("T".to_string()), Value::Str("createdAt".to_string())]), &[]);
+        let mut timestamp: Value = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("t".to_string()), Value::Str("T".to_string()), Value::Str("createdAt".to_string())]), &[]);
         let mut priceString: Value = self.safe_string2(trade.clone(), Value::Str("p".to_string()), Value::Str("price".to_string()), &[]);
         let mut amountString: Value = self.safe_string2(trade.clone(), Value::Str("v".to_string()), Value::Str("size".to_string()), &[]);
         let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("S".to_string()), Value::Str("side".to_string()), &[]);
@@ -1495,7 +1495,7 @@ impl ApexCore {
         });
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_4]).await;
-        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1575,20 +1575,20 @@ impl ApexCore {
             m
         });
         let mut market: Value = self.market(symbol.clone());
-        add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut page: Value = self.safe_integer_k(params.clone(), "page", &[]);
         if (page != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("page".to_string()), page.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("page".to_string(), page.clone()); }
         }
-        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_history_funding(&[__ws_arg_5]).await;
@@ -1606,12 +1606,12 @@ impl ApexCore {
         //     "totalSize": 11
         // }
         //
-        let mut rates: Value = Value::List(vec![]);
+        let mut rates: Value = Value::from(vec![]);
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut resultList: Value = self.safe_list_k(data, "historyFunds", &[Value::List(vec![])]);
+        let mut resultList: Value = self.safe_list_k(data, "historyFunds", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_219: bool = true;
@@ -1802,17 +1802,17 @@ impl ApexCore {
         if (market == Value::Null) && (marketId != Value::Null) {
             let mut marketsMap: Value = self.markets.clone();
             let mut marketsById: Value = self.markets_by_id.clone();
-            if is_true(&(Value::Bool(marketsMap != Value::Null))) && is_true(&(Value::Bool(in_op(&marketsMap, &marketId)))) {
+            if is_true(&(marketsMap != Value::Null)) && (in_op(&marketsMap, &marketId)) {
                 market = get_value(&marketsMap, &marketId);
-            }  else if is_true(&(Value::Bool(marketsById != Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &marketId)))) {
+            }  else if is_true(&(marketsById != Value::Null)) && (in_op(&marketsById, &marketId)) {
                 market = get_value(&marketsById, &marketId);
             }  else {
                 let mut newMarketId: Value = self.add_hyphen_before_usdt(marketId.clone());
-                if is_true(&(Value::Bool(marketsById != Value::Null))) && is_true(&(Value::Bool(in_op(&marketsById, &newMarketId)))) {
+                if is_true(&(marketsById != Value::Null)) && (in_op(&marketsById, &newMarketId)) {
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut markets: Value = get_value(&marketsById, &newMarketId);
                     let mut numMarkets: Value = get_array_length(&markets);
-                    if numMarkets.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    if numMarkets.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                         if is_equal(&crate::value::get_value_k(&get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0)), "id2"), &marketId) {
                             market = get_value(&get_value(&marketsById, &newMarketId), &Value::Int(0));
                         }
@@ -1826,7 +1826,7 @@ impl ApexCore {
 }
 
     pub fn generate_random_client_id_omni(&self, mut _accountId: Value) -> Value {
-        let mut hasAccountId: bool = is_true(&(Value::Bool(_accountId != Value::Null))) && is_true(&(Value::Bool(_accountId.as_str() != Some(""))));
+        let mut hasAccountId: bool = is_true(&(_accountId != Value::Null)) && is_true(&(_accountId.as_str() != Some("")));
         let mut accountId: Value = (if hasAccountId { _accountId.clone() } else { to_string_val(&self.rand_number(Value::Int(12))) });
         return Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("apexomni-".to_string()), accountId)), Value::Str("-".to_string()))), to_string_val(&self.milliseconds()))), Value::Str("-".to_string()))), to_string_val(&self.rand_number(Value::Int(6)))));
 
@@ -1836,8 +1836,8 @@ impl ApexCore {
     pub fn add_hyphen_before_usdt(&self, mut symbol: Value) -> Value {
         let mut uppercaseSymbol: Value = to_upper(&symbol);
         let mut index: Value = Value::Int(uppercaseSymbol.as_str().and_then(|__s| __s.find("USDT")).map(|__i| __i as i64).unwrap_or(-1));
-        let mut symbolChar: Value = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-        if index.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) && (symbolChar.as_str() != Some("-")) {
+        let mut symbolChar: Option<String> = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]).as_str().map(str::to_owned);
+        if index.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) && (symbolChar.as_deref() != Some("-")) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&symbol, &Value::Int(0), &index), Value::Str("-".to_string()))), slice(&symbol, &index, &Value::Null)));
         }
         return symbol;
@@ -1856,10 +1856,10 @@ impl ApexCore {
 }
 
     pub async fn get_account_id(&mut self) -> Value {
-        let mut accountId: Value = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".to_string())]);
-        if (accountId.as_str() == Some("0")) {
+        let mut accountId: Option<String> = self.safe_string_k(self.options.clone(), "accountId", &[Value::Str("0".to_string())]).as_str().map(str::to_owned);
+        if (accountId.as_deref() == Some("0")) {
             let mut accountData: Value = self.fetch_account(&[]).await;
-            { let __be_tmp = self.safe_string_k(accountData.clone(), "id", &[Value::Str("0".to_string())]); add_element_to_object(&mut self.options, &Value::Str("accountId".to_string()), __be_tmp); };
+            { let __be_tmp = self.safe_string_k(accountData.clone(), "id", &[Value::Str("0".to_string())]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("accountId".to_string(), __be_tmp); } }
         }
         return self.options.as_map().and_then(|__m| __m.get("accountId")).cloned().unwrap_or(Value::Null);
 
@@ -1918,14 +1918,14 @@ impl ApexCore {
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         if (stopLossPrice != Value::Null) {
-            orderType = (if is_true(&(Value::Bool(orderType.as_str() == Some("MARKET")))) { Value::Str("STOP_MARKET".to_string()) } else { Value::Str("STOP_LIMIT".to_string()) });
+            orderType = (if is_true(&(orderType.as_str() == Some("MARKET"))) { Value::Str("STOP_MARKET".to_string()) } else { Value::Str("STOP_LIMIT".to_string()) });
             triggerPrice = stopLossPrice.clone();
         }  else if (takeProfitPrice != Value::Null) {
-            orderType = (if is_true(&(Value::Bool(orderType.as_str() == Some("MARKET")))) { Value::Str("TAKE_PROFIT_MARKET".to_string()) } else { Value::Str("TAKE_PROFIT_LIMIT".to_string()) });
+            orderType = (if is_true(&(orderType.as_str() == Some("MARKET"))) { Value::Str("TAKE_PROFIT_MARKET".to_string()) } else { Value::Str("TAKE_PROFIT_LIMIT".to_string()) });
             triggerPrice = takeProfitPrice.clone();
         }
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        if is_true(&isMarket) && is_true(&(Value::Bool(price == Value::Null))) {
+        if is_true(&isMarket) && is_true(&(price == Value::Null)) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market orders".to_string()))));
         }
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
@@ -1942,13 +1942,13 @@ impl ApexCore {
         }
         params = self.omit(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         params = self.omit(params.clone(), Value::Str("postOnly".to_string()), &[]);
-        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut accountId: Value = self.get_account_id().await;
         if (clientOrderId == Value::Null) {
             clientOrderId = self.generate_random_client_id_omni(accountId.clone());
         }
         let mut finalClientOrderId: Value = clientOrderId.clone(); // java req
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string())]), &[]);
         let mut finalOrderPrice: Value = orderPrice.clone(); // java req
         let mut orderToSign: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1982,9 +1982,9 @@ impl ApexCore {
             m
         });
         if (triggerPrice != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("triggerPrice".to_string(), self.price_to_precision(symbol.clone(), triggerPrice.clone())); }
         }
-        add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
+        if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("signature".to_string(), signature.clone()); }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v3_order(&[__ws_arg_6]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -2025,12 +2025,12 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut contractAssets: Value = self.safe_list_k(contractConfig, "assets", &[Value::List(vec![])]);
+        let mut contractAssets: Value = self.safe_list_k(contractConfig, "assets", &[Value::from(vec![])]);
         let mut spotConfig: Value = self.safe_dict_k(configData, "spotConfig", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotAssets: Value = self.safe_list_k(spotConfig.clone(), "assets", &[Value::List(vec![])]);
+        let mut spotAssets: Value = self.safe_list_k(spotConfig.clone(), "assets", &[Value::from(vec![])]);
         let mut globalConfig: Value = self.safe_dict_k(spotConfig, "global", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2050,7 +2050,7 @@ impl ApexCore {
 })]);
         let mut zkAccountId: Value = self.safe_string_k(spotAccount.clone(), "zkAccountId", &[Value::Str("".to_string())]);
         let mut subAccountId: Value = self.safe_string_k(spotAccount.clone(), "defaultSubAccountId", &[Value::Str("0".to_string())]);
-        let mut subAccounts: Value = self.safe_list_k(spotAccount, "subAccounts", &[Value::List(vec![])]);
+        let mut subAccounts: Value = self.safe_list_k(spotAccount, "subAccounts", &[Value::from(vec![])]);
         let mut nonce: Value = Value::Str("0".to_string());
         if ((subAccounts.len() as i64) as f64) > ((0i64) as f64) {
             nonce = self.safe_string(subAccounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("nonce".to_string()), &[Value::Str("0".to_string())]);
@@ -2062,7 +2062,7 @@ impl ApexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut assets: Value = Value::List(vec![]);
+        let mut assets: Value = Value::from(vec![]);
         if (fromAccount != Value::Null) && (to_lower(&fromAccount).as_str() == Some("contract")) {
             assets = contractAssets.clone();
         }  else {
@@ -2079,16 +2079,16 @@ impl ApexCore {
         }
         let mut tokenId: Value = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".to_string())]);
         let mut decimalsNum: Value = self.safe_number_k(currency.clone(), "decimals", &[Value::Int(0)]);
-        let mut decimalsNumber: Value = (if is_true(&(Value::Bool(decimalsNum == Value::Null))) { Value::Int(0) } else { decimalsNum.clone() });
+        let mut decimalsNumber: Value = (if is_true(&(decimalsNum == Value::Null)) { Value::Int(0) } else { decimalsNum.clone() });
         let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
         let mut amountNumber: Value = self.parse_to_int((match (&(amount), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         let mut timestampSeconds: Value = self.parse_to_int((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         if (clientOrderId == Value::Null) {
             clientOrderId = self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[]));
         }
         let mut finalClientOrderId: Value = clientOrderId.clone(); // java req
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         if (fromAccount != Value::Null) && (to_lower(&fromAccount).as_str() == Some("contract")) {
             let mut formattedUint32: Value = Value::Str("4294967295".to_string());
             let mut zkSignAccountId: Value = crate::precise::Precise::stringMod(&accountId, &formattedUint32);
@@ -2244,7 +2244,7 @@ impl ApexCore {
         });
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v3_delete_open_orders(&[__ws_arg_14]).await;
@@ -2252,7 +2252,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return Value::List(vec![self.parse_order(data.clone(), &[market.clone()])]);
+        return Value::from(vec![self.parse_order(data.clone(), &[market.clone()])]);
 
     Value::Null
 }
@@ -2277,15 +2277,15 @@ impl ApexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("id".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), clientOrderId.clone()); }
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await;
         }  else {
-            add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), id.clone()); }
             let __ws_arg_16 = self.extend(request, &[params.clone()]);
             response = self.private_post_v3_delete_order(&[__ws_arg_16]).await;
         }
@@ -2323,15 +2323,15 @@ impl ApexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+        let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("id".to_string()), clientOrderId.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), clientOrderId.clone()); }
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("clientId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await;
         }  else {
-            add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("id".to_string(), id.clone()); }
             let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.private_get_v3_order(&[__ws_arg_18]).await;
         }
@@ -2367,7 +2367,7 @@ impl ApexCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.private_get_v3_open_orders(&[params.clone()]).await;
-        let mut orders: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -2408,18 +2408,18 @@ impl ApexCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
         let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_history_orders(&[__ws_arg_19]).await;
@@ -2427,7 +2427,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2462,18 +2462,18 @@ impl ApexCore {
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string()), &[]);
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("clientOrderId".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("clientOrderId".to_string(), clientOrderId.clone()); }
         }  else {
-            add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string())]), &[]);
         let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_order_fills(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
         return self.parse_trades(orders.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
     Value::Null
@@ -2512,18 +2512,18 @@ impl ApexCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
         let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_fills(&[__ws_arg_21]).await;
@@ -2531,7 +2531,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
         return self.parse_trades(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2569,18 +2569,18 @@ impl ApexCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol.clone());
-            add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (since != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("beginTimeInclusive".to_string()), since.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("beginTimeInclusive".to_string(), since.clone()); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
-        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+        let mut endTimeExclusive: Value = self.safe_integer_n(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         if (endTimeExclusive != Value::Null) {
-            params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
-            add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
+            params = self.omit(params.clone(), Value::from(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("endTimeExclusive".to_string(), endTimeExclusive.clone()); }
         }
         let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_funding(&[__ws_arg_22]).await;
@@ -2588,7 +2588,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fundingValues: Value = self.safe_list_k(data, "fundingValues", &[Value::List(vec![])]);
+        let mut fundingValues: Value = self.safe_list_k(data, "fundingValues", &[Value::from(vec![])]);
         return self.parse_incomes(fundingValues.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2695,7 +2695,7 @@ impl ApexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positions: Value = self.safe_list_k(data, "positions", &[Value::List(vec![])]);
+        let mut positions: Value = self.safe_list_k(data, "positions", &[Value::from(vec![])]);
         return self.parse_positions(positions.clone(), &[symbols.clone()]);
 
     Value::Null

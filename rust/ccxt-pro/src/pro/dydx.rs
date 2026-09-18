@@ -370,7 +370,7 @@ impl DydxCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut content: Value = self.safe_dict_k(message, "contents", &[]);
-        let mut rawTrades: Value = self.safe_list_k(content, "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(content, "trades", &[Value::from(vec![])]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -528,8 +528,8 @@ impl DydxCore {
             orderbook = self.order_book(&[]);
         }
         add_element_to_object(&mut orderbook, &Value::Str("symbol".to_string()), symbol.clone());
-        let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(content, "bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(content.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(content, "bids", &[Value::from(vec![])]);
         self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
         self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(message.clone(), "message_id", &[]));
@@ -539,7 +539,7 @@ impl DydxCore {
 }
 
     pub fn handle_delta(&self, mut bookside: Value, mut delta: Value) {
-        if (is_array(&delta)) {
+        if is_true(&(matches!(&delta, Value::Arr(_)))) {
             let mut price: Value = self.safe_float(delta.clone(), Value::Int(0), &[]);
             let mut amount: Value = self.safe_float(delta.clone(), Value::Int(1), &[]);
             bookside.store(price.clone(), amount.clone());
@@ -711,7 +711,7 @@ impl DydxCore {
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let mut msg: Value = self.safe_string_k(message.clone(), "message", &[]);
-            panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg)));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.reject(&[e.clone()]);

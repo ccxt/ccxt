@@ -816,17 +816,17 @@ impl UpbitCore {
             m
         })]);
         let mut canWithdraw: Value = self.safe_value_k(withdrawLimits.clone(), "can_withdraw", &[]);
-        let mut walletState: Value = self.safe_string_k(currencyInfo.clone(), "wallet_state", &[]);
+        let mut walletState: Option<String> = self.safe_string_k(currencyInfo.clone(), "wallet_state", &[]).as_str().map(str::to_owned);
         let mut walletLocked: Value = self.safe_value_k(memberInfo.clone(), "wallet_locked", &[]);
-        let mut locked: Value = self.safe_value_k(memberInfo.clone(), "locked", &[]);
+        let mut locked: Value = self.safe_value_k(memberInfo, "locked", &[]);
         let mut active: Value = Value::Bool(true);
-        if is_true(&(Value::Bool(canWithdraw != Value::Null))) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
+        if is_true(&(canWithdraw != Value::Null)) && (!is_equal(&canWithdraw, &Value::Bool(true))) {
             active = Value::Bool(false);
-        }  else if (walletState.as_str() != Some("working")) {
+        }  else if (walletState.as_deref() != Some("working")) {
             active = Value::Bool(false);
-        }  else if is_true(&(Value::Bool(walletLocked != Value::Null))) && (is_equal(&walletLocked, &Value::Bool(true))) {
+        }  else if is_true(&(walletLocked != Value::Null)) && (is_equal(&walletLocked, &Value::Bool(true))) {
             active = Value::Bool(false);
-        }  else if is_true(&(Value::Bool(locked != Value::Null))) && (is_equal(&locked, &Value::Bool(true))) {
+        }  else if is_true(&(locked != Value::Null)) && (is_equal(&locked, &Value::Bool(true))) {
             active = Value::Bool(false);
         }
         let mut maxOnetimeWithdrawal: Value = self.safe_string_k(withdrawLimits.clone(), "onetime", &[]);
@@ -847,13 +847,13 @@ impl UpbitCore {
         m.insert("code".to_string(), code.clone());
         m.insert("name".to_string(), code.clone());
         m.insert("active".to_string(), active.clone());
-        m.insert("fee".to_string(), self.safe_number_k(currencyInfo.clone(), "withdraw_fee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(currencyInfo, "withdraw_fee", &[]));
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(withdrawLimits.clone(), "minimum", &[]));
+        m.insert("min".to_string(), self.safe_number_k(withdrawLimits, "minimum", &[]));
         m.insert("max".to_string(), self.parse_number(maxWithdrawLimit, &[]));
     m
 }));
@@ -935,7 +935,7 @@ impl UpbitCore {
         let mut quoteId: Value = self.safe_string_k(bid.clone(), "currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut state: Value = self.safe_string_k(marketInfo.clone(), "state", &[]);
+        let mut state: Option<String> = self.safe_string_k(marketInfo.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut bidFee: Value = self.safe_string_k(response.clone(), "bid_fee", &[]);
         let mut askFee: Value = self.safe_string_k(response.clone(), "ask_fee", &[]);
         let mut fee: Value = self.parse_number(crate::precise::Precise::stringMax(&bidFee, &askFee), &[]);
@@ -955,7 +955,7 @@ impl UpbitCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(state.as_str() == Some("active"))));
+        m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("active"))));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -982,7 +982,7 @@ impl UpbitCore {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(ask.clone(), "min_total", &[]));
+        m.insert("min".to_string(), self.safe_number_k(ask, "min_total", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -994,8 +994,8 @@ impl UpbitCore {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(bid.clone(), "min_total", &[]));
-        m.insert("max".to_string(), self.safe_number_k(marketInfo.clone(), "max_total", &[]));
+        m.insert("min".to_string(), self.safe_number_k(bid, "min_total", &[]));
+        m.insert("max".to_string(), self.safe_number_k(marketInfo, "max_total", &[]));
     m
 }));
         m.insert("info".to_string(), response.clone());
@@ -1195,7 +1195,7 @@ impl UpbitCore {
             m
         });
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("count".to_string(), limit.clone()); }
         }
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_orderbook(&[__ws_arg_2]).await;
@@ -1723,7 +1723,7 @@ impl UpbitCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv.clone(), "candle_acc_trade_volume", &[])]);
+        return Value::from(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "candle_date_time_utc", &[])), self.safe_number_k(ohlcv.clone(), "opening_price", &[]), self.safe_number_k(ohlcv.clone(), "high_price", &[]), self.safe_number_k(ohlcv.clone(), "low_price", &[]), self.safe_number_k(ohlcv.clone(), "trade_price", &[]), self.safe_number_k(ohlcv, "candle_acc_trade_volume", &[])]);
 
     Value::Null
 }
@@ -1768,11 +1768,11 @@ impl UpbitCore {
         let mut response: Value = Value::Null;
         if (since != Value::Null) {
             // convert `since` to `to` value
-            add_element_to_object(&mut request, &Value::Str("to".to_string()), self.iso8601(self.sum(&[since.clone(), (match (&((match (&(timeframePeriod), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("to".to_string(), self.iso8601(self.sum(&[since.clone(), (match (&((match (&(timeframePeriod), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]))); }
         }
         if (timeframeValue.as_str() == Some("minutes")) {
             let mut numMinutes: Value = math_round(&(match ((timeframePeriod).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            add_element_to_object(&mut request, &Value::Str("unit".to_string()), numMinutes.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("unit".to_string(), numMinutes.clone()); }
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_candles_timeframe_unit(&[__ws_arg_7]).await;
         }  else {
@@ -1880,12 +1880,12 @@ impl UpbitCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        let mut customType: Value = self.safe_string2(params.clone(), Value::Str("ordType".to_string()), Value::Str("ord_type".to_string()), &[]);
+        let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("ordType".to_string()), Value::Str("ord_type".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), &[]);
-        let mut selfTradePrevention: Value = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), &[]);
+        let mut selfTradePrevention: Option<String> = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), &[]).as_str().map(str::to_owned);
         let mut test: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
-        if is_true(&postOnly) && is_true(&(Value::Bool(selfTradePrevention != Value::Null))) {
+        if is_true(&postOnly) && is_true(&(selfTradePrevention.is_some())) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post_only and selfTradePrevention simultaneously.".to_string()))));
         }
         let mut orderSide: Value = Value::Null;
@@ -1906,52 +1906,52 @@ impl UpbitCore {
             if (price == Value::Null) || (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the limit type order in createOrder() is required price and amount.".to_string()))));
             }
-            add_element_to_object(&mut request, &Value::Str("ord_type".to_string()), Value::Str("limit".to_string()));
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-            add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ord_type".to_string(), Value::Str("limit".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
-                add_element_to_object(&mut request, &Value::Str("ord_type".to_string()), Value::Str("price".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ord_type".to_string(), Value::Str("price".to_string())); }
                 let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
-                add_element_to_object(&mut request, &Value::Str("price".to_string()), orderPrice.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), orderPrice.clone()); }
             }  else {
                 if (amount == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the market sell type order in createOrder() is required amount.".to_string()))));
                 }
-                add_element_to_object(&mut request, &Value::Str("ord_type".to_string()), Value::Str("market".to_string()));
-                add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ord_type".to_string(), Value::Str("market".to_string())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only limit or market types in the type argument.".to_string()))));
         }
-        if (customType.as_str() == Some("best")) {
+        if (customType.as_deref() == Some("best")) {
             params = self.omit(params.clone(), Value::from(vec![Value::Str("ordType".to_string()), Value::Str("ord_type".to_string())]), &[]);
-            add_element_to_object(&mut request, &Value::Str("ord_type".to_string()), Value::Str("best".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("ord_type".to_string(), Value::Str("best".to_string())); }
             if (side.as_str() == Some("buy")) {
                 let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
-                add_element_to_object(&mut request, &Value::Str("price".to_string()), orderPrice.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("price".to_string(), orderPrice.clone()); }
             }  else {
                 if (amount == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" the best sell type order in createOrder() is required amount.".to_string()))));
                 }
-                add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("identifier".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("identifier".to_string(), clientOrderId.clone()); }
         }
         if is_true(&postOnly) {
-            if (request.as_map().and_then(|__m| __m.get("ord_type")).cloned().unwrap_or(Value::Null).as_str() != Some("limit")) {
+            if (match &request { Value::Dict(__m15) => __m15.get("ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders are only supported for limit orders".to_string()))));
             }
-            add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), Value::Str("post_only".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time_in_force".to_string(), Value::Str("post_only".to_string())); }
         }
         if (timeInForce != Value::Null) {
             if (timeInForce.as_str() == Some("ioc")) || (timeInForce.as_str() == Some("fok")) {
-                add_element_to_object(&mut request, &Value::Str("time_in_force".to_string()), timeInForce.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("time_in_force".to_string(), timeInForce.clone()); }
             }
         }
-        if (request.as_map().and_then(|__m| __m.get("ord_type")).cloned().unwrap_or(Value::Null).as_str() == Some("best")) && (timeInForce == Value::Null) {
+        if (match &request { Value::Dict(__m15) => __m15.get("ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("best")) && (timeInForce == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a timeInForce parameter for best type orders".to_string()))));
         }
         let mut response: Value = Value::Null;
@@ -2036,19 +2036,19 @@ impl UpbitCore {
             m
         });
         let mut prevClientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        let mut customType: Value = self.safe_string2(params.clone(), Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string()), &[]);
+        let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string()), &[]).as_str().map(str::to_owned);
         let mut clientOrderId: Value = self.safe_string_k(params.clone(), "newClientOrderId", &[]);
         let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Value = self.safe_string_lower2(params.clone(), Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), &[]);
         let mut selfTradePrevention: Value = self.safe_string2(params.clone(), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string()), &[]);
-        if is_true(&postOnly) && is_true(&(Value::Bool(selfTradePrevention != Value::Null))) {
+        if is_true(&postOnly) && is_true(&(selfTradePrevention != Value::Null)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" editOrder() does not support post_only and selfTradePrevention simultaneously.".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
         if (id != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("prev_order_uuid".to_string()), id.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("prev_order_uuid".to_string(), id.clone()); }
         }  else if (prevClientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("prev_order_identifier".to_string()), prevClientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("prev_order_identifier".to_string(), prevClientOrderId.clone()); }
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required id or clientOrderId.".to_string()))));
         }
@@ -2056,55 +2056,55 @@ impl UpbitCore {
             if (price == Value::Null) || (amount == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required price and amount to create limit type order.".to_string()))));
             }
-            add_element_to_object(&mut request, &Value::Str("new_ord_type".to_string()), Value::Str("limit".to_string()));
-            add_element_to_object(&mut request, &Value::Str("new_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
-            add_element_to_object(&mut request, &Value::Str("new_volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_ord_type".to_string(), Value::Str("limit".to_string())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_price".to_string(), self.price_to_precision(symbol.clone(), price.clone())); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
-                add_element_to_object(&mut request, &Value::Str("new_ord_type".to_string()), Value::Str("price".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_ord_type".to_string(), Value::Str("price".to_string())); }
                 let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
-                add_element_to_object(&mut request, &Value::Str("new_price".to_string()), orderPrice.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_price".to_string(), orderPrice.clone()); }
             }  else {
                 if (amount == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required amount to create market sell type order.".to_string()))));
                 }
-                add_element_to_object(&mut request, &Value::Str("new_ord_type".to_string()), Value::Str("market".to_string()));
-                add_element_to_object(&mut request, &Value::Str("new_volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_ord_type".to_string(), Value::Str("market".to_string())); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" editOrder() supports only limit or market types in the type argument.".to_string()))));
         }
-        if (customType.as_str() == Some("best")) {
+        if (customType.as_deref() == Some("best")) {
             params = self.omit(params.clone(), Value::from(vec![Value::Str("newOrdType".to_string()), Value::Str("new_ord_type".to_string())]), &[]);
-            add_element_to_object(&mut request, &Value::Str("new_ord_type".to_string()), Value::Str("best".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_ord_type".to_string(), Value::Str("best".to_string())); }
             if (side.as_str() == Some("buy")) {
                 let mut orderPrice: Value = self.calc_order_price(symbol.clone(), amount.clone(), &[price.clone(), params.clone()]);
-                add_element_to_object(&mut request, &Value::Str("new_price".to_string()), orderPrice.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_price".to_string(), orderPrice.clone()); }
             }  else {
                 if (amount == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() is required amount to create best sell order.".to_string()))));
                 }
-                add_element_to_object(&mut request, &Value::Str("new_volume".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_volume".to_string(), self.amount_to_precision(symbol.clone(), amount.clone())); }
             }
         }
         if (clientOrderId != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("new_identifier".to_string()), clientOrderId.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_identifier".to_string(), clientOrderId.clone()); }
         }
         if (selfTradePrevention != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("new_smp_type".to_string()), selfTradePrevention.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_smp_type".to_string(), selfTradePrevention.clone()); }
         }
         if is_true(&postOnly) {
-            if (request.as_map().and_then(|__m| __m.get("new_ord_type")).cloned().unwrap_or(Value::Null).as_str() != Some("limit")) {
+            if (match &request { Value::Dict(__m15) => __m15.get("new_ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() != Some("limit")) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" postOnly orders are only supported for limit orders".to_string()))));
             }
-            add_element_to_object(&mut request, &Value::Str("new_time_in_force".to_string()), Value::Str("post_only".to_string()));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_time_in_force".to_string(), Value::Str("post_only".to_string())); }
         }
         if (timeInForce != Value::Null) {
             if (timeInForce.as_str() == Some("ioc")) || (timeInForce.as_str() == Some("fok")) {
-                add_element_to_object(&mut request, &Value::Str("new_time_in_force".to_string()), timeInForce.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("new_time_in_force".to_string(), timeInForce.clone()); }
             }
         }
-        if (request.as_map().and_then(|__m| __m.get("new_ord_type")).cloned().unwrap_or(Value::Null).as_str() == Some("best")) && (timeInForce == Value::Null) {
+        if (match &request { Value::Dict(__m15) => __m15.get("new_ord_type").cloned().unwrap_or(Value::Null), _ => Value::Null }.as_str() == Some("best")) && (timeInForce == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a timeInForce parameter for best type orders".to_string()))));
         }
         params = self.omit(params.clone(), Value::from(vec![Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string())]), &[]);
@@ -2174,10 +2174,10 @@ impl UpbitCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default is 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default is 100
         }
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deposits(&[__ws_arg_13]).await;
@@ -2215,7 +2215,7 @@ impl UpbitCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deposit(&[__ws_arg_14]).await;
@@ -2254,10 +2254,10 @@ impl UpbitCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default is 100
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); } // default is 100
         }
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdraws(&[__ws_arg_15]).await;
@@ -2295,7 +2295,7 @@ impl UpbitCore {
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdraw(&[__ws_arg_16]).await;
@@ -2388,7 +2388,7 @@ impl UpbitCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.safe_number_k(transaction.clone(), "fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(transaction, "fee", &[]));
     m
 }));
     m
@@ -2618,10 +2618,10 @@ impl UpbitCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
-            add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
         }
         if (limit != Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_orders_open(&[__ws_arg_17]).await;
@@ -2891,8 +2891,8 @@ impl UpbitCore {
         //         "secondary_address": null
         //     }
         //
-        let mut message: Value = self.safe_string_k(response.clone(), "message", &[]);
-        if (message != Value::Null) {
+        let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
+        if (message.is_some()) {
             panic!("{}", crate::exchange_errors::address_pending(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" is generating ".to_string()))), code)), Value::Str(" deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address".to_string()))));
         }
         return self.parse_deposit_address(response.clone(), &[]);
@@ -2938,11 +2938,11 @@ impl UpbitCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network argument".to_string()))));
             }
             params = self.omit(params.clone(), Value::from(vec![Value::Str("network".to_string())]), &[]);
-            add_element_to_object(&mut request, &Value::Str("net_type".to_string()), network.clone());
-            add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            add_element_to_object(&mut request, &Value::Str("address".to_string()), address.clone());
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("net_type".to_string(), network.clone()); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+            if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("address".to_string(), address.clone()); }
             if (tag != Value::Null) {
-                add_element_to_object(&mut request, &Value::Str("secondary_address".to_string()), tag.clone());
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("secondary_address".to_string(), tag.clone()); }
             }
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
             let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
@@ -2998,17 +2998,17 @@ impl UpbitCore {
             });
             let mut hasQuery: Value = Value::Int(object_keys(&query).len() as i64);
             let mut auth: Value = Value::Null;
-            if is_true(&(Value::Bool(method.as_str() != Some("GET")))) && is_true(&(Value::Bool(method.as_str() != Some("DELETE")))) {
+            if is_true(&(method.as_str() != Some("GET"))) && is_true(&(method.as_str() != Some("DELETE"))) {
                 body = json_stringify(&params);
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
-            if is_true(&(Value::Bool(hasQuery != Value::Null))) && is_true(&(Value::Bool(hasQuery.as_f64() != Some(0.0)))) {
+            if is_true(&(hasQuery != Value::Null)) && is_true(&(hasQuery.as_f64() != Some(0.0))) {
                 auth = self.rawencode(query.clone(), &[]);
             }
             if (auth != Value::Null) {
                 let mut hash: Value = self.hash(self.encode(auth.clone()), Value::Str("sha512".to_string()), &[]);
-                add_element_to_object(&mut request, &Value::Str("query_hash".to_string()), hash.clone());
-                add_element_to_object(&mut request, &Value::Str("query_hash_alg".to_string()), Value::Str("SHA512".to_string()));
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("query_hash".to_string(), hash.clone()); }
+                if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("query_hash_alg".to_string(), Value::Str("SHA512".to_string())); }
             }
             let mut token: Value = jwt(request.clone(), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), Value::Bool(false), Value::Null);
             add_element_to_object(&mut headers, &Value::Str("Authorization".to_string()), Value::Str(format!("{}{}", Value::Str("Bearer ".to_string()), token)));
@@ -3040,7 +3040,7 @@ impl UpbitCore {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
+        let mut error: Value = self.safe_value_k(response, "error", &[]);
         if (error != Value::Null) {
             let mut message: Value = self.safe_string_k(error.clone(), "message", &[]);
             let mut name: Value = self.safe_string_k(error.clone(), "name", &[]);

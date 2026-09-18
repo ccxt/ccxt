@@ -391,7 +391,7 @@ impl HitbtcCore {
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.milliseconds();
             let mut timestampString: Value = self.number_to_string(timestamp.clone());
-            let mut timestampEncoded: Value = (if is_true(&(Value::Bool(timestampString == Value::Null))) { Value::Str("".to_string()) } else { timestampString.clone() });
+            let mut timestampEncoded: Value = (if is_true(&(timestampString == Value::Null)) { Value::Str("".to_string()) } else { timestampString.clone() });
             let mut signature: Value = self.hmac(self.encode(timestampEncoded.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[Value::Str("hex".to_string())]);
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -431,9 +431,9 @@ impl HitbtcCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut isBatch: bool = get_index_of(&name, &Value::Str("batch".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
+        let mut isBatch: bool = Value::Int(name.as_str().and_then(|__s| __s.find("batch")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         if (symbols != Value::Null) && !isBatch {
             {
                                 let mut i: Value = Value::Int(0);
@@ -560,12 +560,12 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
     m
 }));
             m
         });
-        let mut orderbook: Value = self.subscribe_public(name.clone(), Value::Str("orderbooks".to_string()), &[Value::List(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
+        let mut orderbook: Value = self.subscribe_public(name.clone(), Value::Str("orderbooks".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
         return orderbook.limit();
 
     Value::Null
@@ -600,7 +600,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut type_var: Value = (if is_true(&(Value::Bool((snapshot != Value::Null) && (snapshot != Value::Null)))) { Value::Str("snapshot".to_string()) } else { Value::Str("update".to_string()) });
+        let mut type_var: Value = (if is_true(&((snapshot != Value::Null) && (snapshot != Value::Null))) { Value::Str("snapshot".to_string()) } else { Value::Str("update".to_string()) });
         let mut marketIds: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
@@ -613,7 +613,7 @@ impl HitbtcCore {
             let mut item: Value = get_value(&data, &marketId);
             let mut item: Value = get_value(&data, &marketId);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbooks::".to_string()), symbol));
-            if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+            if !(in_op(&self.orderbooks, &symbol)) {
                 let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -631,8 +631,8 @@ impl HitbtcCore {
                 let mut parsedSnapshot: Value = self.parse_order_book(item.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".to_string()), Value::Str("a".to_string())]);
                 orderbook.reset(parsedSnapshot.clone());
             }  else {
-                let mut asks: Value = self.safe_list_k(item.clone(), "a", &[Value::List(vec![])]);
-                let mut bids: Value = self.safe_list_k(item, "b", &[Value::List(vec![])]);
+                let mut asks: Value = self.safe_list_k(item.clone(), "a", &[Value::from(vec![])]);
+                let mut bids: Value = self.safe_list_k(item, "b", &[Value::from(vec![])]);
                 self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
                 self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             }
@@ -681,7 +681,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut ticker: Value = self.watch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
+        let mut ticker: Value = self.watch_tickers(&[Value::from(vec![symbol.clone()]), params.clone()]).await;
         return self.safe_value(ticker.clone(), symbol.clone(), &[]);
 
     Value::Null
@@ -716,8 +716,8 @@ impl HitbtcCore {
                 m.insert("speed".to_string(), speed.clone());
             m
         }));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
-        let mut marketIds: Value = Value::List(vec![]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
+        let mut marketIds: Value = Value::from(vec![]);
         if (symbols == Value::Null) {
             append_to_array(&mut marketIds, Value::Str("*".to_string()));
         }  else {
@@ -743,7 +743,7 @@ impl HitbtcCore {
         });
         let mut newTickers: Value = self.subscribe_public(name.clone(), Value::Str("tickers".to_string()), &[symbols.clone(), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
-            if !is_true(&Value::Bool(is_array(&newTickers))) {
+            if !is_true(&(matches!(&newTickers, Value::Arr(_)))) {
                 let mut tickers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -801,7 +801,7 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("tickers".to_string());
         {
                         let mut i: Value = Value::Int(0);
@@ -912,7 +912,7 @@ impl HitbtcCore {
                 m.insert("speed".to_string(), speed.clone());
             m
         }));
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("method".to_string()), Value::Str("speed".to_string())]), &[]);
         let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -925,7 +925,7 @@ impl HitbtcCore {
         });
         let mut newTickers: Value = self.subscribe_public(name.clone(), Value::Str("bidask".to_string()), &[symbols.clone(), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
-            if !is_true(&Value::Bool(is_array(&newTickers))) {
+            if !is_true(&(matches!(&newTickers, Value::Arr(_)))) {
                 let mut tickers: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -959,7 +959,7 @@ impl HitbtcCore {
             m
         })]);
         let mut marketIds: Value = object_keys(&data);
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         let mut topic: Value = Value::Str("bidask".to_string());
         {
                         let mut i: Value = Value::Int(0);
@@ -982,7 +982,7 @@ impl HitbtcCore {
     pub fn parse_ws_bid_ask(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "t", &[]);
-        let mut bidAskSymbol: Value = (if is_true(&(Value::Bool(market != Value::Null))) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut bidAskSymbol: Value = (if is_true(&(market != Value::Null)) { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) } else { Value::Null });
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), bidAskSymbol.clone());
@@ -1025,7 +1025,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
     m
 }));
             m
@@ -1034,7 +1034,7 @@ impl HitbtcCore {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("limit".to_string(), limit.clone()); }
         }
         let mut name: Value = Value::Str("trades".to_string());
-        let mut trades: Value = self.subscribe_public(name.clone(), Value::Str("trades".to_string()), &[Value::List(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
+        let mut trades: Value = self.subscribe_public(name.clone(), Value::Str("trades".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
         }
@@ -1128,7 +1128,7 @@ impl HitbtcCore {
     m
 }));
         let mut tradesArray: Value = self.to_array(trades.clone());
-        let mut result: Value = Value::List(vec![]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_386: bool = true;
@@ -1205,7 +1205,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
     m
 }));
             m
@@ -1213,7 +1213,7 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(get_value_mut(&mut request, &Value::Str("params".to_string())), &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut ohlcv: Value = self.subscribe_public(name.clone(), Value::Str("candles".to_string()), &[Value::List(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
+        let mut ohlcv: Value = self.subscribe_public(name.clone(), Value::Str("candles".to_string()), &[Value::from(vec![symbol.clone()]), self.deep_extend(request.clone(), &[params.clone()])]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());
         }
@@ -1305,7 +1305,7 @@ impl HitbtcCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1423,8 +1423,8 @@ impl HitbtcCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        let mut data: Value = self.safe_value_k(message.clone(), "params", &[Value::from(vec![])]);
+        if is_true(&(matches!(&data, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_389: bool = true;
@@ -1550,7 +1550,7 @@ impl HitbtcCore {
         let mut trades: Value = Value::Null;
         if (tradeId.is_some()) {
             let mut trade: Value = self.parse_ws_order_trade(order.clone(), &[market.clone()]);
-            trades = Value::List(vec![trade.clone()]);
+            trades = Value::from(vec![trade.clone()]);
         }
         let mut rawStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
         let mut report_type: Value = self.safe_string_k(order.clone(), "report_type", &[]);
@@ -1674,7 +1674,7 @@ impl HitbtcCore {
         request = self.extend(request.clone(), &[params.clone()]);
         if (marketType.as_str() == Some("swap")) {
             return self.trade_request(Value::Str("futures_new_order".to_string()), &[request.clone()]).await;
-        }  else if is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) || is_true(&(Value::Bool(marginMode != Value::Null))) {
+        }  else if is_true(&(marketType.as_str() == Some("margin"))) || is_true(&(marginMode != Value::Null)) {
             return self.trade_request(Value::Str("margin_new_order".to_string()), &[request.clone()]).await;
         }  else {
             return self.trade_request(Value::Str("spot_new_order".to_string()), &[request.clone()]).await;
@@ -1723,7 +1723,7 @@ impl HitbtcCore {
         request = self.extend(request.clone(), &[query.clone()]);
         if (marketType.as_str() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_order".to_string()), &[request.clone()]).await;
-        }  else if is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) || is_true(&(Value::Bool(marginMode != Value::Null))) {
+        }  else if is_true(&(marketType.as_str() == Some("margin"))) || is_true(&(marginMode != Value::Null)) {
             return self.trade_request(Value::Str("margin_cancel_order".to_string()), &[request.clone()]).await;
         }  else {
             return self.trade_request(Value::Str("spot_cancel_order".to_string()), &[request.clone()]).await;
@@ -1763,7 +1763,7 @@ impl HitbtcCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrdersWs".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_orders".to_string()), &[params.clone()]).await;
-        }  else if is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) || is_true(&(Value::Bool(marginMode != Value::Null))) {
+        }  else if is_true(&(marketType.as_str() == Some("margin"))) || is_true(&(marginMode != Value::Null)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".to_string()))));
         }  else {
             return self.trade_request(Value::Str("spot_cancel_orders".to_string()), &[params.clone()]).await;
@@ -1813,7 +1813,7 @@ impl HitbtcCore {
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrdersWs".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() == Some("swap")) {
             return self.trade_request(Value::Str("futures_get_orders".to_string()), &[request.clone()]).await;
-        }  else if is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) || is_true(&(Value::Bool(marginMode != Value::Null))) {
+        }  else if is_true(&(marketType.as_str() == Some("margin"))) || is_true(&(marginMode != Value::Null)) {
             return self.trade_request(Value::Str("margin_get_orders".to_string()), &[request.clone()]).await;
         }  else {
             return self.trade_request(Value::Str("spot_get_orders".to_string()), &[request.clone()]).await;
@@ -1884,8 +1884,8 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if is_true(&Value::Bool(is_array(&result))) {
-            let mut parsedOrders: Value = Value::List(vec![]);
+        if is_true(&(matches!(&result, Value::Arr(_)))) {
+            let mut parsedOrders: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_390: bool = true;
@@ -1935,7 +1935,7 @@ impl HitbtcCore {
                     m.insert("futures_balance".to_string(), Value::Str("handle_balance".to_string()).clone());
                 m
             });
-            let mut method: Value = (if is_true(&(Value::Bool(channel == Value::Null))) { Value::Null } else { self.safe_value(methods.clone(), channel.clone(), &[]) });
+            let mut method: Value = (if is_true(&(channel == Value::Null)) { Value::Null } else { self.safe_value(methods.clone(), channel.clone(), &[]) });
             if (method != Value::Null) {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
@@ -1945,17 +1945,17 @@ impl HitbtcCore {
             if (clientOrderId.is_some()) {
                 self.handle_order_request(client.clone(), message.clone());
             }
-            if (is_equal(&result, &Value::Bool(true))) && !is_true(&(Value::Bool(in_op(&message, &Value::Str("id".to_string()))))) {
+            if (is_equal(&result, &Value::Bool(true))) && !(in_op(&message, &Value::Str("id".to_string()))) {
                 self.handle_authenticate(client.clone(), message.clone());
             }
-            if is_true(&Value::Bool(is_array(&result))) {
+            if is_true(&(matches!(&result, Value::Arr(_)))) {
                 // to do improve this, not very reliable right now
                 let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
                 let mut arrayLength: f64 = ((result.len() as i64) as f64);
-                if is_true(&(Value::Bool(arrayLength == 0.0))) || is_true(&(Value::Bool(in_op(&first, &Value::Str("client_order_id".to_string()))))) {
+                if is_true(&(arrayLength == 0.0)) || is_true(&(matches!(&first, Value::Dict(__d) if __d.contains_key("client_order_id")))) {
                     self.handle_order_request(client.clone(), message.clone());
                 }
             }
@@ -1975,9 +1975,9 @@ impl HitbtcCore {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
+            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&message))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }
@@ -2013,7 +2013,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".to_string())) {
                     let mut messageHash: Value = Value::Str("authenticated".to_string());
                     client.reject(&[e.clone(), messageHash.clone()]);
-                    if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+                    if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
                     }
                 }  else {

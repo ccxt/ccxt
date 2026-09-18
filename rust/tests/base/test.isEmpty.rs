@@ -20,13 +20,13 @@ pub fn testIsEmpty() {
     let mut m = indexmap::IndexMap::new();
     m
 })).as_bool() == Some(true)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::List(vec![])).as_bool() == Some(true)))));
+    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::from(vec![])).as_bool() == Some(true)))));
     assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Int(1));
     m
 })).as_bool() == Some(false)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::List(vec![Value::Int(1), Value::Int(2)])).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::from(vec![Value::Int(1), Value::Int(2)])).as_bool() == Some(false)))));
     // below are scalars, so they are not checked.
     // @ts-expect-error
     assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("".to_string())).as_bool() == Some(false)))));

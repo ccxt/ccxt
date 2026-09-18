@@ -911,7 +911,7 @@ impl CoinspotCore {
             m
         });
         let mut balances: Value = self.safe_value2(response.clone(), Value::Str("balance".to_string()), Value::Str("balances".to_string()), &[]);
-        if (is_array(&balances)) {
+        if is_true(&(matches!(&balances, Value::Arr(_)))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_588: bool = true;
@@ -975,9 +975,9 @@ impl CoinspotCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut method: Value = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".to_string())]);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchBalance", &[Value::Str("private_post_my_balances".to_string())]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if is_true(&(method.as_str() == Some("private_post_ro_my_balances"))) || is_true(&(method.as_str() == Some("privatePostRoMyBalances"))) {
+        if is_true(&(method.as_deref() == Some("private_post_ro_my_balances"))) || is_true(&(method.as_deref() == Some("privatePostRoMyBalances"))) {
             response = self.private_post_ro_my_balances(&[params.clone()]).await;
         }  else {
             response = self.private_post_my_balances(&[params.clone()]).await;
@@ -1447,8 +1447,8 @@ impl CoinspotCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut side: Value = self.safe_string_k(params.clone(), "side", &[]);
-        if (side.as_str() != Some("buy")) && (side.as_str() != Some("sell")) {
+        let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
+        if (side.as_deref() != Some("buy")) && (side.as_deref() != Some("sell")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a side parameter, \"buy\" or \"sell\"".to_string()))));
         }
         params = self.omit(params.clone(), Value::Str("side".to_string()), &[]);
@@ -1458,7 +1458,7 @@ impl CoinspotCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (side.as_str() == Some("buy")) {
+        if (side.as_deref() == Some("buy")) {
             let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
         }  else {
@@ -1478,9 +1478,9 @@ impl CoinspotCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
-        if (status.as_str() == Some("error")) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("error")) {
+            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&response)));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;
@@ -1497,7 +1497,7 @@ impl CoinspotCore {
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut isVersionedApi: bool = is_array(&api);
+        let mut isVersionedApi: bool = matches!(&api, Value::Arr(_));
         let mut version: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut accessType: Value = (if isVersionedApi { api.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) } else { api.clone() });
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));

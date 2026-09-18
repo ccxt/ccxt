@@ -156,7 +156,7 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinsph".to_string()));
         m.insert("name".to_string(), Value::Str("Coins.ph".to_string()));
-        m.insert("countries".to_string(), Value::List(vec![Value::Str("PH".to_string())]));
+        m.insert("countries".to_string(), Value::from(vec![Value::Str("PH".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
         m.insert("rateLimit".to_string(), Value::Int(50));
         m.insert("certified".to_string(), Value::Bool(false));
@@ -324,7 +324,7 @@ impl CoinsphCore {
     m
 }));
         m.insert("www".to_string(), Value::Str("https://coins.ph/".to_string()));
-        m.insert("doc".to_string(), Value::List(vec![Value::Str("https://coins-docs.github.io/rest-api".to_string())]));
+        m.insert("doc".to_string(), Value::from(vec![Value::Str("https://coins-docs.github.io/rest-api".to_string())]));
         m.insert("fees".to_string(), Value::Str("https://support.coins.ph/hc/en-us/sections/4407198694681-Limits-Fees".to_string()));
         m.insert("referral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -359,7 +359,7 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbolAndNoSymbols".to_string(), Value::Int(40));
-        m.insert("byNumberOfSymbols".to_string(), Value::List(vec![Value::List(vec![Value::Int(101), Value::Int(40)]), Value::List(vec![Value::Int(21), Value::Int(20)]), Value::List(vec![Value::Int(0), Value::Int(1)])]));
+        m.insert("byNumberOfSymbols".to_string(), Value::from(vec![Value::from(vec![Value::Int(101), Value::Int(40)]), Value::from(vec![Value::Int(21), Value::Int(20)]), Value::from(vec![Value::Int(0), Value::Int(1)])]));
     m
 }));
         m.insert("openapi/quote/v1/ticker/price".to_string(), Value::Map({
@@ -382,7 +382,7 @@ impl CoinsphCore {
         m.insert("openapi/quote/v1/depth".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
-        m.insert("byLimit".to_string(), Value::List(vec![Value::List(vec![Value::Int(101), Value::Int(5)]), Value::List(vec![Value::Int(0), Value::Int(1)])]));
+        m.insert("byLimit".to_string(), Value::from(vec![Value::from(vec![Value::Int(101), Value::Int(5)]), Value::from(vec![Value::Int(0), Value::Int(1)])]));
     m
 }));
         m.insert("openapi/quote/v1/klines".to_string(), Value::Map({
@@ -784,8 +784,8 @@ impl CoinsphCore {
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.003".to_string()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0027".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0024".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
-        m.insert("maker".to_string(), Value::List(vec![Value::List(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0022".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("500000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("1000000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::List(vec![self.parse_number(Value::Str("2500000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
+        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.003".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0027".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0024".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.002".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000000".to_string()), &[]), self.parse_number(Value::Str("0.0009".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
+        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".to_string()), &[]), self.parse_number(Value::Str("0.0025".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".to_string()), &[]), self.parse_number(Value::Str("0.0022".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".to_string()), &[]), self.parse_number(Value::Str("0.0018".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".to_string()), &[]), self.parse_number(Value::Str("0.0015".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".to_string()), &[]), self.parse_number(Value::Str("0.0012".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".to_string()), &[]), self.parse_number(Value::Str("0.001".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".to_string()), &[]), self.parse_number(Value::Str("0.0008".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000000".to_string()), &[]), self.parse_number(Value::Str("0.0007".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000000".to_string()), &[]), self.parse_number(Value::Str("0.0006".to_string()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000000".to_string()), &[]), self.parse_number(Value::Str("0.0005".to_string()), &[])])]));
     m
 }));
     m
@@ -1090,7 +1090,7 @@ impl CoinsphCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "coin", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut isFiat: Value = self.safe_bool_k(rawCurrency.clone(), "isLegalMoney", &[]);
-        let mut networkList: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]);
         let mut networks: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1140,7 +1140,7 @@ impl CoinsphCore {
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), self.safe_string_k(rawCurrency.clone(), "name", &[]));
         m.insert("code".to_string(), code.clone());
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(isFiat.as_bool() == Some(true)))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(isFiat.as_bool() == Some(true))) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
         m.insert("precision".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "transferPrecision", &[])]), &[]));
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("active".to_string(), Value::Null);
@@ -1164,14 +1164,14 @@ impl CoinsphCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) {
+        if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbol")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noSymbol")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbol".to_string()))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("symbols".to_string()))))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("noSymbolAndNoSymbols")))) && !(in_op(&params, &Value::Str("symbol".to_string()))) && !(in_op(&params, &Value::Str("symbols".to_string()))) {
             return config.as_map().and_then(|__m| __m.get("noSymbolAndNoSymbols")).cloned().unwrap_or(Value::Null);
-        }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("symbols".to_string()))))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byNumberOfSymbols")))) && (in_op(&params, &Value::Str("symbols".to_string()))) {
             let mut symbols: Value = crate::value::get_value_k(&params, "symbols");
             let mut symbolsAmount: Value = get_array_length(&symbols);
-            let mut byNumberOfSymbols: Value = self.safe_list_k(config.clone(), "byNumberOfSymbols", &[Value::List(vec![])]);
+            let mut byNumberOfSymbols: Value = self.safe_list_k(config.clone(), "byNumberOfSymbols", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_580: bool = true;
@@ -1183,9 +1183,9 @@ impl CoinsphCore {
                 }
             }
             }
-        }  else if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit"))))) && is_true(&(Value::Bool(in_op(&params, &Value::Str("limit".to_string()))))) {
+        }  else if is_true(&(matches!(&config, Value::Dict(__d) if __d.contains_key("byLimit")))) && (in_op(&params, &Value::Str("limit".to_string()))) {
             let mut limit: Value = crate::value::get_value_k(&params, "limit");
-            let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]);
+            let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_581: bool = true;
@@ -1322,8 +1322,8 @@ impl CoinsphCore {
         //         ]
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response, "symbols", &[Value::List(vec![])]);
-        let mut result: Value = Value::List(vec![]);
+        let mut markets: Value = self.safe_list_k(response, "symbols", &[Value::from(vec![])]);
+        let mut result: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_582: bool = true;
@@ -1335,7 +1335,7 @@ impl CoinsphCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteAsset", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut limits: Value = self.index_by(self.safe_list_k(market.clone(), "filters", &[Value::List(vec![])]), Value::Str("filterType".to_string()));
+            let mut limits: Value = self.index_by(self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]), Value::Str("filterType".to_string()));
             let mut amountLimits: Value = self.safe_value_k(limits.clone(), "LOT_SIZE", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1446,7 +1446,7 @@ impl CoinsphCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut ids: Value = Value::List(vec![]);
+            let mut ids: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_583: bool = true;
@@ -1464,7 +1464,7 @@ impl CoinsphCore {
     m
 })]);
         let mut method: Option<String> = self.safe_string_k(options.clone(), "method", &[defaultMethod.clone()]).as_str().map(str::to_owned);
-        let mut tickers: Value = Value::List(vec![]);
+        let mut tickers: Value = Value::from(vec![]);
         if (method.as_deref() == Some("publicGetOpenapiQuoteV1TickerPrice")) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             tickers = self.public_get_openapi_quote_v1_ticker_price(&[__ws_arg_0]).await;
@@ -1746,7 +1746,7 @@ impl CoinsphCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
+        return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[])]);
 
     Value::Null
 }
@@ -1937,12 +1937,12 @@ impl CoinsphCore {
         let mut isBuyer: Value = self.safe_bool2(trade.clone(), Value::Str("isBuyer".to_string()), Value::Str("isBuyerMaker".to_string()), &[]);
         let mut side: Value = Value::Null;
         if (isBuyer != Value::Null) {
-            side = (if is_true(&(Value::Bool(isBuyer.as_bool() == Some(true)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+            side = (if is_true(&(isBuyer.as_bool() == Some(true))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut isMaker: Option<String> = self.safe_string_k(trade.clone(), "isMaker", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         if (isMaker.is_some()) {
-            takerOrMaker = (if is_true(&(Value::Bool(isMaker.as_deref() == Some("true")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            takerOrMaker = (if is_true(&(isMaker.as_deref() == Some("true"))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut costString: Value = Value::Null;
         if (orderId != Value::Null) {
@@ -1992,7 +1992,7 @@ impl CoinsphCore {
 }
 
     pub fn parse_balance(&self, mut response: Value) -> Value {
-        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -2160,7 +2160,7 @@ impl CoinsphCore {
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
         let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_openapi_v1_order(&[__ws_arg_13]).await;
         return self.parse_order(response.clone(), &[]);
@@ -2280,7 +2280,7 @@ impl CoinsphCore {
         }  else {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("orderId".to_string(), id.clone()); }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
+        params = self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".to_string()), Value::Str("origClientOrderId".to_string())]), &[]);
         let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_openapi_v1_order(&[__ws_arg_16]).await;
         return self.parse_order(response.clone(), &[]);
@@ -2683,7 +2683,7 @@ impl CoinsphCore {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".to_string()))));
         }
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut networkId: Value = (if is_true(&(Value::Bool(networkCode == Value::Null))) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
+        let mut networkId: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require network parameter".to_string()))));
         }
@@ -2935,7 +2935,7 @@ impl CoinsphCore {
     m
 }));
         let mut networkCode: Value = self.safe_string_k(params.clone(), "network", &[]);
-        let mut networkId: Value = (if is_true(&(Value::Bool(networkCode == Value::Null))) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
+        let mut networkId: Value = (if is_true(&(networkCode == Value::Null)) { Value::Null } else { self.network_code_to_id(networkCode.clone(), &[code.clone()]) });
         if (networkId == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() require network parameter".to_string()))));
         }
@@ -2994,7 +2994,7 @@ impl CoinsphCore {
             while { if !__for_first_586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
-            if is_true(&Value::Bool(matches!(&get_value(&query, &key), Value::Arr(_)))) {
+            if is_true(&(matches!(&get_value(&query, &key), Value::Arr(_)))) {
                 if (i.as_f64() != Some(0.0)) {
                     encodedArrayParams = Value::Str(format!("{}{}", encodedArrayParams, Value::Str("&".to_string())));
                 }
@@ -3080,7 +3080,7 @@ impl CoinsphCore {
             return Value::Null;
         }
         let mut responseCode: Value = self.safe_string_k(response.clone(), "code", &[]);
-        if is_true(&(Value::Bool(responseCode != Value::Null))) && is_true(&(Value::Bool(responseCode.as_str() != Some("200")))) && is_true(&(Value::Bool(responseCode.as_str() != Some("0")))) {
+        if is_true(&(responseCode != Value::Null)) && is_true(&(responseCode.as_str() != Some("200"))) && is_true(&(responseCode.as_str() != Some("0"))) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), responseCode.clone(), feedback.clone());

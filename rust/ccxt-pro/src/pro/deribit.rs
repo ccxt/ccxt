@@ -319,7 +319,7 @@ impl DeribitCore {
 }));
     m
 }));
-        m.insert("currencies".to_string(), Value::List(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("SOL".to_string()), Value::Str("USDC".to_string())]));
+        m.insert("currencies".to_string(), Value::from(vec![Value::Str("BTC".to_string()), Value::Str("ETH".to_string()), Value::Str("SOL".to_string()), Value::Str("USDC".to_string())]));
     m
 }));
         m.insert("streaming".to_string(), Value::Map({
@@ -360,12 +360,12 @@ impl DeribitCore {
         self.authenticate(&[params.clone()]).await;
         let mut messageHash: Value = Value::Str("balance".to_string());
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::List(vec![])]);
-        let mut channels: Value = Value::List(vec![]);
+        let mut currencies: Value = self.safe_list_k(self.options.clone(), "currencies", &[Value::from(vec![])]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencies.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_310 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
             let mut currencyCode: Value = get_value(&currencies, &i);
             let mut currencyCode: Value = get_value(&currencies, &i);
             append_to_array(&mut channels, add(&Value::Str("user.portfolio.".to_string()), &currencyCode));
@@ -487,7 +487,7 @@ impl DeribitCore {
                 m.insert("method".to_string(), Value::Str("public/subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".".to_string()))), interval))]));
+        m.insert("channels".to_string(), Value::from(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".".to_string()))), interval))]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
@@ -528,11 +528,11 @@ impl DeribitCore {
         if (interval.as_str() == Some("raw")) {
             self.authenticate(&[]).await;
         }
-        let mut channels: Value = Value::List(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_311: bool = true;
-            while { if !__for_first_311 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_311 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_311 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_311 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".".to_string()))), interval)));
         }
@@ -630,11 +630,11 @@ impl DeribitCore {
         }
         symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut channels: Value = Value::List(vec![]);
+        let mut channels: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str("quote.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))));
         }
@@ -741,7 +741,7 @@ impl DeribitCore {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchTrades".to_string())); }
-        return self.watch_trades_for_symbols(Value::List(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
+        return self.watch_trades_for_symbols(Value::from(vec![symbol.clone()]), &[since.clone(), limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -812,7 +812,7 @@ impl DeribitCore {
         let mut interval: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut trades: Value = self.safe_list_k(params, "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(params, "data", &[Value::from(vec![])]);
         if (self.safe_value(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
@@ -821,7 +821,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[market.clone()]);
@@ -868,7 +868,7 @@ impl DeribitCore {
                 m.insert("method".to_string(), Value::Str("private/subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![channel.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![channel.clone()]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
@@ -919,7 +919,7 @@ impl DeribitCore {
             m
         })]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".to_string())]);
-        let mut trades: Value = self.safe_value_k(params, "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_value_k(params, "data", &[Value::from(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
         if (cachedTrades == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -933,7 +933,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parsed.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_314 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             let mut trade: Value = get_value(&parsed, &i);
             let mut trade: Value = get_value(&parsed, &i);
             cachedTrades.append(trade.clone());
@@ -962,7 +962,7 @@ impl DeribitCore {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".to_string(), Value::Str("watchOrderBook".to_string())); }
-        return self.watch_order_book_for_symbols(Value::List(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
+        return self.watch_order_book_for_symbols(Value::from(vec![symbol.clone()]), &[limit.clone(), params.clone()]).await;
 
     Value::Null
 }
@@ -1063,8 +1063,8 @@ impl DeribitCore {
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut parts: Value = split(&channel, &Value::Str(".".to_string()));
         let mut descriptor: Value = Value::Str("".to_string());
-        let mut partsLength: Value = Value::Int(parts.len() as i64);
-        let mut isDetailed: bool = partsLength.as_f64() == Some(5.0);
+        let mut partsLength: f64 = ((parts.len() as i64) as f64);
+        let mut isDetailed: bool = partsLength == 5.0;
         if isDetailed {
             let mut group: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
             let mut depth: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
@@ -1077,12 +1077,12 @@ impl DeribitCore {
         let mut marketId: Value = self.safe_string_k(data.clone(), "instrument_name", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.counted_order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::from(vec![])]);
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".to_string())), asks.clone());
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".to_string())), bids.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".to_string()), timestamp.clone());
@@ -1095,22 +1095,22 @@ impl DeribitCore {
 }
 
     pub fn clean_order_book(&self, mut data: Value) -> Value {
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut cleanedBids: Value = Value::List(vec![]);
+        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::from(vec![])]);
+        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::from(vec![])]);
+        let mut cleanedBids: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(bids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut cleanedBids, Value::List(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
+            while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
+            append_to_array(&mut cleanedBids, Value::from(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
         }
         }
-        let mut cleanedAsks: Value = Value::List(vec![]);
+        let mut cleanedAsks: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(asks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            append_to_array(&mut cleanedAsks, Value::List(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
+            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
+            append_to_array(&mut cleanedAsks, Value::from(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
         }
         }
         add_element_to_object(&mut data, &Value::Str("bids".to_string()), cleanedBids.clone());
@@ -1124,9 +1124,9 @@ impl DeribitCore {
         let mut price: Value = get_value(&delta, &Value::Int(1));
         let mut amount: Value = get_value(&delta, &Value::Int(2));
         if (get_value(&delta, &Value::Int(0)).as_str() == Some("new")) || (get_value(&delta, &Value::Int(0)).as_str() == Some("change")) {
-            bookside.store_array(Value::List(vec![price.clone(), amount.clone(), Value::Int(1)]));
+            bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(1)]));
         }  else if (get_value(&delta, &Value::Int(0)).as_str() == Some("delete")) {
-            bookside.store_array(Value::List(vec![price.clone(), amount.clone(), Value::Int(0)]));
+            bookside.store_array(Value::from(vec![price.clone(), amount.clone(), Value::Int(0)]));
         }
 }
 
@@ -1178,7 +1178,7 @@ impl DeribitCore {
                 m.insert("method".to_string(), Value::Str("private/subscribe".to_string()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::List(vec![channel.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![channel.clone()]));
     m
 }));
                 m.insert("id".to_string(), self.request_id());
@@ -1242,18 +1242,18 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = Value::List(vec![]);
-        if is_true(&Value::Bool(is_array(&data))) {
+        let mut orders: Value = Value::from(vec![]);
+        if is_true(&(matches!(&data, Value::Arr(_)))) {
             orders = self.parse_orders(data.clone(), &[]);
         }  else {
             let mut order: Value = self.parse_order(data.clone(), &[]);
-            orders = Value::List(vec![order.clone()]);
+            orders = Value::from(vec![order.clone()]);
         }
         let mut cachedOrders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_318 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             cachedOrders.append(get_value(&orders, &i));
         }
         }
@@ -1284,7 +1284,7 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let mut ohlcvs: Value = self.watch_ohlcv_for_symbols(Value::List(vec![Value::List(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
+        let mut ohlcvs: Value = self.watch_ohlcv_for_symbols(Value::from(vec![Value::from(vec![symbol.clone(), timeframe.clone()])]), &[since.clone(), limit.clone(), params.clone()]).await;
         return get_value(&get_value(&ohlcvs, &symbol), &timeframe);
 
     Value::Null
@@ -1308,8 +1308,8 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
+        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
+        if (symbolsLength == 0.0) || !is_true(&(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_)))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string()))));
         }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper(Value::Str("chart.trades".to_string()), Value::Null, &[symbolsAndTimeframes.clone(), params.clone()]).await;
@@ -1380,14 +1380,14 @@ impl DeribitCore {
         let mut parsed: Value = self.parse_ws_ohlcv(ohlcv.clone(), &[market.clone()]);
         stored.append(parsed.clone());
         add_element_to_object(get_value_mut(&mut self.ohlcvs, &symbol), &unifiedTimeframe, stored.clone());
-        let mut resolveData: Value = Value::List(vec![symbol.clone(), unifiedTimeframe.clone(), stored.clone()]);
+        let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), stored.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("chart.trades|".to_string()), symbol)), Value::Str("|".to_string()))), rawTimeframe));
         client.resolve(&[resolveData.clone(), messageHash.clone()]);
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "tick", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
+        return Value::from(vec![self.safe_integer_k(ohlcv.clone(), "tick", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1402,8 +1402,8 @@ impl DeribitCore {
             self.load_markets(&[]).await;
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut rawSubscriptions: Value = Value::List(vec![]);
-        let mut messageHashes: Value = Value::List(vec![]);
+        let mut rawSubscriptions: Value = Value::from(vec![]);
+        let mut messageHashes: Value = Value::from(vec![]);
         let mut isOHLCV: bool = channelName.as_str() == Some("chart.trades");
         let mut symbols: Value = (if isOHLCV { self.get_list_from_object_values(symbolsArray.clone(), Value::Int(0)) } else { symbolsArray.clone() });
         self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]);
@@ -1447,8 +1447,8 @@ impl DeribitCore {
         });
         let mut extendedRequest: Value = self.deep_extend(request.clone(), &[params.clone()]);
         let mut maxMessageByteLimit: Value = (match (&(Value::Int(32768)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 'Message Too Big: limit 32768B'
-        let mut jsonedText: Value = self.json(extendedRequest.clone());
-        if Value::Int(jsonedText.len() as i64).as_f64().unwrap_or(f64::NAN) >= maxMessageByteLimit.as_f64().unwrap_or(f64::NAN) {
+        let mut jsonedText: Value = json_stringify(&extendedRequest);
+        if ((jsonedText.len() as i64) as f64) >= maxMessageByteLimit.as_f64().unwrap_or(f64::NAN) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" requested subscription length over limit, try to reduce symbols amount".to_string()))));
         }
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[extendedRequest.clone(), rawSubscriptions.clone()]).await;
@@ -1518,7 +1518,7 @@ impl DeribitCore {
         //
         let mut error: Value = self.safe_value_k(message.clone(), "error", &[]);
         if (error != Value::Null) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone()))));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), json_stringify(&error))));
         }
         let mut params: Value = self.safe_value_k(message.clone(), "params", &[]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
@@ -1547,7 +1547,7 @@ impl DeribitCore {
                 self.dispatch_ws_handler(&handler, &[client.clone(), message.clone()]);
                 return;
             }
-            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for this message ".to_string()))), self.json(message.clone()))));
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no handler found for this message ".to_string()))), json_stringify(&message))));
         }
         let mut result: Value = self.safe_value_k(message.clone(), "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
