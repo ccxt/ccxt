@@ -236,14 +236,14 @@ func (this *Binance) Stream(typeVar any, subscriptionHash any, optionalArgs ...a
 		var streamLimit *int64 = this.SafeInteger(streamLimits, typeVar)
 		streamIndex = ccxt.Add(streamIndex, 1)
 		var normalizedIndex any = ccxt.Mod(streamIndex, streamLimit)
-		ccxt.AddElementToObject(this.Options, "streamIndex", streamIndex)
+		this.Options.Store("streamIndex", streamIndex)
 		stream = this.NumberToString(normalizedIndex)
 		if subscriptionHash != nil {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Options, "streamBySubscriptionsHash"), subscriptionHash, stream)
 		}
 		var subscriptionsByStreams any = this.SafeValue(this.Options, "numSubscriptionsByStream")
 		if ccxt.IsEqual(subscriptionsByStreams, nil) {
-			ccxt.AddElementToObject(this.Options, "numSubscriptionsByStream", this.CreateSafeDictionary())
+			this.Options.Store("numSubscriptionsByStream", this.CreateSafeDictionary())
 		}
 		var subscriptionsByStream *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "numSubscriptionsByStream"), stream, 0)
 		var newNumSubscriptions any = ccxt.Add(subscriptionsByStream, numSubscriptions)

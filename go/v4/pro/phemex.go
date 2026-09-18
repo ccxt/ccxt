@@ -89,7 +89,7 @@ func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 func (this *Phemex) RequestId() any {
 	this.LockId()
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return requestId
 }

@@ -10467,7 +10467,7 @@ func (this *Okx) ParseOpenInterest(interest any, optionalArgs ...any) any {
 }
 func (this *Okx) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 	if EvalTruthy(enable) {
 		AddElementToObject(this.Headers, "x-simulated-trading", "1")
 	} else if InOp(this.Headers, "x-simulated-trading") {

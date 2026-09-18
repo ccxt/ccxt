@@ -2887,7 +2887,7 @@ func (this *Gate) RequestId() any {
 	// their support said that reqid must be an int32, not documented
 	this.LockId()
 	var reqid any = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
-	ccxt.AddElementToObject(this.Options, "reqid", reqid)
+	this.Options.Store("reqid", reqid)
 	this.UnlockId()
 	return reqid
 }

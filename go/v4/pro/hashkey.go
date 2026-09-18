@@ -1107,7 +1107,7 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 			if listenKey == nil {
 				panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 			}
-			ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+			this.Options.Store("listenKey", listenKey)
 			var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
 			this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
 			// settle the flight: client.resolve () wakes every waiter and
@@ -1155,7 +1155,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan any, listenKey any, optional
 						// catch block:
 						var url any = this.GetPrivateUrl(listenKey)
 						var client ccxt.ClientInterface = this.Client(url)
-						ccxt.AddElementToObject(this.Options, "listenKey", nil)
+						this.Options.Store("listenKey", nil)
 						client.(ccxt.ClientInterface).Reject(error)
 						ccxt.Remove(this.Clients, url)
 						return nil

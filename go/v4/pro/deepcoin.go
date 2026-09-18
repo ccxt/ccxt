@@ -107,7 +107,7 @@ func (this *Deepcoin) RequestId() any {
 	this.LockId()
 	var previousValue *int64 = this.SafeInteger(this.Options, "lastRequestId", 0)
 	var newValue any = this.Sum(previousValue, 1)
-	ccxt.AddElementToObject(this.Options, "lastRequestId", newValue)
+	this.Options.Store("lastRequestId", newValue)
 	this.UnlockId()
 	return newValue
 }
@@ -296,8 +296,8 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
 				listenKeyExpiryTimestamp = this.SafeTimestamp(data, "expire_time")
-				ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
-				ccxt.AddElementToObject(this.Options, "listenKeyExpiryTimestamp", listenKeyExpiryTimestamp)
+				this.Options.Store("listenKey", listenKey)
+				this.Options.Store("listenKeyExpiryTimestamp", listenKeyExpiryTimestamp)
 			}
 			// settle the flight: client.resolve wakes every waiter and drops
 			// the future from the registry under the client's own lock, so the

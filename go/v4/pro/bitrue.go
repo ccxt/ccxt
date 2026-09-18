@@ -1060,8 +1060,8 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 				if key == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				ccxt.AddElementToObject(this.Options, "listenKey", key)
-				ccxt.AddElementToObject(this.Options, "listenKeyUrl", ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/stream?listenKey="), key))
+				this.Options.Store("listenKey", key)
+				this.Options.Store("listenKeyUrl", ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/stream?listenKey="), key))
 				client.(ccxt.ClientInterface).Resolve(key, messageHash)
 				return nil
 			}(this)
@@ -1111,8 +1111,8 @@ func (this *Bitrue) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 					}
 					ret_ = func(this *Bitrue) any {
 						// catch block:
-						ccxt.AddElementToObject(this.Options, "listenKey", nil)
-						ccxt.AddElementToObject(this.Options, "listenKeyUrl", nil)
+						this.Options.Store("listenKey", nil)
+						this.Options.Store("listenKeyUrl", nil)
 
 						return nil
 

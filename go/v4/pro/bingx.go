@@ -1875,8 +1875,8 @@ func (this *Bingx) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 								client.(ccxt.ClientInterface).Reject(error, messageHash)
 							}
 						}
-						ccxt.AddElementToObject(this.Options, "listenKey", nil)
-						ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", 0)
+						this.Options.Store("listenKey", nil)
+						this.Options.Store("lastAuthenticatedTime", 0)
 
 						return nil
 
@@ -1960,8 +1960,8 @@ func (this *Bingx) authenticateBody(ch chan any, optionalArgs ...any) any {
 				if listenKey == nil {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
-				ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
-				ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", time)
+				this.Options.Store("listenKey", listenKey)
+				this.Options.Store("lastAuthenticatedTime", time)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 				// settle the flight: client.resolve () removes the future from
 				// client.futures and wakes every waiter

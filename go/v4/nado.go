@@ -3736,7 +3736,7 @@ func (this *Nado) queryContractsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.GatewayPublicGetQuery(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	AddElementToObject(this.Options, "gatewayContracts", data)
+	this.Options.Store("gatewayContracts", data)
 
 	ch <- data
 	return nil

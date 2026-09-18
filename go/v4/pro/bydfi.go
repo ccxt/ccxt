@@ -96,7 +96,7 @@ func (this *Bydfi) Ping(client any) any {
 func (this *Bydfi) RequestId() any {
 	this.LockId()
 	var reqid any = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
-	ccxt.AddElementToObject(this.Options, "reqid", reqid)
+	this.Options.Store("reqid", reqid)
 	this.UnlockId()
 	return reqid
 }

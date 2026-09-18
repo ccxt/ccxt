@@ -2795,7 +2795,7 @@ func (this *Kucoin) loadMigrationStatusBody(ch chan any, optionalArgs ...any) an
 
 		result := (<-this.PrivateGetHfAccountsOpened())
 		PanicOnError(result)
-		AddElementToObject(this.Options, "hf", this.SafeBool(result, "data"))
+		this.Options.Store("hf", this.SafeBool(result, "data"))
 	}
 
 	ch <- true
@@ -14634,7 +14634,7 @@ func (this *Kucoin) isUTAEnabledBody(ch chan any, optionalArgs ...any) any {
 		var data map[string]any = SafeMapTyped(response, "data")
 		var accountMode *string = this.SafeString(data, "selfAccountMode")
 		uta = (accountMode != nil && *accountMode == "UNIFIED")
-		AddElementToObject(this.Options, "uta", uta)
+		this.Options.Store("uta", uta)
 	}
 
 	ch <- uta

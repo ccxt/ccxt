@@ -2405,7 +2405,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 		ch <- this.SafeString(this.Options, "listenKey")
 		return nil
 	}
-	ccxt.AddElementToObject(this.Options, "listenKeyFetching", true)
+	this.Options.Store("listenKeyFetching", true)
 	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
 	var response any = nil
 
@@ -2418,7 +2418,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 					}
 					ret_ = func(this *Mexc) any {
 						// catch block:
-						ccxt.AddElementToObject(this.Options, "listenKeyFetching", false)
+						this.Options.Store("listenKeyFetching", false)
 						client.(ccxt.ClientInterface).Reject(e, messageHash)
 						panic(e)
 
@@ -2433,14 +2433,14 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 		}(this)
 
 	}
-	ccxt.AddElementToObject(this.Options, "listenKeyFetching", false)
+	this.Options.Store("listenKeyFetching", false)
 	//
 	//    {
 	//        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
 	//    }
 	//
 	listenKey = this.SafeString(response, "listenKey")
-	ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+	this.Options.Store("listenKey", listenKey)
 	client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 	var listenKeyRefreshRate *int64 = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, listenKey, params)
@@ -2477,7 +2477,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArg
 						// catch block:
 						var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"), "?listenKey="), listenKey)
 						var client ccxt.ClientInterface = this.Client(url)
-						ccxt.AddElementToObject(this.Options, "listenKey", nil)
+						this.Options.Store("listenKey", nil)
 						client.(ccxt.ClientInterface).Reject(error)
 						ccxt.Remove(this.Clients, url)
 						return nil

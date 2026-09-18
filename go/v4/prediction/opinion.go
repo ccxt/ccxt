@@ -1080,7 +1080,7 @@ func (this *Opinion) loadQuoteTokenBody(ch chan any, quoteTokenAddress any) any 
 			ccxt.AddElementToObject(quoteTokens, address, entry)
 		}
 	}
-	ccxt.AddElementToObject(this.Options, "quoteTokens", quoteTokens)
+	this.Options.Store("quoteTokens", quoteTokens)
 	var quoteToken any = this.SafeDict(quoteTokens, cacheKey)
 	if ccxt.IsEqual(quoteToken, nil) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" loadQuoteToken() could not find quote token ", quoteTokenAddress)))
@@ -1117,7 +1117,7 @@ func (this *Opinion) loadMultiSignAddressBody(ch chan any) any {
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
 	var walletUsers map[string]any = ccxt.SafeMapTyped(result, "walletUsers")
 	var multiSignAddress *string = this.SafeString(walletUsers, "56", this.WalletAddress)
-	ccxt.AddElementToObject(this.Options, "multiSignAddress", multiSignAddress)
+	this.Options.Store("multiSignAddress", multiSignAddress)
 
 	ch <- multiSignAddress
 	return nil
@@ -1778,7 +1778,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan any, marketId any) any {
 	ccxt.AddElementToObject(this.Markets, marketHandle, market)
 	this.IndexMarketOutcomes(market)
 	ccxt.AddElementToObject(cached, idStr, market)
-	ccxt.AddElementToObject(this.Options, cacheKey, cached)
+	this.Options.Store(cacheKey, cached)
 
 	ch <- market
 	return nil
@@ -2117,7 +2117,7 @@ func (this *Opinion) deleteApiKeyBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.OpinionPrivateDeleteAuthApiKey(params))
 	ccxt.PanicOnError(response)
-	ccxt.AddElementToObject(this.Options, "apiKey", nil)
+	this.Options.Store("apiKey", nil)
 	// sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
 	// exchange.apiKey would keep being used for private calls after the key is revoked.
 	// an empty string, not undefined: the strict base types the credential as string, and
@@ -2200,7 +2200,7 @@ func (this *Opinion) SetApiCredentials(response any) any {
 		"apiKey":        this.SafeString(response, "apiKey"),
 		"walletAddress": this.SafeString(response, "walletAddress"),
 	}
-	ccxt.AddElementToObject(this.Options, "apiKey", creds["apiKey"])
+	this.Options.Store("apiKey", creds["apiKey"])
 	// checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
 	// options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
 	this.ApiKey = creds["apiKey"]

@@ -2963,7 +2963,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(tradingAccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
 	}
-	AddElementToObject(this.Options, "tradingAccountId", tradingAccountId)
+	this.Options.Store("tradingAccountId", tradingAccountId)
 
 	ch <- tradingAccountId
 	return nil
@@ -3927,9 +3927,9 @@ func (this *Bullish) signInBody(ch chan any, optionalArgs ...any) any {
 	//
 	var token *string = this.SafeString(response, "token")
 	var authorizer *string = this.SafeString(response, "authorizer")
-	AddElementToObject(this.Options, "authorizer", authorizer)
+	this.Options.Store("authorizer", authorizer)
 	this.Token = token
-	AddElementToObject(this.Options, "tokenExpires", this.Sum(this.Milliseconds(), Multiply(Multiply(Multiply(1000, 60), 60), 24))) // token expires in 24 hours
+	this.Options.Store("tokenExpires", this.Sum(this.Milliseconds(), Multiply(Multiply(Multiply(1000, 60), 60), 24))) // token expires in 24 hours
 
 	ch <- token
 	return nil

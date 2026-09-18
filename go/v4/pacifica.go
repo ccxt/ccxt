@@ -791,7 +791,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 					}
 					ret_ = func(this *Pacifica) any {
 						// catch block:
-						AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+						this.Options.Store("builderFee", false) // disable builder fee if an error occurs
 						return nil
 					}(this)
 				}
@@ -802,7 +802,7 @@ func (this *Pacifica) handleBuilderFeeApprovalBody(ch chan any) any {
 
 			retRes58112 := (<-this.ApproveBuilderCodeAsync(builder, maxFeeRate))
 			PanicOnError(retRes58112)
-			AddElementToObject(this.Options, "approvedBuilderFee", true)
+			this.Options.Store("approvedBuilderFee", true)
 			return nil
 		}(this)
 
@@ -1291,11 +1291,11 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	var settings any = this.HandleOption("loadAccountSettings", "settings")
 	if (IsEqual(settings, nil)) || (refresh == true) {
-		AddElementToObject(this.Options, "settings", this.CreateSafeDictionary())
+		this.Options.Store("settings", this.CreateSafeDictionary())
 
 		settings = (<-this.FetchAccountSettingsAsync(params))
 		PanicOnError(settings)
-		AddElementToObject(this.Options, "settings", settings)
+		this.Options.Store("settings", settings)
 	}
 	return nil
 }

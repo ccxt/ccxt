@@ -5635,7 +5635,7 @@ func (this *Weex) FromSandboxMarketId(marketId any) any {
 }
 func (this *Weex) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 func (this *Weex) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")

@@ -4038,9 +4038,9 @@ func (this *Polymarket) SetApiCredentials(response any) any {
 	}
 	// cache in options rather than the typed apiKey/secret/password fields so the
 	// assignment is valid in the struct-based languages (C#/Go/Java)
-	ccxt.AddElementToObject(this.Options, "l2ApiKey", creds["apiKey"])
-	ccxt.AddElementToObject(this.Options, "l2Secret", creds["secret"])
-	ccxt.AddElementToObject(this.Options, "l2Passphrase", creds["passphrase"])
+	this.Options.Store("l2ApiKey", creds["apiKey"])
+	this.Options.Store("l2Secret", creds["secret"])
+	this.Options.Store("l2Passphrase", creds["passphrase"])
 	return creds
 }
 

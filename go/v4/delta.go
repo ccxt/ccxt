@@ -787,11 +787,11 @@ func (this *Delta) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
-		AddElementToObject(this.Options, "currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
+		this.Options.Store("currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
 	}
 	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
 	if (IsEqual(marketsByNumericId, nil)) || EvalTruthy(reload) {
-		AddElementToObject(this.Options, "marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
+		this.Options.Store("marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
 	}
 
 	ch <- markets

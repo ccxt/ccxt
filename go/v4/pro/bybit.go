@@ -179,7 +179,7 @@ func (this *Bybit) DescribeData() any {
 func (this *Bybit) RequestId() any {
 	this.LockId()
 	var requestId any = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "requestId", requestId)
+	this.Options.Store("requestId", requestId)
 	this.UnlockId()
 	return requestId
 }

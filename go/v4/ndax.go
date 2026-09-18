@@ -688,7 +688,7 @@ func (this *Ndax) signInBody(ch chan any, optionalArgs ...any) any {
 	//
 	var sessionToken *string = this.SafeString(response, "SessionToken")
 	if sessionToken != nil {
-		AddElementToObject(this.Options, "sessionToken", sessionToken)
+		this.Options.Store("sessionToken", sessionToken)
 
 		ch <- response
 		return nil
@@ -698,7 +698,7 @@ func (this *Ndax) signInBody(ch chan any, optionalArgs ...any) any {
 		if IsEqual(this.Twofa, nil) {
 			panic(AuthenticationError(this.Id + " signIn() requires exchange.twofa credentials"))
 		}
-		AddElementToObject(this.Options, "pending2faToken", pending2faToken)
+		this.Options.Store("pending2faToken", pending2faToken)
 		request = map[string]any{
 			"Code": Totp(this.Twofa),
 		}
@@ -713,7 +713,7 @@ func (this *Ndax) signInBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 		sessionToken = this.SafeString(responseInner, "SessionToken")
-		AddElementToObject(this.Options, "sessionToken", sessionToken)
+		this.Options.Store("sessionToken", sessionToken)
 
 		ch <- responseInner
 		return nil

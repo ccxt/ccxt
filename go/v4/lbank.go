@@ -3862,7 +3862,7 @@ func (this *Lbank) Sign(path any, optionalArgs ...any) any {
 				pem = this.SafeValue(this.Options, "pem")
 				if pem == nil {
 					pem = this.ConvertSecretToPem(this.Encode(this.Secret))
-					AddElementToObject(this.Options, "pem", pem)
+					this.Options.Store("pem", pem)
 				}
 			} else {
 				pem = this.ConvertSecretToPem(this.Encode(this.Secret))

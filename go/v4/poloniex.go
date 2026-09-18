@@ -991,7 +991,7 @@ func (this *Poloniex) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeValue(this.Options, "currenciesByNumericId")
 	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
-		AddElementToObject(this.Options, "currenciesByNumericId", this.IndexBy(this.Currencies, "numericId"))
+		this.Options.Store("currenciesByNumericId", this.IndexBy(this.Currencies, "numericId"))
 	}
 
 	ch <- markets

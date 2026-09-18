@@ -5194,7 +5194,7 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 		//                },
 		//                ...
 		//
-		AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
+		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
 		var entries []any = this.ToArray(response)
 		for i := 0; i < len(entries); i++ {
 			var entry any = GetValue(entries, i)
@@ -5496,8 +5496,8 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
 		if (IsEqual(walletAddress, nil)) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-			AddElementToObject(this.Options, "cachedWalletAddress", walletAddress)
-			AddElementToObject(this.Options, "privateKeyHashForCachedWalletAddress", privateKeyHash)
+			this.Options.Store("cachedWalletAddress", walletAddress)
+			this.Options.Store("privateKeyHashForCachedWalletAddress", privateKeyHash)
 		}
 		var signerAddress *string = this.SafeString(this.Options, "signerAddress", walletAddress) // default to user's wallet
 		if signerAddress == nil {
@@ -5701,7 +5701,7 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if !found {
-		AddElementToObject(this.Options, "approvedBuilderFee", true)
+		this.Options.Store("approvedBuilderFee", true)
 
 		{
 			func(this *Aster) (ret_ any) {
@@ -5712,8 +5712,8 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 						}
 						ret_ = func(this *Aster) any {
 							// catch block:
-							AddElementToObject(this.Options, "approvedBuilderFee", false)
-							AddElementToObject(this.Options, "builderFee", false) // disable if err
+							this.Options.Store("approvedBuilderFee", false)
+							this.Options.Store("builderFee", false) // disable if err
 							return nil
 						}(this)
 					}

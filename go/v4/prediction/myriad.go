@@ -4123,7 +4123,7 @@ func (this *Myriad) ParseEvent(rawEvent any) any {
 func (this *Myriad) RequestId(url any) any {
 	var existing any = this.SafeValue(this.Options, "requestId")
 	if ccxt.IsEqual(existing, nil) {
-		ccxt.AddElementToObject(this.Options, "requestId", this.CreateSafeDictionary())
+		this.Options.Store("requestId", this.CreateSafeDictionary())
 	}
 	var options any = ccxt.GetValue(this.Options, "requestId")
 	var previousValue *int64 = this.SafeInteger(options, url, 0)
@@ -4162,7 +4162,7 @@ func (this *Myriad) connectCentrifugoBody(ch chan any, url any) any {
 	var client any = this.Client(url)
 	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "connect")
 	if ccxt.IsEqual(connectSent, nil) {
-		ccxt.AddElementToObject(this.Options, "wsConnected", false)
+		this.Options.Store("wsConnected", false)
 		var requestId any = this.RequestId(url)
 		// give the anonymous connect a name so the params object is non-empty (PHP serialises an
 		// empty array as a JSON array, which Centrifugo rejects)
@@ -4261,7 +4261,7 @@ func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
 	var connectReply any = this.SafeDict(msg, "connect")
 	if !ccxt.IsEqual(connectReply, nil) {
 		// connect acknowledged — unblock connectCentrifugo so channel subscribes can be sent
-		ccxt.AddElementToObject(this.Options, "wsConnected", true)
+		this.Options.Store("wsConnected", true)
 		client.(ccxt.ClientInterface).Resolve(true, "centrifugoConnected")
 		return
 	}
@@ -4995,7 +4995,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan any, trader any) any {
 			ccxt.AddElementToObject(balances, id, this.NumberToString(this.SafeNumber(p, "contracts", 0)))
 		}
 	}
-	ccxt.AddElementToObject(this.Options, "positionBalances", balances)
+	this.Options.Store("positionBalances", balances)
 	return nil
 }
 func (this *Myriad) HandlePosition(client any, data any) {
@@ -5027,7 +5027,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 		if posId != nil {
 			ccxt.AddElementToObject(balances, posId, updated)
 		}
-		ccxt.AddElementToObject(this.Options, "positionBalances", balances)
+		this.Options.Store("positionBalances", balances)
 		contracts = this.ParseNumber(updated)
 	}
 	var parsed any = this.SafePredictionPosition(map[string]any{

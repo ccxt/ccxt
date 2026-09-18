@@ -3547,7 +3547,7 @@ func (this *Bitget) Describe() any {
  * @param enabled
  */
 func (this *Bitget) SetSandboxMode(enabled any) {
-	AddElementToObject(this.Options, "sandboxMode", enabled)
+	this.Options.Store("sandboxMode", enabled)
 }
 
 /**
@@ -3661,7 +3661,7 @@ func (this *Bitget) handleUTAAndParamsBody(ch chan any, params any, methodName a
 			}(this)
 
 		}
-		AddElementToObject(this.Options, "uta", accountIsUTa)
+		this.Options.Store("uta", accountIsUTa)
 
 		ch <- []any{accountIsUTa, params}
 		return nil
@@ -3792,8 +3792,8 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
 	var markets []any = []any{}
-	AddElementToObject(this.Options, "crossMarginPairsData", []any{})
-	AddElementToObject(this.Options, "isolatedMarginPairsData", []any{})
+	this.Options.Store("crossMarginPairsData", []any{})
+	this.Options.Store("isolatedMarginPairsData", []any{})
 	for i := 0; i < GetArrayLength(results); i++ {
 		var res map[string]any = SafeMapTyped(results, i)
 		var data any = this.SafeList(res, "data", []any{})
@@ -3819,8 +3819,8 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan any, params any) any {
 					AppendToArray(&isolatedKeys, entrySymbol)
 				}
 			}
-			AddElementToObject(this.Options, "crossMarginPairsData", crossKeys)
-			AddElementToObject(this.Options, "isolatedMarginPairsData", isolatedKeys)
+			this.Options.Store("crossMarginPairsData", crossKeys)
+			this.Options.Store("isolatedMarginPairsData", isolatedKeys)
 		} else {
 			markets = this.ArrayConcat(markets, data)
 		}

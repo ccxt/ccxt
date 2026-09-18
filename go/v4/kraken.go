@@ -861,7 +861,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"info":    market,
 		})
 	}
-	AddElementToObject(this.Options, "marketsByAltname", this.IndexBy(result, "altname"))
+	this.Options.Store("marketsByAltname", this.IndexBy(result, "altname"))
 
 	ch <- result
 	return nil

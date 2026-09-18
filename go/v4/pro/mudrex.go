@@ -49,7 +49,7 @@ func (this *Mudrex) Ping(client any) any {
 }
 func (this *Mudrex) RequestId() any {
 	var reqid any = this.Sum(this.SafeInteger(this.Options, "correlationId", 0), 1)
-	ccxt.AddElementToObject(this.Options, "correlationId", reqid)
+	this.Options.Store("correlationId", reqid)
 	return reqid
 }
 
@@ -69,7 +69,7 @@ func (this *Mudrex) SetBrokerHeaders() {
 	ccxt.AddElementToObject(headers, "Partner-Id", brokerId)
 	ccxt.AddElementToObject(innerOptions, "headers", headers)
 	ccxt.AddElementToObject(wsOptions, "options", innerOptions)
-	ccxt.AddElementToObject(this.Options, "ws", wsOptions)
+	this.Options.Store("ws", wsOptions)
 }
 func (this *Mudrex) WatchTickerAsync(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)

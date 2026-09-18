@@ -366,7 +366,7 @@ func (this *Apex) GetWsPublicUrl() any {
 	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
-		ccxt.AddElementToObject(this.Options, "wsPublicUrl", url)
+		this.Options.Store("wsPublicUrl", url)
 	}
 	return url
 }
@@ -375,7 +375,7 @@ func (this *Apex) GetWsPrivateUrl() any {
 	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
-		ccxt.AddElementToObject(this.Options, "wsPrivateUrl", url)
+		this.Options.Store("wsPrivateUrl", url)
 	}
 	return url
 }
