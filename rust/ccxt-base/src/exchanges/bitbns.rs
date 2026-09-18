@@ -634,7 +634,7 @@ impl BitbnsCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -892,12 +892,12 @@ impl BitbnsCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_314 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("availableorder".to_string()));
-            let mut numParts: Value = Value::Int(parts.len() as i64);
-            if numParts.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            let mut numParts: f64 = ((parts.len() as i64) as f64);
+            if numParts > ((1i64) as f64) {
                 let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: Value = self.account();
@@ -1347,9 +1347,9 @@ impl BitbnsCore {
         let mut amountString: Value = self.safe_string_k(trade.clone(), "amount", &[]);
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("type".to_string()), &[]);
         if (side != Value::Null) {
-            if get_index_of(&side, &Value::Str("buy".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&side, &Value::Str("buy".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&side, &Value::Str("sell".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&side, &Value::Str("sell".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("sell".to_string());
             }
         }
@@ -1681,10 +1681,10 @@ impl BitbnsCore {
         let mut expTime: Value = self.safe_string_k(transaction.clone(), "expTime", &[Value::Str("".to_string())]);
         let mut status: Value = Value::Null;
         if (type_var != Value::Null) {
-            if get_index_of(&type_var, &Value::Str("deposit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&type_var, &Value::Str("deposit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 type_var = Value::Str("deposit".to_string());
                 status = Value::Str("ok".to_string());
-            }  else if get_index_of(&type_var, &Value::Str("withdraw".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) || get_index_of(&expTime, &Value::Str("withdraw".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&type_var, &Value::Str("withdraw".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) || get_index_of(&expTime, &Value::Str("withdraw".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 type_var = Value::Str("withdrawal".to_string());
             }
         }
@@ -1814,11 +1814,11 @@ impl BitbnsCore {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut nonce: Value = to_string_val(&self.nonce());
         if (method.as_str() == Some("GET")) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }
         }  else if (method.as_str() == Some("POST")) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 body = self.json(query.clone());
             }  else {
                 body = Value::Str("{}".to_string());

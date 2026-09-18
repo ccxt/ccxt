@@ -759,7 +759,7 @@ impl BitrueCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_155 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_155 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_155 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut candidate: Value = get_value(&markets, &get_value(&symbols, &i));
             if !is_equal(&crate::value::get_value_k(&candidate, "swap"), &Value::Bool(true)) {
                 continue;
@@ -901,7 +901,7 @@ impl BitrueCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_157: bool = true;
-            while { if !__for_first_157 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_157 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_157 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_157 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             if (stored == Value::Null) {
                 let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
                 stored = ArrayCache::new(limit.clone());
@@ -1252,13 +1252,13 @@ impl BitrueCore {
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         if is_true(&Value::Bool(in_op(&message, &Value::Str("channel".to_string())))) {
             let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-            if get_index_of(&channel, &Value::Str("_depth_step".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&channel, &Value::Str("_depth_step".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_order_book(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_trade_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&channel, &Value::Str("_trade_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_trades(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_kline_".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&channel, &Value::Str("_kline_".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_ohlcv(client.clone(), message.clone());
-            }  else if get_index_of(&channel, &Value::Str("_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&channel, &Value::Str("_ticker".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 self.handle_ticker(client.clone(), message.clone());
             }
         }  else if is_true(&Value::Bool(in_op(&message, &Value::Str("ping".to_string())))) {

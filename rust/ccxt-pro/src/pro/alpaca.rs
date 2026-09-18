@@ -951,7 +951,7 @@ impl AlpacaCore {
         if (type_var == Value::Null) {
             return Value::Null;
         }
-        if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             // might be limit or stop-limit
             type_var = Value::Str("limit".to_string());
         }

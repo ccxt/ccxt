@@ -694,7 +694,7 @@ impl IndependentreserveCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_826: bool = true;
-            while { if !__for_first_826 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_826 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(baseCurrencyIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_826 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_826 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseCurrencyIds.len() as i64) as f64) } {
             let mut baseId: Value = get_value(&baseCurrencyIds, &i);
             let mut baseId: Value = get_value(&baseCurrencyIds, &i);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
@@ -702,7 +702,7 @@ impl IndependentreserveCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_825: bool = true;
-                while { if !__for_first_825 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_825 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(quoteCurrencyIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_825 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_825 = false; j.as_f64().unwrap_or(f64::NAN) < ((quoteCurrencyIds.len() as i64) as f64) } {
                 let mut quoteId: Value = get_value(&quoteCurrencyIds, &j);
                 let mut quoteId: Value = get_value(&quoteCurrencyIds, &j);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
@@ -1011,14 +1011,14 @@ impl IndependentreserveCore {
         let mut orderType: Value = self.safe_string2(order.clone(), Value::Str("Type".to_string()), Value::Str("OrderType".to_string()), &[]);
         let mut side: Value = Value::Null;
         if (orderType != Value::Null) {
-            if get_index_of(&orderType, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&orderType, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&orderType, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&orderType, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("sell".to_string());
             }
-            if get_index_of(&orderType, &Value::Str("Market".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&orderType, &Value::Str("Market".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 orderType = Value::Str("market".to_string());
-            }  else if get_index_of(&orderType, &Value::Str("Limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&orderType, &Value::Str("Limit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 orderType = Value::Str("limit".to_string());
             }
         }
@@ -1279,9 +1279,9 @@ impl IndependentreserveCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("/".to_string())]);
         let mut side: Value = self.safe_string_k(trade.clone(), "OrderType", &[]);
         if (side != Value::Null) {
-            if get_index_of(&side, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&side, &Value::Str("Bid".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("buy".to_string());
-            }  else if get_index_of(&side, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&side, &Value::Str("Offer".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 side = Value::Str("sell".to_string());
             }
         }
@@ -1375,7 +1375,7 @@ impl IndependentreserveCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_828: bool = true;
-            while { if !__for_first_828 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_828 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_828 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_828 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut fee: Value = get_value(&rows, &i);
             let mut fee: Value = get_value(&rows, &i);
             let mut currencyId: Value = self.safe_string_k(fee.clone(), "CurrencyCode", &[]);
@@ -1399,7 +1399,7 @@ impl IndependentreserveCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_829: bool = true;
-            while { if !__for_first_829 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_829 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_829 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_829 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -1680,7 +1680,7 @@ impl IndependentreserveCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), &path);
         if (api.as_str() == Some("public")) {
-            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             }
         }  else {
@@ -1691,7 +1691,7 @@ impl IndependentreserveCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_830: bool = true;
-                while { if !__for_first_830 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_830 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_830 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_830 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut value: Value = to_string_val(&get_value(&params, &key));
@@ -1710,7 +1710,7 @@ impl IndependentreserveCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_831: bool = true;
-                while { if !__for_first_831 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_831 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_831 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_831 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 add_element_to_object(&mut query, &key, get_value(&params, &key));

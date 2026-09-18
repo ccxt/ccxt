@@ -1174,7 +1174,7 @@ impl BitoproCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_391: bool = true;
-            while { if !__for_first_391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_391 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_391 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -1601,7 +1601,7 @@ impl BitoproCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_394: bool = true;
-            while { if !__for_first_394 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_394 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(dataKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_394 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_394 = false; i.as_f64().unwrap_or(f64::NAN) < ((dataKeys.len() as i64) as f64) } {
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut marketId: Value = get_value(&dataKeys, &i);
             let mut orderIds: Value = get_value(&data, &marketId);
@@ -2309,7 +2309,7 @@ impl BitoproCore {
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-PAYLOAD".to_string()), payload.clone());
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".to_string()), signature.clone());
             }  else if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
                 let mut nonce: Value = self.milliseconds();
@@ -2326,7 +2326,7 @@ impl BitoproCore {
                 add_element_to_object(&mut headers, &Value::Str("X-BITOPRO-SIGNATURE".to_string()), signature.clone());
             }
         }  else if (api.as_str() == Some("public")) && (method.as_str() == Some("GET")) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }
         }
@@ -2347,7 +2347,7 @@ impl BitoproCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        if code.as_f64().unwrap_or(f64::NAN) >= Value::Int(200).as_f64().unwrap_or(f64::NAN) && code.as_f64().unwrap_or(f64::NAN) < Value::Int(300).as_f64().unwrap_or(f64::NAN) {
+        if code.as_f64().unwrap_or(f64::NAN) >= ((200i64) as f64) && code.as_f64().unwrap_or(f64::NAN) < ((300i64) as f64) {
             return Value::Null;
         }
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
