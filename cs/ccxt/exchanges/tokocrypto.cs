@@ -861,7 +861,7 @@ public partial class tokocrypto : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(bs, "/"), quote);
+            string? symbol = ((string)add(add(bs, "/"), quote));
             object filters = this.safeValue(market, "filters", new List<object>() {});
             Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             string? status = this.safeString(market, "spotTradingEnable");

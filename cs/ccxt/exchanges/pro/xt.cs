@@ -352,7 +352,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker");
         object method = this.safeString(parameters, "method", defaultMethod);
-        object name = add(add(method, "@"), GetValue(market, "id"));
+        string? name = ((string)add(add(method, "@"), GetValue(market, "id")));
         return ccxt.BaseExchange.ToTicker(await this.subscribe(name, "public", "watchTicker", market, null, parameters));
     }
 
@@ -378,7 +378,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> options = this.safeDict(this.options, "unWatchTicker");
         string? defaultMethod = this.safeString(options, "method", "ticker");
         object method = this.safeString(parameters, "method", defaultMethod);
-        object name = add(add(method, "@"), GetValue(market, "id"));
+        string? name = ((string)add(add(method, "@"), GetValue(market, "id")));
         string messageHash = add("unsubscribe::", name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters);
     }

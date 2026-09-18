@@ -203,7 +203,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? quoteId = this.safeString(parts, 3);
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         string messageHash = add(add(add("orderbook:", symbol), ":"), depth);
         object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});

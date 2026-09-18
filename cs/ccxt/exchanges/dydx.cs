@@ -628,7 +628,7 @@ public partial class dydx : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         string settleId = "USDC";
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
         bool contract = true;
         bool swap = true;
         string? amountPrecisionStr = this.safeString(market, "stepSize");

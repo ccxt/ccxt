@@ -2914,7 +2914,7 @@ public partial class bybit : Exchange
             string? quoteId = this.safeString(market, "quoteCoin");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            string? symbol = ((string)add(add(bs, "/"), quote));
             string? status = this.safeString(market, "status");
             bool active = (status == "Trading");
             IDictionary<string, object> lotSizeFilter = this.safeDict(market, "lotSizeFilter");

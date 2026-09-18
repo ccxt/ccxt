@@ -111,7 +111,7 @@ public partial class woofipro : ccxt.woofipro
         }
         string name = "orderbook";
         Dictionary<string, object> market = this.market(symbol);
-        object topic = add(add(GetValue(market, "id"), "@"), name);
+        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -180,7 +180,7 @@ public partial class woofipro : ccxt.woofipro
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        object topic = add(add(GetValue(market, "id"), "@"), name);
+        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -434,7 +434,7 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        object topic = add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval);
+        string? topic = ((string)add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -513,7 +513,7 @@ public partial class woofipro : ccxt.woofipro
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        object topic = add(GetValue(market, "id"), "@trade");
+        string? topic = ((string)add(GetValue(market, "id"), "@trade"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },

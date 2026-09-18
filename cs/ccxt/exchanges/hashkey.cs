@@ -1139,7 +1139,7 @@ public partial class hashkey : Exchange
             suffix = add(suffix, add(":", settleId));
         }
         object bs = this.safeCurrencyCode(baseId);
-        object symbol = add(add(add(bs, "/"), quote), suffix);
+        string? symbol = ((string)add(add(add(bs, "/"), quote), suffix));
         string? status = this.safeString(market, "status");
         bool active = status == "TRADING";
         bool? isLinear = null;

@@ -339,7 +339,7 @@ public partial class hibachi : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         string? settleId = this.safeString(market, "settlementSymbol");
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+        string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
         Int64? created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },

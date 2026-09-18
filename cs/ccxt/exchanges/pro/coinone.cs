@@ -356,7 +356,7 @@ public partial class coinone : ccxt.coinone
         string? quoteId = this.safeStringUpper(trade, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         object isSellerMaker = this.safeValue(trade, "is_seller_maker");

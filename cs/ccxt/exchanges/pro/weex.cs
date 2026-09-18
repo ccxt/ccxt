@@ -230,7 +230,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -289,7 +289,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
@@ -444,7 +444,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -503,7 +503,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), topic);
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), topic));
             string messageHash = add(add(topic, "::"), symbol);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
@@ -1087,7 +1087,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), "bookTicker");
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), "bookTicker"));
             string messageHash = add("bidask::", symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
@@ -1131,7 +1131,7 @@ public partial class weex : ccxt.weex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object channelName = add(add(GetValue(market, "id"), "@"), "bookTicker");
+            string? channelName = ((string)add(add(GetValue(market, "id"), "@"), "bookTicker"));
             string messageHash = add("bidask::", symbol);
             string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);

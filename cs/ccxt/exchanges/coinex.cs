@@ -1357,7 +1357,7 @@ public partial class coinex : Exchange
             string? quoteId = this.safeString(market, "quote_ccy");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            string? symbol = ((string)add(add(bs, "/"), quote));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -1454,7 +1454,7 @@ public partial class coinex : Exchange
             string? quote = this.safeCurrencyCode(quoteId);
             string? settleId = (subType == "linear") ? "USDT" : baseId;
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
             int leveragesLength = leverages.Count;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },

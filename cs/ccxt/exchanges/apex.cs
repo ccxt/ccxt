@@ -736,7 +736,7 @@ public partial class apex : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? settleId = this.safeString(market, "settleAssetId");
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(baseId, "/"), quote), ":"), settle);
+        string? symbol = ((string)add(add(add(add(baseId, "/"), quote), ":"), settle));
         int expiry = 0;
         double? takerFee = this.parseNumber("0.0002");
         double? makerFee = this.parseNumber("0.0005");

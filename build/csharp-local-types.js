@@ -5261,6 +5261,207 @@ function marketRowBoolReadType (csharp, initializer) {
     return (key !== undefined && MARKET_ROW_BOOL_KEYS.includes (key)) ? 'bool' : undefined;
 }
 
+// ---- U20: `add` chains over market-row / symbol leaves --------------------------------
+//
+// `const symbol = base + '/' + quote` prints `object symbol = add(add(bs, "/"), quote)`.
+// The leaves are `object` locals whose VALUE is a string or null (`bs` =
+// safeCurrencyCode's string? box; `market['base']` = a market-row string read), so the
+// chain's own printed type is `object` and naming the box needs the `(string)` cast the
+// printer does not emit — the identity cast the market-row family already uses (null ->
+// null, a string -> itself). `add(object, object)` hands back null exactly when its LEFT
+// operand is not a string box, and a left-nested `+` chain propagates that through every
+// level, so the declaration is `string?` when the LEFTMOST leaf can be null and `string`
+// when it cannot (a null RIGHT operand concatenates as "" on both overloads).
+//
+// Leaf boxes: a string literal, a read of a local whose own value box is a string box (the
+// emitted declaration when this module names it, else the join of its initializer and every
+// later write), a call whose printed C# signature returns string / string?, a market-row
+// read at a MARKET_ROW_STRING_KEYS key, an element read of a proven string list
+// (elementAccessElementType) and a `this.<member>` read the base types string / string?.
+// Anything else — a parameter, a numeric, an object leaf — keeps the chain `object`.
+
+// the C# box of one `+` operand: 'string' (never null), 'string?' (string or null), else
+// undefined. Mirrors the proof shapes isProvablyStringOperand carries, plus the leaf
+// families of this rule.
+function addChainLeafBoxType (csharp, node, context) {
+    switch (node?.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return 'string';
+    case ts.SyntaxKind.ParenthesizedExpression:
+        return addChainLeafBoxType (csharp, node.expression, context);
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression:
+        // `x as string` prints `((string)x)`, a string box whatever x was
+        return (node.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case ts.SyntaxKind.Identifier: {
+        // a local this module declares string / string? (the emitted type IS the box)
+        const declared = localIdentifierType (csharp, node);
+        if (declared === 'string' || declared === 'string?') {
+            return declared;
+        }
+        // else the value box its own initializer + later writes prove (an `object` local)
+        return localValueBoxType (csharp, node, context);
+    }
+    case ts.SyntaxKind.CallExpression: {
+        const own = callReturnType (csharp, node);
+        return (own === 'string' || own === 'string?') ? own : undefined;
+    }
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.escapedText];
+        return (memberType === 'string' || memberType === 'string?') ? memberType : undefined;
+    }
+    case ts.SyntaxKind.ElementAccessExpression: {
+        // a market-row read at a string key is a string or null (MARKET_ROW_STRING_KEYS,
+        // value census in the header); an element of a proven string list is a string or
+        // null off the end of the list (elementAccessElementType's own cast proof)
+        if (marketRowStringReadType (csharp, node) === 'string') {
+            return 'string?';
+        }
+        return (elementAccessElementType (csharp, node, context) === 'string') ? 'string?' : undefined;
+    }
+    }
+    return undefined;
+}
+
+// declarations whose value box is being joined right now (a cycle must not recurse)
+const valueBoxInFlight = new Set ();
+
+// the parent shapes that make the occurrence of a name a WRITE the box scan below cannot
+// model: `x++` / `x--` and `-x` / `+x` (the printer's ref sinks), `[x, y] = tuple` (the
+// element read the destructuring print assigns back), `...x` and a for-of / for-in target.
+// A name under any of them disqualifies the leaf; everything else is a read.
+const WRITE_TARGET_SHAPES = [
+    ts.SyntaxKind.PostfixUnaryExpression,
+    ts.SyntaxKind.PrefixUnaryExpression,
+    ts.SyntaxKind.ArrayLiteralExpression,
+    ts.SyntaxKind.SpreadElement,
+    ts.SyntaxKind.ForOfStatement,
+    ts.SyntaxKind.ForInStatement,
+];
+
+// the value box of a local read this module leaves `object` (bs = this.safeCurrencyCode
+// (...)): the join of the initializer's proven box and every later plain write's, with the
+// SAME resolution strictness the read/write scan uses (exactly one binding referring to
+// this read, a local, declared before it, a single declarator). A parameter, an ambiguous
+// binding, an unprovable or non-string write and a cycle all reject.
+function localValueBoxType (csharp, identifier, context) {
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (identifier) : enclosingFunction (identifier));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const name = identifier.escapedText;
+    if (index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    const declarations = (index.declarations.get (name) ?? []).filter ((candidate) => useRefersToDeclaration (csharp, scope, candidate, identifier) === true);
+    if (declarations.length !== 1) {
+        return undefined;
+    }
+    const declaration = declarations[0];
+    if (declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.name?.kind !== ts.SyntaxKind.Identifier
+            || declaration.initializer === undefined || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    try {
+        if (declaration.getStart () >= identifier.getStart ()) {
+            return undefined; // the local is not provably bound before the read
+        }
+    } catch (e) {
+        return undefined;
+    }
+    if (valueBoxInFlight.has (declaration)) {
+        return undefined;
+    }
+    valueBoxInFlight.add (declaration);
+    try {
+        const nested = { scope, stack: new Set (context?.stack ?? []), depth: (context?.depth ?? 0) + 1 };
+        if (nested.depth > MAX_RESOLVE_DEPTH) {
+            return undefined;
+        }
+        let box = csharpTypeOfValue (csharp, declaration.initializer, nested);
+        if (box !== 'string' && box !== 'string?') {
+            return undefined;
+        }
+        for (const n of (index.identifiers.get (name) ?? [])) {
+            if (n === declaration.name || isNotAUse (n)) {
+                continue;
+            }
+            if (useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+                continue;
+            }
+            const parent = n.parent;
+            if (!(parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind))) {
+                // an unmodelled write shape (`x++`, `-x` / `+x` as ref sinks, `[x, y] = tuple`,
+                // a for-of / for-in target, a spread) could hand the local an arbitrary box: a
+                // read cannot change the box, but none of these is a read of the name
+                if (WRITE_TARGET_SHAPES.includes (parent?.kind)) {
+                    return undefined;
+                }
+                continue;
+            }
+            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken && parent.operatorToken.kind !== ts.SyntaxKind.PlusEqualsToken) {
+                return undefined; // `x -= v` / `x *= v` / ... prints a numeric helper result back
+            }
+            const written = csharpTypeOfValue (csharp, parent.right, nested);
+            if (written === 'null') {
+                box = 'string?'; // a null write keeps the box a string-or-null
+            } else if (written !== 'string' && written !== 'string?') {
+                return undefined;
+            }
+        }
+        return box;
+    } finally {
+        valueBoxInFlight.delete (declaration);
+    }
+}
+
+// the declaration this rule rewrites: `object <name> = <+ chain>` whose every leaf is a
+// string box, behind the `(string)` cast. Fence (roster U20): the local is named `symbol`,
+// or one leaf is a market-row read — the family the unit owns; the other `+` chains belong
+// to the string-left rule of csharpTypeOfValue / the sibling units.
+function addChainStringBoxType (csharp, declaration, context) {
+    const initializer = declaration.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.BinaryExpression || initializer.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const leaves = [];
+    const collect = (n) => {
+        if (n?.kind === ts.SyntaxKind.BinaryExpression && n.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+            collect (n.left);
+            collect (n.right);
+        } else {
+            leaves.push (n);
+        }
+    };
+    collect (initializer);
+    if (leaves.length < 2) {
+        return undefined;
+    }
+    let hasMarketRowLeaf = false;
+    let leftmost;
+    for (let i = 0; i < leaves.length; i++) {
+        const box = addChainLeafBoxType (csharp, leaves[i], context);
+        if (box === undefined) {
+            return undefined;
+        }
+        if (i === 0) {
+            leftmost = box;
+        }
+        if (leaves[i]?.kind === ts.SyntaxKind.ElementAccessExpression && marketRowStringReadType (csharp, leaves[i]) === 'string') {
+            hasMarketRowLeaf = true;
+        }
+    }
+    if (declaration.name?.escapedText !== 'symbol' && !hasMarketRowLeaf) {
+        return undefined;
+    }
+    return { type: (leftmost === 'string?') ? 'string?' : 'string', cast: 'string' };
+}
+
 // The DICT keys (`precision` / `limits` / `info`) have no table: `info` has a STRING writer on a
 // market row (independentreserve) plus 58 any-typed ones, and limits/precision have zero
 // declaration sites — census, proof and reject reasons: REPORT.md + tools/S23/market-row-types.mjs.
@@ -5713,6 +5914,14 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // null-exact unboxing Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
+        } else if (addChainStringBoxType (csharp, declaration, ctx) !== undefined) {
+            // `const symbol = base + '/' + quote` prints `add(add(bs, "/"), quote)` over
+            // string-box leaves (bs = safeCurrencyCode's string? box, a market-row read), so
+            // the chain's box is a string or null and the `(string)` cast names exactly that —
+            // U20's family, see addChainStringBoxType
+            const chain = addChainStringBoxType (csharp, declaration, ctx);
+            csharpType = chain.type;
+            cast = chain.cast;
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above

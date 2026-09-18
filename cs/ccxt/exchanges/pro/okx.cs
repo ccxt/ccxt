@@ -1368,7 +1368,7 @@ public partial class okx : ccxt.okx
                 }
             }
             callDynamically(stored, "append", new object[] {parsed});
-            object messageHash = add(add(channel, ":"), GetValue(market, "id"));
+            string? messageHash = ((string)add(add(channel, ":"), GetValue(market, "id")));
             callDynamically(client, "resolve", new object[] {stored, messageHash});
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol

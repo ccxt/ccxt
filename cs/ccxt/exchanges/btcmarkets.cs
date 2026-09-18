@@ -609,7 +609,7 @@ public partial class btcmarkets : Exchange
         string? id = this.safeString(market, "marketId");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         object fees = this.safeValue(this.safeDict(this.options, "fees", new Dictionary<string, object>() {}), quote, this.fees);
         double? pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
         double? minAmount = this.safeNumber(market, "minOrderAmount");
