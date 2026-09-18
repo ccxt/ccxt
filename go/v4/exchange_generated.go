@@ -7310,7 +7310,7 @@ func (this *BaseExchange) HandleTimeInForce(optionalArgs ...any) any {
 	if timeInForce != nil {
 		var exchangeValue *string = this.SafeString(GetValue(this.Options, "timeInForce"), timeInForce)
 		if exchangeValue == nil {
-			panic(ExchangeError(Add(Add(this.Id+" does not support timeInForce \"", timeInForce), "\"")))
+			panic(ExchangeError(this.Id + " does not support timeInForce \"" + *timeInForce + "\""))
 		}
 		return exchangeValue
 	}
