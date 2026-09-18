@@ -640,7 +640,7 @@ public partial class PredictionExchange : BaseExchange
         // already-unique handles stay clean.
         string marketPart = this.shortenSlug(marketSlug);
         string eventPart = this.shortenSlug(eventSlug);
-        if (((eventPart == null)) || (isEqual(eventPart, "")) || (isEqual(eventPart, marketPart)))
+        if (((eventPart == null)) || (isEqual(eventPart, "")) || ((eventPart == marketPart)))
         {
             return marketPart;
         }

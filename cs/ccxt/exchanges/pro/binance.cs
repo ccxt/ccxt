@@ -3653,7 +3653,7 @@ public partial class binance : ccxt.binance
             for (int j = 0; j < subscriptionKeys.Count; postFixIncrement(ref j))
             {
                 string? subscribeType = ((string)getValue(subscriptionKeys, j));
-                if (isEqual(subscribeType, type))
+                if ((subscribeType == type))
                 {
                     this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { delayParams});
                     return;

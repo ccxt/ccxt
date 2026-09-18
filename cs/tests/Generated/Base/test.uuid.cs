@@ -17,7 +17,7 @@ public partial class BaseTest
             string id2 = exchange.uuid();
             Assert((id1 != null), "uuid 1 must return a value");
             Assert((id2 != null), "uuid 2 must return a value");
-            Assert(!isEqual(id1, id2), "uuid() must return unique values on each call");
+            Assert((id1 != id2), "uuid() must return unique values on each call");
             Assert(isEqual(((object)id1).ToString(), id1), "uuid() must return a string");
             Assert(isEqual(((object)id2).ToString(), id2), "uuid() must return a string");
             Assert((((string)id1).Length == 36), ("uuid() must return a 36-character string, returned id1: " + id1));
@@ -28,7 +28,7 @@ public partial class BaseTest
             string id16b = exchange.uuid16();
             Assert((id16a != null), "uuid16 1 must return a value");
             Assert((id16b != null), "uuid16 2 must return a value");
-            Assert(!isEqual(id16a, id16b), ((("uuid16() must return unique values on each call, returned id16a: " + id16a) + ", id16b: ") + id16b));
+            Assert((id16a != id16b), ((("uuid16() must return unique values on each call, returned id16a: " + id16a) + ", id16b: ") + id16b));
             Assert(isEqual(((object)id16a).ToString(), id16a), ("uuid16() must return a string, returned id16a: " + id16a));
             Assert(isEqual(((object)id16b).ToString(), id16b), ("uuid16() must return a string, returned id16b: " + id16b));
             Assert((((string)id16a).Length == 16), ("uuid16() must return a 16-character string, returned id16a: " + id16a));
@@ -38,7 +38,7 @@ public partial class BaseTest
             string id22b = exchange.uuid22();
             Assert((id22a != null), "uuid22 1 must return a value");
             Assert((id22b != null), "uuid22 2 must return a value");
-            Assert(!isEqual(id22a, id22b), "uuid22() must return unique values on each call");
+            Assert((id22a != id22b), "uuid22() must return unique values on each call");
             Assert(isEqual(((object)id22a).ToString(), id22a), ("uuid22() must return a string, returned id22a: " + id22a));
             Assert(isEqual(((object)id22b).ToString(), id22b), ("uuid22() must return a string, returned id22b: " + id22b));
             Assert((((string)id22a).Length == 22), ("uuid22() must return a 22-character string, returned id22a: " + id22a));

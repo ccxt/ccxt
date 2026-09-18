@@ -337,7 +337,7 @@ public partial class toobit : ccxt.toobit
             string? marketId = ((string)getValue(market, "id"));
             string? unfiedTimeframe = this.safeString(data, 1, "1m");
             string? rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
-            if ((selectedTimeframe != null) && !isEqual(selectedTimeframe, rawTimeframe))
+            if ((selectedTimeframe != null) && (selectedTimeframe != rawTimeframe))
             {
                 throw new NotSupported ((string)(this.id + " watchOHLCVForSymbols() only supports a single timeframe for all symbols")) ;
             } else

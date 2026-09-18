@@ -1910,7 +1910,7 @@ public partial class nado : ccxt.nado
                 IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, subscriptionHash);
                 string? streamType = this.safeString(subscription, "streamType");
                 string? subscriptionSymbol = this.safeString(subscription, "symbol");
-                if (((streamType == "book_depth")) && (isEqual(subscriptionSymbol, symbol)))
+                if (((streamType == "book_depth")) && ((subscriptionSymbol == symbol)))
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
                 }

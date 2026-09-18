@@ -883,7 +883,7 @@ public partial class bitfinex : ccxt.bitfinex
         string payload = String.Join(":", ((IList<object>)stringArray).ToArray());
         Int64 localChecksum = this.crc32(payload, true);
         Int64? responseChecksum = this.safeInteger(message, 2);
-        if (!isEqual(responseChecksum, localChecksum))
+        if ((responseChecksum != localChecksum))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);

@@ -162,7 +162,7 @@ public partial class cex : ccxt.cex
             for (int i = 0; i < subscriptionKeys.Count; postFixIncrement(ref i))
             {
                 string? subscriptionKey = ((string)getValue(subscriptionKeys, i));
-                if (isEqual(subscriptionKey, subscriptionHash))
+                if ((subscriptionKey == subscriptionHash))
                 {
                     continue;
                 }

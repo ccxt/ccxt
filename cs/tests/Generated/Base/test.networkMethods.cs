@@ -137,7 +137,7 @@ public partial class BaseTest
                         object msg = (add((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: "), result) + ", expected: ");
                         if (isEqual(randomNetworkCode, primaryNetworkCode))
                         {
-                            if (isEqual(randomCurrencyCode, chainBaseCoin))
+                            if ((randomCurrencyCode == chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else
@@ -146,7 +146,7 @@ public partial class BaseTest
                             }
                         } else if (isEqual(randomNetworkCode, secondaryNetworkCode))
                         {
-                            if (isEqual(randomCurrencyCode, chainBaseCoin))
+                            if ((randomCurrencyCode == chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else

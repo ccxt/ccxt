@@ -1056,7 +1056,7 @@ public partial class bitget : ccxt.bitget
                 }
                 string payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
                 Int64 calculatedChecksum = this.crc32(payload, true);
-                if (!isEqual(calculatedChecksum, responseChecksum))
+                if ((calculatedChecksum != responseChecksum))
                 {
                     this.spawn(this.handleCheckSumError, new object[] { client, symbol, messageHash});
                     return;

@@ -1962,7 +1962,7 @@ public partial class kalshi : PredictionExchange
         object mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
         string? marketResult = this.safeStringUpper(settlement, "market_result");
-        bool won = (isEqual(marketResult, heldLabel));
+        bool won = ((marketResult == heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
         object payout = this.safeNumber(settlement, "revenue_dollars");
         if (isEqual(payout, null))

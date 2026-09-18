@@ -257,7 +257,7 @@ public partial class independentreserve : ccxt.independentreserve
             }
             Int64 calculatedChecksum = this.crc32(payload, false);
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
-            if (!isEqual(calculatedChecksum, responseChecksum))
+            if ((calculatedChecksum != responseChecksum))
             {
                 var error = new ChecksumError(add((this.id + " "), this.orderbookChecksumMessage(symbol)));
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);

@@ -312,7 +312,7 @@ public partial class opinion : PredictionExchange
             int? settleFraction = null;
             if (hasResult)
             {
-                winner = (isEqual(tokenId, resultTokenId));
+                winner = ((tokenId == resultTokenId));
                 settleFraction = ((bool) isTrue(winner)) ? 1 : 0;
                 if (isTrue(winner))
                 {

@@ -1232,7 +1232,7 @@ public partial class hyperliquid : PredictionExchange
                 IDictionary<string, object> oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
                 string? ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
                 string? ocLabel = this.safeStringUpper(oc, "label");
-                if (isEqual(ocLabel, normalizedHint) || ((string)ocSymbol).EndsWith(((string)(":" + normalizedHint))))
+                if ((ocLabel == normalizedHint) || ((string)ocSymbol).EndsWith(((string)(":" + normalizedHint))))
                 {
                     return oc;
                 }
