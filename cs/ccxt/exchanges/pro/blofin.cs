@@ -148,7 +148,7 @@ public partial class blofin : ccxt.blofin
         {
             object rawTrade = getValue(data, i);
             Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
-            object symbol = getValue(trade, "symbol");
+            string? symbol = ((string)getValue(trade, "symbol"));
             object stored = this.safeValue(this.trades, symbol);
             if ((stored == null))
             {
@@ -337,7 +337,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(getValue(data, i)));
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             object messageHash = add(add(channelName, ":"), symbol);
             ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
             (client as WebSocketClient).resolve(getValue(this.tickers, ((string)symbol)), messageHash);
@@ -402,8 +402,8 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(getValue(data, i)));
-            object symbol = getValue(ticker, "symbol");
-            string messageHash = add("bidask:", symbol);
+            string? symbol = ((string)getValue(ticker, "symbol"));
+            string messageHash = ("bidask:" + symbol);
             ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             (client as WebSocketClient).resolve(ticker, messageHash);
         }
@@ -662,7 +662,7 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
         {
             Dictionary<string, object> order = ((Dictionary<string, object>)this.parseWsOrder(getValue(data, i)));
-            object symbol = getValue(order, "symbol");
+            string? symbol = ((string)getValue(order, "symbol"));
             object messageHash = add(add(channelName, ":"), symbol);
             callDynamically(orders, "append", new object[] {order});
             (client as WebSocketClient).resolve(orders, messageHash);

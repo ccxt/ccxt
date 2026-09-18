@@ -853,7 +853,7 @@ public partial class lighter : ccxt.lighter
                 ((IDictionary<string,object>)tradeRaw)["accountIndex"] = accountIndex;
                 Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsOrderTrade(tradeRaw, market));
                 callDynamically(stored, "append", new object[] {trade});
-                object symbol = getValue(trade, "symbol");
+                string? symbol = ((string)getValue(trade, "symbol"));
                 if ((symbol != null))
                 {
                     string? symbolSpecificMessageHash = ((string)this.getMessageHash("myTrades", symbol));
@@ -1479,7 +1479,7 @@ public partial class lighter : ccxt.lighter
             {
                 Dictionary<string, object> order = this.parseOrder(getValue(orders, j), market);
                 callDynamically(stored, "append", new object[] {order});
-                object symbol = getValue(order, "symbol");
+                string? symbol = ((string)getValue(order, "symbol"));
                 if ((symbol != null))
                 {
                     string? symbolSpecificMessageHash = ((string)this.getMessageHash("orders", symbol));

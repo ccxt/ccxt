@@ -3106,7 +3106,7 @@ public partial class binance : ccxt.binance
             string tickerFallbackType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object tickerMarketType = ((bool) ((tickerMarketById != null))) ? getValue(tickerMarketById, "type") : tickerFallbackType;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsTicker(ticker, tickerMarketType));
-            object symbol = getValue(parsedTicker, "symbol");
+            string? symbol = ((string)getValue(parsedTicker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;

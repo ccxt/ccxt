@@ -2479,11 +2479,11 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)this.options)["coinbaseAccounts"] = accounts; // cache it
             ((IDictionary<string,object>)this.options)["coinbaseAccountsByCurrencyId"] = this.indexBy(accounts, "currency");
         }
-        object currencyId = getValue(currency, "id");
+        string? currencyId = ((string)getValue(currency, "id"));
         object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
         if ((account == null))
         {
-            throw new InvalidAddress ((string)(add((add((this.id + " createDepositAddress() could not find currency code "), code) + " with id = "), currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
+            throw new InvalidAddress ((string)(((add((this.id + " createDepositAddress() could not find currency code "), code) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },

@@ -2254,7 +2254,7 @@ public partial class bybit : ccxt.bybit
             // } else {
             //     parsed = this.parseOrder (rawOrders[i]);
             // }
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             if ((symbol == null))
             {
                 continue;

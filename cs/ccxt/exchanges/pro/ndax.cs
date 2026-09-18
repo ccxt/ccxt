@@ -101,7 +101,7 @@ public partial class ndax : ccxt.ndax
         //     }
         //
         Dictionary<string, object> ticker = this.parseTicker(payload);
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
         if ((symbol != null))
         {
@@ -186,7 +186,7 @@ public partial class ndax : ccxt.ndax
         for (int i = 0; i < payload.Count; postFixIncrement(ref i))
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(payload, i));
-            object symbol = getValue(trade, "symbol");
+            string? symbol = ((string)getValue(trade, "symbol"));
             object tradesArray = ((bool) ((symbol == null))) ? null : this.safeValue(this.trades, symbol);
             if ((tradesArray == null))
             {

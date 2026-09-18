@@ -251,7 +251,7 @@ public partial class htx : ccxt.htx
         object timestamp = this.safeValue(message, "ts");
         ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
         ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1698,7 +1698,7 @@ public partial class htx : ccxt.htx
         //
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         market = marketResolved;
-        object symbol = getValue(marketResolved, "symbol");
+        string? symbol = ((string)getValue(marketResolved, "symbol"));
         string? tradeId = this.safeString(trade, "tradeId");
         string? price = this.safeString(trade, "tradePrice");
         string? amount = this.safeString(trade, "tradeVolume");

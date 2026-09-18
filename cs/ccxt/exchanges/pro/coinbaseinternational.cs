@@ -633,7 +633,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //    }
         //
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(message));
-        object symbol = getValue(trade, "symbol");
+        string? symbol = ((string)getValue(trade, "symbol"));
         object channel = this.safeString(message, "channel");
         if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
         {

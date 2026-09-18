@@ -341,8 +341,8 @@ public partial class weex : ccxt.weex
         List<object> tickers = this.safeList(message, "d", new List<object>() {});
         IDictionary<string, object> data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data, market));
-        object symbol = getValue(market, "symbol");
-        string messageHash = add("ticker::", symbol);
+        string? symbol = ((string)getValue(market, "symbol"));
+        string messageHash = ("ticker::" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         (client as WebSocketClient).resolve(getValue(this.tickers, symbol), messageHash);
     }
@@ -544,8 +544,8 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object symbol = getValue(market, "symbol");
-        string messageHash = add("trade::", symbol);
+        string? symbol = ((string)getValue(market, "symbol"));
+        string messageHash = ("trade::" + symbol);
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -811,7 +811,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         if (!(inOp(this.ohlcvs, symbol)))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -836,7 +836,7 @@ public partial class weex : ccxt.weex
             object parsed = this.parseWsOHLCV(entry);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = ((add("ohlcv::", symbol) + "::") + timeframe);
+        string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         (client as WebSocketClient).resolve(resolveData, messageHash);
     }
@@ -1017,8 +1017,8 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object symbol = getValue(market, "symbol");
-        string messageHash = add("orderbook::", symbol);
+        string? symbol = ((string)getValue(market, "symbol"));
+        string messageHash = ("orderbook::" + symbol);
         if (!(inOp(this.orderbooks, symbol)))
         {
             IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -1168,12 +1168,12 @@ public partial class weex : ccxt.weex
             return;
         }
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsBidAsk(message, market));
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         }
-        string messageHash = add("bidask::", symbol);
+        string messageHash = ("bidask::" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
     }
 
@@ -1337,7 +1337,7 @@ public partial class weex : ccxt.weex
         {
             IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsMyTrade(trade));
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;
@@ -1573,7 +1573,7 @@ public partial class weex : ccxt.weex
             IDictionary<string, object> rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(rawOrder));
             callDynamically(orders, "append", new object[] {parsed});
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;

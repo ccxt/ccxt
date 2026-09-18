@@ -1324,7 +1324,7 @@ public partial class digifinex : Exchange
                 { "date", date },
             }, getValue(tickers, i));
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;
@@ -3594,7 +3594,7 @@ public partial class digifinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object currencyId = getValue(currency, "id");
+        string? currencyId = ((string)getValue(currency, "id"));
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);

@@ -1837,12 +1837,12 @@ public partial class bingx : ccxt.bingx
         object stored = this.orders;
         Dictionary<string, object> parsedOrder = this.parseOrder(data);
         callDynamically(stored, "append", new object[] {parsedOrder});
-        object symbol = getValue(parsedOrder, "symbol");
+        string? symbol = ((string)getValue(parsedOrder, "symbol"));
         string spotHash = "spot:order";
         string swapHash = "swap:order";
         string messageHash = ((bool) (isSpot)) ? spotHash : swapHash;
         (client as WebSocketClient).resolve(stored, messageHash);
-        (client as WebSocketClient).resolve(stored, add((messageHash + ":"), symbol));
+        (client as WebSocketClient).resolve(stored, ((messageHash + ":") + symbol));
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -1916,13 +1916,13 @@ public partial class bingx : ccxt.bingx
         string? marketId = this.safeString(result, "s");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-", type);
         Dictionary<string, object> parsed = this.parseTrade(result, market);
-        object symbol = getValue(parsed, "symbol");
+        string? symbol = ((string)getValue(parsed, "symbol"));
         string spotHash = "spot:mytrades";
         string swapHash = "swap:mytrades";
         string messageHash = ((bool) isSpot) ? spotHash : swapHash;
         callDynamically(cachedTrades, "append", new object[] {parsed});
         (client as WebSocketClient).resolve(cachedTrades, messageHash);
-        (client as WebSocketClient).resolve(cachedTrades, add((messageHash + ":"), symbol));
+        (client as WebSocketClient).resolve(cachedTrades, ((messageHash + ":") + symbol));
     }
 
     public virtual void handleBalance(WebSocketClient client, object message)

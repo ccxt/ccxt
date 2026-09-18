@@ -920,9 +920,9 @@ public partial class kucoin : ccxt.kucoin
         // }
         //
         Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(message));
-        object symbol = getValue(parsedTicker, "symbol");
+        string? symbol = ((string)getValue(parsedTicker, "symbol"));
         ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = parsedTicker;
-        string messageHash = add("bidask@", symbol);
+        string messageHash = ("bidask@" + symbol);
         (client as WebSocketClient).resolve(parsedTicker, messageHash);
     }
 
@@ -1421,8 +1421,8 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = this.parseTrade(data, market);
-        object symbol = getValue(trade, "symbol");
-        string messageHash = add("trades:", symbol);
+        string? symbol = ((string)getValue(trade, "symbol"));
+        string messageHash = ("trades:" + symbol);
         if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1455,8 +1455,8 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsUtaTrade(data, market));
-        object symbol = getValue(trade, "symbol");
-        string messageHash = add("uta:trades:", symbol);
+        string? symbol = ((string)getValue(trade, "symbol"));
+        string messageHash = ("uta:trades:" + symbol);
         if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2758,7 +2758,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsUtaTrade(data, market));
-        object symbol = getValue(trade, "symbol");
+        string? symbol = ((string)getValue(trade, "symbol"));
         if (isEqual(this.myTrades, null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2767,7 +2767,7 @@ public partial class kucoin : ccxt.kucoin
         object cache = this.myTrades;
         callDynamically(cache, "append", new object[] {trade});
         string messageHash = "uta:myTrades";
-        string symbolMessageHash = add((messageHash + ":"), symbol);
+        string symbolMessageHash = ((messageHash + ":") + symbol);
         (client as WebSocketClient).resolve(this.myTrades, messageHash);
         (client as WebSocketClient).resolve(cache, symbolMessageHash);
     }
@@ -3619,12 +3619,12 @@ public partial class kucoin : ccxt.kucoin
         //
         IDictionary<string, object> data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         Dictionary<string, object> fundingRate = ((Dictionary<string, object>)this.parseWsFundingRate(data));
-        object symbol = getValue(fundingRate, "symbol");
+        string? symbol = ((string)getValue(fundingRate, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
         }
-        string messageHash = add("fundingRate:", symbol);
+        string messageHash = ("fundingRate:" + symbol);
         (client as WebSocketClient).resolve(fundingRate, messageHash);
     }
 

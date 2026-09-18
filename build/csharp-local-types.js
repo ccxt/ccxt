@@ -86,6 +86,17 @@
 //     pass-through branch (a Dictionary is not a list), so the call's own C# type is the fresh
 //     outDict; object / IDictionary receivers keep the printer's `object` (see
 //     omitDictionaryProducer and the selfOmitWriteType accumulator)
+//   - a Dictionary-declared local read by a LITERAL string key the corpus proves a string
+//     (DICT_ELEMENT_STRING_KEYS_Typed: the market-row keys above plus code / r / s /
+//     uppercaseId / referenceId): `const symbol = parsed['symbol']` -> `string?` behind the
+//     same `(string)` cast, for every receiver the declared-local table names
+//     Dictionary<string, object> / IDictionary<string, object> (the ws row locals
+//     parseWsOrder / parseWsTicker / parseWsTrade / parseWsBidAsk / parseWsUtaTrade build,
+//     this.currency / parseCurrency rows, the hand-written `{ r, s, v }` row this.ecdsa
+//     returns, ...). The checker's element type is the proof the box IS that string: a
+//     numeric element never fires (a JSON number boxes Int64 OR double, a literal write
+//     boxes an Int32) and neither do the bool keys (the market-row census, below)
+//     (see elementAccessStringReadType; census in the PR)
 //   - this.currencyToPrecision (...) -> string? and this.parsePrecision (...) -> string? —
 //     generated signatures retyped by installCsharpMethodReturnTypes (every return path
 //     hands back a string or null; the returns unbox through `object` like safeSymbol's)
@@ -4388,6 +4399,68 @@ function marketRowStringReadType (csharp, initializer) {
     }
     return 'string';
 }
+// `recv['k']` on a receiver the declared-local table names a Dictionary: the checker proves
+// the element type, and the keys below are the ones whose every corpus write into the typed
+// row shapes is a string (census in the PR), so the local takes `string?` + `(string)`.
+// Everything else (numeric elements — JSON boxes Int64 OR double, literal writes Int32 —,
+// bool keys, other keys) keeps the local `object`.
+const DICT_ELEMENT_STRING_KEYS_Typed = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type', 'code', 'r', 's', 'uppercaseId', 'referenceId' ];
+
+function checkerElementScalar (csharp, node) {
+    if (typeof csharp.getChecker !== 'function') {
+        return undefined;
+    }
+    let type;
+    try {
+        type = csharp.getChecker ().getTypeAtLocation (node);
+    } catch (e) {
+        return undefined;
+    }
+    const scalarOf = (member) => {
+        const flags = member?.flags ?? 0;
+        if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) {
+            return 'string';
+        }
+        if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) {
+            return 'bool';
+        }
+        if (flags & (ts.TypeFlags.Number | ts.TypeFlags.NumberLiteral)) {
+            return 'number';
+        }
+        return undefined;
+    };
+    if ((type?.flags & ts.TypeFlags.Union) && Array.isArray (type.types)) {
+        const members = type.types.filter ((member) => !(member.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)));
+        if (members.length === 0) {
+            return undefined;
+        }
+        const scalars = new Set (members.map (scalarOf));
+        return (scalars.size === 1) ? [ ...scalars ][0] : undefined;
+    }
+    return scalarOf (type);
+}
+
+// the element type of `recv['literal key']`, proven a string by the checker AND a key whose
+// every write into the row shapes the checker types is a string (see the family comment)
+function elementAccessStringReadType (csharp, initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    const key = elementAccessLiteralKey (initializer.argumentExpression);
+    if (key === undefined || !DICT_ELEMENT_STRING_KEYS_Typed.includes (key)) {
+        return undefined;
+    }
+    const receiver = initializer.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const receiverType = localIdentifierType (csharp, receiver);
+    if (receiverType !== 'Dictionary<string, object>' && receiverType !== 'IDictionary<string, object>') {
+        return undefined;
+    }
+    return (checkerElementScalar (csharp, initializer) === 'string') ? 'string' : undefined;
+}
+
 // ---- describe()-literal url reads ------------------------------------------------------
 // `const x = this.urls['api']['ws']` prints `object x = getValue(getValue(this.urls, "api"),
 // "ws")`. `this.urls` is filled by Exchange.Options.cs#initializeProperties from
@@ -4782,6 +4855,11 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (marketRowStringReadType (csharp, declaration.initializer) === 'string') {
             // `const symbol = market['symbol']`: the market row's value at the string keys is
             // a string or null (census above), so the `(string)` cast names the box
+            csharpType = 'string?';
+            cast = 'string';
+        } else if (elementAccessStringReadType (csharp, declaration.initializer) === 'string') {
+            // `const symbol = parsed['symbol']`: the receiver is a declared Dictionary and the
+            // checker proves the element a string at a proven key — same `(string)` cast
             csharpType = 'string?';
             cast = 'string';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {

@@ -686,7 +686,7 @@ public partial class woo : ccxt.woo
             }
             ((IDictionary<string,object>)ticker)["ts"] = timestamp;
             Dictionary<string, object> parsedTicker = ((Dictionary<string, object>)this.parseWsBidAsk(ticker));
-            object symbol = getValue(parsedTicker, "symbol");
+            string? symbol = ((string)getValue(parsedTicker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;

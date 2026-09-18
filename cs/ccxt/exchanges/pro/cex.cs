@@ -398,13 +398,13 @@ public partial class cex : ccxt.cex
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(data));
-        object symbol = getValue(ticker, "symbol");
+        string? symbol = ((string)getValue(ticker, "symbol"));
         if ((symbol == null))
         {
             return;
         }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        string? messageHash = add("ticker:", symbol);
+        string? messageHash = ("ticker:" + symbol);
         (client as WebSocketClient).resolve(ticker, messageHash);
         (client as WebSocketClient).resolve(ticker, "tickers");
         messageHash = this.safeString(message, "oid");

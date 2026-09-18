@@ -556,7 +556,7 @@ public partial class toobit : ccxt.toobit
         {
             object ticker = getValue(data, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTicker(ticker));
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
@@ -565,7 +565,7 @@ public partial class toobit : ccxt.toobit
             {
                 ((IDictionary<string,object>)newTickers)[(string)symbol] = parsed;
             }
-            string messageHash = add("ticker::", symbol);
+            string messageHash = ("ticker::" + symbol);
             (client as WebSocketClient).resolve(parsed, messageHash);
         }
         (client as WebSocketClient).resolve(newTickers, "tickers");

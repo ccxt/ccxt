@@ -1646,8 +1646,8 @@ public partial class luno : Exchange
         string? before = after;
         string? amount = "0.0";
         Dictionary<string, object> result = this.parseLedgerComment(comment);
-        object type = getValue(result, "type");
-        object referenceId = getValue(result, "referenceId");
+        string? type = ((string)getValue(result, "type"));
+        string? referenceId = ((string)getValue(result, "referenceId"));
         string? direction = null;
         string? status = null;
         if (!isTrue(Precise.stringEquals(balance_delta, "0.0")))

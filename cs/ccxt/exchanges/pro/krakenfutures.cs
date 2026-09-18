@@ -1027,7 +1027,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             object order = getValue(orders, i);
             Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(order));
-            object symbol = getValue(parsed, "symbol");
+            string? symbol = ((string)getValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)symbols)[(string)symbol] = true;
@@ -1169,7 +1169,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1201,7 +1201,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if ((marketId != null))
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(message));
-            object symbol = getValue(ticker, "symbol");
+            string? symbol = ((string)getValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -1264,7 +1264,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         string? marketId = this.safeString(ticker, "product_id");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
-        object symbol = getValue(marketResolved, "symbol");
+        string? symbol = ((string)getValue(marketResolved, "symbol"));
         Int64? timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {

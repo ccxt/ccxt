@@ -1196,7 +1196,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            object code = getValue(parsed, "code");
+            string? code = ((string)getValue(parsed, "code"));
             ((IDictionary<string,object>)result)[(string)code] = parsed;
         }
         return result;
