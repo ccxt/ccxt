@@ -5200,15 +5200,15 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         });
         let mut isConditional: Value = self.safe_bool_n(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("conditional".to_string())]), &[]);
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clientAlgoId".to_string()), Value::Str("origClientOrderId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
-        let mut shouldUseAlgoOrder: Value = Value::Bool(is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(isConditional.as_bool() == Some(true)))));
+        let mut shouldUseAlgoOrder: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(isConditional.as_bool() == Some(true))));
         if (clientOrderId != Value::Null) {
-            if (shouldUseAlgoOrder.as_bool() == Some(true)) {
+            if (shouldUseAlgoOrder) {
                 add_element_to_object(&mut payload, &Value::Str("clientAlgoId".to_string()), clientOrderId.clone());
             }  else {
                 add_element_to_object(&mut payload, &Value::Str("origClientOrderId".to_string()), clientOrderId.clone());
             }
         }  else {
-            if (shouldUseAlgoOrder.as_bool() == Some(true)) {
+            if (shouldUseAlgoOrder) {
                 add_element_to_object(&mut payload, &Value::Str("algoId".to_string()), self.number_to_string(id.clone()));
             }  else {
                 add_element_to_object(&mut payload, &Value::Str("orderId".to_string()), self.number_to_string(id.clone()));
@@ -5223,7 +5223,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("params".to_string(), self.sign_params(&[__ws_arg_26]));
             m
         });
-        if (shouldUseAlgoOrder.as_bool() == Some(true)) {
+        if (shouldUseAlgoOrder) {
             add_element_to_object(&mut message, &Value::Str("method".to_string()), Value::Str("algoOrder.cancel".to_string()));
         }
         let mut subscription: Value = Value::Map({

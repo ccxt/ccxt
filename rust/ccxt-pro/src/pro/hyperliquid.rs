@@ -1590,8 +1590,8 @@ impl HyperliquidCore {
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
-        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null))));
-        let mut topic: Value = (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
+        let mut isSpot: bool = is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null)));
+        let mut topic: Value = (if (isSpot) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", topic, Value::Str("::balance".to_string())));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         let mut subscription: Value = Value::Map({
@@ -1600,7 +1600,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        if (isSpot.as_bool() == Some(true)) {
+        if (isSpot) {
             if (isUnifiedEnabled.as_bool() == Some(true)) {
                 add_element_to_object(&mut subscription, &Value::Str("isPortfolioMargin".to_string()), Value::Bool(true));
             }
@@ -1649,8 +1649,8 @@ impl HyperliquidCore {
         isUnifiedEnabled = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[]);
         params = self.safe_dict(unifiedResult.clone(), Value::Int(1), &[params.clone()]);
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
-        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null))));
-        let mut topic: Value = (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
+        let mut isSpot: bool = is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null)));
+        let mut topic: Value = (if (isSpot) { Value::Str("spotState".to_string()) } else { Value::Str("clearinghouseState".to_string()) });
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".to_string()), Value::Str(":".to_string()))), topic));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

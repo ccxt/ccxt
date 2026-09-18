@@ -6220,17 +6220,17 @@ impl HtxCore {
             let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
             let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
-            let mut isAlgo: Value = (Value::Bool(is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLossTakeProfit.as_bool() == Some(true)))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))))));
+            let mut isAlgo: bool = is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLossTakeProfit.as_bool() == Some(true)))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))));
             params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("stopLossTakeProfit".to_string()), Value::Str("trailing".to_string()), Value::Str("trigger".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
             let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("algo_client_order_id".to_string())]), &[]);
             if (clientOrderId == Value::Null) {
-                if (isAlgo.as_bool() == Some(true)) {
+                if (isAlgo) {
                     add_element_to_object(&mut request, &Value::Str("algo_id".to_string()), id.clone());
                 }  else {
                     add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
                 }
             }  else {
-                if (isAlgo.as_bool() == Some(true)) {
+                if (isAlgo) {
                     add_element_to_object(&mut request, &Value::Str("algo_client_order_id".to_string()), clientOrderId.clone());
                 }  else {
                     add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
@@ -6238,7 +6238,7 @@ impl HtxCore {
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("algo_client_order_id".to_string())]), &[]);
             }
             if (self.safe_bool_k(market.clone(), "linear", &[]).as_bool() == Some(true)) {
-                if (isAlgo.as_bool() == Some(true)) {
+                if (isAlgo) {
                     if (trigger.as_bool() == Some(true)) {
                         add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("trigger".to_string()));
                     }  else if (trailing.as_bool() == Some(true)) {
@@ -6536,7 +6536,7 @@ impl HtxCore {
         let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-        let mut isAlgo: Value = (Value::Bool(is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))))));
+        let mut isAlgo: bool = is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stop".to_string()), Value::Str("stopLossTakeProfit".to_string()), Value::Str("trailing".to_string()), Value::Str("trigger".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_time".to_string()), since.clone());
@@ -6551,7 +6551,7 @@ impl HtxCore {
             marginMode = (if is_true(&(Value::Bool(marginMode == Value::Null))) { Value::Str("cross".to_string()) } else { marginMode.clone() });
             add_element_to_object(&mut request, &Value::Str("margin_mode".to_string()), marginMode.clone());
             add_element_to_object(&mut request, &Value::Str("contract_code".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            if (isAlgo.as_bool() == Some(true)) {
+            if (isAlgo) {
                 if (trigger.as_bool() == Some(true)) {
                     add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("trigger".to_string()));
                 }  else if (trailing.as_bool() == Some(true)) {
@@ -6639,8 +6639,8 @@ impl HtxCore {
             let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
             let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-            let mut isAlgo: Value = (Value::Bool(is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))))));
-            if (isAlgo.as_bool() == Some(true)) {
+            let mut isAlgo: bool = is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))));
+            if (isAlgo) {
                 add_element_to_object(&mut request, &Value::Str("states".to_string()), Value::Str("effective".to_string()));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("states".to_string()), Value::Str("filled".to_string()));
@@ -6762,8 +6762,8 @@ impl HtxCore {
                 let mut stopLoss: Value = self.safe_bool_k(params.clone(), "stopLoss", &[]);
                 let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[]);
                 let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]);
-                let mut isAlgo: Value = (Value::Bool(is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))))));
-                if (isAlgo.as_bool() == Some(true)) {
+                let mut isAlgo: bool = is_true(&(Value::Bool(trigger.as_bool() == Some(true)))) || is_true(&(Value::Bool(stopLoss.as_bool() == Some(true)))) || is_true(&(Value::Bool(takeProfit.as_bool() == Some(true)))) || (is_equal(&stopLossTakeProfit, &Value::Bool(true))) || is_true(&(Value::Bool(trailing.as_bool() == Some(true))));
+                if (isAlgo) {
                     add_element_to_object(&mut request, &Value::Str("states".to_string()), Value::Str("canceled".to_string()));
                 }  else {
                     add_element_to_object(&mut request, &Value::Str("states".to_string()), Value::Str("partially_canceled,canceled".to_string()));
@@ -7482,9 +7482,9 @@ impl HtxCore {
         let mut id: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("algo_id".to_string()), Value::Str("id".to_string()), Value::Str("order_id_str".to_string()), Value::Str("order-id".to_string()), Value::Str("order_id".to_string())]), &[]);
         let mut side: Value = self.safe_string2(order.clone(), Value::Str("direction".to_string()), Value::Str("side".to_string()), &[]);
         let mut contractCode: Value = self.safe_string_k(order.clone(), "contract_code", &[]);
-        let mut isLinearOrder: Value = Value::Bool(is_true(&(Value::Bool(contractCode != Value::Null))) && is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))));
+        let mut isLinearOrder: bool = is_true(&(Value::Bool(contractCode != Value::Null))) && is_true(&(Value::Bool(market != Value::Null))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true))));
         let mut type_var: Value = Value::Null;
-        if (isLinearOrder.as_bool() == Some(true)) {
+        if (isLinearOrder) {
             type_var = self.safe_string_k(order.clone(), "type", &[]);
             if is_true(&(Value::Bool(type_var == Value::Null))) || is_true(&(Value::Bool(type_var.as_str() == Some("tp")))) || is_true(&(Value::Bool(type_var.as_str() == Some("sl")))) || is_true(&(Value::Bool(type_var.as_str() == Some("tpsl")))) {
                 type_var = self.safe_string2(order.clone(), Value::Str("tp_type".to_string()), Value::Str("sl_type".to_string()), &[]);
@@ -7509,7 +7509,7 @@ impl HtxCore {
         let mut clientOrderId: Value = self.safe_string_n(order.clone(), Value::List(vec![Value::Str("client_order_id".to_string()), Value::Str(format!("{}{}", Value::Str("client-or".to_string()), Value::Str("der-id".to_string()))), Value::Str("algo_client_order_id".to_string())]), &[]); // transpiler regex trick for php issue
         let mut cost: Value = Value::Null;
         let mut amount: Value = Value::Null;
-        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(get_index_of(&type_var, &Value::Str("market".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(isLinearOrder.as_bool() != Some(true)))) {
+        if is_true(&(Value::Bool(type_var != Value::Null))) && is_true(&(get_index_of(&type_var, &Value::Str("market".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && (!isLinearOrder) {
             cost = self.safe_string_k(order.clone(), "field-cash-amount", &[]);
         }  else {
             amount = self.safe_string2(order.clone(), Value::Str("volume".to_string()), Value::Str("amount".to_string()), &[]);
@@ -7538,7 +7538,7 @@ impl HtxCore {
         let mut average: Value = self.safe_string_k(order.clone(), "trade_avg_price", &[]);
         let mut trades: Value = self.safe_value_k(order.clone(), "trades", &[]);
         let mut reduceOnly: Value = Value::Null;
-        if (isLinearOrder.as_bool() == Some(true)) {
+        if (isLinearOrder) {
             reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[]);
         }  else {
             let mut reduceOnlyInteger: Value = self.safe_integer_k(order.clone(), "reduce_only", &[]);

@@ -6468,8 +6468,8 @@ impl BybitCore {
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         let mut amount: Value = Value::Null;
         let mut cost: Value = Value::Null;
-        let mut qtyIsQuote: Value = Value::Bool(is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(marketUnit.as_str() == Some("quoteCoin")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(marketUnit == Value::Null))) && is_true(&(Value::Bool(side.as_str() == Some("buy")))))))))));
-        if (qtyIsQuote.as_bool() == Some(true)) {
+        let mut qtyIsQuote: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(type_var.as_str() == Some("market")))) && is_true(&(Value::Bool(is_true(&(Value::Bool(marketUnit.as_str() == Some("quoteCoin")))) || is_true(&(Value::Bool(is_true(&(Value::Bool(marketUnit == Value::Null))) && is_true(&(Value::Bool(side.as_str() == Some("buy"))))))))));
+        if (qtyIsQuote) {
             // qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = self.safe_string_k(order.clone(), "cumExecValue", &[]);
         }  else {
@@ -6509,8 +6509,8 @@ impl BybitCore {
         let mut stopLossPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopLoss", &[]));
         let mut triggerDirection: Value = self.safe_string_k(order.clone(), "triggerDirection", &[]);
         let mut isAscending: bool = triggerDirection.as_str() == Some("1");
-        let mut isStopOrderType2: Value = Value::Bool(is_true(&(Value::Bool(triggerPrice != Value::Null))) && is_true(&reduceOnly));
-        if is_true(&(Value::Bool(stopLossPrice == Value::Null))) && is_true(&(Value::Bool(isStopOrderType2.as_bool() == Some(true)))) {
+        let mut isStopOrderType2: bool = is_true(&(Value::Bool(triggerPrice != Value::Null))) && is_true(&reduceOnly);
+        if is_true(&(Value::Bool(stopLossPrice == Value::Null))) && (isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if isAscending && is_true(&(Value::Bool(side.as_str() == Some("buy")))) {
                 // stopLoss order against short position
@@ -6521,7 +6521,7 @@ impl BybitCore {
                 stopLossPrice = triggerPrice.clone();
             }
         }
-        if is_true(&(Value::Bool(takeProfitPrice == Value::Null))) && is_true(&(Value::Bool(isStopOrderType2.as_bool() == Some(true)))) {
+        if is_true(&(Value::Bool(takeProfitPrice == Value::Null))) && (isStopOrderType2) {
             // check if order is stop order type 2 - takeProfitPrice
             if isAscending && is_true(&(Value::Bool(side.as_str() == Some("sell")))) {
                 // takeprofit order against a long position
@@ -6688,9 +6688,9 @@ impl BybitCore {
         let mut isStopLossOrder: bool = self.safe_string_k(params.clone(), "stopLossPrice", &[]) != Value::Null;
         let mut isTakeProfitOrder: bool = self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null;
         let mut orderRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone(), enableUnifiedAccount.clone()]);
-        let mut switchToOco: Value = Value::Bool((isStopLossOrder && isTakeProfitOrder) || is_true(&self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)])));
+        let mut switchToOco: bool = (isStopLossOrder && isTakeProfitOrder) || is_true(&self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)]));
         let mut defaultMethod: Value = Value::Null;
-        if is_true(&(Value::Bool(isTrailingOrder || is_true(&(Value::Bool(switchToOco.as_bool() == Some(true))))))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))) {
+        if is_true(&(Value::Bool(isTrailingOrder || (switchToOco)))) && is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)))) {
             defaultMethod = Value::Str("privatePostV5PositionTradingStop".to_string());
         }  else {
             defaultMethod = Value::Str("privatePostV5OrderCreate".to_string());
@@ -6763,9 +6763,9 @@ impl BybitCore {
         let mut isMarket: Value = Value::Bool(lowerCaseType.as_str() == Some("market"));
         let mut isLimit: bool = lowerCaseType.as_str() == Some("limit");
         let mut isBuy: bool = side.as_str() == Some("buy");
-        let mut switchToOco: Value = Value::Bool((isStopLossOrder && isTakeProfitOrder) || is_true(&self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)])));
+        let mut switchToOco: bool = (isStopLossOrder && isTakeProfitOrder) || is_true(&self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)]));
         let mut defaultMethod: Value = Value::Null;
-        if isTrailingOrder || is_true(&(Value::Bool(switchToOco.as_bool() == Some(true)))) {
+        if isTrailingOrder || (switchToOco) {
             defaultMethod = Value::Str("privatePostV5PositionTradingStop".to_string());
         }  else {
             defaultMethod = Value::Str("privatePostV5OrderCreate".to_string());
