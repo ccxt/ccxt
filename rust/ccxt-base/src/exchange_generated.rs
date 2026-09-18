@@ -3338,17 +3338,17 @@ pub trait ExchangeBase:
         }
         let mut market: Value = get_value(&markets, &symbol);
         let mut market: Value = get_value(&markets, &symbol);
-        let mut feeSide: Value = self.safe_string_k(market.clone(), "feeSide", &[Value::Str("quote".to_string())]);
+        let mut feeSide: Option<String> = self.safe_string_k(market.clone(), "feeSide", &[Value::Str("quote".to_string())]).as_str().map(str::to_owned);
         let mut useQuote: Value = Value::Null;
-        if (feeSide.as_str() == Some("get")) {
+        if (feeSide.as_deref() == Some("get")) {
             // the fee is always in the currency you get
             useQuote = Value::Bool(side.as_str() == Some("sell"));
-        }  else if (feeSide.as_str() == Some("give")) {
+        }  else if (feeSide.as_deref() == Some("give")) {
             // the fee is always in the currency you give
             useQuote = Value::Bool(side.as_str() == Some("buy"));
         }  else {
             // the fee is always in feeSide currency
-            useQuote = Value::Bool(feeSide.as_str() == Some("quote"));
+            useQuote = Value::Bool(feeSide.as_deref() == Some("quote"));
         }
         let mut cost: Value = self.number_to_string(amount.clone());
         let mut key: Value = Value::Null;
@@ -9265,10 +9265,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn clean_cache(&mut self, mut subscription: Value) {
-        let mut topic: Value = self.safe_string_k(subscription.clone(), "topic", &[]);
+        let mut topic: Option<String> = self.safe_string_k(subscription.clone(), "topic", &[]).as_str().map(str::to_owned);
         let mut symbols: Value = self.safe_list_k(subscription.clone(), "symbols", &[Value::List(vec![])]);
         let mut symbolsLength: Value = get_array_length(&symbols);
-        if (topic.as_str() == Some("ohlcv")) {
+        if (topic.as_deref() == Some("ohlcv")) {
             let mut symbolsAndTimeframes: Value = self.safe_list_k(subscription.clone(), "symbolsAndTimeframes", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
@@ -9298,19 +9298,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 while { if !__for_first_175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_175 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
-                if (topic.as_str() == Some("trades")) {
+                if (topic.as_deref() == Some("trades")) {
                     if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
                         remove(&mut self.trades.clone(), &symbol);
                     }
-                }  else if (topic.as_str() == Some("orderbook")) {
+                }  else if (topic.as_deref() == Some("orderbook")) {
                     if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
                         remove(&mut self.orderbooks.clone(), &symbol);
                     }
-                }  else if (topic.as_str() == Some("ticker")) {
+                }  else if (topic.as_deref() == Some("ticker")) {
                     if is_true(&Value::Bool(in_op(&self.tickers, &symbol))) {
                         remove(&mut self.tickers.clone(), &symbol);
                     }
-                }  else if (topic.as_str() == Some("bidsasks")) {
+                }  else if (topic.as_deref() == Some("bidsasks")) {
                     if is_true(&Value::Bool(in_op(&self.bidsasks, &symbol))) {
                         remove(&mut self.bidsasks.clone(), &symbol);
                     }
@@ -9318,11 +9318,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             }
         }  else {
-            if (topic.as_str() == Some("myTrades")) && (!is_equal(&self.myTrades, &Value::Null)) {
+            if (topic.as_deref() == Some("myTrades")) && (!is_equal(&self.myTrades, &Value::Null)) {
                 self.myTrades = Value::Null;
-            }  else if (topic.as_str() == Some("orders")) && (!is_equal(&self.orders, &Value::Null)) {
+            }  else if (topic.as_deref() == Some("orders")) && (!is_equal(&self.orders, &Value::Null)) {
                 self.orders = Value::Null;
-            }  else if (topic.as_str() == Some("positions")) && is_true(&(Value::Bool(self.positions.clone() != Value::Null))) {
+            }  else if (topic.as_deref() == Some("positions")) && is_true(&(Value::Bool(self.positions.clone() != Value::Null))) {
                 self.positions = Value::Null;
                 let mut clients: Value = object_values(&self.clients);
                 {
@@ -9337,7 +9337,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                 }
                 }
-            }  else if is_true(&(Value::Bool((topic.as_str() == Some("ticker")) || (topic.as_str() == Some("markPrice"))))) && is_true(&(Value::Bool(self.tickers.clone() != Value::Null))) {
+            }  else if is_true(&(Value::Bool((topic.as_deref() == Some("ticker")) || (topic.as_deref() == Some("markPrice"))))) && is_true(&(Value::Bool(self.tickers.clone() != Value::Null))) {
                 let mut tickerSymbols: Value = object_keys(&self.tickers);
                 {
                                         let mut i: Value = Value::Int(0);
@@ -9350,7 +9350,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     }
                 }
                 }
-            }  else if (topic.as_str() == Some("bidsasks")) && is_true(&(Value::Bool(self.bidsasks.clone() != Value::Null))) {
+            }  else if (topic.as_deref() == Some("bidsasks")) && is_true(&(Value::Bool(self.bidsasks.clone() != Value::Null))) {
                 let mut bidsaskSymbols: Value = object_keys(&self.bidsasks);
                 {
                                         let mut i: Value = Value::Int(0);

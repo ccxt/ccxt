@@ -118,14 +118,14 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
         // venue-specific scope params an exchange declares in options['eventScopeParams'],
         // e.g. kalshi's category / series_ticker
-        let mut query: Value = self.safe_string_k(params.clone(), "query", &[]);
+        let mut query: Option<String> = self.safe_string_k(params.clone(), "query", &[]).as_str().map(str::to_owned);
         let mut queries: Value = self.safe_list_k(params.clone(), "queries", &[Value::List(vec![])]);
         let mut tags: Value = self.safe_list_k(params.clone(), "tags", &[Value::List(vec![])]);
-        let mut eventId: Value = self.safe_string_k(params.clone(), "eventId", &[]);
-        let mut slug: Value = self.safe_string_k(params.clone(), "slug", &[]);
+        let mut eventId: Option<String> = self.safe_string_k(params.clone(), "eventId", &[]).as_str().map(str::to_owned);
+        let mut slug: Option<String> = self.safe_string_k(params.clone(), "slug", &[]).as_str().map(str::to_owned);
         let mut queriesLength: Value = Value::Int(queries.len() as i64);
         let mut tagsLength: Value = Value::Int(tags.len() as i64);
-        if is_true(&(Value::Bool(query != Value::Null))) || is_true(&(queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(tagsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Bool(eventId != Value::Null))) || is_true(&(Value::Bool(slug != Value::Null))) {
+        if is_true(&(Value::Bool(query.is_some()))) || is_true(&(queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(tagsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) || is_true(&(Value::Bool(eventId.is_some()))) || is_true(&(Value::Bool(slug.is_some()))) {
             return Value::Null;
         }
         let mut extraScopeParams: Value = self.safe_list_k(self.options.clone(), "eventScopeParams", &[Value::List(vec![])]);
@@ -190,14 +190,14 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             result = self.filter_events_by_search_in(result.clone(), queries.clone(), &[self.safe_string_k(params.clone(), "searchIn", &[])]);
         }
-        let mut sort: Value = self.safe_string_k(params.clone(), "sort", &[]);
-        if (sort != Value::Null) {
+        let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
+        if (sort.is_some()) {
             let mut sortKey: Value = Value::Null;
-            if (sort.as_str() == Some("volume")) {
+            if (sort.as_deref() == Some("volume")) {
                 sortKey = Value::Str("volume".to_string());
-            }  else if (sort.as_str() == Some("liquidity")) {
+            }  else if (sort.as_deref() == Some("liquidity")) {
                 sortKey = Value::Str("liquidity".to_string());
-            }  else if (sort.as_str() == Some("newest")) {
+            }  else if (sort.as_deref() == Some("newest")) {
                 sortKey = Value::Str("created".to_string());
             }
             if (sortKey != Value::Null) {
