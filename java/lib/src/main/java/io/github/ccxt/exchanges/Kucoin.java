@@ -2964,7 +2964,7 @@ public class Kucoin extends KucoinApi
         // kucoin has determined 'fiat' currencies with below logic
         String rawPrecision = this.safeString(entry, "precision");
         Object precision = this.parseNumber(this.parsePrecision(rawPrecision));
-        Boolean isFiat = Helpers.isEqual(chainsLength, 0);
+        Boolean isFiat = java.util.Objects.equals(chainsLength, 0);
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
             put( "name", Kucoin.this.safeString(entry, "fullName") );
@@ -12808,7 +12808,7 @@ public class Kucoin extends KucoinApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                if (Helpers.isEqual(length, 1))
+                if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));

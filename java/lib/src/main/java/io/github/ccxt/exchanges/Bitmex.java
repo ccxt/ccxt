@@ -1529,7 +1529,7 @@ public class Bitmex extends BitmexApi
             }};
             Object response = (this.fetchOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.deepExtend(filter, parameters)))).join();
             Object numResults = ((List<?>)response).size();
-            if (Helpers.isEqual(numResults, 1))
+            if (java.util.Objects.equals(numResults, 1))
             {
                 return Helpers.GetValue(response, 0);
             }
@@ -3877,7 +3877,7 @@ public class Bitmex extends BitmexApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        if (!Helpers.isEqual(networksLength, 0))
+        if (!java.util.Objects.equals(networksLength, 0))
         {
             String scale = this.safeString(fee, "scale");
             Object precision = this.parsePrecision(scale);
@@ -3902,7 +3902,7 @@ public class Bitmex extends BitmexApi
     }} );
 }});
                 }
-                if (Helpers.isEqual(networksLength, 1))
+                if (java.util.Objects.equals(networksLength, 1))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", withdrawalFee);
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);

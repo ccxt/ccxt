@@ -3388,7 +3388,7 @@ public class Bitrue extends BitrueApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        if (!Helpers.isEqual(chainDetailLength, 0))
+        if (!java.util.Objects.equals(chainDetailLength, 0))
         {
             for (var i = 0; Helpers.isLessThan(i, chainDetailLength); i++)
             {
@@ -3409,7 +3409,7 @@ public class Bitrue extends BitrueApi
     }} );
 }});
                 }
-                if (Helpers.isEqual(chainDetailLength, 1))
+                if (java.util.Objects.equals(chainDetailLength, 1))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(chainDetail, "withdrawFee"));
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);

@@ -3131,7 +3131,7 @@ public class Bybit extends BybitApi
                     Object dataNew = this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
                     Object rawMarkets = this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
                     Object rawMarketsLength = ((List<?>)rawMarkets).size();
-                    if (Helpers.isEqual(rawMarketsLength, 0))
+                    if (java.util.Objects.equals(rawMarketsLength, 0))
                     {
                         break;
                     }
@@ -3354,7 +3354,7 @@ public class Bybit extends BybitApi
                         Object dataNew = this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
                         Object rawMarkets = this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
                         Object rawMarketsLength = ((List<?>)rawMarkets).size();
-                        if (Helpers.isEqual(rawMarketsLength, 0))
+                        if (java.util.Objects.equals(rawMarketsLength, 0))
                         {
                             break;
                         }
@@ -4105,7 +4105,7 @@ public class Bybit extends BybitApi
                 symbols = this.marketSymbols(symbols);
                 market = this.market(Helpers.GetValue(symbols, 0));
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 }
@@ -6751,7 +6751,7 @@ public class Bybit extends BybitApi
             }};
             Object result = (this.fetchOrdersClassic(symbol, null, null, this.extend(request, parameters))).join();
             Object length = ((List<?>)result).size();
-            if (Helpers.isEqual(length, 0))
+            if (java.util.Objects.equals(length, 0))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
@@ -6878,7 +6878,7 @@ public class Bybit extends BybitApi
             // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
             // see https://github.com/ccxt/ccxt/pull/29602
             Object innerListLength = ((List<?>)innerList).size();
-            if (Helpers.isEqual(innerListLength, 0))
+            if (java.util.Objects.equals(innerListLength, 0))
             {
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound(Helpers.add((("Order " + String.valueOf(id)) + " was not found."), extra)) ;
@@ -7053,7 +7053,7 @@ public class Bybit extends BybitApi
             }};
             Object result = (this.fetchClosedOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object length = ((List<?>)result).size();
-            if (Helpers.isEqual(length, 0))
+            if (java.util.Objects.equals(length, 0))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
@@ -7101,7 +7101,7 @@ public class Bybit extends BybitApi
             }};
             Object result = (this.fetchOpenOrders((Object)(symbol), (Object)(null), (Object)(null), (Object)(this.extend(request, parameters)))).join();
             Object length = ((List<?>)result).size();
-            if (Helpers.isEqual(length, 0))
+            if (java.util.Objects.equals(length, 0))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 String extra = (((java.util.Objects.equals(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
@@ -8538,7 +8538,7 @@ public class Bybit extends BybitApi
                 if (Helpers.isGreaterThan(symbolsLength, 1))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
-                } else if (Helpers.isEqual(symbolsLength, 1))
+                } else if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     symbol = Helpers.GetValue(symbols, 0);
                 }
@@ -10288,7 +10288,7 @@ public class Bybit extends BybitApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        if (!Helpers.isEqual(chainsLength, 0))
+        if (!java.util.Objects.equals(chainsLength, 0))
         {
             for (var i = 0; Helpers.isLessThan(i, chainsLength); i++)
             {
@@ -10309,7 +10309,7 @@ public class Bybit extends BybitApi
     }} );
 }});
                 }
-                if (Helpers.isEqual(chainsLength, 1))
+                if (java.util.Objects.equals(chainsLength, 1))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(chain, "withdrawFee"));
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
@@ -10782,7 +10782,7 @@ public class Bybit extends BybitApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -11204,7 +11204,7 @@ public class Bybit extends BybitApi
             String marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId);
             Object minNotional = this.parseNumber("0");
-            if (!Helpers.isEqual(i, 0))
+            if ((i != 0))
             {
                 minNotional = this.safeNumber(Helpers.GetValue(info, Helpers.subtract(i, 1)), "riskLimitValue");
             }
@@ -11603,7 +11603,7 @@ final Object finalMarket = market;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", finalSubType );
             }};
-            if ((!java.util.Objects.equals(symbols, null)) && (Helpers.isEqual(symbolsLength, 1)))
+            if ((!java.util.Objects.equals(symbols, null)) && (java.util.Objects.equals(symbolsLength, 1)))
             {
                 ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
             }

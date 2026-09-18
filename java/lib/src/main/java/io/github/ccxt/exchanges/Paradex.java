@@ -1444,7 +1444,7 @@ public class Paradex extends ParadexApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     target = ((String)((Map<String, Object>)this.market(Helpers.GetValue(symbols, 0))).get("id"));
                 }

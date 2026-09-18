@@ -3253,7 +3253,7 @@ public class Bitfinex extends BitfinexApi
         String addressTo = null;
         Object network = null;
         String comment = null;
-        if (Helpers.isEqual(transactionLength, 8))
+        if (java.util.Objects.equals(transactionLength, 8))
         {
             Object data = this.safeValue(transaction, 4, new ArrayList<Object>(Arrays.asList()));
             timestamp = this.safeInteger(transaction, 0);
@@ -3278,7 +3278,7 @@ public class Bitfinex extends BitfinexApi
             type = "withdrawal";
             String networkId = this.safeString(data, 2);
             network = this.networkIdToCode(networkId.toUpperCase(), code); // withdraw returns in lowercase
-        } else if (Helpers.isEqual(transactionLength, 22))
+        } else if (java.util.Objects.equals(transactionLength, 22))
         {
             id = this.safeString(transaction, 0);
             String currencyId = this.safeString(transaction, 1);

@@ -1432,7 +1432,7 @@ public class Poloniex extends PoloniexApi
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
-                    if (Helpers.isEqual(symbolsLength, 1))
+                    if (java.util.Objects.equals(symbolsLength, 1))
                     {
                         ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                     }

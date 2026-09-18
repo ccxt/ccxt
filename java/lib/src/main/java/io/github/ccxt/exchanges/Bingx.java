@@ -6771,7 +6771,7 @@ public class Bingx extends BingxApi
             }} );
             put( "networks", new HashMap<String, Object>() {{}} );
         }};
-        if (!Helpers.isEqual(networksLength, 0))
+        if (!java.util.Objects.equals(networksLength, 0))
         {
             for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
             {
@@ -6787,7 +6787,7 @@ public class Bingx extends BingxApi
         put( "percentage", false );
     }} );
 }});
-                if (Helpers.isEqual(networksLength, 1))
+                if (java.util.Objects.equals(networksLength, 1))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(network, "withdrawFee"));
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
@@ -7589,7 +7589,7 @@ public class Bingx extends BingxApi
                 adjustedValue = (Helpers.add("[", arrStr) + "]");
                 value = adjustedValue;
             }
-            if (Helpers.isEqual(i, 0))
+            if ((i == 0))
             {
                 result = Helpers.add(Helpers.add(key, "="), value);
             } else

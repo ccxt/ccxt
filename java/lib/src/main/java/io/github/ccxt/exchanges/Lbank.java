@@ -2408,7 +2408,7 @@ public class Lbank extends LbankApi
             //
             Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object numOrders = ((List<?>)result).size();
-            if (Helpers.isEqual(numOrders, 1))
+            if (java.util.Objects.equals(numOrders, 1))
             {
                 return this.parseOrder(Helpers.GetValue(result, 0));
             } else

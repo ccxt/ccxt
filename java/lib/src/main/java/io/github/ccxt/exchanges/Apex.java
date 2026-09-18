@@ -676,7 +676,7 @@ public class Apex extends ApexApi
         }
         Object networkKeys = Helpers.objectKeys(networks);
         Object networksLength = ((List<?>)networkKeys).size();
-        Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
+        Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "info", currency );
@@ -823,8 +823,8 @@ public class Apex extends ApexApi
             put( "taker", takerFee );
             put( "maker", makerFee );
             put( "contractSize", Apex.this.safeNumber(market, "minOrderSize") );
-            put( "expiry", (((Helpers.isEqual(finalExpiry, 0)))) ? null : finalExpiry );
-            put( "expiryDatetime", (((Helpers.isEqual(finalExpiry, 0)))) ? null : Apex.this.iso8601(finalExpiry) );
+            put( "expiry", (((java.util.Objects.equals(finalExpiry, 0)))) ? null : finalExpiry );
+            put( "expiryDatetime", (((java.util.Objects.equals(finalExpiry, 0)))) ? null : Apex.this.iso8601(finalExpiry) );
             put( "strike", null );
             put( "optionType", null );
             put( "precision", new HashMap<String, Object>() {{

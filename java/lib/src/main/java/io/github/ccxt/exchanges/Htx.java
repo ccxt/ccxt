@@ -4576,7 +4576,7 @@ public class Htx extends HtxApi
         Object currencyCode = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
         Object keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkNamesByChainIds"));
         Object keysLength = ((List<?>)keys).size();
-        if (Helpers.isEqual(keysLength, 0))
+        if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
         }
@@ -4597,7 +4597,7 @@ public class Htx extends HtxApi
         }
         Object keys = Helpers.objectKeys(((Map<String, Object>)this.options).get("networkChainIdsByNames"));
         Object keysLength = ((List<?>)keys).size();
-        if (Helpers.isEqual(keysLength, 0))
+        if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
         }
@@ -9624,7 +9624,7 @@ public class Htx extends HtxApi
                         bodyRequest = query;
                     }
                     body = this.json(bodyRequest);
-                    if (!Helpers.isTrue(isArrayParams) && (Helpers.isEqual(((String)body).length(), 2)))
+                    if (!Helpers.isTrue(isArrayParams) && ((((String)body).length() == 2)))
                     {
                         body = "{}";
                     }

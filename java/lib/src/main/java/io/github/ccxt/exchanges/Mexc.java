@@ -2445,7 +2445,7 @@ public class Mexc extends MexcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                isSingularMarket = Helpers.isEqual(length, 1);
+                isSingularMarket = java.util.Objects.equals(length, 1);
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
             }
@@ -2731,7 +2731,7 @@ public class Mexc extends MexcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                isSingularMarket = Helpers.isEqual(length, 1);
+                isSingularMarket = java.util.Objects.equals(length, 1);
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
@@ -7226,7 +7226,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));

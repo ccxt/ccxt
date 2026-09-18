@@ -4443,7 +4443,7 @@ public class Bitget extends BitgetApi
         Object withdraw = null;
         Object deposit = null;
         Object chainsLength = ((List<?>)chains).size();
-        if (Helpers.isEqual(chainsLength, 0))
+        if (java.util.Objects.equals(chainsLength, 0))
         {
             withdraw = false;
             deposit = false;
@@ -5858,7 +5858,7 @@ final Object finalMinNotional = minNotional;
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Object symbolsLength = ((List<?>)symbols).size();
-                    if (Helpers.isEqual(symbolsLength, 1))
+                    if (java.util.Objects.equals(symbolsLength, 1))
                     {
                         ((Map<String, Object>)request).put("symbol", this.safeString(market, "id"));
                     }
@@ -9475,7 +9475,7 @@ final Object finalMinNotional = minNotional;
             }
             Object dataList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object dataListLength = ((List<?>)dataList).size();
-            if (Helpers.isEqual(dataListLength, 0))
+            if (java.util.Objects.equals(dataListLength, 0))
             {
                 throw new OrderNotFound(((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
             }
@@ -13006,7 +13006,7 @@ final Object finalMinNotional = minNotional;
     }} );
 }});
             }
-            if (Helpers.isEqual(chainsLength, 1))
+            if (java.util.Objects.equals(chainsLength, 1))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(chain, "withdrawFee"));
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);

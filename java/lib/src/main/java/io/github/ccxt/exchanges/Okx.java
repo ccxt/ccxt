@@ -2585,7 +2585,7 @@ public class Okx extends OkxApi
             final Object finalDataLength = dataLength;
             Map<String, Object> update = new HashMap<String, Object>() {{
                 put( "updated", null );
-                put( "status", (((Helpers.isEqual(finalDataLength, 0)))) ? "ok" : "maintenance" );
+                put( "status", (((java.util.Objects.equals(finalDataLength, 0)))) ? "ok" : "maintenance" );
                 put( "eta", null );
                 put( "url", null );
                 put( "info", response );
@@ -11714,7 +11714,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));

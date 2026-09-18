@@ -723,7 +723,7 @@ public class Bithumb extends BithumbApi
                         if (Helpers.isTrue(Helpers.isArray(market)))
                         {
                             Object numElements = ((List<?>)market).size();
-                            if (Helpers.isEqual(numElements, 0))
+                            if (java.util.Objects.equals(numElements, 0))
                             {
                                 active = false;
                             }
@@ -1194,7 +1194,7 @@ public class Bithumb extends BithumbApi
                     ((List<Object>)marketIds).add(this.getGen2MarketId(market));
                 }
                 Object marketIdsLength = ((List<?>)marketIds).size();
-                if (Helpers.isEqual(marketIdsLength, 0))
+                if (java.util.Objects.equals(marketIdsLength, 0))
                 {
                     return result;
                 }
@@ -1899,7 +1899,7 @@ public class Bithumb extends BithumbApi
                 throw new BadRequest((this.id + " createOrders is only supported for the generation 2 API")) ;
             }
             Object ordersCount = ((List<?>)orders).size();
-            if (Helpers.isEqual(ordersCount, 0))
+            if (java.util.Objects.equals(ordersCount, 0))
             {
                 throw new ArgumentsRequired((this.id + " createOrders() requires a non-empty orders array")) ;
             }

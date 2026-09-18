@@ -1137,7 +1137,7 @@ public class Alpaca extends AlpacaApi
                         bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                         Object page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                         Object pageLength = ((List<?>)page).size();
-                        if (Helpers.isEqual(pageLength, 0))
+                        if (java.util.Objects.equals(pageLength, 0))
                         {
                             break;
                         }

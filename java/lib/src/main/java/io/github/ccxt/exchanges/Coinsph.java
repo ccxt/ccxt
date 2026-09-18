@@ -2765,7 +2765,7 @@ public class Coinsph extends CoinsphApi
             Object key = Helpers.GetValue(keys, i);
             if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(query, key))))
             {
-                if (!Helpers.isEqual(i, 0))
+                if ((i != 0))
                 {
                     encodedArrayParams = (encodedArrayParams + "&");
                 }
@@ -2776,7 +2776,7 @@ public class Coinsph extends CoinsphApi
             }
         }
         Object encodedQuery = this.urlencode(query);
-        if (!Helpers.isEqual(((String)encodedQuery).length(), 0))
+        if ((((String)encodedQuery).length() != 0))
         {
             return ((encodedQuery + "&") + encodedArrayParams);
         } else

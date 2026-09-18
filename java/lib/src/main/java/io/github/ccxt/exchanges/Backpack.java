@@ -2959,7 +2959,7 @@ public class Backpack extends BackpackApi
         if (java.util.Objects.equals(method, "GET"))
         {
             Object query = this.urlencode(sortedParams);
-            if (!Helpers.isEqual(((String)query).length(), 0))
+            if ((((String)query).length() != 0))
             {
                 endpoint = (endpoint + ("?" + query));
             }

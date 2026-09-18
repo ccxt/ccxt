@@ -2165,7 +2165,7 @@ public class Latoken extends LatokenApi
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(toAccount, "@"), 0))
             {
                 response = (this.privatePostAuthTransferEmail(this.extend(request, parameters))).join();
-            } else if (Helpers.isEqual(((String)toAccount).length(), 36))
+            } else if ((((String)toAccount).length() == 36))
             {
                 response = (this.privatePostAuthTransferId(this.extend(request, parameters))).join();
             } else

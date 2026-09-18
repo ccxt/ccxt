@@ -3039,7 +3039,7 @@ public class Upbit extends UpbitApi
                 body = this.json(parameters);
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
-            if ((!java.util.Objects.equals(hasQuery, null)) && (!Helpers.isEqual(hasQuery, 0)))
+            if ((!java.util.Objects.equals(hasQuery, null)) && (!java.util.Objects.equals(hasQuery, 0)))
             {
                 auth = this.rawencode(query);
             }

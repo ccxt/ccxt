@@ -2533,7 +2533,7 @@ public class Digifinex extends DigifinexApi
             {
                 Object canceledOrders = this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
                 Object numCanceledOrders = ((List<?>)canceledOrders).size();
-                if (!Helpers.isEqual(numCanceledOrders, 1))
+                if (!java.util.Objects.equals(numCanceledOrders, 1))
                 {
                     throw new OrderNotFound((((this.id + " cancelOrder() ") + id) + " not found")) ;
                 }

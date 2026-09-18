@@ -6675,7 +6675,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));

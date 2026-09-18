@@ -3158,7 +3158,7 @@ public class Blofin extends BlofinApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 0))
+                if (java.util.Objects.equals(symbolsLength, 0))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("instId", ((Map<String, Object>)market).get("id"));

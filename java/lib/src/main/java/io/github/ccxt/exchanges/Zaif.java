@@ -677,10 +677,10 @@ public class Zaif extends ZaifApi
             //
             List<Object> trades = this.toArray(response);
             Object numTrades = ((List<?>)trades).size();
-            if (Helpers.isEqual(numTrades, 1))
+            if (java.util.Objects.equals(numTrades, 1))
             {
                 Object firstTrade = this.safeDict(trades, 0, new HashMap<String, Object>() {{}});
-                if (Helpers.isEqual(((List<?>)Helpers.objectKeys(firstTrade)).size(), 0))
+                if ((((List<?>)Helpers.objectKeys(firstTrade)).size() == 0))
                 {
                     trades = new ArrayList<Object>(Arrays.asList());
                 }

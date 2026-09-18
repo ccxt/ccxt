@@ -6571,7 +6571,7 @@ public class Binance extends BinanceApi
             if ((!java.util.Objects.equals(symbols, null)) && (Helpers.isTrue(this.isLinear(type, subType)) || Helpers.isTrue(this.isInverse(type, subType))))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     ((Map<String, Object>)request).put("symbol", this.marketId(Helpers.GetValue(symbols, 0)));
                 }
@@ -12730,7 +12730,7 @@ public class Binance extends BinanceApi
         // so we should map the url to network (their data is inside currencies)
         Object networkCode = this.getNetworkCodeByNetworkUrl(code, url);
         String tag = this.safeString(response, "tag", "");
-        if (Helpers.isEqual(tag.length(), 0))
+        if ((tag.length() == 0))
         {
             tag = null;
         }
@@ -16450,7 +16450,7 @@ final Object finalMarket = market;
         {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
             Object arrayLength = ((List<?>)response).size();
-            if (Helpers.isEqual(arrayLength, 1))
+            if (java.util.Objects.equals(arrayLength, 1))
             {
                 Object element = Helpers.GetValue(response, 0);
                 String errorCode = this.safeString(element, "code");
@@ -17974,7 +17974,7 @@ final Object finalMarket = market;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
