@@ -1160,6 +1160,30 @@ const CORE_ARG_SHADOW_ELEMENT0_READ_RE = /^([A-Za-z_]\w*)\[\s*0\s*\]$/;
 const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
 const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\w*)\s*=\s*\(IList<object>\)\s*(?:this\.)?(?:handleWithdrawTagAndParams)\s*\(/;
 
+// U25 owns the withdraw `tag` core arg: `Withdraw`/`WithdrawWs` narrow the parameter to
+// `string tag = null` and every body reassigns it from `handleWithdrawTagAndParams`, so the 49
+// sites carry an `object tagVar = tag;` seed. The widenings below are keyed to that alias and to
+// the helper's holder, so the sibling shadow families (symbol / timeframe / since / currency /
+// limit -- U23/U24) keep the base behaviour.
+const CORE_ARG_SHADOW_TAG_ALIASES = [ 'tagVar' ];
+
+// Tuple helpers whose element 0 is a string-or-null box at every call site in cs/**. Each is
+// declared once (`Exchange.BaseMethods.cs`: `object tag, object parameters` -> `List<object>`,
+// no venue or pro override) and called only from the generated `Withdraw`/`WithdrawWs` bodies,
+// which pass the copy of their own `string tag = null` parameter: slot 0 is that box, or
+// `safeString(parameters, "tag")` after the dictionary branch nulled it. Both are string-or-null,
+// so the `(string)` element cast the destructured write gets names the box the slot already
+// holds -- null passes a reference cast unchanged.
+const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
+
+// Declarations the scanned body carries for the family above: element-0 holders of the audited
+// helpers, dictionary locals and plain `object` locals.
+type CoreArgShadowTagContext = {
+    stringHolders: Set<string>;
+    dictNames: Set<string>;
+    objectNames: Set<string>;
+};
+
 // cs-strict S01: the `code` core-arg. CORE_STRING_ARGS narrows the positions `code` is passed to,
 // and castCoreArgCallSites wraps every argument at those call sites -- including the ones that
 // already pass the narrowed type, which is what the caller cores do: `withdraw (code: Str)` prints
@@ -1168,8 +1192,11 @@ const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\
 // declaration inside the enclosing public method is exactly the narrowed type. A `string?`
 // declaration (the cast does assert non-null there) and an `object` declaration (an unproven box,
 // TS `any`) keep their cast. Identifier-keyed, so sibling units (symbol / timeframe / type / side /
-// id / status) keep owning their own call sites.
-const CORE_ARG_CAST_EXEMPT_NAMES = [ 'code', 'codeVar' ];
+// id / status) keep owning their own call sites. U25 adds the withdraw `tag` core arg: the
+// narrowed `tag` parameter of every `Withdraw`/`WithdrawWs` core and the `tagVar` shadow the
+// body assigns it to are declared exactly `string`, so the wrap `castCoreArgCallSites` inserts
+// for `withdrawRequest(... , tagVar, ...)` names the box those bindings already hold.
+const CORE_ARG_CAST_EXEMPT_NAMES = [ 'code', 'codeVar', 'tag', 'tagVar' ];
 
 // parse* cores whose `market` parameter is only ever a market row: every call site passes null, a
 // Dictionary<string, object> / IDictionary<string, object> value, or an admitted name's own `market`
@@ -1558,7 +1585,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
     'withdraw': [ 0, 2, 3 ],
-    'withdrawRequest': [ 0 ],
+    'withdrawRequest': [ 0, 3 ],
     'withdrawWs': [ 0, 2, 3 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
     // hand-written WsBridge caller both pass `object` and cannot be narrowed here
@@ -2809,7 +2836,7 @@ class NewTranspiler {
     }
 
     // right hand side whose C# static type is exactly the shadow's type
-    coreArgShadowRhsIsTyped (rhs: string, targetType: string, newRules = true): boolean {
+    coreArgShadowRhsIsTyped (rhs: string, targetType: string, newRules = true, tagContext?: CoreArgShadowTagContext): boolean {
         if (targetType === 'string') {
             if (/^"(?:[^"\\]|\\.)*"$/.test (rhs)) {
                 return true;
@@ -2827,6 +2854,15 @@ class NewTranspiler {
             }
             if (/^\(\(string\)[\w.]+\)\.(?:ToLower|ToUpper|Trim)\s*\(\s*\)$/.test (rhs)) {
                 return true;
+            }
+            // the destructured seed of a `tagVar` shadow: `<holder>[0]` of an audited helper
+            // (CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS) holds a string or null, and the write
+            // gets the `(string)` cast back to that box (insertCoreArgShadowElementCasts)
+            if (tagContext !== undefined) {
+                const element = /^([A-Za-z_]\w*)\s*\[\s*0\s*\]$/.exec (rhs);
+                if (element !== null && tagContext.stringHolders.has (element[1])) {
+                    return true;
+                }
             }
         } else if (targetType === 'bool?') {
             if (/^(?:true|false)$/.test (rhs)) {
@@ -2930,7 +2966,7 @@ class NewTranspiler {
     }
 
     // classification of one occurrence: 'write', 'read', or '' when not provable
-    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, newRules = true): string {
+    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, newRules = true, tagContext?: CoreArgShadowTagContext): string {
         const pre = line.slice (0, at);
         const post = line.slice (at + alias.length);
         const postl = post.replace (/^\s+/, '');
@@ -2942,7 +2978,7 @@ class NewTranspiler {
             if (m !== null) {
                 const op = m[1];
                 const rhs = m[2].trim ();
-                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType, newRules)) {
+                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType, newRules, tagContext)) {
                     return 'write';
                 }
                 return '';
@@ -2964,6 +3000,21 @@ class NewTranspiler {
         // the declaration is a dictionary and the value is boxed into an `object` entry
         if (postl.trim () === ';' && /request\s*\[[^\]]*\]\s*=\s*$/.test (pre)) {
             return 'read';
+        }
+        // U25: the `tagVar` shadow written into an object-valued slot the same body declares --
+        // an `object` local (`destinationRequest = tagVar;`) or a dictionary's `object` indexer
+        // (`transaction["tag"] = tagVar;` where `transaction` is declared `Dictionary<string,
+        // object>` / `IDictionary<string, object>` in this method). Either slot boxes the same
+        // string reference the `object` spelling boxes.
+        if (tagContext !== undefined && postl.trim () === ';') {
+            const intoDict = /(?:^|[^\w.])([A-Za-z_]\w*)\s*\[[^\]]*\]\s*=\s*$/.exec (pre);
+            if (intoDict !== null && tagContext.dictNames.has (intoDict[1])) {
+                return 'read';
+            }
+            const intoObject = /(?:^|[^\w.])([A-Za-z_]\w*)\s*=\s*$/.exec (pre);
+            if (intoObject !== null && tagContext.objectNames.has (intoObject[1])) {
+                return 'read';
+            }
         }
         if (/[{,]\s*$/.test (pre) && /(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*\{[^{}]*$/.test (pre)) {
             return 'read';
@@ -3107,13 +3158,14 @@ class NewTranspiler {
         const castWrites = castCasts !== undefined;
         const marketRows = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE) : [];
         const stringHolders = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE) : [];
+        const tagContext = CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 ? this.coreArgShadowTagContext (lines) : undefined;
         for (let k = 0; k < lines.length; k++) {
             if (k === skipLine) {
                 continue;
             }
             const line = lines[k];
             for (const at of this.coreArgShadowOccurrences (line, alias)) {
-                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], newRules);
+                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], newRules, tagContext);
                 if (kind === '') {
                     if (castWrites && line.slice (0, at).trim () === '') {
                         const post = /^\s*=\s*([^;]+?)\s*;\s*$/.exec (line.slice (at + alias.length));
@@ -3130,6 +3182,33 @@ class NewTranspiler {
             }
         }
         return reads > 0;
+    }
+
+    // Names the scanned body declares for the U25 `tag` family (see the table above the class
+    // fields): element-0 holders of an audited destructuring helper, dictionary locals and plain
+    // `object` locals. Body-scoped on purpose -- C# forbids a local from shadowing a parameter,
+    // and a name declared with any other type simply never enters the sets.
+    coreArgShadowTagContext (lines: string[]): CoreArgShadowTagContext {
+        const stringHolders = new Set<string> ();
+        const dictNames = new Set<string> ();
+        const objectNames = new Set<string> ();
+        const holderRe = new RegExp ('^\\s*IList<object> ([A-Za-z_]\\w*) = \\(IList<object>\\)this\\.('
+            + CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS.join ('|') + ')\\s*\\(');
+        for (const line of lines) {
+            const holder = holderRe.exec (line);
+            if (holder !== null) {
+                stringHolders.add (holder[1]);
+            }
+            const dict = /^\s*I?Dictionary<string, object>\s+([A-Za-z_]\w*)\s*=/.exec (line);
+            if (dict !== null) {
+                dictNames.add (dict[1]);
+            }
+            const obj = /^\s*object\s+([A-Za-z_]\w*)\s*=/.exec (line);
+            if (obj !== null) {
+                objectNames.add (obj[1]);
+            }
+        }
+        return { stringHolders, dictNames, objectNames };
     }
 
     // index of the `//` comment start outside string/char literals, or -1
@@ -3520,7 +3599,8 @@ class NewTranspiler {
     // copy stays a reference). Runs after typeCoreArgs so the narrowed signature is visible;
     // coreArgShadowIsProvable then decides from the printed body whether every other use of the
     // local keeps the same overload resolution, box and control flow. Only the declaration line
-    // changes.
+    // changes -- plus, for the U25 `tagVar` shadow, the `(string)` the destructured seed write
+    // needs in the slot (insertCoreArgShadowElementCasts).
     retypeCoreArgCopies (content: string): string {
         if (!/^\s*object \w+ = \w+;/m.test (content)) {
             return content;
@@ -3586,6 +3666,12 @@ class NewTranspiler {
                         for (const [ li, rewritten ] of rewrites) {
                             bodyLines[li] = rewritten;
                         }
+                        // cs90 U25: the `tag` aliases carry element reads of the shadow local
+                        // (the withdraw tag core arg), so the string element casts go in after
+                        // the write casts above -- both units' passes run on the same body.
+                        if (CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 && type === 'string') {
+                            this.insertCoreArgShadowElementCasts (bodyLines, alias);
+                        }
                         changed = true;
                     }
                 }
@@ -3598,6 +3684,23 @@ class NewTranspiler {
             i = bodyEnd;
         }
         return lines.join ('\n');
+    }
+
+    // `tagVar = tagparametersVariable[0];` -- the destructured write the proof above admitted
+    // (CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS). The retyped `string tagVar` needs the box named
+    // in the slot, and `(string)` IS that box: an identity reference conversion, null included.
+    // The holder is what scopes the rewrite -- only the audited helper's own holder matches.
+    insertCoreArgShadowElementCasts (bodyLines: string[], alias: string) {
+        const { stringHolders } = this.coreArgShadowTagContext (bodyLines);
+        if (stringHolders.size === 0) {
+            return;
+        }
+        for (let j = 0; j < bodyLines.length; j++) {
+            const write = /^(\s*)([A-Za-z_]\w*) = ([A-Za-z_]\w*)\[0\];\s*$/.exec (bodyLines[j]);
+            if (write !== null && write[2] === alias && stringHolders.has (write[3])) {
+                bodyLines[j] = write[1] + write[2] + ' = (string)' + write[3] + '[0];';
+            }
+        }
     }
 
     // cs-strict S01: the two passes the pipeline needs in this order. retypeCoreArgCopies is what

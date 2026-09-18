@@ -1765,13 +1765,13 @@ public partial class bigone : Exchange
         {
             if (isBuy)
             {
-                bool? createMarketBuyOrderRequiresPrice = null;
+                object createMarketBuyOrderRequiresPrice = null;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (createMarketBuyOrderRequiresPrice == true)
+                if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
                     if ((isEqual(price, null)) && (isEqual(cost, null)))
                     {
@@ -2543,7 +2543,7 @@ public partial class bigone : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {

@@ -2597,10 +2597,10 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            string? baseId = null;
+            object baseId = null;
             string? quoteId = null;
-            string? settleId = null;
-            string? id = null;
+            object settleId = null;
+            object id = null;
             string? lowercaseId = null;
             bool contract = (inOp(market, "contract_code"));
             bool spot = !contract;
@@ -2616,7 +2616,7 @@ public partial class htx : Exchange
                 {
                     throw new ExchangeError (add(this.id, " method() missing id")) ;
                 }
-                lowercaseId = id.ToLower();
+                lowercaseId = ((string)id).ToLower();
                 string? delivery_date = this.safeString(market, "delivery_date");
                 string? business_type = this.safeString(market, "business_type");
                 future = (delivery_date != null);
@@ -2630,7 +2630,7 @@ public partial class htx : Exchange
                     {
                         throw new ExchangeError (add(this.id, " method() missing id")) ;
                     }
-                    List<object> parts = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = ((string)id).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                     baseId = this.safeStringLower(market, "symbol");
                     quoteId = this.safeStringLower(parts, 1);
                     settleId = isTrue(inverse) ? baseId : quoteId;
@@ -2668,7 +2668,7 @@ public partial class htx : Exchange
                     throw new ExchangeError (add(this.id, " method() missing baseId")) ;
                 }
                 id = add(baseId, quoteId);
-                lowercaseId = id.ToLower();
+                lowercaseId = ((string)id).ToLower();
             }
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -3617,11 +3617,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
@@ -3943,11 +3943,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, 1000));
         }
@@ -4195,7 +4195,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
-            IDictionary<string, object> info = this.safeDict(account, "info");
+            object info = this.safeValue(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
             if (isEqual(type, "margin"))
@@ -4416,11 +4416,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? isUnifiedAccount = null;
+        object isUnifiedAccount = null;
         IList<object> isUnifiedAccountparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
-        isUnifiedAccount = (bool?)isUnifiedAccountparametersVariable[0];
+        isUnifiedAccount = isUnifiedAccountparametersVariable[0];
         parameters = isUnifiedAccountparametersVariable[1];
-        if (isUnifiedAccount == true)
+        if (isTrue(isUnifiedAccount))
         {
             throw new NotSupported (add(this.id, " fetchBalance() unified account has been deprecated on htx")) ;
         }
@@ -5288,11 +5288,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchCanceledOrders", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, parameters, 100));
         }
@@ -5363,11 +5363,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters, 100));
         }
@@ -6322,16 +6322,16 @@ public partial class htx : Exchange
         if ((orderType == "market") && (isEqual(side, "buy")))
         {
             string? quoteAmount = null;
-            bool? createMarketBuyOrderRequiresPrice = true;
+            object createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
+            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
             if (!isEqual(cost, null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
-            } else if (createMarketBuyOrderRequiresPrice == true)
+            } else if (isTrue(createMarketBuyOrderRequiresPrice))
             {
                 if (isEqual(price, null))
                 {
@@ -8110,7 +8110,7 @@ public partial class htx : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {
@@ -8513,8 +8513,8 @@ public partial class htx : Exchange
         string? marketId = this.safeString(info, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         object currencies = this.safeValue(info, "currencies", new List<object>() {});
-        IDictionary<string, object> baseData = this.safeDict(currencies, 0);
-        IDictionary<string, object> quoteData = this.safeDict(currencies, 1);
+        object baseData = this.safeValue(currencies, 0);
+        object quoteData = this.safeValue(currencies, 1);
         string? baseId = this.safeString(baseData, "currency");
         string? quoteId = this.safeString(quoteData, "currency");
         return new Dictionary<string, object>() {
@@ -8551,11 +8551,11 @@ public partial class htx : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "current_page", "page_index", 1, 50));
         }
@@ -9807,11 +9807,11 @@ public partial class htx : Exchange
         {
             await this.loadMarkets();
         }
-        bool? paginate = false;
+        object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = (bool?)paginateparametersVariable[0];
+        paginate = paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (paginate == true)
+        if (isTrue(paginate))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 500));
         }
@@ -10077,7 +10077,7 @@ public partial class htx : Exchange
         //        "ts": 1648227062944
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        object data = this.safeValue(response, "data");
         List<object> tick = this.safeList(data, "tick");
         return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(tick, market, since, limit));
     }
@@ -10655,7 +10655,7 @@ public partial class htx : Exchange
             object settlementsLinear = this.parseSettlements(dataLinear, market);
             return ccxt.BaseExchange.ToDictList(this.sortBy(settlementsLinear, "timestamp"));
         }
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        object data = this.safeValue(response, "data");
         object settlementRecord = this.safeValue(data, "settlement_record");
         object settlements = this.parseSettlements(settlementRecord, market);
         return ccxt.BaseExchange.ToDictList(this.sortBy(settlements, "timestamp"));

@@ -457,9 +457,9 @@ public partial class upbit : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> memberInfo = this.safeDict(response, "member_level", new Dictionary<string, object>() {});
-        IDictionary<string, object> currencyInfo = this.safeDict(response, "currency", new Dictionary<string, object>() {});
-        IDictionary<string, object> withdrawLimits = this.safeDict(response, "withdraw_limit", new Dictionary<string, object>() {});
+        object memberInfo = this.safeValue(response, "member_level", new Dictionary<string, object>() {});
+        object currencyInfo = this.safeValue(response, "currency", new Dictionary<string, object>() {});
+        object withdrawLimits = this.safeValue(response, "withdraw_limit", new Dictionary<string, object>() {});
         object canWithdraw = this.safeValue(withdrawLimits, "can_withdraw");
         string? walletState = this.safeString(currencyInfo, "wallet_state");
         object walletLocked = this.safeValue(memberInfo, "wallet_locked");
@@ -548,9 +548,9 @@ public partial class upbit : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> marketInfo = this.safeDict(response, "market");
-        IDictionary<string, object> bid = this.safeDict(marketInfo, "bid");
-        IDictionary<string, object> ask = this.safeDict(marketInfo, "ask");
+        object marketInfo = this.safeValue(response, "market");
+        object bid = this.safeValue(marketInfo, "bid");
+        object ask = this.safeValue(marketInfo, "ask");
         string? marketId = this.safeString(marketInfo, "id");
         string? baseId = this.safeString(ask, "currency");
         string? quoteId = this.safeString(bid, "currency");
@@ -2626,7 +2626,7 @@ public partial class upbit : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {

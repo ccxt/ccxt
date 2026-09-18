@@ -1774,7 +1774,7 @@ public partial class gemini : Exchange
         string? id = this.safeString(order, "order_id");
         string? side = this.safeStringLower(order, "side");
         string? clientOrderId = this.safeString(order, "client_order_id");
-        List<object> optionsArray = this.safeList(order, "options", new List<object>() {});
+        object optionsArray = this.safeValue(order, "options", new List<object>() {});
         string? option = this.safeString(optionsArray, 0);
         string timeInForce = "GTC";
         bool postOnly = false;
@@ -2131,7 +2131,7 @@ public partial class gemini : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))

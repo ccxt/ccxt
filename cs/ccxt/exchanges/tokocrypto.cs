@@ -861,7 +861,7 @@ public partial class tokocrypto : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
+            object symbol = add(add(bs, "/"), quote);
             object filters = this.safeValue(market, "filters", new List<object>() {});
             Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             string? status = this.safeString(market, "spotTradingEnable");
@@ -2017,7 +2017,7 @@ public partial class tokocrypto : Exchange
             object broker = this.safeValue(this.options, "broker");
             if ((broker != null))
             {
-                string? brokerId = this.safeString(broker, "marketType");
+                object brokerId = this.safeString(broker, "marketType");
                 if ((brokerId != null))
                 {
                     request["clientId"] = add(brokerId, this.uuid22());
@@ -2048,16 +2048,16 @@ public partial class tokocrypto : Exchange
             {
                 object precision = getValue(GetValue(market, "precision"), "price");
                 object quoteAmount = null;
-                bool? createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                 parameters = this.omit(parameters, new List<object>() {"cost", "quoteOrderQty"});
                 if (!isEqual(cost, null))
                 {
                     quoteAmount = cost;
-                } else if (createMarketBuyOrderRequiresPrice == true)
+                } else if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
                     if (isEqual(price, null))
                     {
@@ -2202,7 +2202,7 @@ public partial class tokocrypto : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        List<object> list = this.safeList(data, "list", new List<object>() {});
+        List<object> list = ((List<object>)this.safeValue(data, "list", new List<object>() {}));
         IDictionary<string, object> rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder));
     }
@@ -2797,7 +2797,7 @@ public partial class tokocrypto : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {

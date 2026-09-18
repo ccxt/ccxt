@@ -579,15 +579,15 @@ public partial class independentreserve : Exchange
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
         Int64? timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
-        string? baseId = this.safeString(ticker, "PrimaryCurrencyCode");
+        object baseId = this.safeString(ticker, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
-        string? defaultMarketId = null;
+        object defaultMarketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
             defaultMarketId = add(add(baseId, "/"), quoteId);
         }
         market = this.safeMarket(defaultMarketId, market, "/");
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -948,9 +948,9 @@ public partial class independentreserve : Exchange
         double? price = this.parseNumber(priceString);
         double? amount = this.parseNumber(amountString);
         double? cost = this.parseNumber(Precise.stringMul(priceString, amountString));
-        string? baseId = this.safeString(trade, "PrimaryCurrencyCode");
+        object baseId = this.safeString(trade, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(trade, "SecondaryCurrencyCode");
-        string? marketId = null;
+        object marketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
             marketId = add(add(baseId, "/"), quoteId);
@@ -1223,7 +1223,7 @@ public partial class independentreserve : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {

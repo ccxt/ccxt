@@ -471,7 +471,7 @@ public partial class indodax : Exchange
 
     public override Dictionary<string, object> parseBalance(object response)
     {
-        IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
         IDictionary<string, object> free = this.safeDict(balances, "balance", new Dictionary<string, object>() {});
         object used = this.safeValue(balances, "balance_hold", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(balances, "server_time");
@@ -891,8 +891,8 @@ public partial class indodax : Exchange
         if (!isEqual(market, null))
         {
             symbol = getValue(market, "symbol");
-            string? quoteId = ((string)getValue(market, "quoteId"));
-            string? baseId = ((string)getValue(market, "baseId"));
+            object quoteId = getValue(market, "quoteId");
+            object baseId = getValue(market, "baseId");
             if ((isEqual(getValue(market, "quoteId"), "idr")) && (inOp(order, "order_rp")))
             {
                 quoteId = "rp";
@@ -1132,7 +1132,7 @@ public partial class indodax : Exchange
             request[(string)((string)GetValue(market, "baseId"))] = this.amountToPrecision(symbol, amount);
         }
         Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, parameters));
-        IDictionary<string, object> data = this.safeDict(result, "return", new Dictionary<string, object>() {});
+        object data = this.safeValue(result, "return", new Dictionary<string, object>() {});
         string? id = this.safeString(data, "order_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", result },             { "id", id },         }, market));
     }
@@ -1224,7 +1224,7 @@ public partial class indodax : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
         string? currencyId = this.safeString(data, "currency");
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "rate", this.safeNumber(data, "withdraw_fee") },             { "currency", this.safeCurrencyCode(currencyId, currency) },         });
     }
@@ -1349,7 +1349,7 @@ public partial class indodax : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
         IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
         IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
         List<object> transactions = new List<object>() {};
@@ -1371,7 +1371,7 @@ public partial class indodax : Exchange
         } else
         {
             currency = this.currency(code);
-            List<object> withdraws = this.safeList(withdraw, GetValue(currency, "id"), new List<object>() {});
+            object withdraws = this.safeValue(withdraw, GetValue(currency, "id"), new List<object>() {});
             object deposits = this.safeValue(deposit, GetValue(currency, "id"), new List<object>() {});
             transactions = this.arrayConcat(withdraws, deposits);
         }
@@ -1395,7 +1395,7 @@ public partial class indodax : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))

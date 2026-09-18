@@ -357,7 +357,7 @@ public partial class bitbank : Exchange
         //       }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
         List<object> pairs = ((List<object>)this.safeValue(data, "pairs", new List<object>() {}));
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(pairs));
     }
@@ -934,7 +934,7 @@ public partial class bitbank : Exchange
         //        }
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data"));
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
@@ -1108,7 +1108,7 @@ public partial class bitbank : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (!(inOp(parameters, "uuid")))
         {

@@ -1777,7 +1777,7 @@ public partial class foxbit : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         if (isEqual(this.markets, null))
         {
@@ -1863,7 +1863,7 @@ public partial class foxbit : Exchange
         string? quoteId = this.safeString(quoteAssets, "symbol");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        string? symbol = ((string)add(add(bs, "/"), quote));
+        object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> fees = this.safeDict(market, "default_fees");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },

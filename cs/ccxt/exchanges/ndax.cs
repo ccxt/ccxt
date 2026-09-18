@@ -2926,7 +2926,7 @@ public partial class ndax : Exchange
         string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((string)tagparametersVariable[0]);
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         // this method required login, password and twofa key
         string? sessionToken = this.safeString(this.options, "sessionToken");
@@ -2967,7 +2967,7 @@ public partial class ndax : Exchange
         //         ]
         //     }
         //
-        List<object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
+        object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
         object firstTemplateType = this.safeValue(templateTypes, 0);
         if ((firstTemplateType == null))
         {
@@ -3036,7 +3036,7 @@ public partial class ndax : Exchange
         {
             if (isEqual(path, "Authenticate"))
             {
-                string? auth = add(add(this.login, ":"), this.password);
+                object auth = add(add(this.login, ":"), this.password);
                 string auth64 = this.stringToBase64(auth);
                 headers = new Dictionary<string, object>() {
                     { "Authorization", add("Basic ", auth64) },
@@ -3063,7 +3063,7 @@ public partial class ndax : Exchange
             if ((sessionToken == null))
             {
                 string nonce = this.nonce().ToString();
-                string auth = add(add(nonce, this.uid), this.apiKey);
+                object auth = add(add(nonce, this.uid), this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },
