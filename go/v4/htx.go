@@ -2681,7 +2681,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 	if numMarkets < 1 {
 		panic(OperationFailed(Add(this.Id+" fetchMarkets() returned an empty response: ", this.Json(response))))
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var baseId any = nil
@@ -2820,7 +2820,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			createdDate = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(GetValue(createdArray, 0), GetValue(createdArray, 1)), GetValue(createdArray, 2)), GetValue(createdArray, 3)), "-"), GetValue(createdArray, 4)), GetValue(createdArray, 5)), "-"), GetValue(createdArray, 6)), GetValue(createdArray, 7)), " 00:00:00")
 			created = this.Parse8601(createdDate)
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"lowercaseId":    lowercaseId,
 			"symbol":         symbol,
@@ -4042,12 +4042,12 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var trades any = this.SafeList(GetValue(data, i), "data", []any{})
 		for j := 0; j < GetArrayLength(trades); j++ {
 			var trade any = this.ParseTrade(GetValue(trades, j), market)
-			AppendToArray(&result, trade)
+			result = append(result, trade)
 		}
 	}
 	result = this.SortBy(result, "timestamp")
@@ -7201,7 +7201,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		retRes561412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes561412)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var symbol any = nil
 	var market any = nil
 	var marginMode any = nil
@@ -7241,7 +7241,7 @@ func (this *Htx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 			orderRequest = this.CreateContractOrderRequest(marketId, typeVar, side, amount, price, orderParams)
 		}
 		orderRequest = this.Omit(orderRequest, "marginMode")
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{}
 	var response any = nil
@@ -7837,10 +7837,10 @@ func (this *Htx) ParseCancelOrders(orders any) any {
 	}
 	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
 	var data any = this.SafeList(orders, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var order any = GetValue(data, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString(order, "order_id"),
 			"status":        "canceled",
@@ -7849,7 +7849,7 @@ func (this *Htx) ParseCancelOrders(orders any) any {
 	}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order any = GetValue(success, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"status": "canceled",
@@ -7857,7 +7857,7 @@ func (this *Htx) ParseCancelOrders(orders any) any {
 	}
 	for i := 0; i < GetArrayLength(failed); i++ {
 		var order any = GetValue(failed, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
 			"status":        "failed",
@@ -8218,13 +8218,13 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan any, code any, optionalArgs 
 	//
 	var data any = this.SafeValue(response, "data", []any{})
 	var allAddresses any = this.ParseDepositAddresses(data, []any{GetValue(currency, "code")}, false)
-	var addresses any = []any{}
+	var addresses []any = []any{}
 	for i := 0; i < GetArrayLength(allAddresses); i++ {
 		var address any = GetValue(allAddresses, i)
 		var noteMatch bool = (note == nil) || (IsEqual(GetValue(address, "note"), note))
 		var networkMatch bool = (networkCode == nil) || (IsEqual(GetValue(address, "network"), networkCode))
 		if noteMatch && networkMatch {
-			AppendToArray(&addresses, address)
+			addresses = append(addresses, address)
 		}
 	}
 
@@ -9085,14 +9085,14 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		panic(NotSupported(this.Id + " fetchFundingRateHistory() supports inverse and linear swaps only"))
 	}
 	var data any = this.SafeValue(response, "data")
-	var rates any = []any{}
+	var rates []any = []any{}
 	if IsEqual(GetValue(market, "linear"), true) {
 		for i := 0; i < GetArrayLength(data); i++ {
 			var entry any = GetValue(data, i)
 			var marketId *string = this.SafeString(entry, "contract_code")
 			var symbolInner *string = this.SafeSymbol(marketId, market)
 			var timestamp *int64 = this.SafeInteger(entry, "funding_time")
-			AppendToArray(&rates, map[string]any{
+			rates = append(rates, map[string]any{
 				"info":        entry,
 				"symbol":      symbolInner,
 				"fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -9109,7 +9109,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 			var marketId *string = this.SafeString(entry, "contract_code")
 			var symbolInner *string = this.SafeSymbol(marketId)
 			var timestamp *int64 = this.SafeInteger(entry, "funding_time")
-			AppendToArray(&rates, map[string]any{
+			rates = append(rates, map[string]any{
 				"info":        entry,
 				"symbol":      symbolInner,
 				"fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -10153,11 +10153,11 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var data any = this.SafeList(response, "data", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "ts")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var position any = GetValue(data, i)
 		var parsed any = this.ParsePosition(position)
-		AppendToArray(&result, this.Extend(parsed, map[string]any{
+		result = append(result, this.Extend(parsed, map[string]any{
 			"timestamp": timestamp,
 			"datetime":  this.Iso8601(timestamp),
 		}))
@@ -10503,7 +10503,7 @@ func (this *Htx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	_ = market
 	var currencyId *string = this.SafeString(info, "trade_partition")
 	var marketId *string = this.SafeString(info, "contract_code")
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	var brackets any = this.SafeList(info, "list", []any{})
 	for i := 0; i < GetArrayLength(brackets); i++ {
 		var item any = GetValue(brackets, i)
@@ -10512,7 +10512,7 @@ func (this *Htx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		for k := 0; k < GetArrayLength(ladders); k++ {
 			var bracket any = GetValue(ladders, k)
 			var adjustFactor *string = this.SafeString(bracket, "adjust_factor")
-			AppendToArray(&tiers, map[string]any{
+			tiers = append(tiers, map[string]any{
 				"tier":                  this.SafeInteger(bracket, "ladder"),
 				"symbol":                this.SafeSymbol(marketId, market, nil, "swap"),
 				"currency":              this.SafeCurrencyCode(currencyId),
@@ -11529,13 +11529,13 @@ func (this *Htx) ParseSettlements(settlements any, market any) any {
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		var settlement any = GetValue(settlements, i)
 		var list any = this.SafeValue(settlement, "list")
 		if IsEqual(GetValue(market, "linear"), true) {
 			var parsedSettlement any = this.ParseSettlement(settlement, market)
-			AppendToArray(&result, parsedSettlement)
+			result = append(result, parsedSettlement)
 		} else if !IsEqual(list, nil) {
 			var timestamp *int64 = this.SafeInteger(settlement, "settlement_time")
 			var timestampDetails map[string]any = map[string]any{
@@ -11545,10 +11545,10 @@ func (this *Htx) ParseSettlements(settlements any, market any) any {
 			for j := 0; j < GetArrayLength(list); j++ {
 				var item any = GetValue(list, j)
 				var parsedSettlement any = this.ParseSettlement(item, market)
-				AppendToArray(&result, this.Extend(parsedSettlement, timestampDetails))
+				result = append(result, this.Extend(parsedSettlement, timestampDetails))
 			}
 		} else {
-			AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+			result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 		}
 	}
 	return result

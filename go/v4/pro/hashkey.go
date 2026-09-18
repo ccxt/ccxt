@@ -808,13 +808,13 @@ func (this *Hashkey) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(listenKey)
 	symbols = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if ccxt.IsEqual(symbols, nil) {
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+":", symbol))
+			messageHashes = append(messageHashes, ccxt.Add(messageHash+":", symbol))
 		}
 	}
 	var url any = this.GetPrivateUrl(listenKey)

@@ -366,7 +366,7 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "LINK"
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var amountLimits any = this.SafeValue(this.Options, "limits", map[string]any{})
 	var coins []any = this.ToArray(response)
 	for i := 0; i < len(coins); i++ {
@@ -379,7 +379,7 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			continue
 		}
 		var id any = Add(quote, base)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -1314,11 +1314,11 @@ func (this *Mercado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Mercado) OrdersToTrades(orders any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var trades any = this.SafeList(GetValue(orders, i), "trades", []any{})
 		for y := 0; y < GetArrayLength(trades); y++ {
-			AppendToArray(&result, GetValue(trades, y))
+			result = append(result, GetValue(trades, y))
 		}
 	}
 	return result

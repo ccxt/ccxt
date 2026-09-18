@@ -1380,7 +1380,7 @@ func (this *Coinex) fetchSpotMarketsBody(ch chan any, params any) any {
 	//     }
 	//
 	var markets any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "market")
@@ -1389,7 +1389,7 @@ func (this *Coinex) fetchSpotMarketsBody(ch chan any, params any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -1478,7 +1478,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 	//     }
 	//
 	var markets any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var entry any = GetValue(markets, i)
 		var fees any = this.Fees
@@ -1500,7 +1500,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 		var leveragesLength int = GetArrayLength(leverages)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -3122,7 +3122,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		retRes257012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes257012)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var symbol any = nil
 	var reduceOnly any = false
 	var isTriggerOrder bool = false
@@ -3154,7 +3154,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 		isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -3190,7 +3190,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		}
 	}
 	var data any = this.SafeList(response, "data", []any{})
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var status any = nil
@@ -3211,7 +3211,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 			AddElementToObject(innerData, "status", status)
 			order = this.ParseOrder(innerData, market)
 		}
-		AppendToArray(&results, order)
+		results = append(results, order)
 	}
 
 	ch <- results
@@ -3259,9 +3259,9 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var response any = nil
-	var requestIds any = []any{}
+	var requestIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		AppendToArray(&requestIds, ParseInt(GetValue(ids, i)))
+		requestIds = append(requestIds, ParseInt(GetValue(ids, i)))
 	}
 	if trigger != nil && *trigger == true {
 		request["stop_ids"] = requestIds
@@ -3291,12 +3291,12 @@ func (this *Coinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		}
 	}
 	var data any = this.SafeList(response, "data", []any{})
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var item any = this.SafeDict(entry, "data", map[string]any{})
 		var order any = this.ParseOrder(item, market)
-		AppendToArray(&results, order)
+		results = append(results, order)
 	}
 
 	ch <- results
@@ -3425,7 +3425,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		retRes310212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes310212)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -3459,7 +3459,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		if !IsEqual(price, nil) {
 			orderRequest["price"] = this.PriceToPrecision(marketId, price)
 		}
-		AppendToArray(&ordersRequests, this.Extend(orderRequest, orderParams))
+		ordersRequests = append(ordersRequests, this.Extend(orderRequest, orderParams))
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var firstSymbol *string = this.SafeString(orderSymbols, 0)
@@ -3478,7 +3478,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		PanicOnError(response)
 	}
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var code *string = this.SafeString(entry, "code")
@@ -3491,7 +3491,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		}
 		var item any = this.SafeDict(entry, "data", map[string]any{})
 		var order any = this.ParseOrder(item)
-		AppendToArray(&result, order)
+		result = append(result, order)
 	}
 
 	ch <- result
@@ -4252,9 +4252,9 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var position any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(position); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(position, i), market))
+		result = append(result, this.ParsePosition(GetValue(position, i), market))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -4597,7 +4597,7 @@ func (this *Coinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 func (this *Coinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	var brackets any = this.SafeList(info, "level", []any{})
 	var minNotional any = 0
 	for i := 0; i < GetArrayLength(brackets); i++ {
@@ -4612,7 +4612,7 @@ func (this *Coinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 			return GetValue(market, "quote")
 		}()
 		var notional any = minNotional
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "swap"),
 			"currency":              curr,
@@ -4910,13 +4910,13 @@ func (this *Coinex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "created_at")
 		var currencyId *string = this.SafeString(entry, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":      entry,
 			"symbol":    symbol,
 			"code":      code,
@@ -5317,13 +5317,13 @@ func (this *Coinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var marketId *string = this.SafeString(entry, "market")
 		var symbolInner *string = this.SafeSymbol(marketId, market, nil, "swap")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_time")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbolInner,
 			"fundingRate": this.SafeNumber(entry, "actual_funding_rate"),

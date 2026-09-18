@@ -309,9 +309,9 @@ func (this *Luno) ParseOrderBookBidsAsks(bidasks any, optionalArgs ...any) any {
 	thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
 	_ = thirdKey
 	bidasks = this.ToArray(bidasks)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(bidasks); i++ {
-		ccxt.AppendToArray(&result, this.CustomParseBidAsk(ccxt.GetValue(bidasks, i), priceKey, amountKey, thirdKey))
+		result = append(result, this.CustomParseBidAsk(ccxt.GetValue(bidasks, i), priceKey, amountKey, thirdKey))
 	}
 	return result
 }
@@ -324,10 +324,10 @@ func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	_ = thirdKey
 	var price *float64 = this.SafeNumber(bidask, priceKey)
 	var amount *float64 = this.SafeNumber(bidask, amountKey)
-	var result any = []any{price, amount}
+	var result []any = []any{price, amount}
 	if !ccxt.IsEqual(thirdKey, nil) {
 		var thirdValue *string = this.SafeString(bidask, thirdKey)
-		ccxt.AppendToArray(&result, thirdValue)
+		result = append(result, thirdValue)
 	}
 	return result
 }

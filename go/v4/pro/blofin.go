@@ -456,12 +456,12 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
-	var messageHashes any = []any{}
-	var args any = []any{}
+	var messageHashes []any = []any{}
+	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsList); i++ {
 		var market any = this.Market(ccxt.GetValue(symbolsList, i))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask:", ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&args, map[string]any{
+		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(market, "symbol")))
+		args = append(args, map[string]any{
 			"channel": channel,
 			"instId":  ccxt.GetValue(market, "id"),
 		})
@@ -891,10 +891,10 @@ func (this *Blofin) HandlePositions(client any, message any) {
 	var arg any = this.SafeDict(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data")
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var position any = this.ParseWsPosition(ccxt.GetValue(data, i))
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 		var messageHash any = ccxt.Add(ccxt.Add(channelName, ":"), ccxt.GetValue(position, "symbol"))
 		client.(ccxt.ClientInterface).Resolve(position, messageHash)
@@ -1014,8 +1014,8 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 	if !ccxt.IsEqual(marketType, "swap") {
 		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", callerMethodName), "() does not support "), marketType), " markets yet")))
 	}
-	var rawSubscriptions any = []any{}
-	var messageHashes any = []any{}
+	var rawSubscriptions []any = []any{}
+	var messageHashes []any = []any{}
 	if ccxt.IsEqual(symbols, nil) {
 		symbols = []any{}
 	}
@@ -1038,14 +1038,14 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 				"channel": channel,
 				"instId":  ccxt.GetValue(market, "id"),
 			}
-			ccxt.AppendToArray(&rawSubscriptions, topic)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(channel, ":"), ccxt.GetValue(market, "symbol")))
+			rawSubscriptions = append(rawSubscriptions, topic)
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(channel, ":"), ccxt.GetValue(market, "symbol")))
 		}
 	} else {
-		ccxt.AppendToArray(&rawSubscriptions, map[string]any{
+		rawSubscriptions = append(rawSubscriptions, map[string]any{
 			"channel": channelName,
 		})
-		ccxt.AppendToArray(&messageHashes, channelName)
+		messageHashes = append(messageHashes, channelName)
 	}
 	// private channel are difference, they only need plural channel name for multiple symbols
 	if this.InArray(channelName, []any{"orders", "orders-algo", "positions"}) {

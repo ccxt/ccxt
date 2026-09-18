@@ -273,10 +273,10 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan any, ids any, optionalArgs .
 	var responseObj any = this.SafeDict(response, "response", map[string]any{})
 	var data any = this.SafeDict(responseObj, "data", map[string]any{})
 	var statuses any = this.SafeList(data, "statuses", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(statuses); i++ {
 		var status any = ccxt.GetValue(statuses, i)
-		ccxt.AppendToArray(&orders, this.SafeOrder(map[string]any{
+		orders = append(orders, this.SafeOrder(map[string]any{
 			"info":   status,
 			"status": status,
 		}))
@@ -1686,12 +1686,12 @@ func (this *Hyperliquid) HandlePositions(client any, message any) {
 	var cache any = this.Positions
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var clearinghouseState any = this.SafeDict(data, "clearinghouseState", map[string]any{})
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	var rawPositions any = this.SafeList(clearinghouseState, "assetPositions", []any{})
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParsePosition(rawPosition)
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var baseMessageHash string = "clearinghouseState::positions"

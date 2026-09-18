@@ -113,13 +113,13 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		symbols = this.GetActiveSymbols()
 	}
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if symbolsLength > 1 {
 		var parsedSymbols any = this.MarketSymbols(symbols)
 		var marketIds any = this.MarketIds(parsedSymbols)
 		productIds = marketIds
 		for i := 0; i < ccxt.GetArrayLength(parsedSymbols); i++ {
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(parsedSymbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(parsedSymbols, i)))
 		}
 	} else if symbolsLength == 1 {
 		market = this.Market(ccxt.GetValue(symbols, 0))
@@ -191,13 +191,13 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 	} else {
 		symbols = this.MarketSymbols(symbols)
 	}
-	var messageHashes any = []any{}
-	var productIds any = []any{}
+	var messageHashes []any = []any{}
+	var productIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
 		var symbol any = this.Symbol(marketId)
-		ccxt.AppendToArray(&productIds, marketId)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
+		productIds = append(productIds, marketId)
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if ccxt.IsEqual(url, nil) {
@@ -330,12 +330,12 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, opti
 }
 func (this *Coinbaseinternational) GetActiveSymbols() any {
 	var symbols any = this.Symbols
-	var output any = []any{}
+	var output []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		if ccxt.IsEqual(ccxt.GetValue(market, "active"), true) {
-			ccxt.AppendToArray(&output, symbol)
+			output = append(output, symbol)
 		}
 	}
 	return output

@@ -569,7 +569,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var tickers any = this.SafeList(response, "tickers", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(tickers); i++ {
 		var entry any = this.SafeValue(tickers, i)
 		var id *string = this.SafeString(entry, "id")
@@ -577,7 +577,7 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,

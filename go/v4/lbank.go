@@ -710,7 +710,7 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
 		var marketId *string = this.SafeString(market, "symbol")
@@ -720,7 +720,7 @@ func (this *Lbank) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         symbol,
 			"base":           base,
@@ -819,7 +819,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
 		var marketId *string = this.SafeString(market, "symbol")
@@ -830,7 +830,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             marketId,
 			"symbol":         symbol,
 			"base":           base,

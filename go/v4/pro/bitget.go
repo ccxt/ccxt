@@ -264,8 +264,8 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	instTypeparamsVariable := this.GetInstType("watchTickers", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
 	params = ccxt.GetValue(instTypeparamsVariable, 1)
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var marketInner any = this.Market(symbol)
@@ -286,8 +286,8 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		}()
 		ccxt.AddElementToObject(args, topicOrChannel, "ticker")
 		ccxt.AddElementToObject(args, symbolOrInstId, ccxt.GetValue(marketInner, "id"))
-		ccxt.AppendToArray(&topics, args)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", symbol))
+		topics = append(topics, args)
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", symbol))
 	}
 
 	tickers := (<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))
@@ -548,8 +548,8 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	instTypeparamsVariable := this.GetInstType("watchBidsAsks", market, uta, params)
 	instType = ccxt.GetValue(instTypeparamsVariable, 0)
 	params = ccxt.GetValue(instTypeparamsVariable, 1)
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var marketInner any = this.Market(symbol)
@@ -570,8 +570,8 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		}()
 		ccxt.AddElementToObject(args, topicOrChannel, "ticker")
 		ccxt.AddElementToObject(args, symbolOrInstId, ccxt.GetValue(marketInner, "id"))
-		ccxt.AppendToArray(&topics, args)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask:", symbol))
+		topics = append(topics, args)
+		messageHashes = append(messageHashes, ccxt.Add("bidask:", symbol))
 	}
 
 	tickers := (<-this.WatchPublicMultipleAsync(uta, messageHashes, topics, params))
@@ -1061,8 +1061,8 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		channel = ccxt.Add(channel, ccxt.ToString(limit))
 		incrementalFeed = false
 	}
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	var uta any = nil
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
@@ -1091,8 +1091,8 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		}()
 		ccxt.AddElementToObject(args, topicOrChannel, channel)
 		ccxt.AddElementToObject(args, symbolOrInstId, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&topics, args)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook:", symbol))
+		topics = append(topics, args)
+		messageHashes = append(messageHashes, ccxt.Add("orderbook:", symbol))
 	}
 	if ccxt.EvalTruthy(uta) {
 		ccxt.AddElementToObject(params, "uta", true)
@@ -1199,15 +1199,15 @@ func (this *Bitget) HandleOrderBook(client any, message any) {
 			var storedBids any = ccxt.GetValue(storedOrderBook, "bids")
 			var asksLength int = ccxt.GetArrayLength(storedAsks)
 			var bidsLength int = ccxt.GetArrayLength(storedBids)
-			var payloadArray any = []any{}
+			var payloadArray []any = []any{}
 			for i := 0; i < 25; i++ {
 				if i < bidsLength {
-					ccxt.AppendToArray(&payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedBids, i), 2), 0))
-					ccxt.AppendToArray(&payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedBids, i), 2), 1))
+					payloadArray = append(payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedBids, i), 2), 0))
+					payloadArray = append(payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedBids, i), 2), 1))
 				}
 				if i < asksLength {
-					ccxt.AppendToArray(&payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 2), 0))
-					ccxt.AppendToArray(&payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 2), 1))
+					payloadArray = append(payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 2), 0))
+					payloadArray = append(payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 2), 1))
 				}
 			}
 			var payload string = ccxt.Join(payloadArray, ":")
@@ -1343,8 +1343,8 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var utaparamsVariable []any = this.HandleOptionAndParams(params, "watchTradesForSymbols", "uta", false)
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.GetValue(utaparamsVariable, 1)
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
@@ -1374,8 +1374,8 @@ func (this *Bitget) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 			return "trade"
 		}())
 		ccxt.AddElementToObject(args, symbolOrInstId, ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&topics, args)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("trade:", symbol))
+		topics = append(topics, args)
+		messageHashes = append(messageHashes, ccxt.Add("trade:", symbol))
 	}
 	if ccxt.EvalTruthy(uta) {
 		params = this.Extend(params, map[string]any{
@@ -1828,13 +1828,13 @@ func (this *Bitget) HandlePositions(client any, message any) {
 	}
 	var cache any = ccxt.GetValue(this.Positions, instType)
 	var rawPositions any = this.SafeList(message, "data", []any{})
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var marketId *string = this.SafeString2(rawPosition, "instId", "symbol")
 		var market any = this.SafeMarket(marketId, nil, nil, "contract")
 		var position any = this.ParseWsPosition(rawPosition, market)
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(instType, ":positions::"))

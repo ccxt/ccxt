@@ -385,14 +385,14 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 			"channel": channel,
 		},
 	}
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbols, nil) && ccxt.IsArray(symbols) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
-			ccxt.AppendToArray(&messageHashes, messageHash)
+			messageHashes = append(messageHashes, messageHash)
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, channel)
+		messageHashes = append(messageHashes, channel)
 	}
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
@@ -633,19 +633,19 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 			"channel": channel,
 		},
 	}
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbols, nil) {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 				var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
-				ccxt.AppendToArray(&messageHashes, messageHash)
+				messageHashes = append(messageHashes, messageHash)
 			}
 		} else {
-			ccxt.AppendToArray(&messageHashes, channel) // if an empty array is passed, subscribe to all funding rates
+			messageHashes = append(messageHashes, channel) // if an empty array is passed, subscribe to all funding rates
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, channel)
+		messageHashes = append(messageHashes, channel)
 	}
 
 	newFundingRates := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))

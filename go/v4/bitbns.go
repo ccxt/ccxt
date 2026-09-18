@@ -392,7 +392,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         },
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
 		var market any = GetValue(rawMarkets, i)
@@ -414,7 +414,7 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return baseId
 		}()
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"uppercaseId":    uppercaseId,
 			"symbol":         Add(Add(base, "/"), quote),

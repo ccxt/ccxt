@@ -1225,8 +1225,8 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises any = []any{this.SapiPublicGetV3ExchangeInfo(params), this.FapiPublicGetV3ExchangeInfo(params)}
-	AppendToArray(&promises, this.SignInAsync())
+	var promises []any = []any{this.SapiPublicGetV3ExchangeInfo(params), this.FapiPublicGetV3ExchangeInfo(params)}
+	promises = append(promises, this.SignInAsync())
 
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
@@ -1328,12 +1328,12 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	//
-	var fapiRowsFiltered any = []any{}
+	var fapiRowsFiltered []any = []any{}
 	for i := 0; i < GetArrayLength(fapiRows); i++ {
 		var market any = GetValue(fapiRows, i)
 		// tmp skip some markets with base = undefined
 		if this.SafeString(market, "baseAsset") != nil {
-			AppendToArray(&fapiRowsFiltered, market)
+			fapiRowsFiltered = append(fapiRowsFiltered, market)
 		}
 	}
 	var rows []any = this.ArrayConcat(sapiRows, fapiRowsFiltered)
@@ -2265,12 +2265,12 @@ func (this *Aster) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 		panic(NullResponse(this.Id + " fetchLastPrices() returned empty response"))
 	}
 	var rows []any = this.ToArray(response)
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var marketId *string = this.SafeString(GetValue(rows, i), "symbol")
 		var safeMarket any = this.SafeMarket(marketId, nil, nil, marketType)
 		var priceData map[string]any = this.Extend(this.ParseLastPrice(GetValue(rows, i), safeMarket), params)
-		AppendToArray(&results, priceData)
+		results = append(results, priceData)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -3503,7 +3503,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 
 	retRes26938 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes26938)
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	if GetArrayLength(orders) > 5 {
 		panic(InvalidOrder(this.Id + " createOrders() order list max 5 orders"))
@@ -3519,7 +3519,7 @@ func (this *Aster) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(orderSymbols, 0))
@@ -4812,12 +4812,12 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 	//     ]
 	//
 	var rawPositions []any = this.ToArray(response)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = GetValue(rawPositions, i)
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
-			AppendToArray(&result, this.ParsePositionRisk(rawPosition))
+			result = append(result, this.ParsePositionRisk(rawPosition))
 		}
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -4895,7 +4895,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 			})
 		}
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var position any = GetValue(positions, i)
 		var marketId *string = this.SafeString(position, "symbol")
@@ -4916,7 +4916,7 @@ func (this *Aster) ParseAccountPositions(account any, optionalArgs ...any) any {
 					"crossMargin":        GetValue(GetValue(balances, code), "crossMargin"),
 					"crossWalletBalance": GetValue(GetValue(balances, code), "crossWalletBalance"),
 				}), market)
-				AppendToArray(&result, parsed)
+				result = append(result, parsed)
 			}
 		}
 	}
@@ -5201,12 +5201,12 @@ func (this *Aster) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) an
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets any = this.SafeList(entry, "brackets", []any{})
-			var result any = []any{}
+			var result []any = []any{}
 			for j := 0; j < GetArrayLength(brackets); j++ {
 				var bracket any = GetValue(brackets, j)
 				var floorValue *string = this.SafeString(bracket, "notionalFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
-				AppendToArray(&result, []any{floorValue, maintenanceMarginPercentage})
+				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
 			AddElementToObject(GetValue(this.Options, "leverageBrackets"), symbol, result)
 		}

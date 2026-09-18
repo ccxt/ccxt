@@ -2201,12 +2201,12 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var fetchSpotMarkets bool = this.InArray("spot", types)
 	fetchTickersFees = EvalTruthy(fetchTickersFees) && fetchSpotMarkets // tickers and fees are only fetched for spot markets
-	var promises any = []any{}
+	var promises []any = []any{}
 	if fetchSpotMarkets {
-		AppendToArray(&promises, this.PublicGetSymbols(params))
+		promises = append(promises, this.PublicGetSymbols(params))
 	}
 	if requestMarginables == true {
-		AppendToArray(&promises, this.PrivateGetMarginSymbols(params)) // cross margin symbols
+		promises = append(promises, this.PrivateGetMarginSymbols(params)) // cross margin symbols
 		//
 		//    {
 		//        "code": "200000",
@@ -2218,7 +2218,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//                    "minFunds": "0.1"
 		//                },
 		//
-		AppendToArray(&promises, this.PrivateGetIsolatedSymbols(params)) // isolated margin symbols
+		promises = append(promises, this.PrivateGetIsolatedSymbols(params)) // isolated margin symbols
 	}
 	if EvalTruthy(fetchTickersFees) {
 		//
@@ -2246,14 +2246,14 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//                     "makerCoefficient": "1" // Maker Fee Coefficient
 		//                 }
 		//
-		AppendToArray(&promises, this.PublicGetMarketAllTickers(params))
+		promises = append(promises, this.PublicGetMarketAllTickers(params))
 	}
 	if fetchContractMarkets {
-		AppendToArray(&promises, this.FetchContractMarketsAsync(params))
+		promises = append(promises, this.FetchContractMarketsAsync(params))
 	}
 	if credentialsSet {
 		// load migration status for account
-		AppendToArray(&promises, this.LoadMigrationStatusAsync())
+		promises = append(promises, this.LoadMigrationStatusAsync())
 	}
 
 	responses := (<-promiseAll(promises))
@@ -2308,7 +2308,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}()
 	var tickerItems any = this.SafeList(this.SafeDict(tickersResponse, "data", map[string]any{}), "ticker", []any{})
 	var tickersById map[string]any = this.IndexBy(tickerItems, "symbol")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(symbolsData); i++ {
 		var market any = GetValue(symbolsData, i)
 		var id *string = this.SafeString(market, "symbol")
@@ -2329,7 +2329,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var hasCrossMargin bool = (InOp(crossById, id))
 		var hasIsolatedMargin bool = (InOp(isolatedById, id))
 		var isMarginable bool = EvalTruthy(this.SafeBool(market, "isMarginEnabled", false)) || hasCrossMargin || hasIsolatedMargin
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       id,
 			"symbol":   Add(Add(base, "/"), quote),
 			"base":     base,
@@ -2473,7 +2473,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
 	//        }
 	//    }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var data any = this.SafeList(response, "data", []any{})
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
@@ -2512,7 +2512,7 @@ func (this *Kucoin) fetchContractMarketsBody(ch chan any, optionalArgs ...any) a
 			var quoteMaxSizeString *string = this.SafeString(market, "quoteMaxSize")
 			limitPriceMax = this.ParseNumber(Precise.StringDiv(quoteMaxSizeString, baseMinSizeString))
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -2578,8 +2578,8 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises any = []any{}
-	AppendToArray(&promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
+	var promises []any = []any{}
+	promises = append(promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
 		"tradeType": "SPOT",
 	})))
 	//
@@ -2614,7 +2614,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	AppendToArray(&promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
+	promises = append(promises, this.UtaGetMarketInstrument(this.Extend(params, map[string]any{
 		"tradeType": "FUTURES",
 	})))
 	//
@@ -2662,7 +2662,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 	var spotData any = this.SafeList(data, "list", []any{})
 	var contractSymbolsData any = this.SafeList(contractData, "list", []any{})
 	var symbolsData []any = this.ArrayConcat(spotData, contractSymbolsData)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(symbolsData); i++ {
 		var market any = GetValue(symbolsData, i)
 		var id *string = this.SafeString(market, "symbol")
@@ -2711,7 +2711,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 			typeVar = "spot"
 			spot = true
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,
@@ -3040,14 +3040,14 @@ func (this *Kucoin) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 		data = this.SafeList(response, "data", []any{})
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var account any = GetValue(data, i)
 		var accountId *string = this.SafeString(account, "id")
 		var currencyId *string = this.SafeString(account, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var typeVar *string = this.SafeStringLower2(account, "type", "accountType") // main or trade or unified
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       accountId,
 			"type":     typeVar,
 			"currency": code,
@@ -5886,7 +5886,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
 		retRes473912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes473912)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var symbol any = nil
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -5910,7 +5910,7 @@ func (this *Kucoin) createSpotOrdersBody(ch chan any, orders any, optionalArgs .
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateSpotOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " createOrders() requires at least one order with a symbol"))
@@ -6003,7 +6003,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
 		retRes483312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes483312)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var symbol *string = this.SafeString(rawOrder, "symbol")
@@ -6016,7 +6016,7 @@ func (this *Kucoin) createContractOrdersBody(ch chan any, orders any, optionalAr
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
 	response := (<-this.FuturesPrivatePostOrdersMulti(ordersRequests))
@@ -12715,14 +12715,14 @@ func (this *Kucoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		// kucoin returns funding index symbols (e.g. .ETHUSDTMFPI8H) alongside tradeable contracts
 		var isFundingIndex bool = (marketId != nil) && (StartsWith(marketId, "."))
 		if !isFundingIndex {
-			AppendToArray(&rates, entry)
+			rates = append(rates, entry)
 		}
 	}
 
@@ -13042,12 +13042,12 @@ func (this *Kucoin) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		var data any = this.SafeValue(response, "data")
 		dataList = this.SafeList(data, "dataList", []any{})
 	}
-	var fees any = []any{}
+	var fees []any = []any{}
 	for i := 0; i < GetArrayLength(dataList); i++ {
 		var listItem any = GetValue(dataList, i)
 		var timestamp *int64 = this.SafeInteger2(listItem, "timePoint", "settlementTime")
 		var marketId *string = this.SafeString(listItem, "symbol")
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"info":         listItem,
 			"symbol":       this.SafeSymbol(marketId, market),
 			"code":         this.SafeCurrencyCode(this.SafeString(listItem, "settleCurrency")),
@@ -13638,7 +13638,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	} else if EvalTruthy(uta) {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument for uta endpoint"))
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var clientOrderIds any = this.SafeList2(params, "clientOrderIds", "clientOids", []any{})
 	params = this.Omit(params, []any{"clientOrderIds", "clientOids"})
 	var useClientorderId bool = false
@@ -13647,7 +13647,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument when cancelling by clientOrderIds"))
 		}
-		AppendToArray(&ordersRequests, map[string]any{
+		ordersRequests = append(ordersRequests, map[string]any{
 			"symbol":    this.SafeString(market, "id"),
 			"clientOid": this.SafeString(clientOrderIds, i),
 		})
@@ -13655,12 +13655,12 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var orderId any = GetValue(ids, i)
 		if EvalTruthy(uta) {
-			AppendToArray(&ordersRequests, map[string]any{
+			ordersRequests = append(ordersRequests, map[string]any{
 				"orderId": orderId,
 				"symbol":  this.SafeString(market, "id"),
 			})
 		} else {
-			AppendToArray(&ordersRequests, GetValue(ids, i))
+			ordersRequests = append(ordersRequests, GetValue(ids, i))
 		}
 	}
 	var request map[string]any = map[string]any{}
@@ -14318,12 +14318,12 @@ func (this *Kucoin) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier any = this.SafeDict(info, i, map[string]any{})
 		var marketId *string = this.SafeString(tier, "symbol")
 		market = this.SafeMarket(marketId, market)
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeNumber2(tier, "level", "tier"),
 			"symbol":                GetValue(market, "symbol"),
 			"currency":              GetValue(market, "base"),

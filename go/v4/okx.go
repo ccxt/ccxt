@@ -2670,12 +2670,12 @@ func (this *Okx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var account any = GetValue(data, i)
 		var accountId *string = this.SafeString(account, "uid")
 		var typeVar *string = this.SafeString(account, "acctLv")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       accountId,
 			"type":     typeVar,
 			"currency": nil,
@@ -2956,11 +2956,11 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 	}
 	if IsEqual(typeVar, "option") {
 		var optionsUnderlying any = this.SafeList(this.Options, "defaultUnderlying", []any{"BTC-USD", "ETH-USD"})
-		var promises any = []any{}
+		var promises []any = []any{}
 		for i := 0; i < GetArrayLength(optionsUnderlying); i++ {
 			var underlying any = GetValue(optionsUnderlying, i)
 			request["uly"] = underlying
-			AppendToArray(&promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
+			promises = append(promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
 		}
 
 		promisesResult := (<-promiseAll(promises))
@@ -3012,7 +3012,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 	//     }
 	//
 	var dataResponse any = this.SafeList(response, "data", []any{})
-	var marketsWithoutTest any = []any{}
+	var marketsWithoutTest []any = []any{}
 	for i := 0; i < GetArrayLength(dataResponse); i++ {
 		var data any = GetValue(dataResponse, i)
 		var instId *string = this.SafeString(data, "instId", "")
@@ -3025,7 +3025,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 				continue
 			}
 		}
-		AppendToArray(&marketsWithoutTest, data)
+		marketsWithoutTest = append(marketsWithoutTest, data)
 	}
 
 	ch <- this.ParseMarkets(marketsWithoutTest)
@@ -4097,12 +4097,12 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var data any = this.SafeList(response, "data", []any{})
 	for i := 0; i < GetArrayLength(data); i++ {
 		var rate any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        rate,
 			"symbol":      this.SafeSymbol(this.SafeString(rate, "instId")),
 			"fundingRate": this.SafeNumber(rate, "realizedRate"),
@@ -4931,7 +4931,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		retRes358312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes358312)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -4945,7 +4945,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
 	response := (<-this.PrivatePostTradeBatchOrders(ordersRequests))
@@ -5318,7 +5318,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		PanicOnError(retRes387312)
 	}
 	var market any = this.Market(symbol)
-	var request any = []any{}
+	var request []any = []any{}
 	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
 	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
@@ -5334,7 +5334,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		ids = this.ParseIds(ids)
 		if !IsEqual(algoIds, nil) {
 			for i := 0; i < GetArrayLength(algoIds); i++ {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"algoId": GetValue(algoIds, i),
 					"instId": GetValue(market, "id"),
 				})
@@ -5342,12 +5342,12 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		}
 		for i := 0; i < GetArrayLength(ids); i++ {
 			if (trailing != nil && *trailing == true) || (!IsEqual(trigger, nil)) {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"algoId": GetValue(ids, i),
 					"instId": GetValue(market, "id"),
 				})
 			} else {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"ordId":  GetValue(ids, i),
 					"instId": GetValue(market, "id"),
 				})
@@ -5356,12 +5356,12 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	} else {
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
 			if (trailing != nil && *trailing == true) || (!IsEqual(trigger, nil)) {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"instId":      GetValue(market, "id"),
 					"algoClOrdId": GetValue(clientOrderIds, i),
 				})
 			} else {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"instId":  GetValue(market, "id"),
 					"clOrdId": GetValue(clientOrderIds, i),
 				})
@@ -5443,7 +5443,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 		retRes398212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes398212)
 	}
-	var request any = []any{}
+	var request []any = []any{}
 	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
 	var method any = DerefScalar(this.SafeString(params, "method", defaultMethod))
@@ -5477,7 +5477,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 			}
 			return id
 		}()
-		AppendToArray(&request, requestItem)
+		request = append(request, requestItem)
 	}
 	var response any = nil
 	if IsEqual(method, "privatePostTradeCancelAlgos") {
@@ -8030,13 +8030,13 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbols, nil) {
-		var marketIds any = []any{}
+		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var entry any = GetValue(symbols, i)
 			var market any = this.Market(entry)
-			AppendToArray(&marketIds, GetValue(market, "id"))
+			marketIds = append(marketIds, GetValue(market, "id"))
 		}
-		var marketIdsLength int = GetArrayLength(marketIds)
+		var marketIdsLength int = len(marketIds)
 		if marketIdsLength > 0 {
 			request["instId"] = Join(marketIds, ",")
 		}
@@ -8100,9 +8100,9 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var positions any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(positions, i)))
+		result = append(result, this.ParsePosition(GetValue(positions, i)))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols), false)
@@ -9020,7 +9020,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
@@ -9036,7 +9036,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			amount = positionBalanceChange
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":      entry,
 			"symbol":    GetValue(marketInner, "symbol"),
 			"code":      code,
@@ -9894,11 +9894,11 @@ func (this *Okx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier any = GetValue(info, i)
 		var marketId *string = this.SafeString(tier, "instId")
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "tier"),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              this.SafeString(market, "quote"),
@@ -10741,14 +10741,14 @@ func (this *Okx) ParseSettlements(settlements any, market any) any {
 	//         "ts":"1684656000000"
 	//     }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		var entry any = GetValue(settlements, i)
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var details any = this.SafeList(entry, "details", []any{})
 		for j := 0; j < GetArrayLength(details); j++ {
 			var settlement any = this.ParseSettlement(GetValue(details, j), market)
-			AppendToArray(&result, this.Extend(settlement, map[string]any{
+			result = append(result, this.Extend(settlement, map[string]any{
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),
 			}))
@@ -12101,10 +12101,10 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"timestamp":      this.SafeString(entry, 0),
 			"longShortRatio": this.SafeString(entry, 1),
 		})

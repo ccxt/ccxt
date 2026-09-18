@@ -1074,7 +1074,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var resultResponse any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(resultResponse, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
 		var inst_type *string = this.SafeString(market, "inst_type")
@@ -1146,7 +1146,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return nil
 		}()
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             this.SafeString(market, "symbol"),
 			"symbol":         symbol,
 			"base":           base,
@@ -2039,7 +2039,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		retRes151512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes151512)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2049,7 +2049,7 @@ func (this *Cryptocom) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateAdvancedOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var contigency *string = this.SafeString(params, "contingency_type", "LIST")
 	var request map[string]any = map[string]any{
@@ -2436,14 +2436,14 @@ func (this *Cryptocom) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 		PanicOnError(retRes182712)
 	}
 	var market any = this.Market(symbol)
-	var orderRequests any = []any{}
+	var orderRequests []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
 		var order map[string]any = map[string]any{
 			"instrument_name": GetValue(market, "id"),
 			"order_id":        ToString(id),
 		}
-		AppendToArray(&orderRequests, order)
+		orderRequests = append(orderRequests, order)
 	}
 	var request map[string]any = map[string]any{
 		"contingency_type": "LIST",
@@ -2482,7 +2482,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
 		retRes185912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes185912)
 	}
-	var orderRequests any = []any{}
+	var orderRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
 		var id *string = this.SafeString(order, "id")
@@ -2492,7 +2492,7 @@ func (this *Cryptocom) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
 			"instrument_name": GetValue(market, "id"),
 			"order_id":        ToString(id),
 		}
-		AppendToArray(&orderRequests, orderItem)
+		orderRequests = append(orderRequests, orderItem)
 	}
 	var request map[string]any = map[string]any{
 		"contingency_type": "LIST",
@@ -3943,9 +3943,9 @@ func (this *Cryptocom) ParseSettlements(settlements any, market any) any {
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
-		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
 	return result
 }
@@ -4134,11 +4134,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(result, "data", []any{})
 	var marketId *string = this.SafeString(result, "instrument_name")
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "t")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId, market),
 			"fundingRate": this.SafeNumber(entry, "v"),
@@ -4282,12 +4282,12 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	//
 	var responseResult any = this.SafeDict(response, "result", map[string]any{})
 	var positions any = this.SafeList(responseResult, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var entry any = GetValue(positions, i)
 		var marketId *string = this.SafeString(entry, "instrument_name")
 		var marketInner any = this.SafeMarket(marketId, nil, nil, "contract")
-		AppendToArray(&result, this.ParsePosition(entry, marketInner))
+		result = append(result, this.ParsePosition(entry, marketInner))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", nil, false)

@@ -1109,7 +1109,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 	if IsEqual(length, 0) {
 		return candles
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	var copyFrom any = GetValue(candles, 0)
 	var timestamp any = nil
 	if IsEqual(since, nil) {
@@ -1123,7 +1123,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 	for (IsLessThan(resultLength, limit)) && (IsLessThan(i, candleLength)) {
 		var candle any = GetValue(candles, i)
 		if IsEqual(GetValue(candle, 0), timestamp) {
-			AppendToArray(&result, candle)
+			result = append(result, candle)
 			i = this.Sum(i, 1)
 		} else {
 			var copy []any = this.ArrayConcat([]any{}, copyFrom)
@@ -1133,10 +1133,10 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 			AddElementToObject(copy, 2, GetValue(copy, 4))
 			AddElementToObject(copy, 3, GetValue(copy, 4))
 			AddElementToObject(copy, 5, this.ParseNumber("0"))
-			AppendToArray(&result, copy)
+			result = append(result, copy)
 		}
 		timestamp = this.Sum(timestamp, Multiply(distance, 1000))
-		resultLength = GetArrayLength(result)
+		resultLength = len(result)
 		copyFrom = GetValue(result, Subtract(resultLength, 1))
 	}
 	return result
@@ -1460,12 +1460,12 @@ func (this *Bitopro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 }
 func (this *Bitopro) ParseCancelOrders(data any) any {
 	var dataKeys []string = ObjectKeys(data)
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < len(dataKeys); i++ {
 		var marketId string = GetValue(dataKeys, i).(string)
 		var orderIds any = GetValue(data, marketId)
 		for j := 0; j < GetArrayLength(orderIds); j++ {
-			AppendToArray(&orders, this.SafeOrder(map[string]any{
+			orders = append(orders, this.SafeOrder(map[string]any{
 				"info":   GetValue(orderIds, j),
 				"id":     GetValue(orderIds, j),
 				"symbol": this.SafeSymbol(marketId),

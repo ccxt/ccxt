@@ -131,15 +131,15 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
 	var url any = this.GetWsPublicUrl()
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var topic any = ccxt.Add("recentlyTrade.H.", ccxt.GetValue(market, "id2"))
-		ccxt.AppendToArray(&topics, topic)
+		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("trade:", symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	}
 
 	trades := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
@@ -299,8 +299,8 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	}
 	symbols = this.MarketSymbols(symbols)
 	var url any = this.GetWsPublicUrl()
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
@@ -308,9 +308,9 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 			limit = 25
 		}
 		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", ccxt.GetValue(market, "id2"))
-		ccxt.AppendToArray(&topics, topic)
+		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("orderbook:", symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	}
 
 	orderbook := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
@@ -335,11 +335,11 @@ func (this *Apex) watchTopicsBody(ch chan any, url any, messageHashes any, topic
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var client ccxt.ClientInterface = this.Client(url)
-	var newTopics any = []any{}
+	var newTopics []any = []any{}
 	var newTopicsCount any = 0
 	for i := 0; i < ccxt.GetArrayLength(topics); i++ {
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(messageHashes, i))) {
-			ccxt.AppendToArray(&newTopics, ccxt.GetValue(topics, i))
+			newTopics = append(newTopics, ccxt.GetValue(topics, i))
 			newTopicsCount = ccxt.Add(newTopicsCount, 1)
 		}
 	}
@@ -513,16 +513,16 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes40112)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var url any = this.GetWsPublicUrl()
-	var topics any = []any{}
+	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var topic any = ccxt.Add("instrumentInfo"+".H.", ccxt.GetValue(market, "id2"))
-		ccxt.AppendToArray(&topics, topic)
+		topics = append(topics, topic)
 		var messageHash any = ccxt.Add("ticker:", symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	}
 
 	ticker := (<-this.WatchTopicsAsync(url, messageHashes, topics, params))
@@ -655,8 +655,8 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		ccxt.PanicOnError(retRes50412)
 	}
 	var url any = this.GetWsPublicUrl()
-	var rawHashes any = []any{}
-	var messageHashes any = []any{}
+	var rawHashes []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
@@ -664,8 +664,8 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		symbolString = ccxt.GetValue(market, "id2")
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add("candle.", timeframeId), "."), symbolString))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), unfiedTimeframe))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(ccxt.Add("candle.", timeframeId), "."), symbolString))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), unfiedTimeframe))
 	}
 	symboltimeframestoredVariable := (<-this.WatchTopicsAsync(url, messageHashes, rawHashes, params))
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)
@@ -1086,14 +1086,14 @@ func (this *Apex) HandlePositions(client any, lists any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(lists); i++ {
 		var rawPosition any = ccxt.GetValue(lists, i)
 		var position any = this.ParsePosition(rawPosition)
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		if (side == nil) || (side != nil && *side == "") {
 			// closing update, adding both sides to "reset" both sides
 			// since we don't know which side is being closed

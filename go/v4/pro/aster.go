@@ -218,8 +218,8 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -227,8 +227,8 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -290,8 +290,8 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -299,8 +299,8 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@ticker"))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes23315 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -418,8 +418,8 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -434,8 +434,8 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 			}
 			return ""
 		}()
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -496,8 +496,8 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -512,8 +512,8 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 			}
 			return ""
 		}()
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@markPrice"), suffix))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes36815 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -644,8 +644,8 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks() requires a non-empty array of symbols"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -653,8 +653,8 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
+		messageHashes = append(messageHashes, ccxt.Add("bidask:", ccxt.GetValue(market, "symbol")))
 	}
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -711,8 +711,8 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchBidsAsks() requires a non-empty array of symbols"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -720,8 +720,8 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@bookTicker"))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:bidask:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes54215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -886,8 +886,8 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -897,8 +897,8 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var marketId *string = this.SafeStringLower(market, "id")
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(marketId, "@aggTrade"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(marketId, "@aggTrade"))
+		messageHashes = append(messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
 	}
 
 	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -951,8 +951,8 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -960,8 +960,8 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@aggTrade"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trade:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(this.SafeStringLower(market, "id"), "@aggTrade"))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trade:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes70915 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -1274,8 +1274,8 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1286,8 +1286,8 @@ func (this *Aster) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), ccxt.ToString(limit)))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), ccxt.ToString(limit)))
+		messageHashes = append(messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
 	}
 
 	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -1338,8 +1338,8 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a non-empty array of symbols")))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1352,8 +1352,8 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), limit))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:orderbook:", ccxt.GetValue(market, "symbol")))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@depth"), limit))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:orderbook:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes102215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -1522,8 +1522,8 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1543,8 +1543,8 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 			}
 			return this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		}()
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@kline_"), timeframeId))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol")), ":"), unfiedTimeframe))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@kline_"), timeframeId))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol")), ":"), unfiedTimeframe))
 	}
 	symboltimeframestoredVariable := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)
@@ -1598,8 +1598,8 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
 	var typeVar *string = this.SafeString(firstMarket, "type", "swap")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), typeVar)
-	var subscriptionArgs any = []any{}
-	var messageHashes any = []any{}
+	var subscriptionArgs []any = []any{}
+	var messageHashes []any = []any{}
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
 		"params": subscriptionArgs,
@@ -1619,8 +1619,8 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 			}
 			return this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
 		}()
-		ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@kline_"), timeframeId))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:ohlcv:", ccxt.GetValue(market, "symbol")), ":"), unfiedTimeframe))
+		subscriptionArgs = append(subscriptionArgs, ccxt.Add(ccxt.Add(this.SafeStringLower(market, "id"), "@kline_"), timeframeId))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:ohlcv:", ccxt.GetValue(market, "symbol")), ":"), unfiedTimeframe))
 	}
 
 	retRes120515 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
@@ -2062,15 +2062,15 @@ func (this *Aster) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var url any = this.GetPrivateUrl(typeVar)
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var messageHash string = "positions"
 	symbols = this.MarketSymbols(symbols, "swap", true, true)
 	if ccxt.IsEqual(symbols, nil) {
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+"::", symbol))
+			messageHashes = append(messageHashes, ccxt.Add(messageHash+"::", symbol))
 		}
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
@@ -2178,19 +2178,19 @@ func (this *Aster) HandlePositions(client any, message any) {
 	var cache any = this.Positions
 	var data any = this.SafeDict(message, "a", map[string]any{})
 	var rawPositions any = this.SafeList(data, "P", []any{})
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
 	if !ccxt.EvalTruthy(this.IsEmpty(messageHashes)) {
-		for i := 0; i < ccxt.GetArrayLength(newPositions); i++ {
+		for i := 0; i < len(newPositions); i++ {
 			var position any = ccxt.GetValue(newPositions, i)
 			var symbol any = ccxt.GetValue(position, "symbol")
 			var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)

@@ -859,9 +859,9 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(cancelledOrders); i++ {
-		AppendToArray(&result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, GetValue(cancelledOrders, i)), market))
 	}
@@ -891,10 +891,10 @@ func (this *Nado) cancelAllOrdersRequestBody(ch chan any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var productIds any = []any{}
+	var productIds []any = []any{}
 	if symbol != nil {
 		var market any = this.Market(symbol)
-		AppendToArray(&productIds, this.ParseToInt(GetValue(market, "id")))
+		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
 	}
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "subaccount", "default")
@@ -988,9 +988,9 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(cancelledOrders); i++ {
-		AppendToArray(&result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, GetValue(cancelledOrders, i)), market))
 	}
@@ -1028,9 +1028,9 @@ func (this *Nado) cancelOrdersRequestBody(ch chan any, ids any, optionalArgs ...
 	subaccount = GetValue(subaccountparamsVariable, 0)
 	params = GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
-	var productIds any = []any{}
+	var productIds []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
-		AppendToArray(&productIds, productId)
+		productIds = append(productIds, productId)
 	}
 	var recvWindow any = nil
 	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "recvWindow", 5000)
@@ -1170,11 +1170,11 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes9608 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9608)
-	var productIds any = []any{}
+	var productIds []any = []any{}
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		AppendToArray(&productIds, this.ParseToInt(GetValue(market, "id")))
+		productIds = append(productIds, this.ParseToInt(GetValue(market, "id")))
 	}
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subaccount", "default")
@@ -1440,12 +1440,12 @@ func (this *Nado) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var closedOrders any = []any{}
+	var closedOrders []any = []any{}
 	var orders any = this.SafeList(response, "orders", []any{})
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
 		if EvalTruthy(this.IsArchiveOrderClosed(order)) {
-			AppendToArray(&closedOrders, this.Extend(map[string]any{
+			closedOrders = append(closedOrders, this.Extend(map[string]any{
 				"status": "closed",
 			}, order))
 		}
@@ -1621,12 +1621,12 @@ func (this *Nado) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var matches any = this.SafeList(response, "matches", []any{})
 	var txs any = this.SafeList(response, "txs", []any{})
 	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
-	var trades any = []any{}
+	var trades []any = []any{}
 	for i := 0; i < GetArrayLength(matches); i++ {
 		var match any = GetValue(matches, i)
 		var submissionIdx *string = this.SafeString(match, "submission_idx")
 		var tx any = this.SafeDict(txsBySubmission, submissionIdx, map[string]any{})
-		AppendToArray(&trades, this.Extend(tx, match))
+		trades = append(trades, this.Extend(tx, match))
 	}
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -1853,7 +1853,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	//
 	var events any = this.SafeList(response, "events", []any{})
 	var txs any = this.SafeList(response, "txs", []any{})
-	var transactions any = []any{}
+	var transactions []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
 		var submissionIdx *string = this.SafeString(event, "submission_idx")
@@ -1869,7 +1869,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		var transaction map[string]any = this.Extend(map[string]any{}, tx)
 		transaction = this.Extend(transaction, event)
 		transaction["transaction_type"] = transactionType
-		AppendToArray(&transactions, this.ParseTransaction(transaction, currency))
+		transactions = append(transactions, this.ParseTransaction(transaction, currency))
 	}
 
 	ch <- this.FilterByCurrencySinceLimit(transactions, code, since, limit)
@@ -1946,7 +1946,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var positions any = this.SafeList(data, "perp_balances", []any{})
 	var products any = this.SafeList(data, "perp_products", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var position any = GetValue(positions, i)
 		var balance any = this.SafeDict(position, "balance", map[string]any{})
@@ -1964,7 +1964,7 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 				break
 			}
 		}
-		AppendToArray(&result, this.ParsePosition(this.Extend(map[string]any{
+		result = append(result, this.ParsePosition(this.Extend(map[string]any{
 			"product": product,
 		}, position)))
 	}
@@ -2126,7 +2126,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	}
-	var markets any = []any{}
+	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var market any = GetValue(symbols, i)
 		var id *string = this.SafeString(market, "product_id")
@@ -2173,7 +2173,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var priceIncrement any = this.ParseX18(this.SafeString(market, "price_increment_x18"))
 		var amountIncrement any = this.ParseX18(this.SafeString(market, "size_increment"))
 		var minCost any = this.ParseX18(this.SafeString(market, "min_size"))
-		AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
+		markets = append(markets, this.SafeMarketStructure(map[string]any{
 			"id":          id,
 			"lowercaseId": nil,
 			"symbol":      symbol,
@@ -2521,9 +2521,9 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var fundingPayments any = this.SafeList(response, "funding_payments", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(fundingPayments); i++ {
-		AppendToArray(&result, this.ParseFundingHistory(GetValue(fundingPayments, i), market))
+		result = append(result, this.ParseFundingHistory(GetValue(fundingPayments, i), market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
@@ -2584,10 +2584,10 @@ func (this *Nado) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var tickers []string = ObjectKeys(response)
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var ticker string = GetValue(tickers, i).(string)
-		AppendToArray(&rates, this.SafeDict(response, ticker, map[string]any{}))
+		rates = append(rates, this.SafeDict(response, ticker, map[string]any{}))
 	}
 
 	ch <- this.ParseFundingRates(rates, symbols)
@@ -2707,10 +2707,10 @@ func (this *Nado) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var tickers []string = ObjectKeys(response)
-	var interests any = []any{}
+	var interests []any = []any{}
 	for i := 0; i < len(tickers); i++ {
 		var ticker string = GetValue(tickers, i).(string)
-		AppendToArray(&interests, this.SafeDict(response, ticker, map[string]any{}))
+		interests = append(interests, this.SafeDict(response, ticker, map[string]any{}))
 	}
 
 	ch <- this.ParseOpenInterests(interests, symbols)

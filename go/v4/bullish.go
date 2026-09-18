@@ -1877,12 +1877,12 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	//         }, ...
 	//     ]
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var result []any = this.ToArray(response)
 	for i := 0; i < len(result); i++ {
 		var entry any = GetValue(result, i)
 		var datetime *string = this.SafeString(entry, "updatedAtDatetime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbol,
 			"fundingRate": this.SafeNumber(entry, "fundingRate"),

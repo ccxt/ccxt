@@ -505,17 +505,17 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"channel": "market_stats/all",
 	}
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var symbolsLength int = 0
 	if !ccxt.IsEqual(symbols, nil) {
 		symbolsLength = ccxt.GetArrayLength(symbols)
 	}
 	if (ccxt.IsEqual(symbols, nil)) || (symbolsLength == 0) {
-		ccxt.AppendToArray(&messageHashes, this.GetMessageHash("ticker"))
+		messageHashes = append(messageHashes, this.GetMessageHash("ticker"))
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, this.GetMessageHash("ticker", symbol))
+			messageHashes = append(messageHashes, this.GetMessageHash("ticker", symbol))
 		}
 	}
 

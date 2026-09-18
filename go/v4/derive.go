@@ -1419,7 +1419,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var tradesArray []any = this.ToArray(trades)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
 		var rawTrade any = GetValue(tradesArray, i)
 		var isFetchTrades bool = !(InOp(rawTrade, "order_id"))
@@ -1429,7 +1429,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) any {
 		}
 		var parsed any = this.ParseTrade(rawTrade, market)
 		var trade map[string]any = this.Extend(parsed, params)
-		AppendToArray(&result, trade)
+		result = append(result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -1554,11 +1554,11 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(result, "funding_rate_history", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      GetValue(market, "symbol"),
 			"fundingRate": this.SafeNumber(entry, "funding_rate"),

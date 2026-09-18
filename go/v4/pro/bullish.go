@@ -431,7 +431,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Bullish) SeparateBidsOrAsks(entry any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	// 300 = '54885.0000000'
 	// 301 = '0.06141566'
 	// 302 ='53714.0000000'
@@ -441,7 +441,7 @@ func (this *Bullish) SeparateBidsOrAsks(entry any) any {
 		}
 		var price *string = this.SafeString(entry, i)
 		var amount *string = this.SafeString(entry, ccxt.Add(i, 1))
-		ccxt.AppendToArray(&result, []any{price, amount})
+		result = append(result, []any{price, amount})
 	}
 	return result
 }
@@ -896,12 +896,12 @@ func (this *Bullish) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var positions any = this.Positions
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParsePosition(rawPosition)
 		positions.(ccxt.Appender).Append(position)
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {

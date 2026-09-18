@@ -1053,13 +1053,13 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var tickers any = []any{}
 	if IsEqual(symbols, nil) {
 		// ticker/all returns every market of the requested quote currencies with a single request
-		var quoteIds any = []any{}
+		var quoteIds []any = []any{}
 		var marketSymbols any = this.Symbols
 		for i := 0; i < GetArrayLength(marketSymbols); i++ {
 			var market any = this.Market(GetValue(marketSymbols, i))
 			var quoteId any = GetValue(market, "quoteId")
 			if !this.InArray(quoteId, quoteIds) {
-				AppendToArray(&quoteIds, quoteId)
+				quoteIds = append(quoteIds, quoteId)
 			}
 		}
 		var sortedQuoteIds []any = this.Sort(quoteIds) // market iteration order differs per language
@@ -1078,11 +1078,11 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(tickers)
 	} else {
 		var ids any = this.MarketIds(symbols)
-		var promises any = []any{}
+		var promises []any = []any{}
 		var queries any = this.IdsQueryStrings(ids, 4000) // the url is limited to about 8000 characters once the commas are percent-encoded
 		for i := 0; i < GetArrayLength(queries); i++ {
 			var idsQuery any = GetValue(queries, i)
-			AppendToArray(&promises, this.PublicGetTicker(this.Extend(map[string]any{
+			promises = append(promises, this.PublicGetTicker(this.Extend(map[string]any{
 				"markets": idsQuery,
 			}, params)))
 		}
@@ -1128,7 +1128,7 @@ func (this *Upbit) IdsQueryStrings(ids any, maxQueryLength any) any {
 		return []any{}
 	}
 	var idsString any = ""
-	var queries any = []any{}
+	var queries []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
 		if !IsEqual(idsString, "") {
@@ -1136,12 +1136,12 @@ func (this *Upbit) IdsQueryStrings(ids any, maxQueryLength any) any {
 		}
 		idsString = Add(idsString, id)
 		if IsGreaterThanOrEqual(GetLength(idsString), maxQueryLength) {
-			AppendToArray(&queries, idsString)
+			queries = append(queries, idsString)
 			idsString = ""
 		}
 	}
 	if !IsEqual(idsString, "") {
-		AppendToArray(&queries, idsString)
+		queries = append(queries, idsString)
 	}
 	return queries
 }

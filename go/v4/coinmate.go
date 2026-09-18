@@ -520,7 +520,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var market any = GetValue(data, i)
 		var id *string = this.SafeString(market, "name")
@@ -529,7 +529,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
 			"base":           base,

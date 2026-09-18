@@ -1732,7 +1732,7 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         ...
 	//     ]
 	//
-	var tickers any = []any{}
+	var tickers []any = []any{}
 	var rawTickers any = []any{}
 	if IsArray(response) {
 		rawTickers = response
@@ -1740,7 +1740,7 @@ func (this *Bitteam) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(rawTickers); i++ {
 		var rawTicker any = GetValue(rawTickers, i)
 		var ticker any = this.ParseTicker(rawTicker)
-		AppendToArray(&tickers, ticker)
+		tickers = append(tickers, ticker)
 	}
 
 	ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)

@@ -397,7 +397,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var markets any = this.SafeDict(response, "data", response)
 	var keys []string = ObjectKeys(markets)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var market any = this.SafeDict(markets, key, map[string]any{})
@@ -407,7 +407,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var marketData map[string]any = this.Extend(market, map[string]any{
 			"id": marketId,
 		})
-		AppendToArray(&result, this.ParseMarket(marketData))
+		result = append(result, this.ParseMarket(marketData))
 	}
 
 	ch <- result
@@ -609,11 +609,11 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbols, nil) {
-		var marketIds any = []any{}
+		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
 			var market any = this.Market(symbol)
-			AppendToArray(&marketIds, GetValue(market, "id"))
+			marketIds = append(marketIds, GetValue(market, "id"))
 		}
 		request["symbols"] = Join(marketIds, ",")
 	}
@@ -963,10 +963,10 @@ func (this *Revolutx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var trade any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseTrade(trade, market))
+		result = append(result, this.ParseTrade(trade, market))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(this.SortBy(result, "timestamp"), symbol, since, limit)
@@ -1451,10 +1451,10 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var order any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseOrder(order))
+		result = append(result, this.ParseOrder(order))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit)
@@ -1540,10 +1540,10 @@ func (this *Revolutx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"}))))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var order any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseOrder(order))
+		result = append(result, this.ParseOrder(order))
 	}
 
 	ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit)
@@ -1717,10 +1717,10 @@ func (this *Revolutx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var trade any = this.SafeDict(data, i, map[string]any{})
-		AppendToArray(&result, this.ParseMyTrade(trade, market))
+		result = append(result, this.ParseMyTrade(trade, market))
 	}
 
 	ch <- result

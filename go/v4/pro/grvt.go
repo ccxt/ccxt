@@ -227,14 +227,14 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes16812)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var rawHashes any = []any{}
-	var messageHashes any = []any{}
+	var rawHashes []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(interval)))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker::", ccxt.GetValue(market, "symbol")))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(interval)))
+		messageHashes = append(messageHashes, ccxt.Add("ticker::", ccxt.GetValue(market, "symbol")))
 	}
 	var request map[string]any = map[string]any{
 		"stream":    channel,
@@ -412,15 +412,15 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		ccxt.PanicOnError(retRes31512)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var rawHashes any = []any{}
-	var messageHashes any = []any{}
+	var rawHashes []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
 		var limitRaw *int64 = this.SafeInteger(params, "limit", 50) // 50, 200, 500, 1000
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(limitRaw)))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(limitRaw)))
+		messageHashes = append(messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
 	}
 	var request map[string]any = map[string]any{
 		"stream":    "v1.trade",
@@ -556,8 +556,8 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		retRes42012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes42012)
 	}
-	var rawHashes any = []any{}
-	var messageHashes any = []any{}
+	var rawHashes []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolString *string = this.SafeString(data, 0)
@@ -565,8 +565,8 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var marketId any = ccxt.GetValue(market, "id")
 		var unfiedTimeframe *string = this.SafeString(data, 1, "1")
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), timeframeId), "-TRADE"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), unfiedTimeframe))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), timeframeId), "-TRADE"))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), unfiedTimeframe))
 	}
 	var request map[string]any = map[string]any{
 		"stream":    "v1.candle",
@@ -722,14 +722,14 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		}
 		return ccxt.ToString(interval)
 	}()
-	var rawHashes any = []any{}
-	var messageHashes any = []any{}
+	var rawHashes []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol")))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
+		messageHashes = append(messageHashes, ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol")))
 	}
 	var request map[string]any = map[string]any{
 		"stream":    channel,
@@ -883,15 +883,15 @@ func (this *Grvt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes6688 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes6688)
 	var subAccountId any = this.GetSubAccountId(params)
-	var messageHashes any = []any{}
-	var rawHashes any = []any{}
+	var messageHashes []any = []any{}
+	var rawHashes []any = []any{}
 	if symbol != nil {
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("myTrades::", ccxt.GetValue(market, "symbol")))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
+		messageHashes = append(messageHashes, ccxt.Add("myTrades::", ccxt.GetValue(market, "symbol")))
 	} else {
-		ccxt.AppendToArray(&messageHashes, "myTrades")
-		ccxt.AppendToArray(&rawHashes, subAccountId)
+		messageHashes = append(messageHashes, "myTrades")
+		rawHashes = append(rawHashes, subAccountId)
 	}
 	var request map[string]any = map[string]any{
 		"stream":    "v1.fill",
@@ -996,18 +996,18 @@ func (this *Grvt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subAccountId any = this.GetSubAccountId(params)
 	symbols = this.MarketSymbols(symbols)
-	var rawHashes any = []any{}
-	var messageHashes any = []any{}
+	var rawHashes []any = []any{}
+	var messageHashes []any = []any{}
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var market any = this.Market(symbol)
-			ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions::", ccxt.GetValue(market, "symbol")))
+			rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
+			messageHashes = append(messageHashes, ccxt.Add("positions::", ccxt.GetValue(market, "symbol")))
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, "positions")
-		ccxt.AppendToArray(&rawHashes, subAccountId)
+		messageHashes = append(messageHashes, "positions")
+		rawHashes = append(rawHashes, subAccountId)
 	}
 	var request map[string]any = map[string]any{
 		"stream":    "v1.position",
@@ -1061,8 +1061,8 @@ func (this *Grvt) HandlePosition(client any, message any) {
 	var position any = this.ParseWsPosition(data)
 	var symbol *string = this.SafeString(position, "symbol")
 	this.Positions.(ccxt.Appender).Append(position)
-	var newPositions any = []any{}
-	ccxt.AppendToArray(&newPositions, position)
+	var newPositions []any = []any{}
+	newPositions = append(newPositions, position)
 	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add("positions::", symbol))
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
@@ -1109,15 +1109,15 @@ func (this *Grvt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	retRes8468 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes8468)
 	var subAccountId any = this.GetSubAccountId(params)
-	var messageHashes any = []any{}
-	var rawHashes any = []any{}
+	var messageHashes []any = []any{}
+	var rawHashes []any = []any{}
 	if symbol == nil {
-		ccxt.AppendToArray(&messageHashes, "orders")
-		ccxt.AppendToArray(&rawHashes, subAccountId)
+		messageHashes = append(messageHashes, "orders")
+		rawHashes = append(rawHashes, subAccountId)
 	} else {
 		var market any = this.Market(symbol)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("order::", ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
+		messageHashes = append(messageHashes, ccxt.Add("order::", ccxt.GetValue(market, "symbol")))
+		rawHashes = append(rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
 	}
 	var request map[string]any = map[string]any{
 		"stream":    "v1.order",

@@ -547,7 +547,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
 	var currenciesById map[string]any = this.IndexBy(currencies, "id")
-	var result any = []any{}
+	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
 		var market any = GetValue(rawMarkets, i)
@@ -568,7 +568,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var lowercaseQuote string = ToLower(quote)
 			var capitalizedQuote string = this.Capitalize(lowercaseQuote)
 			var status *string = this.SafeString(market, "status")
-			AppendToArray(&result, map[string]any{
+			result = append(result, map[string]any{
 				"id":             id,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -866,20 +866,20 @@ func (this *Latoken) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	// aggregation failed to drop, so it is removed here
 	var rawAsks any = this.SafeList(response, "ask", []any{})
 	var rawBids any = this.SafeList(response, "bid", []any{})
-	var asks any = []any{}
-	var bids any = []any{}
+	var asks []any = []any{}
+	var bids []any = []any{}
 	for i := 0; i < GetArrayLength(rawAsks); i++ {
 		var askEntry any = GetValue(rawAsks, i)
 		var askQuantity *string = this.SafeString(askEntry, "quantity")
 		if Precise.StringGt(askQuantity, "0") {
-			AppendToArray(&asks, askEntry)
+			asks = append(asks, askEntry)
 		}
 	}
 	for i := 0; i < GetArrayLength(rawBids); i++ {
 		var bidEntry any = GetValue(rawBids, i)
 		var bidQuantity *string = this.SafeString(bidEntry, "quantity")
 		if Precise.StringGt(bidQuantity, "0") {
-			AppendToArray(&bids, bidEntry)
+			bids = append(bids, bidEntry)
 		}
 	}
 	var filtered map[string]any = map[string]any{

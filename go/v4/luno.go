@@ -627,7 +627,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var markets any = this.SafeList(response, "markets", []any{})
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -663,7 +663,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			taker = this.ParseNumber("0.001")
 			maker = this.ParseNumber("0.0008")
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"taker":          taker,
@@ -742,13 +742,13 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PrivateGetBalance(params))
 	PanicOnError(response)
 	var wallets any = this.SafeList(response, "balance", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(wallets); i++ {
 		var account any = GetValue(wallets, i)
 		var accountId *string = this.SafeString(account, "account_id")
 		var currencyId *string = this.SafeString(account, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":   accountId,
 			"type": nil,
 			"code": code,

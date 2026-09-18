@@ -1184,12 +1184,12 @@ func (this *Toobit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var symbols any = this.SafeList(response, "symbols", []any{})
 	var contracts any = this.SafeList(response, "contracts", []any{})
 	var all []any = this.ArrayConcat(symbols, contracts)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
 		var market any = GetValue(all, i)
 		var parsed any = this.ParseMarket(market)
 		if !IsEqual(parsed, nil) {
-			AppendToArray(&result, parsed)
+			result = append(result, parsed)
 		}
 	}
 
@@ -1837,11 +1837,11 @@ func (this *Toobit) ParseBidsAsksCustom(tickers any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(tickers); i++ {
 		var parsedTicker any = this.ParseBidAskCustom(GetValue(tickers, i))
 		var ticker map[string]any = this.Extend(parsedTicker, params)
-		AppendToArray(&results, ticker)
+		results = append(results, ticker)
 	}
 	symbols = this.MarketSymbols(symbols)
 	return this.FilterByArray(results, "symbol", symbols)
@@ -2882,13 +2882,13 @@ func (this *Toobit) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 		response = (<-this.PrivateGetApiV1FuturesHistoryOrders(request))
 		PanicOnError(response)
 	}
-	var ordersList any = []any{}
+	var ordersList []any = []any{}
 	var responseList any = []any{}
 	if IsArray(response) {
 		responseList = response
 	}
 	for i := 0; i < GetArrayLength(responseList); i++ {
-		AppendToArray(&ordersList, map[string]any{
+		ordersList = append(ordersList, map[string]any{
 			"result": GetValue(responseList, i),
 		})
 	}

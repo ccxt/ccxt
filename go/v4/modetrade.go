@@ -1515,12 +1515,12 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var result any = this.SafeList(data, "rows", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
 		var entry any = GetValue(result, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_rate_timestamp")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId),
 			"fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -2269,7 +2269,7 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		retRes172112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes172112)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2289,7 +2289,7 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{
 		"orders": ordersRequests,

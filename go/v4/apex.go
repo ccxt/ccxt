@@ -1393,14 +1393,14 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//     "totalSize": 11
 	// }
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var resultList any = this.SafeList(data, "historyFunds", []any{})
 	for i := 0; i < GetArrayLength(resultList); i++ {
 		var entry any = GetValue(resultList, i)
 		var timestamp *int64 = this.SafeInteger(entry, "fundingTimestamp")
 		var marketId *string = this.SafeString(entry, "symbol")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId, market),
 			"fundingRate": this.SafeNumber(entry, "rate"),

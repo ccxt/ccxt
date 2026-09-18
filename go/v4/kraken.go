@@ -692,10 +692,10 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises any = []any{}
-	AppendToArray(&promises, this.PublicGetAssetPairs(params))
+	var promises []any = []any{}
+	promises = append(promises, this.PublicGetAssetPairs(params))
 	if IsEqual(GetValue(this.Options, "adjustForTimeDifference"), true) {
-		AppendToArray(&promises, this.LoadTimeDifferenceAsync())
+		promises = append(promises, this.LoadTimeDifferenceAsync())
 	}
 
 	responses := (<-promiseAll(promises))
@@ -751,7 +751,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var markets any = this.SafeDict(assetsResponse, "result", map[string]any{})
 	var cachedCurrencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
 	var keys []string = ObjectKeys(markets)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var id string = GetValue(keys, i).(string)
 		var isSynthetic bool = false
@@ -807,7 +807,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			return id
 		}()
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"wsId":           this.SafeString(market, "wsname"),
 			"symbol":         symbol,
@@ -1323,12 +1323,12 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbols, nil) {
 		symbols = this.MarketSymbols(symbols)
-		var marketIds any = []any{}
+		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
 			var market any = this.Market(symbol)
 			if IsEqual(GetValue(market, "active"), true) {
-				AppendToArray(&marketIds, GetValue(market, "id"))
+				marketIds = append(marketIds, GetValue(market, "id"))
 			}
 		}
 		request["pair"] = Join(marketIds, ",")
@@ -1623,12 +1623,12 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var result any = this.SafeValue(response, "result", map[string]any{})
 	var ledger any = this.SafeDict(result, "ledger", map[string]any{})
 	var keys []string = ObjectKeys(ledger)
-	var items any = []any{}
+	var items []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(ledger, key)
 		AddElementToObject(value, "id", key)
-		AppendToArray(&items, value)
+		items = append(items, value)
 	}
 
 	ch <- this.ParseLedger(items, currency, since, limit)
@@ -1670,12 +1670,12 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 	//                                      "balance": "0.0000051000"           } } }
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var keys []string = ObjectKeys(result)
-	var items any = []any{}
+	var items []any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(result, key)
 		AddElementToObject(value, "id", key)
-		AppendToArray(&items, value)
+		items = append(items, value)
 	}
 
 	ch <- this.ParseLedger(items)
@@ -2175,7 +2175,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		retRes178112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes178112)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	var symbol any = nil
 	var market any = nil
@@ -2203,7 +2203,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 			"volume":    parsedAmount,
 		}
 		var orderRequest any = this.OrderRequest("createOrders", marketId, typeVar, req, amount, price, orderParams)
-		AppendToArray(&ordersRequests, GetValue(orderRequest, 0))
+		ordersRequests = append(ordersRequests, GetValue(orderRequest, 0))
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var response any = nil
@@ -2503,18 +2503,18 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var userref *string = this.SafeString(order, "userref")
 	var clientOrderId *string = this.SafeString(order, "cl_ord_id", userref)
 	var rawTrades any = this.SafeList(order, "trades", []any{})
-	var trades any = []any{}
+	var trades []any = []any{}
 	for i := 0; i < GetArrayLength(rawTrades); i++ {
 		var rawTrade any = GetValue(rawTrades, i)
 		if IsString(rawTrade) {
-			AppendToArray(&trades, this.SafeTrade(map[string]any{
+			trades = append(trades, this.SafeTrade(map[string]any{
 				"id":      rawTrade,
 				"orderId": id,
 				"symbol":  symbol,
 				"info":    map[string]any{},
 			}))
 		} else {
-			AppendToArray(&trades, rawTrade)
+			trades = append(trades, rawTrade)
 		}
 	}
 	// as mentioned in #24192 PR, this field is not something consistent/actual
@@ -2957,16 +2957,16 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var orderTrades any = this.SafeValue(params, "trades")
-	var tradeIds any = []any{}
+	var tradeIds []any = []any{}
 	if IsEqual(orderTrades, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)"))
 	} else {
 		for i := 0; i < GetArrayLength(orderTrades); i++ {
 			var orderTrade any = GetValue(orderTrades, i)
 			if IsString(orderTrade) {
-				AppendToArray(&tradeIds, orderTrade)
+				tradeIds = append(tradeIds, orderTrade)
 			} else {
-				AppendToArray(&tradeIds, GetValue(orderTrade, "id"))
+				tradeIds = append(tradeIds, GetValue(orderTrade, "id"))
 			}
 		}
 	}
@@ -2980,16 +2980,16 @@ func (this *Kraken) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	}
 	var options any = this.SafeValue(this.Options, "fetchOrderTrades", map[string]any{})
 	var batchSize *int64 = this.SafeInteger(options, "batchSize", 20)
-	var numTradeIds int = GetArrayLength(tradeIds)
+	var numTradeIds int = len(tradeIds)
 	var numBatches any = this.ParseToInt(Divide(numTradeIds, batchSize))
 	numBatches = this.Sum(numBatches, 1)
 	var result []any = []any{}
 	for j := 0; IsLessThan(j, numBatches); j++ {
-		var requestIds any = []any{}
+		var requestIds []any = []any{}
 		for k := 0; IsLessThan(k, batchSize); k++ {
 			var index any = this.Sum(Multiply(j, batchSize), k)
 			if IsLessThan(index, numTradeIds) {
-				AppendToArray(&requestIds, GetValue(tradeIds, index))
+				requestIds = append(requestIds, GetValue(tradeIds, index))
 			}
 		}
 		var request map[string]any = map[string]any{
@@ -3067,7 +3067,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 	}, params)))
 	PanicOnError(response)
 	var result any = this.SafeDict(response, "result", map[string]any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(result)
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
@@ -3075,7 +3075,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 		var order any = this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
 		}, item))
-		AppendToArray(&orders, order)
+		orders = append(orders, order)
 	}
 
 	ch <- orders
@@ -3488,12 +3488,12 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var open any = this.SafeDict(result, "open", map[string]any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(open)
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
 		var item any = GetValue(open, id)
-		AppendToArray(&orders, this.Extend(map[string]any{
+		orders = append(orders, this.Extend(map[string]any{
 			"id": id,
 		}, item))
 	}
@@ -3602,12 +3602,12 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var closed any = this.SafeDict(result, "closed", map[string]any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	var orderIds []string = ObjectKeys(closed)
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
 		var item any = GetValue(closed, id)
-		AppendToArray(&orders, this.Extend(map[string]any{
+		orders = append(orders, this.Extend(map[string]any{
 			"id": id,
 		}, item))
 	}
@@ -3749,12 +3749,12 @@ func (this *Kraken) ParseTransactionsByType(typeVar any, transactions any, optio
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(transactions); i++ {
 		var transaction any = this.ParseTransaction(this.Extend(map[string]any{
 			"type": typeVar,
 		}, GetValue(transactions, i)))
-		AppendToArray(&result, transaction)
+		result = append(result, transaction)
 	}
 	return this.FilterByCurrencySinceLimit(result, code, since, limit)
 }

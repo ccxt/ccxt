@@ -1467,13 +1467,13 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//         }
 	//     ]
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var rawRates []any = this.ToArray(response)
 	for i := 0; i < len(rawRates); i++ {
 		var rate any = GetValue(rawRates, i)
 		var datetime *string = this.SafeString(rate, "intervalEndTimestamp")
 		var timestamp *int64 = this.Parse8601(datetime)
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        rate,
 			"symbol":      GetValue(market, "symbol"),
 			"fundingRate": this.SafeNumber(rate, "fundingRate"),
@@ -2274,7 +2274,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		retRes178612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes178612)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2285,7 +2285,7 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
 	response := (<-this.PrivatePostApiV1Orders(ordersRequests))

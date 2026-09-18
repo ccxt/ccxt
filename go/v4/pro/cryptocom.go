@@ -191,8 +191,8 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.PanicOnError(retRes11912)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	if (ccxt.IsEqual(limit, nil)) || (ccxt.IsEqual(limit, 0)) {
 		limit = 50
 	}
@@ -225,8 +225,8 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		var market any = this.Market(symbol)
 		var currentTopic any = ccxt.Add(ccxt.Add(ccxt.Add("book"+".", ccxt.GetValue(market, "id")), "."), ccxt.ToString(limit))
 		var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-		ccxt.AppendToArray(&messageHashes, messageHash)
-		ccxt.AppendToArray(&topics, currentTopic)
+		messageHashes = append(messageHashes, messageHash)
+		topics = append(topics, currentTopic)
 	}
 
 	orderbook := (<-this.WatchPublicMultipleAsync(messageHashes, topics, params))
@@ -264,9 +264,9 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		ccxt.PanicOnError(retRes16912)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var topics any = []any{}
-	var subMessageHashes any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var subMessageHashes []any = []any{}
+	var messageHashes []any = []any{}
 	var limit *int64 = this.SafeInteger(params, "limit", 50)
 	var topicParams any = this.SafeValue(params, "params")
 	if ccxt.IsEqual(topicParams, nil) {
@@ -297,9 +297,9 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		var market any = this.Market(symbol)
 		var currentTopic any = ccxt.Add(ccxt.Add(ccxt.Add("book"+".", ccxt.GetValue(market, "id")), "."), ccxt.ToString(limit))
 		var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-		ccxt.AppendToArray(&subMessageHashes, messageHash)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:", messageHash))
-		ccxt.AppendToArray(&topics, currentTopic)
+		subMessageHashes = append(subMessageHashes, messageHash)
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:", messageHash))
+		topics = append(topics, currentTopic)
 	}
 
 	retRes20115 := (<-this.UnWatchPublicMultipleAsync("orderbook", symbols, messageHashes, subMessageHashes, topics, params))
@@ -502,12 +502,12 @@ func (this *Cryptocom) watchTradesForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError(retRes35312)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var topics any = []any{}
+	var topics []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var currentTopic any = ccxt.Add("trade"+".", ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&topics, currentTopic)
+		topics = append(topics, currentTopic)
 	}
 
 	trades := (<-this.WatchPublicMultipleAsync(topics, topics, params))
@@ -547,14 +547,14 @@ func (this *Cryptocom) unWatchTradesForSymbolsBody(ch chan any, symbols any, opt
 		ccxt.PanicOnError(retRes38312)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var currentTopic any = ccxt.Add("trade"+".", ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trades:", ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&topics, currentTopic)
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:trades:", ccxt.GetValue(market, "symbol")))
+		topics = append(topics, currentTopic)
 	}
 
 	retRes39515 := (<-this.UnWatchPublicMultipleAsync("trades", symbols, messageHashes, topics, topics, params))
@@ -762,11 +762,11 @@ func (this *Cryptocom) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes52612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var marketIds any = this.MarketIds(symbols)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker.", marketId))
+		messageHashes = append(messageHashes, ccxt.Add("ticker.", marketId))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var id any = this.Nonce()
@@ -819,14 +819,14 @@ func (this *Cryptocom) unWatchTickersBody(ch chan any, optionalArgs ...any) any 
 		ccxt.PanicOnError(retRes56412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var messageHashes any = []any{}
-	var subMessageHashes any = []any{}
+	var messageHashes []any = []any{}
+	var subMessageHashes []any = []any{}
 	var marketIds any = this.MarketIds(symbols)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&subMessageHashes, ccxt.Add("ticker.", marketId))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", symbol))
+		subMessageHashes = append(subMessageHashes, ccxt.Add("ticker.", marketId))
+		messageHashes = append(messageHashes, ccxt.Add("unsubscribe:ticker:", symbol))
 	}
 
 	retRes57615 := (<-this.UnWatchPublicMultipleAsync("ticker", symbols, messageHashes, subMessageHashes, subMessageHashes, params))
@@ -955,13 +955,13 @@ func (this *Cryptocom) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes67812)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var messageHashes any = []any{}
-	var topics any = []any{}
+	var messageHashes []any = []any{}
+	var topics []any = []any{}
 	var marketIds any = this.MarketIds(symbols)
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask.", ccxt.GetValue(symbols, i)))
-		ccxt.AppendToArray(&topics, ccxt.Add("ticker.", marketId))
+		messageHashes = append(messageHashes, ccxt.Add("bidask.", ccxt.GetValue(symbols, i)))
+		topics = append(topics, ccxt.Add("ticker.", marketId))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var id any = this.Nonce()
@@ -1400,11 +1400,11 @@ func (this *Cryptocom) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParsePosition(rawPosition)
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")

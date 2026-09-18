@@ -994,9 +994,9 @@ func (this *Grvt) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	var promises any = []any{marketsPromise}
+	var promises []any = []any{marketsPromise}
 	if !EvalTruthy(this.IsEmptyString(this.ApiKey)) || !EvalTruthy(this.IsEmptyString(this.PrivateKey)) {
-		AppendToArray(&promises, this.SignInAsync())
+		promises = append(promises, this.SignInAsync())
 	}
 
 	results := (<-promiseAll(promises))
@@ -2346,8 +2346,8 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 func (this *Grvt) FilterTransfersByType(transfers any, transferType any, optionalArgs ...any) any {
 	onlyMainAccount := GetArg(optionalArgs, 0, true)
 	_ = onlyMainAccount
-	var matchedResults any = []any{}
-	var nonMatchedResults any = []any{}
+	var matchedResults []any = []any{}
+	var nonMatchedResults []any = []any{}
 	for i := 0; i < GetArrayLength(transfers); i++ {
 		var transfer any = GetValue(transfers, i)
 		if (EvalTruthy(onlyMainAccount) && IsEqual(GetValue(transfer, "fromAccount"), "0") && IsEqual(GetValue(transfer, "toAccount"), "0")) || (!EvalTruthy(onlyMainAccount) && (!IsEqual(GetValue(transfer, "fromAccount"), "0") || !IsEqual(GetValue(transfer, "toAccount"), "0"))) {
@@ -2355,9 +2355,9 @@ func (this *Grvt) FilterTransfersByType(transfers any, transferType any, optiona
 			var parsedMetadata any = this.ParseJson(metadata)
 			var direction *string = this.SafeString(parsedMetadata, "direction")
 			if IsEqual(direction, transferType) {
-				AppendToArray(&matchedResults, transfer)
+				matchedResults = append(matchedResults, transfer)
 			} else {
-				AppendToArray(&nonMatchedResults, transfer)
+				nonMatchedResults = append(nonMatchedResults, transfer)
 			}
 		}
 	}
@@ -2533,8 +2533,8 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 		ch <- false
 		return nil
 	}
-	var promises any = []any{}
-	AppendToArray(&promises, this.PrivateTradingPostFullV1AggregatedAccountSummary())
+	var promises []any = []any{}
+	promises = append(promises, this.PrivateTradingPostFullV1AggregatedAccountSummary())
 	//
 	//     {
 	//         "result": {
@@ -2561,7 +2561,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 	//
 	var accountIsUndefined bool = (this.SafeString(this.Options, "accountId") == nil)
 	if accountIsUndefined {
-		AppendToArray(&promises, this.PrivateTradingPostFullV1GetSubAccounts())
+		promises = append(promises, this.PrivateTradingPostFullV1GetSubAccounts())
 	}
 	//
 	//     {
@@ -2907,7 +2907,7 @@ func (this *Grvt) ConvertToBigIntCustom(x any) any {
 func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 	var priceMultiplier string = "1000000000"
 	var orderLegs any = this.SafeList(order, "legs", []any{})
-	var legs any = []any{}
+	var legs []any = []any{}
 	for i := 0; i < GetArrayLength(orderLegs); i++ {
 		var leg any = GetValue(orderLegs, i)
 		var market any = this.Market(GetValue(leg, "instrument"))
@@ -2944,7 +2944,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 		} else {
 			legOrder["limitPrice"] = 0 // should be zero to validate type-check
 		}
-		AppendToArray(&legs, legOrder)
+		legs = append(legs, legOrder)
 	}
 	var returnValue map[string]any = map[string]any{
 		"subAccountID": GetValue(order, "sub_account_id"),

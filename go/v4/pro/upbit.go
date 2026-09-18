@@ -75,12 +75,12 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
 	}
 	var subscriptions any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var symbol any = ccxt.GetValue(symbols, i)
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 		if !(ccxt.InOp(subscriptions, messageHash)) {
 			ccxt.AddElementToObject(subscriptions, messageHash, map[string]any{
 				"type":  channel,
@@ -88,13 +88,13 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 			})
 		}
 	}
-	var finalMessage any = []any{map[string]any{
+	var finalMessage []any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
 	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(channelKeys); i++ {
 		var key string = ccxt.GetValue(channelKeys, i).(string)
-		ccxt.AppendToArray(&finalMessage, ccxt.GetValue(subscriptions, key))
+		finalMessage = append(finalMessage, ccxt.GetValue(subscriptions, key))
 	}
 
 	retRes8315 := (<-this.WatchMultiple(url, messageHashes, finalMessage, messageHashes))
@@ -535,16 +535,16 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 	}
 	// Build subscription message with all requested private channels
 	// Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-	var requests any = []any{}
+	var requests []any = []any{}
 	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(channelKeys); i++ {
-		ccxt.AppendToArray(&requests, ccxt.GetValue(subscriptions, ccxt.GetValue(channelKeys, i)))
+		requests = append(requests, ccxt.GetValue(subscriptions, ccxt.GetValue(channelKeys, i)))
 	}
-	var message any = []any{map[string]any{
+	var message []any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
-	for i := 0; i < ccxt.GetArrayLength(requests); i++ {
-		ccxt.AppendToArray(&message, ccxt.GetValue(requests, i))
+	for i := 0; i < len(requests); i++ {
+		message = append(message, ccxt.GetValue(requests, i))
 	}
 
 	retRes41515 := (<-this.Watch(url, messageHash, message, messageHash))

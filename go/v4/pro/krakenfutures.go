@@ -172,14 +172,14 @@ func (this *Krakenfutures) subscribePublicBody(ch chan any, name any, symbols an
 		"event": "subscribe",
 		"feed":  name,
 	}
-	var marketIds any = []any{}
+	var marketIds []any = []any{}
 	var messageHash any = name
 	if ccxt.IsEqual(symbols, nil) {
 		symbols = []any{}
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&marketIds, this.MarketId(symbol))
+		marketIds = append(marketIds, this.MarketId(symbol))
 	}
 	var length int = ccxt.GetArrayLength(symbols)
 	if length == 1 {
@@ -539,14 +539,14 @@ func (this *Krakenfutures) HandlePositions(client any, message any) {
 		// distinguish it from a genuinely flat account)
 		return
 	}
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "timestamp")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
@@ -1884,18 +1884,18 @@ func (this *Krakenfutures) watchMultiHelperBody(ch chan any, unifiedName any, ch
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	// symbols are required
 	symbols = this.MarketSymbols(symbols, nil, false, true, false)
-	var messageHashes any = []any{}
-	var rawSubs any = []any{}
+	var messageHashes []any = []any{}
+	var rawSubs []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var messageHash any = this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbols, i)))
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 		var market any = this.Market(ccxt.GetValue(symbols, i))
 		if !ccxt.EvalTruthy(this.SubscriptionExistsForHash(url, messageHash)) {
-			ccxt.AppendToArray(&rawSubs, ccxt.GetValue(market, "id"))
+			rawSubs = append(rawSubs, ccxt.GetValue(market, "id"))
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var length int = ccxt.GetArrayLength(rawSubs)
+	var length int = len(rawSubs)
 	if length > 0 {
 		request = map[string]any{
 			"event":       "subscribe",

@@ -125,20 +125,20 @@ func (this *Bitmex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var name string = "instrument"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHashes any = []any{}
-	var rawSubscriptions any = []any{}
+	var messageHashes []any = []any{}
+	var rawSubscriptions []any = []any{}
 	if !ccxt.IsEqual(symbols, nil) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var market any = this.Market(symbol)
 			var subscription any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
-			ccxt.AppendToArray(&rawSubscriptions, subscription)
+			rawSubscriptions = append(rawSubscriptions, subscription)
 			var messageHash any = ccxt.Add("ticker:", symbol)
-			ccxt.AppendToArray(&messageHashes, messageHash)
+			messageHashes = append(messageHashes, messageHash)
 		}
 	} else {
-		ccxt.AppendToArray(&rawSubscriptions, name)
-		ccxt.AppendToArray(&messageHashes, "alltickers")
+		rawSubscriptions = append(rawSubscriptions, name)
+		messageHashes = append(messageHashes, "alltickers")
 	}
 	var request map[string]any = map[string]any{
 		"op":   "subscribe",
@@ -468,17 +468,17 @@ func (this *Bitmex) watchLiquidationsForSymbolsBody(ch chan any, symbols any, op
 		ccxt.PanicOnError(retRes39812)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var messageHashes any = []any{}
-	var subscriptionHashes any = []any{}
+	var messageHashes []any = []any{}
+	var subscriptionHashes []any = []any{}
 	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
-		ccxt.AppendToArray(&subscriptionHashes, "liquidation")
-		ccxt.AppendToArray(&messageHashes, "liquidations")
+		subscriptionHashes = append(subscriptionHashes, "liquidation")
+		messageHashes = append(messageHashes, "liquidations")
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var market any = this.Market(symbol)
-			ccxt.AppendToArray(&subscriptionHashes, ccxt.Add("liquidation:", ccxt.GetValue(market, "id")))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("liquidations::", symbol))
+			subscriptionHashes = append(subscriptionHashes, ccxt.Add("liquidation:", ccxt.GetValue(market, "id")))
+			messageHashes = append(messageHashes, ccxt.Add("liquidations::", symbol))
 		}
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -526,7 +526,7 @@ func (this *Bitmex) HandleLiquidation(client any, message any) {
 	//    }
 	//
 	var rawLiquidations any = this.SafeList(message, "data", []any{})
-	var newLiquidations any = []any{}
+	var newLiquidations []any = []any{}
 	if ccxt.IsEqual(this.Liquidations, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 		this.Liquidations = ccxt.NewArrayCache(limit)
@@ -536,7 +536,7 @@ func (this *Bitmex) HandleLiquidation(client any, message any) {
 		var rawLiquidation any = ccxt.GetValue(rawLiquidations, i)
 		var liquidation any = this.ParseLiquidation(rawLiquidation)
 		cache.(ccxt.Appender).Append(liquidation)
-		ccxt.AppendToArray(&newLiquidations, liquidation)
+		newLiquidations = append(newLiquidations, liquidation)
 	}
 	client.(ccxt.ClientInterface).Resolve(newLiquidations, "liquidations")
 	var liquidationsBySymbol map[string]any = this.IndexBy(newLiquidations, "symbol")
@@ -1065,7 +1065,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var rawPositions any = this.SafeList(message, "data", []any{})
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParsePosition(rawPosition)
@@ -1087,7 +1087,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 		if ccxt.IsEqual(side, nil) {
 			continue
 		}
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
@@ -1553,15 +1553,15 @@ func (this *Bitmex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError(retRes135312)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var topic any = ccxt.Add(ccxt.Add(table, ":"), ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&topics, topic)
+		topics = append(topics, topic)
 		var messageHash any = ccxt.Add(ccxt.Add(table, ":"), symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -1608,15 +1608,15 @@ func (this *Bitmex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var table string = "trade"
-	var topics any = []any{}
-	var messageHashes any = []any{}
+	var topics []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var topic any = ccxt.Add(table+":", ccxt.GetValue(market, "id"))
-		ccxt.AppendToArray(&topics, topic)
+		topics = append(topics, topic)
 		var messageHash any = ccxt.Add(table+":", symbol)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{

@@ -991,10 +991,10 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	if !IsEqual(symbols, nil) {
-		var marketIds any = []any{}
+		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
-			AppendToArray(&marketIds, GetValue(market, "id"))
+			marketIds = append(marketIds, GetValue(market, "id"))
 		}
 		request["market"] = marketIds
 	}
@@ -1310,7 +1310,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -1319,7 +1319,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 
 	ch <- this.ParseTrades(result, market, since, limit)
@@ -1410,7 +1410,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -1419,7 +1419,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 
 	ch <- this.ParseFundingHistories(result, market, since, limit)
@@ -1464,9 +1464,9 @@ func (this *Extended) ParseFundingHistories(histories any, optionalArgs ...any) 
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(histories); i++ {
-		AppendToArray(&result, this.ParseFundingHistory(GetValue(histories, i), market))
+		result = append(result, this.ParseFundingHistory(GetValue(histories, i), market))
 	}
 	var symbol any = func() any {
 		if IsEqual(market, nil) {
@@ -1752,7 +1752,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -1761,7 +1761,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, this.ParseFundingRateHistory(entry, market))
+		result = append(result, this.ParseFundingRateHistory(entry, market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
@@ -2132,7 +2132,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -2141,7 +2141,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 
 	ch <- this.ParseLedger(result, currency, since, limit)
@@ -2287,7 +2287,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -2296,7 +2296,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 
 	ch <- this.ParseTransactions(result, currency, since, limit)
@@ -2523,7 +2523,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -2532,7 +2532,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 
 	ch <- this.ParseTransfers(result, currency, since, limit)
@@ -3191,7 +3191,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -3200,7 +3200,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 	var positions any = this.ParsePositions(result, symbols)
 
@@ -4295,7 +4295,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeList(response, "data", []any{})
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor *string = this.SafeString(pagination, "cursor")
-	var result any = []any{}
+	var result []any = []any{}
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
 		var entry any = GetValue(data, i)
@@ -4304,7 +4304,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 				"cursor": cursor,
 			})
 		}
-		AppendToArray(&result, entry)
+		result = append(result, entry)
 	}
 	var orders any = this.ParseOrders(result, market, since, limit)
 

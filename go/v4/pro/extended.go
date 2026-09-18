@@ -538,7 +538,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 	var stored any = this.Positions
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var rawPositions any = this.SafeList(data, "positions", []any{})
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	var first any = this.SafeDict(rawPositions, 0)
 	if ccxt.IsEqual(first, nil) {
 		return
@@ -550,7 +550,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 			continue
 		}
 		var position any = this.ParsePosition(rawPosition)
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		stored.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")

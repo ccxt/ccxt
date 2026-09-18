@@ -1489,12 +1489,12 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any
 
 	response := (<-this.PublicGetMarketFundingRateHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var rates any = []any{}
+	var rates []any = []any{}
 	var data any = this.SafeList(response, "data", []any{})
 	for i := 0; i < GetArrayLength(data); i++ {
 		var rate any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        rate,
 			"symbol":      GetValue(market, "symbol"),
 			"fundingRate": this.SafeNumber(rate, "fundingRate"),
@@ -2245,7 +2245,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		retRes175512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes175512)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2256,7 +2256,7 @@ func (this *Blofin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
 	response := (<-this.PrivatePostTradeBatchOrders(ordersRequests))
@@ -3009,7 +3009,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		PanicOnError(retRes233712)
 	}
 	var market any = this.Market(symbol)
-	var request any = []any{}
+	var request []any = []any{}
 	var method any = this.HandleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders")
 	var clientOrderIds any = this.ParseIds(this.SafeValue(params, "clientOrderId"))
 	var tpslIds any = this.ParseIds(this.SafeValue(params, "tpslId"))
@@ -3021,7 +3021,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		ids = this.ParseIds(ids)
 		if !IsEqual(tpslIds, nil) {
 			for i := 0; i < GetArrayLength(tpslIds); i++ {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"tpslId": GetValue(tpslIds, i),
 					"instId": GetValue(market, "id"),
 				})
@@ -3029,12 +3029,12 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		}
 		for i := 0; i < GetArrayLength(ids); i++ {
 			if trigger != nil && *trigger == true {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"tpslId": GetValue(ids, i),
 					"instId": GetValue(market, "id"),
 				})
 			} else {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"orderId": GetValue(ids, i),
 					"instId":  GetValue(market, "id"),
 				})
@@ -3042,7 +3042,7 @@ func (this *Blofin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 		}
 	} else {
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
-			AppendToArray(&request, map[string]any{
+			request = append(request, map[string]any{
 				"instId":        GetValue(market, "id"),
 				"clientOrderId": GetValue(clientOrderIds, i),
 			})

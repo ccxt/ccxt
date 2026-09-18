@@ -1652,7 +1652,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var rows any = this.SafeList(data, "rows", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var row any = GetValue(rows, i)
 		var marketId *string = this.SafeString(row, "symbol", "")
@@ -1662,7 +1662,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
-		AppendToArray(&result, this.ParseTicker(ticker))
+		result = append(result, this.ParseTicker(ticker))
 	}
 
 	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
@@ -1800,7 +1800,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var rows any = this.SafeList(data, "rows", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var row any = GetValue(rows, i)
 		var marketId *string = this.SafeString(row, "symbol", "")
@@ -1810,7 +1810,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 		var interest map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
-		AppendToArray(&result, this.ParseOpenInterest(interest))
+		result = append(result, this.ParseOpenInterest(interest))
 	}
 
 	ch <- this.FilterByArray(result, "symbol", symbols)
@@ -1898,12 +1898,12 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var result any = this.SafeList(data, "rows", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
 		var entry any = GetValue(result, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "funding_rate_timestamp")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId),
 			"fundingRate": this.SafeNumber(entry, "funding_rate"),
@@ -2509,7 +2509,7 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		request["algo_type"] = "STOP"
 	} else if hasStopLoss || hasTakeProfit {
 		request["algo_type"] = "TP_SL"
-		var childOrders any = []any{}
+		var childOrders []any = []any{}
 		var closeSide any = func() any {
 			if orderSide == "BUY" {
 				return "SELL"
@@ -2525,7 +2525,7 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 				"type":          "LIMIT",
 				"reduce_only":   true,
 			}
-			AppendToArray(&childOrders, stopLossOrder)
+			childOrders = append(childOrders, stopLossOrder)
 		}
 		if hasTakeProfit {
 			var takeProfitPrice any = this.SafeValue2(takeProfit, "triggerPrice", "price", takeProfit)
@@ -2536,7 +2536,7 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 				"type":          "LIMIT",
 				"reduce_only":   true,
 			}
-			AppendToArray(&childOrders, takeProfitOrder)
+			childOrders = append(childOrders, takeProfitOrder)
 		}
 		var outterOrder map[string]any = map[string]any{
 			"symbol":       GetValue(market, "id"),
@@ -2638,7 +2638,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		retRes201912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes201912)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -2655,7 +2655,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 			panic(NotSupported(this.Id + " createOrders() only support non-stop order"))
 		}
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var request map[string]any = map[string]any{
 		"orders": ordersRequests,

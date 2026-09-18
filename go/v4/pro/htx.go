@@ -2059,7 +2059,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 		}
 		return
 	}
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	var positionsByMarginMode map[string]any = map[string]any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
@@ -2076,7 +2076,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 			cache = ccxt.NewArrayCacheBySymbolBySide()
 			ccxt.AddElementToObject(ccxt.GetValue(this.Positions, url), marginMode, cache)
 		}
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		ccxt.AddElementToObject(positionsByMarginMode, marginMode, this.SafeValue(positionsByMarginMode, marginMode, []any{}))
 		retRes176812 := ccxt.GetValue(positionsByMarginMode, marginMode)
 		ccxt.AppendToArray(&retRes176812, position)

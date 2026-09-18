@@ -379,8 +379,8 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises any = []any{}
-	AppendToArray(&promises, this.PublicPostGetCurrenciesInfo(params))
+	var promises []any = []any{}
+	promises = append(promises, this.PublicPostGetCurrenciesInfo(params))
 	//
 	//    {
 	//        "ok": "ok",
@@ -395,7 +395,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//            },
 	//            ...
 	//
-	AppendToArray(&promises, this.PublicPostGetProcessingInfo(params))
+	promises = append(promises, this.PublicPostGetProcessingInfo(params))
 	//
 	//    {
 	//        "ok": "ok",
@@ -1813,10 +1813,10 @@ func (this *Cex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var ids any = this.SafeList(data, "clientOrderIds", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
 		var id any = GetValue(ids, i)
-		AppendToArray(&orders, map[string]any{
+		orders = append(orders, map[string]any{
 			"clientOrderId": id,
 		})
 	}

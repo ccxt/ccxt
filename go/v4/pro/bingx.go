@@ -137,9 +137,9 @@ func (this *Bingx) unWatchBody(ch chan any, messageHash any, subMessageHash any,
 		"dataType": dataType,
 		"reqType":  "unsub",
 	}
-	var symbols any = []any{}
+	var symbols []any = []any{}
 	if !ccxt.IsEqual(market, nil) {
-		ccxt.AppendToArray(&symbols, ccxt.GetValue(market, "symbol"))
+		symbols = append(symbols, ccxt.GetValue(market, "symbol"))
 	}
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -1771,7 +1771,7 @@ func (this *Bingx) HandlePositions(client any, message any) {
 		return
 	}
 	var rawPositions any = this.SafeList(data, "P", []any{})
-	var newPositions any = []any{}
+	var newPositions []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParseWsPosition(rawPosition)
@@ -1782,7 +1782,7 @@ func (this *Bingx) HandlePositions(client any, message any) {
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
-		ccxt.AppendToArray(&newPositions, position)
+		newPositions = append(newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "swap:positions::")

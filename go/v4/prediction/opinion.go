@@ -180,11 +180,11 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var userLimit *int64 = this.SafeInteger(params, "limit")
 	var pageLimit *int64 = this.SafeInteger(this.Options, "marketsPageLimit", 20)
 	var maxPages *int64 = this.SafeInteger(this.Options, "maxMarketsPages", 50)
-	var flatMarkets any = []any{}
+	var flatMarkets []any = []any{}
 	// seen-guard keyed by the event handle; the events themselves go through setEvents below
 	// so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
 	var seenEvents map[string]any = map[string]any{}
-	var eventsList any = []any{}
+	var eventsList []any = []any{}
 	var page any = 1
 	var fetchedRawCount any = 0
 	for true {
@@ -212,25 +212,25 @@ func (this *Opinion) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				var childMarkets any = ccxt.GetValue(event, "markets")
 				var childMarketsLength int = ccxt.GetArrayLength(childMarkets)
 				for ci := 0; ci < childMarketsLength; ci++ {
-					ccxt.AppendToArray(&flatMarkets, ccxt.GetValue(childMarkets, ci))
+					flatMarkets = append(flatMarkets, ccxt.GetValue(childMarkets, ci))
 				}
 				var eventKey *string = this.SafeString(event, "event")
 				if (eventKey != nil) && (eventKey == nil || *eventKey != "") && !(ccxt.InOp(seenEvents, eventKey)) {
 					ccxt.AddElementToObject(seenEvents, eventKey, true)
-					ccxt.AppendToArray(&eventsList, event)
+					eventsList = append(eventsList, event)
 				}
 			} else {
-				ccxt.AppendToArray(&flatMarkets, this.ParseOpinionMarket(raw))
+				flatMarkets = append(flatMarkets, this.ParseOpinionMarket(raw))
 			}
 		}
-		var collectedLength int = ccxt.GetArrayLength(flatMarkets)
+		var collectedLength int = len(flatMarkets)
 		if (ccxt.IsLessThan(rawMarketsLength, pageLimit)) || (ccxt.IsGreaterThanOrEqual(page, maxPages)) || ((total != nil) && (ccxt.IsGreaterThanOrEqual(fetchedRawCount, total))) || ((userLimit != nil) && (ccxt.IsGreaterThanOrEqual(collectedLength, userLimit))) {
 			break
 		}
 		page = this.Sum(page, 1)
 	}
 	this.SetEvents(eventsList)
-	var flatMarketsLength int = ccxt.GetArrayLength(flatMarkets)
+	var flatMarketsLength int = len(flatMarkets)
 	if (userLimit != nil) && (ccxt.IsGreaterThan(flatMarketsLength, userLimit)) {
 
 		ch <- this.ArraySlice(flatMarkets, 0, userLimit)
@@ -327,7 +327,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	var hasResult bool = resolved && (resultTokenId != nil) && (resultTokenId == nil || *resultTokenId != "")
 	var outcomeLabels []any = []any{this.SafeString(raw, "yesLabel", "YES"), this.SafeString(raw, "noLabel", "NO")}
 	var outcomeTokenIds []any = []any{this.SafeString(raw, "yesTokenId"), this.SafeString(raw, "noTokenId")}
-	var outcomes any = []any{}
+	var outcomes []any = []any{}
 	var resolvedOutcome any = nil
 	for i := 0; i < len(outcomeLabels); i++ {
 		var label any = ccxt.GetValue(outcomeLabels, i)
@@ -347,7 +347,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 				resolvedOutcome = outcomeHandle
 			}
 		}
-		ccxt.AppendToArray(&outcomes, map[string]any{
+		outcomes = append(outcomes, map[string]any{
 			"id":             tokenId,
 			"outcomeId":      tokenId,
 			"outcome":        outcomeHandle,
@@ -488,7 +488,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		fetchCap = userLimit
 	}
 	var maxPages *int64 = this.SafeInteger(this.Options, "maxEventsPages", 50)
-	var rawEvents any = []any{}
+	var rawEvents []any = []any{}
 	var page any = 1
 	var fetchedRawCount any = 0
 	for true {
@@ -513,7 +513,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		var pageEventsLength int = ccxt.GetArrayLength(pageEvents)
 		fetchedRawCount = this.Sum(fetchedRawCount, pageEventsLength)
 		for i := 0; i < pageEventsLength; i++ {
-			ccxt.AppendToArray(&rawEvents, ccxt.GetValue(pageEvents, i))
+			rawEvents = append(rawEvents, ccxt.GetValue(pageEvents, i))
 		}
 		var total *int64 = this.SafeInteger(result, "total")
 		if (ccxt.IsLessThan(pageEventsLength, reqLimit)) || (ccxt.IsGreaterThanOrEqual(page, maxPages)) || ((total != nil) && (ccxt.IsGreaterThanOrEqual(fetchedRawCount, total))) || (ccxt.IsGreaterThanOrEqual(fetchedRawCount, fetchCap)) {
@@ -521,14 +521,14 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		}
 		page = this.Sum(page, 1)
 	}
-	var rawEventsLength int = ccxt.GetArrayLength(rawEvents)
-	var parsedEvents any = []any{}
+	var rawEventsLength int = len(rawEvents)
+	var parsedEvents []any = []any{}
 	if ccxt.IsEqual(this.Markets, nil) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	for i := 0; i < rawEventsLength; i++ {
 		var event any = this.ParseEvent(ccxt.GetValue(rawEvents, i))
-		ccxt.AppendToArray(&parsedEvents, event)
+		parsedEvents = append(parsedEvents, event)
 		// register the parsed markets so populateOutcomes can index their outcomes
 		var eventMarkets any = this.SafeList(event, "markets", []any{})
 		var eventMarketsLength int = ccxt.GetArrayLength(eventMarkets)
@@ -694,9 +694,9 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
 	}()
 	var rawChildren any = this.SafeList(rawEvent, "childMarkets", []any{})
 	var rawChildrenLength int = ccxt.GetArrayLength(rawChildren)
-	var marketsList any = []any{}
+	var marketsList []any = []any{}
 	for i := 0; i < rawChildrenLength; i++ {
-		ccxt.AppendToArray(&marketsList, this.ParseOpinionMarket(ccxt.GetValue(rawChildren, i), slug))
+		marketsList = append(marketsList, this.ParseOpinionMarket(ccxt.GetValue(rawChildren, i), slug))
 	}
 	var statusEnum *string = this.SafeString(rawEvent, "statusEnum")
 	var active bool = (statusEnum != nil && *statusEnum == "Activated")
@@ -858,14 +858,14 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	retRes7368 := (<-this.LoadOutcomesAsync(outcomes))
 	ccxt.PanicOnError(retRes7368)
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
-	var promises any = []any{}
+	var promises []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
 		var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
-		ccxt.AppendToArray(&promises, this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
+		promises = append(promises, this.OpinionPublicGetTokenLatestPrice(this.Extend(map[string]any{
 			"token_id": tokenId,
 		}, params)))
-		ccxt.AppendToArray(&promises, this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
+		promises = append(promises, this.OpinionPublicGetTokenOrderbook(this.Extend(map[string]any{
 			"token_id": tokenId,
 		}, params)))
 	}
@@ -1004,14 +1004,14 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var history any = this.SafeList(result, "history", []any{})
-	var candles any = []any{}
+	var candles []any = []any{}
 	var historyLength int = ccxt.GetArrayLength(history)
 	for i := 0; i < historyLength; i++ {
 		var point any = ccxt.GetValue(history, i)
 		var price *float64 = this.SafeNumber(point, "p")
 		var timestamp *int64 = this.SafeTimestamp(point, "t")
 		if (price != nil) && (timestamp != nil) {
-			ccxt.AppendToArray(&candles, []any{timestamp, price, price, price, price, nil})
+			candles = append(candles, []any{timestamp, price, price, price, price, nil})
 		}
 	}
 	var sorted []any = this.SortBy(candles, 0)
@@ -1951,13 +1951,13 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(wantedTokenIds, tokenId, true)
 		}
 	}
-	var filtered any = []any{}
+	var filtered []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		var position any = ccxt.GetValue(parsed, i)
 		var info any = this.SafeDict(position, "info", map[string]any{})
 		var tokenId *string = this.SafeString(info, "tokenId")
 		if (tokenId != nil) && (ccxt.InOp(wantedTokenIds, tokenId)) {
-			ccxt.AppendToArray(&filtered, position)
+			filtered = append(filtered, position)
 		}
 	}
 

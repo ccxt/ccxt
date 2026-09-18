@@ -127,13 +127,13 @@ func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs .
 	var eventId *string = this.SafeString(params, "eventId")
 	var slug *string = this.SafeString(params, "slug")
 	if (eventId != nil) || (slug != nil) {
-		var filtered any = []any{}
+		var filtered []any = []any{}
 		for i := 0; i < GetArrayLength(result); i++ {
 			var event any = GetValue(result, i)
 			var idMatch bool = (eventId != nil) && (IsEqual(this.SafeString(event, "id"), eventId))
 			var slugMatch bool = (slug != nil) && (IsEqual(this.SafeString(event, "slug"), slug))
 			if idMatch || slugMatch {
-				AppendToArray(&filtered, event)
+				filtered = append(filtered, event)
 			}
 		}
 		result = filtered
@@ -190,13 +190,13 @@ func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ..
 		return events
 	}
 	var wantActive bool = (status == "active")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
 		var isActive *bool = this.SafeBool(event, "active")
 		// keep events whose status is unknown (already filtered server-side, no `active` field)
 		if (isActive == nil) || (isActive != nil && *isActive == wantActive) {
-			AppendToArray(&result, event)
+			result = append(result, event)
 		}
 	}
 	return result
@@ -215,7 +215,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	}
 	var checkTitle bool = (searchIn == "title") || (searchIn == "both")
 	var checkDescription bool = (searchIn == "description") || (searchIn == "both")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
 		var title *string = this.SafeStringLower(event, "title", "")
@@ -239,7 +239,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 			}
 		}
 		if matched {
-			AppendToArray(&result, event)
+			result = append(result, event)
 		}
 	}
 	return result
@@ -277,15 +277,15 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 	if (IsEqual(tags, nil)) || (GetArrayLength(tags) == 0) {
 		return events
 	}
-	var wanted any = []any{}
+	var wanted []any = []any{}
 	for i := 0; i < GetArrayLength(tags); i++ {
 		var wantedKey any = this.NormalizeTagKey(GetValue(tags, i))
 		if wantedKey != "" {
 			// an empty normalized key would substring-match every tag
-			AppendToArray(&wanted, wantedKey)
+			wanted = append(wanted, wantedKey)
 		}
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
 		var event any = GetValue(events, i)
 		var eventTags any = this.SafeList(event, "tags", []any{})
@@ -300,7 +300,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 			}
 			if !IsEqual(tagLabel, nil) {
 				var tagKey any = this.NormalizeTagKey(tagLabel)
-				for wi := 0; wi < GetArrayLength(wanted); wi++ {
+				for wi := 0; wi < len(wanted); wi++ {
 					if GetIndexOf(tagKey, GetValue(wanted, wi)) >= 0 {
 						matched = true
 						break
@@ -312,7 +312,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 			}
 		}
 		if matched {
-			AppendToArray(&result, event)
+			result = append(result, event)
 		}
 	}
 	return result
@@ -374,7 +374,7 @@ func (this *PredictionExchange) EventsList() any {
 	if IsEqual(this.Events, nil) {
 		return []any{}
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	var seen map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(this.Events)
 	for i := 0; i < len(keys); i++ {
@@ -382,7 +382,7 @@ func (this *PredictionExchange) EventsList() any {
 		var identity *string = this.SafeString2(event, "id", "event", GetValue(keys, i))
 		if !(InOp(seen, identity)) {
 			AddElementToObject(seen, identity, true)
-			AppendToArray(&result, event)
+			result = append(result, event)
 		}
 	}
 	return result
@@ -563,11 +563,11 @@ func (this *PredictionExchange) ShortenSlug(slug any) any {
 		}
 	}
 	var rawParts []string = Split(s, "-")
-	var parts any = []any{}
+	var parts []any = []any{}
 	for i := 0; i < len(rawParts); i++ {
 		var w string = GetValue(rawParts, i).(string)
 		if (GetLength(w) > 0) && !this.InArray(w, stopWords) {
-			AppendToArray(&parts, w)
+			parts = append(parts, w)
 		}
 	}
 	var joined string = Join(parts, "_")
@@ -630,12 +630,12 @@ func (this *PredictionExchange) SetMarkets(markets any, optionalArgs ...any) any
 	currencies := GetArg(optionalArgs, 0, nil)
 	_ = currencies
 	var marketsList []any = this.ToArray(markets)
-	var aliased any = []any{}
+	var aliased []any = []any{}
 	for i := 0; i < len(marketsList); i++ {
 		var row any = GetValue(marketsList, i)
 		var copy map[string]any = this.Extend(map[string]any{}, row)
 		copy["symbol"] = this.SafeString2(row, "market", "symbol")
-		AppendToArray(&aliased, copy)
+		aliased = append(aliased, copy)
 	}
 	var stored any = this.BaseExchange.SetMarkets(aliased, currencies)
 	// strip the alias back off the stored rows — venues assemble user-visible event
@@ -760,27 +760,27 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	if !IsEqual(outcomes, nil) {
-		var missing any = []any{}
+		var missing []any = []any{}
 		for i := 0; i < GetArrayLength(outcomes); i++ {
 			if EvalTruthy(reload) || !EvalTruthy(this.HasOutcome(GetValue(outcomes, i))) {
-				AppendToArray(&missing, GetValue(outcomes, i))
+				missing = append(missing, GetValue(outcomes, i))
 			}
 		}
-		var missingLength int = GetArrayLength(missing)
+		var missingLength int = len(missing)
 		var wasWarm bool = (!IsEqual(this.Outcomes, nil)) && !EvalTruthy(this.IsEmpty(this.Outcomes))
 		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
 		if (missingLength > 0) && (loadAll != nil && *loadAll == true) && !wasWarm && !EvalTruthy(reload) {
 
 			retRes71716 := (<-this.LoadOutcomesAsync())
 			PanicOnError(retRes71716)
-			var stillMissing any = []any{}
+			var stillMissing []any = []any{}
 			for i := 0; i < missingLength; i++ {
 				if !EvalTruthy(this.HasOutcome(GetValue(missing, i))) {
-					AppendToArray(&stillMissing, GetValue(missing, i))
+					stillMissing = append(stillMissing, GetValue(missing, i))
 				}
 			}
 			missing = stillMissing
-			missingLength = GetArrayLength(missing)
+			missingLength = len(missing)
 		}
 		if missingLength > 0 {
 
@@ -906,7 +906,7 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 	// handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
 	var normalized string = Replace(ToLower(marketPart), "-", "_")
 	var rawWords []string = Split(normalized, "_")
-	var words any = []any{}
+	var words []any = []any{}
 	var hasLetters bool = false
 	var letters string = "abcdefghijklmnopqrstuvwxyz"
 	for i := 0; i < len(rawWords); i++ {
@@ -931,10 +931,10 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 		if !wordHasLetters {
 			continue
 		}
-		AppendToArray(&words, word)
+		words = append(words, word)
 		hasLetters = true
 	}
-	var wordsLength int = GetArrayLength(words)
+	var wordsLength int = len(words)
 	if (wordsLength == 0) || !hasLetters {
 		// a purely numeric/symbolic handle is an id, not searchable text
 		return nil
@@ -1744,7 +1744,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var rawTrades any = this.SafeList(outcomeOrder, "trades", []any{})
 	var trades any = this.ParsePredictionTrades(rawTrades, outcomeObj)
 	var tradesLength int = GetArrayLength(trades)
-	var feeList any = []any{}
+	var feeList []any = []any{}
 	if tradesLength > 0 {
 		if IsEqual(filled, nil) {
 			filled = "0"
@@ -1775,7 +1775,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 			}
 			var tradeFee any = this.SafeDict(trade, "fee")
 			if !IsEqual(tradeFee, nil) {
-				AppendToArray(&feeList, tradeFee)
+				feeList = append(feeList, tradeFee)
 			}
 		}
 	}
@@ -1805,7 +1805,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	}
 	var fee any = this.SafeDict(outcomeOrder, "fee")
 	// own-line length reads so the regex transpiler emits count() (array), not strlen()
-	var feeListLength int = GetArrayLength(feeList)
+	var feeListLength int = len(feeList)
 	if (IsEqual(fee, nil)) && (feeListLength > 0) {
 		var reduced any = this.ReduceFeesByCurrency(feeList)
 		var reducedLength int = GetArrayLength(reduced)
@@ -2068,11 +2068,11 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var rows []any = this.ToArray(trades)
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(GetValue(rows, i), outcomeObj)
 		var trade map[string]any = this.Extend(parsed, params)
-		AppendToArray(&results, trade)
+		results = append(results, trade)
 	}
 	results = this.SortBy2(results, "timestamp", "id")
 	var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
@@ -2102,11 +2102,11 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var rows []any = this.ToArray(orders)
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(GetValue(rows, i), outcomeObj)
 		var order map[string]any = this.Extend(parsed, params)
-		AppendToArray(&results, order)
+		results = append(results, order)
 	}
 	results = this.SortBy(results, "timestamp")
 	var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
@@ -2130,11 +2130,11 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var rows []any = this.ToArray(positions)
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(GetValue(rows, i))
 		var position map[string]any = this.Extend(parsed, params)
-		AppendToArray(&results, position)
+		results = append(results, position)
 	}
 	return results
 }

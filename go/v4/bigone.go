@@ -746,7 +746,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//    ]
 	//
 	var markets any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var baseAsset any = this.SafeDict(market, "base_asset", map[string]any{})
@@ -755,7 +755,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(quoteAsset, "symbol")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             this.SafeString(market, "name"),
 			"uuid":           this.SafeString(market, "id"),
 			"symbol":         Add(Add(base, "/"), quote),
@@ -817,7 +817,7 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var inverse *bool = this.SafeBool(market, "isInverse")
-		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             marketId,
 			"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
 			"base":           base,
@@ -1245,11 +1245,11 @@ func (this *Bigone) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 }
 func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 	var bidsAsksKeys []string = ObjectKeys(bidsAsks)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(bidsAsksKeys); i++ {
 		var price string = GetValue(bidsAsksKeys, i).(string)
 		var amount any = GetValue(bidsAsks, price)
-		AppendToArray(&result, []any{this.ParseNumber(price), this.ParseNumber(amount)})
+		result = append(result, []any{this.ParseNumber(price), this.ParseNumber(amount)})
 	}
 	return result
 }
@@ -2045,10 +2045,10 @@ func (this *Bigone) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var cancelled any = this.SafeList(data, "cancelled", []any{})
 	var failed any = this.SafeList(data, "failed", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(cancelled); i++ {
 		var orderId any = GetValue(cancelled, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":   orderId,
 			"id":     orderId,
 			"status": "canceled",
@@ -2056,7 +2056,7 @@ func (this *Bigone) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	for i := 0; i < GetArrayLength(failed); i++ {
 		var orderId any = GetValue(failed, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":   orderId,
 			"id":     orderId,
 			"status": "failed",

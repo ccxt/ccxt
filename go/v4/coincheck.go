@@ -505,9 +505,9 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	PanicOnError(response)
 	var rawOrders any = this.SafeValue(response, "orders", []any{})
 	var parsedOrders any = this.ParseOrders(rawOrders, market, since, limit)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(parsedOrders); i++ {
-		AppendToArray(&result, this.Extend(GetValue(parsedOrders, i), map[string]any{
+		result = append(result, this.Extend(GetValue(parsedOrders, i), map[string]any{
 			"status": "open",
 		}))
 	}

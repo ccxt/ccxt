@@ -356,7 +356,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	markets := (<-this.PublicGetSymbols(params))
 	PanicOnError(markets)
 	var marketIds []string = ObjectKeys(markets)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var market any = this.SafeValue(markets, marketId)
@@ -397,7 +397,7 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			var maxOrderSizeValueString *string = Precise.StringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString)
 			maxOrderSize = this.ParseNumber(maxOrderSizeValueString)
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":           market,
 			"id":             marketId,
 			"numericId":      numericId,

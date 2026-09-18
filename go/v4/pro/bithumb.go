@@ -201,8 +201,8 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	}()
-	var streamMarketIds any = []any{}
-	var messageHashes any = []any{}
+	var streamMarketIds []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
@@ -212,8 +212,8 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			streamMarketId = (ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote")))
 		}
-		ccxt.AppendToArray(&streamMarketIds, streamMarketId)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+		streamMarketIds = append(streamMarketIds, streamMarketId)
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
 	var tickTypes *string = this.SafeString(params, "tickTypes", "24H")
 	params = this.Omit(params, "tickTypes")
@@ -1018,12 +1018,12 @@ func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscrip
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
 	ccxt.AddElementToObject(wsOptions, "gen2Subscriptions", subscriptions)
 	ccxt.AddElementToObject(this.Options, "ws", wsOptions)
-	var request any = []any{map[string]any{
+	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
 	}}
 	var keys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(keys); i++ {
-		ccxt.AppendToArray(&request, ccxt.GetValue(subscriptions, ccxt.GetValue(keys, i)))
+		request = append(request, ccxt.GetValue(subscriptions, ccxt.GetValue(keys, i)))
 	}
 	return request
 }

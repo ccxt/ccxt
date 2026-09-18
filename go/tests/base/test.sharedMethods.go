@@ -681,12 +681,12 @@ func Concat(optionalArgs ...any) any {
 	} else if IsEqual(b, nil) {
 		return a
 	} else {
-		var result any = []any{}
+		var result []any = []any{}
 		for i := 0; i < GetArrayLength(a); i++ {
-			AppendToArray(&result, GetValue(a, i))
+			result = append(result, GetValue(a, i))
 		}
 		for j := 0; j < GetArrayLength(b); j++ {
-			AppendToArray(&result, GetValue(b, j))
+			result = append(result, GetValue(b, j))
 		}
 		return result
 	}

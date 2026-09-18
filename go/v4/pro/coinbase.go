@@ -232,15 +232,15 @@ func (this *Coinbase) subscribeMultipleBody(ch chan any, name any, isPrivate any
 		retRes18112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes18112)
 	}
-	var productIds any = []any{}
-	var messageHashes any = []any{}
+	var productIds []any = []any{}
+	var messageHashes []any = []any{}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		ccxt.AppendToArray(&productIds, marketId)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
+		productIds = append(productIds, marketId)
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe map[string]any = map[string]any{
@@ -291,17 +291,17 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 		retRes22312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes22312)
 	}
-	var productIds any = []any{}
-	var watchMessageHashes any = []any{}
-	var unWatchMessageHashes any = []any{}
+	var productIds []any = []any{}
+	var watchMessageHashes []any = []any{}
+	var unWatchMessageHashes []any = []any{}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		ccxt.AppendToArray(&productIds, marketId)
-		ccxt.AppendToArray(&watchMessageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
-		ccxt.AppendToArray(&unWatchMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", name), "::"), symbol))
+		productIds = append(productIds, marketId)
+		watchMessageHashes = append(watchMessageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
+		unWatchMessageHashes = append(unWatchMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", name), "::"), symbol))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var message map[string]any = map[string]any{
@@ -596,7 +596,7 @@ func (this *Coinbase) HandleTickers(client any, message any) {
 	var events any = this.SafeList(message, "events", []any{})
 	var datetime *string = this.SafeString(message, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
-	var newTickers any = []any{}
+	var newTickers []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
 		var tickersObj any = ccxt.GetValue(events, i)
 		var tickers any = this.SafeList(tickersObj, "tickers", []any{})
@@ -613,7 +613,7 @@ func (this *Coinbase) HandleTickers(client any, message any) {
 			if symbol != nil {
 				ccxt.AddElementToObject(this.Tickers, symbol, result)
 			}
-			ccxt.AppendToArray(&newTickers, result)
+			newTickers = append(newTickers, result)
 			var messageHash any = ccxt.Add(ccxt.Add(channel, "::"), symbol)
 			client.(ccxt.ClientInterface).Resolve(result, messageHash)
 			this.TryResolveUsdc(client, messageHash, result)
@@ -1092,7 +1092,7 @@ func (this *Coinbase) HandleOrder(client any, message any) {
 	if ccxt.IsEqual(events, nil) {
 		return
 	}
-	var marketIds any = []any{}
+	var marketIds []any = []any{}
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1110,13 +1110,13 @@ func (this *Coinbase) HandleOrder(client any, message any) {
 			var marketId *string = this.SafeString(responseOrder, "product_id")
 			if marketId != nil {
 				if !(ccxt.InOp(marketIds, marketId)) {
-					ccxt.AppendToArray(&marketIds, marketId)
+					marketIds = append(marketIds, marketId)
 				}
 			}
 			cachedOrders.(ccxt.Appender).Append(parsed)
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
+	for i := 0; i < len(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash any = ccxt.Add("user::", symbol)

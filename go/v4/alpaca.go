@@ -1319,7 +1319,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var results any = []any{}
+	var results []any = []any{}
 	var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
 	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; i < len(marketIds); i++ {
@@ -1353,7 +1353,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			"baseVolume":    this.SafeString(dailyBar, "v"),
 			"quoteVolume":   Precise.StringMul(this.SafeString(dailyBar, "v"), this.SafeString(dailyBar, "vw")),
 		}, market)
-		AppendToArray(&results, ticker)
+		results = append(results, ticker)
 	}
 
 	ch <- this.FilterByArray(results, "symbol", symbols)
@@ -2408,7 +2408,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 		//         }
 		//     ]
 		//
-		var filtered any = []any{}
+		var filtered []any = []any{}
 		var ledger any = []any{}
 		if IsArray(activities) {
 			ledger = activities
@@ -2425,7 +2425,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 				return "OUTGOING"
 			}()
 			if (IsEqual(typeVar, "BOTH")) || (IsEqual(entryDirection, typeVar)) {
-				AppendToArray(&filtered, entry)
+				filtered = append(filtered, entry)
 			}
 		}
 
@@ -2452,7 +2452,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 	//         "fees": "0.1"
 	//     }
 	//
-	var results any = []any{}
+	var results []any = []any{}
 	var transfers any = []any{}
 	if IsArray(response) {
 		transfers = response
@@ -2461,9 +2461,9 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 		var entry any = GetValue(transfers, i)
 		var direction *string = this.SafeString(entry, "direction")
 		if IsEqual(direction, typeVar) {
-			AppendToArray(&results, entry)
+			results = append(results, entry)
 		} else if IsEqual(typeVar, "BOTH") {
-			AppendToArray(&results, entry)
+			results = append(results, entry)
 		}
 	}
 

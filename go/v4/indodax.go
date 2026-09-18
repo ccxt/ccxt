@@ -427,7 +427,7 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var rawMarkets []any = this.ToArray(response)
 	for i := 0; i < len(rawMarkets); i++ {
 		var market any = GetValue(rawMarkets, i)
@@ -438,7 +438,7 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var isMaintenance *int64 = this.SafeInteger(market, "is_maintenance")
 		var inMaintenance bool = (isMaintenance != nil) && (isMaintenance == nil || *isMaintenance != 0)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       id,
 			"symbol":   Add(Add(base, "/"), quote),
 			"base":     base,

@@ -678,11 +678,11 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var testNames []string = ObjectKeys(tests)
-	var promises any = []any{}
+	var promises []any = []any{}
 	for i := 0; i < len(testNames); i++ {
 		var testName string = GetValue(testNames, i).(string)
 		var testArgs any = GetValue(tests, testName)
-		AppendToArray(&promises, this.TestSafeAsync(testName, exchange, testArgs, isPublicTest))
+		promises = append(promises, this.TestSafeAsync(testName, exchange, testArgs, isPublicTest))
 	}
 	// todo - not yet ready in other langs too
 	// promises.push (testThrottle ());
@@ -690,12 +690,12 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
 	// now count which test-methods retuned `false` from "testSafe" and dump that info below
-	var failedMethods any = []any{}
+	var failedMethods []any = []any{}
 	for i := 0; i < len(testNames); i++ {
 		var testName string = GetValue(testNames, i).(string)
 		var testReturnedValue any = GetValue(results, i)
 		if testReturnedValue != true {
-			AppendToArray(&failedMethods, testName)
+			failedMethods = append(failedMethods, testName)
 		}
 	}
 	var testPrefixString any = func() any {
@@ -704,7 +704,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 		}
 		return "PRIVATE_TESTS"
 	}()
-	if GetArrayLength(failedMethods) > 0 {
+	if len(failedMethods) > 0 {
 		var errorsString string = Join(failedMethods, ", ")
 		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
 	}
@@ -821,9 +821,9 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	// if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
 	if IsEqual(symbol, nil) {
 		var activeMarkets []any = exchange.FilterBy(currentTypeMarkets, "active", true)
-		var activeSymbols any = []any{}
+		var activeSymbols []any = []any{}
 		for i := 0; i < len(activeMarkets); i++ {
-			AppendToArray(&activeSymbols, GetValue(GetValue(activeMarkets, i), "symbol"))
+			activeSymbols = append(activeSymbols, GetValue(GetValue(activeMarkets, i), "symbol"))
 		}
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}
@@ -936,7 +936,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 	var marketType any = exchange.SafeString(defaultMarket, "type")
 	var quote any = exchange.SafeString(defaultMarket, "quote")
 	var settle any = exchange.SafeString(defaultMarket, "settle")
-	var candidates any = []any{}
+	var candidates []any = []any{}
 	var tickerSymbols []string = ObjectKeys(tickers)
 	for i := 0; i < len(tickerSymbols); i++ {
 		var tickerSymbol string = GetValue(tickerSymbols, i).(string)
@@ -955,7 +955,7 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 					var entry map[string]any = map[string]any{}
 					entry["symbol"] = tickerSymbol
 					entry["volume"] = volume
-					AppendToArray(&candidates, entry)
+					candidates = append(candidates, entry)
 				}
 			}
 		}
@@ -967,9 +967,9 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan any, exchange ccxt.I
 		ch <- defaultSymbols
 		return nil
 	}
-	var result any = []any{exchange.SafeString(GetValue(ranked, 0), "symbol")}
+	var result []any = []any{exchange.SafeString(GetValue(ranked, 0), "symbol")}
 	if rankedLength > 1 {
-		AppendToArray(&result, exchange.SafeString(GetValue(ranked, 1), "symbol"))
+		result = append(result, exchange.SafeString(GetValue(ranked, 1), "symbol"))
 	}
 
 	ch <- result
@@ -1245,12 +1245,12 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				// series filter) is a real bug that only surfaces if the path is actually asserted.
 				// build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
 				// calls stay inside this try/catch — Java can't propagate their checked exception otherwise
-				var scopesToTest any = []any{}
+				var scopesToTest []any = []any{}
 				if !IsEqual(eventId, nil) {
 					// copy to a const so the dict capture is effectively-final (Java inner-class rule),
 					// since eventId is reassigned above. every venue must refetch an event by its own id
 					var eventIdScope any = eventId
-					AppendToArray(&scopesToTest, map[string]any{
+					scopesToTest = append(scopesToTest, map[string]any{
 						"eventId": eventIdScope,
 					})
 				}
@@ -1259,9 +1259,9 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 				var extraScopes any = exchange.SafeList(this.SkippedSettingsForExchange, "preferredEventScopes", []any{})
 				var extraScopesLength int = GetArrayLength(extraScopes)
 				for si := 0; si < extraScopesLength; si++ {
-					AppendToArray(&scopesToTest, GetValue(extraScopes, si))
+					scopesToTest = append(scopesToTest, GetValue(extraScopes, si))
 				}
-				var scopesToTestLength int = GetArrayLength(scopesToTest)
+				var scopesToTestLength int = len(scopesToTest)
 				for sj := 0; sj < scopesToTestLength; sj++ {
 					var scope any = GetValue(scopesToTest, sj)
 					// fetchEvents scoped by a single parameter must return a non-empty, valid list
@@ -2367,13 +2367,13 @@ func (this *testMainClass) SanitizeDataInput(input any) any {
 	if IsEqual(input, nil) {
 		return nil
 	}
-	var newInput any = []any{}
+	var newInput []any = []any{}
 	for i := 0; i < GetArrayLength(input); i++ {
 		var current any = GetValue(input, i)
 		if EvalTruthy(IsNullValue(current)) {
-			AppendToArray(&newInput, nil)
+			newInput = append(newInput, nil)
 		} else {
-			AppendToArray(&newInput, current)
+			newInput = append(newInput, current)
 		}
 	}
 	return newInput
@@ -2903,7 +2903,7 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 	// rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
 	// outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
 	if !IsEqual(predictionEvents, nil) {
-		var eventMarkets any = []any{}
+		var eventMarkets []any = []any{}
 		for i := 0; i < GetArrayLength(predictionEvents); i++ {
 			var evMarkets any = exchange.SafeList(GetValue(predictionEvents, i), "markets", []any{})
 			for j := 0; j < GetArrayLength(evMarkets); j++ {
@@ -2914,10 +2914,10 @@ func (this *testMainClass) InitOfflineExchange(exchangeName any, optionalArgs ..
 				// on prediction structures and must be absent
 				Assert(!IsEqual(exchange.SafeString(evMarket, "market"), nil), Add(exchangeName, " static events fixture: market row missing the unified market handle"))
 				Assert(IsEqual(exchange.SafeString(evMarket, "symbol"), nil), Add(exchangeName, " static events fixture: market row must not carry the deprecated symbol key"))
-				AppendToArray(&eventMarkets, evMarket)
+				eventMarkets = append(eventMarkets, evMarket)
 			}
 		}
-		if GetArrayLength(eventMarkets) > 0 {
+		if len(eventMarkets) > 0 {
 			exchange.SetMarkets(eventMarkets)
 		}
 	}
@@ -3216,7 +3216,7 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 	}
 	var exchanges []string = ObjectKeys(staticData)
 	var exchange ccxt.ICoreExchange = InitExchange("Exchange", map[string]any{}) // tmp to do the calculations until we have the ast-transpiler transpiling this code
-	var promises any = []any{}
+	var promises []any = []any{}
 	var sum any = 0
 	if !IsEqual(targetExchange, nil) && (targetExchange != "") {
 		Dump(Add("[INFO:MAIN] Exchange to test: ", targetExchange))
@@ -3234,11 +3234,11 @@ func (this *testMainClass) runStaticTestsBody(ch chan any, typeVar any, optional
 		var numberOfTests any = this.GetNumberOfTestsFromExchange(exchange, exchangeData, testName)
 		sum = exchange.Sum(sum, numberOfTests)
 		if typeVar == "request" {
-			AppendToArray(&promises, this.TestExchangeRequestStaticallyAsync(exchangeName, exchangeData, testName))
+			promises = append(promises, this.TestExchangeRequestStaticallyAsync(exchangeName, exchangeData, testName))
 		} else if typeVar == "ws" {
-			AppendToArray(&promises, this.TestExchangeWsStaticallyAsync(exchangeName, exchangeData, testName))
+			promises = append(promises, this.TestExchangeWsStaticallyAsync(exchangeName, exchangeData, testName))
 		} else {
-			AppendToArray(&promises, this.TestExchangeResponseStaticallyAsync(exchangeName, exchangeData, testName))
+			promises = append(promises, this.TestExchangeResponseStaticallyAsync(exchangeName, exchangeData, testName))
 		}
 	}
 

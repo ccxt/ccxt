@@ -2997,7 +2997,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var rows any = this.SafeList(data, "rows", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var row any = GetValue(rows, i)
 		var marketId *string = this.SafeString(row, "symbol")
@@ -3010,7 +3010,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var ticker map[string]any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
-		AppendToArray(&result, this.ParseTicker(ticker))
+		result = append(result, this.ParseTicker(ticker))
 	}
 
 	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
@@ -4824,12 +4824,12 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var rows any = this.SafeList(data, "rows", []any{})
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var entry any = GetValue(rows, i)
 		var marketId *string = this.SafeString(entry, "symbol")
 		var timestamp *int64 = this.SafeInteger(entry, "fundingRateTimestamp")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId),
 			"fundingRate": this.SafeNumber(entry, "fundingRate"),

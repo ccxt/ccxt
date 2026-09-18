@@ -1318,7 +1318,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		retRes102112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes102112)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = this.SafeDict(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
@@ -1365,7 +1365,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		if (typeVar != nil && *typeVar == "LIMIT") || (typeVar != nil && *typeVar == "STOP_LIMIT") {
 			request["price"] = this.PriceToPrecision(symbol, this.SafeString(order, "price"))
 		}
-		AppendToArray(&ordersRequests, this.Extend(request, orderParams))
+		ordersRequests = append(ordersRequests, this.Extend(request, orderParams))
 	}
 	var createOrdersRequest map[string]any = map[string]any{
 		"data": ordersRequests,
