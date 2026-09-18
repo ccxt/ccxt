@@ -1095,13 +1095,13 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " unWatchTradesForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>> WatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    public async virtual Task<object> unWatchOHLCVForSymbols(IList<object> symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported (add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;

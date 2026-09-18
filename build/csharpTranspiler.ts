@@ -933,6 +933,9 @@ const CORE_LIST_ARGS: Record<string, Record<number, string>> = {
     'fetchTickersV3': { 0: 'IList<object>' },  // FetchTickersV3
     'fetchTickersWs': { 0: 'IList<object>' },  // FetchTickersWs
     'fetchTradingLimits': { 0: 'IList<object>' },  // FetchTradingLimits
+    'getSubscriptionRequest': { 0: 'IList<object>' },
+    'handleOrderBookSubscriptions': { 2: 'IList<object>' },
+    'helperForWatchMultipleConstruct': { 1: 'IList<object>' },
     'loadTradingLimits': { 0: 'IList<object>' },
     'parseADLRanks': { 1: 'IList<object>' },
     'parseAllGreeks': { 1: 'IList<object>' },
@@ -947,25 +950,39 @@ const CORE_LIST_ARGS: Record<string, Record<number, string>> = {
     'parseTickers': { 1: 'IList<object>' },
     'parseTickersForRolling': { 1: 'IList<object>' },
     'pruneCachedBySymbols': { 2: 'IList<object>' },
-    'subscribePublicMultipleUta': { 2: 'IList<object>' },
+    'setPositionsCache': { 2: 'IList<object>' },
+    'subscribePrivateUta': { 0: 'IList<object>' },
+    'subscribePublicMultipleUta': { 0: 'IList<object>', 2: 'IList<object>' },
     'unSubscribe': { 6: 'IList<object>' },
-    'unSubscribePublicMultiple': { 2: 'IList<object>' },
+    'unSubscribeMultiple': { 3: 'IList<object>' },
+    'unSubscribePublicMultiple': { 2: 'IList<object>', 3: 'IList<object>' },
     'unWatchBidsAsks': { 0: 'IList<object>' },
+    'unWatchChannels': { 1: 'IList<object>' },
     'unWatchFundingRates': { 0: 'IList<object>' },
     'unWatchMarkPrices': { 0: 'IList<object>' },
+    'unWatchOHLCVForSymbols': { 0: 'IList<object>' },
     'unWatchOrderBookForSymbols': { 0: 'IList<object>' },
     'unWatchPositions': { 0: 'IList<object>' },
+    'unWatchPublicMultiple': { 1: 'IList<object>', 2: 'IList<object>', 4: 'IList<object>' },
     'unWatchTickers': { 0: 'IList<object>' },
-    'unWatchTopics': { 2: 'IList<object>' },
+    'unWatchTopics': { 2: 'IList<object>', 3: 'IList<object>' },
     'unWatchTradesForSymbols': { 0: 'IList<object>' },
+    'watchBidsAsks': { 0: 'IList<object>' },
     'watchFundingRates': { 0: 'IList<object>' },  // WatchFundingRates
     'watchFundingRatesForSymbols': { 0: 'IList<object>' },  // WatchFundingRatesForSymbols
     'watchLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchLiquidationsForSymbols
     'watchMarkPrices': { 0: 'IList<object>' },  // WatchMarkPrices
     'watchMyLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchMyLiquidationsForSymbols
     'watchMyTradesForSymbols': { 0: 'IList<object>' },  // WatchMyTradesForSymbols
+    'watchOHLCVForSymbols': { 0: 'IList<object>' },
+    'watchOrderBookForSymbols': { 0: 'IList<object>' },
     'watchOrdersForSymbols': { 0: 'IList<object>' },  // WatchOrdersForSymbols
     'watchPositionForSymbols': { 0: 'IList<object>' },  // WatchPositionForSymbols
+    'watchPositions': { 0: 'IList<object>' },
+    'watchPrivateMultiple': { 0: 'IList<object>' },
+    'watchStockMarketStream': { 1: 'IList<object>' },
+    'watchTopics': { 1: 'IList<object>' },
+    'watchTradesForSymbols': { 0: 'IList<object>' },
     'watchUtaTickers': { 0: 'IList<object>' },  // WatchUtaTickers
 };
 

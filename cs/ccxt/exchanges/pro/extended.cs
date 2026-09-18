@@ -418,7 +418,7 @@ public partial class extended : ccxt.extended
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -429,7 +429,7 @@ public partial class extended : ccxt.extended
         string messageHash = "positions";
         if (!isEqual(symbols, null))
         {
-            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+            messageHash = add(messageHash, add("::", String.Join(",", symbols.ToArray())));
         }
         object positions = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
             { "symbols", symbols },
