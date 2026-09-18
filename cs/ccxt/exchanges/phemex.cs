@@ -1685,7 +1685,7 @@ public partial class phemex : Exchange
         Int64? until = this.safeInteger2(parameters, "until", "to");
         parameters = this.omit(parameters, new List<object>() {"until"});
         bool isStableSettled = (isEqual(GetValue(market, "settle"), "USDT")) || (isEqual(GetValue(market, "settle"), "USDC"));
-        bool usesSpecialFromToEndpoint = (((isEqual(GetValue(market, "linear"), true)) || isStableSettled)) && ((!isEqual(sinceVar, null)) || (!isEqual(until, null)));
+        bool usesSpecialFromToEndpoint = (((isEqual(GetValue(market, "linear"), true)) || isStableSettled)) && ((!isEqual(sinceVar, null)) || ((until != null)));
         int maxLimit = 1000;
         if (usesSpecialFromToEndpoint)
         {
@@ -1699,7 +1699,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if ((isEqual(GetValue(market, "linear"), true)) || isStableSettled)
         {
-            if ((!isEqual(until, null)) || (!isEqual(sinceVar, null)))
+            if (((until != null)) || (!isEqual(sinceVar, null)))
             {
                 int candleDuration = this.parseTimeframe(timeframeVar);
                 if (!isEqual(sinceVar, null))
@@ -1712,7 +1712,7 @@ public partial class phemex : Exchange
                     sinceVar = subtract(Math.Round(Convert.ToDouble(divide(until, 1000))), (multiply(maxLimit, candleDuration)));
                     request["from"] = sinceVar;
                 }
-                if (!isEqual(until, null))
+                if ((until != null))
                 {
                     request["to"] = Math.Round(Convert.ToDouble(divide(until, 1000)));
                 } else
@@ -2959,7 +2959,7 @@ public partial class phemex : Exchange
         double? filled = this.safeNumber2(order, "cumQty", "cumQtyRq");
         double? remaining = this.safeNumber2(order, "leavesQty", "leavesQtyRq");
         Int64? timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(order, "createdAt");
         }
@@ -4314,12 +4314,12 @@ public partial class phemex : Exchange
         Int64? timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
         string? type = this.safeStringLower(transaction, "type");
         double? feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
-        if (isEqual(feeCost, null))
+        if ((feeCost == null))
         {
             feeCost = this.safeNumber(transaction, "feeRv");
         }
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             type = "withdrawal";
             fee = new Dictionary<string, object>() {
@@ -4329,7 +4329,7 @@ public partial class phemex : Exchange
         }
         string? status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         double? amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), this.safeValue(currency, "valueScale")));
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             amount = this.safeNumber(transaction, "amountRv");
         }
@@ -5403,13 +5403,13 @@ public partial class phemex : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "settle"), "USDT") || isEqual(GetValue(market, "settle"), "USDC"))
         {
-            if (((isHedged != true)) && isEqual(longLeverageRr, null) && isEqual(shortLeverageRr, null))
+            if (((isHedged != true)) && (longLeverageRr == null) && (shortLeverageRr == null))
             {
                 request["leverageRr"] = leverage;
             } else
             {
-                object longVar = (!isEqual(longLeverageRr, null)) ? longLeverageRr : leverage;
-                object shortVar = (!isEqual(shortLeverageRr, null)) ? shortLeverageRr : leverage;
+                object longVar = ((longLeverageRr != null)) ? longLeverageRr : leverage;
+                object shortVar = ((shortLeverageRr != null)) ? shortLeverageRr : leverage;
                 request["longLeverageRr"] = longVar;
                 request["shortLeverageRr"] = shortVar;
             }
@@ -5457,7 +5457,7 @@ public partial class phemex : Exchange
         {
             direction = 1;
         }
-        if (!isEqual(direction, null))
+        if ((direction != null))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "currency", GetValue(currency, "id") },

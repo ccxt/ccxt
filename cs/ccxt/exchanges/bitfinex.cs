@@ -4608,12 +4608,12 @@ public partial class bitfinex : Exchange
         {
             request["flags"] = flags;
         }
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["cid"] = clientOrderId;
         }
         Int64? leverage = this.safeInteger2(parameters, "leverage", "lev");
-        if (!isEqual(leverage, null))
+        if ((leverage != null))
         {
             request["lev"] = leverage;
         }

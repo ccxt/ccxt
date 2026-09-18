@@ -2302,7 +2302,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         bool? enableUnifiedMargin = this.safeBool(this.options, "enableUnifiedMargin");
         bool? enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
-        if (isEqual(enableUnifiedMargin, null) || isEqual(enableUnifiedAccount, null))
+        if ((enableUnifiedMargin == null) || (enableUnifiedAccount == null))
         {
             if (isEqual(getValue(this.options, "enableDemoTrading"), true))
             {
@@ -3891,7 +3891,7 @@ public partial class bybit : Exchange
         IDictionary<string, object> info = this.safeDict(this.safeMarket(marketId, market, null, "swap"), "info");
         Int64? fundingInterval = this.safeInteger(info, "fundingInterval");
         string? intervalString = null;
-        if (!isEqual(fundingInterval, null))
+        if ((fundingInterval != null))
         {
             Int64? interval = this.parseToInt(divide(fundingInterval, 60));
             intervalString = add(((object)interval).ToString(), "h");
@@ -4069,7 +4069,7 @@ public partial class bybit : Exchange
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         Int64? endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (!isEqual(endTime, null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
         } else
@@ -4078,7 +4078,7 @@ public partial class bybit : Exchange
             {
                 // end time is required when since is not empty
                 object fundingInterval = multiply(multiply(multiply(60, 60), 8), 1000);
-                if (!isEqual(fundingTimeFrameMins, null))
+                if ((fundingTimeFrameMins != null))
                 {
                     fundingInterval = multiply(multiply(fundingTimeFrameMins, 60), 1000);
                 }
@@ -4294,14 +4294,14 @@ public partial class bybit : Exchange
         if ((side == null))
         {
             Int64? isBuyer = this.safeInteger(trade, "isBuyer");
-            if (!isEqual(isBuyer, null))
+            if ((isBuyer != null))
             {
                 side = ((isBuyer != 0)) ? "buy" : "sell";
             }
         }
         bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
         } else
@@ -6655,7 +6655,7 @@ public partial class bybit : Exchange
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         Int64? endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (!isEqual(endTime, null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
         }
@@ -6858,7 +6858,7 @@ public partial class bybit : Exchange
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         Int64? endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (!isEqual(endTime, null))
+        if ((endTime != null))
         {
             request["endTime"] = endTime;
         }
@@ -7602,7 +7602,7 @@ public partial class bybit : Exchange
         double? feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         string type = (inOp(transaction, "depositFee")) ? "deposit" : "withdrawal";
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -7871,7 +7871,7 @@ public partial class bybit : Exchange
             amount = this.parseToNumeric(Precise.stringAbs(amountString));
         }
         Int64? timestamp = this.parse8601(this.safeString(item, "exec_time"));
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(item, "transactionTime");
         }
@@ -8359,7 +8359,7 @@ public partial class bybit : Exchange
         {
             hedged = (positionIdx != "0");
         }
-        if ((!isEqual(hedged, null)) && hedged == true)
+        if (((hedged != null)) && hedged == true)
         {
             side = (positionIdx == "1") ? "long" : "short";
         } else if ((side != null))
@@ -8390,7 +8390,7 @@ public partial class bybit : Exchange
         string? maintenanceMarginString = this.safeString(position, "positionMM");
         Int64? timestamp = this.safeInteger2(position, "createdTime", "createdAt");
         Int64? lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
-        if (isEqual(lastUpdateTimestamp, null))
+        if ((lastUpdateTimestamp == null))
         {
             lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
         }
@@ -8778,7 +8778,7 @@ public partial class bybit : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         } else if (!isEqual(since, null))
@@ -9050,7 +9050,7 @@ public partial class bybit : Exchange
         Int64? timestamp = this.safeInteger(info, "timestamp");
         string? currencyId = this.safeString2(info, "coin", "currency");
         double? hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate");
-        int period = (!isEqual(hourlyBorrowRate, null)) ? 3600000 : 86400000; // 1h or 1d
+        int period = ((hourlyBorrowRate != null)) ? 3600000 : 86400000; // 1h or 1d
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "rate", this.safeNumber(info, "interestRate", hourlyBorrowRate) },
@@ -10947,7 +10947,7 @@ public partial class bybit : Exchange
         {
             request["limit"] = limit;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }

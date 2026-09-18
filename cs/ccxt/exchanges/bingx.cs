@@ -1471,7 +1471,7 @@ public partial class bingx : Exchange
         bool checkIsInverse = false;
         bool checkIsLinear = true;
         double? inverseContractSize = this.safeNumber(market, "minTickSize");
-        if (!isEqual(inverseContractSize, null))
+        if ((inverseContractSize != null))
         {
             // inverse swap market
             currency = baseId;
@@ -1480,12 +1480,12 @@ public partial class bingx : Exchange
         }
         string? settle = this.safeCurrencyCode(currency);
         double? pricePrecision = this.safeNumber(market, "tickSize");
-        if (isEqual(pricePrecision, null))
+        if ((pricePrecision == null))
         {
             pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "pricePrecision")));
         }
         double? quantityPrecision = this.safeNumber(market, "stepSize");
-        if (isEqual(quantityPrecision, null))
+        if ((quantityPrecision == null))
         {
             quantityPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "quantityPrecision")));
         }
@@ -1658,7 +1658,7 @@ public partial class bingx : Exchange
             request["limit"] = requestLimit;
         }
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["endTime"] = until;
@@ -1993,26 +1993,26 @@ public partial class bingx : Exchange
         bool? isBuyerMaker = this.safeBoolN(trade, new List<object>() {"buyerMaker", "isBuyerMaker", "maker"});
         string? takeOrMaker = null;
         bool isMakerSide = ((isBuyerMaker == true)) || ((m == true));
-        if ((!isEqual(isBuyerMaker, null)) || (!isEqual(m, null)))
+        if (((isBuyerMaker != null)) || ((m != null)))
         {
             takeOrMaker = isMakerSide ? "maker" : "taker";
         }
         string? side = this.safeStringLower2(trade, "side", "S");
         if ((side == null))
         {
-            if ((!isEqual(isBuyerMaker, null)) || (!isEqual(m, null)))
+            if (((isBuyerMaker != null)) || ((m != null)))
             {
                 side = isMakerSide ? "sell" : "buy";
                 takeOrMaker = "taker";
             }
         }
         bool? isBuyer = this.safeBool(trade, "isBuyer");
-        if (!isEqual(isBuyer, null))
+        if ((isBuyer != null))
         {
             side = isTrue(isBuyer) ? "buy" : "sell";
         }
         bool? isMaker = this.safeBool(trade, "isMaker");
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takeOrMaker = isTrue(isMaker) ? "maker" : "taker";
         }
@@ -2472,7 +2472,7 @@ public partial class bingx : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["endTime"] = until;
@@ -3447,7 +3447,7 @@ public partial class bingx : Exchange
         marketId = marketId.Replace((string)"/", (string)"-"); // standard return different format
         bool? isolated = this.safeBool(position, "isolated");
         string? marginMode = null;
-        if (!isEqual(isolated, null))
+        if ((isolated != null))
         {
             marginMode = isTrue(isolated) ? "isolated" : "cross";
         }
@@ -5929,7 +5929,7 @@ public partial class bingx : Exchange
         string? tag = this.safeString(transaction, "addressTag");
         Int64? timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
         string? datetime = this.iso8601(timestamp);
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             datetime = this.safeString(transaction, "applyTime");
             timestamp = this.parse8601(datetime);
@@ -6081,7 +6081,7 @@ public partial class bingx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? type = this.safeInteger(parameters, "type"); // 1 increase margin 2 decrease margin
-        if (isEqual(type, null))
+        if ((type == null))
         {
             throw new ArgumentsRequired (add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
         }
@@ -6308,7 +6308,7 @@ public partial class bingx : Exchange
             }
             Int64? until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 string endTimeReq = (isEqual(GetValue(market, "spot"), true)) ? "endTime" : "endTs";
                 request[(string)endTimeReq] = until;

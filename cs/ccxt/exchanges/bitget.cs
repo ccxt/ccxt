@@ -3748,7 +3748,7 @@ public partial class bitget : Exchange
             List<object> data = this.safeList(res, "data", new List<object>() {});
             IDictionary<string, object> firstData = this.safeDict(data, 0, new Dictionary<string, object>() {});
             bool? isBorrowable = this.safeBool(firstData, "isBorrowable");
-            if (fetchMargins && !isEqual(isBorrowable, null))
+            if (fetchMargins && (isBorrowable != null))
             {
                 // cross and isolated availability are per-symbol - a coin can be listed by
                 // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
@@ -4337,8 +4337,8 @@ public partial class bitget : Exchange
             network = network.ToUpper();
             bool withdrawable = ((this.safeString(chain, "withdrawable") == "true"));
             bool rechargeable = ((this.safeString(chain, "rechargeable") == "true"));
-            withdraw = (isEqual(withdraw, null)) ? withdrawable : (withdraw == true || withdrawable);
-            deposit = (isEqual(deposit, null)) ? rechargeable : (deposit == true || rechargeable);
+            withdraw = ((withdraw == null)) ? withdrawable : (withdraw == true || withdrawable);
+            deposit = ((deposit == null)) ? rechargeable : (deposit == true || rechargeable);
             networks[(string)network] = new Dictionary<string, object>() {
                 { "info", chain },
                 { "id", networkId },
@@ -4598,7 +4598,7 @@ public partial class bitget : Exchange
         {
             object item = getValue(info, i);
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
-            if (!isEqual(minimumNotional, null))
+            if ((minimumNotional != null))
             {
                 minNotional = minimumNotional;
             }
@@ -6525,7 +6525,7 @@ public partial class bitget : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         bool limitDefined = !isEqual(limitVar, null);
         bool sinceDefined = !isEqual(since, null);
-        bool untilDefined = !isEqual(until, null);
+        bool untilDefined = (until != null);
         parameters = this.omit(parameters, new List<object>() {"until"});
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -7583,8 +7583,8 @@ public partial class bitget : Exchange
         IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
         bool hasStopLoss = (stopLoss != null);
         bool hasTakeProfit = (takeProfit != null);
-        bool isStopLossTrigger = !isEqual(stopLossTriggerPrice, null);
-        bool isTakeProfitTrigger = !isEqual(takeProfitTriggerPrice, null);
+        bool isStopLossTrigger = (stopLossTriggerPrice != null);
+        bool isTakeProfitTrigger = (takeProfitTriggerPrice != null);
         bool isStopLossOrTakeProfitTrigger = isStopLossTrigger || isTakeProfitTrigger;
         if (isStopLossOrTakeProfitTrigger)
         {
@@ -7623,7 +7623,7 @@ public partial class bitget : Exchange
                 double? slTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 double? slLimitPrice = this.safeNumber(stopLoss, "price");
                 request["stopLoss"] = this.priceToPrecision(symbol, slTriggerPrice);
-                if (!isEqual(slLimitPrice, null))
+                if ((slLimitPrice != null))
                 {
                     request["slLimitPrice"] = this.priceToPrecision(symbol, slLimitPrice);
                     request["slOrderType"] = this.safeString(parameters, "slOrderType", "limit");
@@ -7637,7 +7637,7 @@ public partial class bitget : Exchange
                 double? tpTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 double? tpLimitPrice = this.safeNumber(takeProfit, "price");
                 request["takeProfit"] = this.priceToPrecision(symbol, tpTriggerPrice);
-                if (!isEqual(tpLimitPrice, null))
+                if ((tpLimitPrice != null))
                 {
                     request["tpLimitPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
                     request["tpOrderType"] = this.safeString(parameters, "tpOrderType", "limit");
@@ -7739,7 +7739,7 @@ public partial class bitget : Exchange
         IList<object> oneWayModeparametersVariable = (IList<object>)this.handleParamBool(parameters, "oneWayMode");
         oneWayMode = (bool?)oneWayModeparametersVariable[0];
         parameters = oneWayModeparametersVariable[1];
-        if (!isEqual(oneWayMode, null))
+        if ((oneWayMode != null))
         {
             hedged = !(oneWayMode == true);
         }
@@ -7966,7 +7966,7 @@ public partial class bitget : Exchange
                 planType = "total";
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quantity = this.costToPrecision(symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice == true)
@@ -9823,7 +9823,7 @@ public partial class bitget : Exchange
                     sinceVar = subtract(now, 7776000000);
                     request["startTime"] = sinceVar;
                 }
-                if (isEqual(endTime, null))
+                if ((endTime == null))
                 {
                     request["endTime"] = now;
                 }
@@ -11217,7 +11217,7 @@ public partial class bitget : Exchange
             initialMargin = Precise.stringDiv(openNotional, leverage);
         }
         double? contracts = this.parseNumber(Precise.stringDiv(baseAmount, contractSize));
-        if (isEqual(contracts, null))
+        if ((contracts == null))
         {
             contracts = this.safeNumber(position, "closeTotalPos");
         }
@@ -11227,7 +11227,7 @@ public partial class bitget : Exchange
         double? liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
         string calcTakerFeeRate = "0.0006";
         string calcTakerFeeMult = "0.9994";
-        if ((isEqual(liquidationPrice, null)) && (marginMode == "isolated") && isTrue(Precise.stringGt(baseAmount, "0")))
+        if (((liquidationPrice == null)) && (marginMode == "isolated") && isTrue(Precise.stringGt(baseAmount, "0")))
         {
             string? signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
             string? signedMmp = maintenanceMarginPercentage;

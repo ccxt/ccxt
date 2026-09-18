@@ -70,17 +70,17 @@ public partial class testMainClass : BaseTest
             ((IDictionary<string,object>)format)["quanto"] = false; // whether the market is QUANTO or not
         }
         // define locals
-        bool? spot = ((bool?)getValue(market, "spot"));
-        bool? contract = ((bool?)getValue(market, "contract"));
-        bool? swap = ((bool?)getValue(market, "swap"));
-        bool? future = ((bool?)getValue(market, "future"));
-        bool? option = ((bool?)getValue(market, "option"));
+        object spot = getValue(market, "spot");
+        object contract = getValue(market, "contract");
+        object swap = getValue(market, "swap");
+        object future = getValue(market, "future");
+        object option = getValue(market, "option");
         bool? index = exchange.safeBool(market, "index"); // todo: unify
-        bool isIndex = (!isEqual(index, null)) && index == true;
-        bool? linear = ((bool?)getValue(market, "linear"));
-        bool? inverse = ((bool?)getValue(market, "inverse"));
+        bool isIndex = ((index != null)) && index == true;
+        object linear = getValue(market, "linear");
+        object inverse = getValue(market, "inverse");
         bool? quanto = exchange.safeBool(market, "quanto"); // todo: unify
-        bool isQuanto = (!isEqual(quanto, null)) && quanto == true;
+        bool isQuanto = ((quanto != null)) && quanto == true;
         bool isInactiveMarket = isEqual(getValue(market, "active"), false);
         //
         List<object> emptyAllowedFor = new List<object>() {"margin"};
@@ -209,7 +209,7 @@ public partial class testMainClass : BaseTest
         } else if (!isEqual(contract, true))
         {
             // linear & inverse needs to be undefined
-            assert(isEqual(linear, null) && isEqual(inverse, null) && isEqual(quanto, null), add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText));
+            assert(isEqual(linear, null) && isEqual(inverse, null) && (quanto == null), add("market linear and inverse (and quanto) must be undefined when \"contract\" is false", logText));
             // contract size should be undefined
             assert((contractSize == null), add("\"contractSize\" must be undefined when \"contract\" is false", logText));
             // settle should be undefined

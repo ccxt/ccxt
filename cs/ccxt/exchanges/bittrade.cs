@@ -1932,7 +1932,7 @@ public partial class bittrade : Exchange
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 quoteAmount = this.amountToPrecision(symbol, cost);
             } else if (createMarketBuyOrderRequiresPrice == true)

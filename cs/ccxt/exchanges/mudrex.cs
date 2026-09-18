@@ -397,7 +397,7 @@ public partial class mudrex : Exchange
         }
         object endTime = add(startTime, multiply(duration, requestLimit));
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             endTime = this.parseToInt(divide(until, 1000));
@@ -1323,7 +1323,7 @@ public partial class mudrex : Exchange
             side = "short";
         }
         Int64? ts = this.parse8601(this.safeString(position, "updated_at"));
-        if (isEqual(ts, null))
+        if ((ts == null))
         {
             ts = this.parse8601(this.safeString(position, "created_at"));
         }

@@ -196,7 +196,7 @@ public partial class testMainClass : BaseTest
                     // so, we have to compare with millisecond accururacy
                     Int64? dtParsed = exchange.parse8601(dt);
                     object tsMs = getValue(entry, "timestamp");
-                    if (isEqual(dtParsed, null))
+                    if ((dtParsed == null))
                     {
                         assert(false, add(add("datetime is not parseable: ", dt), logText));
                     }

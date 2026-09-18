@@ -2246,7 +2246,7 @@ public partial class gemini : Exchange
         string? statusRaw = this.safeString(transaction, "status");
         Dictionary<string, object> fee = null;
         double? feeAmount = this.safeNumber(transaction, "feeAmount");
-        if (!isEqual(feeAmount, null))
+        if ((feeAmount != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeAmount },

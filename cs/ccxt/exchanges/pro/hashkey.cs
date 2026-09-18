@@ -648,7 +648,7 @@ public partial class hashkey : ccxt.hashkey
         bool isPublicTrade = (this.safeString(trade, "e") == null);
         string? side = null;
         string? takerOrMaker = null;
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             if (isPublicTrade)
             {

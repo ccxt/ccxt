@@ -1373,15 +1373,15 @@ public partial class toobit : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         string? side = null;
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
-        if (isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker == null))
         {
             bool? isBuyerTaker = this.safeBool(trade, "m");
-            if (!isEqual(isBuyerTaker, null))
+            if ((isBuyerTaker != null))
             {
                 isBuyerMaker = !(isBuyerTaker == true);
             }
         }
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             if (isBuyerMaker == true)
             {
@@ -1412,7 +1412,7 @@ public partial class toobit : Exchange
         }
         bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
         }
@@ -1469,7 +1469,7 @@ public partial class toobit : Exchange
             request["startTime"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;

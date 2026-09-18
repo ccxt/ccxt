@@ -1487,7 +1487,7 @@ public partial class bithumb : Exchange
             } else
             {
                 Int64? timeframeInteger = this.safeInteger(this.timeframes, timeframeVar);
-                if (isEqual(timeframeInteger, null))
+                if ((timeframeInteger == null))
                 {
                     throw new BadRequest (add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframeVar)) ;
                 }
@@ -2425,7 +2425,7 @@ public partial class bithumb : Exchange
             {
                 string normalized = datetime.Replace((string)"+09:00", (string)"Z");
                 Int64? normalizedTimestamp = this.parse8601(normalized);
-                if (!isEqual(normalizedTimestamp, null))
+                if ((normalizedTimestamp != null))
                 {
                     timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
                 } else
@@ -2495,7 +2495,7 @@ public partial class bithumb : Exchange
         List<object> rawTrades = this.safeList2(order, "contract", "trades", new List<object>() {});
         double? feeCost = this.safeNumber(order, "reserved_fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             object currency = null;
             if (!isEqual(market, null))
@@ -3091,7 +3091,7 @@ public partial class bithumb : Exchange
         {
             string normalized = datetime.Replace((string)"+09:00", (string)"Z");
             Int64? normalizedTimestamp = this.parse8601(normalized);
-            if (!isEqual(normalizedTimestamp, null))
+            if ((normalizedTimestamp != null))
             {
                 timestamp = subtract(normalizedTimestamp, multiply(9, 3600000));
             }

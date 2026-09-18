@@ -349,7 +349,7 @@ public partial class coinex : ccxt.coinex
         object firstEntry = getValue(balances, 0);
         Int64? updated = this.safeInteger(firstEntry, "updated_at");
         string? unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
-        bool isSpot = (!isEqual(updated, null));
+        bool isSpot = ((updated != null));
         bool isSwap = ((unrealizedPnl != null));
         List<object> info = null;
         string? account = null;

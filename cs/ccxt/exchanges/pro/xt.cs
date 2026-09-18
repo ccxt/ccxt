@@ -154,7 +154,7 @@ public partial class xt : ccxt.xt
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
         Int64? firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
-        if ((!isEqual(nonce, null)) && (!isEqual(firstDeltaNonce, null)) && (isLessThan(nonce, subtract(firstDeltaNonce, 1))))
+        if (((nonce != null)) && ((firstDeltaNonce != null)) && (isLessThan(nonce, subtract(firstDeltaNonce, 1))))
         {
             return -1;
         }
@@ -162,7 +162,7 @@ public partial class xt : ccxt.xt
         {
             object delta = getValue(cache, i);
             Int64? deltaNonce = this.safeInteger2(delta, "i", "u");
-            if ((!isEqual(deltaNonce, null)) && (!isEqual(nonce, null)) && (isGreaterThanOrEqual(deltaNonce, nonce)))
+            if (((deltaNonce != null)) && ((nonce != null)) && (isGreaterThanOrEqual(deltaNonce, nonce)))
             {
                 return i;
             }
@@ -869,7 +869,7 @@ public partial class xt : ccxt.xt
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -1332,7 +1332,7 @@ public partial class xt : ccxt.xt
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             Int64? nonce = this.safeInteger(orderbook, "nonce");
-            if (isEqual(nonce, null))
+            if ((nonce == null))
             {
                 int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);

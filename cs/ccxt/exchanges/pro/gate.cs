@@ -643,7 +643,7 @@ public partial class gate : ccxt.gate
         {
             Int64? nonce = this.safeInteger(orderbook, "nonce");
             Int64? deltaStart = this.safeInteger(result, "u");
-            if ((isEqual(nonce, null)) || ((!isEqual(deltaStart, null)) && (isGreaterThanOrEqual(nonce, deltaStart))))
+            if (((nonce == null)) || (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, deltaStart))))
             {
                 return;
             }
@@ -725,7 +725,7 @@ public partial class gate : ccxt.gate
         string messageHash = add("orderbook:", symbol);
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol, this.orderBook(new Dictionary<string, object>() {}));
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
-        if (isEqual(nonce, null))
+        if ((nonce == null))
         {
             int cacheLength = 0;
             if ((storedOrderBook != null))
@@ -743,10 +743,10 @@ public partial class gate : ccxt.gate
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
-        } else if ((!isEqual(deltaEnd, null)) && (isGreaterThanOrEqual(nonce, deltaEnd)))
+        } else if (((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, deltaEnd)))
         {
             return;
-        } else if ((!isEqual(deltaStart, null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))
+        } else if (((deltaStart != null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))))
         {
             this.handleDelta(storedOrderBook, delta);
         } else
@@ -768,7 +768,7 @@ public partial class gate : ccxt.gate
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         object firstDelta = getValue(cache, 0);
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        if ((!isEqual(nonce, null)) && (!isEqual(firstDeltaStart, null)) && (isLessThan(nonce, firstDeltaStart)))
+        if (((nonce != null)) && ((firstDeltaStart != null)) && (isLessThan(nonce, firstDeltaStart)))
         {
             return -1;
         }
@@ -777,7 +777,7 @@ public partial class gate : ccxt.gate
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if ((!isEqual(nonce, null)) && (!isEqual(deltaStart, null)) && (!isEqual(deltaEnd, null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
+            if (((nonce != null)) && ((deltaStart != null)) && ((deltaEnd != null)) && (isGreaterThanOrEqual(nonce, subtract(deltaStart, 1))) && (isLessThan(nonce, deltaEnd)))
             {
                 return i;
             }
@@ -1636,7 +1636,7 @@ public partial class gate : ccxt.gate
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }

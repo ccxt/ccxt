@@ -1023,7 +1023,7 @@ public partial class bitrue : Exchange
         string type = "spot";
         bool? isLinear = null;
         bool? isInverse = null;
-        if (isEqual(side, null))
+        if ((side == null))
         {
             type = "spot";
         } else
@@ -1069,12 +1069,12 @@ public partial class bitrue : Exchange
         string? amountPrecision = this.safeString(amountFilter, "volumeScale", defaultAmountPrecision);
         string? multiplier = this.safeString(market, "multiplier");
         double? maxQuantity = this.safeNumber(amountFilter, "maxQty");
-        if (isEqual(maxQuantity, null))
+        if ((maxQuantity == null))
         {
             maxQuantity = this.safeNumber(market, "maxValidOrder");
         }
         double? minCost = this.safeNumber(amountFilter, "minVal");
-        if (isEqual(minCost, null))
+        if ((minCost == null))
         {
             minCost = this.safeNumber(market, "minOrderMoney");
         }
@@ -1557,7 +1557,7 @@ public partial class bitrue : Exchange
                 request["limit"] = limit;
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 parameters = this.omit(parameters, "until");
                 request["fromIdx"] = until;
@@ -1630,7 +1630,7 @@ public partial class bitrue : Exchange
         //     }
         //
         Int64? timestamp = this.safeTimestamp(ohlcv, "i");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(ohlcv, "idx");
         }
@@ -1878,11 +1878,11 @@ public partial class bitrue : Exchange
         string? side = null;
         bool? buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
         bool? isBuyer = this.safeBool(trade, "isBuyer");
-        if (!isEqual(buyerMaker, null))
+        if ((buyerMaker != null))
         {
             side = isTrue(buyerMaker) ? "sell" : "buy";
         }
-        if (!isEqual(isBuyer, null))
+        if ((isBuyer != null))
         {
             side = isTrue(isBuyer) ? "buy" : "sell"; // this is a true side
         }
@@ -1896,7 +1896,7 @@ public partial class bitrue : Exchange
         }
         string? takerOrMaker = null;
         bool? isMaker = this.safeBool(trade, "isMaker");
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
         }
@@ -3062,7 +3062,7 @@ public partial class bitrue : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -3316,7 +3316,7 @@ public partial class bitrue : Exchange
             request["limit"] = limitVar;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;

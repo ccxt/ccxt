@@ -2000,7 +2000,7 @@ public partial class poloniex : Exchange
         //    }
         //
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "createTime", "cTime"});
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(this.safeString(order, "date"));
         }
@@ -2348,7 +2348,7 @@ public partial class poloniex : Exchange
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
             response = this.safeDict(responseInitial, "data", new Dictionary<string, object>() {});
-        } else if (!isEqual(triggerPrice, null))
+        } else if ((triggerPrice != null))
         {
             response = await this.privatePostSmartorders(this.extend(request, parameters));
         } else
@@ -2400,7 +2400,7 @@ public partial class poloniex : Exchange
         bool isMarket = upperCaseType == "MARKET";
         bool isPostOnly = this.isPostOnly(isMarket, upperCaseType == "LIMIT_MAKER", parameters);
         parameters = this.omit(parameters, new List<object>() {"postOnly", "triggerPrice", "stopPrice"});
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             if (!isEqual(GetValue(market, "spot"), true))
             {
@@ -2424,7 +2424,7 @@ public partial class poloniex : Exchange
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else if (createMarketBuyOrderRequiresPrice == true && (isEqual(GetValue(market, "spot"), true)))
@@ -2503,7 +2503,7 @@ public partial class poloniex : Exchange
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             response = await this.privatePutSmartordersId(this.extend(request, parameters));
         } else
@@ -3522,7 +3522,7 @@ public partial class poloniex : Exchange
                             networkObject[(string)networkCode] = new Dictionary<string, object>() {
                                 { "withdraw", new Dictionary<string, object>() {
                                     { "fee", withdrawFee },
-                                    { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
+                                    { "percentage", ((withdrawFee != null)) ? false : null },
                                 } },
                                 { "deposit", new Dictionary<string, object>() {
                                     { "fee", null },
@@ -3547,7 +3547,7 @@ public partial class poloniex : Exchange
         double? withdrawFee = this.safeNumber(fee, "withdrawalFee");
         Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
             { "fee", withdrawFee },
-            { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
+            { "percentage", ((withdrawFee != null)) ? false : null },
         };
         Dictionary<string, object> depositResult = new Dictionary<string, object>() {
             { "fee", null },

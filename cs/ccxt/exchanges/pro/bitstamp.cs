@@ -175,7 +175,7 @@ public partial class bitstamp : ccxt.bitstamp
         object nonce = this.safeValue(storedOrderBook, "nonce");
         IDictionary<string, object> delta = ((IDictionary<string, object>)this.safeValue(message, "data"));
         Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
-        if (isEqual(deltaNonce, null))
+        if ((deltaNonce == null))
         {
             return;
         }
@@ -228,12 +228,12 @@ public partial class bitstamp : ccxt.bitstamp
         // we will consider it a fail
         object firstElement = getValue(deltas, 0);
         Int64? firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
-        if (isEqual(firstElementNonce, null))
+        if ((firstElementNonce == null))
         {
             return -1;
         }
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if ((isEqual(nonce, null)) || (isLessThan(nonce, firstElementNonce)))
+        if (((nonce == null)) || (isLessThan(nonce, firstElementNonce)))
         {
             return -1;
         }
@@ -1088,7 +1088,7 @@ public partial class bitstamp : ccxt.bitstamp
         this.checkRequiredCredentials();
         Int64 time = this.milliseconds();
         Int64? expiresIn = this.safeInteger(this.options, "expiresIn");
-        if ((isEqual(expiresIn, null)) || (isGreaterThan(time, expiresIn)))
+        if (((expiresIn == null)) || (isGreaterThan(time, expiresIn)))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the websocket token is

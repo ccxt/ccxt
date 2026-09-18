@@ -613,7 +613,7 @@ public partial class modetrade : ccxt.modetrade
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? takerOrMaker = null;
         bool? maker = this.safeBool(trade, "maker");
-        if (!isEqual(maker, null))
+        if ((maker != null))
         {
             takerOrMaker = isTrue(maker) ? "maker" : "taker";
         }
@@ -901,7 +901,7 @@ public partial class modetrade : ccxt.modetrade
         string? priceString = this.safeString(order, "price");
         double? price = this.safeNumber(order, "price");
         double? avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(Precise.stringEq(priceString, "0")) && (!isEqual(avgPrice, null)))
+        if (isTrue(Precise.stringEq(priceString, "0")) && ((avgPrice != null)))
         {
             price = avgPrice;
         }

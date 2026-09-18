@@ -121,7 +121,7 @@ public partial class extended : ccxt.extended
             return;
         }
         Int64? previousNonce = this.safeInteger(orderbook, "nonce");
-        if ((!isEqual(previousNonce, null)) && (!isEqual(nonce, add(previousNonce, 1))))
+        if (((previousNonce != null)) && (!isEqual(nonce, add(previousNonce, 1))))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
@@ -705,7 +705,7 @@ public partial class extended : ccxt.extended
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
         Int64? timestamp = this.safeInteger(data, "ts");
-        if ((isEqual(timestamp, null)) || ((timestamp == 0)))
+        if (((timestamp == null)) || ((timestamp == 0)))
         {
             timestamp = this.safeInteger(message, "ts");
         }
@@ -801,7 +801,7 @@ public partial class extended : ccxt.extended
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
-        if ((!isEqual(previousNonce, null)) && (!isEqual(nonce, null)) && (isLessThanOrEqual(nonce, previousNonce)))
+        if (((previousNonce != null)) && ((nonce != null)) && (isLessThanOrEqual(nonce, previousNonce)))
         {
             return;
         }
@@ -917,7 +917,7 @@ public partial class extended : ccxt.extended
         }
         Int64? previousNonce = this.safeInteger(subscription, "nonce");
         Int64? nonce = this.safeInteger(message, "seq");
-        if ((!isEqual(previousNonce, null)) && (!isEqual(nonce, null)) && (isLessThanOrEqual(nonce, previousNonce)))
+        if (((previousNonce != null)) && ((nonce != null)) && (isLessThanOrEqual(nonce, previousNonce)))
         {
             return;
         }

@@ -850,7 +850,7 @@ public partial class deepcoin : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["after"] = until;
             parameters = this.omit(parameters, "until");
@@ -866,7 +866,7 @@ public partial class deepcoin : Exchange
                 int duration = this.parseTimeframe(timeframeVar);
                 object numberOfCandles = (isEqual(limit, null)) ? maxLimit : limit;
                 object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));
-                if (!isEqual(until, null))
+                if ((until != null))
                 {
                     endTime = mathMin(endTime, until);
                 }
@@ -1240,7 +1240,7 @@ public partial class deepcoin : Exchange
             request["size"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
             parameters = this.omit(parameters, "until");
@@ -1298,7 +1298,7 @@ public partial class deepcoin : Exchange
             request["size"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
             parameters = this.omit(parameters, "until");
@@ -1552,7 +1552,7 @@ public partial class deepcoin : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["before"] = until;
             parameters = this.omit(parameters, "until");
@@ -2714,7 +2714,7 @@ public partial class deepcoin : Exchange
         }
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
-        bool isTPSL = (!isEqual(stopLossPrice, null)) || (!isEqual(takeProfitPrice, null));
+        bool isTPSL = ((stopLossPrice != null)) || ((takeProfitPrice != null));
         Dictionary<string, object> response = null;
         if (isTPSL)
         {
@@ -2722,11 +2722,11 @@ public partial class deepcoin : Exchange
             {
                 throw new BadRequest (add(this.id, " editOrder() with stopLossPrice or takeProfitPrice cannot have price or amount. Either use stopLossPrice/takeProfitPrice or price/amount to edit order.")) ;
             }
-            if (!isEqual(stopLossPrice, null))
+            if ((stopLossPrice != null))
             {
                 request["slTriggerPx"] = (!isEqual(symbolVar, "")) ? this.priceToPrecision(symbolVar, stopLossPrice) : this.numberToString(stopLossPrice);
             }
-            if (!isEqual(takeProfitPrice, null))
+            if ((takeProfitPrice != null))
             {
                 request["tpTriggerPx"] = (!isEqual(symbolVar, "")) ? this.priceToPrecision(symbolVar, takeProfitPrice) : this.numberToString(takeProfitPrice);
             }
@@ -3438,7 +3438,7 @@ public partial class deepcoin : Exchange
             request["limit"] = limit; // default 100, max 100
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["end"] = until;

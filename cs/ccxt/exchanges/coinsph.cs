@@ -1267,7 +1267,7 @@ public partial class coinsph : Exchange
         {
             request["startTime"] = since;
             // since work properly only when it is "younger" than last "limit" candle
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["endTime"] = until;
             } else
@@ -1277,7 +1277,7 @@ public partial class coinsph : Exchange
                 Int64 now = this.milliseconds();
                 request["endTime"] = mathMin(endTimeByLimit, now);
             }
-        } else if (!isEqual(until, null))
+        } else if ((until != null))
         {
             request["endTime"] = until;
             // since work properly only when it is "younger" than last "limit" candle
@@ -1487,7 +1487,7 @@ public partial class coinsph : Exchange
         }
         bool? isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         string? side = null;
-        if (!isEqual(isBuyer, null))
+        if ((isBuyer != null))
         {
             side = ((isBuyer == true)) ? "buy" : "sell";
         }
@@ -1649,7 +1649,7 @@ public partial class coinsph : Exchange
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -2432,7 +2432,7 @@ public partial class coinsph : Exchange
         double? amount = this.safeNumber(transaction, "amount");
         double? feeCost = this.safeNumber(transaction, "transactionFee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -2593,10 +2593,10 @@ public partial class coinsph : Exchange
             this.checkRequiredCredentials();
             ((IDictionary<string,object>)query)["timestamp"] = this.milliseconds();
             Int64? recvWindow = this.safeInteger(query, "recvWindow");
-            if (isEqual(recvWindow, null))
+            if ((recvWindow == null))
             {
                 Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-                if (!isEqual(defaultRecvWindow, null))
+                if ((defaultRecvWindow != null))
                 {
                     ((IDictionary<string,object>)query)["recvWindow"] = defaultRecvWindow;
                 }

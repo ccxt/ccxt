@@ -1079,7 +1079,7 @@ public partial class binance : ccxt.binance
                 object messageItem = getValue(messages, i);
                 Int64? U = this.safeInteger(messageItem, "U");
                 Int64? u = this.safeInteger(messageItem, "u");
-                if ((isEqual(U, null)) || (isEqual(u, null)))
+                if (((U == null)) || ((u == null)))
                 {
                     continue;
                 }
@@ -1194,7 +1194,7 @@ public partial class binance : ccxt.binance
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        if (isEqual(nonce, null))
+        if ((nonce == null))
         {
             // 2. Buffer the events you receive from the stream.
             (orderbook as ccxt.pro.OrderBook).cache.Add(message);
@@ -1203,17 +1203,17 @@ public partial class binance : ccxt.binance
             try
             {
                 Int64? U = this.safeInteger(message, "U");
-                if (isEqual(U, null))
+                if ((U == null))
                 {
                     return;
                 }
                 Int64? u = this.safeInteger(message, "u");
-                if (isEqual(u, null))
+                if ((u == null))
                 {
                     return;
                 }
                 Int64? pu = this.safeInteger(message, "pu");
-                if (isEqual(pu, null))
+                if ((pu == null))
                 {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
@@ -1221,7 +1221,7 @@ public partial class binance : ccxt.binance
                     {
                         Int64? timestamp = this.safeInteger(orderbook, "timestamp");
                         bool? conditional = null;
-                        if (isEqual(timestamp, null))
+                        if ((timestamp == null))
                         {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
                             conditional = (isLessThanOrEqual((subtract(U, 1)), nonce)) && (isGreaterThanOrEqual((subtract(u, 1)), nonce));
@@ -2255,7 +2255,7 @@ public partial class binance : ccxt.binance
         {
             payload["limit"] = limit;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             payload["endTime"] = until;
         }
@@ -3142,12 +3142,12 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-        if (!isEqual(defaultRecvWindow, null))
+        if ((defaultRecvWindow != null))
         {
             ((IDictionary<string,object>)parameters)["recvWindow"] = defaultRecvWindow;
         }
         Int64? recvWindow = this.safeInteger(parameters, "recvWindow");
-        if (!isEqual(recvWindow, null))
+        if ((recvWindow != null))
         {
             ((IDictionary<string,object>)parameters)["recvWindow"] = recvWindow;
         }
@@ -3247,7 +3247,7 @@ public partial class binance : ccxt.binance
         string? accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
         IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         Int64? subscriptionId = this.safeInteger(result, "subscriptionId");
-        if (isEqual(subscriptionId, null))
+        if ((subscriptionId == null))
         {
             ((IDictionary<string,object>)client.subscriptions).Remove((string)accountType);
             client.reject(message, accountType);
@@ -3309,7 +3309,7 @@ public partial class binance : ccxt.binance
                     request["symbol"] = marketId;
                     request["isIsolated"] = true;
                 }
-                if (!isEqual(validity, null))
+                if ((validity != null))
                 {
                     request["validity"] = validity;
                 }
@@ -3345,7 +3345,7 @@ public partial class binance : ccxt.binance
                     { "validity", validity },
                 });
                 // Schedule token renewal before expiration
-                if (!isEqual(expirationTime, null))
+                if ((expirationTime != null))
                 {
                     object renewalTime = subtract(subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
                     if (isGreaterThan(renewalTime, 0))
@@ -3385,7 +3385,7 @@ public partial class binance : ccxt.binance
         {
             renewParams["isIsolated"] = isIsolated;
         }
-        if (!isEqual(validity, null))
+        if ((validity != null))
         {
             renewParams["validity"] = validity;
         }
@@ -5236,7 +5236,7 @@ public partial class binance : ccxt.binance
         Int64? lastTradeTimestamp = null;
         if (executionType == "NEW" || executionType == "AMENDMENT" || executionType == "CANCELED")
         {
-            if (isEqual(timestamp, null))
+            if ((timestamp == null))
             {
                 timestamp = T;
             }
@@ -5737,7 +5737,7 @@ public partial class binance : ccxt.binance
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);
-            if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
+            if (((contracts != null)) && (isGreaterThan(contracts, 0)))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -5985,7 +5985,7 @@ public partial class binance : ccxt.binance
             payload["limit"] = limit;
         }
         Int64? fromId = this.safeInteger(parameters, "fromId");
-        if (!isEqual(fromId, null) && !isEqual(since, null))
+        if ((fromId != null) && !isEqual(since, null))
         {
             throw new BadRequest (add(this.id, " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")) ;
         }
@@ -6321,7 +6321,7 @@ public partial class binance : ccxt.binance
                 }
                 parsed["trades"] = this.safeValue(order, "trades");
                 Int64? timestamp = this.safeInteger(parsed, "timestamp");
-                if (isEqual(timestamp, null))
+                if ((timestamp == null))
                 {
                     parsed["timestamp"] = this.safeInteger(order, "timestamp");
                     parsed["datetime"] = this.safeString(order, "datetime");
@@ -6446,7 +6446,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         Int64? code = this.safeInteger(error, "code");
         string? msg = this.safeString(error, "msg");
-        Int64? codeValue = (isEqual(code, null)) ? 0 : code;
+        Int64? codeValue = ((code == null)) ? 0 : code;
         try
         {
             this.handleErrors(codeValue, ((string)msg),((string)client.url), "", new Dictionary<string, object>() {}, this.json(error), error, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});

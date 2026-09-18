@@ -917,7 +917,7 @@ public partial class coinone : Exchange
         market = this.safeMarket(null, market);
         bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
-        if (!isEqual(isSellerMaker, null))
+        if ((isSellerMaker != null))
         {
             side = isTrue(isSellerMaker) ? "sell" : "buy";
         }
@@ -1185,7 +1185,7 @@ public partial class coinone : Exchange
             market = this.safeMarket(symbol, market, "/");
         }
         Int64? timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
         }
@@ -1372,7 +1372,7 @@ public partial class coinone : Exchange
         double? price = this.safeNumber(parameters, "price");
         double? qty = this.safeNumber(parameters, "qty");
         Int64? isAsk = this.safeInteger(parameters, "is_ask");
-        if ((isEqual(price, null)) || (isEqual(qty, null)) || (isEqual(isAsk, null)))
+        if (((price == null)) || ((qty == null)) || ((isAsk == null)))
         {
             throw new ArgumentsRequired (add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
         }

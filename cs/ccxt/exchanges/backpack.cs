@@ -1038,7 +1038,7 @@ public partial class backpack : Exchange
         string? percentage = null;
         double? percentageNumber = this.safeFloat(ticker, "priceChangePercent");
         // in some cases priceChangePercent is a non-numeric string like "N/A"
-        if (!isEqual(percentageNumber, null))
+        if ((percentageNumber != null))
         {
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
@@ -1107,7 +1107,7 @@ public partial class backpack : Exchange
         //     }
         //
         Int64? microseconds = this.safeInteger(response, "timestamp");
-        if (isEqual(microseconds, null))
+        if ((microseconds == null))
         {
             throw new ExchangeError (add(this.id, " fetchOrderBook() missing microseconds")) ;
         }
@@ -1407,7 +1407,7 @@ public partial class backpack : Exchange
         }
         List<object> response = null;
         Int64? offset = this.safeInteger(parameters, "offset");
-        if (!isEqual(offset, null))
+        if ((offset != null))
         {
             response = await this.publicGetApiV1TradesHistory(this.extend(request, parameters));
         } else
@@ -1454,7 +1454,7 @@ public partial class backpack : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["to"] = until;
@@ -1507,10 +1507,10 @@ public partial class backpack : Exchange
         string? side = this.parseOrderSide(this.safeString(trade, "side"));
         bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
-        } else if (!isEqual(isBuyerMaker, null))
+        } else if ((isBuyerMaker != null))
         {
             takerOrMaker = "taker";
             side = isTrue(isBuyerMaker) ? "sell" : "buy";
@@ -1868,7 +1868,7 @@ public partial class backpack : Exchange
         double? feeCost = this.safeNumber(transaction, "fee");
         bool? intern = this.safeBool(transaction, "isInternal", false);
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -2088,7 +2088,7 @@ public partial class backpack : Exchange
             parameters = this.omit(parameters, "triggerPrice");
         }
         Int64? clientOrderId = this.safeInteger(parameters, "clientOrderId"); // the exchange requires uint
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["clientId"] = clientOrderId;
             parameters = this.omit(parameters, "clientOrderId");
@@ -2406,7 +2406,7 @@ public partial class backpack : Exchange
         //
         Int64? timestamp = this.safeInteger(order, "createdAt");
         Int64? timestamp2 = this.parse8601(this.safeString(order, "createdAt"));
-        if (!isEqual(timestamp2, null))
+        if ((timestamp2 != null))
         {
             timestamp = timestamp2;
         }

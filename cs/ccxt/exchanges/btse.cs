@@ -1114,7 +1114,7 @@ public partial class btse : Exchange
         {
             object rate = getValue(rates, i);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
-            if ((isEqual(timestamp, null)) || (isLessThanOrEqual(timestamp, until)))
+            if (((timestamp == null)) || (isLessThanOrEqual(timestamp, until)))
             {
                 result.Add(rate);
             }
@@ -1691,7 +1691,7 @@ public partial class btse : Exchange
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
-        if ((!isEqual(fundingIntervalMinutes, null)) && (isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
+        if (((fundingIntervalMinutes != null)) && (isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
         {
             Int64? hours = this.parseToInt(divide(fundingIntervalMinutes, 60));
             interval = add(((object)hours).ToString(), "h");
@@ -1777,7 +1777,7 @@ public partial class btse : Exchange
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
             Int64? timestamp = this.safeInteger(trade, "timestamp");
-            if ((isEqual(timestamp, null)) || (isLessThanOrEqual(timestamp, until)))
+            if (((timestamp == null)) || (isLessThanOrEqual(timestamp, until)))
             {
                 result.Add(trade);
             }
@@ -2038,7 +2038,7 @@ public partial class btse : Exchange
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(trade, "feeAmount");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

@@ -784,7 +784,7 @@ public partial class kraken : Exchange
                 object currency = this.safeValue(cachedCurrencies, bs);
                 double? currencyPrecision = this.safeNumber(currency, "precision");
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
-                if (isEqual(currencyPrecision, null))
+                if ((currencyPrecision == null))
                 {
                     throw new ExchangeError (add(this.id, " method() missing currencyPrecision")) ;
                 }
@@ -1356,7 +1356,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", GetValue(market, "id") },
         };
-        if (!isEqual(parsedTimeframe, null))
+        if ((parsedTimeframe != null))
         {
             request["interval"] = parsedTimeframe;
         } else
@@ -1366,7 +1366,7 @@ public partial class kraken : Exchange
         if (!isEqual(since, null))
         {
             Int64? scaledSince = this.parseToInt(divide(since, 1000));
-            if (isEqual(parsedTimeframe, null))
+            if ((parsedTimeframe == null))
             {
                 throw new ExchangeError (add(this.id, " fetchOHLCV() missing parsedTimeframe")) ;
             }
@@ -1704,7 +1704,7 @@ public partial class kraken : Exchange
         string? cost = this.safeString(trade, "cost");
         bool? maker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
-        if (!isEqual(maker, null))
+        if ((maker != null))
         {
             takerOrMaker = isTrue(maker) ? "maker" : "taker";
         }
@@ -3118,7 +3118,7 @@ public partial class kraken : Exchange
             request["start"] = this.parseToInt(divide(since, 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
-        if (!isEqual(userref, null))
+        if ((userref != null))
         {
             request["userref"] = userref;
             parameters = this.omit(parameters, "userref");
@@ -3214,7 +3214,7 @@ public partial class kraken : Exchange
             request["start"] = this.parseToInt(divide(since, 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
-        if (!isEqual(userref, null))
+        if ((userref != null))
         {
             request["userref"] = userref;
             parameters = this.omit(parameters, "userref");

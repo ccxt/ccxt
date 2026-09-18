@@ -1023,7 +1023,7 @@ public partial class alpaca : Exchange
                 request["start"] = this.iso8601(since);
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 parameters = this.omit(parameters, "until");
                 request["end"] = this.iso8601(until);
@@ -1582,7 +1582,7 @@ public partial class alpaca : Exchange
             request["symbols"] = GetValue(market, "id");
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["until"] = this.iso8601(until);
@@ -1905,7 +1905,7 @@ public partial class alpaca : Exchange
             market = this.market(symbol);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["until"] = this.iso8601(until);

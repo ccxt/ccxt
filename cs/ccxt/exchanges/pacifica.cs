@@ -3758,7 +3758,7 @@ public partial class pacifica : Exchange
         //
         bool? success = this.safeBool(transfer, "success");
         string? status = null;
-        if (!isEqual(success, null))
+        if ((success != null))
         {
             status = ((success == true)) ? "ok" : "failed";
         }
@@ -3971,7 +3971,7 @@ public partial class pacifica : Exchange
         Int64? inCode = this.safeInteger(response, "code"); // actually if all ok -> code = undefined or code = 200
         string? message = this.safeString(response, "error");
         bool? error = null;
-        if (isEqual(inCode, null) || (inCode == 200))
+        if ((inCode == null) || (inCode == 200))
         {
             error = false;
         } else

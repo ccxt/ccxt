@@ -1900,7 +1900,7 @@ public partial class mexc : Exchange
         double? price = this.safeNumber(bidask, priceKey);
         double? amount = this.safeNumber(bidask, amountKey);
         double? count = this.safeNumber(bidask, countKey);
-        if (!isEqual(count, null))
+        if ((count != null))
         {
             return new List<object>() {price, amount, count};
         }
@@ -1943,12 +1943,12 @@ public partial class mexc : Exchange
             if (!isEqual(since, null))
             {
                 request["startTime"] = since;
-                if (isEqual(until, null))
+                if ((until == null))
                 {
                     throw new ArgumentsRequired (add(this.id, " fetchTrades() requires an until parameter when since is provided")) ;
                 }
             }
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 if (isEqual(since, null))
                 {
@@ -2200,7 +2200,7 @@ public partial class mexc : Exchange
         IList<object> candles = new List<object>() {};
         Int64? until = this.safeInteger2(parameters, "until", "endTime");
         object start = since;
-        if ((!isEqual(until, null)) && (isEqual(since, null)))
+        if (((until != null)) && (isEqual(since, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             object usedLimit = (!isEqual(limit, null) && !isEqual(limit, null) && !isEqual(limit, 0)) ? limit : maxLimit;
@@ -2211,7 +2211,7 @@ public partial class mexc : Exchange
             if (!isEqual(start, null))
             {
                 request["startTime"] = start;
-                if (isEqual(until, null))
+                if ((until == null))
                 {
                     // we have to calculate it assuming we can get at most 2000 entries per request
                     object end = this.sum(since, multiply(maxLimit, duration));
@@ -2223,7 +2223,7 @@ public partial class mexc : Exchange
             {
                 request["limit"] = limit;
             }
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["endTime"] = add(until, 1); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
             }
@@ -2249,7 +2249,7 @@ public partial class mexc : Exchange
             {
                 request["start"] = this.parseToInt(divide(since, 1000));
             }
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["end"] = this.parseToInt(divide(until, 1000));
                 if (isEqual(since, null))
@@ -2721,7 +2721,7 @@ public partial class mexc : Exchange
         {
             double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
             parameters = this.omit(parameters, "cost");
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 amount = cost;
                 request["quoteOrderQty"] = this.costToPrecision(symbol, amount);
@@ -2942,7 +2942,7 @@ public partial class mexc : Exchange
         if (isEqual(openType, 1))
         {
             Int64? leverage = this.safeInteger(parameters, "leverage");
-            if (isEqual(leverage, null))
+            if ((leverage == null))
             {
                 throw new ArgumentsRequired (add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
             }
@@ -2981,7 +2981,7 @@ public partial class mexc : Exchange
         double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         Dictionary<string, object> response = null;
-        if ((!isEqual(triggerPrice, null)) && (!isEqual(triggerPrice, 0)))
+        if (((triggerPrice != null)) && (!isEqual(triggerPrice, 0)))
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             request["triggerType"] = this.safeInteger(parameters, "triggerType", 1);
@@ -3223,7 +3223,7 @@ public partial class mexc : Exchange
             {
                 request["startTime"] = since;
             }
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["endTime"] = until;
             }
@@ -3298,7 +3298,7 @@ public partial class mexc : Exchange
             {
                 request["start_time"] = since;
                 Int64? end = this.safeInteger(parameters, "end_time", until);
-                if (isEqual(end, null))
+                if ((end == null))
                 {
                     request["end_time"] = this.sum(since, getValue(this.options, "maxTimeTillEnd"));
                 } else
@@ -3311,7 +3311,7 @@ public partial class mexc : Exchange
                         request["end_time"] = until;
                     }
                 }
-            } else if (!isEqual(until, null))
+            } else if ((until != null))
             {
                 request["start_time"] = this.sum(until, multiply(getValue(this.options, "maxTimeTillEnd"), -1));
                 request["end_time"] = until;
@@ -4048,7 +4048,7 @@ public partial class mexc : Exchange
         //     }
         //
         Int64? code = this.safeInteger(order, "code");
-        if (!isEqual(code, null))
+        if ((code != null))
         {
             // error upon placing multiple orders
             return this.safeOrder(new Dictionary<string, object>() {
@@ -4617,7 +4617,7 @@ public partial class mexc : Exchange
                 request["limit"] = limit;
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 parameters = this.omit(parameters, "until");
                 request["endTime"] = until;
@@ -4629,7 +4629,7 @@ public partial class mexc : Exchange
             {
                 request["start_time"] = since;
                 Int64? end = this.safeInteger(parameters, "end_time");
-                if (isEqual(end, null))
+                if ((end == null))
                 {
                     request["end_time"] = this.sum(since, getValue(this.options, "maxTimeTillEnd"));
                 }
@@ -4742,7 +4742,7 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? positionId = this.safeInteger(parameters, "positionId");
-        if (isEqual(positionId, null))
+        if ((positionId == null))
         {
             throw new ArgumentsRequired (add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
         }
@@ -4817,12 +4817,12 @@ public partial class mexc : Exchange
             { "leverage", leverage },
         };
         Int64? positionId = this.safeInteger(parameters, "positionId");
-        if (isEqual(positionId, null))
+        if ((positionId == null))
         {
             double? openType = this.safeNumber(parameters, "openType"); // 1 or 2
             double? positionType = this.safeNumber(parameters, "positionType"); // 1 or 2
             Dictionary<string, object> market = (!isEqual(symbol, null)) ? this.market(symbol) : null;
-            if ((isEqual(openType, null)) || (isEqual(positionType, null)) || ((market == null)))
+            if (((openType == null)) || ((positionType == null)) || ((market == null)))
             {
                 throw new ArgumentsRequired (add(this.id, " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
             } else
@@ -6184,7 +6184,7 @@ public partial class mexc : Exchange
         string? currencyId = this.safeString2(transfer, "currency", "asset");
         string? id = this.safeStringN(transfer, new List<object>() {"transact_id", "txid", "tranId"});
         Int64? timestamp = this.safeInteger2(transfer, "createTime", "timestamp");
-        string? datetime = (!isEqual(timestamp, null)) ? this.iso8601(timestamp) : null;
+        string? datetime = ((timestamp != null)) ? this.iso8601(timestamp) : null;
         string? direction = this.safeString(transfer, "type");
         string? accountFrom = null;
         string? accountTo = null;
@@ -6795,7 +6795,7 @@ public partial class mexc : Exchange
             throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         Int64? leverage = this.safeInteger(parameters, "leverage");
-        if (isEqual(leverage, null))
+        if ((leverage == null))
         {
             throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }

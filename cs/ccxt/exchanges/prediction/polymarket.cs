@@ -680,7 +680,7 @@ public partial class polymarket : PredictionExchange
             object totalPages = Math.Ceiling(Convert.ToDouble(divide(totalResults, pageSize)));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
-            if (!isEqual(resultLimit, null))
+            if ((resultLimit != null))
             {
                 double limitPages = Math.Ceiling(Convert.ToDouble(divide(resultLimit, pageSize)));
                 if (isLessThan(limitPages, totalPages))
@@ -1039,15 +1039,15 @@ public partial class polymarket : PredictionExchange
             {
                 parsedPricesLength = getArrayLength((IList<object>)(parsedPrices));
             }
-            if (((parsedOutcomes != null)) && (!isEqual(parsedOutcomesLength, null)))
+            if (((parsedOutcomes != null)) && ((parsedOutcomesLength != null)))
             {
                 outcomeLabels = (IList<object>)(parsedOutcomes);
             }
-            if (((parsedTokenIds != null)) && (!isEqual(parsedTokenIdsLength, null)))
+            if (((parsedTokenIds != null)) && ((parsedTokenIdsLength != null)))
             {
                 clobTokenIds = (IList<object>)(parsedTokenIds);
             }
-            if (((parsedPrices != null)) && (!isEqual(parsedPricesLength, null)))
+            if (((parsedPrices != null)) && ((parsedPricesLength != null)))
             {
                 outcomePrices = parsedPrices;
             }
@@ -1073,7 +1073,7 @@ public partial class polymarket : PredictionExchange
                 string? outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
                 bool? winnerRaw = null;
                 int? settleFractionRaw = null;
-                if (marketResolved && (!isEqual(outcomePrice, null)))
+                if (marketResolved && ((outcomePrice != null)))
                 {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
@@ -1545,7 +1545,7 @@ public partial class polymarket : PredictionExchange
         // never-traded token, which also falls back to the mid
         IDictionary<string, object> lastTradeData = this.safeDict(ticker, "lastTrade", new Dictionary<string, object>() {});
         double? last = this.safeNumber(lastTradeData, "price");
-        if ((isEqual(last, null)) || (isEqual(last, 0)))
+        if (((last == null)) || (isEqual(last, 0)))
         {
             last = mid;
         }
@@ -1709,7 +1709,7 @@ public partial class polymarket : PredictionExchange
             object item = getValue(history, i);
             Int64? t = this.safeInteger(item, "t");
             double? price = this.safeNumber(item, "p");
-            if ((isEqual(t, null)) || (isEqual(price, null)))
+            if (((t == null)) || ((price == null)))
             {
                 continue;
             }
@@ -1718,7 +1718,7 @@ public partial class polymarket : PredictionExchange
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             double? vol = this.safeNumber(item, "s");
-            if (isEqual(vol, null))
+            if ((vol == null))
             {
                 vol = this.safeNumber(item, "v");
             }
@@ -1732,7 +1732,7 @@ public partial class polymarket : PredictionExchange
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)
-                if (!isEqual(vol, null))
+                if ((vol != null))
                 {
                     object prevVol = getValue(candle, 5);
                     ((List<object>)candle)[Convert.ToInt32(5)] = (isEqual(prevVol, null)) ? vol : this.sum(prevVol, vol); // volume
@@ -2014,7 +2014,7 @@ public partial class polymarket : PredictionExchange
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         string? id = this.safeStringN(trade, new List<object>() {"transactionHash", "transaction_hash", "id"});
         Int64? timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeIntegerProduct(trade, "match_time", 1000);
         }
@@ -2201,7 +2201,7 @@ public partial class polymarket : PredictionExchange
         double? entryPrice = this.safeNumber(position, "avgPrice");
         double? curPrice = this.safeNumber(position, "currentPrice");
         object notional = null;
-        if ((!isEqual(size, null)) && (!isEqual(curPrice, null)))
+        if (((size != null)) && ((curPrice != null)))
         {
             notional = multiply(size, curPrice);
         }
@@ -2641,7 +2641,7 @@ public partial class polymarket : PredictionExchange
             { "time_in_force", orderTypeStr },
             { "postOnly", postOnly },
         };
-        if (isEqual(cost, null))
+        if ((cost == null))
         {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
             requestEcho["original_size"] = amount;
@@ -3183,7 +3183,7 @@ public partial class polymarket : PredictionExchange
         bool? rawActive = this.safeBool(rawEvent, "active");
         bool? closed = this.safeBool(rawEvent, "closed", false);
         bool? active = null;
-        if (!isEqual(rawActive, null))
+        if ((rawActive != null))
         {
             active = ((rawActive == true)) && ((closed != true));
         }
@@ -4050,7 +4050,7 @@ public partial class polymarket : PredictionExchange
             return this.milliseconds();
         }
         Int64? n = this.parseToInt(raw);
-        if (isEqual(n, null))
+        if ((n == null))
         {
             return this.milliseconds();
         }

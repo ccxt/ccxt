@@ -123,7 +123,7 @@ public partial class toobit : ccxt.toobit
         // handle ping-pong: { ping: 1758540450000 }
         //
         Int64? pongTimestamp = this.safeInteger(message, "pong");
-        if (!isEqual(pongTimestamp, null))
+        if ((pongTimestamp != null))
         {
             this.handleIncomingPong(client, pongTimestamp);
             return;
@@ -992,7 +992,7 @@ public partial class toobit : ccxt.toobit
         }
         double? feeCost = this.safeNumber(order, "n");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

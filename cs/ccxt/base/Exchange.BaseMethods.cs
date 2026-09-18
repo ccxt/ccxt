@@ -1526,13 +1526,13 @@ public partial class BaseExchange
     {
         string? value = this.safeString(obj, key);
         double? final = this.parseNumber(this.omitZero(value));
-        return ((double?)((object)((isEqual(final, null)) ? defaultValue : final)));
+        return ((double?)((object)(((final == null)) ? defaultValue : final)));
     }
 
     public virtual Int64? safeIntegerOmitZero(object obj, object key, object defaultValue = null)
     {
         Int64? timestamp = this.safeInteger(obj, key, defaultValue);
-        if (isEqual(timestamp, null) || (timestamp == 0))
+        if ((timestamp == null) || (timestamp == 0))
         {
             return ((Int64?)((object)(null)));
         }
@@ -1926,13 +1926,13 @@ public partial class BaseExchange
                 object network = getValue(networks, key);
                 bool? deposit = this.safeBool(network, "deposit");
                 bool? currencyDeposit = this.safeBool(currency, "deposit");
-                if (isEqual(currencyDeposit, null) || ((deposit == true)))
+                if ((currencyDeposit == null) || ((deposit == true)))
                 {
                     ((IDictionary<string,object>)currency)["deposit"] = deposit;
                 }
                 bool? withdraw = this.safeBool(network, "withdraw");
                 bool? currencyWithdraw = this.safeBool(currency, "withdraw");
-                if (isEqual(currencyWithdraw, null) || ((withdraw == true)))
+                if ((currencyWithdraw == null) || ((withdraw == true)))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
                 }
@@ -4053,7 +4053,7 @@ public partial class BaseExchange
         {
             market = this.safeValue(this.markets, symbol);
         }
-        if (isEqual(contractSize, null) && (market != null))
+        if ((contractSize == null) && (market != null))
         {
             contractSize = this.safeNumber(market, "contractSize");
             ((IDictionary<string,object>)position)["contractSize"] = contractSize;
@@ -4275,7 +4275,7 @@ public partial class BaseExchange
     public virtual List<object> handleParamInteger(object parameters, object paramName, object defaultValue = null)
     {
         Int64? value = this.safeInteger(parameters, paramName, defaultValue);
-        if (!isEqual(value, null))
+        if ((value != null))
         {
             parameters = this.omit(parameters, paramName);
         }
@@ -4285,7 +4285,7 @@ public partial class BaseExchange
     public virtual List<object> handleParamInteger2(object parameters, object paramName1, object paramName2, object defaultValue = null)
     {
         Int64? value = this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
-        if (!isEqual(value, null))
+        if ((value != null))
         {
             parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
         }
@@ -4295,7 +4295,7 @@ public partial class BaseExchange
     public virtual List<object> handleParamBool(object parameters, object paramName, object defaultValue = null)
     {
         bool? value = this.safeBool(parameters, paramName, defaultValue);
-        if (!isEqual(value, null))
+        if ((value != null))
         {
             parameters = this.omit(parameters, paramName);
         }
@@ -4305,7 +4305,7 @@ public partial class BaseExchange
     public virtual List<object> handleParamBool2(object parameters, object paramName1, object paramName2, object defaultValue = null)
     {
         bool? value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
-        if (!isEqual(value, null))
+        if ((value != null))
         {
             parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
         }
@@ -4670,7 +4670,7 @@ public partial class BaseExchange
         double? amount = this.safeFloat(bidask, amountKey);
         Int64? countOrId = this.safeInteger(bidask, countOrIdKey);
         List<object> bidAsk = new List<object>() {price, amount};
-        if (!isEqual(countOrId, null))
+        if ((countOrId != null))
         {
             ((IList<object>)bidAsk).Add(countOrId);
         }
@@ -6948,13 +6948,13 @@ public partial class BaseExchange
                     result = this.arrayConcat(result, response);
                     object last = this.safeValue(response, subtract(responseLength, 1));
                     Int64? lastTimestamp = this.safeInteger(last, "timestamp", 0);
-                    if (isEqual(lastTimestamp, null))
+                    if ((lastTimestamp == null))
                     {
                         break;
                     }
                     object nextPaginationTimestamp = add(lastTimestamp, 1);
                     paginationTimestamp = nextPaginationTimestamp;
-                    if ((!isEqual(until, null)) && (isGreaterThanOrEqual(nextPaginationTimestamp, until)))
+                    if (((until != null)) && (isGreaterThanOrEqual(nextPaginationTimestamp, until)))
                     {
                         break;
                     }
@@ -7036,7 +7036,7 @@ public partial class BaseExchange
         object currentSince = subtract(subtract(current, (multiply(maxCalls, step))), 1);
         if (!isEqual(since, null))
         {
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
                 // range and return an empty result - requiredCalls is validated against maxCalls
@@ -7051,7 +7051,7 @@ public partial class BaseExchange
         {
             currentSince = mathMax(currentSince, 1241440531000); // avoid timestamps older than 2009
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             if (isEqual(since, null))
             {
@@ -7065,7 +7065,7 @@ public partial class BaseExchange
         }
         for (int i = 0; isLessThan(i, maxCalls); postFixIncrement(ref i))
         {
-            if ((!isEqual(until, null)) && (isGreaterThanOrEqual(currentSince, until)))
+            if (((until != null)) && (isGreaterThanOrEqual(currentSince, until)))
             {
                 break;
             }
@@ -7188,7 +7188,7 @@ public partial class BaseExchange
                 {
                     throw new ArgumentsRequired (add(this.id, " fetchPaginatedCallCursor() requires a since argument")) ;
                 }
-                if (!isEqual(lastTimestamp, null) && isLessThan(lastTimestamp, since))
+                if ((lastTimestamp != null) && isLessThan(lastTimestamp, since))
                 {
                     break;
                 }
@@ -7346,7 +7346,7 @@ public partial class BaseExchange
     {
         multiplier ??= 1;
         Int64? until = this.safeInteger2(parameters, "until", "till");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             ((IDictionary<string,object>)request)[(string)key] = this.parseToInt(multiply(until, multiplier));
             parameters = this.omit(parameters, new List<object>() {"until", "till"});

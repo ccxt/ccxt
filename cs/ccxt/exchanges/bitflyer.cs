@@ -857,7 +857,7 @@ public partial class bitflyer : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(order, "total_commission");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

@@ -1497,7 +1497,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", GetValue(market, "id") },
         };
-        if (!isEqual(parsedTimeframe, null))
+        if ((parsedTimeframe != null))
         {
             request["granularity"] = parsedTimeframe;
         } else
@@ -1614,7 +1614,7 @@ public partial class coinbaseexchange : Exchange
         string? cost = this.safeString(order, "executed_value");
         double? feeCost = this.safeNumber(order, "fill_fees");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1844,7 +1844,7 @@ public partial class coinbaseexchange : Exchange
             request["client_oid"] = clientOrderId;
         }
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"stopPrice", "stop_price", "triggerPrice"});
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
@@ -2420,7 +2420,7 @@ public partial class coinbaseexchange : Exchange
             type = "withdrawal";
             address = this.safeString(details, "sent_to_address", address);
             double? feeCost = this.safeNumber(details, "fee");
-            if (!isEqual(feeCost, null))
+            if ((feeCost != null))
             {
                 if (!isEqual(amount, null))
                 {

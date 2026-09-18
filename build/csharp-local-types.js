@@ -11533,30 +11533,39 @@ export function installCsharpReceiverTypes (transpiler) {
     csharp.csharpDeclaredReceiverType = (node) => receiverDeclaredType (csharp, node);
 }
 
-// ===== string-literal equality (S60) =====
+// ===== string-literal equality (S60) + null-literal equality (U55) =====
 //
 // The printer emits `isEqual (x, "lit")` / `!isEqual (x, "lit")` for `x === 'lit'` / `x !== 'lit'`.
 // When the operand's emitted declaration is `string`/`string?` the helper is redundant: a string
 // literal is never null and isEqual's string branch is `((string)a) == ((string)b)`, so the native
 // operator is the same ordinal comparison and a null operand is false in both spellings.
 //
-// The printer asks `csharpLocalTypeOf (operand)`; this installer answers it from the PRINTED
-// declaration text recorded below — the type the emitted line really carries, whether the printer
-// or an earlier table typed it — plus an exactly-one-binding proof (a parameter, a multi-binding
-// name, a read before the declaration and every unrecorded local stay `object`, i.e. keep isEqual).
+// The same printer also emits `isEqual (x, null)` / `!isEqual (x, null)` for `x === undefined` /
+// `x !== undefined` (U55). The helper's first two guards are `a == null && b == null` /
+// `a == null || b == null`, so with the null literal on one side it returns exactly the C# null
+// test: reference equality for a reference type and `!x.HasValue` for `T?`. When the operand's
+// emitted declaration is a typed reference (`string`/`IDictionary`/`IList`/`List`/`Dictionary`/
+// `ccxt.pro.*`) or a nullable type, `x == null` is that very test — and it does NOT compile for a
+// non-nullable value scalar (`Int64`/`bool`/`double`/`int`), which is why those stay on the helper.
+//
+// The printer asks `csharpLocalTypeOf (operand)` / `csharpNullComparisonTypeOf (operand)`; this
+// installer answers them from the PRINTED declaration text recorded below — the type the emitted
+// line really carries, whether the printer or an earlier table typed it — plus an exactly-one-
+// binding proof (a parameter, a multi-binding name, a read before the declaration and every
+// unrecorded local stay `object`, i.e. keep isEqual).
 export function installCsharpStringEquality (csharp) {
     if (!csharp || csharp._stringEqualityPatched || typeof csharp.printVariableDeclarationList !== 'function') {
         return;
     }
     // enclosing function -> Map (source name -> Set (printed declaration types))
     const declaredTypes = new WeakMap ();
-    const stringDeclaration = /^\s*(string\??) ([A-Za-z_][A-Za-z0-9_]*) = /;
+    const declaredType = /^\s*([A-Za-z_][A-Za-z0-9_.]*(?:<[^;=]*?>)?\??) ([A-Za-z_][A-Za-z0-9_]*) = /;
     const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
     csharp.printVariableDeclarationList = (node, identation) => {
         const printed = upstreamDeclaration (node, identation);
         const declaration = node?.declarations?.[0];
         if (typeof printed === 'string' && declaration?.name?.kind === ts.SyntaxKind.Identifier) {
-            const match = stringDeclaration.exec (printed);
+            const match = declaredType.exec (printed);
             if (match !== null) {
                 const scope = enclosingFunctionScopeOf (csharp, declaration);
                 if (scope !== undefined) {
@@ -11594,8 +11603,47 @@ export function installCsharpStringEquality (csharp) {
         }
         return stringEqualityBindingIsProvable (scope, node) ? type : undefined;
     };
+    // U55: the null-comparison hook. A no-op on a printer that has no such method (the base
+    // pin), so the same classifier reproduces the pre-change emission.
+    if (typeof csharp.csharpNullComparisonTypeOf === 'function') {
+        csharp.csharpNullComparisonTypeOf = (node) => {
+            if (node?.kind !== ts.SyntaxKind.Identifier) {
+                return undefined;
+            }
+            const scope = enclosingFunctionScopeOf (csharp, node);
+            if (scope === undefined) {
+                return undefined;
+            }
+            const types = declaredTypes.get (scope)?.get (node.escapedText);
+            if (types === undefined || types.size !== 1) {
+                return undefined;
+            }
+            const type = types.values ().next ().value;
+            if (!nullComparisonTypeIsProvable (type)) {
+                return undefined;
+            }
+            return stringEqualityBindingIsProvable (scope, node) ? type : undefined;
+        };
+    }
     csharp._stringEqualityPatched = true;
 }
+
+// the emitted declaration types `isEqual (x, null)` -> `x == null` is exactly the same test for:
+// a `?`-suffixed type (a nullable value scalar — `== null` is `!x.HasValue` — or a nullable
+// reference), and a named reference type (`object`/`var` excluded: those are the boxes the
+// classifier did not name, and the printer's own csharpOperandIsValueTyped veto keeps a TS
+// number/boolean operand on the helper for exactly that reason)
+function nullComparisonTypeIsProvable (type) {
+    if (typeof type !== 'string' || type === '') {
+        return false;
+    }
+    if (type.endsWith ('?')) {
+        return true;
+    }
+    return NULL_COMPARISON_REFERENCE_HEADS.some ((head) => type.startsWith (head));
+}
+
+const NULL_COMPARISON_REFERENCE_HEADS = [ 'string', 'IDictionary<', 'Dictionary<', 'IList<', 'List<', 'ConcurrentDictionary<', 'ccxt.pro.', 'ArrayCache', 'IOrderBook', 'Future', 'WebSocketClient', 'Delegates' ];
 
 // the name is bound exactly ONCE in the enclosing function, as a single-declarator variable
 // declaration read after it (the shape whose printed line the record above tracks)

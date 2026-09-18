@@ -1261,7 +1261,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_time"] = until;
         }
@@ -1352,7 +1352,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_ts"] = until;
         }
@@ -1738,8 +1738,8 @@ public partial class cryptocom : Exchange
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         bool isTrigger = ((triggerPrice != null));
-        bool isStopLossTrigger = (!isEqual(stopLossPrice, null));
-        bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
+        bool isStopLossTrigger = ((stopLossPrice != null));
+        bool isTakeProfitTrigger = ((takeProfitPrice != null));
         if (isTrigger)
         {
             request["ref_price"] = this.priceToPrecision(symbol, triggerPrice);
@@ -2001,8 +2001,8 @@ public partial class cryptocom : Exchange
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
         double? takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
         bool isTrigger = ((triggerPrice != null));
-        bool isStopLossTrigger = (!isEqual(stopLossPrice, null));
-        bool isTakeProfitTrigger = (!isEqual(takeProfitPrice, null));
+        bool isStopLossTrigger = ((stopLossPrice != null));
+        bool isTakeProfitTrigger = ((takeProfitPrice != null));
         if (isTrigger)
         {
             string? priceString = this.numberToString(price);
@@ -2081,7 +2081,7 @@ public partial class cryptocom : Exchange
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber2(parameters, "cost", "notional");
             parameters = this.omit(parameters, "cost");
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
             } else if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -2426,7 +2426,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_time"] = until;
         }
@@ -2682,7 +2682,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_ts"] = until;
         }
@@ -2751,7 +2751,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_ts"] = until;
         }
@@ -2994,7 +2994,7 @@ public partial class cryptocom : Exchange
         //     }
         //
         Int64? code = this.safeInteger(order, "code");
-        if ((!isEqual(code, null)) && ((code != 0)))
+        if (((code != null)) && ((code != 0)))
         {
             return this.safeOrder(new Dictionary<string, object>() {
                 { "id", this.safeString(order, "order_id") },
@@ -3140,7 +3140,7 @@ public partial class cryptocom : Exchange
         Int64? timestamp = this.safeInteger(transaction, "create_time");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -3324,7 +3324,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_time"] = until;
         }
@@ -3699,7 +3699,7 @@ public partial class cryptocom : Exchange
         //
         Int64? timestamp = this.safeInteger(contract, "t");
         object fundingTimestamp = null;
-        if (!isEqual(timestamp, null))
+        if ((timestamp != null))
         {
             fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble(divide(timestamp, 3600000))), 3600000); // end of the next hour
         }
@@ -3776,7 +3776,7 @@ public partial class cryptocom : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["end_ts"] = until;
         }

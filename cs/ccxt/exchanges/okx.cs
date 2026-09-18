@@ -2788,7 +2788,7 @@ public partial class okx : Exchange
             if (future)
             {
                 expiry = this.safeInteger(market, "expTime");
-                if (!isEqual(expiry, null))
+                if ((expiry != null))
                 {
                     string? ymd = this.yymmdd(expiry);
                     symbol = add(add(symbol, "-"), ymd);
@@ -2798,7 +2798,7 @@ public partial class okx : Exchange
                 expiry = this.safeInteger(market, "expTime");
                 strikePrice = this.safeString(market, "stk");
                 optionType = this.safeString(market, "optType");
-                if (!isEqual(expiry, null))
+                if ((expiry != null))
                 {
                     string? ymd = this.yymmdd(expiry);
                     symbol = add(add(add(add(add(add(symbol, "-"), ymd), "-"), strikePrice), "-"), optionType);
@@ -3755,7 +3755,7 @@ public partial class okx : Exchange
             request["after"] = this.sum(since, multiply(durationInMilliseconds, limitVar));
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["after"] = until;
             parameters = this.omit(parameters, "until");
@@ -4575,7 +4575,7 @@ public partial class okx : Exchange
             {
                 request["tpTriggerPx"] = this.priceToPrecision(symbol, takeProfitPrice);
                 string? tpOrdPxReq = "-1";
-                if (!isEqual(tpOrdPx, null))
+                if ((tpOrdPx != null))
                 {
                     tpOrdPxReq = this.priceToPrecision(symbol, tpOrdPx);
                 }
@@ -4586,7 +4586,7 @@ public partial class okx : Exchange
             {
                 request["slTriggerPx"] = this.priceToPrecision(symbol, stopLossPrice);
                 string? slOrdPxReq = "-1";
-                if (!isEqual(slOrdPx, null))
+                if ((slOrdPx != null))
                 {
                     slOrdPxReq = this.priceToPrecision(symbol, slOrdPx);
                 }
@@ -4792,13 +4792,13 @@ public partial class okx : Exchange
         bool hasTakeProfit = ((takeProfit != null));
         if (isAlgoOrder == true)
         {
-            if ((isEqual(stopLossTriggerPrice, null)) && (isEqual(takeProfitTriggerPrice, null)))
+            if (((stopLossTriggerPrice == null)) && ((takeProfitTriggerPrice == null)))
             {
                 throw new BadRequest (add(this.id, " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order")) ;
             }
-            if (!isEqual(stopLossTriggerPrice, null))
+            if ((stopLossTriggerPrice != null))
             {
-                if (isEqual(stopLossPrice, null))
+                if ((stopLossPrice == null))
                 {
                     throw new BadRequest (add(this.id, " editOrder() requires a newSlOrdPx parameter for editing an algo order")) ;
                 }
@@ -4806,9 +4806,9 @@ public partial class okx : Exchange
                 request["newSlOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
-            if (!isEqual(takeProfitTriggerPrice, null))
+            if ((takeProfitTriggerPrice != null))
             {
-                if (isEqual(takeProfitPrice, null))
+                if ((takeProfitPrice == null))
                 {
                     throw new BadRequest (add(this.id, " editOrder() requires a newTpOrdPx parameter for editing an algo order")) ;
                 }
@@ -4818,13 +4818,13 @@ public partial class okx : Exchange
             }
         } else
         {
-            if (!isEqual(stopLossTriggerPrice, null))
+            if ((stopLossTriggerPrice != null))
             {
                 request["newSlTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
                 request["newSlOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
-            if (!isEqual(takeProfitTriggerPrice, null))
+            if ((takeProfitTriggerPrice != null))
             {
                 request["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
                 request["newTpOrdPx"] = (isEqual(type, "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
@@ -6006,7 +6006,7 @@ public partial class okx : Exchange
                 request["begin"] = since;
             }
             Int64? until = this.safeInteger(query, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["end"] = until;
                 query = this.omit(query, new List<object>() {"until"});
@@ -6205,7 +6205,7 @@ public partial class okx : Exchange
                 request["begin"] = since;
             }
             Int64? until = this.safeInteger(query, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["end"] = until;
                 query = this.omit(query, new List<object>() {"until"});
@@ -8658,7 +8658,7 @@ public partial class okx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? lever = this.safeInteger2(parameters, "lever", "leverage");
-        if ((isEqual(lever, null)) || (isLessThan(lever, 1)) || (isGreaterThan(lever, 125)))
+        if (((lever == null)) || (isLessThan(lever, 1)) || (isGreaterThan(lever, 125)))
         {
             throw new BadRequest (add(this.id, " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
         }
@@ -9591,7 +9591,7 @@ public partial class okx : Exchange
                 request["begin"] = since;
             }
             Int64? until = this.safeInteger(parameters, "until");
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 request["end"] = until;
                 parameters = this.omit(parameters, new List<object>() {"until"});
@@ -9810,7 +9810,7 @@ public partial class okx : Exchange
                 double? withdrawFee = this.safeNumber(feeInfo, "fee");
                 Dictionary<string, object> withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
-                    { "percentage", (!isEqual(withdrawFee, null)) ? false : null },
+                    { "percentage", ((withdrawFee != null)) ? false : null },
                 };
                 Dictionary<string, object> depositResult = new Dictionary<string, object>() {
                     { "fee", null },
@@ -10916,7 +10916,7 @@ public partial class okx : Exchange
         {
             request["limit"] = limit;
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }

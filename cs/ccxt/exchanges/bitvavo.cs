@@ -1584,7 +1584,7 @@ public partial class bitvavo : Exchange
             toAccount = "master";
         }
         Int64? timestamp = this.safeInteger(transfer, "createdAt");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
         }
@@ -1672,7 +1672,7 @@ public partial class bitvavo : Exchange
             {
                 cost = this.safeNumber(parameters, "cost");
             }
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 object precision = getValue(this.currency(((string)GetValue(market, "quote"))), "precision");
                 request["amountQuote"] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
@@ -1838,7 +1838,7 @@ public partial class bitvavo : Exchange
         {
             request["amount"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isEqual(amountRemaining, null))
+        if ((amountRemaining != null))
         {
             request["amountRemaining"] = this.amountToPrecision(symbol, amountRemaining);
         }
@@ -2360,7 +2360,7 @@ public partial class bitvavo : Exchange
         }
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(order, "feePaid");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             string? feeCurrencyId = this.safeString(order, "feeCurrency");
             string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
@@ -2837,7 +2837,7 @@ public partial class bitvavo : Exchange
         string? txid = this.safeString(transaction, "txId");
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(transaction, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

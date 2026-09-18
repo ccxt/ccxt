@@ -724,7 +724,7 @@ public partial class lighter : Exchange
         IDictionary<string, object> accountAuths = this.safeDict(auths, accountIndex);
         IDictionary<string, object> cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         Int64? cachedDeadline = this.safeInteger(cachedAuth, "deadline");
-        if (!isEqual(cachedDeadline, null))
+        if ((cachedDeadline != null))
         {
             object minimumDeadline = add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
             if (isGreaterThanOrEqual(cachedDeadline, minimumDeadline))
@@ -1116,7 +1116,7 @@ public partial class lighter : Exchange
             return ccxt.BaseExchange.ToInt64Value(this.safeInteger(parameters, "nonce"));
         }
         Int64? nonceInOptions = this.safeInteger(this.options, "nonce");
-        if (!isEqual(nonceInOptions, null))
+        if ((nonceInOptions != null))
         {
             return ccxt.BaseExchange.ToInt64Value(nonceInOptions);
         }
@@ -1938,7 +1938,7 @@ public partial class lighter : Exchange
         if (!isEqual(since, null))
         {
             startTs = since;
-            if (!isEqual(until, null))
+            if ((until != null))
             {
                 endTs = until;
             } else if (!isEqual(limit, null))
@@ -1951,7 +1951,7 @@ public partial class lighter : Exchange
             }
         } else
         {
-            endTs = (!isEqual(until, null)) ? until : now;
+            endTs = ((until != null)) ? until : now;
             int defaultLimit = 100;
             if (!isEqual(limit, null))
             {
@@ -2315,13 +2315,13 @@ public partial class lighter : Exchange
         market = this.safeMarket(marketId, market);
         Int64? sign = this.safeInteger(position, "sign");
         string? side = null;
-        if (!isEqual(sign, null))
+        if ((sign != null))
         {
             side = ((sign == 1)) ? "long" : "short";
         }
         Int64? marginModeId = this.safeInteger(position, "margin_mode");
         string? marginMode = null;
-        if (!isEqual(marginModeId, null))
+        if ((marginModeId != null))
         {
             marginMode = ((marginModeId == 0)) ? "cross" : "isolated";
         }
@@ -2679,16 +2679,16 @@ public partial class lighter : Exchange
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeTimestamp(order, "timestamp");
         bool? isAsk = this.safeBool(order, "is_ask");
-        if (isEqual(isAsk, null))
+        if ((isAsk == null))
         {
             Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
-            if (!isEqual(isAskAsInteger, null))
+            if ((isAskAsInteger != null))
             {
                 isAsk = (isAskAsInteger == 1);
             }
         }
         string? side = null;
-        if (!isEqual(isAsk, null))
+        if ((isAsk != null))
         {
             side = isTrue(isAsk) ? "sell" : "buy";
         }
@@ -2715,7 +2715,7 @@ public partial class lighter : Exchange
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         string? tif = null;
         Int64? tifAsInteger = this.safeInteger(order, "time_in_force");
-        if (!isEqual(tifAsInteger, null))
+        if ((tifAsInteger != null))
         {
             tif = this.parseOrderTimeInForceInteger(tifAsInteger);
         } else
@@ -2723,10 +2723,10 @@ public partial class lighter : Exchange
             tif = this.safeString(order, "time_in_force");
         }
         bool? reduceOnly = this.safeBool(order, "reduce_only");
-        if (isEqual(reduceOnly, null))
+        if ((reduceOnly == null))
         {
             Int64? reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
-            if (!isEqual(reduceOnlyAsInteger, null))
+            if ((reduceOnlyAsInteger != null))
             {
                 reduceOnly = (reduceOnlyAsInteger == 1);
             }
@@ -3490,7 +3490,7 @@ public partial class lighter : Exchange
             }
         }
         string? takerOrMaker = null;
-        if ((side != null) && !isEqual(isMakerAsk, null))
+        if ((side != null) && (isMakerAsk != null))
         {
             bool? isMaker = (side == "sell") ? isMakerAsk : !(isMakerAsk == true);
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
@@ -3856,7 +3856,7 @@ public partial class lighter : Exchange
         apiKeyIndex = (Int64?)apiKeyIndexparametersVariable[0];
         parameters = apiKeyIndexparametersVariable[1];
         Int64? direction = this.safeInteger(parameters, "direction"); // 1 increase margin 0 decrease margin
-        if (isEqual(direction, null))
+        if ((direction == null))
         {
             throw new ArgumentsRequired (add(this.id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
         }

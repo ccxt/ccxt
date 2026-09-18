@@ -1866,7 +1866,7 @@ public partial class deribit : Exchange
             }
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["end_timestamp"] = until;
@@ -2024,7 +2024,7 @@ public partial class deribit : Exchange
             request["count"] = mathMin(limit, 1000); // default 10
         }
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_timestamp"] = until;
@@ -3171,7 +3171,7 @@ public partial class deribit : Exchange
         double? feeCost = this.safeNumber(transaction, "fee");
         string type = "deposit";
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             type = "withdrawal";
             fee = new Dictionary<string, object>() {
@@ -3828,7 +3828,7 @@ public partial class deribit : Exchange
             { "start_timestamp", subtract(sinceVar, 1) },
         };
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_timestamp"] = until;

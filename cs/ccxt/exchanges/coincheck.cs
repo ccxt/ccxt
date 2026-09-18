@@ -402,7 +402,7 @@ public partial class coincheck : Exchange
         {
             object exchangeStatus = getValue(exchangeStatuses, i);
             string? rawStatus = this.safeString(exchangeStatus, "status");
-            if (isEqual(updated, null))
+            if ((updated == null))
             {
                 updated = this.safeTimestamp(exchangeStatus, "timestamp");
             }
@@ -895,7 +895,7 @@ public partial class coincheck : Exchange
             {
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     throw new ArgumentsRequired (add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
                 }
@@ -1100,7 +1100,7 @@ public partial class coincheck : Exchange
         Int64? updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(transaction, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },

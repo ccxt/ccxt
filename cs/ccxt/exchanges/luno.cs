@@ -872,13 +872,13 @@ public partial class luno : Exchange
         string? filled = this.safeString(order, "base");
         string? cost = this.safeString(order, "counter");
         Dictionary<string, object> fee = null;
-        if (!isEqual(quoteFee, null))
+        if ((quoteFee != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", quoteFee },
                 { "currency", getValue(market, "quote") },
             };
-        } else if (!isEqual(baseFee, null))
+        } else if ((baseFee != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", baseFee },

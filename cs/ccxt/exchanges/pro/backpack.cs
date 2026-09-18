@@ -856,7 +856,7 @@ public partial class backpack : ccxt.backpack
         bool? isBuyerMaker = this.safeBool(trade, "m");
         string? side = null;
         string? takerOrMaker = null;
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             takerOrMaker = "taker";
             if (isBuyerMaker == true)
@@ -1023,7 +1023,7 @@ public partial class backpack : ccxt.backpack
         Int64? nonce = this.safeInteger(storedOrderBook, "nonce");
         Int64? deltaNonce = this.safeInteger(data, "u");
         string messageHash = add("orderbook:", symbol);
-        if (isEqual(nonce, null))
+        if ((nonce == null))
         {
             int cacheLength = getArrayLength((storedOrderBook as ccxt.pro.OrderBook).cache);
             // the rest API is very delayed
@@ -1035,7 +1035,7 @@ public partial class backpack : ccxt.backpack
             }
             (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             return;
-        } else if ((!isEqual(deltaNonce, null)) && (isGreaterThan(nonce, deltaNonce)))
+        } else if (((deltaNonce != null)) && (isGreaterThan(nonce, deltaNonce)))
         {
             return;
         }
@@ -1073,11 +1073,11 @@ public partial class backpack : ccxt.backpack
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         Int64? firstDeltaStart = this.safeInteger(firstDelta, "U");
-        if (isEqual(nonce, null))
+        if ((nonce == null))
         {
             return getArrayLength(cache);
         }
-        if (isEqual(firstDeltaStart, null))
+        if ((firstDeltaStart == null))
         {
             return -1;
         }
@@ -1090,7 +1090,7 @@ public partial class backpack : ccxt.backpack
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
             Int64? deltaEnd = this.safeInteger(delta, "u");
-            if ((isEqual(deltaStart, null)) || (isEqual(deltaEnd, null)))
+            if (((deltaStart == null)) || ((deltaEnd == null)))
             {
                 return getArrayLength(cache);
             }
@@ -1478,7 +1478,7 @@ public partial class backpack : ccxt.backpack
         double? netQuantity = this.safeNumber(position, "q");
         bool? hedged = false;
         string? side = "long";
-        if (!isEqual(netQuantity, null))
+        if ((netQuantity != null))
         {
             if (isLessThan(netQuantity, 0))
             {
@@ -1568,7 +1568,7 @@ public partial class backpack : ccxt.backpack
         Int64? code = this.safeInteger(error, "code");
         try
         {
-            if (!isEqual(code, null))
+            if ((code != null))
             {
                 string? msg = this.safeString(error, "message");
                 throw new ExchangeError (add(add(this.id, " "), msg)) ;

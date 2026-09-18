@@ -1925,7 +1925,7 @@ public partial class woo : Exchange
         string? clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         bool isByClientOrder = (clientOrderIdExchangeSpecific != null);
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
@@ -1952,7 +1952,7 @@ public partial class woo : Exchange
         }
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"});
-        bool isConditional = ((isTrigger == true)) || isTrailing || (!isEqual(triggerPrice, null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
+        bool isConditional = ((isTrigger == true)) || isTrailing || ((triggerPrice != null)) || (!isEqual(this.safeValue(parameters, "childOrders"), null));
         Dictionary<string, object> response = null;
         if (isConditional)
         {
@@ -2255,7 +2255,7 @@ public partial class woo : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2441,7 +2441,7 @@ public partial class woo : Exchange
                 timestamp = this.safeInteger(order, "createdTime"); // regular orders
             }
         }
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeInteger(order, "timestamp");
         }
@@ -2805,7 +2805,7 @@ public partial class woo : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["before"] = until;
         }
@@ -2932,7 +2932,7 @@ public partial class woo : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -3617,7 +3617,7 @@ public partial class woo : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -3701,7 +3701,7 @@ public partial class woo : Exchange
         Int64? timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
         bool? success = this.safeBool(transfer, "success");
         string? status = null;
-        if (!isEqual(success, null))
+        if ((success != null))
         {
             status = isTrue(success) ? "ok" : "failed";
         }
@@ -4043,7 +4043,7 @@ public partial class woo : Exchange
         }
         Int64? until = this.safeInteger(parameters, "until"); // unified in milliseconds
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }

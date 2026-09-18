@@ -43,7 +43,7 @@ public partial class bithumb : ccxt.bithumb
     public async virtual Task pong(WebSocketClient client, object message)
     {
         Int64? ping = this.safeInteger(message, "ping");
-        if (!isEqual(ping, null))
+        if ((ping != null))
         {
             await client.send(new Dictionary<string, object>() {
                 { "pong", ping },
@@ -546,11 +546,11 @@ public partial class bithumb : ccxt.bithumb
             double? bidSize = this.safeNumber(entry, "bid_size");
             double? askPrice = this.safeNumber(entry, "ask_price");
             double? askSize = this.safeNumber(entry, "ask_size");
-            if ((!isEqual(bidPrice, null)) && (!isEqual(bidSize, null)))
+            if (((bidPrice != null)) && ((bidSize != null)))
             {
                 (bids as IOrderBookSide).store(bidPrice, bidSize);
             }
-            if ((!isEqual(askPrice, null)) && (!isEqual(askSize, null)))
+            if (((askPrice != null)) && ((askSize != null)))
             {
                 (asks as IOrderBookSide).store(askPrice, askSize);
             }
@@ -561,7 +561,7 @@ public partial class bithumb : ccxt.bithumb
         {
             timestamp = this.parseToInt(slice(gen2TimestampStr, 0, 13));
         }
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.milliseconds();
         }

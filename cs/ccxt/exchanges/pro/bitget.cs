@@ -1034,7 +1034,7 @@ public partial class bitget : ccxt.bitget
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             Int64? responseChecksum = this.safeInteger(rawOrderBook, "checksum");
-            if (!isSnapshot && (isEqual(checksum, true)) && (!isEqual(responseChecksum, null)))
+            if (!isSnapshot && (isEqual(checksum, true)) && ((responseChecksum != null)))
             {
                 object storedAsks = getValue(storedOrderBook, "asks");
                 object storedBids = getValue(storedOrderBook, "bids");
@@ -2209,7 +2209,7 @@ public partial class bitget : ccxt.bitget
             };
         }
         double? triggerPrice = this.safeNumber(order, "triggerPrice");
-        bool isTriggerOrder = (!isEqual(triggerPrice, null));
+        bool isTriggerOrder = ((triggerPrice != null));
         double? price = null;
         if (!isTriggerOrder)
         {

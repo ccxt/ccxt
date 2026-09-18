@@ -1113,7 +1113,7 @@ public partial class btcmarkets : Exchange
         {
             double? triggerPrice = this.safeNumber(parameters, "triggerPrice");
             parameters = this.omit(parameters, "triggerPrice");
-            if (isEqual(triggerPrice, null))
+            if ((triggerPrice == null))
             {
                 throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a triggerPrice parameter for a "), type), "order")) ;
             } else

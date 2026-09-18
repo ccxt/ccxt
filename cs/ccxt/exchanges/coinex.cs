@@ -2777,7 +2777,7 @@ public partial class coinex : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
-                    if ((isEqual(price, null)) && (isEqual(cost, null)))
+                    if ((isEqual(price, null)) && ((cost == null)))
                     {
                         throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
@@ -2785,7 +2785,7 @@ public partial class coinex : Exchange
                         string? amountString = this.numberToString(amount);
                         string? priceString = this.numberToString(price);
                         object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                        object costRequest = (!isEqual(cost, null)) ? cost : quoteAmount;
+                        object costRequest = ((cost != null)) ? cost : quoteAmount;
                         request["amount"] = this.costToPrecision(symbol, costRequest);
                     }
                 } else
@@ -2937,9 +2937,9 @@ public partial class coinex : Exchange
             double? triggerPrice = this.safeNumber2(orderParams, "stopPrice", "triggerPrice");
             double? stopLossTriggerPrice = this.safeNumber(orderParams, "stopLossPrice");
             double? takeProfitTriggerPrice = this.safeNumber(orderParams, "takeProfitPrice");
-            isTriggerOrder = !isEqual(triggerPrice, null);
-            bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-            bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+            isTriggerOrder = (triggerPrice != null);
+            bool isStopLossTriggerOrder = (stopLossTriggerPrice != null);
+            bool isTakeProfitTriggerOrder = (takeProfitTriggerPrice != null);
             isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);
@@ -2985,7 +2985,7 @@ public partial class coinex : Exchange
             object entry = getValue(data, i);
             string? status = null;
             Int64? code = this.safeInteger(entry, "code");
-            if (!isEqual(code, null))
+            if ((code != null))
             {
                 if ((code != 0))
                 {
@@ -4085,7 +4085,7 @@ public partial class coinex : Exchange
         }
         Int64? leverage = this.safeInteger(parameters, "leverage");
         Int64? maxLeverage = this.safeInteger(getValue(GetValue(market, "limits"), "leverage"), "max", 100);
-        if (isEqual(leverage, null))
+        if ((leverage == null))
         {
             throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter")) ;
         }
@@ -4909,7 +4909,7 @@ public partial class coinex : Exchange
         string? transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
         bool intern = transferMethod == "local";
         double? amount = this.safeNumber(transaction, "actual_amount");
-        if (isEqual(amount, null))
+        if ((amount == null))
         {
             amount = this.safeNumber(transaction, "amount");
         }
@@ -6179,7 +6179,7 @@ public partial class coinex : Exchange
         }
         Int64? positionId = this.safeInteger2(parameters, "positionId", "position_id");
         parameters = this.omit(parameters, "positionId");
-        if (isEqual(positionId, null))
+        if ((positionId == null))
         {
             throw new ArgumentsRequired (add(this.id, " fetchMarginAdjustmentHistory() requires a positionId parameter")) ;
         }

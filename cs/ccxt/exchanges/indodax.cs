@@ -412,8 +412,8 @@ public partial class indodax : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             Int64? isMaintenance = this.safeInteger(market, "is_maintenance");
-            bool inMaintenance = (!isEqual(isMaintenance, null)) && ((isMaintenance != 0));
-            result.Add(new Dictionary<string, object>() {
+            bool inMaintenance = ((isMaintenance != null)) && ((isMaintenance != 0));
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -471,7 +471,7 @@ public partial class indodax : Exchange
 
     public override Dictionary<string, object> parseBalance(object response)
     {
-        IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
         IDictionary<string, object> free = this.safeDict(balances, "balance", new Dictionary<string, object>() {});
         object used = this.safeValue(balances, "balance_hold", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(balances, "server_time");
@@ -493,7 +493,7 @@ public partial class indodax : Exchange
                 result[(string)code] = account;
             }
         }
-        return this.safeBalance(result);
+        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
 
     /**
@@ -776,7 +776,7 @@ public partial class indodax : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -795,7 +795,7 @@ public partial class indodax : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = ((Int64?)1000);
+            limitVar = 1000;
         }
         if (!isEqual(since, null))
         {
@@ -880,7 +880,7 @@ public partial class indodax : Exchange
             side = ((IDictionary<string,object>)order)["type"];
         }
         string? status = this.parseOrderStatus(this.safeString(order, "status", "open"));
-        string? symbol = null;
+        object symbol = null;
         string? cost = null;
         string? price = this.safeString(order, "price");
         string? amount = null;
@@ -890,9 +890,9 @@ public partial class indodax : Exchange
         market = this.safeMarket(marketId, market);
         if (!isEqual(market, null))
         {
-            symbol = ((string)getValue(market, "symbol"));
-            string? quoteId = ((string)getValue(market, "quoteId"));
-            string? baseId = ((string)getValue(market, "baseId"));
+            symbol = getValue(market, "symbol");
+            object quoteId = getValue(market, "quoteId");
+            object baseId = getValue(market, "baseId");
             if ((isEqual(getValue(market, "quoteId"), "idr")) && (inOp(order, "order_rp")))
             {
                 quoteId = "rp";
@@ -1091,7 +1091,7 @@ public partial class indodax : Exchange
                 string? quoteAmount = null;
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
                 } else
@@ -1132,7 +1132,7 @@ public partial class indodax : Exchange
             request[(string)((string)GetValue(market, "baseId"))] = this.amountToPrecision(symbol, amount);
         }
         Dictionary<string, object> result = await this.privatePostTrade(this.extend(request, parameters));
-        IDictionary<string, object> data = this.safeDict(result, "return", new Dictionary<string, object>() {});
+        object data = this.safeValue(result, "return", new Dictionary<string, object>() {});
         string? id = this.safeString(data, "order_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", result },             { "id", id },         }, market));
     }
@@ -1224,7 +1224,7 @@ public partial class indodax : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
         string? currencyId = this.safeString(data, "currency");
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "rate", this.safeNumber(data, "withdraw_fee") },             { "currency", this.safeCurrencyCode(currencyId, currency) },         });
     }
@@ -1349,7 +1349,7 @@ public partial class indodax : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
         IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
         IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
         List<object> transactions = new List<object>() {};
@@ -1371,7 +1371,7 @@ public partial class indodax : Exchange
         } else
         {
             currency = this.currency(code);
-            List<object> withdraws = this.safeList(withdraw, GetValue(currency, "id"), new List<object>() {});
+            object withdraws = this.safeValue(withdraw, GetValue(currency, "id"), new List<object>() {});
             object deposits = this.safeValue(deposit, GetValue(currency, "id"), new List<object>() {});
             transactions = this.arrayConcat(withdraws, deposits);
         }
@@ -1392,10 +1392,10 @@ public partial class indodax : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
+        tagVar = tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))
@@ -1487,7 +1487,7 @@ public partial class indodax : Exchange
         string? depositId = this.safeString(transaction, "deposit_id");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(null, currency) },

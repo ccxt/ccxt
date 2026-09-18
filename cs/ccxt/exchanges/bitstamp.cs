@@ -1321,7 +1321,7 @@ public partial class bitstamp : Exchange
         Int64? timestamp = this.safeInteger(options, "timestamp");
         Int64? expires = this.safeInteger(options, "expires", 1000);
         Int64 now = this.milliseconds();
-        if ((isEqual(timestamp, null)) || (isGreaterThan((subtract(now, timestamp)), expires)))
+        if (((timestamp == null)) || (isGreaterThan((subtract(now, timestamp)), expires)))
         {
             List<object> response = await this.publicGetMarkets(parameters);
             //
@@ -1462,7 +1462,7 @@ public partial class bitstamp : Exchange
         //     }
         //
         Int64? microtimestamp = this.safeInteger(response, "microtimestamp");
-        if (isEqual(microtimestamp, null))
+        if ((microtimestamp == null))
         {
             throw new ExchangeError (add(this.id, " fetchOrderBook() missing microtimestamp")) ;
         }
@@ -1624,7 +1624,7 @@ public partial class bitstamp : Exchange
             if (getIndexOf(id, "_") < 0)
             {
                 Int64? value = this.safeInteger(transaction, id);
-                if ((!isEqual(value, null)) && ((value != 0)))
+                if (((value != null)) && ((value != 0)))
                 {
                     return id;
                 }

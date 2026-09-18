@@ -541,8 +541,8 @@ public partial class lbank : ccxt.lbank
         //    }
         //
         Int64? timestamp = this.safeInteger(trade, 0);
-        string? datetime = (!isEqual(timestamp, null)) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
-        if (isEqual(timestamp, null))
+        string? datetime = ((timestamp != null)) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(datetime);
         }

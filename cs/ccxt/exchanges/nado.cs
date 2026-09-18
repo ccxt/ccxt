@@ -465,11 +465,11 @@ public partial class nado : Exchange
         Dictionary<string, object> placeOrder = new Dictionary<string, object>() {
             { "product_id", productId },
         };
-        if (!isEqual(requestId, null))
+        if ((requestId != null))
         {
             placeOrder["id"] = requestId;
         }
-        if (!isEqual(spotLeverage, null))
+        if ((spotLeverage != null))
         {
             placeOrder["spot_leverage"] = spotLeverage;
         }
@@ -680,11 +680,11 @@ public partial class nado : Exchange
             { "order", order },
             { "signature", orderSignature },
         };
-        if (!isEqual(requestId, null))
+        if ((requestId != null))
         {
             placeOrder["id"] = requestId;
         }
-        if (!isEqual(spotLeverage, null))
+        if ((spotLeverage != null))
         {
             placeOrder["spot_leverage"] = spotLeverage;
         }
@@ -812,7 +812,7 @@ public partial class nado : Exchange
             { "tx", tx },
             { "signature", signature },
         };
-        if (!isEqual(requestId, null))
+        if ((requestId != null))
         {
             cancelProductOrders["id"] = requestId;
         }
@@ -928,7 +928,7 @@ public partial class nado : Exchange
         {
             cancelOrders["required_unfilled_amount"] = this.convertToX18(requiredUnfilledAmount);
         }
-        if (!isEqual(requestId, null))
+        if ((requestId != null))
         {
             cancelOrders["id"] = requestId;
         }
@@ -2337,7 +2337,7 @@ public partial class nado : Exchange
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["limit"] = mathMin(limit, 500);
         }
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["candlesticks"])["max_time"] = this.parseToInt(divide(until, 1000));
         }
@@ -2436,11 +2436,11 @@ public partial class nado : Exchange
         if ((price == null))
         {
             double? parsedPrice = this.parseX18(this.safeString(order, "priceX18"));
-            price = (isEqual(parsedPrice, null)) ? null : this.numberToString(parsedPrice);
+            price = ((parsedPrice == null)) ? null : this.numberToString(parsedPrice);
         }
         string? takerOrMaker = null;
         bool? isTaker = this.safeBool(trade, "is_taker");
-        if (!isEqual(isTaker, null))
+        if ((isTaker != null))
         {
             if (isTaker == true)
             {
@@ -2460,7 +2460,7 @@ public partial class nado : Exchange
             feeCost = this.parseNumber(feeString);
         }
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -2985,7 +2985,7 @@ public partial class nado : Exchange
             filled = this.parseX18(Precise.stringAbs(archiveFilled));
             string? costString = this.safeString(order, "quote_filled");
             cost = ((costString == null)) ? null : this.parseX18(Precise.stringAbs(costString));
-            if ((!isEqual(filled, null)) && (!isEqual(cost, null)))
+            if (((filled != null)) && ((cost != null)))
             {
                 average = Precise.stringDiv(this.numberToString(cost), this.numberToString(filled));
             }
@@ -3005,7 +3005,7 @@ public partial class nado : Exchange
                 }
             }
             double? feeCost = this.parseX18(this.safeString(order, "fee"));
-            if (!isEqual(feeCost, null))
+            if ((feeCost != null))
             {
                 fee = new Dictionary<string, object>() {
                     { "cost", feeCost },

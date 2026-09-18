@@ -1290,7 +1290,7 @@ public partial class blofin : Exchange
             { "limit", limitVar },
         };
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["after"] = until;
             parameters = this.omit(parameters, "until");
@@ -1345,7 +1345,7 @@ public partial class blofin : Exchange
             request["limit"] = limit;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["after"] = until;
             parameters = this.omit(parameters, "until");
@@ -1888,7 +1888,7 @@ public partial class blofin : Exchange
         bool isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
         Dictionary<string, object> response = null;
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
-        if (!isEqual(reduceOnly, null))
+        if ((reduceOnly != null))
         {
             ((IDictionary<string,object>)parameters)["reduceOnly"] = isTrue(reduceOnly) ? "true" : "false";
         }

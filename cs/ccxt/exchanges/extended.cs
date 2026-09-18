@@ -1396,7 +1396,7 @@ public partial class extended : Exchange
 };
         bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
-        if (!isEqual(isTaker, null))
+        if ((isTaker != null))
         {
             takerOrMaker = isTrue(isTaker) ? "taker" : "maker";
         }
@@ -1462,7 +1462,7 @@ public partial class extended : Exchange
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", (!isEqual(limit, null)) ? limit : 100 },
         };
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -1841,7 +1841,7 @@ public partial class extended : Exchange
     {
         Int64? accountIndex = this.safeInteger(account, "accountIndex");
         string? type = null;
-        if (!isEqual(accountIndex, null))
+        if ((accountIndex != null))
         {
             type = ((accountIndex == 0)) ? "main" : "subaccount";
         }
@@ -2245,7 +2245,7 @@ public partial class extended : Exchange
         bool? validSignature = this.safeBool(data, "validSignature");
         Int64 now = this.milliseconds();
         string status = "pending";
-        if (!isEqual(validSignature, null))
+        if ((validSignature != null))
         {
             status = isTrue(validSignature) ? "ok" : "failed";
         }
@@ -2270,7 +2270,7 @@ public partial class extended : Exchange
         }
         bool? validSignature = this.safeBool(transfer, "validSignature");
         string? status = null;
-        if (!isEqual(validSignature, null))
+        if ((validSignature != null))
         {
             status = isTrue(validSignature) ? "ok" : "failed";
         } else
@@ -2882,7 +2882,7 @@ public partial class extended : Exchange
         string? collateralId = this.safeString(parameters, "collateralId", this.safeString2(currencyInfo, "starkexId", "l1Id"));
         Int64? resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
         string? starkKey = this.safeString(account, "l2Key");
-        if (((positionId == null)) || ((collateralId == null)) || (isEqual(resolution, null)) || ((starkKey == null)))
+        if (((positionId == null)) || ((collateralId == null)) || ((resolution == null)) || ((starkKey == null)))
         {
             throw new BadRequest (add(this.id, " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
@@ -2917,7 +2917,7 @@ public partial class extended : Exchange
         IDictionary<string, object> currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
         string? collateralId = this.safeString2(parameters, "assetId", "collateralId", this.safeString2(currencyInfo, "starkexId", "l1Id"));
         Int64? resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
-        if (((fromVault == null)) || ((fromL2Key == null)) || ((collateralId == null)) || (isEqual(resolution, null)))
+        if (((fromVault == null)) || ((fromL2Key == null)) || ((collateralId == null)) || ((resolution == null)))
         {
             throw new BadRequest (add(this.id, " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
@@ -3012,7 +3012,7 @@ public partial class extended : Exchange
         string? collateralId = this.safeString(l2Config, "collateralId");
         Int64? syntheticResolution = this.safeInteger(l2Config, "syntheticResolution");
         Int64? collateralResolution = this.safeInteger(l2Config, "collateralResolution");
-        if (((syntheticId == null)) || ((collateralId == null)) || (isEqual(syntheticResolution, null)) || (isEqual(collateralResolution, null)))
+        if (((syntheticId == null)) || ((collateralId == null)) || ((syntheticResolution == null)) || ((collateralResolution == null)))
         {
             throw new BadRequest (add(this.id, " createOrder() requires l2Config in market info")) ;
         }
@@ -3254,7 +3254,7 @@ public partial class extended : Exchange
         bool? postOnly = this.safeBool(parameters, "postOnly");
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
-        if ((isEqual(amountVar, null)) || (isEqual(priceVar, null)) || (isEqual(expiryEpochMillis, null)) || (isEqual(postOnly, null)) || (isEqual(reduceOnly, null)) || ((cancelId == null)))
+        if ((isEqual(amountVar, null)) || (isEqual(priceVar, null)) || ((expiryEpochMillis == null)) || ((postOnly == null)) || ((reduceOnly == null)) || ((cancelId == null)))
         {
             Dictionary<string, object> response = await this.v1PrivateGetUserOrdersId(new Dictionary<string, object>() {
                 { "id", id },
@@ -3268,15 +3268,15 @@ public partial class extended : Exchange
             {
                 priceVar = this.safeNumber(order, "price");
             }
-            if (isEqual(expiryEpochMillis, null))
+            if ((expiryEpochMillis == null))
             {
                 expiryEpochMillis = this.safeInteger(order, "expireTime");
             }
-            if (isEqual(postOnly, null))
+            if ((postOnly == null))
             {
                 postOnly = this.safeBool(order, "postOnly", false);
             }
-            if (isEqual(reduceOnly, null))
+            if ((reduceOnly == null))
             {
                 reduceOnly = this.safeBool(order, "reduceOnly", false);
             }

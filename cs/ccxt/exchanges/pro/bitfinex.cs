@@ -582,7 +582,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? amountString = this.safeString(trade, amountKey);
         double? amount = this.parseNumber(Precise.stringAbs(amountString));
         string? side = null;
-        if (!isEqual(amount, null))
+        if ((amount != null))
         {
             side = isTrue(Precise.stringGt(amountString, "0")) ? "buy" : "sell";
         }
@@ -600,7 +600,7 @@ public partial class bitfinex : ccxt.bitfinex
         }
         Int64? maker = this.safeInteger(trade, 8);
         string? takerOrMaker = null;
-        if (!isEqual(maker, null))
+        if ((maker != null))
         {
             takerOrMaker = (isEqual(maker, -1)) ? "taker" : "maker";
         }

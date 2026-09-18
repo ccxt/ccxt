@@ -1045,7 +1045,7 @@ public partial class hollaex : Exchange
         Int64 timeDelta = multiply(multiply(this.parseTimeframe(timeframeVar), maxLimit), 1000);
         object start = since;
         Int64 now = this.milliseconds();
-        if (isEqual(until, null))
+        if ((until == null))
         {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
         }
@@ -1471,7 +1471,7 @@ public partial class hollaex : Exchange
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             request["stop"] = this.priceToPrecision(symbol, triggerPrice);
         }
@@ -1997,7 +1997,7 @@ public partial class hollaex : Exchange
         string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", feeCurrencyCode },

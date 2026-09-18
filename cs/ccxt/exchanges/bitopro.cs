@@ -768,7 +768,7 @@ public partial class bitopro : Exchange
         }
         bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
-        if (!isEqual(isTaker, null))
+        if ((isTaker != null))
         {
             if (isTaker == true)
             {

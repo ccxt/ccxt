@@ -1128,7 +1128,7 @@ public partial class apex : ccxt.apex
         }
         string? ret_msg = this.safeString(message, "ret_msg");
         Int64? pong = this.safeInteger(message, "pong");
-        if (ret_msg == "pong" || !isEqual(pong, null))
+        if (ret_msg == "pong" || (pong != null))
         {
             this.handlePong(client, (Dictionary<string, object>)message);
             return;

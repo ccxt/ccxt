@@ -1145,7 +1145,7 @@ public partial class hashkey : Exchange
         bool? isLinear = null;
         string? subType = null;
         bool? isInverse = this.safeBool(market, "inverse");
-        if (!isEqual(isInverse, null))
+        if ((isInverse != null))
         {
             if (isInverse == true)
             {
@@ -1597,19 +1597,19 @@ public partial class hashkey : Exchange
             side = this.safeString(side.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>(), 0);
         }
         bool? isBuyer = this.safeBool(trade, "isBuyer");
-        if (!isEqual(isBuyer, null))
+        if ((isBuyer != null))
         {
             side = isTrue(isBuyer) ? "buy" : "sell";
         }
         string? takerOrMaker = null;
         bool? isMaker = this.safeBool2(trade, "isMaker", "isMarker");
-        if (!isEqual(isMaker, null))
+        if ((isMaker != null))
         {
             takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
         }
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
         // if public trade
-        if (!isEqual(isBuyerMaker, null))
+        if ((isBuyerMaker != null))
         {
             takerOrMaker = "taker";
             side = isTrue(isBuyerMaker) ? "sell" : "buy";
@@ -2364,7 +2364,7 @@ public partial class hashkey : Exchange
         double? amount = this.safeNumber(transaction, "quantity");
         double? feeCost = this.safeNumber(transaction, "fee");
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -4671,7 +4671,7 @@ public partial class hashkey : Exchange
                 { "timestamp", timestamp },
             };
             Int64? recvWindow = this.safeInteger(this.options, "recvWindow");
-            if (!isEqual(recvWindow, null))
+            if ((recvWindow != null))
             {
                 additionalParams["recvWindow"] = recvWindow;
             }

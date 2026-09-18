@@ -106,7 +106,7 @@ public partial class p2b : ccxt.p2b
         }
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         Int64? channel = this.safeInteger(timeframes, timeframeVar);
-        if (isEqual(channel, null))
+        if ((channel == null))
         {
             throw new BadRequest (add(add(this.id, " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
         }

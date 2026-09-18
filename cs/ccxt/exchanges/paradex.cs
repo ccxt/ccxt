@@ -1844,7 +1844,7 @@ public partial class paradex : Exchange
         if ((cachedToken != null))
         {
             Int64? cachedExpires = this.safeInteger(this.options, "expires");
-            if (isEqual(cachedExpires, null))
+            if ((cachedExpires == null))
             {
                 throw new ExchangeError (add(this.id, " authenticateRest() missing cachedExpires")) ;
             }
@@ -3964,7 +3964,7 @@ public partial class paradex : Exchange
             request["start_at"] = since;
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["end_at"] = until;

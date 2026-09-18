@@ -958,7 +958,7 @@ public partial class coinspot : Exchange
         string? marketId = this.safeString(trade, "market");
         string? symbol = this.safeSymbol(marketId, market, "/");
         Int64? solddate = this.safeInteger(trade, "solddate");
-        if (!isEqual(solddate, null))
+        if ((solddate != null))
         {
             priceString = this.safeString(trade, "rate");
             timestamp = solddate;
