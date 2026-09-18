@@ -1407,7 +1407,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             ((Map<String, Object>)marketIds).put((String)symbol, timeframe);
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1536,7 +1536,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -2099,7 +2099,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 ((Map<String, Object>)marketIds).put((String)((Map<String, Object>)market).get("id"), true);
             }
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object messageHash = Helpers.add(Helpers.add(hashPrefix, ":"), Helpers.GetValue(keys, i));
@@ -2716,7 +2716,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             put( "delivery", "future" );
             put( "fx", "swap" );
         }};
-        Object keys = Helpers.objectKeys(findBy);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)findBy).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);

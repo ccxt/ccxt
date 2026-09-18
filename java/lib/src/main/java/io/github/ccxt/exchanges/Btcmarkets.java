@@ -1793,7 +1793,7 @@ public class Btcmarkets extends BtcmarketsApi
             Object auth = Helpers.add(Helpers.add(method, request), nonce);
             if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
             {
-                if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+                if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
                 {
                     request = (request + ("?" + this.urlencode(query)));
                 }
@@ -1813,7 +1813,7 @@ public class Btcmarkets extends BtcmarketsApi
             }};
         } else if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(query)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)
             {
                 request = (request + ("?" + this.urlencode(query)));
             }

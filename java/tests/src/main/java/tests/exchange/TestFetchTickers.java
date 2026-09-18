@@ -97,7 +97,7 @@ public class TestFetchTickers extends BaseTest {
             {
                 return;
             }
-            Object allMarketsLength = ((List<?>)Helpers.objectKeys(allMarkets)).size();
+            Object allMarketsLength = ((List<?>)new ArrayList<Object>(((Map<String, Object>)allMarkets).keySet())).size();
             Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), (((((((exchange.id + " ") + "fetchTickers") + " must return <= than all markets, but returned: ") + String.valueOf(obtainedTickersLength)) + " tickers, ") + String.valueOf(allMarketsLength)) + " markets"));
         }
     }
