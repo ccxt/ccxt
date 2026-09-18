@@ -7005,7 +7005,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 let mut amountToPrecision: Value = self.amount_to_precision(symbol.clone(), amount.clone());
                 let mut signedAmount: Value = (if is_true(&(Value::Bool(side.as_str() == Some("sell")))) { crate::precise::Precise::stringNeg(&amountToPrecision) } else { amountToPrecision.clone() });
-                amount = crate::runtime::parse_int(&signedAmount);
+                amount = (match &signedAmount { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
             }
         }
         let mut request: Value = Value::Null;
@@ -10259,9 +10259,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut rawTimestamp: Value = self.safe_string_k(item.clone(), "time", &[]);
         let mut timestamp: Value = Value::Null;
         if Value::Int(rawTimestamp.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(10).as_f64().unwrap_or(f64::NAN) {
-            timestamp = crate::runtime::parse_int(&rawTimestamp);
+            timestamp = (match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         }  else {
-            timestamp = (match (&(crate::runtime::parse_int(&rawTimestamp)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            timestamp = (match (&((match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         }
         let mut balanceString: Value = self.safe_string_k(item.clone(), "balance", &[]);
         let mut changeString: Value = self.safe_string_k(item.clone(), "change", &[]);

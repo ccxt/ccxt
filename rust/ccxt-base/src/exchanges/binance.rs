@@ -15294,7 +15294,7 @@ impl BinanceCore {
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut leverageString: Value = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])); // portfolio-margin accounts may return leverage "0", see #29244
-        let mut leverage: Value = (if is_true(&(Value::Bool(leverageString != Value::Null))) { crate::runtime::parse_int(&leverageString) } else { Value::Null });
+        let mut leverage: Value = (if is_true(&(Value::Bool(leverageString != Value::Null))) { (match &leverageString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }) } else { Value::Null });
         let mut initialMarginString: Value = self.safe_string_k(position.clone(), "initialMargin", &[]);
         let mut initialMargin: Value = self.parse_number(initialMarginString.clone(), &[]);
         let mut initialMarginPercentageString: Value = Value::Null;
@@ -15667,7 +15667,7 @@ impl BinanceCore {
         let mut initialMarginPercentageString: Value = Value::Null;
         let mut leverageString: Value = self.omit_zero(self.safe_string_k(position.clone(), "leverage", &[])); // portfolio-margin accounts may return leverage "0", see #29244
         if (leverageString != Value::Null) {
-            let mut leverage: Value = crate::runtime::parse_int(&leverageString);
+            let mut leverage: Value = (match &leverageString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
             let mut rational: Value = self.is_round_number(mod_val(&Value::Int(1000), &leverage));
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &leverageString, &Value::Int(8));
             if !is_true(&rational) {

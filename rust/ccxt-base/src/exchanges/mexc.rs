@@ -3838,7 +3838,7 @@ impl MexcCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), crate::value::get_value_k(&market, "id"));
-                m.insert("vol".to_string(), crate::runtime::parse_float(&volString));
+                m.insert("vol".to_string(), (match &volString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
                 m.insert("type".to_string(), type_var.clone());
                 m.insert("openType".to_string(), openType.clone());
             m
@@ -3848,7 +3848,7 @@ impl MexcCore {
             if (priceString == Value::Null) {
                 priceString = Value::Str("0".to_string());
             }
-            add_element_to_object(&mut request, &Value::Str("price".to_string()), crate::runtime::parse_float(&priceString));
+            add_element_to_object(&mut request, &Value::Str("price".to_string()), (match &priceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (openType.as_f64() == Some(1.0)) {
             let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);

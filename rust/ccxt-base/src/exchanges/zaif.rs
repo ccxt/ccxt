@@ -1269,7 +1269,7 @@ impl ZaifCore {
 
     pub fn custom_nonce(&self) -> Value {
         let mut num: Value = self.number_to_string((match ((self.milliseconds()).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut nonce: Value = crate::runtime::parse_float(&num);
+        let mut nonce: Value = (match &num { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
         return to_fixed(&nonce, &Value::Int(8));
 
     Value::Null

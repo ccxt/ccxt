@@ -2830,7 +2830,7 @@ impl DeltaCore {
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), crate::runtime::parse_int(&id));
+                m.insert("id".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });
@@ -2839,7 +2839,7 @@ impl DeltaCore {
             if (sizeString == Value::Null) {
                 sizeString = Value::Str("0".to_string());
             }
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::parse_int(&sizeString));
+            add_element_to_object(&mut request, &Value::Str("size".to_string()), (match &sizeString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
         }
         if (price != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
@@ -2895,7 +2895,7 @@ impl DeltaCore {
         let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), crate::runtime::parse_int(&id));
+                m.insert("id".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("product_id".to_string(), market.as_map().and_then(|__m| __m.get("numericId")).cloned().unwrap_or(Value::Null));
             m
         });

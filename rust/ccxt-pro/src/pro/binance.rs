@@ -6879,7 +6879,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                     if (feeCostString == Value::Null) {
                                         feeCostString = Value::Str("0".to_string());
                                     }
-                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".to_string())), &i), &Value::Str("cost".to_string()), crate::runtime::parse_float(&feeCostString));
+                                    add_element_to_object(get_value_mut(get_value_mut(&mut order, &Value::Str("fees".to_string())), &i), &Value::Str("cost".to_string()), (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -6895,7 +6895,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                                 if (feeCostString == Value::Null) {
                                     feeCostString = Value::Str("0".to_string());
                                 }
-                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), crate::runtime::parse_float(&feeCostString));
+                                add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
                             }  else if (crate::value::get_value_k(&fee, "currency") == Value::Null) {
                                 add_element_to_object(&mut order, &Value::Str("fee".to_string()), tradeFee.clone());
                             }  else {

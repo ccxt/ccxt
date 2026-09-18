@@ -4542,7 +4542,7 @@ impl BybitCore {
             if !is_true(&swap) {
                 expiry = self.omit_zero(self.safe_string_k(market.clone(), "deliveryTime", &[]));
                 if (expiry != Value::Null) {
-                    expiry = crate::runtime::parse_int(&expiry);
+                    expiry = (match &expiry { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
                 }
             }
             let mut expiryDatetime: Value = self.iso8601(expiry.clone());

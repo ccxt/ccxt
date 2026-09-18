@@ -1995,7 +1995,7 @@ pub trait ExchangeBase:
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         let mut stringifiedNumber: Value = self.number_to_string(number.clone());
-        let mut convertedNumber: Value = crate::runtime::parse_float(&stringifiedNumber);
+        let mut convertedNumber: Value = (match &stringifiedNumber { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
         return crate::runtime::parse_int(&convertedNumber);
 
     Value::Null
@@ -2008,9 +2008,9 @@ pub trait ExchangeBase:
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if get_index_of(&stringVersion, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            return crate::runtime::parse_float(&stringVersion);
+            return (match &stringVersion { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
         }
-        return crate::runtime::parse_int(&stringVersion);
+        return (match &stringVersion { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
 
     Value::Null
 }
@@ -6994,7 +6994,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (precision == Value::Null) {
             return Value::Null;
         }
-        let mut precisionNumber: Value = crate::runtime::parse_int(&precision);
+        let mut precisionNumber: Value = (match &precision { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         if (precisionNumber.as_f64() == Some(0.0)) {
             return Value::Str("1".to_string());
         }
@@ -7041,7 +7041,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (positivePrecisionString == Value::Null) {
                 return Value::Null;
             }
-            let mut positivePrecision: Value = crate::runtime::parse_int(&positivePrecisionString);
+            let mut positivePrecision: Value = (match &positivePrecisionString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
             let mut parsedPrecision: Value = Value::Str("1".to_string());
             {
                                 let mut i: Value = Value::Int(0);
@@ -7467,19 +7467,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_true(&omitParams) {
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
             }
-            triggerPriceStr = self.price_to_precision(symbol.clone(), crate::runtime::parse_float(&triggerPrice));
+            triggerPriceStr = self.price_to_precision(symbol.clone(), (match &triggerPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (stopLossPrice != Value::Null) {
             if is_true(&omitParams) {
                 params = self.omit(params.clone(), Value::Str("stopLossPrice".to_string()), &[]);
             }
-            stopLossPriceStr = self.price_to_precision(symbol.clone(), crate::runtime::parse_float(&stopLossPrice));
+            stopLossPriceStr = self.price_to_precision(symbol.clone(), (match &stopLossPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (takeProfitPrice != Value::Null) {
             if is_true(&omitParams) {
                 params = self.omit(params.clone(), Value::Str("takeProfitPrice".to_string()), &[]);
             }
-            takeProfitPriceStr = self.price_to_precision(symbol.clone(), crate::runtime::parse_float(&takeProfitPrice));
+            takeProfitPriceStr = self.price_to_precision(symbol.clone(), (match &takeProfitPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         return Value::List(vec![triggerPriceStr.clone(), stopLossPriceStr.clone(), takeProfitPriceStr.clone(), params.clone()]);
 

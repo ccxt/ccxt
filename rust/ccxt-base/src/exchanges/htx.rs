@@ -9553,7 +9553,7 @@ impl HtxCore {
         if (amountPrecision == Value::Null) {
             amountPrecision = Value::Str("0".to_string());
         }
-        amount = crate::runtime::parse_float(&amountPrecision);
+        amount = (match &amountPrecision { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
         let mut withdrawOptions: Value = self.safe_value_k(self.options.clone(), "withdraw", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -9581,17 +9581,17 @@ impl HtxCore {
             if (amountSubtractedParsed == Value::Null) {
                 amountSubtractedParsed = Value::Str("0".to_string());
             }
-            let mut amountSubtracted: Value = crate::runtime::parse_float(&amountSubtractedParsed);
+            let mut amountSubtracted: Value = (match &amountSubtractedParsed { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
             let mut feeParsed: Value = feeString.clone();
             if (feeParsed == Value::Null) {
                 feeParsed = Value::Str("0".to_string());
             }
-            add_element_to_object(&mut request, &Value::Str("fee".to_string()), crate::runtime::parse_float(&feeParsed));
+            add_element_to_object(&mut request, &Value::Str("fee".to_string()), (match &feeParsed { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
             let mut amountAfterFee: Value = self.currency_to_precision(code.clone(), amountSubtracted.clone(), &[networkCode.clone()]);
             if (amountAfterFee == Value::Null) {
                 amountAfterFee = Value::Str("0".to_string());
             }
-            amount = crate::runtime::parse_float(&amountAfterFee);
+            amount = (match &amountAfterFee { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
         }
         add_element_to_object(&mut request, &Value::Str("amount".to_string()), amount.clone());
         let __ws_arg_115 = self.extend(request.clone(), &[params.clone()]);
@@ -9701,7 +9701,7 @@ impl HtxCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), crate::runtime::parse_float(&transferAmount));
+                m.insert("amount".to_string(), (match &transferAmount { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
             m
         });
         let mut subType: Value = Value::Null;

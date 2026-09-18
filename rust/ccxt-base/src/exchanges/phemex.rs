@@ -2013,7 +2013,7 @@ impl PhemexCore {
         let mut id: Value = self.safe_string_k(rawCurrency.clone(), "currency", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
         let mut valueScaleString: Value = self.safe_string_k(rawCurrency.clone(), "valueScale", &[]);
-        let mut valueScale: Value = crate::runtime::parse_int(&valueScaleString);
+        let mut valueScale: Value = (match &valueScaleString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
         let mut minValueEv: Value = self.safe_string_k(rawCurrency.clone(), "minValueEv", &[]);
         let mut maxValueEv: Value = self.safe_string_k(rawCurrency.clone(), "maxValueEv", &[]);
         let mut minAmount: Value = Value::Null;

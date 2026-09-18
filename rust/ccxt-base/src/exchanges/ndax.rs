@@ -2291,7 +2291,7 @@ impl NdaxCore {
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("TimeInForce".to_string(), Value::Int(1));
                 m.insert("Side".to_string(), orderSide.clone());
-                m.insert("Quantity".to_string(), (if is_true(&(Value::Bool(amountString == Value::Null))) { Value::Null } else { crate::runtime::parse_float(&amountString) }));
+                m.insert("Quantity".to_string(), (if is_true(&(Value::Bool(amountString == Value::Null))) { Value::Null } else { (match &amountString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }) }));
                 m.insert("OrderType".to_string(), orderType.clone());
             m
         });
@@ -2301,7 +2301,7 @@ impl NdaxCore {
             if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".to_string());
             }
-            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&limitPriceString));
+            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), (match &limitPriceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClientOrderId".to_string()), clientOrderId.clone());
@@ -2351,13 +2351,13 @@ impl NdaxCore {
         let mut amountString: Value = self.amount_to_precision(symbol.clone(), amount.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("OrderIdToReplace".to_string(), crate::runtime::parse_int(&id));
+                m.insert("OrderIdToReplace".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("InstrumentId".to_string(), self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
                 m.insert("TimeInForce".to_string(), Value::Int(1));
                 m.insert("Side".to_string(), orderSide.clone());
-                m.insert("Quantity".to_string(), (if is_true(&(Value::Bool(amountString == Value::Null))) { Value::Null } else { crate::runtime::parse_float(&amountString) }));
+                m.insert("Quantity".to_string(), (if is_true(&(Value::Bool(amountString == Value::Null))) { Value::Null } else { (match &amountString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }) }));
                 m.insert("OrderType".to_string(), self.safe_integer(self.options.as_map().and_then(|__m| __m.get("orderTypes")).cloned().unwrap_or(Value::Null), self.capitalize(type_var.clone()), &[]));
             m
         });
@@ -2367,7 +2367,7 @@ impl NdaxCore {
             if (limitPriceString == Value::Null) {
                 limitPriceString = Value::Str("0".to_string());
             }
-            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), crate::runtime::parse_float(&limitPriceString));
+            add_element_to_object(&mut request, &Value::Str("LimitPrice".to_string()), (match &limitPriceString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
         }
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClientOrderId".to_string()), clientOrderId.clone());
@@ -2512,7 +2512,7 @@ impl NdaxCore {
         if (clientOrderId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("ClOrderId".to_string()), clientOrderId.clone());
         }  else {
-            add_element_to_object(&mut request, &Value::Str("OrderId".to_string()), crate::runtime::parse_int(&id));
+            add_element_to_object(&mut request, &Value::Str("OrderId".to_string()), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("ClOrderId".to_string())]), &[]);
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
@@ -2655,7 +2655,7 @@ impl NdaxCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), omsId.clone());
                 m.insert("AccountId".to_string(), accountId.clone());
-                m.insert("OrderId".to_string(), crate::runtime::parse_int(&id));
+                m.insert("OrderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
             m
         });
         let __ws_arg_18 = self.extend(request, &[params.clone()]);
@@ -2700,7 +2700,7 @@ impl NdaxCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), self.parse_to_int(omsId.clone()));
-                m.insert("OrderId".to_string(), crate::runtime::parse_int(&id));
+                m.insert("OrderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
             m
         });
         let __ws_arg_19 = self.extend(request, &[params.clone()]);

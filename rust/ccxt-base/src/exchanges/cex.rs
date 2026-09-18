@@ -1724,7 +1724,7 @@ impl CexCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
+                m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
             m
         });
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
@@ -1755,7 +1755,7 @@ impl CexCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
+                m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
             m
         });
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
@@ -2009,7 +2009,7 @@ impl CexCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
+                m.insert("orderId".to_string(), (match &id { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }));
                 m.insert("cancelRequestId".to_string(), Value::Str(format!("{}{}", Value::Str("c_".to_string()), to_string_val(&(self.milliseconds())))));
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
