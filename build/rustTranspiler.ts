@@ -74,7 +74,7 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -3950,6 +3950,155 @@ class RustTranspilerBuilder {
         return this.rewriteRedundantIsTrue(content, 0, content.length, []);
     }
 
+    /**
+     * Payload accessors on a local whose printed declaration pins its variant:
+     * `let mut X: Value = Value::Map(..)` / `Value::List(..)` / `Value::Str(..)`
+     * / `Value::Bool(..)` and no reassignment of `X` in the fn. The variant is
+     * then fixed on every path — the runtime's `&mut Value` helpers
+     * (`set_value`, `get_value_mut`, `add_element_to_object`, `append_to_array`,
+     * `Value::append/clear/reduce`) mutate in place and never swap a variant —
+     * so the accessor's `Option` is always `Some(payload)` and the payload read
+     * goes native:
+     *
+     *   X.as_map().and_then(|__m| __m.get("k")).cloned().unwrap_or(Value::Null)
+     *     -> match &X { Value::Dict(__m15) => __m15.get("k").cloned().unwrap_or(Value::Null), _ => Value::Null }
+     *   X.as_array().and_then(|__arr| __arr.get(N)).cloned().unwrap_or(Value::Null)
+     *     -> match &X { Value::Arr(__a15) => __a15.get(N).cloned().unwrap_or(Value::Null), _ => Value::Null }
+     *   X.as_str() (==|!=) Some("k") -> matches!(&X, Value::Str(__s15) if __s15 == "k")  (negated on `!=`)
+     *   X.as_bool() (==|!=) Some(b)  -> matches!(&X, Value::Bool(b))                     (negated on `!=`)
+     *
+     * A second declaration of the name, any reassignment, or another use shape
+     * keeps the accessor: the variant is then unprovable (D2). Reads only — the
+     * `__`-tagged cache/ws write-throughs live in the write helpers, which
+     * `as_map`/`as_array`/`as_str`/`as_bool` never reach. Idempotent.
+     */
+    nativePayloadAccessorDrops(content: string): string {
+        const CTOR_KIND: Record<string, string> = {
+            Map: 'dict', List: 'list', Arr: 'list', Str: 'str', Bool: 'bool',
+        };
+        const masked = this.maskStringsAndComments(content);
+        // Fn regions: from each header to the next one (a local of one fn is
+        // never in scope in another, so a region is the exact scope to scan).
+        const headers: number[] = [];
+        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
+        let hm: RegExpExecArray | null;
+        while ((hm = headerRe.exec(masked)) !== null) {
+            headers.push(hm.index + 1);
+        }
+        headers.push(content.length);
+        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        for (let h = 0; h + 1 < headers.length; h++) {
+            const from = headers[h];
+            const to = headers[h + 1];
+            const region = masked.slice(from, to);
+            const declRe = /let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \(?Value::(Map|List|Arr|Str|Bool)\(/g;
+            const candidates = new Map<string, string>();
+            let dm: RegExpExecArray | null;
+            while ((dm = declRe.exec(region)) !== null) {
+                candidates.set(dm[1], CTOR_KIND[dm[2]]);
+            }
+            for (const [name, kind] of candidates) {
+                // One declaration only, and never reassigned: otherwise a later
+                // write could hand the local another variant (D2).
+                const declCount = (region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length;
+                if (declCount !== 1) continue;
+                if (new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*=[^=]`).test(region)) continue;
+                const rx = this.payloadAccessorRewrite(kind, name);
+                let am: RegExpExecArray | null;
+                while ((am = rx.exec(region)) !== null) {
+                    const start = from + am.index;
+                    const end = start + am[0].length;
+                    const text = this.payloadAccessorReplacement(kind, name, am, from, content);
+                    if (text === undefined) continue;
+                    rewrites.push({ start, end, text });
+                }
+            }
+        }
+        if (rewrites.length === 0) return content;
+        rewrites.sort((a, b) => a.start - b.start);
+        let out = '';
+        let at = 0;
+        for (const r of rewrites) {
+            if (r.start < at) continue; // overlapping match: keep the first
+            out += content.slice(at, r.start) + r.text;
+            at = r.end;
+        }
+        return out + content.slice(at);
+    }
+
+    /** The accessor shape this local's pinned variant makes native. Group 1 is
+     *  the comparand (dict/list: the key; str: the operator). */
+    private payloadAccessorRewrite(kind: string, name: string): RegExp {
+        const guard = `(?<![A-Za-z0-9_.])${name}`;
+        if (kind === 'dict') {
+            return new RegExp(
+                `${guard}\\.as_map\\(\\)\\.and_then\\(\\|__m\\| __m\\.get\\((.*?)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(((?:crate::)?Value::Null)\\)`, 'gd');
+        }
+        if (kind === 'list') {
+            return new RegExp(
+                `${guard}\\.as_array\\(\\)\\.and_then\\(\\|__arr\\| __arr\\.get\\((.*?)\\)\\)\\.cloned\\(\\)\\.unwrap_or\\(((?:crate::)?Value::Null)\\)`, 'gd');
+        }
+        if (kind === 'str') {
+            return new RegExp(
+                `${guard}\\.as_str\\(\\)\\s*(==|!=)\\s*Some\\((.*?)\\)`, 'gd');
+        }
+        return new RegExp(
+            `${guard}\\.as_bool\\(\\)\\s*(==|!=)\\s*Some\\((true|false)\\)`, 'gd');
+    }
+
+    /** Replacement text for one match, or undefined to keep the accessor. The
+     *  comparand is read out of the original text (the mask blanks literals);
+     *  `regionStart` is where the matched region begins in `content`. */
+    private payloadAccessorReplacement(kind: string, name: string, m: RegExpExecArray, regionStart: number, content: string): string | undefined {
+        const group = (i: number): string => {
+            const span = (m as any).indices[i];
+            return span === undefined ? '' : content.slice(regionStart + span[0], regionStart + span[1]);
+        };
+        if (kind === 'dict' || kind === 'list') {
+            const key = group(1);
+            const nul = group(2);
+            if (key.trim() === '') return undefined;
+            const arm = kind === 'dict' ? `Value::Dict(__m15) => __m15.get(${key})` : `Value::Arr(__a15) => __a15.get(${key})`;
+            return `match &${name} { ${arm}.cloned().unwrap_or(${nul}), _ => ${nul} }`;
+        }
+        if (kind === 'str') {
+            const op = group(1);
+            const literal = group(2);
+            if (!literal.startsWith('"')) return undefined; // only literal compares
+            const test = `matches!(&${name}, Value::Str(__s15) if __s15 == ${literal})`;
+            return op === '==' ? test : `!${test}`;
+        }
+        const op = group(1);
+        const value = group(2);
+        const test = `matches!(&${name}, Value::Bool(${value}))`;
+        return op === '==' ? test : `!${test}`;
+    }
+
+    /** Blank string bodies and line comments, keeping every index in place. */
+    private maskStringsAndComments(src: string): string {
+        let out = '';
+        let i = 0;
+        while (i < src.length) {
+            const c = src[i];
+            if (c === '/' && src[i + 1] === '/') {
+                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
+                continue;
+            }
+            if (c === '"') {
+                out += ' '; i++;
+                while (i < src.length && src[i] !== '"') {
+                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
+                    out += src[i] === '\n' ? '\n' : ' ';
+                    i++;
+                }
+                if (i < src.length) { out += ' '; i++; }
+                continue;
+            }
+            out += c; i++;
+        }
+        return out;
+    }
+
     /** True when `raw` is a Rust expression the generator types as `bool`. */
     private isRustBoolExpr(raw: string, boolLocals: string[]): boolean {
         const s = this.stripOuterParens(raw.trim());
@@ -6897,6 +7046,9 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.narrowBoolLocals(rustContent);
                 // Then drop the `is_true(&x)` those locals no longer need.
                 rustContent = this.dropRedundantIsTrue(rustContent);
+                // Last: payload accessors on a local whose declaration pins its
+                // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
+                rustContent = this.nativePayloadAccessorDrops(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -7589,6 +7741,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.dropRedundantIsTrue(finalFile);
+        finalFile = this.nativePayloadAccessorDrops(finalFile);
 
         // Since the prediction merge, `Exchange.ts` declares TWO classes:
         //   `export class BaseExchange { ... }`  (holds the transpile marker)
