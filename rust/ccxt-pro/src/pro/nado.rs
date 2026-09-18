@@ -700,7 +700,7 @@ impl NadoCore {
                 m.insert("granularity".to_string(), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[self.parse_timeframe(timeframe.clone())]));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.watch_public(Value::Str("latest_candlestick".to_string()), market.clone(), messageHash.clone(), &[__ws_arg_0]).await;
         let mut stored: Value = get_value(&result, &Value::Int(2));
         if is_true(&self.newUpdates) {
@@ -745,7 +745,7 @@ impl NadoCore {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut marketSymbol: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut timeframe: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(1), &[Value::Str("1m".to_string())]);
-            let mut market: Value = self.market(marketSymbol.clone());
+            let mut market: Value = self.market(marketSymbol);
             append_to_array(&mut markets, market.clone());
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), timeframe)), Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
             let __ws_arg_1 = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[self.parse_timeframe(timeframe.clone())]);
@@ -821,7 +821,7 @@ impl NadoCore {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut marketSymbol: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
             let mut timeframe: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(1), &[Value::Str("1m".to_string())]);
-            let mut market: Value = self.market(marketSymbol.clone());
+            let mut market: Value = self.market(marketSymbol);
             append_to_array(&mut markets, market.clone());
             append_to_array(&mut messageHashes, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), timeframe)), Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))));
             let __ws_arg_2 = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[self.parse_timeframe(timeframe.clone())]);
@@ -1823,7 +1823,7 @@ impl NadoCore {
             m
         });
         add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &add(&Value::Str("authentication:".to_string()), &self.number_to_string(id.clone())), messageHash.clone());
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_17, messageHash.clone()]).await;
 
     Value::Null

@@ -1595,7 +1595,7 @@ impl CexCore {
                 m.insert("rooms".to_string(), Value::List(vec![add(&Value::Str(format!("{}{}", add(&Value::Str("pair-".to_string()), &market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null)), Value::Str("-".to_string()))), &market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null))]));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());
@@ -1743,7 +1743,7 @@ impl CexCore {
         self.authenticate(&[]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1791,7 +1791,7 @@ impl CexCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = self.request_id();
         let mut data: Value = self.extend(Value::Map({
@@ -1941,7 +1941,7 @@ impl CexCore {
         self.authenticate(&[]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut data: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2155,7 +2155,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }));
                 m
             });
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params.clone()]);
             self.watch(url.clone(), messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;

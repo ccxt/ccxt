@@ -1201,7 +1201,7 @@ impl ApexCore {
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_0]).await;
         let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
@@ -1277,7 +1277,7 @@ impl ApexCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start".to_string()), math_floor(&(match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_klines(&[__ws_arg_1]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1325,7 +1325,7 @@ impl ApexCore {
             limit = Value::Int(100); // default is 200 when requested with `since`
         }
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // max 100, default 100
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_depth(&[__ws_arg_2]).await;
         //
         // {
@@ -1398,7 +1398,7 @@ impl ApexCore {
             limit = Value::Int(500); // default is 50
         }
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_trades(&[__ws_arg_3]).await;
         //
         // [
@@ -1493,7 +1493,7 @@ impl ApexCore {
                 m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_ticker(&[__ws_arg_4]).await;
         let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut rawTicker: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
@@ -1590,7 +1590,7 @@ impl ApexCore {
         if (endTimeExclusive != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v3_history_funding(&[__ws_arg_5]).await;
         //
         // {
@@ -1985,7 +1985,7 @@ impl ApexCore {
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
         add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v3_order(&[__ws_arg_6]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2172,7 +2172,7 @@ impl ApexCore {
                     m.insert("nonce".to_string(), finalNonce.clone());
                 m
             });
-            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_10 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.private_post_v3_transfer_out(&[__ws_arg_10]).await;
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2246,7 +2246,7 @@ impl ApexCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v3_delete_open_orders(&[__ws_arg_14]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2286,7 +2286,7 @@ impl ApexCore {
             response = self.private_post_v3_delete_client_order_id(&[__ws_arg_15]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
-            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_16 = self.extend(request, &[params.clone()]);
             response = self.private_post_v3_delete_order(&[__ws_arg_16]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -2332,7 +2332,7 @@ impl ApexCore {
             response = self.private_get_v3_order_by_client_order_id(&[__ws_arg_17]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.private_get_v3_order(&[__ws_arg_18]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -2421,7 +2421,7 @@ impl ApexCore {
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_history_orders(&[__ws_arg_19]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2467,7 +2467,7 @@ impl ApexCore {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("clientId".to_string())]), &[]);
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_order_fills(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2525,7 +2525,7 @@ impl ApexCore {
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
         }
-        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_fills(&[__ws_arg_21]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2582,7 +2582,7 @@ impl ApexCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("endTime".to_string()), Value::Str("endTimeExclusive".to_string()), Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("endTimeExclusive".to_string()), endTimeExclusive.clone());
         }
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v3_funding(&[__ws_arg_22]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2661,7 +2661,7 @@ impl ApexCore {
                 m.insert("initialMarginRate".to_string(), initialMarginRate.clone());
             m
         });
-        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v3_set_initial_margin_rate(&[__ws_arg_23]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2740,7 +2740,7 @@ impl ApexCore {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
-        m.insert("contracts".to_string(), self.parse_number(quantity.clone(), &[]));
+        m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));

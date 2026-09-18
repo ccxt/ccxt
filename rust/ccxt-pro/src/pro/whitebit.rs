@@ -618,7 +618,7 @@ impl WhitebitCore {
                 m.insert("params".to_string(), args.clone());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
 
@@ -987,7 +987,7 @@ impl WhitebitCore {
         }
         let mut stored: Value = self.orders.clone();
         let mut status: Value = self.safe_integer(params.clone(), Value::Int(0), &[]);
-        let __ws_arg_1 = self.extend(data.clone(), &[Value::Map({
+        let __ws_arg_1 = self.extend(data, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), status.clone());
     m
@@ -1053,7 +1053,7 @@ impl WhitebitCore {
         if (dealFee != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(dealFee.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(dealFee, &[]));
                     m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
                 m
             });
@@ -1183,7 +1183,7 @@ impl WhitebitCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         })]).await;
-        { let __t = self.extend(response.clone(), &[self.balance.clone()]); self.balance = __t; }
+        { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
@@ -1305,7 +1305,7 @@ impl WhitebitCore {
                 m.insert("params".to_string(), reqParams.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -1406,7 +1406,7 @@ impl WhitebitCore {
                 m.insert("params".to_string(), reqParams.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null

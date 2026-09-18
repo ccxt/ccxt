@@ -1683,8 +1683,8 @@ impl WeexCore {
         if (amountPrecision == Value::Null) {
             let mut amountPrecisionString: Value = self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]);
             let mut pricePrecisionString: Value = self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]);
-            amountPrecision = self.parse_number(amountPrecisionString.clone(), &[]);
-            pricePrecision = self.parse_number(pricePrecisionString.clone(), &[]);
+            amountPrecision = self.parse_number(amountPrecisionString, &[]);
+            pricePrecision = self.parse_number(pricePrecisionString, &[]);
         }
         let mut fees: Value = self.safe_dict(self.fees.clone(), (if is_true(&isSpot) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) }), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1849,7 +1849,7 @@ impl WeexCore {
             //         }
             //     ]
             //
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params.clone()]);
             response = self.contract_get_capi_v3_market_ticker24hr(&[__ws_arg_1]).await;
         }
         if !is_true(&Value::Bool(is_array(&response))) {
@@ -2097,7 +2097,7 @@ impl WeexCore {
                 m.insert("priceType".to_string(), priceType.clone());
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_get_capi_v3_market_symbol_price(&[__ws_arg_2]).await;
         //
         //     {
@@ -2180,7 +2180,7 @@ impl WeexCore {
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_api_v3_market_depth(&[__ws_arg_3]).await;
         }  else {
-            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_4 = self.extend(request, &[params.clone()]);
             response = self.contract_get_capi_v3_market_depth(&[__ws_arg_4]).await;
         }
         //
@@ -2276,7 +2276,7 @@ impl WeexCore {
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v3_market_klines(&[__ws_arg_5]).await;
         return self.parse_ohlc_vs(self.to_array(response.clone()), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
@@ -2386,7 +2386,7 @@ impl WeexCore {
                 let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
                 response = self.contract_get_capi_v3_market_index_price_klines(&[__ws_arg_8]).await;
             }  else {
-                let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_9 = self.extend(request, &[params.clone()]);
                 response = self.contract_get_capi_v3_market_klines(&[__ws_arg_9]).await;
             }
         }
@@ -2438,7 +2438,7 @@ impl WeexCore {
             let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_api_v3_market_trades(&[__ws_arg_10]).await;
         }  else {
-            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_11 = self.extend(request, &[params.clone()]);
             response = self.contract_get_capi_v3_market_trades(&[__ws_arg_11]).await;
         }
         //
@@ -2597,7 +2597,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_get_capi_v3_market_open_interest(&[__ws_arg_12]).await;
         return self.parse_open_interest(response.clone(), &[market.clone()]);
 
@@ -2662,7 +2662,7 @@ impl WeexCore {
             let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await;
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
 
@@ -2746,7 +2746,7 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await;
         return self.parse_funding_rate_histories(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2933,7 +2933,7 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("before".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await;
         return self.parse_transfers(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -3092,7 +3092,7 @@ impl WeexCore {
             clientOrderId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", partner, Value::Str("-".to_string()))), self.uuid22(&[])));
         }
         add_element_to_object(&mut request, &Value::Str("newClientOrderId".to_string()), clientOrderId.clone());
-        return self.extend(request.clone(), &[params.clone()]);
+        return self.extend(request, &[params.clone()]);
 
     Value::Null
 }
@@ -3367,7 +3367,7 @@ impl WeexCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -3408,7 +3408,7 @@ impl WeexCore {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_private_delete_capi_v3_algo_order(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.contract_private_delete_capi_v3_order(&[__ws_arg_18]).await;
         }
         if (response == Value::Null) {
@@ -3508,7 +3508,7 @@ impl WeexCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrders".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -3535,7 +3535,7 @@ impl WeexCore {
             let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_api_v3_order_batch(&[__ws_arg_22]).await;
         }  else {
-            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_23 = self.extend(request, &[params.clone()]);
             response = self.contract_private_delete_capi_v3_batch_orders(&[__ws_arg_23]).await;
         }
         let mut ordersResponse: Value = self.safe_list_k(response.clone(), "orderList", &[Value::List(vec![])]);
@@ -3770,7 +3770,7 @@ impl WeexCore {
                 //         }
                 //     ]
                 //
-                let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_28 = self.extend(request, &[params.clone()]);
                 response = self.contract_private_get_capi_v3_open_orders(&[__ws_arg_28]).await;
             }
         }
@@ -3925,7 +3925,7 @@ impl WeexCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &maxLimit));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3993,7 +3993,7 @@ impl WeexCore {
             let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
             response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await;
         }  else {
-            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_31 = self.extend(request, &[params.clone()]);
             response = self.contract_private_get_capi_v3_order_history(&[__ws_arg_31]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -4252,7 +4252,7 @@ impl WeexCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params.clone()]);
         return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_32]).await;
 
     Value::Null
@@ -4353,7 +4353,7 @@ impl WeexCore {
             //         }
             //     ]
             //
-            let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_34 = self.extend(request, &[params.clone()]);
             response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_34]).await;
         }
         let mut responseList: Value = Value::List(vec![]);
@@ -4447,7 +4447,7 @@ impl WeexCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
             { let __destr_tmp = self.handle_until_option(Value::Str("before".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-            let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_37 = self.extend(request, &[params.clone()]);
             let mut billsResponse: Value = self.private_post_api_v3_account_bills(&[__ws_arg_37]).await;
             items = self.to_array(billsResponse.clone());
         }
@@ -4536,8 +4536,8 @@ impl WeexCore {
         m.insert("type".to_string(), self.parse_ledger_type(rawType.clone()));
         m.insert("currency".to_string(), code.clone());
         m.insert("amount".to_string(), amount.clone());
-        m.insert("before".to_string(), self.parse_number(before.clone(), &[]));
-        m.insert("after".to_string(), self.parse_number(after.clone(), &[]));
+        m.insert("before".to_string(), self.parse_number(before, &[]));
+        m.insert("after".to_string(), self.parse_number(after, &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4628,7 +4628,7 @@ impl WeexCore {
         }  else if hasUntil && !hasSince {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires since to be set when until is used".to_string()))));
         }
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_post_capi_v3_account_income(&[__ws_arg_38]).await;
         //
         //     {
@@ -4768,7 +4768,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_39 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_position_single_position(&[__ws_arg_39]).await;
         return self.parse_positions(response.clone(), &[Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])]);
 
@@ -4869,15 +4869,15 @@ impl WeexCore {
         m.insert("id".to_string(), self.safe_string2(position.clone(), Value::Str("id".to_string()), Value::Str("positionId".to_string()), &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
+        m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_lower(position.clone(), Value::Str("side".to_string()), &[]));
-        m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizePnl", &[]));
         m.insert("realizedPnl".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.parse_number(entryPrice.clone(), &[]));
+        m.insert("entryPrice".to_string(), self.parse_number(entryPrice, &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidatePrice", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
@@ -4946,7 +4946,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_40 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_post_capi_v3_close_positions(&[__ws_arg_40]).await;
         let mut orders: Value = self.parse_orders(response.clone(), &[market.clone()]);
         return self.safe_dict(orders.clone(), Value::Int(0), &[]);
@@ -4980,7 +4980,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_commission_rate(&[__ws_arg_41]).await;
         return self.parse_trading_fee(response.clone(), &[market.clone()]);
 
@@ -5035,7 +5035,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_42 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_42]).await;
         //
         //     [
@@ -5139,7 +5139,7 @@ impl WeexCore {
                 m.insert("marginType".to_string(), self.encode_margin_mode(marginMode.clone()));
             m
         });
-        let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_43 = self.extend(request, &[params.clone()]);
         return self.contract_private_post_capi_v3_account_margin_type(&[__ws_arg_43]).await;
 
     Value::Null
@@ -5184,7 +5184,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_44 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_44]).await;
         let mut marginMode: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5298,7 +5298,7 @@ impl WeexCore {
                 add_element_to_object(&mut request, &Value::Str("crossLeverage".to_string()), leverage.clone());
             }
         }
-        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_45 = self.extend(request, &[params.clone()]);
         return self.contract_private_post_capi_v3_account_leverage(&[__ws_arg_45]).await;
 
     Value::Null
@@ -5328,7 +5328,7 @@ impl WeexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_46 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_46]).await;
         let mut entry: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5382,7 +5382,7 @@ impl WeexCore {
                 m.insert("separatedType".to_string(), separatedType.clone());
             m
         });
-        let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_47 = self.extend(request, &[params.clone()]);
         return self.contract_private_post_capi_v3_account_margin_type(&[__ws_arg_47]).await;
 
     Value::Null
@@ -5410,7 +5410,7 @@ impl WeexCore {
             m
         });
         let mut parsedType: Value = (if (is_equal(&type_var, &Value::Int(1))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) });
-        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_48 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.contract_private_post_capi_v3_account_position_margin(&[__ws_arg_48]).await;
         let __ws_arg_49 = self.parse_margin_modification(response.clone(), &[market.clone()]);
         let __ws_arg_50 = self.parse_number(amount.clone(), &[]);
@@ -5555,7 +5555,7 @@ impl WeexCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = self.implode_params(path.clone(), params.clone());
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut isBatch: bool = is_greater_than_or_equal(&get_index_of(&path, &Value::Str("batch".to_string())), &Value::Int(0));
         if !isBatch && is_true(&(Value::Bool(is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE"))))))) {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {

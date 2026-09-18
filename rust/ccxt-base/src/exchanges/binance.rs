@@ -6745,7 +6745,7 @@ impl BinanceCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_0]).await;
         return response;
 
@@ -6777,7 +6777,7 @@ impl BinanceCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_1]).await;
         return response;
 
@@ -6808,7 +6808,7 @@ impl BinanceCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_equity_tokenized_convert_status(&[__ws_arg_2]).await;
         return response;
 
@@ -6848,7 +6848,7 @@ impl BinanceCore {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await;
         return response;
 
@@ -7164,7 +7164,7 @@ impl BinanceCore {
         m.insert("deposit".to_string(), depositEnable.clone());
         m.insert("withdraw".to_string(), withdrawEnable.clone());
         m.insert("fee".to_string(), withdrawFee.clone());
-        m.insert("precision".to_string(), self.parse_number(withdrawPrecision.clone(), &[]));
+        m.insert("precision".to_string(), self.parse_number(withdrawPrecision, &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -8172,7 +8172,7 @@ impl BinanceCore {
             let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
             response = self.dapi_public_get_depth(&[__ws_arg_14]).await;
         }  else {
-            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_15 = self.extend(request, &[params.clone()]);
             response = self.public_get_depth(&[__ws_arg_15]).await;
         }
         //
@@ -8512,7 +8512,7 @@ impl BinanceCore {
                     let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
                     response = self.public_get_ticker(&[__ws_arg_20]).await;
                 }  else {
-                    let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+                    let __ws_arg_21 = self.extend(request, &[params.clone()]);
                     response = self.public_get_ticker24hr(&[__ws_arg_21]).await;
                 }
             }
@@ -8601,7 +8601,7 @@ impl BinanceCore {
             if (symbols != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbols".to_string()), self.json(self.market_ids(&[symbols.clone()])));
             }
-            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_24 = self.extend(request, &[params.clone()]);
             response = self.public_get_ticker_book_ticker(&[__ws_arg_24]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBidsAsks() does not support ".to_string()))), type_var)), Value::Str(" markets yet".to_string()))));
@@ -8758,7 +8758,7 @@ impl BinanceCore {
                 if (symbols != Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("symbols".to_string()), self.json(self.market_ids(&[symbols.clone()])));
                 }
-                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_26 = self.extend(request, &[params.clone()]);
                 response = self.public_get_ticker24hr(&[__ws_arg_26]).await;
             }
         }  else if (type_var.as_str() == Some("option")) {
@@ -8827,7 +8827,7 @@ impl BinanceCore {
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_premium_index(&[__ws_arg_28]).await;
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
-            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_29 = self.extend(request, &[params.clone()]);
             response = self.dapi_public_get_premium_index(&[__ws_arg_29]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarkPrice() does not support ".to_string()))), type_var)), Value::Str(" markets yet".to_string()))));
@@ -9071,7 +9071,7 @@ impl BinanceCore {
             let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
             response = self.dapi_public_get_klines(&[__ws_arg_38]).await;
         }  else {
-            let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_39 = self.extend(request, &[params.clone()]);
             response = self.public_get_klines(&[__ws_arg_39]).await;
         }
         //
@@ -9513,7 +9513,7 @@ impl BinanceCore {
             let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
             response = self.eapi_public_get_trades(&[__ws_arg_49]).await;
         }  else if (method.as_str() == Some("eapiPublicGetHistoricalTrades")) {
-            let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_50 = self.extend(request, &[params.clone()]);
             response = self.eapi_public_get_historical_trades(&[__ws_arg_50]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() does not support this method".to_string()))));
@@ -9905,7 +9905,7 @@ impl BinanceCore {
                 let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_put_cm_order(&[__ws_arg_53]).await;
             }  else {
-                let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_54 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_put_order(&[__ws_arg_54]).await;
             }
         }
@@ -11417,7 +11417,7 @@ impl BinanceCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_55 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_55 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Null, __ws_arg_55]).await;
 
     Value::Null
@@ -11450,7 +11450,7 @@ impl BinanceCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_56 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_56 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, __ws_arg_56]).await;
 
     Value::Null
@@ -11599,7 +11599,7 @@ impl BinanceCore {
             let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
             response = self.sapi_get_equity_order_detail(&[__ws_arg_65]).await;
         }  else {
-            let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_66 = self.extend(request, &[params.clone()]);
             response = self.private_get_order(&[__ws_arg_66]).await;
         }
         if (response == Value::Null) {
@@ -11754,7 +11754,7 @@ impl BinanceCore {
                 let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
                 response = self.sapi_get_equity_order_history(&[__ws_arg_77]).await;
             }  else {
-                let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_78 = self.extend(request, &[params.clone()]);
                 response = self.private_get_all_orders(&[__ws_arg_78]).await;
             }
         }
@@ -12178,7 +12178,7 @@ impl BinanceCore {
                     response = self.papi_get_cm_open_order(&[__ws_arg_96]).await;
                 }
             }  else {
-                let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_97 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_get_open_order(&[__ws_arg_97]).await;
             }
         }  else {
@@ -12643,7 +12643,7 @@ impl BinanceCore {
             let __ws_arg_109 = self.extend(request.clone(), &[params.clone()]);
             response = self.sapi_post_equity_order_cancel(&[__ws_arg_109]).await;
         }  else {
-            let __ws_arg_110 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_110 = self.extend(request, &[params.clone()]);
             response = self.private_delete_order(&[__ws_arg_110]).await;
         }
         if (response == Value::Null) {
@@ -12766,7 +12766,7 @@ impl BinanceCore {
             let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
             response = self.sapi_post_equity_order_cancel_all(&[__ws_arg_121]).await;
         }  else {
-            let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_122 = self.extend(request, &[params.clone()]);
             response = self.private_delete_open_orders(&[__ws_arg_122]).await;
         }
         if is_true(&Value::Bool(is_array(&response))) {
@@ -12832,7 +12832,7 @@ impl BinanceCore {
             let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_delete_batch_orders(&[__ws_arg_123]).await;
         }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let __ws_arg_124 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_124 = self.extend(request, &[params.clone()]);
             response = self.dapi_private_delete_batch_orders(&[__ws_arg_124]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone()]);
@@ -12880,7 +12880,7 @@ impl BinanceCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_125 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_125 = self.extend(request, &[params.clone()]);
         return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_125]).await;
 
     Value::Null
@@ -13020,7 +13020,7 @@ impl BinanceCore {
                     let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
                     response = self.papi_get_cm_user_trades(&[__ws_arg_133]).await;
                 }  else {
-                    let __ws_arg_134 = self.extend(request.clone(), &[params.clone()]);
+                    let __ws_arg_134 = self.extend(request, &[params.clone()]);
                     response = self.dapi_private_get_user_trades(&[__ws_arg_134]).await;
                 }
             }
@@ -13232,7 +13232,7 @@ impl BinanceCore {
         if (accountType != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("accountType".to_string()), accountType.clone());
         }
-        let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_135 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_asset_dribblet(&[__ws_arg_135]).await;
         //     {
         //       "total": "4",
@@ -13315,7 +13315,7 @@ impl BinanceCore {
         let mut fee: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), earnedCurrency.clone());
-                m.insert("cost".to_string(), self.parse_number(feeCostString.clone(), &[]));
+                m.insert("cost".to_string(), self.parse_number(feeCostString, &[]));
             m
         });
         let mut symbol: Value = Value::Null;
@@ -13340,9 +13340,9 @@ impl BinanceCore {
             }
         }
         let mut id: Value = Value::Null;
-        let mut amount: Value = self.parse_number(amountString.clone(), &[]);
-        let mut price: Value = self.parse_number(priceString.clone(), &[]);
-        let mut cost: Value = self.parse_number(costString.clone(), &[]);
+        let mut amount: Value = self.parse_number(amountString, &[]);
+        let mut price: Value = self.parse_number(priceString, &[]);
+        let mut cost: Value = self.parse_number(costString, &[]);
         let mut type_var: Value = Value::Null;
         let mut takerOrMaker: Value = Value::Null;
         return Value::Map({
@@ -13442,7 +13442,7 @@ impl BinanceCore {
             if (limit != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            let __ws_arg_137 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_137 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_capital_deposit_hisrec(&[__ws_arg_137]).await;
         }
         if (response == Value::Null) {
@@ -13536,7 +13536,7 @@ impl BinanceCore {
             if (limit != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            let __ws_arg_139 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_139 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_capital_withdraw_history(&[__ws_arg_139]).await;
         }
         if (response == Value::Null) {
@@ -14016,7 +14016,7 @@ impl BinanceCore {
                 add_element_to_object(&mut request, &Value::Str("type".to_string()), add(&add(&fromId, &Value::Str("_".to_string())), &toId));
             }
         }
-        let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_140 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_asset_transfer(&[__ws_arg_140]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
@@ -14106,7 +14106,7 @@ impl BinanceCore {
             let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
             response = self.sapi_get_pay_transactions(&[__ws_arg_141]).await;
         }  else {
-            let __ws_arg_142 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_142 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_asset_transfer(&[__ws_arg_142]).await;
         }
         let mut rows: Value = self.safe_list2(response.clone(), Value::Str("rows".to_string()), Value::Str("data".to_string()), &[Value::List(vec![])]);
@@ -14489,7 +14489,7 @@ impl BinanceCore {
             add_element_to_object(&mut request, &Value::Str("network".to_string()), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
         }
         add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.currency_to_precision(currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null), amount.clone(), &[networkCode.clone()]));
-        let __ws_arg_144 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_144 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_capital_withdraw_apply(&[__ws_arg_144]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -14585,7 +14585,7 @@ impl BinanceCore {
                 response = self.dapi_private_get_commission_rate(&[__ws_arg_148]).await;
             }
         }  else {
-            let __ws_arg_149 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_149 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_asset_trade_fee(&[__ws_arg_149]).await;
         }
         //
@@ -14886,7 +14886,7 @@ impl BinanceCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let __ws_arg_150 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_150 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_futures_transfer(&[__ws_arg_150]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
@@ -14922,7 +14922,7 @@ impl BinanceCore {
             let __ws_arg_151 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_premium_index(&[__ws_arg_151]).await;
         }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let __ws_arg_152 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_152 = self.extend(request, &[params.clone()]);
             response = self.dapi_public_get_premium_index(&[__ws_arg_152]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports linear and inverse contracts only".to_string()))));
@@ -15001,7 +15001,7 @@ impl BinanceCore {
             let __ws_arg_153 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_funding_rate(&[__ws_arg_153]).await;
         }  else if is_true(&self.is_inverse(type_var.clone(), &[subType.clone()])) {
-            let __ws_arg_154 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_154 = self.extend(request, &[params.clone()]);
             response = self.dapi_public_get_funding_rate(&[__ws_arg_154]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() is not supported for ".to_string()))), type_var)), Value::Str(" markets".to_string()))));
@@ -15059,7 +15059,7 @@ impl BinanceCore {
         let mut type_var: Value = self.safe_string_k(params.clone(), "type", &[defaultType.clone()]);
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".to_string()), &[Value::Null, params.clone(), Value::Str("linear".to_string())]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut query: Value = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
+        let mut query: Value = self.omit(params, Value::Str("type".to_string()), &[]);
         let mut response: Value = Value::Null;
         if is_true(&self.is_linear(type_var.clone(), &[subType.clone()])) {
             response = self.fapi_public_get_premium_index(&[query.clone()]).await;
@@ -15432,7 +15432,7 @@ impl BinanceCore {
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = Value::Null;
             }
-            liquidationPrice = self.parse_number(truncatedLiquidationPrice.clone(), &[]);
+            liquidationPrice = self.parse_number(truncatedLiquidationPrice, &[]);
         }
         let mut positionSide: Value = self.safe_string_k(position.clone(), "positionSide", &[]);
         let mut hedged: Value = Value::Bool(positionSide.as_str() != Some("BOTH"));
@@ -15696,15 +15696,15 @@ impl BinanceCore {
         m.insert("contracts".to_string(), contracts.clone());
         m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("unrealizedPnl".to_string(), unrealizedPnl.clone());
-        m.insert("leverage".to_string(), self.parse_number(leverageString.clone(), &[]));
+        m.insert("leverage".to_string(), self.parse_number(leverageString, &[]));
         m.insert("liquidationPrice".to_string(), liquidationPrice.clone());
         m.insert("collateral".to_string(), collateral.clone());
         m.insert("notional".to_string(), notional.clone());
         m.insert("markPrice".to_string(), markPrice.clone());
         m.insert("entryPrice".to_string(), entryPrice.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone(), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString.clone(), &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString, &[]));
         m.insert("maintenanceMargin".to_string(), maintenanceMargin.clone());
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage.clone());
         m.insert("marginRatio".to_string(), marginRatio.clone());
@@ -15922,7 +15922,7 @@ impl BinanceCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_156 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_156 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_private_get_position(&[__ws_arg_156]).await;
         return self.parse_option_position(self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15970,7 +15970,7 @@ impl BinanceCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_157 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_157 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_private_get_position(&[__ws_arg_157]).await;
         //
         //     [
@@ -16052,7 +16052,7 @@ impl BinanceCore {
         m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "positionCost", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedPNL", &[]));
         m.insert("side".to_string(), side.clone());
-        m.insert("contracts".to_string(), self.parse_number(quantity.clone(), &[]));
+        m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
         m.insert("contractSize".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -16255,7 +16255,7 @@ impl BinanceCore {
                 let __ws_arg_159 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_get_cm_position_risk(&[__ws_arg_159]).await;
             }  else {
-                let __ws_arg_160 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_160 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_get_position_risk(&[__ws_arg_160]).await;
             }
         }  else {
@@ -16434,7 +16434,7 @@ impl BinanceCore {
                 let __ws_arg_163 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_get_cm_income(&[__ws_arg_163]).await;
             }  else {
-                let __ws_arg_164 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_164 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_get_income(&[__ws_arg_164]).await;
             }
         }  else {
@@ -16499,7 +16499,7 @@ impl BinanceCore {
                 let __ws_arg_167 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_post_cm_leverage(&[__ws_arg_167]).await;
             }  else {
-                let __ws_arg_168 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_168 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_post_leverage(&[__ws_arg_168]).await;
             }
         }  else {
@@ -16563,7 +16563,7 @@ impl BinanceCore {
                 let __ws_arg_169 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_private_post_margin_type(&[__ws_arg_169]).await;
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                let __ws_arg_170 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_170 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_post_margin_type(&[__ws_arg_170]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports linear and inverse contracts only".to_string()))));
@@ -16622,7 +16622,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("setPositionMode".to_string()), &[market.clone(), params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -16655,7 +16655,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_173 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_post_um_position_side_dual(&[__ws_arg_173]).await;
             }  else {
-                let __ws_arg_174 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_174 = self.extend(request, &[params.clone()]);
                 response = self.fapi_private_post_position_side_dual(&[__ws_arg_174]).await;
             }
         }  else {
@@ -16809,7 +16809,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_175 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_175 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_public_get_exercise_history(&[__ws_arg_175]).await;
         //
         //     [
@@ -16871,7 +16871,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_176 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_176 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_private_get_exercise_record(&[__ws_arg_176]).await;
         //
         //     [
@@ -17026,7 +17026,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_177 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_177 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_private_get_bill(&[__ws_arg_177]).await;
         //
         //     [
@@ -17127,7 +17127,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_181 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_get_cm_income(&[__ws_arg_181]).await;
             }  else {
-                let __ws_arg_182 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_182 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_get_income(&[__ws_arg_182]).await;
             }
         }  else {
@@ -17187,7 +17187,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tradeId", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
         m.insert("currency".to_string(), code.clone());
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("before".to_string(), Value::Null);
@@ -17679,7 +17679,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             response = self.fapi_private_post_position_margin(&[__ws_arg_184]).await;
         }  else {
             code = market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null);
-            let __ws_arg_185 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_185 = self.extend(request, &[params.clone()]);
             response = self.dapi_private_post_position_margin(&[__ws_arg_185]).await;
         }
         //
@@ -17818,7 +17818,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("asset".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_187 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_187 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_margin_interest_rate_history(&[__ws_arg_187]).await;
         //
         //     [
@@ -17858,7 +17858,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), symbol.clone());
             m
         });
-        let __ws_arg_188 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_188 = self.extend(request, &[params.clone()]);
         let mut borrowRates: Value = self.fetch_isolated_borrow_rates(&[__ws_arg_188]).await;
         return self.safe_dict(borrowRates.clone(), symbol.clone(), &[]);
 
@@ -17895,7 +17895,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut market: Value = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_189 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_189 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_margin_isolated_margin_data(&[__ws_arg_189]).await;
         return self.parse_isolated_borrow_rates(response.clone());
 
@@ -17941,7 +17941,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut now: Value = self.milliseconds();
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), crate::runtime::Math::min(&endTime, &now)); // cannot have an endTime later than current time
         }
-        let __ws_arg_190 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_190 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_margin_interest_rate_history(&[__ws_arg_190]).await;
         return self.parse_borrow_rate_history(response.clone(), code.clone(), since.clone(), limit.clone());
 
@@ -18043,7 +18043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let __ws_arg_191 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_191 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_giftcard_create_code(&[__ws_arg_191]).await;
         //
         //     {
@@ -18088,7 +18088,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("code".to_string(), giftcardCode.clone());
             m
         });
-        let __ws_arg_192 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_192 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_giftcard_redeem_code(&[__ws_arg_192]).await;
         return response;
 
@@ -18114,7 +18114,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("referenceNo".to_string(), id.clone());
             m
         });
-        let __ws_arg_193 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_193 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_get_giftcard_verify(&[__ws_arg_193]).await;
         return response;
 
@@ -18174,7 +18174,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 market = self.market(symbol.clone());
                 add_element_to_object(&mut request, &Value::Str("isolatedSymbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
-            let __ws_arg_195 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_195 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_margin_interest_history(&[__ws_arg_195]).await;
         }
         //
@@ -18288,7 +18288,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("isIsolated".to_string()), Value::Str("FALSE".to_string()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("REPAY".to_string()));
-            let __ws_arg_198 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_198 = self.extend(request, &[params.clone()]);
             response = self.sapi_post_margin_borrow_repay(&[__ws_arg_198]).await;
         }
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
@@ -18326,7 +18326,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), Value::Str("REPAY".to_string()));
             m
         });
-        let __ws_arg_199 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_199 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_margin_borrow_repay(&[__ws_arg_199]).await;
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
 
@@ -18369,7 +18369,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("isIsolated".to_string()), Value::Str("FALSE".to_string()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("BORROW".to_string()));
-            let __ws_arg_201 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_201 = self.extend(request, &[params.clone()]);
             response = self.sapi_post_margin_borrow_repay(&[__ws_arg_201]).await;
         }
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
@@ -18407,7 +18407,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), Value::Str("BORROW".to_string()));
             m
         });
-        let __ws_arg_202 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_202 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_margin_borrow_repay(&[__ws_arg_202]).await;
         return self.parse_margin_loan(response.clone(), &[currency.clone()]);
 
@@ -18517,7 +18517,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_203 = self.extend(request.clone(), &[params.clone()]);
             response = self.dapi_data_get_open_interest_hist(&[__ws_arg_203]).await;
         }  else {
-            let __ws_arg_204 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_204 = self.extend(request, &[params.clone()]);
             response = self.fapi_data_get_open_interest_hist(&[__ws_arg_204]).await;
         }
         return self.parse_open_interests_history(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -18566,7 +18566,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_206 = self.extend(request.clone(), &[params.clone()]);
             response = self.dapi_public_get_open_interest(&[__ws_arg_206]).await;
         }  else {
-            let __ws_arg_207 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_207 = self.extend(request, &[params.clone()]);
             response = self.fapi_public_get_open_interest(&[__ws_arg_207]).await;
         }
         //
@@ -18739,7 +18739,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let __ws_arg_212 = self.extend(request.clone(), &[params.clone()]);
                 response = self.papi_get_cm_force_orders(&[__ws_arg_212]).await;
             }  else {
-                let __ws_arg_213 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_213 = self.extend(request, &[params.clone()]);
                 response = self.dapi_private_get_force_orders(&[__ws_arg_213]).await;
             }
         }  else {
@@ -18948,7 +18948,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_214 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_214 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_public_get_mark(&[__ws_arg_214]).await;
         return self.parse_greeks(self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -18989,7 +18989,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_215 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_215 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_public_get_mark(&[__ws_arg_215]).await;
         return self.parse_all_greeks(response.clone(), &[symbols.clone()]);
 
@@ -19095,7 +19095,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchPositionMode".to_string()), &[market.clone(), params.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -19197,7 +19197,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m
             });
-            let __ws_arg_216 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_216 = self.extend(request, &[params.clone()]);
             response = self.fapi_private_get_symbol_config(&[__ws_arg_216]).await;
         }  else if (subType.as_str() == Some("inverse")) {
             let mut fetchMarginModesResponse: Value = self.fetch_margin_modes(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
@@ -19260,7 +19260,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_217 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_217 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.eapi_public_get_ticker(&[__ws_arg_217]).await;
         //
         //     [
@@ -19401,7 +19401,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_218 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_get_position_margin_history(&[__ws_arg_218]).await;
         }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-            let __ws_arg_219 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_219 = self.extend(request, &[params.clone()]);
             response = self.dapi_private_get_position_margin_history(&[__ws_arg_219]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory () is not supported for markets of type ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))));
@@ -19546,7 +19546,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("fromAmount".to_string(), amount.clone());
             m
         });
-        let __ws_arg_220 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_220 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_post_convert_get_quote(&[__ws_arg_220]).await;
         //
         //     {
@@ -19606,7 +19606,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             response = self.sapi_post_asset_convert_transfer(&[__ws_arg_221]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("quoteId".to_string()), id.clone());
-            let __ws_arg_222 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_222 = self.extend(request, &[params.clone()]);
             response = self.sapi_post_convert_accept_quote(&[__ws_arg_222]).await;
         }
         let mut fromCurrency: Value = self.currency(fromCode.clone());
@@ -19657,7 +19657,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_223]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
-            let __ws_arg_224 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_224 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_convert_order_status(&[__ws_arg_224]).await;
         }
         let mut data: Value = response.clone();
@@ -19752,7 +19752,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             fromCurrencyKey = Value::Str("fromAsset".to_string());
             toCurrencyKey = Value::Str("toAsset".to_string());
             responseQuery = Value::Str("list".to_string());
-            let __ws_arg_226 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_226 = self.extend(request, &[params.clone()]);
             response = self.sapi_get_convert_trade_flow(&[__ws_arg_226]).await;
         }
         let mut rows: Value = self.safe_list(response.clone(), responseQuery.clone(), &[Value::List(vec![])]);
@@ -19949,7 +19949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             response = self.fapi_data_get_global_long_short_account_ratio(&[__ws_arg_227]).await;
         }  else if (subType.as_str() == Some("inverse")) {
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), crate::value::get_value_k(&market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), "pair"));
-            let __ws_arg_228 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_228 = self.extend(request, &[params.clone()]);
             response = self.dapi_data_get_global_long_short_account_ratio(&[__ws_arg_228]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLongShortRatioHistory() supports linear and inverse subTypes only".to_string()))));
@@ -20025,7 +20025,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchADLRank".to_string()), &[market.clone(), params.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut response: Value = Value::Null;
         if (subType.as_str() == Some("linear")) {
-            let __ws_arg_229 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_229 = self.extend(request, &[params.clone()]);
             response = self.fapi_public_get_symbol_adl_risk(&[__ws_arg_229]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchADLRank() supports linear subTypes only".to_string()))));

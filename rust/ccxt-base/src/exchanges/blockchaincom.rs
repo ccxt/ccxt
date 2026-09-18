@@ -606,7 +606,7 @@ impl BlockchaincomCore {
             let mut minOrderSizeScaleString: Value = self.safe_string_k(market.clone(), "min_order_size_scale", &[]);
             let mut minOrderSizeScalePrecisionString: Value = self.parse_precision(&[minOrderSizeScaleString.clone()]);
             let mut minOrderSizePreciseString: Value = crate::precise::Precise::stringMul(&minOrderSizeString, &minOrderSizeScalePrecisionString);
-            let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString.clone(), &[]);
+            let mut minOrderSize: Value = self.parse_number(minOrderSizePreciseString, &[]);
             // maximum order size
             let mut maxOrderSize: Value = Value::Null;
             let mut maxOrderSizeRaw: Value = self.safe_string_k(market.clone(), "max_order_size", &[]);
@@ -614,7 +614,7 @@ impl BlockchaincomCore {
                 let mut maxOrderSizeScaleString: Value = self.safe_string_k(market.clone(), "max_order_size_scale", &[]);
                 let mut maxOrderSizeScalePrecisionString: Value = self.parse_precision(&[maxOrderSizeScaleString.clone()]);
                 let mut maxOrderSizeValueString: Value = crate::precise::Precise::stringMul(&maxOrderSizeRaw, &maxOrderSizeScalePrecisionString);
-                maxOrderSize = self.parse_number(maxOrderSizeValueString.clone(), &[]);
+                maxOrderSize = self.parse_number(maxOrderSizeValueString, &[]);
             }
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -645,8 +645,8 @@ impl BlockchaincomCore {
                     m.insert("optionType".to_string(), Value::Null);
                     m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amountPrecisionString.clone(), &[]));
-        m.insert("price".to_string(), self.parse_number(pricePrecisionString.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amountPrecisionString, &[]));
+        m.insert("price".to_string(), self.parse_number(pricePrecisionString, &[]));
     m
 }));
                     m.insert("limits".to_string(), Value::Map({
@@ -736,7 +736,7 @@ impl BlockchaincomCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_l3_symbol(&[__ws_arg_0]).await;
         return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("px".to_string()), Value::Str("qty".to_string())]);
 
@@ -761,7 +761,7 @@ impl BlockchaincomCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_l2_symbol(&[__ws_arg_1]).await;
         return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("px".to_string()), Value::Str("qty".to_string())]);
 
@@ -834,7 +834,7 @@ impl BlockchaincomCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_tickers_symbol(&[__ws_arg_2]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -1038,7 +1038,7 @@ impl BlockchaincomCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_orders_order_id(&[__ws_arg_4]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1078,7 +1078,7 @@ impl BlockchaincomCore {
             let mut marketId: Value = self.market_id(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), marketId.clone());
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_orders(&[__ws_arg_5]).await;
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1238,7 +1238,7 @@ impl BlockchaincomCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_orders(&[__ws_arg_6]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1334,9 +1334,9 @@ impl BlockchaincomCore {
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.market_id(symbol.clone()));
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.private_get_fills(&[__ws_arg_7]).await;
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -1366,7 +1366,7 @@ impl BlockchaincomCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_deposits_currency(&[__ws_arg_8]).await;
         let mut rawAddress: Value = self.safe_string_k(response.clone(), "address", &[]);
         let mut tag: Value = Value::Null;
@@ -1516,7 +1516,7 @@ impl BlockchaincomCore {
                 m.insert("sendMax".to_string(), Value::Bool(false));
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_9]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -1556,7 +1556,7 @@ impl BlockchaincomCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdrawals(&[__ws_arg_10]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -1587,7 +1587,7 @@ impl BlockchaincomCore {
                 m.insert("withdrawalId".to_string(), id.clone());
             m
         });
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdrawals_withdrawal_id(&[__ws_arg_11]).await;
         return self.parse_transaction(response.clone(), &[]);
 
@@ -1627,7 +1627,7 @@ impl BlockchaincomCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deposits(&[__ws_arg_12]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -1659,7 +1659,7 @@ impl BlockchaincomCore {
                 m.insert("depositId".to_string(), depositId.clone());
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut deposit: Value = self.private_get_deposits_deposit_id(&[__ws_arg_13]).await;
         return self.parse_transaction(deposit.clone(), &[]);
 
@@ -1689,7 +1689,7 @@ impl BlockchaincomCore {
                 m.insert("account".to_string(), accountName.clone());
             m
         });
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_accounts(&[__ws_arg_14]).await;
         //
         //     {
@@ -1760,7 +1760,7 @@ impl BlockchaincomCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_orders_order_id(&[__ws_arg_15]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -1778,7 +1778,7 @@ impl BlockchaincomCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut requestPath: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &requestPath);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("public")) {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));

@@ -1317,7 +1317,7 @@ impl ExtendedCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_markets_market_stats(&[__ws_arg_0]).await;
         //
         //     {
@@ -1537,7 +1537,7 @@ impl ExtendedCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_markets_market_orderbook(&[__ws_arg_2]).await;
         //
         //     {
@@ -1599,7 +1599,7 @@ impl ExtendedCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_markets_market_trades(&[__ws_arg_3]).await;
         //
         //     {
@@ -1655,13 +1655,13 @@ impl ExtendedCore {
             m
         });
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_4 = self.extend(params.clone(), &[request.clone()]);
+        let __ws_arg_4 = self.extend(params, &[request.clone()]);
         let mut response: Value = self.v1_private_get_user_trades(&[__ws_arg_4]).await;
         //
         //     {
@@ -1750,7 +1750,7 @@ impl ExtendedCore {
             m
         });
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -1759,7 +1759,7 @@ impl ExtendedCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_5 = self.extend(params.clone(), &[request.clone()]);
+        let __ws_arg_5 = self.extend(params, &[request.clone()]);
         let mut response: Value = self.v1_private_get_user_funding_history(&[__ws_arg_5]).await;
         //
         //     {
@@ -1990,7 +1990,7 @@ impl ExtendedCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_candles_market_candle_type(&[__ws_arg_6]).await;
         //
         //     {
@@ -2071,7 +2071,7 @@ impl ExtendedCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_market_funding(&[__ws_arg_7]).await;
         //
         //     {
@@ -2189,7 +2189,7 @@ impl ExtendedCore {
                 m.insert("limit".to_string(), limit.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_info_market_open_interests(&[__ws_arg_8]).await;
         //
         //     {
@@ -2454,7 +2454,7 @@ impl ExtendedCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_9]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut pagination: Value = self.safe_dict_k(response.clone(), "pagination", &[Value::Map({
@@ -2579,7 +2579,7 @@ impl ExtendedCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_10]).await;
         //
         //     {
@@ -2736,7 +2736,7 @@ impl ExtendedCore {
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("chainId".to_string()), Value::Str("network".to_string()), Value::Str("settlementExpiration".to_string()), Value::Str("nonce".to_string()), Value::Str("recipient".to_string()), Value::Str("positionId".to_string()), Value::Str("l2Vault".to_string()), Value::Str("collateralId".to_string()), Value::Str("resolution".to_string())]), &[]);
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await;
         //
         //     {
@@ -2759,7 +2759,7 @@ impl ExtendedCore {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("tagTo".to_string(), tag.clone());
         m.insert("type".to_string(), Value::Str("withdrawal".to_string()));
-        m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("status".to_string(), Value::Str("pending".to_string()));
         m.insert("updated".to_string(), now.clone());
@@ -2811,7 +2811,7 @@ impl ExtendedCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_asset_operations(&[__ws_arg_14]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut pagination: Value = self.safe_dict_k(response.clone(), "pagination", &[Value::Map({
@@ -2889,7 +2889,7 @@ impl ExtendedCore {
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("fromVault".to_string()), Value::Str("senderPositionId".to_string()), Value::Str("fromL2Key".to_string()), Value::Str("senderPublicKey".to_string()), Value::Str("toVault".to_string()), Value::Str("receiverPositionId".to_string()), Value::Str("toL2Key".to_string()), Value::Str("receiverPublicKey".to_string()), Value::Str("settlementExpiration".to_string()), Value::Str("nonce".to_string()), Value::Str("assetId".to_string()), Value::Str("collateralId".to_string()), Value::Str("resolution".to_string())]), &[]);
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_post_user_transfer(&[__ws_arg_15]).await;
         //
         //     {
@@ -2917,7 +2917,7 @@ impl ExtendedCore {
         m.insert("timestamp".to_string(), now.clone());
         m.insert("datetime".to_string(), self.iso8601(now.clone()));
         m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("fromAccount".to_string(), fromAccount.clone());
         m.insert("toAccount".to_string(), toAccount.clone());
         m.insert("status".to_string(), status.clone());
@@ -3101,7 +3101,7 @@ impl ExtendedCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_fees(&[__ws_arg_16]).await;
         //
         //     {
@@ -3228,7 +3228,7 @@ impl ExtendedCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_leverage(&[__ws_arg_17]).await;
         //
         //     {
@@ -3270,14 +3270,14 @@ impl ExtendedCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string()))));
         }
         self.load_markets(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m.insert("leverage".to_string(), self.number_to_string(leverage.clone()));
             m
         });
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_patch_user_leverage(&[__ws_arg_18]).await;
         //
         //     {
@@ -3342,7 +3342,7 @@ impl ExtendedCore {
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), marketIds.clone());
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_positions(&[__ws_arg_19]).await;
         //
         //     {
@@ -3437,7 +3437,7 @@ impl ExtendedCore {
             let mut marketIds: Value = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), marketIds.clone());
         }
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_positions_history(&[__ws_arg_20]).await;
         //
         //     {
@@ -4044,7 +4044,7 @@ impl ExtendedCore {
         let mut now: Value = self.safe_integer_k(extendedOrderRequest.clone(), "timestamp", &[]);
         add_element_to_object(&mut data, &Value::Str("timestamp".to_string()), now.clone());
         add_element_to_object(&mut data, &Value::Str("status".to_string()), Value::Str("NEW".to_string()));
-        let __ws_arg_21 = self.extend(request.clone(), &[data.clone()]);
+        let __ws_arg_21 = self.extend(request, &[data.clone()]);
         return self.parse_order(__ws_arg_21, &[market.clone()]);
 
     Value::Null
@@ -4119,7 +4119,7 @@ impl ExtendedCore {
                 m.insert("reduceOnly".to_string(), reduceOnly.clone());
             m
         }), &[params.clone()]);
-        let mut requestParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut requestParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cancelId".to_string(), cancelId.clone());
                 m.insert("expiryEpochMillis".to_string(), expiryEpochMillis.clone());
@@ -4148,7 +4148,7 @@ impl ExtendedCore {
         let mut now: Value = self.safe_integer_k(extendedOrderRequest.clone(), "timestamp", &[]);
         add_element_to_object(&mut responseData, &Value::Str("timestamp".to_string()), now.clone());
         add_element_to_object(&mut responseData, &Value::Str("status".to_string()), Value::Str("NEW".to_string()));
-        let __ws_arg_22 = self.extend(request.clone(), &[responseData.clone()]);
+        let __ws_arg_22 = self.extend(request, &[responseData.clone()]);
         return self.parse_order(__ws_arg_22, &[market.clone()]);
 
     Value::Null
@@ -4197,7 +4197,7 @@ impl ExtendedCore {
                     m.insert("id".to_string(), id.clone());
                 m
             });
-            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_24 = self.extend(request, &[params.clone()]);
             response = self.v1_private_delete_user_order_id(&[__ws_arg_24]).await;
         }
         //
@@ -4268,7 +4268,7 @@ impl ExtendedCore {
         if !hasOrderIds && !hasClientOrderIds {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires an ids argument or clientOrderIds parameter".to_string()))));
         }
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_25 = self.extend(request, &[params.clone()]);
         self.v1_private_post_user_order_mass_cancel(&[__ws_arg_25]).await;
         return Value::List(vec![]);
 
@@ -4298,10 +4298,10 @@ impl ExtendedCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("markets".to_string()), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
         }
-        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_26 = self.extend(request, &[params.clone()]);
         self.v1_private_post_user_order_mass_cancel(&[__ws_arg_26]).await;
         return Value::List(vec![]);
 
@@ -4328,7 +4328,7 @@ impl ExtendedCore {
                 m.insert("countdownTime".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
             m
         });
-        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_post_user_deadmanswitch(&[__ws_arg_27]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4360,7 +4360,7 @@ impl ExtendedCore {
         self.load_markets(&[]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut response: Value = Value::Null;
         let mut order: Value = Value::Null;
@@ -4388,7 +4388,7 @@ impl ExtendedCore {
                     m.insert("id".to_string(), id.clone());
                 m
             });
-            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_29 = self.extend(request, &[params.clone()]);
             response = self.v1_private_get_user_orders_id(&[__ws_arg_29]).await;
             order = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4429,7 +4429,7 @@ impl ExtendedCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_user_orders(&[__ws_arg_30]).await;
         //
         //     {
@@ -4503,7 +4503,7 @@ impl ExtendedCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_31 = self.extend(params.clone(), &[request.clone()]);
+        let __ws_arg_31 = self.extend(params, &[request.clone()]);
         let mut response: Value = self.v1_private_get_user_orders_history(&[__ws_arg_31]).await;
         //
         //     {
@@ -4884,7 +4884,7 @@ impl ExtendedCore {
         let mut version: Value = self.safe_string(api.clone(), Value::Int(0), &[]);
         let mut accessibility: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut queryPost: bool = path.as_str() == Some("user/deadmanswitch");
         let mut url: Value = self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("rest")).cloned().unwrap_or(Value::Null));
         if (accessibility.as_str() == Some("private")) {

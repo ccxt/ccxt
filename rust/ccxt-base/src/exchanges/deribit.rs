@@ -1410,7 +1410,7 @@ impl DeribitCore {
         m.insert("expiry".to_string(), timestamp.clone());
         m.insert("expiryDatetime".to_string(), datetime.clone());
         m.insert("optionType".to_string(), (if is_true(&(Value::Bool(optionType.as_str() == Some("C")))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) }));
-        m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
+        m.insert("strike".to_string(), self.parse_number(strike, &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Null);
@@ -1757,7 +1757,7 @@ impl DeribitCore {
                         m.insert("currency".to_string(), currencyId.clone());
                     m
                 });
-                let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_0 = self.extend(request, &[params.clone()]);
                 let mut instrumentsResponse: Value = self.public_get_get_instruments(&[__ws_arg_0]).await;
                 //
                 //     {
@@ -2048,7 +2048,7 @@ impl DeribitCore {
         if (code == Value::Null) {
             response = self.private_get_get_account_summaries(&[params.clone()]).await;
         }  else {
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params.clone()]);
             response = self.private_get_get_account_summary(&[__ws_arg_1]).await;
         }
         //
@@ -2125,7 +2125,7 @@ impl DeribitCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_create_deposit_address(&[__ws_arg_2]).await;
         //
         //     {
@@ -2181,7 +2181,7 @@ impl DeribitCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_current_deposit_address(&[__ws_arg_3]).await;
         //
         //     {
@@ -2325,7 +2325,7 @@ impl DeribitCore {
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_4]).await;
         //
         //     {
@@ -2425,7 +2425,7 @@ impl DeribitCore {
                 add_element_to_object(&mut request, &Value::Str("kind".to_string()), requestType.clone());
             }
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_book_summary_by_currency(&[__ws_arg_5]).await;
         //
         //     {
@@ -2537,7 +2537,7 @@ impl DeribitCore {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("end_timestamp".to_string()), until.clone());
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_tradingview_chart_data(&[__ws_arg_6]).await;
         //
         //     {
@@ -2711,7 +2711,7 @@ impl DeribitCore {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_get_last_trades_by_instrument(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_8 = self.extend(request, &[params.clone()]);
             response = self.public_get_get_last_trades_by_instrument_and_time(&[__ws_arg_8]).await;
         }
         //
@@ -2773,7 +2773,7 @@ impl DeribitCore {
                 m.insert("extended".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_account_summary(&[__ws_arg_9]).await;
         //
         //     {
@@ -2940,7 +2940,7 @@ impl DeribitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_order_book(&[__ws_arg_10]).await;
         //
         //     {
@@ -3166,9 +3166,9 @@ impl DeribitCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_order_state(&[__ws_arg_11]).await;
         //
         //     {
@@ -3319,7 +3319,7 @@ impl DeribitCore {
             let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_buy(&[__ws_arg_12]).await;
         }  else {
-            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_13 = self.extend(request, &[params.clone()]);
             response = self.private_get_sell(&[__ws_arg_13]).await;
         }
         //
@@ -3429,7 +3429,7 @@ impl DeribitCore {
             add_element_to_object(&mut request, &Value::Str("trigger_offset".to_string()), self.parse_to_numeric(trailingAmount.clone()));
             params = self.omit(params.clone(), Value::Str("trigger_offset".to_string()), &[]);
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_edit(&[__ws_arg_14]).await;
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3467,7 +3467,7 @@ impl DeribitCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_cancel(&[__ws_arg_15]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3506,9 +3506,9 @@ impl DeribitCore {
             let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_cancel_all(&[__ws_arg_16]).await;
         }  else {
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_17 = self.extend(request, &[params.clone()]);
             response = self.private_get_cancel_all_by_instrument(&[__ws_arg_17]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
@@ -3556,9 +3556,9 @@ impl DeribitCore {
             let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_get_open_orders_by_currency(&[__ws_arg_18]).await;
         }  else {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_19 = self.extend(request, &[params.clone()]);
             response = self.private_get_get_open_orders_by_instrument(&[__ws_arg_19]).await;
         }
         let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
@@ -3608,9 +3608,9 @@ impl DeribitCore {
             let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_get_order_history_by_currency(&[__ws_arg_20]).await;
         }  else {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_21 = self.extend(request, &[params.clone()]);
             response = self.private_get_get_order_history_by_instrument(&[__ws_arg_21]).await;
         }
         let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
@@ -3647,7 +3647,7 @@ impl DeribitCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_user_trades_by_order(&[__ws_arg_22]).await;
         //
         //     {
@@ -3736,14 +3736,14 @@ impl DeribitCore {
                 response = self.private_get_get_user_trades_by_currency_and_time(&[__ws_arg_24]).await;
             }
         }  else {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             if (since == Value::Null) {
                 let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_get_user_trades_by_instrument(&[__ws_arg_25]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
-                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_26 = self.extend(request, &[params.clone()]);
                 response = self.private_get_get_user_trades_by_instrument_and_time(&[__ws_arg_26]).await;
             }
         }
@@ -3824,7 +3824,7 @@ impl DeribitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_deposits(&[__ws_arg_27]).await;
         //
         //     {
@@ -3890,7 +3890,7 @@ impl DeribitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_withdrawals(&[__ws_arg_28]).await;
         //
         //     {
@@ -4065,9 +4065,9 @@ impl DeribitCore {
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.clone(), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalStringAbs), &Value::Str("100".to_string())), &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_price", &[]));
-        m.insert("notional".to_string(), self.parse_number(notionalStringAbs.clone(), &[]));
+        m.insert("notional".to_string(), self.parse_number(notionalStringAbs, &[]));
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl.clone(), &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnl, &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realized_profit_loss", &[]));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "size", &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(position.clone(), "contractSize", &[]));
@@ -4111,7 +4111,7 @@ impl DeribitCore {
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_position(&[__ws_arg_29]).await;
         //
         //     {
@@ -4179,7 +4179,7 @@ impl DeribitCore {
             let mut currency: Value = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_positions(&[__ws_arg_30]).await;
         //
         //     {
@@ -4239,7 +4239,7 @@ impl DeribitCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_historical_volatility(&[__ws_arg_31]).await;
         return self.parse_volatility_history(response.clone());
 
@@ -4318,7 +4318,7 @@ impl DeribitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_transfers(&[__ws_arg_32]).await;
         //
         //     {
@@ -4406,7 +4406,7 @@ impl DeribitCore {
             let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_submit_transfer_to_user(&[__ws_arg_33]).await;
         }  else {
-            let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_34 = self.extend(request, &[params.clone()]);
             response = self.private_get_submit_transfer_to_subaccount(&[__ws_arg_34]).await;
         }
         //
@@ -4520,7 +4520,7 @@ impl DeribitCore {
         if (self.twofa.clone() != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("tfa".to_string()), totp(self.twofa.clone()));
         }
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdraw(&[__ws_arg_35]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -4629,7 +4629,7 @@ impl DeribitCore {
                 m.insert("end_timestamp".to_string(), time.clone());
             m
         });
-        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_36 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_funding_rate_value(&[__ws_arg_36]).await;
         return self.parse_funding_rate(response.clone(), &[market.clone()]);
 
@@ -4703,7 +4703,7 @@ impl DeribitCore {
             let mut maxUntil: Value = self.sum(&[since.clone(), (match (&(limit), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
             { let __be_tmp = crate::runtime::Math::min(&crate::value::get_value_k(&request, "end_timestamp"), &maxUntil); add_element_to_object(&mut request, &Value::Str("end_timestamp".to_string()), __be_tmp); };
         }
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_funding_rate_history(&[__ws_arg_37]).await;
         //
         //    {
@@ -4829,7 +4829,7 @@ impl DeribitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_last_settlements_by_instrument(&[__ws_arg_38]).await;
         //
         //     {
@@ -4909,7 +4909,7 @@ impl DeribitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyLiquidations() does not support ".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null))), Value::Str(" markets".to_string()))));
         }
@@ -4925,7 +4925,7 @@ impl DeribitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_39 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_get_settlement_history_by_instrument(&[__ws_arg_39]).await;
         //
         //     {
@@ -5016,7 +5016,7 @@ impl DeribitCore {
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_40 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_40]).await;
         //
         //     {
@@ -5165,13 +5165,13 @@ impl DeribitCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_book_summary_by_instrument(&[__ws_arg_41]).await;
         //
         //     {
@@ -5239,7 +5239,7 @@ impl DeribitCore {
                 m.insert("kind".to_string(), Value::Str("option".to_string()));
             m
         });
-        let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_42 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_book_summary_by_currency(&[__ws_arg_42]).await;
         //
         //     {
@@ -5361,7 +5361,7 @@ impl DeribitCore {
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_43 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_book_summary_by_instrument(&[__ws_arg_43]).await;
         //
         //     {

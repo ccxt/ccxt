@@ -326,7 +326,7 @@ impl P2bCore {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut query: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[query.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -451,7 +451,7 @@ impl P2bCore {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
 
@@ -522,7 +522,7 @@ impl P2bCore {
                 m.insert("id".to_string(), self.milliseconds());
             m
         });
-        let mut query: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut query: Value = self.extend(subscribe, &[params.clone()]);
         let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[query.clone(), messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);

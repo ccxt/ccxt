@@ -388,7 +388,7 @@ impl BitmexCore {
                 m.insert("args".to_string(), rawSubscriptions.clone());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut ticker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, rawSubscriptions.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
@@ -827,7 +827,7 @@ impl BitmexCore {
                 m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_2, messageHash.clone()]).await;
 
     Value::Null
@@ -1075,7 +1075,7 @@ impl BitmexCore {
                     m.insert("args".to_string(), Value::List(vec![self.apiKey.clone(), timestamp.clone(), signature.clone()]));
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1906,7 +1906,7 @@ impl BitmexCore {
                 m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[__ws_arg_5, messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());

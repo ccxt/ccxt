@@ -2244,7 +2244,7 @@ impl AsterCore {
                 let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
                 response = self.fapi_public_get_v3_klines(&[__ws_arg_2]).await;
             }  else {
-                let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_3 = self.extend(request, &[params.clone()]);
                 response = self.sapi_public_get_v3_klines(&[__ws_arg_3]).await;
             }
         }
@@ -2466,7 +2466,7 @@ impl AsterCore {
             let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_get_v3_user_trades(&[__ws_arg_8]).await;
         }  else {
-            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_9 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_get_v3_user_trades(&[__ws_arg_9]).await;
         }
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
@@ -2508,7 +2508,7 @@ impl AsterCore {
             let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_v3_depth(&[__ws_arg_10]).await;
         }  else {
-            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_11 = self.extend(request, &[params.clone()]);
             response = self.sapi_public_get_v3_depth(&[__ws_arg_11]).await;
         }
         //
@@ -2658,7 +2658,7 @@ impl AsterCore {
             let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_public_get_v3_ticker24hr(&[__ws_arg_12]).await;
         }  else {
-            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_13 = self.extend(request, &[params.clone()]);
             response = self.sapi_public_get_v3_ticker24hr(&[__ws_arg_13]).await;
         }
         return self.parse_ticker(response.clone(), &[market.clone()]);
@@ -2914,7 +2914,7 @@ impl AsterCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_public_get_v3_premium_index(&[__ws_arg_15]).await;
         return self.parse_funding_rate(response.clone(), &[market.clone()]);
 
@@ -2940,7 +2940,7 @@ impl AsterCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let __ws_arg_16 = self.extend(params.clone(), &[]);
+        let __ws_arg_16 = self.extend(params, &[]);
         let mut response: Value = self.fapi_public_get_v3_premium_index(&[__ws_arg_16]).await;
         return self.parse_funding_rates(response.clone(), &[symbols.clone()]);
 
@@ -3013,7 +3013,7 @@ impl AsterCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_public_get_v3_funding_rate(&[__ws_arg_17]).await;
         return self.parse_funding_rate_histories(response.clone(), &[market.clone()]);
 
@@ -3137,7 +3137,7 @@ impl AsterCore {
                 m.insert("marginType".to_string(), marginMode.clone());
             m
         });
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_post_v3_margin_type(&[__ws_arg_18]).await;
         return response;
 
@@ -3192,7 +3192,7 @@ impl AsterCore {
                 m.insert("dualSidePosition".to_string(), strValue.clone());
             m
         });
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         return self.fapi_private_post_v3_position_side_dual(&[__ws_arg_19]).await;
 
     Value::Null
@@ -3244,7 +3244,7 @@ impl AsterCore {
             let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_get_v3_commission_rate(&[__ws_arg_20]).await;
         }  else {
-            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_21 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_get_v3_commission_rate(&[__ws_arg_21]).await;
         }
         return self.parse_trading_fee(response.clone(), &[market.clone()]);
@@ -3421,7 +3421,7 @@ impl AsterCore {
             let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_get_v3_order(&[__ws_arg_22]).await;
         }  else {
-            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_23 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_get_v3_order(&[__ws_arg_23]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -3468,7 +3468,7 @@ impl AsterCore {
             let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
             response = self.sapi_private_get_v3_open_order(&[__ws_arg_24]).await;
         }  else {
-            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_25 = self.extend(request, &[params.clone()]);
             response = self.fapi_private_get_v3_open_order(&[__ws_arg_25]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -3519,7 +3519,7 @@ impl AsterCore {
             let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_get_v3_all_orders(&[__ws_arg_26]).await;
         }  else {
-            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_27 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_get_v3_all_orders(&[__ws_arg_27]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -3576,7 +3576,7 @@ impl AsterCore {
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_get_v3_open_orders(&[__ws_arg_28]).await;
         }  else if (marketType.as_str() == Some("spot")) {
-            let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_29 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_get_v3_open_orders(&[__ws_arg_29]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -3677,7 +3677,7 @@ impl AsterCore {
                 m.insert("batchOrders".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_post_v3_batch_orders(&[__ws_arg_30]).await;
         return self.parse_orders(response.clone(), &[]);
 
@@ -3888,7 +3888,7 @@ impl AsterCore {
             let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_delete_v3_all_open_orders(&[__ws_arg_31]).await;
         }  else {
-            let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_32 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_delete_v3_all_open_orders(&[__ws_arg_32]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
@@ -3939,7 +3939,7 @@ impl AsterCore {
             let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_delete_v3_order(&[__ws_arg_33]).await;
         }  else {
-            let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_34 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_delete_v3_order(&[__ws_arg_34]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -3989,7 +3989,7 @@ impl AsterCore {
             let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
             response = self.fapi_private_delete_v3_batch_orders(&[__ws_arg_35]).await;
         }  else {
-            let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_36 = self.extend(request, &[params.clone()]);
             response = self.sapi_private_delete_v3_all_open_orders(&[__ws_arg_36]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone()]);
@@ -4027,7 +4027,7 @@ impl AsterCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_post_v3_leverage(&[__ws_arg_37]).await;
         return response;
 
@@ -4206,7 +4206,7 @@ impl AsterCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_position_margin_history(&[__ws_arg_38]).await;
         //
         //     [
@@ -4286,7 +4286,7 @@ impl AsterCore {
             m
         });
         let mut code: Value = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
-        let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_39 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_post_v3_position_margin(&[__ws_arg_39]).await;
         let __ws_arg_40 = self.parse_margin_modification(response.clone(), &[market.clone()]);
         return self.extend(__ws_arg_40, &[Value::Map({
@@ -4410,7 +4410,7 @@ impl AsterCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // max 1000
         }
-        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_41]).await;
         return self.parse_incomes(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -4454,7 +4454,7 @@ impl AsterCore {
         m.insert("referenceId".to_string(), self.safe_string_k(item.clone(), "tradeId", &[]));
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
         m.insert("currency".to_string(), code.clone());
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("before".to_string(), Value::Null);
@@ -4524,7 +4524,7 @@ impl AsterCore {
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_42 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_42]).await;
         return self.parse_ledger(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -4692,15 +4692,15 @@ impl AsterCore {
         m.insert("contracts".to_string(), contracts.clone());
         m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("unrealizedPnl".to_string(), unrealizedPnl.clone());
-        m.insert("leverage".to_string(), self.parse_number(leverageString.clone(), &[]));
+        m.insert("leverage".to_string(), self.parse_number(leverageString, &[]));
         m.insert("liquidationPrice".to_string(), liquidationPrice.clone());
         m.insert("collateral".to_string(), collateral.clone());
         m.insert("notional".to_string(), notional.clone());
         m.insert("markPrice".to_string(), markPrice.clone());
         m.insert("entryPrice".to_string(), entryPrice.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone(), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString.clone(), &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentageString, &[]));
         m.insert("maintenanceMargin".to_string(), maintenanceMargin.clone());
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage.clone());
         m.insert("marginRatio".to_string(), marginRatio.clone());
@@ -4743,7 +4743,7 @@ impl AsterCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_43 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.fapi_private_get_v3_position_risk(&[__ws_arg_43]).await;
         //
         //     [
@@ -5029,7 +5029,7 @@ impl AsterCore {
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = Value::Null;
             }
-            liquidationPrice = self.parse_number(truncatedLiquidationPrice.clone(), &[]);
+            liquidationPrice = self.parse_number(truncatedLiquidationPrice, &[]);
         }
         let mut positionSide: Value = self.safe_string_k(position.clone(), "positionSide", &[]);
         let mut hedged: Value = Value::Bool(positionSide.as_str() != Some("BOTH"));
@@ -5309,7 +5309,7 @@ impl AsterCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("chainId".to_string()), Value::Str("network".to_string()), Value::Str("fee".to_string())]), &[]);
         add_element_to_object(&mut request, &Value::Str("amount".to_string()), self.currency_to_precision(code.clone(), amount.clone(), &[network.clone()]));
         { let __be_tmp = self.sign_withdraw_payload(request.clone(), network.clone()); add_element_to_object(&mut request, &Value::Str("userSignature".to_string()), __be_tmp); };
-        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_45 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_post_v3_aster_user_withdraw(&[__ws_arg_45]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -5393,7 +5393,7 @@ impl AsterCore {
         let mut clientTranId: Value = self.safe_string_k(params.clone(), "clientTranId", &[defaultClientTranId.clone()]);
         add_element_to_object(&mut request, &Value::Str("kindType".to_string()), type_var.clone());
         add_element_to_object(&mut request, &Value::Str("clientTranId".to_string()), clientTranId.clone());
-        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_46 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_post_v3_asset_wallet_transfer(&[__ws_arg_46]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
@@ -5722,7 +5722,7 @@ impl AsterCore {
                         m.insert("asterChain".to_string(), Value::Str("Mainnet".to_string()));
                     m
                 });
-                let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_47 = self.extend(request, &[params.clone()]);
                 let mut authResponse: Value = self.fapi_private_post_v3_approve_builder(&[__ws_arg_47]).await;
                 //
                 // {"code": 200,"msg": "success"}

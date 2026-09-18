@@ -3788,7 +3788,7 @@ impl BybitCore {
         m.insert("expiry".to_string(), timestamp.clone());
         m.insert("expiryDatetime".to_string(), datetime.clone());
         m.insert("optionType".to_string(), (if is_true(&(Value::Bool(optionType.as_str() == Some("C")))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) }));
-        m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
+        m.insert("strike".to_string(), self.parse_number(strike, &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amountPrecision.clone());
@@ -4241,7 +4241,7 @@ impl BybitCore {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_v5_market_instruments_info(&[__ws_arg_0]).await;
         }  else {
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params.clone()]);
             response = self.public_get_v5_market_instruments_info(&[__ws_arg_1]).await;
         }
         //
@@ -4768,7 +4768,7 @@ impl BybitCore {
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".to_string()), &[]));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
-        m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
+        m.insert("strike".to_string(), self.parse_number(strike, &[]));
         m.insert("optionType".to_string(), self.safe_string_lower(market.clone(), Value::Str("optionsType".to_string()), &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4970,7 +4970,7 @@ impl BybitCore {
         let mut category: Value = Value::Null;
         { let __destr_tmp = self.get_bybit_type(Value::Str("fetchTicker".to_string()), market.clone(), &[params.clone()]); category = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), category.clone());
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_6]).await;
         //
         //     {
@@ -5099,7 +5099,7 @@ impl BybitCore {
             }
             add_element_to_object(&mut request, &Value::Str("baseCoin".to_string()), code.clone());
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_7]).await;
         //
         //     {
@@ -5440,7 +5440,7 @@ impl BybitCore {
             { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingRates".to_string()), &[market.clone(), params.clone(), Value::Str("linear".to_string())]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             add_element_to_object(&mut request, &Value::Str("category".to_string()), subType.clone());
         }
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_13]).await;
         //
         //     {
@@ -5564,7 +5564,7 @@ impl BybitCore {
                 add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.sum(&[since.clone(), (match (&(limit), &(fundingInterval)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
             }
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_funding_history(&[__ws_arg_14]).await;
         //
         //     {
@@ -5895,7 +5895,7 @@ impl BybitCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.get_bybit_type(Value::Str("fetchTrades".to_string()), market.clone(), &[params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_recent_trade(&[__ws_arg_15]).await;
         //
         //     {
@@ -5975,7 +5975,7 @@ impl BybitCore {
             }
         }
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), (if is_true(&(Value::Bool(limit != Value::Null))) { limit.clone() } else { defaultLimit.clone() }));
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_orderbook(&[__ws_arg_16]).await;
         //
         //     {
@@ -6277,7 +6277,7 @@ impl BybitCore {
             response = self.private_get_v5_asset_transfer_query_account_coins_balance(&[__ws_arg_18]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("accountType".to_string()), unifiedType.clone());
-            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_19 = self.extend(request, &[params.clone()]);
             response = self.private_get_v5_account_wallet_balance(&[__ws_arg_19]).await;
         }
         return self.parse_balance(response.clone());
@@ -6592,7 +6592,7 @@ impl BybitCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_20 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), Value::Int(-1), &[Value::Null, __ws_arg_20]).await;
 
     Value::Null
@@ -6630,7 +6630,7 @@ impl BybitCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_21 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_21 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), Value::Int(-1), &[Value::Null, __ws_arg_21]).await;
 
     Value::Null
@@ -7059,7 +7059,7 @@ impl BybitCore {
                 m.insert("request".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_create_batch(&[__ws_arg_22]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7156,7 +7156,7 @@ impl BybitCore {
                 add_element_to_object(&mut request, &Value::Str("tpTriggerBy".to_string()), tpTriggerBy.clone());
             }
         }
-        params = self.omit(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
+        params = self.omit(params, Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
         return request;
 
     Value::Null
@@ -7204,7 +7204,7 @@ impl BybitCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.edit_order_request(id.clone(), symbol.clone(), type_var.clone(), side.clone(), &[amount.clone(), price.clone(), params.clone()]);
-        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_amend(&[__ws_arg_23]).await;
         //
         //     {
@@ -7288,7 +7288,7 @@ impl BybitCore {
                 m.insert("request".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_24 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_amend_batch(&[__ws_arg_24]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -7462,7 +7462,7 @@ impl BybitCore {
                 m.insert("request".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_25 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_cancel_batch(&[__ws_arg_25]).await;
         //
         //     {
@@ -7546,7 +7546,7 @@ impl BybitCore {
         });
         let mut product: Value = self.safe_string(productMap.clone(), type_var.clone(), &[type_var.clone()]);
         add_element_to_object(&mut request, &Value::Str("product".to_string()), product.clone());
-        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_26 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await;
         return response;
 
@@ -7615,7 +7615,7 @@ impl BybitCore {
                 m.insert("request".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_cancel_batch(&[__ws_arg_27]).await;
         //
         //     {
@@ -7717,7 +7717,7 @@ impl BybitCore {
         if (isTrigger.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("orderFilter".to_string()), Value::Str("StopOrder".to_string()));
         }
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_order_cancel_all(&[__ws_arg_28]).await;
         //
         // linear / inverse / option
@@ -7795,7 +7795,7 @@ impl BybitCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.fetch_orders_classic(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_29]).await;
         let mut length: Value = Value::Int(result.len() as i64);
         if (length.as_f64() == Some(0.0)) {
@@ -7858,7 +7858,7 @@ impl BybitCore {
         if (isTrigger.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("orderFilter".to_string()), Value::Str("StopOrder".to_string()));
         }
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_order_realtime(&[__ws_arg_30]).await;
         //
         //     {
@@ -8083,7 +8083,7 @@ impl BybitCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_32]).await;
         let mut length: Value = Value::Int(result.len() as i64);
         if (length.as_f64() == Some(0.0)) {
@@ -8130,7 +8130,7 @@ impl BybitCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_33]).await;
         let mut length: Value = Value::Int(result.len() as i64);
         if (length.as_f64() == Some(0.0)) {
@@ -8209,7 +8209,7 @@ impl BybitCore {
         if (endTime != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), endTime.clone());
         }
-        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_order_history(&[__ws_arg_34]).await;
         //
         //     {
@@ -8315,7 +8315,7 @@ impl BybitCore {
                 m.insert("orderStatus".to_string(), Value::Str("Filled".to_string()));
             m
         });
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params.clone()]);
         return self.fetch_canceled_and_closed_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_35]).await;
 
     Value::Null
@@ -8355,7 +8355,7 @@ impl BybitCore {
                 m.insert("orderStatus".to_string(), Value::Str("Cancelled".to_string()));
             m
         });
-        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_36 = self.extend(request, &[params.clone()]);
         return self.fetch_canceled_and_closed_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_36]).await;
 
     Value::Null
@@ -8424,7 +8424,7 @@ impl BybitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_order_realtime(&[__ws_arg_37]).await;
         //
         //     {
@@ -8527,7 +8527,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("orderLinkId".to_string())]), &[]);
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_38]).await;
 
     Value::Null
@@ -8583,7 +8583,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_39 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_39 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_39]).await;
         //
         //     {
@@ -8686,7 +8686,7 @@ impl BybitCore {
         if (networkCode != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("chainType".to_string()), self.network_code_to_id(networkCode.clone(), &[code.clone()]));
         }
-        let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_40 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_deposit_query_address(&[__ws_arg_40]).await;
         //
         //     {
@@ -8799,7 +8799,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_deposit_query_record(&[__ws_arg_41]).await;
         //
         //     {
@@ -8879,7 +8879,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_42 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_withdraw_query_record(&[__ws_arg_42]).await;
         //
         //     {
@@ -9104,7 +9104,7 @@ impl BybitCore {
                 response = self.private_get_v5_account_transaction_log(&[__ws_arg_44]).await;
             }
         }  else {
-            let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_45 = self.extend(request, &[params.clone()]);
             response = self.private_get_v5_account_contract_transaction_log(&[__ws_arg_45]).await;
         }
         //
@@ -9381,7 +9381,7 @@ impl BybitCore {
         if (networkId != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), to_upper(&networkId));
         }
-        let __ws_arg_46 = self.extend(request.clone(), &[query.clone()]);
+        let __ws_arg_46 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_post_v5_asset_withdraw_create(&[__ws_arg_46]).await;
         //
         //    {
@@ -9433,7 +9433,7 @@ impl BybitCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.get_bybit_type(Value::Str("fetchPosition".to_string()), market.clone(), &[params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
-        let __ws_arg_47 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_47 = self.extend(request, &[params.clone()]);
         response = self.private_get_v5_position_list(&[__ws_arg_47]).await;
         //
         //     {
@@ -9566,7 +9566,7 @@ impl BybitCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("type".to_string())]), &[]);
         add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
-        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_48 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_position_list(&[__ws_arg_48]).await;
         //
         //     {
@@ -9849,20 +9849,20 @@ impl BybitCore {
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp.clone());
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone(), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notional), &[]));
-        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.clone(), &[]));
-        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage.clone(), &[]));
-        m.insert("entryPrice".to_string(), self.parse_number(entryPrice.clone(), &[]));
-        m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
-        m.insert("leverage".to_string(), self.parse_number(leverage.clone(), &[]));
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.clone(), &[]));
+        m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString, &[]));
+        m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage, &[]));
+        m.insert("entryPrice".to_string(), self.parse_number(entryPrice, &[]));
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
+        m.insert("leverage".to_string(), self.parse_number(leverage, &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));
         m.insert("realizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("curRealisedPnl".to_string()), Value::Str("closedPnl".to_string()), &[]));
-        m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
+        m.insert("contracts".to_string(), self.parse_number(size, &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
-        m.insert("marginRatio".to_string(), self.parse_number(marginRatio.clone(), &[]));
-        m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPrice.clone(), &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPrice.clone(), &[]));
+        m.insert("marginRatio".to_string(), self.parse_number(marginRatio, &[]));
+        m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPrice, &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "avgExitPrice", &[]));
-        m.insert("collateral".to_string(), self.parse_number(collateralString.clone(), &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
         m.insert("percentage".to_string(), Value::Null);
@@ -10022,7 +10022,7 @@ impl BybitCore {
                         m.insert("sellLeverage".to_string(), sellLeverage.clone());
                     m
                 });
-                let __ws_arg_51 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_51 = self.extend(request, &[params.clone()]);
                 response = self.private_post_v5_position_switch_isolated(&[__ws_arg_51]).await;
             }
         }
@@ -10077,7 +10077,7 @@ impl BybitCore {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() only support linear and inverse market".to_string()))));
         }
-        let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_52 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_position_set_leverage(&[__ws_arg_52]).await;
         return response;
 
@@ -10132,7 +10132,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
         }
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
-        let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_53 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_position_switch_mode(&[__ws_arg_53]).await;
         return response;
 
@@ -10181,7 +10181,7 @@ impl BybitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_54 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_open_interest(&[__ws_arg_54]).await;
         //
         //     {
@@ -10256,7 +10256,7 @@ impl BybitCore {
                 m.insert("category".to_string(), category.clone());
             m
         });
-        let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_55 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_open_interest(&[__ws_arg_55]).await;
         //
         //     {
@@ -10398,7 +10398,7 @@ impl BybitCore {
                 m.insert("vipLevel".to_string(), Value::Str("No VIP".to_string()));
             m
         });
-        let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_56 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_spot_margin_trade_data(&[__ws_arg_56]).await;
         //
         //     {
@@ -10516,7 +10516,7 @@ impl BybitCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_57 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_spot_cross_margin_trade_account(&[__ws_arg_57]).await;
         //
         //     {
@@ -10592,7 +10592,7 @@ impl BybitCore {
             endTime = (match (&(since), &((match (&(Value::Int(86400000)), &(Value::Int(30))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); // since + 30 days
         }
         add_element_to_object(&mut request, &Value::Str("endTime".to_string()), endTime.clone());
-        let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_58 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_spot_margin_trade_interest_rate_history(&[__ws_arg_58]).await;
         //
         //   {
@@ -10677,7 +10677,7 @@ impl BybitCore {
                 m.insert("amount".to_string(), amountToPrecision.clone());
             m
         });
-        let __ws_arg_59 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_59 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_asset_transfer_inter_transfer(&[__ws_arg_59]).await;
         //
         // {
@@ -10699,7 +10699,7 @@ impl BybitCore {
         let mut status: Value = self.parse_transfer_status(statusRaw.clone());
         let __ws_arg_60 = self.parse_transfer(transfer.clone(), &[currency.clone()]);
         let __ws_arg_61 = self.iso8601(timestamp.clone());
-        let __ws_arg_62 = self.parse_number(amountToPrecision.clone(), &[]);
+        let __ws_arg_62 = self.parse_number(amountToPrecision, &[]);
         return self.extend(__ws_arg_60, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -10759,7 +10759,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_63 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_transfer_query_inter_transfer_list(&[__ws_arg_63]).await;
         //
         //     {
@@ -10814,7 +10814,7 @@ impl BybitCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_64 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_account_borrow(&[__ws_arg_64]).await;
         //
         //     {
@@ -10862,7 +10862,7 @@ impl BybitCore {
                 m.insert("amount".to_string(), self.number_to_string(amount.clone()));
             m
         });
-        let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_65 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_account_no_convert_repay(&[__ws_arg_65]).await;
         //
         //     {
@@ -10880,7 +10880,7 @@ impl BybitCore {
     m
 })]);
         let mut transaction: Value = self.parse_margin_loan(result.clone(), &[currency.clone()]);
-        return self.extend(transaction.clone(), &[Value::Map({
+        return self.extend(transaction, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), amount.clone());
     m
@@ -11001,7 +11001,7 @@ impl BybitCore {
         }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("category".to_string()), Value::Str("inverse".to_string()));
         }
-        let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_66 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_risk_limit(&[__ws_arg_66]).await;
         //
         //     {
@@ -11117,7 +11117,7 @@ impl BybitCore {
         let mut category: Value = Value::Null;
         { let __destr_tmp = self.get_bybit_type(Value::Str("fetchTradingFee".to_string()), market.clone(), &[params.clone()]); category = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), category.clone());
-        let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_67 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_account_fee_rate(&[__ws_arg_67]).await;
         //
         //     {
@@ -11618,7 +11618,7 @@ impl BybitCore {
                 m.insert("baseCoin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_70 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_70 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_historical_volatility(&[__ws_arg_70]).await;
         //
         //     {
@@ -11695,7 +11695,7 @@ impl BybitCore {
                 m.insert("category".to_string(), Value::Str("option".to_string()));
             m
         });
-        let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_71 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_71]).await;
         //
         //     {
@@ -11745,7 +11745,7 @@ impl BybitCore {
         let mut data: Value = self.safe_list_k(result.clone(), "list", &[Value::List(vec![])]);
         let mut greeks: Value = self.parse_greeks(data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[market.clone()]);
         let __ws_arg_72 = self.iso8601(timestamp.clone());
-        return self.extend(greeks.clone(), &[Value::Map({
+        return self.extend(greeks, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), __ws_arg_72);
@@ -11790,7 +11790,7 @@ impl BybitCore {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
-        let __ws_arg_73 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_73 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_73]).await;
         //
         //     {
@@ -11952,7 +11952,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_74 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_74]).await;
         //
         //     {
@@ -12041,11 +12041,11 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
-        m.insert("contracts".to_string(), self.parse_number(contractsString.clone(), &[]));
-        m.insert("contractSize".to_string(), self.parse_number(contractSizeString.clone(), &[]));
-        m.insert("price".to_string(), self.parse_number(priceString.clone(), &[]));
-        m.insert("baseValue".to_string(), self.parse_number(baseValueString.clone(), &[]));
-        m.insert("quoteValue".to_string(), self.parse_number(quoteValueString.clone(), &[]));
+        m.insert("contracts".to_string(), self.parse_number(contractsString, &[]));
+        m.insert("contractSize".to_string(), self.parse_number(contractSizeString, &[]));
+        m.insert("price".to_string(), self.parse_number(priceString, &[]));
+        m.insert("baseValue".to_string(), self.parse_number(baseValueString, &[]));
+        m.insert("quoteValue".to_string(), self.parse_number(quoteValueString, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -12079,7 +12079,7 @@ impl BybitCore {
                 m.insert("category".to_string(), subType.clone());
             m
         });
-        let __ws_arg_75 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_75 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_risk_limit(&[__ws_arg_75]).await;
         let mut result: Value = self.add_pagination_cursor_to_result(response.clone());
         let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[]);
@@ -12294,7 +12294,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), Value::Int(100));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_77 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_77]).await;
         let mut fundings: Value = self.add_pagination_cursor_to_result(response.clone());
         return self.parse_incomes(fundings.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -12385,7 +12385,7 @@ impl BybitCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_78 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_78]).await;
         //
         //     {
@@ -12465,7 +12465,7 @@ impl BybitCore {
                 m.insert("baseCoin".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_79 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_tickers(&[__ws_arg_79]).await;
         //
         //     {
@@ -12629,7 +12629,7 @@ impl BybitCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_80 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_position_closed_pnl(&[__ws_arg_80]).await;
         //
         //    {
@@ -12705,7 +12705,7 @@ impl BybitCore {
                 m.insert("accountType".to_string(), accountType.clone());
             m
         });
-        let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_81 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_exchange_query_coin_list(&[__ws_arg_81]).await;
         //
         //     {
@@ -12844,7 +12844,7 @@ impl BybitCore {
                 m.insert("accountType".to_string(), accountType.clone());
             m
         });
-        let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_82 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_asset_exchange_quote_apply(&[__ws_arg_82]).await;
         //
         //     {
@@ -12905,7 +12905,7 @@ impl BybitCore {
                 m.insert("quoteTxId".to_string(), id.clone());
             m
         });
-        let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_83 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v5_asset_exchange_convert_execute(&[__ws_arg_83]).await;
         //
         //     {
@@ -12961,7 +12961,7 @@ impl BybitCore {
                 m.insert("accountType".to_string(), accountType.clone());
             m
         });
-        let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_84 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_exchange_convert_result_query(&[__ws_arg_84]).await;
         //
         //     {
@@ -13041,7 +13041,7 @@ impl BybitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_85 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_asset_exchange_query_convert_history(&[__ws_arg_85]).await;
         //
         //     {
@@ -13190,7 +13190,7 @@ impl BybitCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_86 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v5_market_account_ratio(&[__ws_arg_86]).await;
         //
         //     {
@@ -13281,7 +13281,7 @@ impl BybitCore {
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.get_bybit_type(Value::Str("fetchPositionsADLRank".to_string()), market.clone(), &[params.clone()]); type_var = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         add_element_to_object(&mut request, &Value::Str("category".to_string()), type_var.clone());
-        let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_87 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v5_position_list(&[__ws_arg_87]).await;
         //
         //     {
@@ -13566,7 +13566,7 @@ impl BybitCore {
                 }
                 if (method.as_str() == Some("POST")) {
                     let mut isSpot: bool = get_index_of(&url, &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
-                    let mut extendedQuery: Value = self.extend(query.clone(), &[Value::Map({
+                    let mut extendedQuery: Value = self.extend(query, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("sign".to_string(), signature.clone());
                         m

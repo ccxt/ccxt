@@ -361,7 +361,7 @@ impl KrakenfuturesCore {
                     m.insert("api_key".to_string(), self.apiKey.clone());
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -473,7 +473,7 @@ impl KrakenfuturesCore {
                 m.insert("signed_challenge".to_string(), self.options.as_map().and_then(|__m| __m.get("signedChallenge")).cloned().unwrap_or(Value::Null));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -969,7 +969,7 @@ impl KrakenfuturesCore {
         let mut channel: Value = self.safe_string_k(message.clone(), "feed", &[]);
         let mut marketId: Value = self.safe_string_k(message.clone(), "product_id", &[]);
         if (marketId != Value::Null) {
-            let mut market: Value = self.market(marketId.clone());
+            let mut market: Value = self.market(marketId);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[Value::Null, symbol.clone()]);
             if (self.safe_list(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
@@ -2179,7 +2179,7 @@ impl KrakenfuturesCore {
                 m
             });
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_1, messageHashes.clone(), subscriptionArgs.clone()]).await;
 
     Value::Null

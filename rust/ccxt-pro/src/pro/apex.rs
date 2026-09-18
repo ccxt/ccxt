@@ -600,7 +600,7 @@ impl ApexCore {
                     m.insert("args".to_string(), newTopics.clone());
                 m
             });
-            message = self.extend(request.clone(), &[params.clone()]);
+            message = self.extend(request, &[params.clone()]);
         }
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
 
@@ -838,7 +838,7 @@ impl ApexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut merged: Value = self.extend(rawTicker.clone(), &[data.clone()]);
+            let mut merged: Value = self.extend(rawTicker, &[data.clone()]);
             parsed = self.parse_ticker(merged.clone(), &[]);
         }
         let mut timestamp: Value = self.safe_integer_product(message.clone(), Value::Str("ts".to_string()), Value::Float(0.001), &[]);

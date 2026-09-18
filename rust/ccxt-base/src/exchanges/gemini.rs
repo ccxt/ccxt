@@ -1493,7 +1493,7 @@ impl GeminiCore {
                         m.insert("symbol".to_string(), marketId.clone());
                     m
                 });
-                let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_1 = self.extend(request, &[params.clone()]);
                 append_to_array(&mut promises, self.public_get_v1_symbols_details_symbol(&[__ws_arg_1]).await);
             }
             }
@@ -1751,7 +1751,7 @@ impl GeminiCore {
             add_element_to_object(&mut request, &Value::Str("limit_bids".to_string()), limit.clone());
             add_element_to_object(&mut request, &Value::Str("limit_asks".to_string()), limit.clone());
         }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v1_book_symbol(&[__ws_arg_2]).await;
         return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("amount".to_string())]);
 
@@ -1772,7 +1772,7 @@ impl GeminiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v1_pubticker_symbol(&[__ws_arg_3]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -1793,7 +1793,7 @@ impl GeminiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v2_ticker_symbol(&[__ws_arg_4]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -2099,7 +2099,7 @@ impl GeminiCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("timestamp".to_string()), since.clone());
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v1_trades_symbol(&[__ws_arg_5]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2182,8 +2182,8 @@ impl GeminiCore {
         let mut takerBps: Value = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]);
         let mut makerString: Value = crate::precise::Precise::stringDiv(&makerBps, &Value::Str("10000".to_string()));
         let mut takerString: Value = crate::precise::Precise::stringDiv(&takerBps, &Value::Str("10000".to_string()));
-        let mut maker: Value = self.parse_number(makerString.clone(), &[]);
-        let mut taker: Value = self.parse_number(takerString.clone(), &[]);
+        let mut maker: Value = self.parse_number(makerString, &[]);
+        let mut taker: Value = self.parse_number(takerString, &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2428,7 +2428,7 @@ impl GeminiCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_order_status(&[__ws_arg_6]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -2600,7 +2600,7 @@ impl GeminiCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_order_cancel(&[__ws_arg_8]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -2644,7 +2644,7 @@ impl GeminiCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("timestamp".to_string()), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_mytrades(&[__ws_arg_9]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2682,7 +2682,7 @@ impl GeminiCore {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_withdraw_currency(&[__ws_arg_10]).await;
         //
         //   for BTC
@@ -2758,7 +2758,7 @@ impl GeminiCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("timestamp".to_string()), since.clone());
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_transfers(&[__ws_arg_11]).await;
         return self.parse_transactions(response.clone(), &[]);
 
@@ -2923,7 +2923,7 @@ impl GeminiCore {
                 m.insert("network".to_string(), networkId.clone());
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_addresses_network(&[__ws_arg_12]).await;
         let mut results: Value = self.parse_deposit_addresses(response.clone(), &[Value::List(vec![code.clone()]), Value::Bool(false), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2946,7 +2946,7 @@ impl GeminiCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             let mut apiKey: Value = self.apiKey.clone();
@@ -3046,7 +3046,7 @@ impl GeminiCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_deposit_currency_new_address(&[__ws_arg_13]).await;
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         self.check_address(&[address.clone()]);
@@ -3094,7 +3094,7 @@ impl GeminiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v2_candles_symbol_timeframe(&[__ws_arg_14]).await;
         //
         //     [
@@ -3135,7 +3135,7 @@ impl GeminiCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_v1_riskstats_symbol(&[__ws_arg_15]).await;
         return self.parse_open_interest(response.clone(), &[market.clone()]);
 

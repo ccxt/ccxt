@@ -325,7 +325,7 @@ impl MudrexCore {
                 m.insert("assets".to_string(), Value::List(vec![assetId.clone()]));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -366,7 +366,7 @@ impl MudrexCore {
                 m.insert("assets".to_string(), assets.clone());
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         let mut ticker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[request.clone(), messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
@@ -417,7 +417,7 @@ impl MudrexCore {
                 m.insert("params".to_string(), Value::List(vec![stream.clone()]));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());

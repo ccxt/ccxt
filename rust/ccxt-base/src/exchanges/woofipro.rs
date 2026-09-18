@@ -1911,7 +1911,7 @@ impl WoofiproCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_public_market_trades(&[__ws_arg_0]).await;
         //
         // {
@@ -2042,7 +2042,7 @@ impl WoofiproCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_public_funding_rate_symbol(&[__ws_arg_1]).await;
         //
         // {
@@ -2191,7 +2191,7 @@ impl WoofiproCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_public_futures_symbol(&[__ws_arg_2]).await;
         //
         // {
@@ -2356,7 +2356,7 @@ impl WoofiproCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_public_futures_symbol(&[__ws_arg_3]).await;
         //
         // {
@@ -2490,7 +2490,7 @@ impl WoofiproCore {
             add_element_to_object(&mut request, &Value::Str("start_t".to_string()), since.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_t".to_string()), request.clone(), params.clone(), &[Value::Float(0.001)]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_public_get_public_funding_rate_history(&[__ws_arg_4]).await;
         //
         // {
@@ -2572,7 +2572,7 @@ impl WoofiproCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("rate".to_string(), rate.clone());
     m
 });
@@ -2628,7 +2628,7 @@ impl WoofiproCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_funding_fee_history(&[__ws_arg_5]).await;
         //
         // {
@@ -2770,7 +2770,7 @@ impl WoofiproCore {
             limit = crate::runtime::Math::min(&limit, &Value::Int(1000));
             add_element_to_object(&mut request, &Value::Str("max_level".to_string()), limit.clone());
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_orderbook_symbol(&[__ws_arg_6]).await;
         //
         // {
@@ -2839,7 +2839,7 @@ impl WoofiproCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_kline(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3162,7 +3162,7 @@ impl WoofiproCore {
             add_element_to_object(&mut request, &Value::Str("child_orders".to_string()), Value::List(vec![outterOrder.clone()]));
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("timeInForce".to_string()), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
-        return self.extend(request.clone(), &[params.clone()]);
+        return self.extend(request, &[params.clone()]);
 
     Value::Null
 }
@@ -3271,7 +3271,7 @@ impl WoofiproCore {
                 m.insert("orders".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_post_batch_order(&[__ws_arg_8]).await;
         //
         //     {
@@ -3378,7 +3378,7 @@ impl WoofiproCore {
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_10 = self.extend(request, &[params.clone()]);
             response = self.v1_private_put_order(&[__ws_arg_10]).await;
         }
         //
@@ -3461,7 +3461,7 @@ impl WoofiproCore {
                 response = self.v1_private_delete_client_order(&[__ws_arg_13]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
-                let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_14 = self.extend(request, &[params.clone()]);
                 response = self.v1_private_delete_order(&[__ws_arg_14]).await;
             }
         }
@@ -3542,7 +3542,7 @@ impl WoofiproCore {
             response = self.v1_private_delete_client_batch_order(&[__ws_arg_17]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_ids".to_string()), join(&ids, &Value::Str(",".to_string())));
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.v1_private_delete_batch_order(&[__ws_arg_18]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
@@ -3589,7 +3589,7 @@ impl WoofiproCore {
             let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
             response = self.v1_private_delete_algo_orders(&[__ws_arg_19]).await;
         }  else {
-            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_20 = self.extend(request, &[params.clone()]);
             response = self.v1_private_delete_orders(&[__ws_arg_20]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
@@ -3654,7 +3654,7 @@ impl WoofiproCore {
                 response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_23]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("oid".to_string()), id.clone());
-                let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_24 = self.extend(request, &[params.clone()]);
                 response = self.v1_private_get_order_oid(&[__ws_arg_24]).await;
             }
         }
@@ -3757,7 +3757,7 @@ impl WoofiproCore {
             let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
             response = self.v1_private_get_algo_orders(&[__ws_arg_25]).await;
         }  else {
-            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_26 = self.extend(request, &[params.clone()]);
             response = self.v1_private_get_orders(&[__ws_arg_26]).await;
         }
         //
@@ -3829,7 +3829,7 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("INCOMPLETE".to_string()));
             m
@@ -3867,7 +3867,7 @@ impl WoofiproCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("COMPLETED".to_string()));
             m
@@ -3909,7 +3909,7 @@ impl WoofiproCore {
                 m.insert("oid".to_string(), id.clone());
             m
         });
-        let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_order_oid_trades(&[__ws_arg_27]).await;
         //
         // {
@@ -3989,7 +3989,7 @@ impl WoofiproCore {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), Value::Int(500));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_t".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_trades(&[__ws_arg_28]).await;
         //
         // {
@@ -4123,7 +4123,7 @@ impl WoofiproCore {
         if (transactionType != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), transactionType.clone());
         }
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_asset_history(&[__ws_arg_29]).await;
         //
         // {
@@ -4310,7 +4310,7 @@ impl WoofiproCore {
                 m.insert("side".to_string(), Value::Str("DEPOSIT".to_string()));
             m
         });
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params.clone()]);
         return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_30]).await;
 
     Value::Null
@@ -4340,7 +4340,7 @@ impl WoofiproCore {
                 m.insert("side".to_string(), Value::Str("WITHDRAW".to_string()));
             m
         });
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_31 = self.extend(request, &[params.clone()]);
         return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_31]).await;
 
     Value::Null
@@ -4369,7 +4369,7 @@ impl WoofiproCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params.clone()]);
         let mut currencyRows: Value = self.get_asset_history_rows(&[code.clone(), since.clone(), limit.clone(), __ws_arg_32]).await;
         let mut currency: Value = self.safe_value(currencyRows.clone(), Value::Int(0), &[]);
         let mut rows: Value = self.safe_list(currencyRows.clone(), Value::Int(1), &[]);
@@ -4554,7 +4554,7 @@ impl WoofiproCore {
             m
         });
         params = self.omit(params.clone(), Value::Str("chainId".to_string()), &[]);
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_post_withdraw_request(&[__ws_arg_33]).await;
         //
         //     {
@@ -4698,7 +4698,7 @@ impl WoofiproCore {
                 m.insert("default_margin_mode".to_string(), to_upper(&marginMode));
             m
         });
-        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params.clone()]);
         return self.v1_private_post_client_margin_mode(&[__ws_arg_34]).await;
 
     Value::Null
@@ -4760,7 +4760,7 @@ impl WoofiproCore {
                 m.insert("type".to_string(), type_var.clone());
             m
         });
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_post_position_margin(&[__ws_arg_35]).await;
         //
         // {
@@ -4914,7 +4914,7 @@ impl WoofiproCore {
                 m.insert("leverage".to_string(), leverage.clone());
             m
         });
-        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_36 = self.extend(request, &[params.clone()]);
         return self.v1_private_post_client_leverage(&[__ws_arg_36]).await;
 
     Value::Null
@@ -4972,15 +4972,15 @@ impl WoofiproCore {
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.parse_number(entryPrice.clone(), &[]));
-        m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
+        m.insert("entryPrice".to_string(), self.parse_number(entryPrice, &[]));
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.clone(), &[]));
-        m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
-        m.insert("contractSize".to_string(), self.parse_number(contractSize.clone(), &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));
+        m.insert("contracts".to_string(), self.parse_number(size, &[]));
+        m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "est_liq_price", &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPrice.clone(), &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("cross".to_string()));
@@ -5019,7 +5019,7 @@ impl WoofiproCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_private_get_position_symbol(&[__ws_arg_37]).await;
         //
         // {

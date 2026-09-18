@@ -966,7 +966,7 @@ impl CoinmateCore {
                 m.insert("groupByPriceLimit".to_string(), Value::Str("False".to_string()));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_order_book(&[__ws_arg_0]).await;
         let mut orderbook: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1001,7 +1001,7 @@ impl CoinmateCore {
                 m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_1]).await;
         //
         //     {
@@ -1170,7 +1170,7 @@ impl CoinmateCore {
             let mut currency: Value = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_transfer_history(&[__ws_arg_2]).await;
         let mut items: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_transactions(items.clone(), &[Value::Null, since.clone(), limit.clone()]);
@@ -1325,7 +1325,7 @@ impl CoinmateCore {
         if (tag != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("destinationTag".to_string()), tag.clone());
         }
-        let mut requestParams: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut requestParams: Value = self.extend(request, &[params.clone()]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privatePostBitcoinWithdrawal")) {
             response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await;
@@ -1404,13 +1404,13 @@ impl CoinmateCore {
             m
         });
         if (symbol != Value::Null) {
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("currencyPair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("timestampFrom".to_string()), since.clone());
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_trade_history(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[Value::Null, since.clone(), limit.clone()]);
@@ -1517,7 +1517,7 @@ impl CoinmateCore {
                 m.insert("minutesIntoHistory".to_string(), Value::Int(10));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_transactions(&[__ws_arg_4]).await;
         //
         //     {
@@ -1564,7 +1564,7 @@ impl CoinmateCore {
                 m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_trader_fees(&[__ws_arg_5]).await;
         //
         //     {
@@ -1655,7 +1655,7 @@ impl CoinmateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1665,7 +1665,7 @@ impl CoinmateCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_order_history(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1835,7 +1835,7 @@ impl CoinmateCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             method = Value::Str(format!("{}{}", method, self.capitalize(type_var.clone())));
         }
-        let mut requestParams: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut requestParams: Value = self.extend(request, &[params.clone()]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privatePostBuyInstant")) {
             response = self.private_post_buy_instant(&[requestParams.clone()]).await;
@@ -1886,9 +1886,9 @@ impl CoinmateCore {
         });
         let mut market: Value = Value::Null;
         if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(symbol.as_str() != Some("")))) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_order_by_id(&[__ws_arg_8]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         return self.parse_order(data.clone(), &[market.clone()]);
@@ -1918,7 +1918,7 @@ impl CoinmateCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_cancel_order_with_info(&[__ws_arg_9]).await;
         //
         //    {

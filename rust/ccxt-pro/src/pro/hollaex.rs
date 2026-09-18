@@ -789,7 +789,7 @@ impl HollaexCore {
                 m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -830,7 +830,7 @@ impl HollaexCore {
                 m.insert("args".to_string(), Value::List(vec![messageHash.clone()]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(signedUrl.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null

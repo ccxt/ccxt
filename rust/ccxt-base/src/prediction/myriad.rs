@@ -569,7 +569,7 @@ impl MyriadCore {
     m
 }));
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string())]), &[]);
         let mut queriesLength: Value = Value::Int(queries.len() as i64);
         let mut rawMarkets: Value = Value::List(vec![]);
         if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -622,7 +622,7 @@ impl MyriadCore {
 }));
         let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("defaultFetchEventsLimit".to_string()), &[Value::Int(50)])]);
         let mut state: Value = self.safe_string_k(params.clone(), "state", &[self.safe_string(self.options.clone(), Value::Str("defaultMarketStatus".to_string()), &[Value::Str("open".to_string())])]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("limit".to_string()), Value::Str("state".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("limit".to_string()), Value::Str("state".to_string())]), &[]);
         let mut seen: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -689,7 +689,7 @@ impl MyriadCore {
         let mut state: Value = self.safe_string2(params.clone(), Value::Str("state".to_string()), Value::Str("status".to_string()), &[self.safe_string_k(self.options.clone(), "defaultMarketStatus", &[Value::Str("open".to_string())])]);
         // include both AMM and order-book markets so order-book trading methods can resolve their markets
         let mut tradingModel: Value = self.safe_string2(params.clone(), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string()), &[self.safe_string_k(self.options.clone(), "defaultTradingModel", &[Value::Str("all".to_string())])]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("state".to_string()), Value::Str("status".to_string()), Value::Str("limit".to_string()), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("state".to_string()), Value::Str("status".to_string()), Value::Str("limit".to_string()), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string())]), &[]);
         let mut allRawMarkets: Value = Value::List(vec![]);
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
@@ -788,7 +788,7 @@ impl MyriadCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
         }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         return self.myriad_public_get_markets_id(&[__ws_arg_2]).await;
 
     Value::Null
@@ -815,7 +815,7 @@ impl MyriadCore {
         });
         let mut result: Value = Value::Null;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_3 = self.extend(request, &[params.clone()]);
             result = self.myriad_public_get_questions_id(&[__ws_arg_3]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
@@ -828,7 +828,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("limit".to_string(), Value::Int(50));
                 m
             });
-            let __ws_arg_4 = self.extend(keywordRequest.clone(), &[params.clone()]);
+            let __ws_arg_4 = self.extend(keywordRequest, &[params.clone()]);
             let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_4]).await;
             let mut questions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             let mut questionsLength: Value = Value::Int(questions.len() as i64);
@@ -872,7 +872,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("defaultFetchEventsLimit".to_string()), &[Value::Int(50)])]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("limit".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("limit".to_string())]), &[]);
         let mut seen: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -931,7 +931,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "defaultFetchEventsLimit", &[Value::Int(50)]);
         let mut maxQuestions: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchEventsLimit".to_string()), &[Value::Int(1000)])]);
         let mut state: Value = self.safe_string2(params.clone(), Value::Str("state".to_string()), Value::Str("status".to_string()), &[self.safe_string_k(self.options.clone(), "defaultMarketStatus", &[Value::Str("open".to_string())])]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("state".to_string()), Value::Str("status".to_string()), Value::Str("limit".to_string()), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("state".to_string()), Value::Str("status".to_string()), Value::Str("limit".to_string()), Value::Str("tradingModel".to_string()), Value::Str("trading_model".to_string())]), &[]);
         let mut allRawQuestions: Value = Value::List(vec![]);
         let mut seen: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -949,7 +949,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (state != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("state".to_string()), state.clone());
             }
-            let __ws_arg_6 = self.extend(request.clone(), &[rest.clone()]);
+            let __ws_arg_6 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.myriad_public_get_questions(&[__ws_arg_6]).await;
             let mut responseIsArray: bool = is_array(&response);
             let mut rawQuestionsList: Value = (if (responseIsArray) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
@@ -1113,7 +1113,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("notional".to_string(), value.clone());
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "price", &[]));
         m.insert("unrealizedPnl".to_string(), profit.clone());
-        m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
         m.insert("marginMode".to_string(), Value::Str("cash".to_string()));
         m.insert("hedged".to_string(), Value::Bool(false));
     m
@@ -1163,10 +1163,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("shares".to_string()), amount.clone());
         }
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("slippage".to_string())]), &[]);
-        let __ws_arg_8 = self.extend(request.clone(), &[rest.clone()]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("slippage".to_string())]), &[]);
+        let __ws_arg_8 = self.extend(request, &[rest.clone()]);
         let mut response: Value = self.myriad_public_post_markets_quote(&[__ws_arg_8]).await;
-        let __ws_arg_9 = self.extend(response.clone(), &[Value::Map({
+        let __ws_arg_9 = self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("action".to_string(), sideStr.clone());
     m
@@ -1338,7 +1338,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (enableAmm.as_bool() != Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in".to_string()))));
         }
-        return self.create_amm_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), self.omit(rest.clone(), Value::List(vec![Value::Str("enableAmm".to_string()), Value::Str("enableAmmOrders".to_string())]), &[])]).await;
+        return self.create_amm_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), self.omit(rest, Value::List(vec![Value::Str("enableAmm".to_string()), Value::Str("enableAmmOrders".to_string())]), &[])]).await;
 
     Value::Null
 }
@@ -1555,7 +1555,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let __ws_arg_12 = self.extend(orderParams.clone(), &[params.clone()]);
+            let __ws_arg_12 = self.extend(orderParams, &[params.clone()]);
             let mut placed: Value = self.create_orderbook_order(outcome.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), __ws_arg_12]).await;
             append_to_array(&mut result, placed.clone());
         }
@@ -1702,7 +1702,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         // myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
         // mark the order cost-denominated so createAmmOrder spends exactly `cost` (not `cost` shares)
-        let mut request: Value = self.extend(params.clone(), &[Value::Map({
+        let mut request: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("enableAmm".to_string(), Value::Bool(true));
                 m.insert("costDenominated".to_string(), Value::Bool(true));
@@ -2112,10 +2112,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("price".to_string(), self.parse_number(priceStr.clone(), &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), self.parse_number(amountStr.clone(), &[]));
-        m.insert("filled".to_string(), self.parse_number(amountStr.clone(), &[]));
+        m.insert("filled".to_string(), self.parse_number(amountStr, &[]));
         m.insert("remaining".to_string(), Value::Int(0));
-        m.insert("cost".to_string(), self.parse_number(costStr.clone(), &[]));
-        m.insert("average".to_string(), self.parse_number(priceStr.clone(), &[]));
+        m.insert("cost".to_string(), self.parse_number(costStr, &[]));
+        m.insert("average".to_string(), self.parse_number(priceStr, &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("reduceOnly".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::List(vec![]));
@@ -2182,7 +2182,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("trader".to_string()), Value::Str("address".to_string()), Value::Str("status".to_string())]), &[]);
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_users_address_events(&[__ws_arg_14]).await;
         //
         //     {
@@ -2310,7 +2310,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), self.parse_to_int(networkId.clone()));
             m
         });
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_delete_orders_hash(&[__ws_arg_16]).await;
         //
         //     {
@@ -2319,7 +2319,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut status: Value = self.safe_string_k(response.clone(), "status", &[Value::Str("canceled".to_string())]);
-        let mut wrapper: Value = self.extend(fetched.clone(), &[Value::Map({
+        let mut wrapper: Value = self.extend(fetched, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), status.clone());
                 m.insert("networkId".to_string(), networkId.clone());
@@ -2470,7 +2470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("signature".to_string(), signature.clone());
                 m
             }));
-            append_to_array(&mut wrappers, self.extend(fetched.clone(), &[Value::Map({
+            append_to_array(&mut wrappers, self.extend(fetched, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("status".to_string(), Value::Str("canceled".to_string()));
                     m.insert("networkId".to_string(), networkId.clone());
@@ -2484,7 +2484,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), self.parse_to_int(networkId.clone()));
             m
         });
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         self.myriad_public_post_orders_cancel_batch(&[__ws_arg_17]).await;
         return self.parse_prediction_orders(wrappers.clone(), &[]);
 
@@ -2599,7 +2599,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (requestedTradingModel.as_str() == Some("amm")) {
             return self.fetch_amm_orders(&[outcome.clone(), since.clone(), limit.clone(), params.clone()]).await;
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_orders(&[__ws_arg_19]).await;
         //
         //     {
@@ -2670,7 +2670,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("status".to_string(), Value::Str("open".to_string()));
             m
         });
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params.clone()]);
         return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_20]).await;
 
     Value::Null
@@ -2700,7 +2700,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("status".to_string(), Value::Str("filled".to_string()));
             m
         });
-        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params.clone()]);
         return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_21]).await;
 
     Value::Null
@@ -2730,7 +2730,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("status".to_string(), Value::Str("cancelled".to_string()));
             m
         });
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_22]).await;
 
     Value::Null
@@ -2762,7 +2762,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("status".to_string(), Value::Str("filled".to_string()));
             m
         });
-        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params.clone()]);
         let mut orders: Value = self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_23]).await;
         let mut trades: Value = Value::List(vec![]);
         let mut ordersLength: Value = Value::Int(orders.len() as i64);
@@ -3231,7 +3231,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), networkId.clone());
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_25 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_25]).await;
         return self.parse_prediction_ticker(response.clone(), &[outcomeObj.clone()]);
 
@@ -3263,7 +3263,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), self.safe_string_k(info.clone(), "networkId", &[]));
             m
         });
-        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_26 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_26]).await;
         //
         //     {
@@ -3475,7 +3475,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("outcome".to_string(), outcomeId.clone());
                 m
             });
-            let __ws_arg_27 = self.extend(obRequest.clone(), &[params.clone()]);
+            let __ws_arg_27 = self.extend(obRequest, &[params.clone()]);
             let mut obResponse: Value = self.myriad_public_get_markets_id_orderbook(&[__ws_arg_27]).await;
             return self.safe_prediction_order_book(self.parse_wei_order_book(obResponse.clone(), self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()])), &[outcomeObj.clone()]);
         }
@@ -3485,7 +3485,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("network_id".to_string(), networkId.clone());
             m
         });
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_28]).await;
         //
         //     {
@@ -3644,7 +3644,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut row: Value = get_value(&rawAsks, &i);
             let mut rowPrice: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(0), &[]), &Value::Str("1000000000000000000".to_string()));
             let mut rowAmount: Value = crate::precise::Precise::stringDiv(&self.safe_string(row.clone(), Value::Int(1), &[]), &Value::Str("1000000000000000000".to_string()));
-            append_to_array(&mut asks, Value::List(vec![self.parse_number(rowPrice.clone(), &[]), self.parse_number(rowAmount.clone(), &[])]));
+            append_to_array(&mut asks, Value::List(vec![self.parse_number(rowPrice, &[]), self.parse_number(rowAmount, &[])]));
         }
         }
         let mut timestamp: Value = self.milliseconds();
@@ -3985,7 +3985,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.myriad_public_get_markets_id_events(&[__ws_arg_31]).await;
         //
         //     {
@@ -4067,9 +4067,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "action", &[]));
         m.insert("takerOrMaker".to_string(), Value::Str("taker".to_string()));
-        m.insert("price".to_string(), self.parse_number(priceStr.clone(), &[]));
-        m.insert("amount".to_string(), self.parse_number(amountStr.clone(), &[]));
-        m.insert("cost".to_string(), self.parse_number(costStr.clone(), &[]));
+        m.insert("price".to_string(), self.parse_number(priceStr, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountStr, &[]));
+        m.insert("cost".to_string(), self.parse_number(costStr, &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 }), &[market.clone()]);
@@ -5196,7 +5196,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut balances, &posId, updated.clone());
             }
             add_element_to_object(&mut self.options.clone(), &Value::Str("positionBalances".to_string()), balances.clone());
-            contracts = self.parse_number(updated.clone(), &[]);
+            contracts = self.parse_number(updated, &[]);
         }
         let mut parsed: Value = self.safe_prediction_position(Value::Map({
             let mut m = indexmap::IndexMap::new();

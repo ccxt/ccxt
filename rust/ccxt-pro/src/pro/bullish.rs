@@ -588,7 +588,7 @@ impl BullishCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut merged: Value = self.extend(rawTicker.clone(), &[data.clone()]);
+            let mut merged: Value = self.extend(rawTicker, &[data.clone()]);
             parsed = self.parse_ticker(merged.clone(), &[market.clone()]);
         }
         add_element_to_object(&mut self.tickers, &symbol, parsed.clone());

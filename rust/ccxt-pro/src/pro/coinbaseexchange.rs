@@ -332,7 +332,7 @@ impl CoinbaseexchangeCore {
         let mut messageHash: Value = messageHashStart.clone();
         let mut productIds: Value = Value::List(vec![]);
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             messageHash = add(&messageHash, &add(&Value::Str(":".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
             append_to_array(&mut productIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
@@ -348,7 +348,7 @@ impl CoinbaseexchangeCore {
                 m.insert("channels".to_string(), Value::List(vec![name.clone()]));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -391,7 +391,7 @@ impl CoinbaseexchangeCore {
                 m.insert("channels".to_string(), Value::List(vec![name.clone()]));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[request.clone(), messageHashes.clone()]).await;
 
     Value::Null
@@ -553,7 +553,7 @@ impl CoinbaseexchangeCore {
         let mut name: Value = Value::Str("user".to_string());
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut authentication: Value = self.authenticate();
-        let __ws_arg_0 = self.extend(params.clone(), &[authentication.clone()]);
+        let __ws_arg_0 = self.extend(params, &[authentication.clone()]);
         let mut trades: Value = self.subscribe(name.clone(), &[symbol.clone(), messageHash.clone(), __ws_arg_0]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -587,7 +587,7 @@ impl CoinbaseexchangeCore {
         let mut name: Value = Value::Str("user".to_string());
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut authentication: Value = self.authenticate();
-        let __ws_arg_1 = self.extend(params.clone(), &[authentication.clone()]);
+        let __ws_arg_1 = self.extend(params, &[authentication.clone()]);
         let mut trades: Value = self.subscribe_multiple(name.clone(), &[symbols.clone(), messageHash.clone(), __ws_arg_1]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
@@ -623,7 +623,7 @@ impl CoinbaseexchangeCore {
         let mut name: Value = Value::Str("user".to_string());
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut authentication: Value = self.authenticate();
-        let __ws_arg_2 = self.extend(params.clone(), &[authentication.clone()]);
+        let __ws_arg_2 = self.extend(params, &[authentication.clone()]);
         let mut orders: Value = self.subscribe_multiple(name.clone(), &[symbols.clone(), messageHash.clone(), __ws_arg_2]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_value(orders.clone(), Value::Int(0), &[]);
@@ -663,7 +663,7 @@ impl CoinbaseexchangeCore {
         let mut name: Value = Value::Str("user".to_string());
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut authentication: Value = self.authenticate();
-        let __ws_arg_3 = self.extend(params.clone(), &[authentication.clone()]);
+        let __ws_arg_3 = self.extend(params, &[authentication.clone()]);
         let mut orders: Value = self.subscribe(name.clone(), &[symbol.clone(), messageHash.clone(), __ws_arg_3]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
@@ -716,7 +716,7 @@ impl CoinbaseexchangeCore {
                 m.insert("channels".to_string(), Value::List(vec![name.clone()]));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), name.clone());
@@ -726,7 +726,7 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut authentication: Value = self.authenticate();
-        let __ws_arg_4 = self.extend(request.clone(), &[authentication.clone()]);
+        let __ws_arg_4 = self.extend(request, &[authentication.clone()]);
         let mut orderbook: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_4, messageHashes.clone(), subscription.clone()]).await;
         return orderbook.limit();
 
@@ -763,7 +763,7 @@ impl CoinbaseexchangeCore {
                 m.insert("channels".to_string(), Value::List(vec![name.clone()]));
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), messageHash.clone());
@@ -773,7 +773,7 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut authentication: Value = self.authenticate();
-        let __ws_arg_5 = self.extend(request.clone(), &[authentication.clone()]);
+        let __ws_arg_5 = self.extend(request, &[authentication.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[__ws_arg_5, messageHash.clone(), subscription.clone()]).await;
         return orderbook.limit();
 
@@ -923,8 +923,8 @@ impl CoinbaseexchangeCore {
         }
         add_element_to_object(&mut parsed, &Value::Str("fee".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("rate".to_string(), self.parse_number(feeRate.clone(), &[]));
-        m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
+        m.insert("rate".to_string(), self.parse_number(feeRate, &[]));
+        m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
         m.insert("currency".to_string(), feeCurrency.clone());
     m
 }));
@@ -1181,11 +1181,11 @@ impl CoinbaseexchangeCore {
         m.insert("price".to_string(), price.clone());
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("filled".to_string(), self.parse_number(filled.clone(), &[]));
-        m.insert("remaining".to_string(), self.parse_number(remaining.clone(), &[]));
+        m.insert("filled".to_string(), self.parse_number(filled, &[]));
+        m.insert("remaining".to_string(), self.parse_number(remaining, &[]));
         m.insert("status".to_string(), status.clone());
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);

@@ -852,7 +852,7 @@ impl IndependentreserveCore {
                 m.insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_order_book(&[__ws_arg_0]).await;
         let mut timestamp: Value = self.parse8601(self.safe_string_k(response.clone(), "CreatedTimestampUtc", &[]));
         return self.parse_order_book(response.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone(), Value::Str("BuyOrders".to_string()), Value::Str("SellOrders".to_string()), Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
@@ -936,7 +936,7 @@ impl IndependentreserveCore {
                 m.insert("secondaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_market_summary(&[__ws_arg_1]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -1122,7 +1122,7 @@ impl IndependentreserveCore {
         let mut response: Value = self.private_post_get_order_details(&[__ws_arg_2]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -1156,7 +1156,7 @@ impl IndependentreserveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("primaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("secondaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
@@ -1165,7 +1165,7 @@ impl IndependentreserveCore {
         }
         add_element_to_object(&mut request, &Value::Str("pageIndex".to_string()), Value::Int(1));
         add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_open_orders(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1200,7 +1200,7 @@ impl IndependentreserveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("primaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("secondaryCurrencyCode".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
         }
@@ -1209,7 +1209,7 @@ impl IndependentreserveCore {
         }
         add_element_to_object(&mut request, &Value::Str("pageIndex".to_string()), Value::Int(1));
         add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_closed_orders(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1248,11 +1248,11 @@ impl IndependentreserveCore {
                 m.insert("pageSize".to_string(), limit.clone());
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_trades(&[__ws_arg_5]).await;
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut data: Value = self.safe_list_k(response.clone(), "Data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1334,7 +1334,7 @@ impl IndependentreserveCore {
                 m.insert("numberOfRecentTradesToRetrieve".to_string(), Value::Int(50));
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_get_recent_trades(&[__ws_arg_6]).await;
         let mut trades: Value = self.safe_list_k(response.clone(), "Trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -1445,7 +1445,7 @@ impl IndependentreserveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut orderType: Value = self.capitalize(type_var.clone());
         orderType = Value::Str(format!("{}{}", orderType, (if is_true(&(Value::Bool(side.as_str() == Some("sell")))) { Value::Str("Offer".to_string()) } else { Value::Str("Bid".to_string()) })));
         let mut request: Value = Value::Map({
@@ -1462,7 +1462,7 @@ impl IndependentreserveCore {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_place_limit_order(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_8 = self.extend(request, &[params.clone()]);
             response = self.private_post_place_market_order(&[__ws_arg_8]).await;
         }
         return self.safe_order(Value::Map({
@@ -1499,7 +1499,7 @@ impl IndependentreserveCore {
                 m.insert("orderGuid".to_string(), id.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_cancel_order(&[__ws_arg_9]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -1529,7 +1529,7 @@ impl IndependentreserveCore {
                 m.insert("primaryCurrencyCode".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_digital_currency_deposit_address(&[__ws_arg_10]).await;
         return self.parse_deposit_address(response.clone(), &[]);
 
@@ -1602,7 +1602,7 @@ impl IndependentreserveCore {
         if (networkCode != Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw () does not accept params[\"networkCode\"]".to_string()))));
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_withdraw_digital_currency(&[__ws_arg_11]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 

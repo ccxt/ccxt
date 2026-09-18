@@ -1425,7 +1425,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("subscribeKey".to_string(), crate::value::get_value_k(&authenticated, "key"));
                         m
                     });
-                    let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+                    let __ws_arg_0 = self.extend(request, &[params.clone()]);
                     let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await;
                     //
                     //    {"result": "true"}

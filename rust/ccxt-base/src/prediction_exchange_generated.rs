@@ -1997,9 +1997,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
                 m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
                 m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "takerOrMaker", &[]));
-                m.insert("price".to_string(), self.parse_number(price.clone(), &[]));
-                m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
-                m.insert("cost".to_string(), self.parse_number(cost.clone(), &[]));
+                m.insert("price".to_string(), self.parse_number(price, &[]));
+                m.insert("amount".to_string(), self.parse_number(amount, &[]));
+                m.insert("cost".to_string(), self.parse_number(cost, &[]));
                 m.insert("fee".to_string(), self.safe_dict_k(trade.clone(), "fee", &[]));
                 m.insert("realizedPnl".to_string(), self.safe_number_k(trade.clone(), "realizedPnl", &[]));
                 m.insert("outcome".to_string(), self.safe_string_k(trade.clone(), "outcome", &[]));
@@ -2049,12 +2049,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "bidVolume", &[]));
                 m.insert("ask".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(ticker.clone(), "ask", &[])), &[]));
                 m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "askVolume", &[]));
-                m.insert("open".to_string(), self.parse_number(open.clone(), &[]));
-                m.insert("close".to_string(), self.parse_number(close.clone(), &[]));
-                m.insert("last".to_string(), self.parse_number(last.clone(), &[]));
-                m.insert("change".to_string(), self.parse_number(change.clone(), &[]));
-                m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
-                m.insert("average".to_string(), self.parse_number(average.clone(), &[]));
+                m.insert("open".to_string(), self.parse_number(open, &[]));
+                m.insert("close".to_string(), self.parse_number(close, &[]));
+                m.insert("last".to_string(), self.parse_number(last, &[]));
+                m.insert("change".to_string(), self.parse_number(change, &[]));
+                m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
+                m.insert("average".to_string(), self.parse_number(average, &[]));
                 m.insert("baseVolume".to_string(), self.safe_number_k(ticker.clone(), "baseVolume", &[]));
                 m.insert("quoteVolume".to_string(), self.safe_number_k(ticker.clone(), "quoteVolume", &[]));
                 m.insert("openInterest".to_string(), self.safe_number_k(ticker.clone(), "openInterest", &[]));
@@ -2201,7 +2201,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_208: bool = true;
             while { if !__for_first_208 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_208 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_trade(self, get_value(&rows, &i), &[outcomeObj.clone()]);
-            let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
+            let mut trade: Value = self.extend(parsed, &[params.clone()]);
             append_to_array(&mut results, trade.clone());
         }
         }
@@ -2240,7 +2240,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_209: bool = true;
             while { if !__for_first_209 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_209 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, get_value(&rows, &i), &[outcomeObj.clone()]);
-            let mut order: Value = self.extend(parsed.clone(), &[params.clone()]);
+            let mut order: Value = self.extend(parsed, &[params.clone()]);
             append_to_array(&mut results, order.clone());
         }
         }
@@ -2276,7 +2276,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut __for_first_210: bool = true;
             while { if !__for_first_210 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_210 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut parsed: Value = <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, get_value(&rows, &i), &[]);
-            let mut position: Value = self.extend(parsed.clone(), &[params.clone()]);
+            let mut position: Value = self.extend(parsed, &[params.clone()]);
             append_to_array(&mut results, position.clone());
         }
         }

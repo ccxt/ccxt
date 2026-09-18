@@ -389,7 +389,7 @@ impl PoloniexCore {
 }));
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             future = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
             //
             //    {
@@ -457,7 +457,7 @@ impl PoloniexCore {
         if (name.as_str() != Some("balances")) {
             add_element_to_object(&mut subscribe, &Value::Str("symbols".to_string()), marketIds.clone());
         }
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -629,7 +629,7 @@ impl PoloniexCore {
                 m.insert("orderIds".to_string(), ids.clone());
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.trade_request(Value::Str("cancelOrders".to_string()), &[__ws_arg_1]).await;
 
     Value::Null
@@ -835,7 +835,7 @@ impl PoloniexCore {
                 m.insert("symbols".to_string(), marketIds.clone());
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         let mut messageHashes: Value = Value::List(vec![]);
         if (symbols != Value::Null) {
             {
@@ -1381,7 +1381,7 @@ impl PoloniexCore {
             while { if !__for_first_605 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_605 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
-            let mut market: Value = self.market(marketId.clone());
+            let mut market: Value = self.market(marketId);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders::".to_string()), symbol));
             client.resolve(&[orders.clone(), messageHash.clone()]);

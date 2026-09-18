@@ -1070,7 +1070,7 @@ impl PolymarketCore {
     m
 }));
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string())]), &[]);
         let mut queriesLength: Value = Value::Int(queries.len() as i64);
         let mut rawEvents: Value = Value::List(vec![]);
         if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -2136,7 +2136,7 @@ impl PolymarketCore {
                 m.insert("token_id".to_string(), tokenId.clone());
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_public_get_book(&[__ws_arg_2]).await;
         //
         //     {
@@ -2226,7 +2226,7 @@ impl PolymarketCore {
                 m.insert("endTs".to_string(), endS.clone());
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_public_get_prices_history(&[__ws_arg_3]).await;
         //
         //     {
@@ -2391,7 +2391,7 @@ impl PolymarketCore {
                 m.insert("market".to_string(), conditionId.clone());
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.data_public_get_oi(&[__ws_arg_4]).await;
         //
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
@@ -2453,7 +2453,7 @@ impl PolymarketCore {
                 m.insert("token_id".to_string(), tokenId.clone());
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_public_get_fee_rate(&[__ws_arg_5]).await;
         //
         //     { "base_fee": 30 }   // base fee in basis points
@@ -2515,7 +2515,7 @@ impl PolymarketCore {
             m
         });
         add_element_to_object(&mut request, &Value::Str("limit".to_string()), self.safe_integer_k(self.options.clone(), "tradesPageSize", &[Value::Int(500)]));
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.data_public_get_trades(&[__ws_arg_6]).await;
         let mut rawTrades: Value = (if is_true(&Value::Bool(is_array(&response))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
         let mut filteredTrades: Value = Value::List(vec![]);
@@ -2565,7 +2565,7 @@ impl PolymarketCore {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
             add_element_to_object(&mut request, &Value::Str("asset_id".to_string()), crate::value::get_value_k(&outcomeObj, "outcomeId"));
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_trades(&[__ws_arg_7]).await;
         let mut rawTrades: Value = (if is_true(&Value::Bool(is_array(&response))) { response.clone() } else { self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]) });
         return self.parse_prediction_trades(rawTrades.clone(), &[outcomeObj.clone(), since.clone(), limit.clone()]);
@@ -2706,14 +2706,14 @@ impl PolymarketCore {
         self.load_api_credentials().await;
         // the collateral balance is tied to the signature type / funder that holds the USDC
         let mut signatureType: Value = self.safe_integer2(params.clone(), Value::Str("signatureType".to_string()), Value::Str("signature_type".to_string()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]);
-        let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("signatureType".to_string()), Value::Str("signature_type".to_string())]), &[]);
+        let mut rest: Value = self.omit(params, Value::List(vec![Value::Str("signatureType".to_string()), Value::Str("signature_type".to_string())]), &[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_type".to_string(), Value::Str("COLLATERAL".to_string()));
                 m.insert("signature_type".to_string(), signatureType.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[rest.clone()]);
+        let __ws_arg_8 = self.extend(request, &[rest.clone()]);
         let mut response: Value = self.clob_private_get_balance_allowance(&[__ws_arg_8]).await;
         return self.parse_balance(response.clone());
 
@@ -2782,7 +2782,7 @@ impl PolymarketCore {
                 m.insert("user".to_string(), self.walletAddress.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.data_public_get_positions(&[__ws_arg_9]).await;
         let mut positions: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
@@ -2934,7 +2934,7 @@ impl PolymarketCore {
             outcomeObj = self.load_outcome(outcome.clone(), &[]).await;
             add_element_to_object(&mut request, &Value::Str("asset_id".to_string()), crate::value::get_value_k(&outcomeObj, "outcomeId"));
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_orders(&[__ws_arg_10]).await;
         let mut orders: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_prediction_orders(orders.clone(), &[outcomeObj.clone(), since.clone(), limit.clone()]);
@@ -2966,7 +2966,7 @@ impl PolymarketCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_private_get_data_order_id(&[__ws_arg_11]).await;
         return self.parse_prediction_order(response.clone(), &[]);
 
@@ -3398,7 +3398,7 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = self.extend(params.clone(), &[Value::Map({
+        let mut request: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cost".to_string(), cost.clone());
             m
@@ -3666,7 +3666,7 @@ impl PolymarketCore {
                 m.insert("orderID".to_string(), id.clone());
             m
         });
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.clob_private_delete_order(&[__ws_arg_14]).await;
         // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
@@ -3752,7 +3752,7 @@ impl PolymarketCore {
                     m.insert("asset_id".to_string(), crate::value::get_value_k(&outcomeObj, "outcomeId"));
                 m
             });
-            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_15 = self.extend(request, &[params.clone()]);
             response = self.clob_private_delete_cancel_market_orders(&[__ws_arg_15]).await;
         }  else {
             // cancel every open order via DELETE /cancel-all (no body, no market data needed)
@@ -4959,7 +4959,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("wsUser")).cloned().unwrap_or(Value::Null);
         let mut subscribeHash: Value = Value::Str("user".to_string());
-        let __ws_arg_30 = self.extend(subscribeMsg.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(subscribeMsg, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_30, subscribeHash.clone()]).await;
 
     Value::Null

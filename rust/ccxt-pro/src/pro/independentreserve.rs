@@ -469,7 +469,7 @@ impl IndependentreserveCore {
             orderbook.reset(snapshot.clone());
             // write through the parent index: php copies arrays by value, so
             // mutating the local bind would not persist the flag
-            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, self.extend(subscription.clone(), &[Value::Map({
+            add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, self.extend(subscription, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("receivedSnapshot".to_string(), Value::Bool(true));
     m

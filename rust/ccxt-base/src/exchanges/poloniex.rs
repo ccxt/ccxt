@@ -1426,7 +1426,7 @@ impl PoloniexCore {
             let mut data: Value = self.safe_list_k(responseRaw.clone(), "data", &[]);
             return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_markets_symbol_candles(&[__ws_arg_1]).await;
         //
         //     [
@@ -1906,7 +1906,7 @@ impl PoloniexCore {
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marketType.as_str() == Some("swap")) {
-            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_2 = self.extend(request, &[params.clone()]);
             let mut responseRaw: Value = self.swap_public_get_v3_market_tickers(&[__ws_arg_2]).await;
             //
             //    {
@@ -2060,7 +2060,7 @@ impl PoloniexCore {
             let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![crate::value::get_value_k(&market, "symbol")]), params.clone()]).await;
             return self.safe_dict(tickers.clone(), symbol.clone(), &[]);
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_markets_symbol_ticker24h(&[__ws_arg_3]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -2352,7 +2352,7 @@ impl PoloniexCore {
             let mut data: Value = self.safe_list_k(raw.clone(), "data", &[Value::List(vec![])]);
             return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_trades(&[__ws_arg_7]).await;
         //
         //     [
@@ -2704,7 +2704,7 @@ impl PoloniexCore {
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_smartorders(&[__ws_arg_9]).await;
         }  else {
-            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_10 = self.extend(request, &[params.clone()]);
             response = self.private_get_orders(&[__ws_arg_10]).await;
         }
         //
@@ -2881,7 +2881,7 @@ impl PoloniexCore {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_smartorders(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.private_post_orders(&[__ws_arg_14]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -3018,7 +3018,7 @@ impl PoloniexCore {
             let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_put_smartorders_id(&[__ws_arg_15]).await;
         }  else {
-            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_16 = self.extend(request, &[params.clone()]);
             response = self.private_put_orders_id(&[__ws_arg_16]).await;
         }
         //
@@ -3090,7 +3090,7 @@ impl PoloniexCore {
             let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_smartorders_id(&[__ws_arg_18]).await;
         }  else {
-            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_19 = self.extend(request, &[params.clone()]);
             response = self.private_delete_orders_id(&[__ws_arg_19]).await;
         }
         return self.parse_order(response.clone(), &[]);
@@ -3124,7 +3124,7 @@ impl PoloniexCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), Value::List(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]));
         }
         let mut response: Value = Value::List(vec![]);
@@ -3156,7 +3156,7 @@ impl PoloniexCore {
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_delete_smartorders(&[__ws_arg_21]).await;
         }  else {
-            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_22 = self.extend(request, &[params.clone()]);
             response = self.private_delete_orders(&[__ws_arg_22]).await;
         }
         return self.parse_orders(response.clone(), &[market.clone()]);
@@ -3281,7 +3281,7 @@ impl PoloniexCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_25 = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.private_get_orders_id_trades(&[__ws_arg_25]).await;
         return self.parse_trades(trades.clone(), &[]);
 
@@ -3418,7 +3418,7 @@ impl PoloniexCore {
                 m.insert("accountType".to_string(), Value::Str("SPOT".to_string()));
             m
         });
-        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_26 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_accounts_balances(&[__ws_arg_26]).await;
         return self.parse_balance(response.clone());
 
@@ -3528,7 +3528,7 @@ impl PoloniexCore {
             let mut ts: Value = self.safe_integer_k(data.clone(), "ts", &[]);
             return self.parse_order_book(data.clone(), symbol.clone(), &[ts.clone()]);
         }
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_markets_symbol_order_book(&[__ws_arg_28]).await;
         //
         //     {
@@ -3601,7 +3601,7 @@ impl PoloniexCore {
         let mut currency: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(2));
         let mut networkEntry: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(3));
         params = extraParams.clone();
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_wallets_address(&[__ws_arg_29]).await;
         return self.parse_deposit_address_special(response.clone(), currency.clone(), networkEntry.clone());
 
@@ -3629,7 +3629,7 @@ impl PoloniexCore {
         let mut currency: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(2));
         let mut networkEntry: Value = get_value(&requestextraParamscurrencynetworkEntryVariable, &Value::Int(3));
         params = extraParams.clone();
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wallets_addresses(&[__ws_arg_30]).await;
         //
         //     {
@@ -3738,7 +3738,7 @@ impl PoloniexCore {
                 m.insert("toAccount".to_string(), toId.clone());
             m
         });
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_accounts_transfer(&[__ws_arg_31]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
@@ -3826,7 +3826,7 @@ impl PoloniexCore {
                 m.insert("end".to_string(), now.clone());
             m
         });
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wallets_activity(&[__ws_arg_33]).await;
         return response;
 
@@ -3915,7 +3915,7 @@ impl PoloniexCore {
     m
 }));
         self.load_markets(&[]).await;
-        let __ws_arg_34 = self.extend(params.clone(), &[Value::Map({
+        let __ws_arg_34 = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("includeMultiChainCurrencies".to_string(), Value::Bool(true));
             m
@@ -4205,7 +4205,7 @@ impl PoloniexCore {
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.clone());
         m.insert("currency".to_string(), code.clone());
-        m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone());
         m.insert("addressTo".to_string(), Value::Null);
@@ -4224,7 +4224,7 @@ impl PoloniexCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.parse_number(feeCostString.clone(), &[]));
+        m.insert("cost".to_string(), self.parse_number(feeCostString, &[]));
         m.insert("rate".to_string(), Value::Null);
     m
 }));
@@ -4275,7 +4275,7 @@ impl PoloniexCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.swap_private_post_v3_position_leverage(&[__ws_arg_35]).await;
         return response;
 
@@ -4309,7 +4309,7 @@ impl PoloniexCore {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".to_string()))));
         }
         add_element_to_object(&mut request, &Value::Str("mgnMode".to_string()), to_upper(&marginMode));
-        let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_36 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.swap_private_get_v3_position_leverages(&[__ws_arg_36]).await;
         return self.parse_leverage(response.clone(), &[market.clone()]);
 
@@ -4421,7 +4421,7 @@ impl PoloniexCore {
                 m.insert("posMode".to_string(), mode.clone());
             m
         });
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.swap_private_post_v3_position_mode(&[__ws_arg_37]).await;
         return response;
 
@@ -4583,7 +4583,7 @@ impl PoloniexCore {
         if !is_true(&(Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("posMode"))))) {
             add_element_to_object(&mut request, &Value::Str("posMode".to_string()), Value::Str("BOTH".to_string()));
         }
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.swap_private_post_v3_trade_position_margin(&[__ws_arg_38]).await;
         //
         // {

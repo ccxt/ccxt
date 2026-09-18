@@ -3353,7 +3353,7 @@ impl KucoinCore {
                     m.insert("tradeType".to_string(), tradeType.clone());
                 m
             });
-            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_0 = self.extend(request, &[params.clone()]);
             response = self.uta_get_server_status(&[__ws_arg_0]).await;
         }  else if is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(type_var.as_str() != Some("margin")))) {
             response = self.futures_public_get_status(&[params.clone()]).await;
@@ -3856,7 +3856,7 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let __ws_arg_2 = self.extend(params.clone(), &[Value::Map({
+        let __ws_arg_2 = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tradeType".to_string(), Value::Str("FUTURES".to_string()));
             m
@@ -4350,7 +4350,7 @@ impl KucoinCore {
                 add_element_to_object(&mut request, &Value::Str("chain".to_string()), to_lower(&_netIdTmp));
             }
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdrawals_quotas(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4407,7 +4407,7 @@ impl KucoinCore {
                 add_element_to_object(&mut request, &Value::Str("chain".to_string()), to_lower(&_netIdTmp));
             }
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_withdrawals_quotas(&[__ws_arg_5]).await;
         //
         //    {
@@ -4904,7 +4904,7 @@ impl KucoinCore {
         if (symbols != Value::Null) {
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             if (firstSymbol != Value::Null) {
-                firstMarket = self.market(firstSymbol.clone());
+                firstMarket = self.market(firstSymbol);
             }
         }
         let mut type_var: Value = Value::Null;
@@ -4914,7 +4914,7 @@ impl KucoinCore {
             if (tradeType == Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), self.type_to_trade_type(type_var.clone()));
             }
-            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_6 = self.extend(request, &[params.clone()]);
             response = self.uta_get_market_ticker(&[__ws_arg_6]).await;
         }  else if is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(type_var.as_str() != Some("margin")))) {
             return self.fetch_contract_tickers(&[symbols.clone(), params.clone()]).await;
@@ -5158,7 +5158,7 @@ impl KucoinCore {
 })]);
             return self.parse_ticker(data.clone(), &[market.clone()]);
         }  else {
-            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_9 = self.extend(request, &[params.clone()]);
             response = self.public_get_market_stats(&[__ws_arg_9]).await;
             //
             //     {
@@ -5227,7 +5227,7 @@ impl KucoinCore {
 })]);
             return self.parse_ticker(data.clone(), &[market.clone()]);
         }  else {
-            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_11 = self.extend(request, &[params.clone()]);
             response = self.public_get_mark_price_symbol_current(&[__ws_arg_11]).await;
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5383,7 +5383,7 @@ impl KucoinCore {
             }
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("-".to_string())), suffix)));
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_get_market_kline(&[__ws_arg_12]).await;
         //
         //     {
@@ -5462,7 +5462,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("startAt".to_string()), self.parse_to_int(math_floor(&(match ((since).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         add_element_to_object(&mut request, &Value::Str("endAt".to_string()), self.parse_to_int(math_floor(&(match ((endAt).as_f64(), (denominator).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_market_candles(&[__ws_arg_13]).await;
         //
         //     {
@@ -5545,7 +5545,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("from".to_string()), since.clone());
         }
         add_element_to_object(&mut request, &Value::Str("to".to_string()), endAt.clone());
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_public_get_kline_query(&[__ws_arg_14]).await;
         //
         //    {
@@ -5592,7 +5592,7 @@ impl KucoinCore {
         if (networkCode != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("chain".to_string()), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)])); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_deposit_address_create(&[__ws_arg_15]).await;
         // {"code":"260000","msg":"Deposit address already exists."}
         //
@@ -5674,7 +5674,7 @@ impl KucoinCore {
         }
         let mut version: Value = crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("versions")).cloned().unwrap_or(Value::Null), "private"), "GET"), "deposit-addresses");
         add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), Value::Str("v1".to_string()));
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deposit_addresses(&[__ws_arg_17]).await;
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -5712,7 +5712,7 @@ impl KucoinCore {
                 m.insert("currency".to_string(), currencyId.clone());
             m
         });
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_deposit_address(&[__ws_arg_18]).await;
         //
         //    {
@@ -5834,7 +5834,7 @@ impl KucoinCore {
         }  else {
             let mut version: Value = crate::value::get_value_k(&crate::value::get_value_k(&crate::value::get_value_k(&self.options.as_map().and_then(|__m| __m.get("versions")).cloned().unwrap_or(Value::Null), "private"), "GET"), "deposit-addresses");
             add_element_to_object(get_value_mut(get_value_mut(get_value_mut(&mut self.options, &Value::Str("versions".to_string())), &Value::Str("private".to_string())), &Value::Str("GET".to_string())), &Value::Str("deposit-addresses".to_string()), Value::Str("v2".to_string()));
-            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_20 = self.extend(request, &[params.clone()]);
             response = self.private_get_deposit_addresses(&[__ws_arg_20]).await;
             //
             //     {
@@ -6767,7 +6767,7 @@ impl KucoinCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_27 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_27 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Null, __ws_arg_27]).await;
 
     Value::Null
@@ -6949,7 +6949,7 @@ impl KucoinCore {
             let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_hf_orders_multi(&[__ws_arg_29]).await;
         }  else {
-            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_30 = self.extend(request, &[params.clone()]);
             response = self.private_post_orders_multi(&[__ws_arg_30]).await;
         }
         //
@@ -7103,7 +7103,7 @@ impl KucoinCore {
         if (price != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("newPrice".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_hf_orders_alter(&[__ws_arg_31]).await;
         //
         // {
@@ -7373,7 +7373,7 @@ impl KucoinCore {
             response = self.futures_private_delete_orders_client_order_client_oid(&[__ws_arg_44]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
-            let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_45 = self.extend(request, &[params.clone()]);
             response = self.futures_private_delete_orders_order_id(&[__ws_arg_45]).await;
         }
         return self.safe_order(Value::Map({
@@ -7437,7 +7437,7 @@ impl KucoinCore {
         let mut isUnified: Value = (Value::Bool(accountMode.as_str() == Some("unified")));
         let mut tradeType: Value = self.handle_trade_type(&[market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), marginMode.clone(), isUnified.clone(), params.clone()]);
         add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), tradeType.clone());
-        let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_46 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_private_post_account_mode_order_cancel(&[__ws_arg_46]).await;
         //
         //     {
@@ -7624,7 +7624,7 @@ impl KucoinCore {
             let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
             response = self.futures_private_delete_stop_orders(&[__ws_arg_53]).await;
         }  else {
-            let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_54 = self.extend(request, &[params.clone()]);
             response = self.futures_private_delete_orders(&[__ws_arg_54]).await;
         }
         //
@@ -7684,7 +7684,7 @@ impl KucoinCore {
                 m.insert("orderFilter".to_string(), orderFilter.clone());
             m
         });
-        let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_55 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_private_post_account_mode_order_cancel_all(&[__ws_arg_55]).await;
         //
         //     {
@@ -7893,7 +7893,7 @@ impl KucoinCore {
                     response = self.private_get_hf_orders_done(&[__ws_arg_61]).await;
                 }
             }  else {
-                let __ws_arg_62 = self.extend(request.clone(), &[query.clone()]);
+                let __ws_arg_62 = self.extend(request, &[query.clone()]);
                 response = self.private_get_orders(&[__ws_arg_62]).await;
             }
         }
@@ -7978,7 +7978,7 @@ impl KucoinCore {
             let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
             response = self.futures_private_get_stop_orders(&[__ws_arg_63]).await;
         }  else {
-            let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_64 = self.extend(request, &[params.clone()]);
             response = self.futures_private_get_orders(&[__ws_arg_64]).await;
         }
         //
@@ -8485,7 +8485,7 @@ impl KucoinCore {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() requires an order id argument or clientOrderId in params".to_string()))));
             }
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
-            let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_78 = self.extend(request, &[params.clone()]);
             response = self.futures_private_get_orders_order_id(&[__ws_arg_78]).await;
         }
         //
@@ -8531,7 +8531,7 @@ impl KucoinCore {
         //         }
         //     }
         //
-        let mut market: Value = (if is_true(&(Value::Bool(symbol != Value::Null))) { self.market(symbol.clone()) } else { Value::Null });
+        let mut market: Value = (if is_true(&(Value::Bool(symbol != Value::Null))) { self.market(symbol) } else { Value::Null });
         let mut responseData: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8590,7 +8590,7 @@ impl KucoinCore {
         let mut isUnified: Value = (Value::Bool(accountMode.as_str() == Some("unified")));
         let mut tradeType: Value = self.handle_trade_type(&[market.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null), marginMode.clone(), isUnified.clone(), params.clone()]);
         add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), tradeType.clone());
-        let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_79 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_private_get_account_mode_order_detail(&[__ws_arg_79]).await;
         //
         //     {
@@ -9197,7 +9197,7 @@ impl KucoinCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_80 = self.extend(request, &[params.clone()]);
         return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_80]).await;
 
     Value::Null
@@ -9452,7 +9452,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), crate::runtime::Math::min(&Value::Int(1000), &limit));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endAt".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_85 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_fills(&[__ws_arg_85]).await;
         //
         //    {
@@ -9703,7 +9703,7 @@ impl KucoinCore {
             //
             trades = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         }  else {
-            let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_89 = self.extend(request, &[params.clone()]);
             response = self.futures_public_get_trade_history(&[__ws_arg_89]).await;
             //
             //      {
@@ -10169,7 +10169,7 @@ impl KucoinCore {
             entry = self.safe_dict(data.clone(), Value::Int(0), &[]);
         }  else {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_92 = self.extend(request, &[params.clone()]);
             response = self.futures_private_get_trade_fees(&[__ws_arg_92]).await;
             //
             //     {
@@ -10250,7 +10250,7 @@ impl KucoinCore {
         if is_true(&includeFee) {
             add_element_to_object(&mut request, &Value::Str("feeDeductType".to_string()), Value::Str("INTERNAL".to_string()));
         }
-        let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_93 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_withdrawals(&[__ws_arg_93]).await;
         //
         // the id is inside "data"
@@ -10360,8 +10360,8 @@ impl KucoinCore {
             }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
-                    m.insert("rate".to_string(), self.parse_number(rate.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
+                    m.insert("rate".to_string(), self.parse_number(rate, &[]));
                     m.insert("currency".to_string(), code.clone());
                 m
             });
@@ -10396,7 +10396,7 @@ impl KucoinCore {
         m.insert("tagTo".to_string(), tag.clone());
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("currency".to_string(), code.clone());
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("txid".to_string(), txid.clone());
         m.insert("type".to_string(), type_var.clone());
         m.insert("status".to_string(), self.parse_transaction_status(rawStatus.clone()));
@@ -10474,7 +10474,7 @@ impl KucoinCore {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startAt".to_string()), since.clone());
             }
-            let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_95 = self.extend(request, &[params.clone()]);
             response = self.private_get_deposits(&[__ws_arg_95]).await;
         }
         //
@@ -10565,7 +10565,7 @@ impl KucoinCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startAt".to_string()), since.clone());
         }
-        let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_96 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_deposit_list(&[__ws_arg_96]).await;
         //
         //     {
@@ -10673,7 +10673,7 @@ impl KucoinCore {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startAt".to_string()), since.clone());
             }
-            let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_98 = self.extend(request, &[params.clone()]);
             response = self.private_get_withdrawals(&[__ws_arg_98]).await;
         }
         //
@@ -10765,7 +10765,7 @@ impl KucoinCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startAt".to_string()), since.clone());
         }
-        let __ws_arg_99 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_99 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_withdrawal_list(&[__ws_arg_99]).await;
         //
         //     {
@@ -10895,7 +10895,7 @@ impl KucoinCore {
                 add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             add_element_to_object(&mut request, &Value::Str("type".to_string()), type_var.clone());
-            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_102 = self.extend(request, &[params.clone()]);
             response = self.private_get_accounts(&[__ws_arg_102]).await;
         }
         //
@@ -11093,7 +11093,7 @@ impl KucoinCore {
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_103 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_account_overview(&[__ws_arg_103]).await;
         //
         //     {
@@ -11239,7 +11239,7 @@ impl KucoinCore {
             //         }
             //     }
             //
-            let __ws_arg_105 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_105 = self.extend(request, &[params.clone()]);
             response = self.uta_private_get_account_balance(&[__ws_arg_105]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -11857,7 +11857,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             feeCurrency = code.clone();
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
                     m.insert("currency".to_string(), feeCurrency.clone());
                 m
             });
@@ -12017,7 +12017,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let __ws_arg_112 = self.extend(request.clone(), &[params.clone()]);
             response = self.futures_private_get_transaction_history(&[__ws_arg_112]).await;
         }  else {
-            let __ws_arg_113 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_113 = self.extend(request, &[params.clone()]);
             response = self.private_get_accounts_ledgers(&[__ws_arg_113]).await;
         }
         //
@@ -12198,7 +12198,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let __ws_arg_114 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_isolated_accounts(&[__ws_arg_114]).await;
         }  else {
-            let __ws_arg_115 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_115 = self.extend(request, &[params.clone()]);
             response = self.private_get_margin_accounts(&[__ws_arg_115]).await;
         }
         //
@@ -12403,7 +12403,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone()); // default:50, min:10, max:500
         }
-        let __ws_arg_116 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_116 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_margin_interest(&[__ws_arg_116]).await;
         //
         //     {
@@ -12472,7 +12472,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone()); // default:50, min:10, max:500
         }
-        let __ws_arg_117 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_117 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_margin_interest(&[__ws_arg_117]).await;
         //
         //     {
@@ -12572,7 +12572,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("currency".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_118 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_118 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_private_get_account_interest_limits(&[__ws_arg_118]).await;
         //
         //     {
@@ -12623,7 +12623,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("timeInForce".to_string(), Value::Str("FOK".to_string()));
             m
         });
-        let __ws_arg_119 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_119 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_margin_borrow(&[__ws_arg_119]).await;
         //
         //     {
@@ -12677,7 +12677,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("isIsolated".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_120 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_120 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_margin_borrow(&[__ws_arg_120]).await;
         //
         //     {
@@ -12725,7 +12725,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("size".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_121 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_121 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_margin_repay(&[__ws_arg_121]).await;
         //
         //     {
@@ -12777,7 +12777,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("isIsolated".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_122 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_122 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_margin_repay(&[__ws_arg_122]).await;
         //
         //     {
@@ -12899,7 +12899,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_123 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_123 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_get_cross_user_leverage(&[__ws_arg_123]).await;
         //
         //    {
@@ -12915,7 +12915,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     m
 })]);
         let mut parsed: Value = self.parse_leverage(data.clone(), &[market.clone()]);
-        return self.extend(parsed.clone(), &[Value::Map({
+        return self.extend(parsed, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), marginMode.clone());
     m
@@ -13056,7 +13056,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             //        "data": true
             //    }
             //
-            let __ws_arg_127 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_127 = self.extend(request, &[params.clone()]);
             response = self.futures_private_post_change_cross_user_leverage(&[__ws_arg_127]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -13160,7 +13160,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             //         }
             //     }
             //
-            let __ws_arg_129 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_129 = self.extend(request, &[params.clone()]);
             response = self.futures_public_get_funding_rate_symbol_current(&[__ws_arg_129]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
@@ -13392,7 +13392,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             //         ]
             //     }
             //
-            let __ws_arg_131 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_131 = self.extend(request, &[params.clone()]);
             response = self.futures_public_get_contract_funding_rates(&[__ws_arg_131]).await;
         }
         let mut result: Value = self.safe_list(response.clone(), resultKey.clone(), &[Value::List(vec![])]);
@@ -13506,7 +13506,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 // * Since is ignored if limit is defined
                 add_element_to_object(&mut request, &Value::Str("maxCount".to_string()), limit.clone());
             }
-            let __ws_arg_133 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_133 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.futures_private_get_funding_history(&[__ws_arg_133]).await;
             //
             //    {
@@ -13629,7 +13629,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     m
 })]);
         }  else {
-            let __ws_arg_135 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_135 = self.extend(request, &[params.clone()]);
             response = self.futures_private_get_position(&[__ws_arg_135]).await;
             //
             //    {
@@ -13856,7 +13856,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             //     }
             // }
             //
-            let __ws_arg_138 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_138 = self.extend(request, &[params.clone()]);
             response = self.futures_private_get_history_positions(&[__ws_arg_138]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
@@ -14026,14 +14026,14 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("lastUpdateTimestamp".to_string(), lastUpdateTimestamp.clone());
-        m.insert("initialMargin".to_string(), self.parse_number(initialMargin.clone(), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage.clone(), &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));
         m.insert("maintenanceMargin".to_string(), self.safe_number2(position.clone(), Value::Str("posMaint".to_string()), Value::Str("maintenanceMargin".to_string()), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.safe_number2(position.clone(), Value::Str("maintMarginReq".to_string()), Value::Str("mmr".to_string()), &[]));
         m.insert("entryPrice".to_string(), self.safe_number_n(position.clone(), Value::List(vec![Value::Str("avgEntryPrice".to_string()), Value::Str("openPrice".to_string()), Value::Str("entryPrice".to_string())]), &[]));
-        m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number2(position.clone(), Value::Str("realLeverage".to_string()), Value::Str("leverage".to_string()), &[]));
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.clone(), &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));
         m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&size), &[]));
         m.insert("contractSize".to_string(), self.safe_value_k(market.clone(), "contractSize", &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_n(position.clone(), Value::List(vec![Value::Str("realisedPnl".to_string()), Value::Str("pnl".to_string()), Value::Str("realizedPnL".to_string())]), &[]));
@@ -14154,7 +14154,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         }  else {
             let mut requestKey: Value = (if useClientorderId { Value::Str("clientOidsList".to_string()) } else { Value::Str("orderIdsList".to_string()) });
             add_element_to_object(&mut request, &requestKey, ordersRequests.clone());
-            let __ws_arg_140 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_140 = self.extend(request, &[params.clone()]);
             response = self.futures_private_delete_orders_multi_cancel(&[__ws_arg_140]).await;
             //
             //   {
@@ -14211,7 +14211,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("bizNo".to_string(), uuid.clone());
             m
         });
-        let __ws_arg_141 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_141 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_post_position_margin_deposit_margin(&[__ws_arg_141]).await;
         //
         //    {
@@ -14302,7 +14302,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("withdrawAmount".to_string(), amountString.clone());
             m
         });
-        let __ws_arg_144 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_144 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_post_margin_withdraw_margin(&[__ws_arg_144]).await;
         //
         //     {
@@ -14318,7 +14318,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("reduce".to_string()));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
-        m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("total".to_string(), Value::Null);
         m.insert("code".to_string(), self.safe_currency_code(currencyId.clone(), &[]));
         m.insert("status".to_string(), (if is_true(&(Value::Bool(responseCode.as_str() == Some("200000")))) { Value::Str("ok".to_string()) } else { Value::Null }));
@@ -14425,7 +14425,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_145 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_145 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_get_position_get_margin_mode(&[__ws_arg_145]).await;
         //
         //     {
@@ -14493,7 +14493,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("marginMode".to_string(), to_upper(&marginMode));
             m
         });
-        let __ws_arg_146 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_146 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_post_position_change_margin_mode(&[__ws_arg_146]).await;
         //
         //    {
@@ -14538,7 +14538,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("positionMode".to_string(), posMode.clone());
             m
         });
-        let __ws_arg_147 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_147 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_private_post_position_switch_position_mode(&[__ws_arg_147]).await;
         return response;
 
@@ -14617,7 +14617,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             let __ws_arg_148 = self.extend(request.clone(), &[params.clone()]);
             response = self.futures_private_post_orders_test(&[__ws_arg_148]).await;
         }  else {
-            let __ws_arg_149 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_149 = self.extend(request, &[params.clone()]);
             response = self.futures_private_post_orders(&[__ws_arg_149]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -14658,7 +14658,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_150 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_150 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.futures_public_get_contracts_risk_limit_symbol(&[__ws_arg_150]).await;
         //
         //    {
@@ -14783,7 +14783,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 m.insert("symbol".to_string(), join(&marketIds, &Value::Str(",".to_string())));
             m
         });
-        let __ws_arg_151 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_151 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_get_market_position_tiers(&[__ws_arg_151]).await;
         //
         //     {
@@ -14867,7 +14867,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), join(&marketIds, &Value::Str(",".to_string())));
             }
         }
-        let __ws_arg_152 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_152 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_get_market_open_interest(&[__ws_arg_152]).await;
         //
         //     {
@@ -14978,7 +14978,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endAt".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_153 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_153 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.uta_get_market_open_interest(&[__ws_arg_153]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         return self.parse_open_interests_history(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -15061,7 +15061,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
                 isUtaPrivate = true;
             }
         }
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut endpart: Value = Value::Str("".to_string());
         headers = (if is_true(&(Value::Bool(headers != Value::Null))) { headers.clone() } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -15223,7 +15223,7 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), Value::Int(500));
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("endAt".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_154 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_154 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_accounts_ledgers(&[__ws_arg_154]).await;
         //
         // {

@@ -74,7 +74,7 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -4831,6 +4831,91 @@ class RustTranspilerBuilder {
     }
 
     /**
+     * Drop `.clone()` on the value arg of `self.extend/omit/market/parse_number`.
+     * Those callees take their `Value` argument BY VALUE (see the hand-written
+     * stubs `Exchange::extend/omit/parse_number` and the generated `market`), so
+     * the clone is only needed when the local is still read after the call —
+     * `autoCloneCallArgs` adds it unconditionally. Drop it when the name is dead
+     * after the call in the enclosing fn: the value moves instead of being
+     * copied, and `Value::clone()` is a COW refcount bump, so nothing else about
+     * the emitted program changes. Conservative — any later mention of the name
+     * (the call's own trailing `&[..]` slice included) keeps the clone.
+     */
+    dropDeadLastUseArgClones(content: string): string {
+        const callees = 'extend|omit|market|parse_number';
+        const callRe = new RegExp(`\\bself\\.(?:${callees})\\(([a-zA-Z_][a-zA-Z0-9_]*)\\.clone\\(\\)`, 'g');
+        if (!callRe.test(content)) return content;
+        callRe.lastIndex = 0;
+        // Body span of every `fn` (line-anchored so a mention inside a comment
+        // or doc block can't start a bogus span) — the "later in the same fn"
+        // test must not see a use in a following method.
+        const bodies: Array<[number, number]> = [];
+        const fnRe = /^[ \t]*(?:pub\s+)?(?:async\s+)?fn\s+[a-zA-Z_][a-zA-Z0-9_]*\s*[(<]/gm;
+        let fm: RegExpExecArray | null;
+        while ((fm = fnRe.exec(content)) !== null) {
+            const open = content.indexOf('{', fm.index);
+            if (open < 0) continue;
+            bodies.push([fm.index, this.findMatchingBrace(content, open)]);
+        }
+        const bodyEndFor = (pos: number): number => {
+            for (const [a, b] of bodies) {
+                if (a <= pos && pos <= b) return b;
+            }
+            return -1;
+        };
+        // A move inside a loop is only legal when the local is re-created each
+        // iteration. If the last loop keyword before the call comes after the
+        // name's last `let` declaration, the value would be moved on a second
+        // iteration — keep the clone.
+        const loops: number[] = [];
+        {
+            const r = /\b(?:while|loop|for)\b/g;
+            let x: RegExpExecArray | null;
+            while ((x = r.exec(content)) !== null) loops.push(x.index);
+        }
+        const lastBefore = (sorted: number[], pos: number): number => {
+            let lo = 0, hi = sorted.length - 1, at = -1;
+            while (lo <= hi) {
+                const mid = (lo + hi) >> 1;
+                if (sorted[mid] < pos) { at = sorted[mid]; lo = mid + 1; } else hi = mid - 1;
+            }
+            return at;
+        };
+        const declCache = new Map<string, number[]>();
+        const declsFor = (ident: string): number[] => {
+            let v = declCache.get(ident);
+            if (!v) {
+                v = [];
+                const r = new RegExp(`\\blet\\s+(?:mut\\s+)?${ident}\\b`, 'g');
+                let x: RegExpExecArray | null;
+                while ((x = r.exec(content)) !== null) v.push(x.index);
+                declCache.set(ident, v);
+            }
+            return v;
+        };
+        let out = '';
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = callRe.exec(content)) !== null) {
+            // Never touch a call that sits in a comment.
+            const lineAt = content.lastIndexOf('\n', m.index) + 1;
+            if (content.slice(lineAt, m.index).includes('//')) continue;
+            if (content.lastIndexOf('/*', m.index) > content.lastIndexOf('*/', m.index)) continue;
+            const ident = m[1];
+            const identAt = m.index + m[0].length - ident.length - '.clone()'.length;
+            const end = bodyEndFor(m.index);
+            if (end < 0) continue;
+            const rest = content.slice(identAt + ident.length, end);
+            if (new RegExp(`(?<![A-Za-z0-9_])${ident}(?![A-Za-z0-9_])`).test(rest)) continue;
+            if (lastBefore(loops, identAt) > lastBefore(declsFor(ident), identAt)) continue;
+            out += content.slice(last, m.index) + m[0].slice(0, m[0].length - '.clone()'.length);
+            last = m.index + m[0].length;
+        }
+        if (last === 0) return content;
+        return out + content.slice(last);
+    }
+
+    /**
      * Paren-balanced walker. For every call whose head matches one of
      * the given patterns, clones bare-identifier args *after the first*
      * (the first arg is left alone — for `shared::*` it's a borrowed
@@ -6897,6 +6982,10 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.narrowBoolLocals(rustContent);
                 // Then drop the `is_true(&x)` those locals no longer need.
                 rustContent = this.dropRedundantIsTrue(rustContent);
+                // Last: drop `.clone()` on the value arg of
+                // extend/omit/market/parse_number when the local is dead
+                // afterwards (those callees take the Value by value).
+                rustContent = this.dropDeadLastUseArgClones(rustContent);
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(
@@ -7478,6 +7567,11 @@ impl std::ops::DerefMut for ${coreName} {
                     '<Self as crate::exchange_generated::ExchangeBase>::$1(self, ');
             }
         }
+
+        // Drop `.clone()` on the value arg of extend/omit/market/parse_number
+        // when the local is dead afterwards (those callees take the Value by
+        // value). Runs last, once every other pass has fixed the final shape.
+        basePart = this.dropDeadLastUseArgClones(basePart);
 
         // Drop base methods we keep as hand-written stubs in `exchange_stubs.rs`.
         // `loadOrderBook` is a WS-only helper (its body uses the WS `client`,

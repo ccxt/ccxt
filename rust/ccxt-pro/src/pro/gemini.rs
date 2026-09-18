@@ -844,7 +844,7 @@ impl GeminiCore {
             if is_true(&crate::precise::Precise::stringEq(&sizeString, &Value::Str("0".to_string()))) {
                 continue;
             }
-            let mut size: Value = self.parse_number(sizeString.clone(), &[]);
+            let mut size: Value = self.parse_number(sizeString, &[]);
             if (rawSide.as_str() == Some("bid")) {
                 add_element_to_object(&mut currentBidAsk, &Value::Str("bid".to_string()), price.clone());
                 add_element_to_object(&mut currentBidAsk, &Value::Str("bidVolume".to_string()), size.clone());
@@ -893,7 +893,7 @@ impl GeminiCore {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", itemHashName, Value::Str(":".to_string()))), symbol));
             append_to_array(&mut messageHashes, messageHash.clone());
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = self.market(symbol);
             append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         }
