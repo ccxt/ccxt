@@ -1807,9 +1807,9 @@ class digifinex extends Exchange {
         //
         $data = array();
         if ($market['swap'] === true) {
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
         } else {
-            $data = $this->safe_value($response, 'order_ids', array());
+            $data = $this->safe_list($response, 'order_ids', array());
         }
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {

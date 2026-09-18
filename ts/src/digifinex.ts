@@ -1813,9 +1813,9 @@ export default class digifinex extends Exchange {
         //
         let data: string[] = [];
         if (market['swap'] === true) {
-            data = this.safeValue (response, 'data', []);
+            data = this.safeList (response, 'data', []);
         } else {
-            data = this.safeValue (response, 'order_ids', []);
+            data = this.safeList (response, 'order_ids', []);
         }
         const result: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {

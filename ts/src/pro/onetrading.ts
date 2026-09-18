@@ -1092,7 +1092,7 @@ export default class onetrading extends onetradingRest {
         let type = 'SUBSCRIBE';
         let subscription: Dict = {};
         if (client !== undefined) {
-            subscription = this.safeValue (client.subscriptions, subscriptionHash);
+            subscription = this.safeDict (client.subscriptions, subscriptionHash) as Dict;
             if (subscription !== undefined) {
                 const ohlcvMarket = this.safeValue (subscription, marketId, {});
                 const marketSubscribed = this.safeBool (ohlcvMarket, timeframe, false);
@@ -1354,7 +1354,7 @@ export default class onetrading extends onetradingRest {
         let type = 'SUBSCRIBE';
         let subscription: Dict = {};
         if (client !== undefined) {
-            subscription = this.safeValue (client.subscriptions, subscriptionHash);
+            subscription = this.safeDict (client.subscriptions, subscriptionHash) as Dict;
             if (subscription !== undefined) {
                 for (let i = 0; i < marketIds.length; i++) {
                     const marketId = marketIds[i];

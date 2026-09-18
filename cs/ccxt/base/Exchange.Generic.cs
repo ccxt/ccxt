@@ -377,6 +377,11 @@ public partial class BaseExchange
 
     }
 
+    // The string-typed twin the generated declarations bind when the argument is already a
+    // string (the safeString family, classifier-typed locals): the object body hands a string
+    // back unchanged, or null for a numeric zero, so the box is exactly a string or null.
+    public string? omitZero(string? value) => (string?)omitZero((object)value);
+
     public virtual object isDictionary(object value)
     {
         return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
@@ -404,6 +409,20 @@ public partial class BaseExchange
             return Convert.ToInt64(sum);
         }
         return sum;
+    }
+
+    // typed twins for the integer-box operands the C# classifier proves (int / uint / long /
+    // Int64 / Int64?): the (object, object) overload above maps a null operand to 0 and boxes
+    // an Int64 for every such pair, so these hand back that exact box and a generated
+    // `Int64 x = this.sum (a, b)` binds here without a cast (cs-strict S18).
+    public virtual Int64 sum(Int64 a, Int64 b)
+    {
+        return Convert.ToInt64(sum((object)a, (object)b));
+    }
+
+    public virtual Int64 sum(Int64? a, Int64? b)
+    {
+        return Convert.ToInt64(sum((object)a, (object)b));
     }
 
 }

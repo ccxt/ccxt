@@ -61,12 +61,12 @@ public partial class hollaex : ccxt.hollaex
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(add("orderbook", ":"), getValue(market, "id"));
+        string messageHash = add(add("orderbook", ":"), GetValue(market, "id"));
         object orderbook = await this.watchPublic(messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -97,31 +97,31 @@ public partial class hollaex : ccxt.hollaex
         string? marketId = this.safeString(message, "symbol");
         object channel = this.safeString(message, "topic");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
-        if (isTrue(isEqual(symbol, null)))
+        string? symbol = ((string)GetValue(market, "symbol"));
+        if ((symbol == null))
         {
             return;
         }
         object data = this.safeValue(message, "data");
         string? timestamp = this.safeString(data, "timestamp");
         Int64? timestampMs = this.parse8601(timestamp);
-        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestampMs));
+        Dictionary<string, object> snapshot = this.parseOrderBook(data, symbol, timestampMs);
         object orderbook = null;
-        if (!isTrue((inOp(this.orderbooks, symbol))))
+        if (!(inOp(this.orderbooks, symbol)))
         {
             orderbook = this.orderBook(snapshot);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         } else
         {
             orderbook = this.getOrderBook(this.orderbooks, symbol);
-            if (isTrue(isEqual(orderbook, null)))
+            if ((orderbook == null))
             {
                 return;
             }
             (orderbook as IOrderBook).reset(snapshot);
         }
         object messageHash = add(add(channel, ":"), marketId);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
     /**
@@ -140,13 +140,13 @@ public partial class hollaex : ccxt.hollaex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string messageHash = add(add("trade", ":"), getValue(market, "id"));
+        symbolVar = GetValue(market, "symbol");
+        string messageHash = add(add("trade", ":"), GetValue(market, "id"));
         object trades = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -175,9 +175,9 @@ public partial class hollaex : ccxt.hollaex
         object channel = this.safeString(message, "topic");
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)GetValue(market, "symbol"));
         object stored = this.safeValue(this.trades, symbol);
-        if (isTrue(isEqual(stored, null)))
+        if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
@@ -185,13 +185,13 @@ public partial class hollaex : ccxt.hollaex
         }
         object data = this.safeValue(message, "data", new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; isLessThan(j, getArrayLength(parsedTrades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, parsedTrades?.Count ?? 0); postFixIncrement(ref j))
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
         object messageHash = add(add(channel, ":"), marketId);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, channel});
+        callDynamically(client, "resolve", new object[] {stored, messageHash});
+        callDynamically(client, "resolve", new object[] {stored, channel});
     }
 
     /**
@@ -210,17 +210,17 @@ public partial class hollaex : ccxt.hollaex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         string messageHash = "usertrade";
         IDictionary<string, object> market = null;
-        if (isTrue(!isEqual(symbolVar, null)))
+        if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", getValue(market, "id")));
+            symbolVar = GetValue(market, "symbol");
+            messageHash = add(messageHash, add(":", GetValue(market, "id")));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -259,16 +259,16 @@ public partial class hollaex : ccxt.hollaex
         // usually the first message is an empty array
         // when the user does not have any trades yet
         int dataLength = getArrayLength(rawTrades);
-        if (isTrue(isEqual(dataLength, 0)))
+        if ((dataLength == 0))
         {
             return;
         }
-        if (isTrue(isEqual(this.myTrades, null)))
+        if (isEqual(this.myTrades, null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(limit);
         }
-        object stored = this.myTrades;
+        ccxt.pro.ArrayCache stored = this.myTrades;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
@@ -277,20 +277,20 @@ public partial class hollaex : ccxt.hollaex
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(trade, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
-            if (isTrue(!isEqual(marketId, null)))
+            string? marketId = ((string)GetValue(market, "id"));
+            if ((marketId != null))
             {
-                ((IDictionary<string,object>)marketIds)[(string)marketId] = true;
+                marketIds[(string)marketId] = true;
             }
         }
         // non-symbol specific
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, channel});
+        callDynamically(client, "resolve", new object[] {this.myTrades, channel});
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(keys, i));
             object messageHash = add(add(channel, ":"), marketId);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
+            callDynamically(client, "resolve", new object[] {this.myTrades, messageHash});
         }
     }
 
@@ -310,17 +310,17 @@ public partial class hollaex : ccxt.hollaex
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
+        if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         string messageHash = "order";
         IDictionary<string, object> market = null;
-        if (isTrue(!isEqual(symbolVar, null)))
+        if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = add(messageHash, add(":", getValue(market, "id")));
+            symbolVar = GetValue(market, "symbol");
+            messageHash = add(messageHash, add(":", GetValue(market, "id")));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -393,18 +393,18 @@ public partial class hollaex : ccxt.hollaex
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         // usually the first message is an empty array
         int dataLength = getArrayLength(data);
-        if (isTrue(isEqual(dataLength, 0)))
+        if ((dataLength == 0))
         {
             return;
         }
-        if (isTrue(isEqual(this.orders, null)))
+        if (isEqual(this.orders, null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
         }
-        object stored = this.orders;
+        ccxt.pro.ArrayCache stored = this.orders;
         object rawOrders = null;
-        if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
             rawOrders = new List<object>() {data};
         } else
@@ -419,20 +419,20 @@ public partial class hollaex : ccxt.hollaex
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            string? marketId = ((string)getValue(market, "id"));
-            if (isTrue(!isEqual(marketId, null)))
+            string? marketId = ((string)GetValue(market, "id"));
+            if ((marketId != null))
             {
-                ((IDictionary<string,object>)marketIds)[(string)marketId] = true;
+                marketIds[(string)marketId] = true;
             }
         }
         // non-symbol specific
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, channel});
+        callDynamically(client, "resolve", new object[] {this.orders, channel});
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(keys, i));
             object messageHash = add(add(channel, ":"), marketId);
-            callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, messageHash});
+            callDynamically(client, "resolve", new object[] {this.orders, messageHash});
         }
     }
 
@@ -476,27 +476,27 @@ public partial class hollaex : ccxt.hollaex
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
-        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
-            List<object> parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = key.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? currencyId = this.safeString(parts, 0);
             string? code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+            if (((code != null)) && (inOp(this.balance, code)))
             {
                 account = getValue(this.balance, code);
             }
             string? second = this.safeString(parts, 1);
-            string freeOrTotal = ((bool) isTrue((isEqual(second, "available")))) ? "free" : "total";
-            ((IDictionary<string,object>)account)[(string)freeOrTotal] = this.safeString(data, key);
-            if (isTrue(!isEqual(code, null)))
+            string freeOrTotal = (second == "available") ? "free" : "total";
+            ((IDictionary<string,object>)account)[freeOrTotal] = this.safeString(data, key);
+            if ((code != null))
             {
                 ((IDictionary<string,object>)this.balance)[(string)code] = account;
             }
         }
         this.balance = this.safeBalance(this.balance);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
+        callDynamically(client, "resolve", new object[] {this.balance, messageHash});
     }
 
     public async virtual Task<object> watchPublic(object messageHash, object parameters = null)
@@ -516,15 +516,15 @@ public partial class hollaex : ccxt.hollaex
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object expires = this.safeString(this.options, "ws-expires");
-        if (isTrue(isEqual(expires, null)))
+        if ((expires == null))
         {
             object timeout = parseInt(((object)(divide(this.timeout, 1000))).ToString());
             expires = this.sum(this.seconds(), timeout);
-            if (isTrue(isEqual(expires, null)))
+            if ((expires == null))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchPrivate() expires is required")) ;
+                throw new ArgumentsRequired (add(this.id, " watchPrivate() expires is required")) ;
             }
-            expires = ((object)expires).ToString();
+            expires = expires.ToString();
             // we need to memoize these values to avoid generating a new url on each method execution
             // that would trigger a new connection on each received message
             ((IDictionary<string,object>)this.options)["ws-expires"] = expires;
@@ -555,7 +555,7 @@ public partial class hollaex : ccxt.hollaex
         Int64? error = this.safeInteger(message, "error");
         try
         {
-            if (isTrue(!isEqual(error, null)))
+            if (!isEqual(error, null))
             {
                 string feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), error, feedback);
@@ -657,14 +657,14 @@ public partial class hollaex : ccxt.hollaex
         //         }
         //     }
         //
-        if (isTrue(!isEqual(this.handleErrorMessage(client as WebSocketClient, message), true)))
+        if (!isEqual(this.handleErrorMessage(client, message), true))
         {
             return;
         }
         string? content = this.safeString(message, "message");
-        if (isTrue(isEqual(content, "pong")))
+        if (content == "pong")
         {
-            this.handlePong(client as WebSocketClient, message);
+            this.handlePong(client, (Dictionary<string, object>)message);
             return;
         }
         Dictionary<string, object> methods = new Dictionary<string, object>() {
@@ -676,7 +676,7 @@ public partial class hollaex : ccxt.hollaex
         };
         object topic = this.safeValue(message, "topic");
         object method = this.safeValue(methods, topic);
-        if (isTrue(!isEqual(method, null)))
+        if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
         }
@@ -690,7 +690,7 @@ public partial class hollaex : ccxt.hollaex
         };
     }
 
-    public virtual object handlePong(WebSocketClient client, object message)
+    public virtual object handlePong(WebSocketClient client, Dictionary<string, object> message)
     {
         client.lastPong = this.milliseconds();
         return message;
@@ -699,12 +699,12 @@ public partial class hollaex : ccxt.hollaex
     public override void onError(WebSocketClient client, object error)
     {
         ((IDictionary<string,object>)this.options)["ws-expires"] = null;
-        base.onError(client as WebSocketClient, error);
+        base.onError(client, error);
     }
 
     public override void onClose(WebSocketClient client, object error)
     {
         ((IDictionary<string,object>)this.options)["ws-expires"] = null;
-        base.onClose(client as WebSocketClient, error);
+        base.onClose(client, error);
     }
 }

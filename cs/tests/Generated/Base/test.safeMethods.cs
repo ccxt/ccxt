@@ -193,20 +193,20 @@ public partial class BaseTest
             IDictionary<string, object> dictObject = exchange.safeDict(inputDict, "dict");
             Assert(equals(dictObject, compareDict));
             IDictionary<string, object> listObject = exchange.safeDict(inputDict, "list");
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             Assert(isEqual(exchange.safeDict(inputList, 1), null));
             // safeDict2
             dictObject = exchange.safeDict2(inputDict, "a", "dict");
             Assert(equals(dictObject, compareDict));
             listObject = exchange.safeDict2(inputDict, "a", "list");
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             // @ts-expect-error
             Assert(isEqual(exchange.safeDict2(inputList, 2, 1), null));
             // safeDictN
             dictObject = exchange.safeDictN(inputDict, new List<object>() {"a", "b", "dict"});
             Assert(equals(dictObject, compareDict));
             listObject = exchange.safeDictN(inputDict, new List<object>() {"a", "b", "list"});
-            Assert(isEqual(listObject, null));
+            Assert((listObject == null));
             Assert(isEqual(exchange.safeDictN(inputList, new List<object>() {3, 2, 1}), null));
         }
         public void testSafeList()
@@ -430,12 +430,12 @@ public partial class BaseTest
                 { "id", "order1" },
                 { "price", 50000 },
             });
-            Assert(isGreaterThan(getArrayLength(arrayCache), 0));
+            Assert(getArrayLength(arrayCache) > 0);
             // Test cache types - ArrayCacheByTimestamp
             var arrayCacheByTimestamp = new ArrayCacheByTimestamp(100);
             arrayCacheByTimestamp.append(new List<object>() {1000, 50000, 1, 2, 3});
             object arrayCacheByTimestampData = exchange.safeValue(arrayCacheByTimestamp, "Data");
-            object cacheByTimestampData = ((bool) isTrue(!isEqual(arrayCacheByTimestampData, null))) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
+            object cacheByTimestampData = (arrayCacheByTimestampData != null) ? arrayCacheByTimestampData : arrayCacheByTimestamp;
             Assert(isGreaterThan(getArrayLength(cacheByTimestampData), 0));
             // Test cache types - ArrayCacheBySymbolById
             var arrayCacheBySymbolById = new ArrayCacheBySymbolById(100);
@@ -449,7 +449,7 @@ public partial class BaseTest
             Assert(!isEqual(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), null));
             Assert(!isEqual(getValue(getValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), null));
             object arrayCacheBySymbolByIdData = exchange.safeValue(arrayCacheBySymbolById, "Data");
-            object cacheBySymbolByIdData = ((bool) isTrue(!isEqual(arrayCacheBySymbolByIdData, null))) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
+            object cacheBySymbolByIdData = (arrayCacheBySymbolByIdData != null) ? arrayCacheBySymbolByIdData : arrayCacheBySymbolById;
             Assert(isGreaterThan(getArrayLength(cacheBySymbolByIdData), 0));
             // Test cache types - ArrayCacheBySymbolBySide
             var arrayCacheBySymbolBySide = new ArrayCacheBySymbolBySide();
@@ -462,7 +462,7 @@ public partial class BaseTest
             object arrayCacheBySymbolBySideHashmap = arrayCacheBySymbolBySide.hashmap;
             Assert(!isEqual(getValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), null));
             object arrayCacheBySymbolBySideData = exchange.safeValue(arrayCacheBySymbolBySide, "Data");
-            object cacheBySymbolBySideData = ((bool) isTrue(!isEqual(arrayCacheBySymbolBySideData, null))) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
+            object cacheBySymbolBySideData = (arrayCacheBySymbolBySideData != null) ? arrayCacheBySymbolBySideData : arrayCacheBySymbolBySide;
             Assert(isGreaterThan(getArrayLength(cacheBySymbolBySideData), 0));
             // Test map[string]map[string]interface{} (ArrayCache.hashmap)
             // Use direct property access for object attributes
@@ -475,15 +475,15 @@ public partial class BaseTest
                 { "ETH/USDT", arrayCacheBySymbolById },
             };
             object stored = exchange.safeValue(tradesMap, "BTC/USDT");
-            Assert(!isEqual(stored, null));
+            Assert((stored != null));
             // Use direct property access for hashmap (object attribute)
             object retrievedArrayCacheHashmap = ((stored as ArrayCache).hashmap);
-            Assert(!isEqual(retrievedArrayCacheHashmap, null));
+            Assert((retrievedArrayCacheHashmap != null));
             object retrievedArrayCacheBySymbolById = exchange.safeValue(tradesMap, "ETH/USDT");
-            Assert(!isEqual(retrievedArrayCacheBySymbolById, null));
+            Assert((retrievedArrayCacheBySymbolById != null));
             // Use direct property access for hashmap (object attribute)
             object retrievedArrayCacheBySymbolByIdHashmap = ((retrievedArrayCacheBySymbolById as ArrayCacheBySymbolById).hashmap);
-            Assert(!isEqual(retrievedArrayCacheBySymbolByIdHashmap, null));
+            Assert((retrievedArrayCacheBySymbolByIdHashmap != null));
             Assert(isEqual(exchange.safeValue(tradesMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
             Dictionary<string, object> ohlcvInnerMap = new Dictionary<string, object>() {
@@ -491,10 +491,10 @@ public partial class BaseTest
                 { "5m", new ArrayCacheByTimestamp(100) },
             };
             object retrievedArrayCacheByTimestamp = exchange.safeValue(ohlcvInnerMap, "1m");
-            Assert(!isEqual(retrievedArrayCacheByTimestamp, null));
+            Assert((retrievedArrayCacheByTimestamp != null));
             // Use direct property access for object attributes
             object retrievedArrayCacheByTimestampHashmap = ((retrievedArrayCacheByTimestamp as ArrayCacheByTimestamp).hashmap);
-            Assert(!isEqual(retrievedArrayCacheByTimestampHashmap, null));
+            Assert((retrievedArrayCacheByTimestampHashmap != null));
             Assert(!isEqual(exchange.safeValue(ohlcvInnerMap, "5m"), null));
             Assert(isEqual(exchange.safeValue(ohlcvInnerMap, "NONEXISTENT"), null));
             // Test map[string]*ArrayCacheBySymbolBySide
@@ -502,9 +502,9 @@ public partial class BaseTest
                 { "BTC/USDT", arrayCacheBySymbolBySide },
             };
             object retrievedArrayCacheBySymbolBySide = exchange.safeValue(cacheBySideMap, "BTC/USDT");
-            Assert(!isEqual(retrievedArrayCacheBySymbolBySide, null));
+            Assert((retrievedArrayCacheBySymbolBySide != null));
             object retrievedArrayCacheBySymbolBySideHashmap = ((retrievedArrayCacheBySymbolBySide as ArrayCacheBySymbolBySide).hashmap);
-            Assert(!isEqual(retrievedArrayCacheBySymbolBySideHashmap, null));
+            Assert((retrievedArrayCacheBySymbolBySideHashmap != null));
             Assert(isEqual(exchange.safeValue(cacheBySideMap, "NONEXISTENT"), null));
         }
         public void testSafeMethods()

@@ -27,9 +27,9 @@ public partial class BaseTest
             // AssertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj1), [ 1, 3, 2 ]);
             // AssertDeepEqual (exchange, undefined, 'testToArray', exchange.toArray (obj2), [ 'x', 2 ]);
             //
-            Assert(isEqual(getArrayLength(result1), 3), "testToArray: length of result1 should be 3");
-            Assert(isEqual(getArrayLength(result2), 2), "testToArray: length of result2 should be 2");
-            Assert(isTrue(isTrue(exchange.inArray(1, result1)) && isTrue(exchange.inArray(3, result1))) && isTrue(exchange.inArray(2, result1)), "testToArray: result1 should include 1, 3, and 2");
+            Assert((getArrayLength(result1) == 3), "testToArray: length of result1 should be 3");
+            Assert((getArrayLength(result2) == 2), "testToArray: length of result2 should be 2");
+            Assert(isTrue(exchange.inArray(1, result1)) && isTrue(exchange.inArray(3, result1)) && isTrue(exchange.inArray(2, result1)), "testToArray: result1 should include 1, 3, and 2");
             Assert(isTrue(exchange.inArray("x", result2)) && isTrue(exchange.inArray(2, result2)), "testToArray: result2 should include \"x\" and 2");
         }
 }

@@ -268,14 +268,14 @@ public partial class BaseTest
                 { "bids", new List<object>() {new List<object>() {100, 1, "a"}, new List<object>() {101, 0, "ghost"}, new List<object>() {102, 1, "c"}} },
                 { "asks", new List<object>() {new List<object>() {200, 0, "ghost"}, new List<object>() {201, 1, "d"}} },
             }, 2);
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "bids")), 2));
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "asks")), 1));
+            Assert((getArrayLength(getValue(noopDeltas, "bids")) == 2));
+            Assert((getArrayLength(getValue(noopDeltas, "asks")) == 1));
             Assert(!isEqual(getValue(getValue(noopDeltas, "bids"), 0), null));
             Assert(!isEqual(getValue(getValue(noopDeltas, "bids"), 1), null));
             Assert(!isEqual(getValue(getValue(noopDeltas, "asks"), 0), null));
             noopDeltas.limit();
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "bids")), 2));
-            Assert(isEqual(getArrayLength(getValue(noopDeltas, "asks")), 1));
+            Assert((getArrayLength(getValue(noopDeltas, "bids")) == 2));
+            Assert((getArrayLength(getValue(noopDeltas, "asks")) == 1));
             
         // --------------------------------------------------------------------------------------------------------------------
         

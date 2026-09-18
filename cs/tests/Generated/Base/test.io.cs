@@ -16,7 +16,7 @@ public partial class BaseTest
             string fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
             // upper tmp dir
             object tempDir = exchange.getTempDir();
-            Assert(isTrue(!isEqual(tempDir, null)) && isTrue(!isEqual(tempDir, "")), "temp dir should not be empty");
+            Assert((tempDir != null) && !isEqual(tempDir, ""), "temp dir should not be empty");
             object filePath = add(tempDir, fileName); // '../../../../../../../../../../../../tmp/' + fileName;
             string fileContent = "hello world";
             Assert(exchange.writeFile(filePath, fileContent), add("can not write file ", filePath));

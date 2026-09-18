@@ -126,27 +126,27 @@ public partial class BaseTest
                 for (int j = 0; isLessThan(j, getArrayLength(allCurrencyCodes)); postFixIncrement(ref j))
                 {
                     string? randomCurrencyCode = ((string)getValue(allCurrencyCodes, j));
-                    object result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
+                    string? result = exchange.networkIdToCode(randomNetworkCode, randomCurrencyCode);
                     List<object> keys = new List<object>(((IDictionary<string,object>)defaultNetworkCodeReplacements).Keys);
-                    for (int k = 0; isLessThan(k, getArrayLength(keys)); postFixIncrement(ref k))
+                    for (int k = 0; isLessThan(k, keys.Count); postFixIncrement(ref k))
                     {
                         string? chainBaseCoin = ((string)getValue(keys, k));
                         object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
                         object primaryNetworkCode = getValue(chainMapping, "primary");
                         object secondaryNetworkCode = getValue(chainMapping, "secondary");
                         object msg = add(add(add(add(add(add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ");
-                        if (isTrue(isEqual(randomNetworkCode, primaryNetworkCode)))
+                        if (isEqual(randomNetworkCode, primaryNetworkCode))
                         {
-                            if (isTrue(isEqual(randomCurrencyCode, chainBaseCoin)))
+                            if (isEqual(randomCurrencyCode, chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else
                             {
                                 Assert(isEqual(result, secondaryNetworkCode), add(msg, secondaryNetworkCode));
                             }
-                        } else if (isTrue(isEqual(randomNetworkCode, secondaryNetworkCode)))
+                        } else if (isEqual(randomNetworkCode, secondaryNetworkCode))
                         {
-                            if (isTrue(isEqual(randomCurrencyCode, chainBaseCoin)))
+                            if (isEqual(randomCurrencyCode, chainBaseCoin))
                             {
                                 Assert(isEqual(result, primaryNetworkCode), add(msg, primaryNetworkCode));
                             } else

@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, markets);
         List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
-        for (int i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, marketValues.Count); postFixIncrement(ref i))
         {
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
         }
@@ -29,13 +29,13 @@ public partial class testMainClass : BaseTest
         {
             object market = getValue(marketValues, i);
             object symbol = getValue(market, "symbol");
-            if (!isTrue((inOp(ids, symbol))))
+            if (!(inOp(ids, symbol)))
             {
-                ((IDictionary<string,object>)ids)[(string)symbol] = getValue(market, "id");
+                ids[(string)symbol] = getValue(market, "id");
             } else
             {
                 bool isDifferent = !isEqual(getValue(ids, symbol), getValue(market, "id"));
-                assert(!isTrue(isDifferent), add(add(add(add(add(add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), getValue(ids, symbol)), " "), getValue(market, "id")));
+                assert(!isDifferent, add(add(add(add(add(add(exchange.id, " fetchMarkets() has different ids for the same symbol: "), symbol), " "), getValue(ids, symbol)), " "), getValue(market, "id")));
             }
         }
         return true;

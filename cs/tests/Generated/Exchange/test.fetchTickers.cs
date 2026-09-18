@@ -31,12 +31,12 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         object checkedSymbol = null;
-        if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
+        if (!isEqual(argSymbols, null) && (getArrayLength(argSymbols) == 1))
         {
             checkedSymbol = getValue(argSymbols, 0);
         }
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-        for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
         {
             // todo: symbol check here
             object ticker = getValue(values, i);
@@ -47,7 +47,7 @@ public partial class testMainClass : BaseTest
             {
                 object ohlcv = null;
                 object tickerSymbol = getValue(ticker, "symbol");
-                if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
+                if (((tickerSymbol != null)) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
                 {
                     ohlcv = await invokeExchangeDynamically(exchange, "fetchOHLCV", tickerSymbol, "1d", null, 5);
                 }
@@ -59,25 +59,25 @@ public partial class testMainClass : BaseTest
     public static void fetchTickersAmountsTest(BaseExchange exchange, object skippedProperties, object tickers)
     {
         List<object> tickersValues = new List<object>(((IDictionary<string,object>)tickers).Values);
-        if (!isTrue((inOp(skippedProperties, "checkActiveSymbols"))))
+        if (!(inOp(skippedProperties, "checkActiveSymbols")))
         {
             //
             // ensure all "active" symbols have tickers
             //
             object nonInactiveMarkets = testSharedMethods.getActiveMarkets(exchange);
             int notInactiveSymbolsLength = getArrayLength(nonInactiveMarkets);
-            int obtainedTickersLength = getArrayLength(tickersValues);
+            int obtainedTickersLength = tickersValues.Count;
             double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
             assert(isGreaterThanOrEqual(obtainedTickersLength, multiply(notInactiveSymbolsLength, minRatio)), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)notInactiveSymbolsLength).ToString()), " active markets"));
             //
             // ensure tickers length is less than markets length
             //
             object allMarkets = exchange.markets;
-            if (isTrue(isEqual(allMarkets, null)))
+            if ((allMarkets == null))
             {
                 return;
             }
-            int allMarketsLength = getArrayLength(new List<object>(((IDictionary<string,object>)allMarkets).Keys));
+            int allMarketsLength = (new List<object>(((IDictionary<string,object>)allMarkets).Keys)).Count;
             assert(isLessThanOrEqual(obtainedTickersLength, allMarketsLength), add(add(add(add(add(add(add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), ((object)obtainedTickersLength).ToString()), " tickers, "), ((object)allMarketsLength).ToString()), " markets"));
         }
     }

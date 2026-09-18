@@ -38,9 +38,9 @@ public partial class BaseExchange
 
     public IDictionary<string, object> quoteCurrencies { get; set; } = null;
 
-    public dict api { get; set; } = new dict();
+    public Dictionary<string, object> api { get; set; } = new dict();
 
-    public dict transformedApi { get; set; } = new dict();
+    public Dictionary<string, object> transformedApi { get; set; } = new dict();
 
     public bool reduceFees { get; set; } = true;
 
@@ -54,7 +54,7 @@ public partial class BaseExchange
 
     public bool substituteCommonCurrencyCodes { get; set; } = true;
 
-    public dict commonCurrencies { get; set; } = new dict();
+    public Dictionary<string, object> commonCurrencies { get; set; } = new dict();
 
     public object limits { get; set; } = new dict();
 
@@ -80,11 +80,11 @@ public partial class BaseExchange
     public object currencies { get; set; } = new dict();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
-    public dict timeframes { get; set; } = null;
+    public Dictionary<string, object> timeframes { get; set; } = null;
     public double rateLimit { get; set; } = 2000;
     public object exceptions { get; set; } = new dict();
     public object urls { get; set; } = new dict();
-    public dict precision { get; set; } = null;
+    public Dictionary<string, object> precision { get; set; } = null;
 
     public string apiKey { get; set; }
     public string secret { get; set; }
@@ -99,7 +99,7 @@ public partial class BaseExchange
 
     public int minFundingAddressLength { get; set; } = 1;
 
-    public dict userAgents { get; set; } = new dict(){
+    public Dictionary<string, object> userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
         {"chrome39","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"},
         {"chrome100","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"}
@@ -145,9 +145,9 @@ public partial class BaseExchange
     public object headers { get; set; } = new dict();
     public bool returnResponseHeaders { get; set; } = false;
 
-    public dict httpExceptions { get; set; } = new dict();
+    public Dictionary<string, object> httpExceptions { get; set; } = new dict();
 
-    public dict tokenBucket { get; set; } = new dict();
+    public Dictionary<string, object> tokenBucket { get; set; } = new dict();
     public Throttler throttler { get; set; }
 
     public object proxyUrl { get; set; } = null;
@@ -181,8 +181,11 @@ public partial class BaseExchange
     public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
     public object transactions = new dict();
-    public object myTrades;
-    public object orders;
+    // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
+    // pruneCachedBySymbols included). positions stays `object` — five venues store the
+    // account-type-keyed Dictionary there.
+    public ccxt.pro.ArrayCache myTrades;
+    public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
     public object balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
@@ -231,7 +234,7 @@ public partial class BaseExchange
         }
     }
 
-    void initializeProperties(dict userConfig = null)
+    void initializeProperties(Dictionary<string, object> userConfig = null)
     {
         var properties = this.describe();
 

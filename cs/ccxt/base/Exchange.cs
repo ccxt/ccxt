@@ -57,7 +57,7 @@ public partial class BaseExchange
         }
     }
 
-    private void transformApiNew(dict api, List<string> paths = null)
+    private void transformApiNew(Dictionary<string, object> api, List<string> paths = null)
     {
         if (api == null)
             return;
@@ -501,7 +501,7 @@ public partial class BaseExchange
     }
 
 
-    public void handleErrors(int statusCode, string statusText, string url, string method, dict responseHeaders, dict responseBody, dict response, dict requestHeaders, dict requestBody)
+    public void handleErrors(int statusCode, string statusText, string url, string method, Dictionary<string, object> responseHeaders, Dictionary<string, object> responseBody, Dictionary<string, object> response, Dictionary<string, object> requestHeaders, Dictionary<string, object> requestBody)
     {
         // it is a stub method that must be virtuald in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
@@ -522,7 +522,9 @@ public partial class BaseExchange
     {
         return getArrayLength(binary);
     }
-    public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
+    // Spelled out (never the `dict` alias) so the generated overrides aligned to this signature copy
+    // the same C# type token the classifier's type tables name.
+    public virtual Dictionary<string, object> sign(object path, object api, string method = "GET", Dictionary<string, object> headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
         headers ??= new dict();
@@ -553,7 +555,7 @@ public partial class BaseExchange
         return Convert.ToInt64(res);
     }
 
-    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, dict parameters = null)
+    public async virtual Task<IDictionary<string, object>> loadMarketsHelper(bool reload = false, Dictionary<string, object> parameters = null)
     {
         if (!reload && this.markets != null)
         {

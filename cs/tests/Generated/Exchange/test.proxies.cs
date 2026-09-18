@@ -65,7 +65,7 @@ public partial class testMainClass : BaseTest
         {
             for (int j = 0; isLessThan(j, getArrayLength(possibleOptionsArray)); postFixIncrement(ref j))
             {
-                if (isTrue(!isEqual(j, i)))
+                if (!isEqual(j, i))
                 {
                     string? proxyFirst = ((string)getValue(possibleOptionsArray, i));
                     string? proxySecond = ((string)getValue(possibleOptionsArray, j));

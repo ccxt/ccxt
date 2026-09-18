@@ -25,11 +25,11 @@ public partial class testMainClass : BaseTest
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         bool atLeastOnePassed = false;
-        for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
         {
             // todo: symbol check here
             testLastPrice(exchange, skippedProperties, method, getValue(values, i), ((string)checkedSymbol));
-            atLeastOnePassed = isTrue(atLeastOnePassed) || isTrue((isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0)));
+            atLeastOnePassed = atLeastOnePassed || (isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
         return true;

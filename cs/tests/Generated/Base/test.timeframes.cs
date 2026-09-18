@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             Int64? testDate = exchange.parse8601("2019-08-12 13:22:08");
-            if (isTrue(isEqual(testDate, null)))
+            if (isEqual(testDate, null))
             {
                 return;
             }
@@ -27,7 +27,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.roundTimeframe("1h", testDate, ROUND_UP), exchange.parse8601("2019-08-12 14:00:00")));
             Assert(isEqual(exchange.roundTimeframe("1d", testDate, ROUND_UP), exchange.parse8601("2019-08-13 00:00:00")));
             Int64? calendarDate = exchange.parse8601("2026-09-02T00:00:00Z");
-            if (isTrue(isEqual(calendarDate, null)))
+            if (isEqual(calendarDate, null))
             {
                 return;
             }
@@ -42,7 +42,7 @@ public partial class BaseTest
             Assert(isEqual(exchange.roundTimeframe("2w", calendarDate, ROUND_UP), exchange.parse8601("2026-09-14T00:00:00Z")));
             Assert(isEqual(exchange.roundTimeframe("3M", calendarDate, ROUND_UP), exchange.parse8601("2026-10-01T00:00:00Z")));
             Int64? preEpochDate = exchange.parse8601("1960-06-15T00:00:00Z");
-            if (isTrue(isEqual(preEpochDate, null)))
+            if (isEqual(preEpochDate, null))
             {
                 return;
             }

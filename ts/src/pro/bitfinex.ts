@@ -6,7 +6,7 @@ import bitfinexRest from '../bitfinex.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, FeeString, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -896,7 +896,7 @@ export default class bitfinex extends bitfinexRest {
         const updateType = this.safeValue (message, 1);
         let data: any[] = [];
         if (updateType === 'ws') {
-            data = this.safeValue (message, 2);
+            data = this.safeList (message, 2) as List;
         } else {
             data = [ this.safeValue (message, 2) ];
         }
