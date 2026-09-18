@@ -548,7 +548,7 @@ public class Bitteam extends BitteamApi
         Long created = this.parse8601(timeStart);
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new HashMap<String, Object>() {{}});
-        Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
+        Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
         if (java.util.Objects.equals(quoteInUsd, true))
         {
             Object settings = this.safeValue(market, "settings", new HashMap<String, Object>() {{}});
@@ -752,7 +752,7 @@ public class Bitteam extends BitteamApi
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
         String code = this.safeCurrencyCode(id);
-        Object active = this.safeBool(currency, "active", false);
+        Boolean active = (Boolean) this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new HashMap<String, Object>() {{}});
         String minWithdraw = this.safeString(txLimits, "minWithdraw");

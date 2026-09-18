@@ -438,8 +438,8 @@ public class Bitopro extends BitoproApi
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId);
-        Object deposit = this.safeBool(rawCurrency, "deposit");
-        Object withdraw = this.safeBool(rawCurrency, "withdraw");
+        Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit");
+        Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw");
         Object isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
@@ -804,7 +804,7 @@ public class Bitopro extends BitoproApi
         String side = this.safeStringLower(trade, "action");
         if (java.util.Objects.equals(side, null))
         {
-            Object isBuyer = this.safeBool(trade, "isBuyer");
+            Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
             if (java.util.Objects.equals(isBuyer, true))
             {
                 side = "buy";
@@ -830,11 +830,11 @@ public class Bitopro extends BitoproApi
                 put( "rate", null );
             }};
         }
-        Object isTaker = this.safeBool(trade, "isTaker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
-            if (Helpers.isTrue(isTaker))
+            if (Boolean.TRUE.equals(isTaker))
             {
                 takerOrMaker = "taker";
             } else

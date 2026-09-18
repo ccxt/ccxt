@@ -319,7 +319,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         String symbol = this.safeSymbol(marketId);
         String datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
-        Object isSnapshot = this.safeBool(message, "r", false);
+        Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());

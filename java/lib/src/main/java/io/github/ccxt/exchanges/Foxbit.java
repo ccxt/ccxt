@@ -1172,7 +1172,7 @@ public class Foxbit extends FoxbitApi
                 throw new InvalidOrder((("Invalid order type: " + type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
             if (java.util.Objects.equals(side, null))
             {
@@ -1270,7 +1270,7 @@ public class Foxbit extends FoxbitApi
                     throw new InvalidOrder((Helpers.add("Invalid order type: ", type) + ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
                 String timeInForce = this.safeStringUpper(orderParams, "timeInForce");
-                Object postOnly = this.safeBool(orderParams, "postOnly", false);
+                Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
                 Double triggerPrice = this.safeNumber(orderParams, "triggerPrice");
                 final Object finalType = type;
                 Map<String, Object> request = new HashMap<String, Object>() {{

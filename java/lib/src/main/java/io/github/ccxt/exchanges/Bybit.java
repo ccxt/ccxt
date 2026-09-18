@@ -2358,8 +2358,8 @@ public class Bybit extends BybitApi
             // SUB UID: "Account Transfer"
             // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object enableUnifiedMargin = this.safeBool(this.options, "enableUnifiedMargin");
-            Object enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
+            Boolean enableUnifiedMargin = (Boolean) this.safeBool(this.options, "enableUnifiedMargin");
+            Boolean enableUnifiedAccount = (Boolean) this.safeBool(this.options, "enableUnifiedAccount");
             if (java.util.Objects.equals(enableUnifiedMargin, null) || java.util.Objects.equals(enableUnifiedAccount, null))
             {
                 if (java.util.Objects.equals(((Map<String, Object>)this.options).get("enableDemoTrading"), true))
@@ -3854,7 +3854,7 @@ public class Bybit extends BybitApi
         //     ]
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object isInverse = this.safeBool(market, "inverse");
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse");
         Object volumeIndex = (((java.util.Objects.equals(isInverse, true)))) ? 6 : 5;
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
@@ -4473,11 +4473,11 @@ public class Bybit extends BybitApi
                 side = (((!Helpers.isEqual(isBuyer, 0)))) ? "buy" : "sell";
             }
         }
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         Object takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         } else
         {
             String lastLiquidityInd = this.safeString(trade, "lastLiquidityInd");
@@ -5317,12 +5317,12 @@ public class Bybit extends BybitApi
         String rawTimeInForce = this.safeString(order, "timeInForce");
         String timeInForce = this.parseTimeInForce(rawTimeInForce);
         Object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        Object reduceOnly = this.safeBool(order, "reduceOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         Object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         Object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         String triggerDirection = this.safeString(order, "triggerDirection");
         Boolean isAscending = (java.util.Objects.equals(triggerDirection, "1"));
-        Boolean isStopOrderType2 = (!java.util.Objects.equals(triggerPrice, null)) && Helpers.isTrue(reduceOnly);
+        Boolean isStopOrderType2 = (!java.util.Objects.equals(triggerPrice, null)) && Boolean.TRUE.equals(reduceOnly);
         if ((java.util.Objects.equals(stopLossPrice, null)) && (java.util.Objects.equals(isStopOrderType2, true)))
         {
             // check if order is stop order type 2 - stopLossPrice
@@ -5573,8 +5573,8 @@ public class Bybit extends BybitApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", ((Map<String, Object>)market).get("id") );
         }};
-        Object hedged = this.safeBool(parameters, "hedged", false);
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
         Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         Object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
         Object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
@@ -8833,8 +8833,8 @@ public class Bybit extends BybitApi
             if (java.util.Objects.equals(((Map<String, Object>)market).get("settle"), "USDC"))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                Object useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
-                Object price = ((Helpers.isTrue(useMarkPrice))) ? markPrice : entryPrice;
+                Boolean useMarkPrice = (Boolean) this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
+                Object price = ((Boolean.TRUE.equals(useMarkPrice))) ? markPrice : entryPrice;
                 Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
@@ -9406,7 +9406,7 @@ public class Bybit extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = this.safeBool(parameters, "paginate");
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate");
             if (java.util.Objects.equals(paginate, true))
             {
                 parameters = this.omit(parameters, "paginate");
@@ -11739,8 +11739,8 @@ final Object finalMarket = market;
             {
                 Object entry = Helpers.GetValue(coins, i);
                 String id = this.safeString(entry, "coin");
-                Object disableFrom = this.safeBool(entry, "disableFrom");
-                Object disableTo = this.safeBool(entry, "disableTo");
+                Boolean disableFrom = (Boolean) this.safeBool(entry, "disableFrom");
+                Boolean disableTo = (Boolean) this.safeBool(entry, "disableTo");
                 Boolean inactive = (java.util.Objects.equals(disableFrom, true)) || (java.util.Objects.equals(disableTo, true));
                 String code = this.safeCurrencyCode(id);
                 if (!java.util.Objects.equals(code, null))

@@ -803,8 +803,8 @@ public class Bitmex extends BitmexApi
             Object network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-            Object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
-            Object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
+            Boolean isDepositEnabled = (Boolean) this.safeBool(chain, "depositEnabled", false);
+            Boolean isWithdrawEnabled = (Boolean) this.safeBool(chain, "withdrawalEnabled", false);
             Boolean active = ((java.util.Objects.equals(isDepositEnabled, true)) && (java.util.Objects.equals(isWithdrawEnabled, true)));
             if (java.util.Objects.equals(isDepositEnabled, true))
             {
@@ -2750,7 +2750,7 @@ public class Bitmex extends BitmexApi
                     throw new InvalidOrder((Helpers.add((this.id + " createOrder() does not support reduceOnly for "), ((Map<String, Object>)market).get("type")) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
                 }
             }
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "postOnly")));
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
             Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
@@ -3539,7 +3539,7 @@ public class Bitmex extends BitmexApi
                 Object item = Helpers.GetValue(rawItems, i);
                 String marketId = this.safeString(item, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
-                Object swap = this.safeBool(market, "swap", false);
+                Boolean swap = (Boolean) this.safeBool(market, "swap", false);
                 if (java.util.Objects.equals(swap, true))
                 {
                     ((List<Object>)filteredResponse).add(item);

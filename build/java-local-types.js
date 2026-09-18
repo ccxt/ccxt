@@ -448,6 +448,10 @@ const LOCAL_THIS_RETURN_TYPES = {
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
+    // hx2 java-03: `Object x = this.safeBool (a, k[, default])` -> `Boolean x = (Boolean) ...`.
+    // `defaultArg: 2` marks the entry whose box is Boolean|null ONLY when the call's own
+    // default argument is absent or a boolean literal — see the section-7 header.
+    'safeBool': { type: 'Boolean', cast: '(Boolean)', defaultArg: 2, safeBool: true },
     // JAVA-RE-6 string/crypto/url helpers — see the section-4 header. `plain` entries are
     // declared String in Java; `cast` entries are declared Object but String-or-null on
     // every audited path. The classifier (classifyStringHelperCall) applies the
@@ -1581,8 +1585,16 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_ARRAY_TYPE } : undefined;
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
-    if (accessor !== undefined && resolvesToBaseAccessor (printer, initializer, name)) {
-        return { type: accessor.type, cast: accessor.cast };
+    if (accessor !== undefined && accessorResolvesToBase (printer, initializer, name, accessor)) {
+        // hx2 java-03: entries with `defaultArg` are only the named box when the call's own
+        // default argument is absent or a boolean literal — the accessor hands the caller's
+        // default back untouched on the not-found / wrong-type path (section-7 header)
+        if (accessor.defaultArg !== undefined
+            && (!accessorDefaultProvesBoolean (initializer, accessor.defaultArg)
+                || !safeBoolCallTypeIsBoolean (printer, initializer))) {
+            return undefined;
+        }
+        return { type: accessor.type, cast: accessor.cast, safeBool: accessor.safeBool === true };
     }
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
     if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
@@ -1603,6 +1615,14 @@ function isProvablyOfType (printer, node, javaType, selfName) {
     switch (node.kind) {
         case ts.SyntaxKind.NullKeyword:
             return true;
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            // hx2 java-03: a boolean literal autoboxes into a `Boolean` local; for every
+            // other family the write is a different box
+            return javaType === 'Boolean';
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            // `!x` prints `!Helpers.isTrue (x)` — a Java boolean, boxed by the write
+            return javaType === 'Boolean' && node.operator === ts.SyntaxKind.ExclamationToken;
         case ts.SyntaxKind.Identifier:
             return node.escapedText === 'undefined' || node.escapedText === selfName;
         case ts.SyntaxKind.ParenthesizedExpression:
@@ -1695,6 +1715,16 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                     return true;
                 }
                 return false;
+            }
+            if (javaType === 'Boolean') {
+                // hx2 java-03: a later `x = this.safeBool (...)` write takes the same
+                // gate the declaration has (the reassignment hook injects the same
+                // (Boolean) checkcast the declaration got)
+                const accessor = LOCAL_THIS_RETURN_TYPES[name];
+                return accessor !== undefined && accessor.safeBool === true
+                    && accessorDefaultProvesBoolean (node, accessor.defaultArg)
+                    && safeBoolCallTypeIsBoolean (printer, node)
+                    && accessorResolvesToBase (printer, node, name, accessor);
             }
             return false;
         }
@@ -3508,6 +3538,10 @@ export function installJavaLocalTypes (transpiler) {
     // Java statements print in source order, so by the time a reassignment is printed
     // its declaration has already been classified.
     const narrowed = new WeakMap ();
+    // hx2 java-03: declarations this slice narrowed to `Boolean` from a proven safeBool
+    // call — the isTrue consumer hook (section 7) turns their truthiness positions into
+    // `Boolean.TRUE.equals (x)`. Print-order local, filled by the hook below.
+    const safeBoolLocals = new WeakSet ();
     const original = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = original (node, identation);
@@ -3537,6 +3571,9 @@ export function installJavaLocalTypes (transpiler) {
             }
         }
         narrowed.set (declaration, info.type);
+        if (info.safeBool === true) {
+            safeBoolLocals.add (declaration); // hx2 java-03, read by the isTrue consumer hook
+        }
         // a ternary value must be wrapped before the cast: `(String) c ? a : b` binds the
         // cast to the condition, not to the conditional expression (javac then rejects it)
         const needsParens = info.cast !== undefined && /^\(.*\)\s*\?/.test (value);
@@ -3602,7 +3639,8 @@ export function installJavaLocalTypes (transpiler) {
         // needs no checkcast (same as the safeString family, which was never listed here).
         const cast = !needsCast ? ''
             : (javaType === 'String' ? '(String)'
-                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')' : '(Long)');
+                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')'
+                    : javaType === 'Boolean' ? '(Boolean)' : '(Long)');
         if (cast === '') {
             return printed;
         }
@@ -3632,6 +3670,9 @@ export function installJavaLocalTypes (transpiler) {
     // (6) test-tier receiver accessors (section 9): the `<recv>.safeString*` locals and
     // the redundant `x as string` checkcasts on their call sites / narrowed locals
     patchJavaReceiverAccessorTypes (printer, narrowed);
+    // (7) hx2 java-03: the truthiness consumer for the safeBool locals typed above —
+    // `Helpers.isTrue (x)` -> `Boolean.TRUE.equals (x)`
+    patchJavaSafeBoolLocals (printer, safeBoolLocals);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
     // (6) SS-05 parameter typing: symbol/id/code/currency parameter positions -> String
@@ -7212,4 +7253,145 @@ export function patchJavaSafeListLocalTypes (transpiler) {
         }
         return printed.slice (0, at) + `${iden}${JAVA_SAFE_LIST_TYPE} ${printedName} = ${JAVA_SAFE_LIST_CAST} ${value}`;
     };
+}
+
+// ===== 7. hx2 java-03: safeBool locals -> Boolean (nullable), isTrue -> Boolean.TRUE.equals =====
+//
+//     Object x = this.safeBool (a, "k");            ->  Boolean x = (Boolean) this.safeBool (a, "k");
+//     Object x = this.safeBool (a, "k", false);     ->  Boolean x = (Boolean) this.safeBool (a, "k", false);
+//     Helpers.isTrue (x)                            ->  Boolean.TRUE.equals (x)
+//
+// WHAT THE RUNTIME BOX IS (hand-written Java base, audited):
+//   * BaseExchange.safeBool is DECLARED `Object` and hands the caller's `defaultValue` back
+//     UNTOUCHED whenever the value found in the dict is not a Boolean
+//     (`Object value = this.safeValue (...); if (value instanceof Boolean) return value;
+//     return defaultValue;`) — so the box is `Boolean | null` exactly when the call site
+//     proves the fall-through value is one of those: the default is ABSENT (it prints no
+//     third argument; the accessor's own absent default is null) or it is a boolean LITERAL
+//     (`true`/`false`, boxed to Boolean through the Object... varargs). This is the same
+//     gate HANDLE_ELEMENT_TYPES applies to handleParamBool (see its `defaultArg: 2`).
+//   * `this.safeValue (a, k, defaultValue)` is SafeMethods.SafeValueN, which returns the found
+//     member as parsed and the default only when the member is absent — every path of
+//     safeBool therefore ends on the member or on the caller's default.
+// EMISSION: the declaration carries the `(Boolean)` checkcast the safeInteger2/safeSymbol
+// cast family uses (the accessor is declared `Object`); on a Boolean|null value that checkcast
+// is a no-op, and the default gate is what makes it one. `Helpers.isTrue (x)` on such a local
+// is the null-safe "is TRUE" test, which is literally what `Boolean.TRUE.equals (x)` computes
+// (`Helpers.isTrue` would answer `true` for a non-Boolean box like Long 1, and the gate is
+// what rules that box out).
+// THE SCAN (D2): the standard isSafeToNarrow run over every later occurrence of the local. A
+// write must be a value provably Boolean (a boolean literal, `null`/`undefined`, a proven
+// safeBool call — which takes the same checkcast on the write) and every use that javac would
+// resolve against the narrowed type keeps the local `Object` (unboxing operators, compound
+// assignment, typeof, casts, spread, printer-cast argument positions, String/List/map receiver
+// methods). A Boolean write in a conditional arm needs no restoring cast: Java types
+// `cond ? Boolean : boolean` as Boolean, without unboxing.
+// OUT OF THIS UNIT: safeBool2 / safeBoolN carry the same box and the same gate but are not in
+// this unit's line; `Helpers.isTrue (y)` for Boolean locals of OTHER families (literal
+// initialisers, handleParamBool elements) is java-06's unit.
+
+const JAVA_BOOL_TRUE_EQUALS = 'Boolean.TRUE.equals(';
+
+// the call's own default argument is absent, or is a boolean literal: the value the accessor
+// hands back when the found member is not a Boolean is then null / a Boolean itself
+function accessorDefaultProvesBoolean (call, defaultArg) {
+    const args = call?.arguments ?? [];
+    if (args.length <= defaultArg) {
+        return true; // absent default
+    }
+    return args.length === defaultArg + 1 && handleIsBooleanLiteral (args[defaultArg]);
+}
+
+// the checker's type for the call: `boolean` (3-arg overload) or `boolean | undefined`
+// (2-arg overload). `boolean` is itself the true|false union, so the Boolean bit is on the
+// literal constituents; nullish members are folded away like equalityOperandFamily does.
+function safeBoolCallTypeIsBoolean (printer, call) {
+    let type;
+    try {
+        type = printer.getChecker ().getTypeAtLocation (call);
+    } catch (e) {
+        return false;
+    }
+    if (type === undefined || type === null) {
+        return false;
+    }
+    const flags = type.flags;
+    if (flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) {
+        return true;
+    }
+    if ((flags & ts.TypeFlags.Union) === 0 || type.types === undefined) {
+        return false;
+    }
+    const booleanish = (t) => (t.flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral)) !== 0;
+    const nullish = (t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) !== 0;
+    return type.types.some (booleanish) && type.types.every ((t) => booleanish (t) || nullish (t));
+}
+
+// the printed operand of a `Helpers.isTrue (x)` position whose operand is a local this slice
+// narrowed to Boolean from a proven safeBool call, or undefined to keep the helper
+function safeBoolTrueEqualsTarget (printer, safeBoolLocals, node) {
+    const target = unwrapParens (node);
+    if (target === undefined || target.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration;
+    } catch (e) {
+        return undefined;
+    }
+    // print-order proof: only a declaration that went through the Boolean rewrite above is
+    // recorded (a captured local renamed to `finalX` resolves to the synthesized Object
+    // bridge instead and never matches)
+    if (declaration === undefined || !safeBoolLocals.has (declaration)) {
+        return undefined;
+    }
+    return printer.printNode (target, 0);
+}
+
+function patchJavaSafeBoolLocals (printer, safeBoolLocals) {
+    const upstreamCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        const target = safeBoolTrueEqualsTarget (printer, safeBoolLocals, node);
+        if (target !== undefined) {
+            // the printer's condition path emits `Helpers.isTrue (<operand>)`; `!x` reaches
+            // this through printPrefixUnaryExpression -> printCondition (operand)
+            return printer.getIden (identation) + JAVA_BOOL_TRUE_EQUALS + target + ')';
+        }
+        return upstreamCondition (node, identation);
+    };
+}
+
+// the base stage transpiles a stripped copy of ts/src/base/Exchange.ts, so the accessor
+// calls inside the base body resolve to that copy (`ts/src/base/Exchange.nooverloads.<pid>.ts`,
+// a RELATIVE file name) — a shape the shared accessor gate does not accept. The safeBool
+// family admits it (same class, same hand-written Java accessor); every other family keeps
+// resolvesToBaseAccessor untouched.
+const JAVA_SAFE_BOOL_SOURCE_FILES = [
+    /[\\/]base[\\/]Exchange(\.nooverloads\.\d+)?\.ts$/,
+    /[\\/]base[\\/]functions[\\/]type\.ts$/,
+];
+
+function safeBoolResolvesToBaseAccessor (printer, node) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined) {
+        return false;
+    }
+    const file = declaration.getSourceFile?.().fileName;
+    if (file === undefined) {
+        return false;
+    }
+    return JAVA_SAFE_BOOL_SOURCE_FILES.some ((re) => re.test (file));
+}
+
+function accessorResolvesToBase (printer, call, name, accessor) {
+    if (accessor.safeBool === true) {
+        return safeBoolResolvesToBaseAccessor (printer, call);
+    }
+    return resolvesToBaseAccessor (printer, call, name);
 }

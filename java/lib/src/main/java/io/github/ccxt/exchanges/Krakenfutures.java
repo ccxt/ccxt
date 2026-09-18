@@ -923,7 +923,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String volume = this.safeString(ticker, "vol24h");
         String baseVolume = null;
         String quoteVolume = null;
-        Object isIndex = this.safeBool(market, "index", false);
+        Boolean isIndex = (Boolean) this.safeBool(market, "index", false);
         if (!java.util.Objects.equals(isIndex, true))
         {
             if (java.util.Objects.equals(((Map<String, Object>)market).get("linear"), true))
@@ -1447,7 +1447,7 @@ public class Krakenfutures extends KrakenfuturesApi
         }
         market = this.safeMarket(marketId, market);
         String cost = null;
-        Object linear = this.safeBool(market, "linear");
+        Boolean linear = (Boolean) this.safeBool(market, "linear");
         if ((!java.util.Objects.equals(amount, null)) && (!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(market, null)))
         {
             if (java.util.Objects.equals(linear, true))

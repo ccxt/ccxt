@@ -1900,8 +1900,8 @@ public class Whitebit extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             // Extract control parameters from params
-            Object checkActive = this.safeBool(parameters, "checkActive", true);
-            Object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+            Boolean checkActive = (Boolean) this.safeBool(parameters, "checkActive", true);
+            Boolean checkExecuted = (Boolean) this.safeBool(parameters, "checkExecuted", true);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("checkActive", "checkExecuted")));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "orderId", id );
@@ -3382,8 +3382,8 @@ public class Whitebit extends WhitebitApi
         }
         Object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         Object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
-        Object postOnly = this.safeBool(order, "postOnly");
-        Object ioc = this.safeBool(order, "ioc");
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
+        Boolean ioc = (Boolean) this.safeBool(order, "ioc");
         String timeInForce = null;
         if (java.util.Objects.equals(ioc, true))
         {
@@ -5427,7 +5427,7 @@ public class Whitebit extends WhitebitApi
                 throw new ExchangeError((String)feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
-            Object success = this.safeBool(response, "success", true);
+            Boolean success = (Boolean) this.safeBool(response, "success", true);
             if (!java.util.Objects.equals(success, true))
             {
                 Map<String, Object> errMsg = (Map<String, Object>) this.safeDict(response, "message", new HashMap<String, Object>() {{}});

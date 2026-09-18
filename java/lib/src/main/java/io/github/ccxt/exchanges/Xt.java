@@ -2078,7 +2078,7 @@ public class Xt extends XtApi
         //     }
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
-        Object isInverse = this.safeBool(market, "inverse");
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse");
         String volumeIndex = (((java.util.Objects.equals(isInverse, true)))) ? "v" : "a";
         return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)));
     }
@@ -2943,10 +2943,10 @@ public class Xt extends XtApi
         market = this.safeMarket(marketId, market, "_", marketType);
         Object side = null;
         Object takerOrMaker = null;
-        Object isBuyerMaker = this.safeBool(trade, "b");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b");
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
             takerOrMaker = "taker"; // public trades always taker
         } else
         {
@@ -2956,10 +2956,10 @@ public class Xt extends XtApi
                 takerOrMaker = takerMaker;
             } else
             {
-                Object isMaker = this.safeBool(trade, "isMaker");
+                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
                 if (!java.util.Objects.equals(isMaker, null))
                 {
-                    takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+                    takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
                 }
             }
             String orderSide = this.safeStringLower(trade, "orderSide");
@@ -3291,7 +3291,7 @@ public class Xt extends XtApi
                 {
                     String cost = this.safeString(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
-                    Object createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
+                    Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
                     if (java.util.Objects.equals(createMarketBuyOrderRequiresPrice, true))
                     {
                         if (java.util.Objects.equals(price, null) && (java.util.Objects.equals(cost, null)))
@@ -3385,7 +3385,7 @@ public class Xt extends XtApi
             {
                 ((Map<String, Object>)request).put("timeInForce", timeInForce);
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
             if (java.util.Objects.equals(side, "buy"))
             {
                 Object requestType = (((java.util.Objects.equals(reduceOnly, true)))) ? "SHORT" : "LONG";
@@ -3553,8 +3553,8 @@ public class Xt extends XtApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -3793,7 +3793,7 @@ public class Xt extends XtApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -3993,8 +3993,8 @@ public class Xt extends XtApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -4465,8 +4465,8 @@ public class Xt extends XtApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));
@@ -4600,8 +4600,8 @@ public class Xt extends XtApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (java.util.Objects.equals(trailing, true))
             {
                 Boolean isContract = (!java.util.Objects.equals(subType, null)) || (java.util.Objects.equals(type, "swap")) || (java.util.Objects.equals(type, "future"));

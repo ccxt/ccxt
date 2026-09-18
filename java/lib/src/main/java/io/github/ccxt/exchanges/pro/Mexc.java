@@ -564,7 +564,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
-            Object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
+            Boolean unsubscribed = (Boolean) this.safeBool(parameters, "unsubscribed", false);
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("unsubscribed")));
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot");
             String method = (((java.util.Objects.equals(unsubscribed, true)))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
@@ -2344,7 +2344,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             // otherwise the user-data subscriptions would be split across two connections
             Client client = this.client(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "spot"));
             String messageHash = "authenticate:listenKey";
-            Object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
+            Boolean isFetching = (Boolean) this.safeBool(this.options, "listenKeyFetching", false);
             if (java.util.Objects.equals(isFetching, true))
             {
                 client.future(messageHash).getFuture().join();

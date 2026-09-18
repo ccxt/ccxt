@@ -243,8 +243,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             if (Helpers.isTrue(isPrivate))
             {
                 Object unified = (this.isUnifiedEnabled()).join();
-                Object isUnifiedMargin = this.safeBool(unified, 0, false);
-                Object isUnifiedAccount = this.safeBool(unified, 1, false);
+                Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
+                Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
                 if (Helpers.isTrue(isUsdcSettled) && (!java.util.Objects.equals(isUnifiedMargin, true)) && (!java.util.Objects.equals(isUnifiedAccount, true)))
                 {
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), "usdc");
@@ -2507,8 +2507,8 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Object unified = (this.isUnifiedEnabled()).join();
-            Object isUnifiedMargin = this.safeBool(unified, 0, false);
-            Object isUnifiedAccount = this.safeBool(unified, 1, false);
+            Boolean isUnifiedMargin = (Boolean) this.safeBool(unified, 0, false);
+            Boolean isUnifiedAccount = (Boolean) this.safeBool(unified, 1, false);
             Object url = (this.getUrlByMarketType(null, true, method, parameters)).join();
             (this.authenticate(url)).join();
             Map<String, Object> topicByMarket = new HashMap<String, Object>() {{

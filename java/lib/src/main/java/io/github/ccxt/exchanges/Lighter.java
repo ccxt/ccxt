@@ -866,12 +866,12 @@ public class Lighter extends LighterApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object buildFee = this.safeBool(this.options, "builderFee", true);
+            Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
             if (!java.util.Objects.equals(buildFee, true))
             {
                 return false;
             }
-            Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
             if (java.util.Objects.equals(approvedBuilderFee, true))
             {
                 return true;
@@ -3786,7 +3786,7 @@ public class Lighter extends LighterApi
         String accountIndex = this.safeString(trade, "account_index");
         String askAccountId = this.safeString(trade, "ask_account_id");
         String bidAccountId = this.safeString(trade, "bid_account_id");
-        Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
+        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask");
         String side = null;
         String orderId = null;
         if (!java.util.Objects.equals(accountIndex, null))
@@ -3804,7 +3804,7 @@ public class Lighter extends LighterApi
         String takerOrMaker = null;
         if (!java.util.Objects.equals(side, null) && !java.util.Objects.equals(isMakerAsk, null))
         {
-            Object isMaker = (((java.util.Objects.equals(side, "sell")))) ? isMakerAsk : !Helpers.isTrue(isMakerAsk);
+            Object isMaker = (((java.util.Objects.equals(side, "sell")))) ? isMakerAsk : !Boolean.TRUE.equals(isMakerAsk);
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         }
         final Object finalMarket = market;

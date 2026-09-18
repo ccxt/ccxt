@@ -1451,20 +1451,20 @@ public class Toobit extends ToobitApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
-        Object isBuyer = this.safeBool(trade, "isBuyer");
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
         String side = null;
-        Object isBuyerMaker = this.safeBool(trade, "ibm");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm");
         if (java.util.Objects.equals(isBuyerMaker, null))
         {
-            Object isBuyerTaker = this.safeBool(trade, "m");
+            Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m");
             if (!java.util.Objects.equals(isBuyerTaker, null))
             {
-                isBuyerMaker = !Helpers.isTrue(isBuyerTaker);
+                isBuyerMaker = !Boolean.TRUE.equals(isBuyerTaker);
             }
         }
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            if (Helpers.isTrue(isBuyerMaker))
+            if (Boolean.TRUE.equals(isBuyerMaker))
             {
                 side = "sell";
             } else
@@ -1492,11 +1492,11 @@ public class Toobit extends ToobitApi
                 put( "cost", finalFeeAmount );
             }};
         }
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
-            takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+            takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
         market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");

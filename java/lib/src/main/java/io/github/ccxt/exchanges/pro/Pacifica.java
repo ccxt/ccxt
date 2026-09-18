@@ -364,7 +364,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             {
                 Object order = Helpers.GetValue(results, i);
                 String error = this.safeString(order, "error");
-                Object success = this.safeBool(order, "success", false);
+                Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String marketId = this.safeString(order, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 String orderId = this.safeString(order, "i");

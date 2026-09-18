@@ -979,11 +979,11 @@ public class Coinone extends CoinoneApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
-        Object isSellerMaker = this.safeBool(trade, "is_seller_maker");
+        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker");
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {
-            side = ((Helpers.isTrue(isSellerMaker))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isSellerMaker))) ? "sell" : "buy";
         }
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");

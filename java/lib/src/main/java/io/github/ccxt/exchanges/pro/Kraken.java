@@ -198,7 +198,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         String priceType = (((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (java.util.Objects.equals(method, "createOrderWs"))
         {
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             if (java.util.Objects.equals(reduceOnly, true))
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "params"), "reduce_only", true);
