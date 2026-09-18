@@ -215,7 +215,7 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
+        string? url = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
             { "topic", "trade" },
@@ -324,7 +324,7 @@ public partial class toobit : ccxt.toobit
         {
             await this.loadMarkets();
         }
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
+        string? url = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1"));
         List<object> messageHashes = new List<object>() {};
         IDictionary<string, object> timeframes = this.safeDict(getValue(this.options, "ws"), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
@@ -493,7 +493,7 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
+        string? url = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
             { "topic", "realtimes" },
@@ -631,7 +631,7 @@ public partial class toobit : ccxt.toobit
             ((IList<object>)subParams).Add(rawHash);
         }
         IList<object> marketIds = this.marketIds(symbols);
-        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
+        string? url = ((string)add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", String.Join(",", marketIds.ToArray()) },
             { "topic", channel },

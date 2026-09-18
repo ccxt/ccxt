@@ -4690,7 +4690,15 @@ function stringPlusOperandIsProvablyString (csharp, value, csharpType, context) 
     // left both overloads return the concatenation — a null right operand the left unchanged,
     // where the object overload's `(string)b` cast is exact on a string box (null included).
     const right = csharpTypeOfValue (csharp, parent.right, context);
-    return right === 'string' || right === 'string?';
+    if (right === 'string' || right === 'string?') {
+        return true;
+    }
+    // U19: an operand the printer types statically `object` whose BOX is provably a string or
+    // null (the `+`-chain leaf proofs) is exactly as safe as the `string?` spelling above:
+    // add(string, object) calls b?.ToString() and add(object, object)'s string branch casts
+    // (string)b — identical for a string box, and a null box concatenates as the empty string
+    // on both paths.
+    return stringBoxLeafProof (csharp, parent.right) !== undefined;
 }
 
 // is `identifier` (possibly wrapped) the key of a `delete obj[key]`?
@@ -5261,6 +5269,93 @@ function marketRowBoolReadType (csharp, initializer) {
     return (key !== undefined && MARKET_ROW_BOOL_KEYS.includes (key)) ? 'bool' : undefined;
 }
 
+// ---- U19: `+` chains over a proven-string BOX leaf --------------------------------------
+//
+// `object url = add(add(<leaf>, "/"), path)` — the printer takes the leaf's own static type
+// to build the chain, so an `object` leaf binds add(object, object) and the chain's C# type
+// is object: only a cast can name the value the box already holds. When the leaf's box is
+// provably a string or null, both add paths agree: a string leaf concatenates, a null leaf
+// takes the object overload's `a is (string)` miss and returns null, any other box throws
+// inside the same add call the untyped tree already makes (the sibling string literal forces
+// the string branch's `(string)b` cast). So `string? x = ((string)add(...))` — the same
+// decl-type + cast pair the market-row declarations carry — names exactly that value, and
+// csharpLocalIsSafeToRetype still re-checks every later read and write (a later self-concat
+// write of a `string?` is rejected there: its add would return the right operand for a null
+// left where the object overload returned null).
+//
+// Leaf proofs (each one the landed declaration-form proof, reused on the chain operand):
+//   market['id']       -> MARKET_ROW_STRING_KEYS          (marketRowStringReadType)
+//   this.urls['api']['rest'] -> the describe() literal spells that leaf as a string
+//                        (urlsDescribeStringProducer); a DYNAMIC final key stays out —
+//                        deepExtend(super.describe (), …) can merge a parent key under the
+//                        same section, which the venue's own literal cannot bound
+//   this.getWsUrl (…)  -> the one definition (ts/src/pro/binance.ts, pro/binance.cs:259)
+//                        returns only urls reads and add chains over them, i.e. a string or
+//                        null on every path (census 2026-09-18, 5 return statements)
+const STRING_BOX_OBJECT_CALLS = [ 'getWsUrl' ];
+
+// is this leaf — printed statically `object` — provably a string-or-null box? Returns the
+// declaration the chain can take plus the cast that names the box (`undefined` when the
+// printed chain is already statically `string`: a `this.<string member>` leaf).
+const STRING_MEMBER_OBJECT_LEAVES = [ 'apiKey', 'secret', 'password', 'login', 'uid', 'accountId', 'privateKey' ];
+
+function stringBoxLeafProof (csharp, node) {
+    let leaf = node;
+    while (leaf?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        leaf = leaf.expression;
+    }
+    if (leaf === undefined || csharpTypeOfValue (csharp, leaf) !== undefined || isProvablyStringOperand (csharp, leaf)) {
+        return undefined; // a proven static type (string included) is no longer this rule's business
+    }
+    if (marketRowStringReadType (csharp, leaf) === 'string' || urlsDescribeStringProducer (leaf)) {
+        return { type: 'string?', cast: 'string' };
+    }
+    // the hand-written base declares these properties `public string <name> { get; set; }`
+    // (Exchange.Options.cs, one declaration each, no shadowing anywhere in cs/**): the read's
+    // C# static type IS string, so the printed chain already binds the string overloads and
+    // takes no cast — and every writer (the base's SafeString, string literals / `(string)`
+    // casts in the generated tree, a user assignment the same property type checks) leaves a
+    // string or null in the box, which the nullable spelling names.
+    if (leaf.kind === ts.SyntaxKind.PropertyAccessExpression && leaf.expression?.kind === ts.SyntaxKind.ThisKeyword
+            && STRING_MEMBER_OBJECT_LEAVES.includes (leaf.name?.escapedText)) {
+        return { type: 'string?', cast: undefined };
+    }
+    if (leaf.kind === ts.SyntaxKind.CallExpression) {
+        const callee = leaf.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+            && STRING_BOX_OBJECT_CALLS.includes (callee.name?.escapedText)) {
+            return { type: 'string?', cast: 'string' };
+        }
+    }
+    return undefined;
+}
+
+// the LEFTMOST operand of a `+` chain: `a + b + c` parses as `(a + b) + c` and prints
+// add(add(a, b), c), so this is the operand whose static type picks the bindable overload
+function plusChainLeftmostOperand (initializer) {
+    let node = initializer;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (node.left?.kind === ts.SyntaxKind.BinaryExpression && node.left.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
+        node = node.left;
+    }
+    let leaf = node.left;
+    while (leaf?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        leaf = leaf.expression;
+    }
+    return leaf;
+}
+
+function plusChainStringBoxLeaf (csharp, initializer) {
+    const leaf = plusChainLeftmostOperand (initializer);
+    return stringBoxLeafProof (csharp, leaf);
+}
+
 // The DICT keys (`precision` / `limits` / `info`) have no table: `info` has a STRING writer on a
 // market row (independentreserve) plus 58 any-typed ones, and limits/precision have zero
 // declaration sites — census, proof and reject reasons: REPORT.md + tools/S23/market-row-types.mjs.
@@ -5713,6 +5808,14 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // null-exact unboxing Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
+        } else if (plusChainStringBoxLeaf (csharp, declaration.initializer) !== undefined) {
+            // U19: `object url = add(add(<string box leaf>, "/"), path)` — the leaf's C# static
+            // type is object, so the printed chain is add(object, object) and only the cast can
+            // name the value the box already holds (family comment above). Nullable: a null leaf
+            // is the null the object overload returns; the scan below still re-checks every use.
+            const boxProof = plusChainStringBoxLeaf (csharp, declaration.initializer);
+            csharpType = boxProof.type;
+            cast = boxProof.cast;
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above

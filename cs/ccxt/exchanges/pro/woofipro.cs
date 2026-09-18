@@ -83,7 +83,7 @@ public partial class woofipro : ccxt.woofipro
         {
             id = this.accountId;
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), id));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -111,7 +111,7 @@ public partial class woofipro : ccxt.woofipro
         }
         string name = "orderbook";
         Dictionary<string, object> market = this.market(symbol);
-        object topic = add(add(GetValue(market, "id"), "@"), name);
+        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -180,7 +180,7 @@ public partial class woofipro : ccxt.woofipro
         string name = "ticker";
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        object topic = add(add(GetValue(market, "id"), "@"), name);
+        string? topic = ((string)add(add(GetValue(market, "id"), "@"), name));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -434,7 +434,7 @@ public partial class woofipro : ccxt.woofipro
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
-        object topic = add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval);
+        string? topic = ((string)add(add(add(add(GetValue(market, "id"), "@"), name), "_"), interval));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -513,7 +513,7 @@ public partial class woofipro : ccxt.woofipro
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        object topic = add(GetValue(market, "id"), "@trade");
+        string? topic = ((string)add(GetValue(market, "id"), "@trade"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -672,7 +672,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
         var client = this.client(url);
         string messageHash = "authenticated";
         string eventVar = "auth";
@@ -707,7 +707,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -720,7 +720,7 @@ public partial class woofipro : ccxt.woofipro
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1125,7 +1125,7 @@ public partial class woofipro : ccxt.woofipro
         {
             ((IList<object>)messageHashes).Add("positions");
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId));
         var client = this.client(url);
         this.setPositionsCache(client, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);

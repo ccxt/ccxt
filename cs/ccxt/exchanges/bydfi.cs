@@ -3401,7 +3401,7 @@ public partial class bydfi : Exchange
             string timestamp = this.milliseconds().ToString();
             if (isEqual(method, "GET"))
             {
-                object payload = add(add(this.apiKey, timestamp), query);
+                string? payload = add(add(this.apiKey, timestamp), query);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "X-API-KEY", this.apiKey },
@@ -3411,7 +3411,7 @@ public partial class bydfi : Exchange
             } else
             {
                 body = this.json(sortedParams);
-                object payload = add(add(this.apiKey, timestamp), body);
+                string? payload = add(add(this.apiKey, timestamp), body);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

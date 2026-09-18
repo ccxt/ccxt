@@ -393,7 +393,7 @@ public partial class upbit : ccxt.upbit
             };
             ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
         }
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/private");
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), "/private"));
         var client = this.client(url);
         return client;
     }

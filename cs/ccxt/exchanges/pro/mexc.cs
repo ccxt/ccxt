@@ -531,7 +531,7 @@ public partial class mexc : ccxt.mexc
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? listenKey = await this.authenticate(channel);
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"), "?listenKey="), listenKey);
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"), "?listenKey="), listenKey));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIPTION" },
             { "params", new List<object>() {channel} },
@@ -558,7 +558,7 @@ public partial class mexc : ccxt.mexc
         string channel = "login";
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "swap"));
         string timestamp = this.milliseconds().ToString();
-        object payload = add(this.apiKey, timestamp);
+        string? payload = add(this.apiKey, timestamp);
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", channel },
@@ -2237,7 +2237,7 @@ public partial class mexc : ccxt.mexc
             this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
         } catch(Exception error)
         {
-            object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"), "?listenKey="), listenKey);
+            string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"), "?listenKey="), listenKey));
             var client = this.client(url);
             ((IDictionary<string,object>)this.options)["listenKey"] = null;
             client.reject(error);

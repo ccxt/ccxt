@@ -2174,7 +2174,7 @@ public partial class bitso : Exchange
                 endpoint = add(endpoint, add("?", this.urlencode(query)));
             }
         }
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), endpoint);
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "rest"), endpoint));
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2191,7 +2191,7 @@ public partial class bitso : Exchange
                 }
             }
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
-            object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
+            string? auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Bitso ", auth) },
             };

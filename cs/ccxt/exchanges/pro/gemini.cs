@@ -69,7 +69,7 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string subscribeHash = add("l2:", GetValue(market, "symbol"));
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata"));
         object trades = await this.watch(url, messageHash, request, subscribeHash);
         if (isTrue(this.newUpdates))
         {
@@ -322,7 +322,7 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string messageHash = add(add(add("ohlcv:", GetValue(market, "symbol")), ":"), timeframeId);
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata"));
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -427,7 +427,7 @@ public partial class gemini : ccxt.gemini
 }} },
         };
         string subscribeHash = add("l2:", GetValue(market, "symbol"));
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata");
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), "/v2/marketdata"));
         object orderbook = await this.watch(url, messageHash, request, subscribeHash);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -725,7 +725,7 @@ public partial class gemini : ccxt.gemini
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object url = add(getValue(getValue(this.urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked");
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked"));
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();

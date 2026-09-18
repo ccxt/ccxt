@@ -737,7 +737,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/"), "user");
+        string? url = ((string)add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/"), "user"));
         var client = this.client(url);
         this.setPositionsCache(client);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);

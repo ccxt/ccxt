@@ -57,7 +57,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), GetValue(market, "base")), "-"), GetValue(market, "quote"));
+        string? url = ((string)add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), GetValue(market, "base")), "-"), GetValue(market, "quote")));
         string messageHash = add("trades:", symbolVar);
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
@@ -158,7 +158,7 @@ public partial class independentreserve : ccxt.independentreserve
             limitVar = 100;
         }
         string? limitString = this.numberToString(limitVar);
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), GetValue(market, "base")), "-"), GetValue(market, "quote"));
+        string? url = ((string)add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), GetValue(market, "base")), "-"), GetValue(market, "quote")));
         string messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },

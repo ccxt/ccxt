@@ -4356,7 +4356,7 @@ public partial class hitbtc : Exchange
             ((IList<object>)payload).Add(timestamp);
             string payloadString = String.Join("", payload.ToArray());
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
-            object secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);
+            string? secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);
             string encoded = this.stringToBase64(secondPayload);
             ((IDictionary<string,object>)headers)["Authorization"] = add("HS256 ", encoded);
         }
