@@ -526,7 +526,7 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //   {
@@ -618,7 +618,7 @@ public partial class btcturk : Exchange
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -767,7 +767,7 @@ public partial class btcturk : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
@@ -1043,7 +1043,7 @@ public partial class btcturk : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // fetchOrders / fetchOpenOrders

@@ -174,9 +174,10 @@ public partial class BaseExchange
         public void onOpen()
         {
 
-            this.connected.SetResult(true);
             this.connectionEstablished = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             this.isConnected = true;
+            // Awaiters can resume inline in SetResult: publish the ready state first.
+            this.connected.SetResult(true);
             // this.clearConnectionTimeout();
             Task.Run(async () =>
             {

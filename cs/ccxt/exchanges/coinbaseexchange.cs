@@ -1033,12 +1033,12 @@ public partial class coinbaseexchange : Exchange
         //         ]
         //     }
         //
-        object orderbook = this.parseOrderBook(response, symbol);
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, symbol));
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "sequence");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTickers
@@ -1170,7 +1170,7 @@ public partial class coinbaseexchange : Exchange
             object entry = this.safeValue(response, marketId, new List<object>() {});
             object first = this.safeValue(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(first, market);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
@@ -1231,7 +1231,7 @@ public partial class coinbaseexchange : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         //     {
@@ -1476,7 +1476,7 @@ public partial class coinbaseexchange : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1576,7 +1576,7 @@ public partial class coinbaseexchange : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -2508,7 +2508,7 @@ public partial class coinbaseexchange : Exchange
                 request = add(request, add("?", this.urlencode(query)));
             }
         }
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), request);
+        string url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), request);
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();

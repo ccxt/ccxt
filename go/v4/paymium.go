@@ -218,11 +218,11 @@ func (this *Paymium) ParseBalance(response any) any {
 	}
 	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-		var code any = GetValue(currencies, i)
+		var code string = GetValue(currencies, i).(string)
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		var free any = Add("balance_", currencyId)
-		if IsTrue(InOp(response, free)) {
+		if InOp(response, free) {
 			var account any = this.Account()
 			var used any = Add("locked_", currencyId)
 			AddElementToObject(account, "free", this.SafeString(response, free))
@@ -251,7 +251,7 @@ func (this *Paymium) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes19012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes19012)
@@ -286,7 +286,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes20812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes20812)
@@ -323,12 +323,12 @@ func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
-	var timestamp any = this.SafeTimestamp(ticker, "at")
-	var vwap any = this.SafeString(ticker, "vwap")
-	var baseVolume any = this.SafeString(ticker, "volume")
-	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
-	var last any = this.SafeString(ticker, "price")
+	var symbol *string = this.SafeSymbol(nil, market)
+	var timestamp *int64 = this.SafeTimestamp(ticker, "at")
+	var vwap *string = this.SafeString(ticker, "vwap")
+	var baseVolume *string = this.SafeString(ticker, "volume")
+	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
+	var last *string = this.SafeString(ticker, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -372,7 +372,7 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes27812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes27812)
@@ -409,13 +409,13 @@ func (this *Paymium) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 func (this *Paymium) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeTimestamp(trade, "created_at_int")
-	var id any = this.SafeString(trade, "uuid")
+	var timestamp *int64 = this.SafeTimestamp(trade, "created_at_int")
+	var id *string = this.SafeString(trade, "uuid")
 	market = this.SafeMarket(nil, market)
-	var side any = this.SafeString(trade, "side")
-	var price any = this.SafeString(trade, "price")
-	var amountField any = Add("traded_", ToLower(GetValue(market, "base")))
-	var amount any = this.SafeString(trade, amountField)
+	var side *string = this.SafeString(trade, "side")
+	var price *string = this.SafeString(trade, "price")
+	var amountField string = "traded_" + ToLower(GetValue(market, "base"))
+	var amount *string = this.SafeString(trade, amountField)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -458,7 +458,7 @@ func (this *Paymium) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes34412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes34412)
@@ -494,7 +494,7 @@ func (this *Paymium) createDepositAddressBody(ch chan any, code any, optionalArg
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes36512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes36512)
@@ -534,7 +534,7 @@ func (this *Paymium) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes39012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes39012)
@@ -579,7 +579,7 @@ func (this *Paymium) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes41812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes41812)
@@ -612,8 +612,8 @@ func (this *Paymium) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address any = this.SafeString(depositAddress, "address")
-	var currencyId any = this.SafeString(depositAddress, "currency")
+	var address *string = this.SafeString(depositAddress, "address")
+	var currencyId *string = this.SafeString(depositAddress, "currency")
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeCurrencyCode(currencyId, currency),
@@ -648,7 +648,7 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes46912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes46912)
@@ -660,7 +660,7 @@ func (this *Paymium) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		"direction": side,
 		"amount":    amount,
 	}
-	if IsTrue(!IsEqual(typeVar, "market")) {
+	if !IsEqual(typeVar, "market") {
 		AddElementToObject(request, "price", price)
 	}
 
@@ -731,16 +731,16 @@ func (this *Paymium) transferBody(ch chan any, code any, amount any, fromAccount
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes52212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes52212)
 	}
 	var currency any = this.Currency(code)
-	if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
+	if IsLessThan(GetIndexOf(toAccount, "@"), 0) {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))
 	}
-	if IsTrue(IsTrue(!IsEqual(code, "BTC")) && IsTrue(!IsEqual(code, "EUR"))) {
+	if (!IsEqual(code, "BTC")) && (!IsEqual(code, "EUR")) {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows BTC or EUR")))
 	}
 	var request map[string]any = map[string]any{
@@ -822,12 +822,12 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId any = this.SafeString(transfer, "currency")
-	var updatedAt any = this.SafeString(transfer, "updated_at")
+	var currencyId *string = this.SafeString(transfer, "currency")
+	var updatedAt *string = this.SafeString(transfer, "updated_at")
 	var timetstamp any = this.ParseDate(updatedAt)
 	var accountOperations any = this.SafeValue(transfer, "account_operations")
 	var firstOperation any = this.SafeValue(accountOperations, 0, map[string]any{})
-	var status any = this.SafeString(transfer, "state")
+	var status *string = this.SafeString(transfer, "state")
 	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "uuid"),
@@ -840,7 +840,7 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Paymium) ParseTransferStatus(status any) any {
+func (this *Paymium) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"executed": "ok",
 	}
@@ -859,8 +859,8 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+	if IsEqual(api, "public") {
+		if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -871,14 +871,14 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 			"Api-Key":   this.ApiKey,
 			"Api-Nonce": nonce,
 		}
-		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+		if IsEqual(method, "POST") {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 				AddElementToObject(headers, "Content-Type", "application/json")
 			}
 		} else {
-			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
+			if IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0) {
 				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))
@@ -894,11 +894,11 @@ func (this *Paymium) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *Paymium) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	var errors any = this.SafeValue(response, "errors")
-	if IsTrue(!IsEqual(errors, nil)) {
+	if !IsEqual(errors, nil) {
 		panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
 	}
 	return nil
@@ -918,6 +918,7 @@ func (this *Paymium) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name paymium#fetchBalance

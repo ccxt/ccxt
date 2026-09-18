@@ -925,7 +925,7 @@ public partial class ndax : Exchange
             }
             List<object> bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Int64? levelSide = this.safeInteger(level, 9);
-            object side = ((bool) isTrue((isTrue(isTrue(!isEqual(levelSide, null)) && isTrue(!isEqual(levelSide, null))) && isTrue(!isEqual(levelSide, 0))))) ? asksKey : bidsKey;
+            object side = ((bool) isTrue((isTrue(!isEqual(levelSide, null)) && isTrue(!isEqual(levelSide, 0))))) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
         ((IDictionary<string,object>)result)["bids"] = this.sortBy(getValue(result, "bids"), 0, true);
@@ -988,7 +988,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, symbol));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // fetchTicker
@@ -1199,7 +1199,7 @@ public partial class ndax : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1249,7 +1249,7 @@ public partial class ndax : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,((string)timeframeVar), since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -1751,7 +1751,7 @@ public partial class ndax : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -2165,7 +2165,7 @@ public partial class ndax : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "ClOrderId"});
         Dictionary<string, object> response = await this.privatePostCancelOrder(this.extend(request, parameters));
-        object order = this.parseOrder(response, market);
+        Dictionary<string, object> order = this.parseOrder(response, market);
         return ccxt.BaseExchange.ToOrder(this.extend(order, new Dictionary<string, object>() {             { "id", id },             { "clientOrderId", clientOrderId },         }));
     }
 

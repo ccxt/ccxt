@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\OrderNotFound;
+use ccxt\NotSupported;
 use ccxt\DDoSProtection;
 use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
@@ -61,11 +62,11 @@ class krakenfutures extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
-                'fetchFundingHistory' => null,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => 'emulated',
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
-                'fetchIndexOHLCV' => false,
+                'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
@@ -932,6 +933,7 @@ class krakenfutures extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {string} [$params->price] "mark" for mark-price $candles or "index" for index-price $candles, defaults to trade-price $candles
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -943,9 +945,15 @@ class krakenfutures extends Exchange {
         if ($paginate) {
             return Async\await($this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $params, 2000));
         }
+        $priceType = $this->safe_string($params, 'price', 'trade');
+        if ($priceType === 'index') {
+            $priceType = 'spot'; // the venue's name for index-price candles
+        } elseif (($priceType !== 'trade') && ($priceType !== 'mark') && ($priceType !== 'spot')) {
+            throw new NotSupported($this->id . ' fetchOHLCV() price parameter must be one of "trade", "mark", "index" or "spot"');
+        }
         $request = array(
             'symbol' => $market['id'],
-            'price_type' => $this->safe_string($params, 'price', 'trade'),
+            'price_type' => $priceType,
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $params = $this->omit($params, 'price');
@@ -2623,10 +2631,7 @@ class krakenfutures extends Exchange {
         $request = array();
         if ($since !== null) {
             $request['since'] = $since;
-            $sort = $this->safe_string($params, 'sort');
-            if ($sort === null) {
-                $request['sort'] = 'asc';
-            }
+            $request['sort'] = 'asc';
         }
         if ($limit !== null) {
             // each trade execution emits two rows and the position-size legs are
@@ -2679,6 +2684,118 @@ class krakenfutures extends Exchange {
             }
         }
         return $this->parse_ledger($rows, $currency, $since, $limit);
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_history(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the funding payments history of the account
+         *
+         * @see https://docs.kraken.com/api-reference/account-history/get-account-log
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding payments for
+         * @param {int} [$limit] the maximum number of funding payments to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding payment
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        Async\await($this->load_markets());
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $request = array(
+            'info' => 'funding rate change', // the account log filters by entry type server-side
+        );
+        if ($since !== null) {
+            $request['since'] = $since;
+            $request['sort'] = 'asc';
+        }
+        if (($limit !== null) && ($symbol === null)) {
+            // the account log has no contract filter, so a symbol is applied on the
+            // client side - a server side page size would truncate the rows of other
+            // contracts away before that filter runs and under-fill the result
+            $request['count'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['before'] = $until;
+        }
+        $response = Async\await($this->historyGetAccountLog($this->extend($request, $params)));
+        //
+        //    {
+        //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+        //        "logs": [
+        //            {
+        //                "asset": "usd",
+        //                "contract": "pf_dogeusd",
+        //                "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        //                "collateral": null,
+        //                "date": "2026-09-17T12:00:00.000Z",
+        //                "execution": null,
+        //                "fee": 0,
+        //                "funding_rate": 9.288451412e-7,
+        //                "id": 16,
+        //                "info": "funding rate change",
+        //                "margin_account": "flex",
+        //                "mark_price": null,
+        //                "new_average_entry_price": null,
+        //                "new_balance": 0,
+        //                "old_average_entry_price": null,
+        //                "old_balance": 0.0002,
+        //                "realized_funding": -0.0002,
+        //                "realized_pnl": null,
+        //                "trade_price": null,
+        //                "conversion_spread_percentage": null,
+        //                "liquidation_fee": null,
+        //                "position_uid": null
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        $logs = $this->safe_list($response, 'logs', array());
+        return $this->parse_incomes($logs, $market, $since, $limit);
+    }
+
+    public function parse_income(mixed $income, ?array $market = null): array {
+        //
+        //    {
+        //        "asset": "usd",
+        //        "contract": "pf_dogeusd",
+        //        "booking_uid": "124f43a6-389a-4349-abc6-06fc7eeac86b",
+        //        "date": "2026-09-17T12:00:00.000Z",
+        //        "fee": 0,
+        //        "funding_rate": 9.288451412e-7,
+        //        "id": 16,
+        //        "info": "funding rate change",
+        //        "margin_account": "flex",
+        //        "new_balance": 0,
+        //        "old_balance": 0.0002,
+        //        "realized_funding": -0.0002,
+        //        ...
+        //    }
+        //
+        // the account log spells the contract in lower case, the market ids are upper case
+        $marketId = $this->safe_string_upper($income, 'contract');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->parse8601($this->safe_string($income, 'date'));
+        return array(
+            'info' => $income,
+            // no market fallback: the symbol filter runs on the client side, so a row
+            // of an unknown contract must keep its raw id and get filtered out
+            'symbol' => $this->safe_symbol($marketId),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'id'),
+            'amount' => $this->safe_number($income, 'realized_funding'),
+        );
     }
 
     public function parse_ledger_entry_type(mixed $type) {

@@ -468,7 +468,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // {
@@ -545,7 +545,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades (public)
@@ -561,7 +561,7 @@ public partial class zaif : Exchange
         //
         string? side = this.safeString(trade, "trade_type");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
-        object timestamp = this.safeTimestamp(trade, "date");
+        Int64? timestamp = this.safeTimestamp(trade, "date");
         string? id = this.safeString2(trade, "id", "tid");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "amount");
@@ -703,7 +703,7 @@ public partial class zaif : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //     {
@@ -729,7 +729,7 @@ public partial class zaif : Exchange
         //
         string? side = this.safeString(order, "action");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
-        object timestamp = this.safeTimestamp(order, "timestamp");
+        Int64? timestamp = this.safeTimestamp(order, "timestamp");
         string? marketId = this.safeString(order, "currency_pair");
         string? symbol = this.safeSymbol(marketId, market, "_");
         string? price = this.safeString(order, "price");

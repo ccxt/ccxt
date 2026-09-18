@@ -4957,7 +4957,7 @@ public class Aster extends AsterApi
      * @name aster#fetchAccountPositions
      * @ignore
      * @description fetch account positions
-    https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
+     * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#position-information-v3-user_data
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions

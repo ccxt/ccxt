@@ -1161,7 +1161,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // public/market_trades
@@ -1194,7 +1194,7 @@ public partial class woo : Exchange
         //
         bool isFromFetchOrder = (inOp(trade, "id"));
         string? timestampString = this.safeString2(trade, "executed_timestamp", "executedTimestamp");
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(!isEqual(timestampString, null)))
         {
             if (isTrue(isGreaterThan(getIndexOf(timestampString, "."), -1)))
@@ -1362,7 +1362,7 @@ public partial class woo : Exchange
         string? maker = this.safeString(data, "makerFeeRate");
         string? taker = this.safeString(data, "takerFeeRate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object symbols = this.symbols;
+        List<object> symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
             return ccxt.BaseExchange.ToTradingFees(result);
@@ -2346,7 +2346,7 @@ public partial class woo : Exchange
         return this.safeString(timeInForces, ((string)timeInForce));
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         // createOrder
@@ -2429,7 +2429,7 @@ public partial class woo : Exchange
         //         "positionSide": "BOTH"
         //     }
         //
-        object timestamp = null;
+        Int64? timestamp = null;
         string? timestrampString = this.safeString(order, "createdTime");
         if (isTrue(!isEqual(timestrampString, null)))
         {
@@ -2463,7 +2463,7 @@ public partial class woo : Exchange
         string? feeCurrency = this.safeString(order, "feeAsset");
         double? triggerPrice = this.safeNumber(order, "triggerPrice");
         string? lastUpdateTimestampString = this.safeString(order, "updatedTime");
-        object lastUpdateTimestamp = null;
+        Int64? lastUpdateTimestamp = null;
         if (isTrue(!isEqual(lastUpdateTimestampString, null)))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(lastUpdateTimestampString, "."), 0)))
@@ -2584,7 +2584,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -2731,9 +2731,9 @@ public partial class woo : Exchange
         symbols = this.marketSymbols(symbols, "swap", true, true);
         if (isTrue(isEqual(symbols, null)))
         {
-            object marketType = null;
+            string? marketType = null;
             IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchTickers", null, parameters, "swap");
-            marketType = ((IList<object>)marketTypeparametersVariable)[0];
+            marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
             parameters = ((IList<object>)marketTypeparametersVariable)[1];
             if (isTrue(!isEqual(marketType, "swap")))
             {
@@ -2783,7 +2783,7 @@ public partial class woo : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3168,9 +3168,9 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "token", getValue(currency, "id") },
@@ -3222,7 +3222,7 @@ public partial class woo : Exchange
         };
     }
 
-    public async virtual Task<object> getAssetHistoryRows(string code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<object>> getAssetHistoryRows(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3236,9 +3236,9 @@ public partial class woo : Exchange
             currency = this.currency(((string)code));
             ((IDictionary<string,object>)request)["token"] = getValue(currency, "id");
         }
-        object networkCode = null;
+        string? networkCode = null;
         IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        networkCode = (string)((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
@@ -3312,7 +3312,7 @@ public partial class woo : Exchange
     public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currencyRows = await this.getAssetHistoryRows(((string)code), since, limit, parameters);
+        List<object> currencyRows = await this.getAssetHistoryRows(((string)code), since, limit, parameters);
         object currency = this.safeValue(currencyRows, 0);
         List<object> rows = this.safeList(currencyRows, 1);
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(rows, currency, since, limit, parameters));
@@ -3348,7 +3348,7 @@ public partial class woo : Exchange
         double? amount = this.safeNumber(item, "amount");
         string? side = this.safeString(item, "tokenSide");
         string direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
-        object timestamp = this.safeTimestamp(item, "createdTime");
+        Int64? timestamp = this.safeTimestamp(item, "createdTime");
         object fee = this.parseTokenAndFeeTemp(item, new List<object>() {"feeToken"}, new List<object>() {"feeAmount"});
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
@@ -3455,7 +3455,7 @@ public partial class woo : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "BALANCE" },
         };
-        object currencyRows = await this.getAssetHistoryRows(((string)code), since, limit, this.extend(request, parameters));
+        List<object> currencyRows = await this.getAssetHistoryRows(((string)code), since, limit, this.extend(request, parameters));
         object currency = this.safeValue(currencyRows, 0);
         List<object> rows = this.safeList(currencyRows, 1, new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(rows, currency, since, limit, parameters));
@@ -3496,7 +3496,7 @@ public partial class woo : Exchange
         object fee = this.parseTokenAndFeeTemp(transaction, new List<object>() {"fee_token", "feeToken"}, new List<object>() {"fee_amount", "feeAmount"});
         string? addressTo = this.safeStringN(transaction, new List<object>() {"target_address", "targetAddress", "addressTo"});
         string? addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
-        object timestamp = this.safeTimestampN(transaction, new List<object>() {"created_time", "createdTime"}, this.safeInteger(transaction, "timestamp"));
+        Int64? timestamp = this.safeTimestampN(transaction, new List<object>() {"created_time", "createdTime"}, this.safeInteger(transaction, "timestamp"));
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeStringN(transaction, new List<object>() {"id", "withdraw_id", "withdrawId"}) },
@@ -3698,7 +3698,7 @@ public partial class woo : Exchange
         //        }
         //
         string? code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
-        object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
+        Int64? timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
         bool? success = this.safeBool(transfer, "success");
         string? status = null;
         if (isTrue(!isEqual(success, null)))
@@ -4667,7 +4667,7 @@ public partial class woo : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positions, symbols));
     }
 
-    public override object parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, object market = null)
     {
         //
         // v1PrivateGetPositionSymbol
@@ -4731,7 +4731,7 @@ public partial class woo : Exchange
         string? contractSize = this.safeString(market, "contractSize");
         string? markPrice = this.safeString2(position, "markPrice", "mark_price");
         string? timestampString = this.safeString(position, "timestamp");
-        object timestamp = null;
+        Int64? timestamp = null;
         if (isTrue(!isEqual(timestampString, null)))
         {
             if (isTrue(isGreaterThan(getIndexOf(timestampString, "."), -1)))

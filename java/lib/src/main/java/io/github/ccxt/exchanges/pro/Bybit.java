@@ -2837,13 +2837,64 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         return BaseExchange.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "op", "subscribe" );
-                put( "req_id", Bybit.this.requestId() );
-                put( "args", topics );
-            }};
-            Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            Client client = this.client(url);
+            List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
+            Object topicsLength = Helpers.getArrayLength(topics);
+            Object messageHashesLength = Helpers.getArrayLength(messageHashes);
+            if (Helpers.isTrue(Helpers.isEqual(topicsLength, messageHashesLength)))
+            {
+                for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
+                {
+                    Object messageHash = Helpers.GetValue(messageHashes, i);
+                    if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                    {
+                        ((List<Object>)newTopics).add(Helpers.GetValue(topics, i));
+                    }
+                }
+            } else
+            {
+                // watchOrders spot: two topics, one hash. Collect topics already
+                // recorded on any subscription so a later call with a new hash
+                // does not resend already-subscribed topics.
+                Map<String, Object> subscribedTopics = new HashMap<String, Object>() {{}};
+                Object subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptionHashes)); i++)
+                {
+                    Object existing = this.safeDict(client.subscriptions, Helpers.GetValue(subscriptionHashes, i), new HashMap<String, Object>() {{}});
+                    Object recordedTopics = this.safeList(existing, "topics", new ArrayList<Object>(Arrays.asList()));
+                    Object recordedLength = Helpers.getArrayLength(recordedTopics);
+                    for (var j = 0; Helpers.isLessThan(j, recordedLength); j++)
+                    {
+                        Helpers.addElementToObject(subscribedTopics, Helpers.GetValue(recordedTopics, j), true);
+                    }
+                }
+                for (var i = 0; Helpers.isLessThan(i, topicsLength); i++)
+                {
+                    Object topic = Helpers.GetValue(topics, i);
+                    if (!Helpers.isTrue((Helpers.inOp(subscribedTopics, topic))))
+                    {
+                        ((List<Object>)newTopics).add(topic);
+                    }
+                }
+            }
+            Object message = null;
+            Object subscription = null;
+            Object newTopicsLength = Helpers.getArrayLength(newTopics);
+            if (Helpers.isTrue(Helpers.isGreaterThan(newTopicsLength, 0)))
+            {
+                Object reqId = this.requestId();
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "op", "subscribe" );
+                    put( "req_id", reqId );
+                    put( "args", newTopics );
+                }};
+                message = this.extend(request, parameters);
+                subscription = new HashMap<String, Object>() {{
+                    put( "id", reqId );
+                    put( "topics", newTopics );
+                }};
+            }
+            return (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
         });
 
     }
@@ -2977,33 +3028,57 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             return false;
         } catch(Exception error)
         {
-            String messageHash = this.safeString2(message, "req_id", "reqId");
-            if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
+            String reqId = this.safeString2(message, "req_id", "reqId");
+            Boolean foundSubscription = false;
+            if (Helpers.isTrue(!Helpers.isEqual(reqId, null)))
             {
-                client.reject(error, messageHash);
-            } else if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
-            {
-                String authenticatedHash = "authenticated";
-                client.reject(error, authenticatedHash);
-                if (Helpers.isTrue(Helpers.inOp(client.subscriptions, authenticatedHash)))
+                Object keys = Helpers.objectKeys(client.subscriptions);
+                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
+                    Object messageHash = Helpers.GetValue(keys, i);
+                    if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
+                    {
+                        continue;
+                    }
+                    Object subscription = this.safeDict(client.subscriptions, messageHash);
+                    String subId = this.safeString(subscription, "id");
+                    if (Helpers.isTrue(Helpers.isEqual(reqId, subId)))
+                    {
+                        foundSubscription = true;
+                        ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                        client.reject(error, messageHash);
+                    }
                 }
-                String op = this.safeString(message, "op");
-                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, null))) && Helpers.isTrue((!Helpers.isEqual(op, "auth")))))
-                {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject(error);
-                }
-            } else
+            }
+            if (!Helpers.isTrue(foundSubscription))
             {
-                client.reject(error, messageHash);
+                if (Helpers.isTrue(!Helpers.isEqual(reqId, null)))
+                {
+                    client.reject(error, reqId);
+                } else if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
+                {
+                    String authenticatedHash = "authenticated";
+                    client.reject(error, authenticatedHash);
+                    if (Helpers.isTrue(Helpers.inOp(client.subscriptions, authenticatedHash)))
+                    {
+                        ((Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
+                    }
+                    String op = this.safeString(message, "op");
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, null))) && Helpers.isTrue((!Helpers.isEqual(op, "auth")))))
+                    {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject(error);
+                    }
+                } else
+                {
+                    client.reject(error, reqId);
+                }
             }
             return true;
         }

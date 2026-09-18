@@ -491,8 +491,8 @@ class phemex extends Exchange {
                     '11028' => '\\ccxt\\BadSymbol', // TE_CURRENCY_INVALID Invalid currency ID or name
                     '11029' => '\\ccxt\\ExchangeError', // TE_ACTION_INVALID Unrecognized request type
                     '11030' => '\\ccxt\\ExchangeError', // TE_ACTION_BY_INVALID
-                    '11031' => '\\ccxt\\DDoSProtection', // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
-                    '11032' => '\\ccxt\\DDoSProtection', // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
+                    '11031' => '\\ccxt\\InvalidOrder', // TE_SO_NUM_EXCEEDS Number of total conditional orders exceeds the max limit
+                    '11032' => '\\ccxt\\InvalidOrder', // TE_AO_NUM_EXCEEDS Number of total active orders exceeds the max limit
                     '11033' => '\\ccxt\\DuplicateOrderId', // TE_ORDER_ID_DUPLICATE Duplicated order ID
                     '11034' => '\\ccxt\\InvalidOrder', // TE_SIDE_INVALID Invalid side
                     '11035' => '\\ccxt\\InvalidOrder', // TE_ORD_TYPE_INVALID Invalid OrderType
@@ -2471,7 +2471,7 @@ class phemex extends Exchange {
             );
         }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
-        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->from_ep($this->safe_string($order, 'stopPxEp'), $market)));
         $postOnly = ($timeInForce === 'PO');
         return $this->safe_order(array(
             'info' => $order,
@@ -3264,6 +3264,14 @@ class phemex extends Exchange {
             $order = $this->safe_dict($data, 0, array());
         } elseif ($market['spot'] === true) {
             $rows = $this->safe_list($data, 'rows', array());
+            $numRows = count($rows);
+            if ($numRows < 1) {
+                if ($clientOrderId !== null) {
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $clientOrderId ' . $clientOrderId . ' not found');
+                } else {
+                    throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
+                }
+            }
             $order = $this->safe_dict($rows, 0, array());
         }
         return $this->parse_order($order, $market);

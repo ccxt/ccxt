@@ -3174,15 +3174,83 @@ impl BybitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("op".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("req_id".to_string(), self.request_id());
-                m.insert("args".to_string(), topics.clone());
-            m
-        });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
-        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
+        let mut client: Value = self.client(&[url.clone()]);
+        let mut newTopics: Value = Value::List(vec![]);
+        let mut topicsLength: Value = get_array_length(&topics);
+        let mut messageHashesLength: Value = get_array_length(&messageHashes);
+        if is_equal(&topicsLength, &messageHashesLength) {
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_226: bool = true;
+                while { if !__for_first_226 { i = add(&i, &Value::Int(1)); } __for_first_226 = false; is_less_than(&i, &topicsLength) } {
+                let mut messageHash: Value = get_value(&messageHashes, &i);
+                let mut messageHash: Value = get_value(&messageHashes, &i);
+                if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)))) {
+                    append_to_array(&mut newTopics, get_value(&topics, &i));
+                }
+            }
+            }
+        }  else {
+            // watchOrders spot: two topics, one hash. Collect topics already
+            // recorded on any subscription so a later call with a new hash
+            // does not resend already-subscribed topics.
+            let mut subscribedTopics: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            let mut subscriptionHashes: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_228: bool = true;
+                while { if !__for_first_228 { i = add(&i, &Value::Int(1)); } __for_first_228 = false; is_less_than(&i, &get_array_length(&subscriptionHashes)) } {
+                let mut existing: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), get_value(&subscriptionHashes, &i), &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
+                let mut recordedTopics: Value = self.safe_list_k(existing.clone(), "topics", &[Value::List(vec![])]);
+                let mut recordedLength: Value = get_array_length(&recordedTopics);
+                {
+                                        let mut j: Value = Value::Int(0);
+                    let mut __for_first_227: bool = true;
+                    while { if !__for_first_227 { j = add(&j, &Value::Int(1)); } __for_first_227 = false; is_less_than(&j, &recordedLength) } {
+                    add_element_to_object(&mut subscribedTopics, &get_value(&recordedTopics, &j), Value::Bool(true));
+                }
+                }
+            }
+            }
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_229: bool = true;
+                while { if !__for_first_229 { i = add(&i, &Value::Int(1)); } __for_first_229 = false; is_less_than(&i, &topicsLength) } {
+                let mut topic: Value = get_value(&topics, &i);
+                let mut topic: Value = get_value(&topics, &i);
+                if !is_true(&(Value::Bool(in_op(&subscribedTopics, &topic)))) {
+                    append_to_array(&mut newTopics, topic.clone());
+                }
+            }
+            }
+        }
+        let mut message: Value = Value::Null;
+        let mut subscription: Value = Value::Null;
+        let mut newTopicsLength: Value = get_array_length(&newTopics);
+        if is_greater_than(&newTopicsLength, &Value::Int(0)) {
+            let mut reqId: Value = self.request_id();
+            let mut request: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("op".to_string(), Value::Str("subscribe".to_string()));
+                    m.insert("req_id".to_string(), reqId.clone());
+                    m.insert("args".to_string(), newTopics.clone());
+                m
+            });
+            message = self.extend(request.clone(), &[params.clone()]);
+            subscription = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("id".to_string(), reqId.clone());
+                    m.insert("topics".to_string(), newTopics.clone());
+                m
+            });
+        }
+        return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), subscription.clone()]).await;
 
     Value::Null
 }
@@ -3320,28 +3388,52 @@ impl BybitCore {
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            let mut messageHash: Value = self.safe_string2(message.clone(), Value::Str("req_id".to_string()), Value::Str("reqId".to_string()), &[]);
-            if !is_equal(&messageHash, &Value::Null) {
-                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            }  else if is_true(&is_instance(&error, &Value::Str("AuthenticationError".to_string()))) {
-                let mut authenticatedHash: Value = Value::Str("authenticated".to_string());
-                client.reject(&[Value::from(error.clone()), authenticatedHash.clone()]);
-                if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &authenticatedHash))) {
-                    remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &authenticatedHash);
+            let mut reqId: Value = self.safe_string2(message.clone(), Value::Str("req_id".to_string()), Value::Str("reqId".to_string()), &[]);
+            let mut foundSubscription: bool = false;
+            if !is_equal(&reqId, &Value::Null) {
+                let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
+                {
+                                        let mut i: Value = Value::Int(0);
+                    let mut __for_first_230: bool = true;
+                    while { if !__for_first_230 { i = add(&i, &Value::Int(1)); } __for_first_230 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                    let mut messageHash: Value = get_value(&keys, &i);
+                    let mut messageHash: Value = get_value(&keys, &i);
+                    if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)))) {
+                        continue;
+                    }
+                    let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
+                    let mut subId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
+                    if is_equal(&reqId, &subId) {
+                        foundSubscription = true;
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
+                        client.reject(&[Value::from(error.clone()), messageHash.clone()]);
+                    }
                 }
-                let mut op: Value = self.safe_string_k(message.clone(), "op", &[]);
-                if is_true(&(!is_equal(&op, &Value::Null))) && is_true(&(!is_equal(&op, &Value::Str("auth".to_string())))) {
-                    // an operation response that carries no reqId, e.g. bybit
-                    // omits it on some permission rejections of trade ops,
-                    // would leave the awaiting future pending forever, and
-                    // since nothing on this client can proceed without
-                    // authentication, reject everything pending, mirroring the
-                    // behavior of unattributable non auth errors, see
-                    // https://github.com/ccxt/ccxt/issues/29361
-                    client.reject(&[Value::from(error.clone())]);
                 }
-            }  else {
-                client.reject(&[Value::from(error.clone()), messageHash.clone()]);
+            }
+            if !is_true(&foundSubscription) {
+                if !is_equal(&reqId, &Value::Null) {
+                    client.reject(&[Value::from(error.clone()), reqId.clone()]);
+                }  else if is_true(&is_instance(&error, &Value::Str("AuthenticationError".to_string()))) {
+                    let mut authenticatedHash: Value = Value::Str("authenticated".to_string());
+                    client.reject(&[Value::from(error.clone()), authenticatedHash.clone()]);
+                    if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &authenticatedHash))) {
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &authenticatedHash);
+                    }
+                    let mut op: Value = self.safe_string_k(message.clone(), "op", &[]);
+                    if is_true(&(!is_equal(&op, &Value::Null))) && is_true(&(!is_equal(&op, &Value::Str("auth".to_string())))) {
+                        // an operation response that carries no reqId, e.g. bybit
+                        // omits it on some permission rejections of trade ops,
+                        // would leave the awaiting future pending forever, and
+                        // since nothing on this client can proceed without
+                        // authentication, reject everything pending, mirroring the
+                        // behavior of unattributable non auth errors, see
+                        // https://github.com/ccxt/ccxt/issues/29361
+                        client.reject(&[Value::from(error.clone())]);
+                    }
+                }  else {
+                    client.reject(&[Value::from(error.clone()), reqId.clone()]);
+                }
             }
             return Value::Bool(true);
          } }
@@ -3415,8 +3507,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&methods);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_226: bool = true;
-            while { if !__for_first_226 { i = add(&i, &Value::Int(1)); } __for_first_226 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_231: bool = true;
+            while { if !__for_first_231 { i = add(&i, &Value::Int(1)); } __for_first_231 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_greater_than_or_equal(&get_index_of(&topic, &key), &Value::Int(0)) {
@@ -3535,8 +3627,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut keys: Value = object_keys(&get_value(&client, &Value::Str("subscriptions".to_string())));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_228: bool = true;
-            while { if !__for_first_228 { i = add(&i, &Value::Int(1)); } __for_first_228 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_233: bool = true;
+            while { if !__for_first_233 { i = add(&i, &Value::Int(1)); } __for_first_233 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut messageHash: Value = get_value(&keys, &i);
             let mut messageHash: Value = get_value(&keys, &i);
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)))) {
@@ -3552,8 +3644,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_227: bool = true;
-                    while { if !__for_first_227 { j = add(&j, &Value::Int(1)); } __for_first_227 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
+                    let mut __for_first_232: bool = true;
+                    while { if !__for_first_232 { j = add(&j, &Value::Int(1)); } __for_first_232 = false; is_less_than(&j, &get_array_length(&messageHashes)) } {
                     let mut unsubHash: Value = get_value(&messageHashes, &j);
                     let mut unsubHash: Value = get_value(&messageHashes, &j);
                     let mut subHash: Value = get_value(&subMessageHashes, &j);

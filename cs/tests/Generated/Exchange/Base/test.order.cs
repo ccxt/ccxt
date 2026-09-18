@@ -59,7 +59,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
         if (!isTrue((inOp(skippedProperties, "trades"))))
         {
-            object skippedNew = exchange.deepExtend(skippedProperties, new Dictionary<string, object>() {
+            Dictionary<string, object> skippedNew = exchange.deepExtend(skippedProperties, new Dictionary<string, object>() {
                 { "timestamp", true },
                 { "datetime", true },
                 { "side", true },

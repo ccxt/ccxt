@@ -54,7 +54,7 @@ func (this *Phemex) Describe() any {
 	})
 }
 func (this *Phemex) FromEn(en any, scale any) any {
-	if ccxt.IsTrue(ccxt.IsEqual(en, nil)) {
+	if ccxt.IsEqual(en, nil) {
 		return nil
 	}
 	precise := ccxt.NewPrecise(en)
@@ -65,7 +65,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(ep, nil))) || ccxt.IsTrue((ccxt.IsEqual(market, nil)))) {
+	if (ccxt.IsEqual(ep, nil)) || (ccxt.IsEqual(market, nil)) {
 		return ep
 	}
 	return this.FromEn(ep, this.SafeInteger(market, "priceScale"))
@@ -73,7 +73,7 @@ func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(ev, nil))) || ccxt.IsTrue((ccxt.IsEqual(market, nil)))) {
+	if (ccxt.IsEqual(ev, nil)) || (ccxt.IsEqual(market, nil)) {
 		return ev
 	}
 	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
@@ -81,7 +81,7 @@ func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(er, nil))) || ccxt.IsTrue((ccxt.IsEqual(market, nil)))) {
+	if (ccxt.IsEqual(er, nil)) || (ccxt.IsEqual(market, nil)) {
 		return er
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
@@ -112,11 +112,11 @@ func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, "symbol")
+	var marketId *string = this.SafeString(ticker, "symbol")
 	var marketResolved any = this.SafeMarket(marketId, market)
 	market = marketResolved
 	var symbol any = ccxt.GetValue(marketResolved, "symbol")
-	var timestamp any = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
+	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.000001)
 	var lastString any = this.FromEp(this.SafeString(ticker, "close"), market)
 	var last any = this.ParseNumber(lastString)
 	var quoteVolume any = this.ParseNumber(this.FromEv(this.SafeString(ticker, "turnover"), market))
@@ -126,7 +126,7 @@ func (this *Phemex) ParseSwapTicker(ticker any, optionalArgs ...any) any {
 	var average any = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), market))
 	var open any = this.ParseNumber(openString)
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(openString, nil))) && ccxt.IsTrue((!ccxt.IsEqual(lastString, nil)))) {
+	if (!ccxt.IsEqual(openString, nil)) && (!ccxt.IsEqual(lastString, nil)) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
 		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
@@ -175,7 +175,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, 0)
+	var marketId *string = this.SafeString(ticker, 0)
 	var marketResolved any = this.SafeMarket(marketId, market)
 	market = marketResolved
 	var symbol any = ccxt.GetValue(marketResolved, "symbol")
@@ -188,7 +188,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var average any = nil
 	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), market))
 	var open any = this.ParseNumber(openString)
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(openString, nil))) && ccxt.IsTrue((!ccxt.IsEqual(lastString, nil)))) {
+	if (!ccxt.IsEqual(openString, nil)) && (!ccxt.IsEqual(lastString, nil)) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(lastString, openString), "2"))
 		percentage = this.ParseNumber(ccxt.Precise.StringMul(ccxt.Precise.StringSub(ccxt.Precise.StringDiv(lastString, openString), "1"), "100"))
@@ -293,13 +293,13 @@ func (this *Phemex) HandleTicker(client any, message any) {
 	//    }
 	//
 	var tickers any = []any{}
-	if ccxt.IsTrue(ccxt.InOp(message, "market24h")) {
+	if ccxt.InOp(message, "market24h") {
 		var ticker any = this.SafeValue(message, "market24h")
 		ccxt.AppendToArray(&tickers, this.ParseSwapTicker(ticker))
-	} else if ccxt.IsTrue(ccxt.InOp(message, "spot_market24h")) {
+	} else if ccxt.InOp(message, "spot_market24h") {
 		var ticker any = this.SafeValue(message, "spot_market24h")
 		ccxt.AppendToArray(&tickers, this.ParseTicker(ticker))
-	} else if ccxt.IsTrue(ccxt.InOp(message, "data")) {
+	} else if ccxt.InOp(message, "data") {
 		var data any = this.SafeList(message, "data", []any{})
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 			ccxt.AppendToArray(&tickers, this.ParsePerpetualTicker(ccxt.GetValue(data, i)))
@@ -309,7 +309,7 @@ func (this *Phemex) HandleTicker(client any, message any) {
 		var ticker any = ccxt.GetValue(tickers, i)
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		var messageHash any = ccxt.Add("ticker:", symbol)
-		var timestamp any = this.SafeIntegerProduct(message, "timestamp", 0.000001)
+		var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
 		ccxt.AddElementToObject(ticker, "timestamp", timestamp)
 		ccxt.AddElementToObject(ticker, "datetime", this.Iso8601(timestamp))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -338,18 +338,18 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes32412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes32412)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var usePerpetualApi bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
 	var messageHash any = ":balance"
-	messageHash = ccxt.Ternary(ccxt.IsTrue(usePerpetualApi), ccxt.Add("perpetual", messageHash), ccxt.Add(typeVar, messageHash))
+	messageHash = ccxt.Ternary(usePerpetualApi, ccxt.Add("perpetual", messageHash), ccxt.Add(typeVar, messageHash))
 
 	retRes33115 := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
 	ccxt.PanicOnError(retRes33115)
@@ -402,29 +402,29 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 	ccxt.AddElementToObject(this.Balance, "info", message)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
 		var balance any = ccxt.GetValue(message, i)
-		var currencyId any = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId *string = this.SafeString(balance, "currency")
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency any = this.SafeValue(this.Currencies, code, map[string]any{})
-		var scale any = this.SafeInteger(currency, "valueScale", 8)
+		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account any = this.Account()
-		var used any = this.SafeString(balance, "totalUsedBalanceRv")
-		if ccxt.IsTrue(ccxt.IsEqual(used, nil)) {
-			var usedEv any = this.SafeString(balance, "totalUsedBalanceEv")
-			if ccxt.IsTrue(ccxt.IsEqual(usedEv, nil)) {
-				var lockedTradingBalanceEv any = this.SafeString(balance, "lockedTradingBalanceEv")
-				var lockedWithdrawEv any = this.SafeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv")
+		var used any = ccxt.DerefScalar(this.SafeString(balance, "totalUsedBalanceRv"))
+		if ccxt.IsEqual(used, nil) {
+			var usedEv *string = this.SafeString(balance, "totalUsedBalanceEv")
+			if usedEv == nil {
+				var lockedTradingBalanceEv *string = this.SafeString(balance, "lockedTradingBalanceEv")
+				var lockedWithdrawEv *string = this.SafeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv")
 				usedEv = ccxt.Precise.StringAdd(lockedTradingBalanceEv, lockedWithdrawEv)
 			}
 			used = this.FromEn(usedEv, scale)
 		}
-		var total any = this.SafeString(balance, "accountBalanceRv")
-		if ccxt.IsTrue(ccxt.IsEqual(total, nil)) {
-			var totalEv any = this.SafeString2(balance, "accountBalanceEv", "balanceEv")
+		var total any = ccxt.DerefScalar(this.SafeString(balance, "accountBalanceRv"))
+		if ccxt.IsEqual(total, nil) {
+			var totalEv *string = this.SafeString2(balance, "accountBalanceEv", "balanceEv")
 			total = this.FromEn(totalEv, scale)
 		}
 		ccxt.AddElementToObject(account, "used", used)
 		ccxt.AddElementToObject(account, "total", total)
-		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 		this.Balance = this.SafeBalance(this.Balance)
@@ -460,13 +460,13 @@ func (this *Phemex) HandleTrades(client any, message any) {
 	//     }
 	//
 	var name string = "trade"
-	var marketId any = this.SafeString(message, "symbol")
+	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add(name, ":"), symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
@@ -509,20 +509,20 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 	//         "type": "incremental",
 	//     }
 	//
-	var marketId any = this.SafeString(message, "symbol")
+	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var candles any = this.SafeValue2(message, "kline", "kline_p", []any{})
 	var first any = this.SafeValue(candles, 0, []any{})
-	var interval any = this.SafeString(first, 1)
+	var interval *string = this.SafeString(first, 1)
 	var timeframe any = this.FindTimeframe(interval)
-	if ccxt.IsTrue(!ccxt.IsEqual(timeframe, nil)) {
+	if !ccxt.IsEqual(timeframe, nil) {
 		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
 		var ohlcvs any = this.ParseOHLCVs(candles, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
-		if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-			var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+		if ccxt.IsEqual(stored, nil) {
+			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
 			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 		}
@@ -555,7 +555,7 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes52712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes52712)
@@ -565,8 +565,8 @@ func (this *Phemex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var name any = "spot_market24h"
-	if ccxt.IsTrue(ccxt.IsEqual(isSwap, true)) {
-		name = ccxt.Ternary(ccxt.IsTrue(settleIsUSDT), "perp_market24h_pack_p", "market24h")
+	if ccxt.IsEqual(isSwap, true) {
+		name = ccxt.Ternary(settleIsUSDT, "perp_market24h_pack_p", "market24h")
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
@@ -609,7 +609,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes56412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56412)
@@ -620,8 +620,8 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
 	var name any = "spot_market24h"
-	if ccxt.IsTrue(ccxt.IsEqual(isSwap, true)) {
-		name = ccxt.Ternary(ccxt.IsTrue(settleIsUSDT), "perp_market24h_pack_p", "market24h")
+	if ccxt.IsEqual(isSwap, true) {
+		name = ccxt.Ternary(settleIsUSDT, "perp_market24h_pack_p", "market24h")
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var requestId any = this.RequestId()
@@ -639,7 +639,7 @@ func (this *Phemex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(ticker)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -678,7 +678,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes61212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes61212)
@@ -689,10 +689,10 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	var requestId any = this.RequestId()
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-	var isUsdtSwap bool = ccxt.IsTrue((ccxt.IsEqual(isSwap, true))) && ccxt.IsTrue(settleIsUSDT)
-	var name any = ccxt.Ternary(ccxt.IsTrue(isUsdtSwap), "trade_p", "trade")
+	var isUsdtSwap bool = (ccxt.IsEqual(isSwap, true)) && settleIsUSDT
+	var name string = ccxt.Ternary(isUsdtSwap, "trade_p", "trade").(string)
 	var messageHash any = ccxt.Add("trade:", symbol)
-	var method any = ccxt.Add(name, ".subscribe")
+	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -702,7 +702,7 @@ func (this *Phemex) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 
 	trades := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -735,7 +735,7 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes65412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes65412)
@@ -746,10 +746,10 @@ func (this *Phemex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var requestId any = this.RequestId()
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-	var isUsdtSwap bool = ccxt.IsTrue((ccxt.IsEqual(isSwap, true))) && ccxt.IsTrue(settleIsUSDT)
-	var name any = ccxt.Ternary(ccxt.IsTrue(isUsdtSwap), "orderbook_p", "orderbook")
+	var isUsdtSwap bool = (ccxt.IsEqual(isSwap, true)) && settleIsUSDT
+	var name string = ccxt.Ternary(isUsdtSwap, "orderbook_p", "orderbook").(string)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var method any = ccxt.Add(name, ".subscribe")
+	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -794,7 +794,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes69412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes69412)
@@ -805,10 +805,10 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var requestId any = this.RequestId()
 	var isSwap any = ccxt.GetValue(market, "swap")
 	var settleIsUSDT bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-	var isUsdtSwap bool = ccxt.IsTrue((ccxt.IsEqual(isSwap, true))) && ccxt.IsTrue(settleIsUSDT)
-	var name any = ccxt.Ternary(ccxt.IsTrue(isUsdtSwap), "kline_p", "kline")
+	var isUsdtSwap bool = (ccxt.IsEqual(isSwap, true)) && settleIsUSDT
+	var name string = ccxt.Ternary(isUsdtSwap, "kline_p", "kline").(string)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("kline:", timeframe), ":"), symbol)
-	var method any = ccxt.Add(name, ".subscribe")
+	var method string = name + ".subscribe"
 	var subscribe map[string]any = map[string]any{
 		"method": method,
 		"id":     requestId,
@@ -818,7 +818,7 @@ func (this *Phemex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -882,24 +882,24 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 	//        "type": "snapshot",
 	//    }
 	//
-	var marketId any = this.SafeString(message, "symbol")
+	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var typeVar any = this.SafeString(message, "type")
-	var depth any = this.SafeInteger(message, "depth")
+	var typeVar *string = this.SafeString(message, "type")
+	var depth *int64 = this.SafeInteger(message, "depth")
 	var name string = "orderbook"
 	var messageHash any = ccxt.Add(ccxt.Add(name, ":"), symbol)
-	var nonce any = this.SafeInteger(message, "sequence")
-	var timestamp any = this.SafeIntegerProduct(message, "timestamp", 0.000001)
-	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "snapshot")) {
+	var nonce *int64 = this.SafeInteger(message, "sequence")
+	var timestamp *int64 = this.SafeIntegerProduct(message, "timestamp", 0.000001)
+	if typeVar != nil && *typeVar == "snapshot" {
 		var book any = this.SafeValue2(message, "book", "orderbook_p", map[string]any{})
 		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
-		var orderbook any = this.OrderBook(snapshot, depth)
+		var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, depth)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
-		if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
+		if ccxt.InOp(this.Orderbooks, symbol) {
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			var changes any = this.SafeDict2(message, "book", "orderbook_p", map[string]any{})
 			var asks any = this.SafeList(changes, "asks", []any{})
@@ -941,7 +941,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes82212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes82212)
@@ -949,26 +949,26 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var typeVar any = nil
 	var messageHash any = "trades:"
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "symbol"))
-		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")) {
+		if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {
 			params = this.Extend(params)
 			ccxt.AddElementToObject(params, "settle", "USDT")
 		}
 	}
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-		var settle any = this.SafeString(params, "settle")
-		messageHash = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(settle, "USDT"))), (ccxt.Add(messageHash, "perpetual")), (ccxt.Add(messageHash, typeVar)))
+	if ccxt.IsEqual(symbol, nil) {
+		var settle *string = this.SafeString(params, "settle")
+		messageHash = ccxt.Ternary((settle != nil && *settle == "USDT"), (ccxt.Add(messageHash, "perpetual")), (ccxt.Add(messageHash, typeVar)))
 	}
 
 	trades := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1071,33 +1071,33 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	//
 	var channel string = "trades"
 	var tradesLength int = ccxt.GetArrayLength(message)
-	if ccxt.IsTrue(ccxt.IsEqual(tradesLength, 0)) {
+	if ccxt.IsEqual(tradesLength, 0) {
 		return
 	}
 	var cachedTrades any = this.MyTrades
-	if ccxt.IsTrue(ccxt.IsEqual(cachedTrades, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(cachedTrades, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var marketIds map[string]any = map[string]any{}
 	var typeVar any = nil
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
 		var rawTrade any = ccxt.GetValue(message, i)
-		var marketId any = this.SafeString(rawTrade, "symbol")
+		var marketId *string = this.SafeString(rawTrade, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var parsed any = this.ParseTrade(rawTrade)
 		cachedTrades.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT"))), "perpetual", ccxt.GetValue(market, "type"))
+		if ccxt.IsEqual(typeVar, nil) {
+			typeVar = ccxt.Ternary((ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")), "perpetual", ccxt.GetValue(market, "type"))
 		}
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		if !ccxt.IsEqual(symbol, nil) {
 			ccxt.AddElementToObject(marketIds, symbol, true)
 		}
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
-		var market any = ccxt.GetValue(keys, i)
+		var market string = ccxt.GetValue(keys, i).(string)
 		var hash any = ccxt.Add(ccxt.Add(channel, ":"), market)
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
@@ -1132,7 +1132,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes99112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes99112)
@@ -1140,26 +1140,26 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = "orders:"
 	var market any = nil
 	var typeVar any = nil
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(messageHash, ccxt.GetValue(market, "symbol"))
-		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")) {
+		if ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT") {
 			params = this.Extend(params)
 			ccxt.AddElementToObject(params, "settle", "USDT")
 		}
 	}
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isUSDTSettled bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
-	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-		messageHash = ccxt.Ternary(ccxt.IsTrue((isUSDTSettled)), (ccxt.Add(messageHash, "perpetual")), (ccxt.Add(messageHash, typeVar)))
+	if ccxt.IsEqual(symbol, nil) {
+		messageHash = ccxt.Ternary(ccxt.EvalTruthy((isUSDTSettled)), (ccxt.Add(messageHash, "perpetual")), (ccxt.Add(messageHash, typeVar)))
 	}
 
 	orders := (<-this.SubscribePrivateAsync(typeVar, messageHash, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1327,12 +1327,12 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	//
 	var trades any = []any{}
 	var parsedOrders any = []any{}
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "closed"))) || ccxt.IsTrue((ccxt.InOp(message, "fills")))) || ccxt.IsTrue((ccxt.InOp(message, "open")))) {
+	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
 		var closed any = this.SafeValue(message, "closed", []any{})
 		var open any = this.SafeValue(message, "open", []any{})
-		var orders any = this.ArrayConcat(open, closed)
+		var orders []any = this.ArrayConcat(open, closed)
 		var ordersLength int = ccxt.GetArrayLength(orders)
-		if ccxt.IsTrue(ccxt.IsEqual(ordersLength, 0)) {
+		if ordersLength == 0 {
 			return
 		}
 		trades = this.SafeList(message, "fills", []any{})
@@ -1343,13 +1343,13 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		}
 	} else {
 		var messageLength int = ccxt.GetArrayLength(message)
-		if ccxt.IsTrue(ccxt.IsEqual(messageLength, 0)) {
+		if ccxt.IsEqual(messageLength, 0) {
 			return
 		}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
 			var update any = ccxt.GetValue(message, i)
-			var action any = this.SafeString(update, "action")
-			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(action, nil))) && ccxt.IsTrue((!ccxt.IsEqual(action, "Cancel")))) {
+			var action *string = this.SafeString(update, "action")
+			if (action != nil) && (action == nil || *action != "Cancel") {
 				// order + trade info together
 				ccxt.AppendToArray(&trades, update)
 			}
@@ -1358,9 +1358,9 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		}
 	}
 	this.HandleMyTrades(client, trades)
-	var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
+	var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 	var marketIds map[string]any = map[string]any{}
-	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
+	if ccxt.IsEqual(this.Orders, nil) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var typeVar any = nil
@@ -1370,9 +1370,9 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 		var symbol any = ccxt.GetValue(parsed, "symbol")
 		var market any = this.Market(symbol)
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
+		if ccxt.IsEqual(typeVar, nil) {
 			var isUsdt bool = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDT")
-			typeVar = ccxt.Ternary(ccxt.IsTrue(isUsdt), "perpetual", ccxt.GetValue(market, "type"))
+			typeVar = ccxt.Ternary(isUsdt, "perpetual", ccxt.GetValue(market, "type"))
 		}
 		ccxt.AddElementToObject(marketIds, symbol, true)
 	}
@@ -1510,30 +1510,30 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "orderID")
-	var clientOrderId any = this.SafeString(order, "clOrdID")
-	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(clientOrderId, nil))) && ccxt.IsTrue((ccxt.IsLessThan(ccxt.GetLength(clientOrderId), 1)))) {
+	var id *string = this.SafeString(order, "orderID")
+	var clientOrderId any = ccxt.DerefScalar(this.SafeString(order, "clOrdID"))
+	if (!ccxt.IsEqual(clientOrderId, nil)) && (ccxt.IsLessThan(ccxt.GetLength(clientOrderId), 1)) {
 		clientOrderId = nil
 	}
-	var marketId any = this.SafeString(order, "symbol")
+	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved any = this.SafeMarket(marketId, market)
 	market = marketResolved
 	var symbol any = ccxt.GetValue(marketResolved, "symbol")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "ordStatus"))
-	var side any = this.SafeStringLower(order, "side")
+	var side *string = this.SafeStringLower(order, "side")
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "ordType"))
-	var price any = this.SafeString(order, "priceRp", this.FromEp(this.SafeString(order, "priceEp"), market))
-	var amount any = this.SafeString(order, "orderQty")
-	var filled any = this.SafeString(order, "cumQty")
-	var remaining any = this.SafeString(order, "leavesQty")
-	var timestamp any = this.SafeIntegerProduct(order, "actionTimeNs", 0.000001)
-	var cost any = this.SafeString(order, "cumValueRv", this.FromEv(this.SafeString(order, "cumValueEv"), market))
+	var price *string = this.SafeString(order, "priceRp", this.FromEp(this.SafeString(order, "priceEp"), market))
+	var amount *string = this.SafeString(order, "orderQty")
+	var filled *string = this.SafeString(order, "cumQty")
+	var remaining *string = this.SafeString(order, "leavesQty")
+	var timestamp *int64 = this.SafeIntegerProduct(order, "actionTimeNs", 0.000001)
+	var cost *string = this.SafeString(order, "cumValueRv", this.FromEv(this.SafeString(order, "cumValueEv"), market))
 	var lastTradeTimestamp any = this.SafeIntegerProduct(order, "transactTimeNs", 0.000001)
-	if ccxt.IsTrue(ccxt.IsEqual(lastTradeTimestamp, 0)) {
+	if ccxt.IsEqual(lastTradeTimestamp, 0) {
 		lastTradeTimestamp = nil
 	}
 	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
-	var stopPrice any = this.SafeString(order, "stopPx")
+	var stopPrice *string = this.SafeString(order, "stopPx")
 	var postOnly bool = (ccxt.IsEqual(timeInForce, "PO"))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -1656,36 +1656,36 @@ func (this *Phemex) HandleMessage(client any, message any) {
 	//       }
 	//     ]
 	// }
-	var id any = this.SafeString(message, "id", "")
-	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id)) {
+	var id *string = this.SafeString(message, "id", "")
+	if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id) {
 		var method any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
-		if ccxt.IsTrue(!ccxt.IsEqual(method, true)) {
+		if !ccxt.IsEqual(method, true) {
 			ccxt.CallDynamically(method, client, message)
 			return
 		}
 	}
-	var methodName any = this.SafeString(message, "method", "")
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "market24h"))) || ccxt.IsTrue((ccxt.InOp(message, "spot_market24h")))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(methodName, "perp_market24h_pack_p"), 0)))) {
+	var methodName *string = this.SafeString(message, "method", "")
+	if (ccxt.InOp(message, "market24h")) || (ccxt.InOp(message, "spot_market24h")) || (ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(methodName, "perp_market24h_pack_p"), 0)) {
 		this.HandleTicker(client, message)
 		return
-	} else if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "trades"))) || ccxt.IsTrue((ccxt.InOp(message, "trades_p")))) {
+	} else if (ccxt.InOp(message, "trades")) || (ccxt.InOp(message, "trades_p")) {
 		this.HandleTrades(client, message)
 		return
-	} else if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "kline"))) || ccxt.IsTrue((ccxt.InOp(message, "kline_p")))) {
+	} else if (ccxt.InOp(message, "kline")) || (ccxt.InOp(message, "kline_p")) {
 		this.HandleOHLCV(client, message)
 		return
-	} else if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "book"))) || ccxt.IsTrue((ccxt.InOp(message, "orderbook_p")))) {
+	} else if (ccxt.InOp(message, "book")) || (ccxt.InOp(message, "orderbook_p")) {
 		this.HandleOrderBook(client, message)
 		return
 	}
-	if ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "orders"))) || ccxt.IsTrue((ccxt.InOp(message, "orders_p")))) {
+	if (ccxt.InOp(message, "orders")) || (ccxt.InOp(message, "orders_p")) {
 		var orders any = this.SafeValue2(message, "orders", "orders_p", map[string]any{})
 		this.HandleOrders(client, orders)
 	}
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "accounts"))) || ccxt.IsTrue((ccxt.InOp(message, "accounts_p")))) || ccxt.IsTrue((ccxt.InOp(message, "wallets")))) {
-		var typeVar any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(message, "accounts"))), "swap", "spot")
-		if ccxt.IsTrue(ccxt.InOp(message, "accounts_p")) {
+	if (ccxt.InOp(message, "accounts")) || (ccxt.InOp(message, "accounts_p")) || (ccxt.InOp(message, "wallets")) {
+		var typeVar string = ccxt.Ternary((ccxt.InOp(message, "accounts")), "swap", "spot").(string)
+		if ccxt.InOp(message, "accounts_p") {
 			typeVar = "perpetual"
 		}
 		var accounts any = this.SafeValueN(message, []any{"accounts", "accounts_p", "wallets"}, []any{})
@@ -1703,14 +1703,14 @@ func (this *Phemex) HandleAuthenticate(client any, message any) {
 	// }
 	//
 	var result any = this.SafeValue(message, "result")
-	var status any = this.SafeString(result, "status")
+	var status *string = this.SafeString(result, "status")
 	var messageHash string = "authenticated"
-	if ccxt.IsTrue(ccxt.IsEqual(status, "success")) {
+	if status != nil && *status == "success" {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {
 		error := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message)))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		}
 	}
@@ -1725,7 +1725,7 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes157012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes157012)
@@ -1738,10 +1738,10 @@ func (this *Phemex) subscribePrivateBody(ch chan any, typeVar any, messageHash a
 	var settleIsUSDT bool = (ccxt.IsEqual(this.SafeValue(params, "settle", ""), "USDT"))
 	params = this.Omit(params, "settle")
 	var channel string = "aop.subscribe"
-	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
+	if ccxt.IsEqual(typeVar, "spot") {
 		channel = "wo.subscribe"
 	}
-	if ccxt.IsTrue(settleIsUSDT) {
+	if settleIsUSDT {
 		channel = "aop_p.subscribe"
 	}
 	var request map[string]any = map[string]any{
@@ -1768,12 +1768,12 @@ func (this *Phemex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var requestId any = this.RequestId()
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsTrue(ccxt.IsEqual(future, nil)) {
-		var expiryDelta any = this.SafeInteger(this.Options, "expires", 120)
+	if ccxt.IsEqual(future, nil) {
+		var expiryDelta *int64 = this.SafeInteger(this.Options, "expires", 120)
 		var expiration any = ccxt.Add(this.Seconds(), expiryDelta)
 		var payload any = ccxt.Add(this.ApiKey, ccxt.ToString(expiration))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256)
@@ -1785,7 +1785,7 @@ func (this *Phemex) authenticateBody(ch chan any, optionalArgs ...any) any {
 		}
 		var subscriptionHash string = ccxt.ToString(requestId)
 		var message map[string]any = this.Extend(request, params)
-		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash))) {
+		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash, this.HandleAuthenticate)
 		}
 
@@ -1811,6 +1811,7 @@ func (this *Phemex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name phemex#watchBalance

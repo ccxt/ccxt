@@ -18,17 +18,17 @@ func testSleepBody(ch chan any) any {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	var start any = exchange.Milliseconds()
+	var start int64 = exchange.Milliseconds()
 	var sleepAmount int = 100 // milliseconds
 
 	retRes134 := (<-exchange.Sleep(sleepAmount))
 	ccxt.PanicOnError(retRes134)
-	var end any = exchange.Milliseconds()
-	var elapsed any = ccxt.Subtract(end, start)
+	var end int64 = exchange.Milliseconds()
+	var elapsed int64 = ccxt.Subtract(end, start).(int64)
 	// Allow a small margin of error due to execution time and timer jitter
 	// (some runtimes, e.g. .NET ccxt.Task.Delay, may return a few ms early)
 	var marginOfError int = 20
-	var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
+	var minElapsed int64 = ccxt.Subtract(sleepAmount, marginOfError).(int64)
 	// The ceiling is deliberately far looser than the floor. sleep () promises
 	// a MINIMUM delay in every language, never a maximum: the OS is free to
 	// reschedule late, so a busy machine or a parallel CI runner overshoots by

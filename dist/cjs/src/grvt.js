@@ -3029,7 +3029,7 @@ class grvt extends grvt$1["default"] {
             'clientOrderId': this.safeString(metadata, 'client_order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'lastTradeTimeStamp': undefined,
+            'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct(stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus(this.safeString(stateObj, 'status')),
             'symbol': this.safeString(market, 'symbol'),

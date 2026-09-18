@@ -2118,9 +2118,6 @@
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "bare fetchTickers() covers only a fraction of active markets, measured 2026-09-03: 468/4564 (swap default) and 1388/4564 (spot default); recheck 2026-12-01"
-            },
-            "watchOrderBook": {
-                "nonce": "root cause: handleOrderBookMessage (pro/okx.ts:~1436) is missing a return after client.reject on InvalidNonce, so it falls through and both callers then client.resolve the same rejected messageHash; live-verified 3/3 clean runs on 2026-09-03 so the failure is rare/timing-dependent, keep skipped until the missing-return fix (planned separately) lands; recheck 2026-12-01"
             }
         }
     },
@@ -2666,7 +2663,11 @@
         }
     },
     "lighter": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "watchTicker": "the market_stats ws channel serves swap markets only - subscribing a spot market id answers 30004 Failed to fetch (verified on a raw socket for ids 2048, 2049, 2050 while 0 and 1 subscribe fine), and the live ws harness picks a spot symbol. recheck 2026-12-17",
+            "watchTickers": "same market_stats channel as watchTicker - the all-markets feed carries 235 swap ids and no spot id. recheck 2026-12-17",
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "contractSize": "not provided",

@@ -534,7 +534,7 @@ public partial class bithumb : Exchange
         return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
-    public virtual object getGen2MarketId(object market)
+    public virtual string? getGen2MarketId(object market)
     {
         string? marketId = this.safeString(market, "id");
         if (isTrue(isTrue((!isEqual(marketId, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(marketId, "-"), 0)))))
@@ -543,7 +543,7 @@ public partial class bithumb : Exchange
         }
         object quoteId = this.safeString2(market, "quoteId", "quote");
         string? baseId = this.safeString2(market, "baseId", "base");
-        return add(add(quoteId, "-"), baseId);
+        return ((string?)((object)(add(add(quoteId, "-"), baseId))));
     }
 
     /**
@@ -660,11 +660,11 @@ public partial class bithumb : Exchange
                 ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
-            object results = await promiseAll(promises);
+            List<object> results = await promiseAll(promises);
             for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
                 string? quote = ((string)getValue(quotes, i));
-                object quoteId = quote;
+                string? quoteId = quote;
                 object response = getValue(results, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 IDictionary<string, object> extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
@@ -866,7 +866,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        object data = null;
+        IDictionary<string, object> data = null;
         Int64? timestamp = null;
         if (isTrue(isEqual(generation, 2)))
         {
@@ -946,7 +946,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"));
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1190,7 +1190,7 @@ public partial class bithumb : Exchange
             //         },
             //     ]
             //
-            object responses = await promiseAll(promises);
+            List<object> responses = await promiseAll(promises);
             int responsesLength = getArrayLength(responses);
             for (int i = 0; isLessThan(i, responsesLength); postFixIncrement(ref i))
             {
@@ -1277,7 +1277,7 @@ public partial class bithumb : Exchange
                 ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
-            object responses = await promiseAll(promises);
+            List<object> responses = await promiseAll(promises);
             for (int i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
             {
                 object quote = getValue(quotes, i);
@@ -1326,7 +1326,7 @@ public partial class bithumb : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        object data = new Dictionary<string, object>() {};
+        IDictionary<string, object> data = new Dictionary<string, object>() {};
         if (isTrue(isEqual(generation, 2)))
         {
             ((IDictionary<string,object>)request)["markets"] = this.getGen2MarketId(market);
@@ -1559,7 +1559,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,((string)timeframeVar), since, limit));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // generation 1: fetchTrades (public)
@@ -1827,7 +1827,7 @@ public partial class bithumb : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+            Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
@@ -1854,7 +1854,7 @@ public partial class bithumb : Exchange
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
         * @method
@@ -1894,9 +1894,9 @@ public partial class bithumb : Exchange
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        object postOnly = false;
+        bool postOnly = false;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), false, parameters);
-        postOnly = ((IList<object>)postOnlyparametersVariable)[0];
+        postOnly = (bool)((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         if (isTrue(isTrue(postOnly) || isTrue((isEqual(timeInForce, "PO")))))
         {
@@ -1992,7 +1992,7 @@ public partial class bithumb : Exchange
         IList<object> generationparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
         generation = ((IList<object>)generationparametersVariable)[0];
         parameters = ((IList<object>)generationparametersVariable)[1];
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(generation, 2)))
@@ -2158,7 +2158,7 @@ public partial class bithumb : Exchange
         parameters = this.omit(parameters, "twap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        object data = null;
+        IDictionary<string, object> data = null;
         if (isTrue(isEqual(generation, 2)))
         {
             if (isTrue(twap))
@@ -2299,7 +2299,7 @@ public partial class bithumb : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         //
         //
@@ -3688,13 +3688,16 @@ public partial class bithumb : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = add("/", this.implodeParams(path, parameters));
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), endpoint);
+        string url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), endpoint);
         object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryKeysLength = getArrayLength(queryKeys);
         bool hasQuery = (isGreaterThan(queryKeysLength, 0));
         if (isTrue(isEqual(api, "public")))
         {
+            headers = new Dictionary<string, object>() {
+                { "OPEN-API-PARTNER", "CCXT" },
+            };
             if (isTrue(hasQuery))
             {
                 url = add(url, add("?", this.urlencode(query)));
@@ -3707,6 +3710,7 @@ public partial class bithumb : Exchange
             {
                 headers = new Dictionary<string, object>() {
                     { "Accept", "application/json" },
+                    { "OPEN-API-PARTNER", "CCXT" },
                 };
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "access_key", this.apiKey },
@@ -3744,7 +3748,7 @@ public partial class bithumb : Exchange
                 List<object> bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
                 body = String.Join("+", ((IList<object>)bodyParts).ToArray());
                 string nonce = ((object)this.nonce()).ToString();
-                object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
+                string auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
                 string signature64 = this.stringToBase64(signature);
                 headers = new Dictionary<string, object>() {
@@ -3753,6 +3757,7 @@ public partial class bithumb : Exchange
                     { "Api-Key", this.apiKey },
                     { "Api-Sign", signature64 },
                     { "Api-Nonce", nonce },
+                    { "OPEN-API-PARTNER", "CCXT" },
                 };
             }
         }
