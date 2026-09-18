@@ -3398,7 +3398,7 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(spotOrderRequest, "newClientOrderId")
-	var spotIdString string = ToString(spotId)
+	var spotIdString string = spotId
 	Assert(IsEqual(StartsWith(clientOrderId, spotIdString), true), Add(Add(Add("binance - spot clientOrderId: ", clientOrderId), " does not start with spotId"), spotIdString))
 	var swapOrderRequest any = map[string]any{}
 
@@ -3450,7 +3450,7 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 	}
 	// linear swap
 	var clientOrderIdSwap any = GetValue(swapOrderRequest, "newClientOrderId")
-	var swapIdString string = ToString(swapId)
+	var swapIdString string = swapId
 	Assert(IsEqual(StartsWith(clientOrderIdSwap, swapIdString), true), Add(Add(Add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString))
 	// inverse swap
 	var clientOrderIdInverse any = GetValue(swapInverseOrderRequest, "newClientOrderId")
@@ -3482,7 +3482,7 @@ func (this *testMainClass) testBinanceBody(ch chan any) any {
 			var algoOrderIdDefined bool = (!IsEqual(GetValue(checkOrderRequest, "algoOrderId"), nil))
 			Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined")
 			var clientAlgoIdSwap any = GetValue(swapAlgoOrderRequest, "clientAlgoId")
-			var swapAlgoIdString string = ToString(swapId)
+			var swapAlgoIdString string = swapId
 			Assert(IsEqual(StartsWith(clientAlgoIdSwap, swapAlgoIdString), true), Add(Add(Add("binance - swap clientOrderId: ", clientAlgoIdSwap), " does not start with swapId"), swapAlgoIdString))
 			return nil
 		}(this)
@@ -3574,7 +3574,7 @@ func (this *testMainClass) testOkxBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(GetValue(spotOrderRequest, 0), "clOrdId") // returns order inside array
-	var idString string = ToString(id)
+	var idString string = id
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("okx - spot clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	var spotTag any = GetValue(GetValue(spotOrderRequest, 0), "tag")
 	Assert(IsEqual(spotTag, id), Add("okx - id: "+id+" different from spot tag: ", spotTag))
@@ -4203,7 +4203,7 @@ func (this *testMainClass) testHtxBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(spotOrderRequest, "client-order-id")
-	var idString string = ToString(id)
+	var idString string = id
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("htx - spot clientOrderId ", clientOrderId), " does not start with id: "), idString))
 	// swap test
 	var swapOrderRequest any = map[string]any{}
@@ -4303,7 +4303,7 @@ func (this *testMainClass) testWooBody(ch chan any) any {
 
 	}
 	var brokerId any = GetValue(spotOrderRequest, "broker_id")
-	var idString string = ToString(id)
+	var idString string = id
 	Assert(IsEqual(StartsWith(brokerId, idString), true), Add(Add(Add("woo - broker_id: ", brokerId), " does not start with id: "), idString))
 	// swap test
 	var stopOrderRequest any = map[string]any{}
@@ -4379,7 +4379,7 @@ func (this *testMainClass) testCoinexBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(spotOrderRequest, "client_id")
-	var idString string = ToString(id)
+	var idString string = id
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
@@ -4476,7 +4476,7 @@ func (this *testMainClass) testPhemexBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(request, "clOrdID")
-	var idString string = ToString(id)
+	var idString string = id
 	Assert(IsEqual(StartsWith(clientOrderId, idString), true), Add(Add(Add("phemex - clOrdID: ", clientOrderId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
@@ -4522,7 +4522,7 @@ func (this *testMainClass) testBlofinBody(ch chan any) any {
 
 	}
 	var brokerId any = GetValue(request, "brokerId")
-	var idString string = ToString(id)
+	var idString string = id
 	Assert(IsEqual(StartsWith(brokerId, idString), true), Add(Add(Add("blofin - brokerId: ", brokerId), " does not start with id: "), idString))
 	if !EvalTruthy(IsSync()) {
 
@@ -4588,7 +4588,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(request, "client_order_id")
-	Assert(IsEqual(StartsWith(clientOrderId, ToString(id)), true), "clientOrderId does not start with id")
+	Assert(IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
 		retRes313012 := (<-Close(exchange))
@@ -4634,7 +4634,7 @@ func (this *testMainClass) testCoinbaseAdvancedBody(ch chan any) any {
 
 	}
 	var clientOrderId any = GetValue(request, "client_order_id")
-	Assert(IsEqual(StartsWith(clientOrderId, ToString(id)), true), "clientOrderId does not start with id")
+	Assert(IsEqual(StartsWith(clientOrderId, id), true), "clientOrderId does not start with id")
 	if !EvalTruthy(IsSync()) {
 
 		retRes314812 := (<-Close(exchange))
