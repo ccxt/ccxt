@@ -3408,7 +3408,7 @@ public partial class extended : Exchange
         bool hasClientOrderIds = (clientOrderIds != null);
         if ((clientOrderIds != null))
         {
-            int clientOrderIdsLength = getArrayLength(clientOrderIds);
+            int clientOrderIdsLength = (clientOrderIds?.Count ?? 0);
             if (clientOrderIdsLength > 0)
             {
                 ((IDictionary<string,object>)request)["externalOrderIds"] = clientOrderIds;

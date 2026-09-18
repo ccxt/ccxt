@@ -211,7 +211,7 @@ public partial class opinion : PredictionExchange
                     ((IList<object>)flatMarkets).Add(this.parseOpinionMarket(raw));
                 }
             }
-            int collectedLength = getArrayLength(flatMarkets);
+            int collectedLength = (flatMarkets?.Count ?? 0);
             if ((isLessThan(rawMarketsLength, pageLimit)) || (isGreaterThanOrEqual(page, maxPages)) || ((!isEqual(total, null)) && (isGreaterThanOrEqual(fetchedRawCount, total))) || ((!isEqual(userLimit, null)) && (isGreaterThanOrEqual(collectedLength, userLimit))))
             {
                 break;
@@ -219,7 +219,7 @@ public partial class opinion : PredictionExchange
             page = this.sum(page, 1);
         }
         this.setEvents(eventsList);
-        int flatMarketsLength = getArrayLength(flatMarkets);
+        int flatMarketsLength = (flatMarkets?.Count ?? 0);
         if ((!isEqual(userLimit, null)) && (isGreaterThan(flatMarketsLength, userLimit)))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(flatMarkets, 0, userLimit));
@@ -303,7 +303,7 @@ public partial class opinion : PredictionExchange
         List<object> outcomeTokenIds = new List<object> {this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")};
         List<object> outcomes = new List<object>() {};
         object resolvedOutcome = null;
-        for (int i = 0; i < getArrayLength(outcomeLabels); postFixIncrement(ref i))
+        for (int i = 0; i < (outcomeLabels?.Count ?? 0); postFixIncrement(ref i))
         {
             string? label = ((string)getValue(outcomeLabels, i));
             string? tokenId = ((string)getValue(outcomeTokenIds, i));
@@ -488,7 +488,7 @@ public partial class opinion : PredictionExchange
             }
             page = this.sum(page, 1);
         }
-        int rawEventsLength = getArrayLength(rawEvents);
+        int rawEventsLength = (rawEvents?.Count ?? 0);
         List<object> parsedEvents = new List<object>() {};
         if ((this.markets == null))
         {

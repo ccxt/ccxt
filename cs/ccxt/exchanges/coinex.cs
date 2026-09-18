@@ -6017,7 +6017,7 @@ public partial class coinex : Exchange
         {
             List<object> parts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             string? firstPart = this.safeString(parts, 0, "");
-            int numParts = getArrayLength(parts);
+            int numParts = (parts?.Count ?? 0);
             string? lastPart = this.safeString(parts, (numParts - 1), "");
             List<object> lastWords = ((string)lastPart).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             int numWords = lastWords.Count;

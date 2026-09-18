@@ -2777,7 +2777,7 @@ public partial class kraken : Exchange
         }
         object options = this.safeValue(this.options, "fetchOrderTrades", new Dictionary<string, object>() {});
         Int64? batchSize = this.safeInteger(options, "batchSize", 20);
-        int numTradeIds = getArrayLength(tradeIds);
+        int numTradeIds = (tradeIds?.Count ?? 0);
         object numBatches = this.parseToInt(divide(numTradeIds, batchSize));
         numBatches = this.sum(numBatches, 1);
         List<object> result = new List<object>() {};
