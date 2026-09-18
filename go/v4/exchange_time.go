@@ -167,6 +167,7 @@ func (this *BaseExchange) Iso8601(ts any) *string {
 // }
 
 func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = " "
@@ -181,6 +182,7 @@ func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = "-"
@@ -195,6 +197,7 @@ func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
 func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 0, nil)
 	if infix == nil {
 		infix = ""
@@ -209,6 +212,7 @@ func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
 func (this *BaseExchange) Ymd(ts any, args ...any) string {
+	ts = derefScalar(ts) // generated callers may pass *int64 (e.g. from Parse8601); typed nil is absent
 	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
