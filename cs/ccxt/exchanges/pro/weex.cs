@@ -589,7 +589,7 @@ public partial class weex : ccxt.weex
         string? takerOrMaker = null;
         if ((isBuyerMaker != null))
         {
-            side = isTrue(isBuyerMaker) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
             takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return this.safeTrade(new Dictionary<string, object>() {

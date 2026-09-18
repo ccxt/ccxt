@@ -667,7 +667,7 @@ public partial class deepcoin : Exchange
         if (swap)
         {
             isLinear = (quoteId != "USD");
-            settleId = isTrue(isLinear) ? quoteId : baseId;
+            settleId = isLinear == true ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
             symbol = add(add(symbol, ":"), settle);
         }

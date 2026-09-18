@@ -900,7 +900,7 @@ public partial class hitbtc : Exchange
                 settleId = feeCurrencyId;
                 settle = this.safeCurrencyCode(settleId);
                 linear = (((quote != null)) && (isEqual(quote, settle)));
-                inverse = !(linear == true);
+                inverse = linear != true;
                 symbol = add(add(symbol, ":"), settle);
                 if (future)
                 {

@@ -5353,7 +5353,7 @@ public partial class binance : Exchange
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
             linear = (settle == quote);
             inverse = isEqual(settle, bs);
-            string feesType = isTrue(linear) ? "linear" : "inverse";
+            string feesType = linear == true ? "linear" : "inverse";
             fees = this.safeDict(this.fees, feesType, new Dictionary<string, object>() {});
         }
         bool? active = (status == "TRADING");
@@ -7186,7 +7186,7 @@ public partial class binance : Exchange
         string? takerOrMaker = null;
         if ((buyerMaker != null))
         {
-            side = isTrue(buyerMaker) ? "sell" : "buy"; // this is reversed intentionally
+            side = buyerMaker == true ? "sell" : "buy"; // this is reversed intentionally
         } else if (inOp(trade, "side"))
         {
             side = this.safeStringLower(trade, "side");
@@ -14976,7 +14976,7 @@ public partial class binance : Exchange
         string? marginMode = null;
         if ((marginModeRaw != null))
         {
-            marginMode = isTrue(marginModeRaw) ? "isolated" : "cross";
+            marginMode = marginModeRaw == true ? "isolated" : "cross";
         }
         string? marginTypeRaw = this.safeStringLower(leverage, "marginType");
         if ((marginTypeRaw != null))
@@ -17461,7 +17461,7 @@ public partial class binance : Exchange
         string? reMarginMode = null;
         if ((marginModeRaw != null))
         {
-            reMarginMode = isTrue(marginModeRaw) ? "isolated" : "cross";
+            reMarginMode = marginModeRaw == true ? "isolated" : "cross";
         }
         string? marginTypeRaw = this.safeStringLower(marginMode, "marginType");
         if ((marginTypeRaw != null))

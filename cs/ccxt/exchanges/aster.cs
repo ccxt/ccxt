@@ -1617,20 +1617,20 @@ public partial class aster : Exchange
         string? takerOrMaker = null;
         if ((isMaker != null))
         {
-            takerOrMaker = isTrue(isMaker) ? "maker" : "taker";
+            takerOrMaker = isMaker == true ? "maker" : "taker";
             if ((side == null))
             {
                 bool? isBuyer = this.safeBool(trade, "buyer");
                 if ((isBuyer != null))
                 {
-                    side = isTrue(isBuyer) ? "buy" : "sell";
+                    side = isBuyer == true ? "buy" : "sell";
                 }
             }
         }
         bool? isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if ((isBuyerMaker != null))
         {
-            side = isTrue(isBuyerMaker) ? "sell" : "buy";
+            side = isBuyerMaker == true ? "sell" : "buy";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },

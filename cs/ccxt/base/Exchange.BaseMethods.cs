@@ -771,7 +771,7 @@ public partial class BaseExchange
         if (isWsProxyDefined || is_ws_proxy_defined)
         {
             ((IList<object>)usedProxies).Add("wsProxy");
-            wsProxy = (isWsProxyDefined) ? this.wsProxy : this.ws_proxy;
+            wsProxy = isWsProxyDefined ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
         bool isWssProxyDefined = this.valueIsDefined(this.wssProxy);
@@ -779,7 +779,7 @@ public partial class BaseExchange
         if (isWssProxyDefined || is_wss_proxy_defined)
         {
             ((IList<object>)usedProxies).Add("wssProxy");
-            wssProxy = (isWssProxyDefined) ? this.wssProxy : this.wss_proxy;
+            wssProxy = isWssProxyDefined ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
         bool isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
@@ -787,7 +787,7 @@ public partial class BaseExchange
         if (isWsSocksProxyDefined || is_ws_socks_proxy_defined)
         {
             ((IList<object>)usedProxies).Add("wsSocksProxy");
-            wsSocksProxy = (isWsSocksProxyDefined) ? this.wsSocksProxy : this.ws_socks_proxy;
+            wsSocksProxy = isWsSocksProxyDefined ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
         int length = usedProxies.Count;
@@ -3731,7 +3731,7 @@ public partial class BaseExchange
             {
                 preferPrimary = (isEqual(networkCode, primary)); // keep user input first
             }
-            return (preferPrimary) ? new List<object>() {primary, secondary} : new List<object>() {secondary, primary};
+            return preferPrimary ? new List<object>() {primary, secondary} : new List<object>() {secondary, primary};
         }
         return new List<object>() {networkCode, networkCode};
     }

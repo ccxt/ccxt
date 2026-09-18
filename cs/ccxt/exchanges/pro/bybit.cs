@@ -1312,7 +1312,7 @@ public partial class bybit : ccxt.bybit
         object trades = data;
         List<object> parts = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         bool isSpot = getIndexOf(client.url, "spot") >= 0;
-        string marketType = (isSpot) ? "spot" : "contract";
+        string marketType = isSpot ? "spot" : "contract";
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)GetValue(market, "symbol"));

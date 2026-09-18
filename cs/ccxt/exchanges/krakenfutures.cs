@@ -542,7 +542,7 @@ public partial class krakenfutures : Exchange
             if (!index)
             {
                 linear = (getIndexOf(((string)marketType), "_vanilla") >= 0);
-                inverse = !(linear == true);
+                inverse = linear != true;
                 string? settleTime = this.safeString(market, "lastTradingTime");
                 type = ((settleTime == null)) ? "swap" : "future";
                 expiry = this.parse8601(settleTime);
@@ -581,7 +581,7 @@ public partial class krakenfutures : Exchange
                     settleId = quoteId;
                     inverse = false;
                 }
-                linear = !(inverse == true);
+                linear = inverse != true;
                 symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
                 if (future)
                 {

@@ -866,7 +866,7 @@ public partial class polymarket : PredictionExchange
         firstPageRequest = this.extend(firstPageRequest, baseRequest);
         List<object> firstPageResponse = await this.gammaPublicGetEvents(firstPageRequest);
         bool firstPageIsArray = ((firstPageResponse is IList<object>) || (firstPageResponse.GetType().IsGenericType && firstPageResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        List<object> firstPage = (firstPageIsArray) ? firstPageResponse : new List<object>() {};
+        List<object> firstPage = firstPageIsArray ? firstPageResponse : new List<object>() {};
         int firstPageLength = firstPage?.Count ?? 0;
         List<object> allRawEvents = new List<object>() {};
         for (int fi = 0; isLessThan(fi, firstPageLength); postFixIncrement(ref fi))
@@ -1444,9 +1444,9 @@ public partial class polymarket : PredictionExchange
             object midpoints = getValue(responses, 1);
             object lastTradesResponse = getValue(responses, 2);
             bool booksIsArray = ((booksResponse is IList<object>) || (booksResponse.GetType().IsGenericType && booksResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object books = (booksIsArray) ? booksResponse : new List<object>() {};
+            object books = booksIsArray ? booksResponse : new List<object>() {};
             bool lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object lastTrades = (lastTradesIsArray) ? lastTradesResponse : new List<object>() {};
+            object lastTrades = lastTradesIsArray ? lastTradesResponse : new List<object>() {};
             Dictionary<string, object> lastTradesByTokenId = new Dictionary<string, object>() {};
             int lastTradesLength = getArrayLength(lastTrades);
             for (int li = 0; isLessThan(li, lastTradesLength); postFixIncrement(ref li))
@@ -3000,7 +3000,7 @@ public partial class polymarket : PredictionExchange
             }
             List<object> response = await this.gammaPublicGetEvents(lookup);
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            rawEvents = (responseIsArray) ? response : new List<object>() {};
+            rawEvents = responseIsArray ? response : new List<object>() {};
         } else if (isGreaterThan(queriesLength, 0))
         {
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsBySearch(queries, rest));

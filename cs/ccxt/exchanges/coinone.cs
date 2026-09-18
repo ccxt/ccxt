@@ -919,7 +919,7 @@ public partial class coinone : Exchange
         string? side = null;
         if ((isSellerMaker != null))
         {
-            side = isTrue(isSellerMaker) ? "sell" : "buy";
+            side = isSellerMaker == true ? "sell" : "buy";
         }
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");

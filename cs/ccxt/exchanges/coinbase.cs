@@ -5926,7 +5926,7 @@ public partial class coinbase : Exchange
         object version = getValue(api, 0);
         bool signed = isEqual(getValue(api, 1), "private");
         bool isV3 = isEqual(version, "v3");
-        string pathPart = (isV3) ? "api/v3" : "v2";
+        string pathPart = isV3 ? "api/v3" : "v2";
         string fullPath = add(add(add("/", pathPart), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string savedPath = fullPath;

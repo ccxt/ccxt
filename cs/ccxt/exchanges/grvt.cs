@@ -1387,7 +1387,7 @@ public partial class grvt : Exchange
         string? side = null;
         if ((isTakerBuyer != null))
         {
-            side = isTrue(isTakerBuyer) ? "buy" : "sell";
+            side = isTakerBuyer == true ? "buy" : "sell";
             takerOrMaker = "taker";
         } else
         {
@@ -2839,7 +2839,7 @@ public partial class grvt : Exchange
         Int64? timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         string? sizeRaw = this.safeString(position, "size");
         bool isLong = (Precise.stringGe(sizeRaw, "0"));
-        string side = isTrue(isLong) ? "long" : "short";
+        string side = isLong ? "long" : "short";
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -3724,7 +3724,7 @@ public partial class grvt : Exchange
         byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
         string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
-        string? secretOrPrivkey = isTrue(usesPrivKey) ? this.privateKey : this.secret;
+        string? secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
         Dictionary<string, object> signature = ecdsa(this.remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, null);
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(GetValue(signature, "r"));

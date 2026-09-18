@@ -3996,7 +3996,7 @@ public partial class pacifica : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool isTestnet = this.isSandboxModeEnabled;
-        string urlKey = isTrue((isTestnet)) ? "test" : "api";
+        string urlKey = isTestnet ? "test" : "api";
         object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));

@@ -589,7 +589,7 @@ public partial class limitless : PredictionExchange
             if (marketResolved)
             {
                 winnerRaw = (isEqual(legIndex, winningOutcomeIndex));
-                settleFractionRaw = isTrue(winnerRaw) ? 1 : 0;
+                settleFractionRaw = winnerRaw == true ? 1 : 0;
                 if (winnerRaw == true)
                 {
                     resolvedOutcome = outcomeHandle;
@@ -1268,7 +1268,7 @@ public partial class limitless : PredictionExchange
         int pricesLength = prices.Count;
         if (((lastStr == null)) && (isGreaterThan(pricesLength, 0)))
         {
-            lastStr = (isYes) ? this.safeString(prices, 0) : this.safeString(prices, 1);
+            lastStr = isYes ? this.safeString(prices, 0) : this.safeString(prices, 1);
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         string? rawVolume = this.safeString(raw, "volume");
@@ -1509,8 +1509,8 @@ public partial class limitless : PredictionExchange
         List<object> rawBids = this.safeList(response, "bids", new List<object>() {});
         List<object> rawAsks = this.safeList(response, "asks", new List<object>() {});
         // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
-        List<object> bidsSource = (isYes) ? rawBids : rawAsks;
-        List<object> asksSource = (isYes) ? rawAsks : rawBids;
+        List<object> bidsSource = isYes ? rawBids : rawAsks;
+        List<object> asksSource = isYes ? rawAsks : rawBids;
         List<object> bids = new List<object>() {};
         List<object> asks = new List<object>() {};
         for (int bi = 0; isLessThan(bi, bidsSource?.Count ?? 0); postFixIncrement(ref bi))
@@ -2312,7 +2312,7 @@ public partial class limitless : PredictionExchange
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         string? tradeWalletOption = this.safeString(accountInfo, "tradeWalletOption");
         bool usesSmartWallet = (tradeWalletOption == "smartWallet");
-        string? walletFromAccount = (usesSmartWallet) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
+        string? walletFromAccount = usesSmartWallet ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
         object maker = (!isEqual(this.walletAddress, "")) ? this.walletAddress : walletFromAccount;
         IList<object> makerparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
         maker = makerparametersVariable[0];

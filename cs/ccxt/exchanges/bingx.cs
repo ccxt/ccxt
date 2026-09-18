@@ -1501,7 +1501,7 @@ public partial class bingx : Exchange
         double? contractSize = null;
         if (swap)
         {
-            contractSize = (checkIsInverse) ? inverseContractSize : this.parseNumber("1");
+            contractSize = checkIsInverse ? inverseContractSize : this.parseNumber("1");
         }
         bool isActive = false;
         if (((this.safeString(market, "apiStateOpen") == "true")) && ((this.safeString(market, "apiStateClose") == "true")))
@@ -1514,8 +1514,8 @@ public partial class bingx : Exchange
         {
             isActive = true; // inverse swap active
         }
-        bool? isInverse = (spot) ? null : checkIsInverse;
-        bool? isLinear = (spot) ? null : checkIsLinear;
+        bool? isInverse = spot ? null : checkIsInverse;
+        bool? isLinear = spot ? null : checkIsLinear;
         double? minAmount = null;
         if (!spot)
         {
@@ -2009,12 +2009,12 @@ public partial class bingx : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if ((isBuyer != null))
         {
-            side = isTrue(isBuyer) ? "buy" : "sell";
+            side = isBuyer == true ? "buy" : "sell";
         }
         bool? isMaker = this.safeBool(trade, "isMaker");
         if ((isMaker != null))
         {
-            takeOrMaker = isTrue(isMaker) ? "maker" : "taker";
+            takeOrMaker = isMaker == true ? "maker" : "taker";
         }
         string? amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if ((!isEqual(market, null)) && (isEqual(getValue(market, "swap"), true)) && (inOp(trade, "volume")))
@@ -3449,7 +3449,7 @@ public partial class bingx : Exchange
         string? marginMode = null;
         if ((isolated != null))
         {
-            marginMode = isTrue(isolated) ? "isolated" : "cross";
+            marginMode = isolated == true ? "isolated" : "cross";
         }
         Int64? timestamp = this.safeInteger(position, "openTime");
         return this.safePosition(new Dictionary<string, object>() {
@@ -4891,8 +4891,8 @@ public partial class bingx : Exchange
         }
         bool isActive = (isGreaterThan(timeout, 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "type", (isActive) ? "ACTIVATE" : "CLOSE" },
-            { "timeOut", (isActive) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
+            { "type", isActive ? "ACTIVATE" : "CLOSE" },
+            { "timeOut", isActive ? (this.parseToInt(divide(timeout, 1000))) : 0 },
         };
         Dictionary<string, object> response = null;
         string? type = null;

@@ -1067,7 +1067,7 @@ public partial class hyperliquid : Exchange
         bool active = true;
         if ((isDelisted != null))
         {
-            active = !(isDelisted == true);
+            active = isDelisted != true;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
@@ -2479,7 +2479,7 @@ public partial class hyperliquid : Exchange
         bool isBuy = (isEqual(side, "BUY"));
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         string? slippage = this.safeString(parameters, "slippage");
-        string defaultTimeInForce = (isMarket) ? "ioc" : "gtc";
+        string defaultTimeInForce = isMarket ? "ioc" : "gtc";
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if ((postOnly == true))
         {
@@ -2498,7 +2498,7 @@ public partial class hyperliquid : Exchange
             {
                 throw new ArgumentsRequired (add(this.id, "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
             }
-            px = (isBuy) ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
+            px = isBuy ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
             px = this.priceToPrecision(symbol, px); // round after adding slippage
         } else
         {
@@ -2518,7 +2518,7 @@ public partial class hyperliquid : Exchange
             {
                 triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
             }
-            string tpSlType = (isTp) ? "tp" : "sl";
+            string tpSlType = isTp ? "tp" : "sl";
             orderType["trigger"] = new Dictionary<string, object>() {
                 { "isMarket", isMarket },
                 { "triggerPx", triggerPrice },
@@ -3107,7 +3107,7 @@ public partial class hyperliquid : Exchange
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? defaultSlippage = this.safeString(this.options, "defaultSlippage");
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            string defaultTimeInForce = (isMarket) ? "ioc" : "gtc";
+            string defaultTimeInForce = isMarket ? "ioc" : "gtc";
             bool? postOnly = this.safeBool(orderParams, "postOnly", false);
             if ((postOnly == true))
             {
@@ -3125,7 +3125,7 @@ public partial class hyperliquid : Exchange
             string? px = this.numberToString(price);
             if (isMarket)
             {
-                px = (isBuy) ? Precise.stringMul(px, Precise.stringAdd("1", slippage)) : Precise.stringMul(px, Precise.stringSub("1", slippage));
+                px = isBuy ? Precise.stringMul(px, Precise.stringAdd("1", slippage)) : Precise.stringMul(px, Precise.stringSub("1", slippage));
                 px = this.priceToPrecision(symbol, px);
             } else
             {
@@ -3144,7 +3144,7 @@ public partial class hyperliquid : Exchange
                 {
                     triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
                 }
-                string tpSlType = (isTp) ? "tp" : "sl";
+                string tpSlType = isTp ? "tp" : "sl";
                 orderType["trigger"] = new Dictionary<string, object>() {
                     { "isMarket", isMarket },
                     { "triggerPx", triggerPrice },
@@ -4087,7 +4087,7 @@ public partial class hyperliquid : Exchange
         bool? crossed = this.safeBool(trade, "crossed");
         if ((crossed != null))
         {
-            takerOrMaker = isTrue(crossed) ? "taker" : "maker";
+            takerOrMaker = crossed == true ? "taker" : "maker";
         }
         string? builderFee = this.safeString(trade, "builderFee");
         if ((builderFee != null))

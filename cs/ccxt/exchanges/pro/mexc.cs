@@ -232,7 +232,7 @@ public partial class mexc : ccxt.mexc
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         bool isSpot = (type == "spot");
-        object url = (isSpot) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        object url = isSpot ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
         {
@@ -1907,7 +1907,7 @@ public partial class mexc : ccxt.mexc
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         bool isSpot = (type == "spot");
-        object url = (isSpot) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        object url = isSpot ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isSpot)
         {

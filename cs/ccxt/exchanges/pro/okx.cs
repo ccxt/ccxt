@@ -1968,7 +1968,7 @@ public partial class okx : ccxt.okx
             { "id", this.safeString(info, "tradeId") },
             { "order", this.safeString(order, "id") },
             { "type", this.safeString(order, "type") },
-            { "takerOrMaker", (isTaker) ? "taker" : "maker" },
+            { "takerOrMaker", isTaker ? "taker" : "maker" },
             { "side", this.safeString(order, "side") },
             { "price", this.safeNumber(info, "fillPx") },
             { "amount", this.safeNumber(info, "fillSz") },

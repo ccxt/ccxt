@@ -1176,7 +1176,7 @@ public partial class binance : ccxt.binance
         // symbol and stalls the orderbook future (delivery/option ids are
         // unique, so the swap hint resolves those correctly too)
         bool isSpot = this.isSpotUrl(client);
-        string marketType = isTrue(isSpot) ? "spot" : "swap";
+        string marketType = isSpot ? "spot" : "swap";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("orderbook::", symbol);
@@ -1772,7 +1772,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = isTrue(isSpot) ? "spot" : "contract";
+        string marketType = isSpot ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = add("trade::", symbol);
@@ -2132,7 +2132,7 @@ public partial class binance : ccxt.binance
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
-        string marketType = isTrue(isSpot) ? "spot" : "contract";
+        string marketType = isSpot ? "spot" : "contract";
         string? symbol = this.safeSymbol(marketId, null, null, marketType);
         string messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -2636,7 +2636,7 @@ public partial class binance : ccxt.binance
         {
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
             // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-            rawMarketType = (isOptionMarkPrice) ? "optionMarket" : "option";
+            rawMarketType = isOptionMarkPrice ? "optionMarket" : "option";
         } else if (isTrue(this.isLinear(marketType, subType)))
         {
             rawMarketType = "future";
@@ -3103,7 +3103,7 @@ public partial class binance : ccxt.binance
             // option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
             object tickerMarketById = (isEqual(numTickerMarkets, 1)) ? this.safeValue(tickerMarketsByIdList, 0) : null;
             bool isSpot = this.isSpotUrl(client);
-            string tickerFallbackType = isTrue(isSpot) ? "spot" : "contract";
+            string tickerFallbackType = isSpot ? "spot" : "contract";
             object tickerMarketType = ((tickerMarketById != null)) ? getValue(tickerMarketById, "type") : tickerFallbackType;
             Dictionary<string, object> parsedTicker = this.parseWsTicker(ticker, tickerMarketType);
             object symbol = GetValue(parsedTicker, "symbol");
@@ -4460,7 +4460,7 @@ public partial class binance : ccxt.binance
         payload["returnRateLimits"] = returnRateLimits;
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", messageHash },
-            { "method", (isSwap) ? "order.modify" : "order.cancelReplace" },
+            { "method", isSwap ? "order.modify" : "order.cancelReplace" },
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

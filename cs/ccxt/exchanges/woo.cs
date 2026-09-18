@@ -3703,7 +3703,7 @@ public partial class woo : Exchange
         string? status = null;
         if ((success != null))
         {
-            status = isTrue(success) ? "ok" : "failed";
+            status = success == true ? "ok" : "failed";
         }
         IDictionary<string, object> fromAccount = this.safeDict(transfer, "from", new Dictionary<string, object>() {});
         IDictionary<string, object> toAccount = this.safeDict(transfer, "to", new Dictionary<string, object>() {});

@@ -615,7 +615,7 @@ public partial class modetrade : ccxt.modetrade
         bool? maker = this.safeBool(trade, "maker");
         if ((maker != null))
         {
-            takerOrMaker = isTrue(maker) ? "maker" : "taker";
+            takerOrMaker = maker == true ? "maker" : "taker";
         }
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         string? feeValue = this.safeString(trade, "fee");

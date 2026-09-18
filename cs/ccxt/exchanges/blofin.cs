@@ -1890,7 +1890,7 @@ public partial class blofin : Exchange
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if ((reduceOnly != null))
         {
-            ((IDictionary<string,object>)parameters)["reduceOnly"] = isTrue(reduceOnly) ? "true" : "false";
+            ((IDictionary<string,object>)parameters)["reduceOnly"] = reduceOnly == true ? "true" : "false";
         }
         if (isCombinedSlTp)
         {
