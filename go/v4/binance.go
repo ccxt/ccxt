@@ -13333,7 +13333,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		var symbols []string = ObjectKeys(markets)
 		var result map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
-		var feeTiers any = GetValue(GetValue(GetValue(this.Fees, "linear"), "trading"), "tiers")
+		var feeTiers any = GetValue(GetValue(this.Fees["linear"], "trading"), "tiers")
 		var maker any = GetValue(GetValue(GetValue(feeTiers, "maker"), feeTier), 1)
 		var taker any = GetValue(GetValue(GetValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
@@ -13370,7 +13370,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		var symbols []string = ObjectKeys(markets)
 		var result map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
-		var feeTiers any = GetValue(GetValue(GetValue(this.Fees, "inverse"), "trading"), "tiers")
+		var feeTiers any = GetValue(GetValue(this.Fees["inverse"], "trading"), "tiers")
 		var maker any = GetValue(GetValue(GetValue(feeTiers, "maker"), feeTier), 1)
 		var taker any = GetValue(GetValue(GetValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
