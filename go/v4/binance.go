@@ -4278,7 +4278,7 @@ func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
 	var base any = nil
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 	} else {
 		base = DerefScalar(this.SafeString(optionParts, 0))
@@ -4388,7 +4388,7 @@ func (this *Binance) Market(symbol any) any {
 				}
 			}
 			return GetValue(markets, 0)
-		} else if (IsGreaterThan(GetIndexOf(symbol, "/"), -1)) && (GetIndexOf(symbol, ":") < 0) {
+		} else if (GetIndexOf(symbol, "/") > -1) && (GetIndexOf(symbol, ":") < 0) {
 			if (!IsEqual(defaultType, nil)) && (!IsEqual(defaultType, "spot")) {
 				// support legacy symbols
 				basequoteVariable := Split(symbol, "/")
@@ -4405,7 +4405,7 @@ func (this *Binance) Market(symbol any) any {
 					return GetValue(this.Markets, futuresSymbol)
 				}
 			}
-		} else if (IsGreaterThan(GetIndexOf(symbol, "-C"), -1)) || (IsGreaterThan(GetIndexOf(symbol, "-P"), -1)) {
+		} else if (GetIndexOf(symbol, "-C") > -1) || (GetIndexOf(symbol, "-P") > -1) {
 			return this.CreateExpiredOptionMarket(symbol)
 		}
 	}
@@ -4420,7 +4420,7 @@ func (this *Binance) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((IsGreaterThan(GetIndexOf(marketId, "-C"), -1)) || (IsGreaterThan(GetIndexOf(marketId, "-P"), -1)))
+	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
 	if isOption && ((IsEqual(this.Markets_by_id, nil)) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -16196,14 +16196,14 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if (IsEqual(api, "private")) || (IsEqual(api, "eapiPrivate")) || ((IsEqual(api, "sapi")) && (!IsEqual(path, "system/status"))) || (IsEqual(api, "sapiV2")) || (IsEqual(api, "sapiV3")) || (IsEqual(api, "sapiV4")) || (IsEqual(api, "dapiPrivate")) || (IsEqual(api, "dapiPrivateV2")) || (IsEqual(api, "fapiPrivate")) || (IsEqual(api, "fapiPrivateV2")) || (IsEqual(api, "fapiPrivateV3")) || ((IsEqual(api, "papiV2")) || (IsEqual(api, "papi")) && (!IsEqual(path, "ping"))) {
 		this.CheckRequiredCredentials()
-		if (IsGreaterThan(GetIndexOf(url, "testnet.binancefuture.com"), -1)) && this.IsSandboxModeEnabled && (!IsEqual(this.SafeBool(this.Options, "disableFuturesSandboxWarning"), true)) {
+		if (GetIndexOf(url, "testnet.binancefuture.com") > -1) && this.IsSandboxModeEnabled && (!IsEqual(this.SafeBool(this.Options, "disableFuturesSandboxWarning"), true)) {
 			panic(NotSupported(this.Id + " testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead."))
 		}
 		if (IsEqual(method, "POST")) && ((IsEqual(path, "order")) || (IsEqual(path, "sor/order"))) {
 			// inject in implicit API calls
 			var newClientOrderId any = DerefScalar(this.SafeString(params, "newClientOrderId"))
 			if IsEqual(newClientOrderId, nil) {
-				var isSpotOrMargin bool = (IsGreaterThan(GetIndexOf(api, "sapi"), -1) || (IsEqual(api, "private")))
+				var isSpotOrMargin bool = ((GetIndexOf(api, "sapi") > -1) || (IsEqual(api, "private")))
 				var marketType any = func() any {
 					if isSpotOrMargin {
 						return "spot"
@@ -16287,7 +16287,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 			query = this.Urlencode(extendedParams)
 		}
 		var signature string
-		if IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), -1) {
+		if GetIndexOf(this.Secret, "PRIVATE KEY") > -1 {
 			if GetLength(this.Secret) > 120 {
 				signature = this.EncodeURIComponent(Rsa(query, this.Secret, sha256))
 			} else {
@@ -19391,7 +19391,7 @@ func (this *Binance) ParseADLRank(info any, optionalArgs ...any) any {
 		rank = both
 	} else {
 		if (longNum != nil) && (shortNum != nil) {
-			if IsGreaterThan(longNum, shortNum) {
+			if *longNum > *shortNum {
 				rank = longNum
 			} else {
 				rank = shortNum
