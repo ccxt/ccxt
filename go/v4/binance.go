@@ -6382,7 +6382,7 @@ func (this *Binance) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	return nil
 }
 func (this *Binance) CheckNoStockSymbols(symbols any, methodName any) {
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		return
 	}
 	for i := 0; i < GetArrayLength(symbols); i++ {
@@ -6436,7 +6436,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
-	if (!IsEqual(symbols, nil)) && (this.IsLinear(typeVar, subType) || this.IsInverse(typeVar, subType)) {
+	if (symbols != nil) && (this.IsLinear(typeVar, subType) || this.IsInverse(typeVar, subType)) {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			request["symbol"] = this.MarketId(GetValue(symbols, 0))
@@ -6456,7 +6456,7 @@ func (this *Binance) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.DapiPublicGetTickerBookTicker(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if IsEqual(typeVar, "spot") {
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			request["symbols"] = this.Json(this.MarketIds(symbols))
 		}
 
@@ -6648,7 +6648,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		} else {
 			var request map[string]any = map[string]any{}
-			if !IsEqual(symbols, nil) {
+			if symbols != nil {
 				request["symbols"] = this.Json(this.MarketIds(symbols))
 			}
 
@@ -14625,7 +14625,7 @@ func (this *Binance) fetchOptionPositionsBody(ch chan any, optionalArgs ...any) 
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
 			var symbolsLength int = GetArrayLength(symbols)
@@ -14830,7 +14830,7 @@ func (this *Binance) fetchAccountPositionsBody(ch chan any, optionalArgs ...any)
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		if !IsArray(symbols) {
 			panic(ArgumentsRequired(this.Id + " fetchPositions() requires an array argument for symbols"))
 		}
@@ -14928,7 +14928,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		if !IsArray(symbols) {
 			panic(ArgumentsRequired(this.Id + " fetchPositionsRisk() requires an array argument for symbols"))
 		}
@@ -18089,7 +18089,7 @@ func (this *Binance) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))
@@ -18185,7 +18185,7 @@ func (this *Binance) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) an
 		if IsEqual(market, nil) {
 			panic(ExchangeError(this.Id + " fetchTradingLimits() could not resolve market"))
 		}
-		if (IsEqual(symbols, nil)) || (this.InArray(symbol, symbols)) {
+		if (symbols == nil) || (this.InArray(symbol, symbols)) {
 			if symbol != nil {
 				AddElementToObject(tradingLimits, symbol, GetValue(GetValue(market, "limits"), "amount"))
 			}
@@ -18283,7 +18283,7 @@ func (this *Binance) fetchMarginModesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes1469812)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
 	}
@@ -19079,7 +19079,7 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes1545112)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
 	}

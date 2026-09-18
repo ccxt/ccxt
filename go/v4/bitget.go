@@ -3569,7 +3569,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var defaultProductType any = nil
-	if (subType != nil) && (IsEqual(market, nil)) {
+	if (subType != nil) && (market == nil) {
 		// set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
 		// const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
 		// if (sandboxMode) {
@@ -3583,7 +3583,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 		}()
 	}
 	var productType any = DerefScalar(this.SafeString2(params, "productType", "category", defaultProductType))
-	if (IsEqual(productType, nil)) && (!IsEqual(market, nil)) {
+	if (IsEqual(productType, nil)) && (market != nil) {
 		var settle any = GetValue(market, "settle")
 		if IsEqual(GetValue(market, "spot"), true) {
 			var marginMode any = nil
@@ -5819,7 +5819,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes391612)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = this.SafeValue(symbols, 0)
 		market = this.Market(symbol)
 	}
@@ -5843,7 +5843,7 @@ func (this *Bitget) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	uta = GetValue(utaparamsVariable, 0)
 	params = GetValue(utaparamsVariable, 1)
 	if uta == true {
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			var symbolsLength int = GetArrayLength(symbols)
 			if symbolsLength == 1 {
 				request["symbol"] = this.SafeString(market, "id")
@@ -7495,7 +7495,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		return "spot"
 	}()
-	if !IsEqual(market, nil) {
+	if market != nil {
 		marketType = GetValue(market, "type")
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -11266,7 +11266,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(methodparamsVariable, 1)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
 		// symbols can be undefined or []
 		if first != nil {
@@ -11897,7 +11897,7 @@ func (this *Bitget) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes912012)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = this.SafeValue(symbols, 0)
 		market = this.Market(symbol)
 	}
@@ -12266,7 +12266,7 @@ func (this *Bitget) ParseFundingHistories(contracts any, optionalArgs ...any) an
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = nil
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 	}
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
@@ -14358,7 +14358,7 @@ func (this *Bitget) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var productType any = nil
 	var uta any = nil
 	var response any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
@@ -14997,7 +14997,7 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if (sandboxMode != nil && *sandboxMode == true) && (!IsEqual(path, "v2/public/time")) && (!IsEqual(path, "v3/market/current-fund-rate")) {
 		// https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
-		if IsEqual(headers, nil) {
+		if headers == nil {
 			headers = map[string]any{}
 		}
 		var productType *string = this.SafeString(params, "productType")
