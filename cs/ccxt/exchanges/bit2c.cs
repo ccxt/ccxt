@@ -1046,8 +1046,8 @@ public partial class bit2c : Exchange
         //         "isMaker": True,
         //     }
         //
-        object timestamp = null;
-        object id = null;
+        Int64? timestamp = null;
+        string? id = null;
         string? price = null;
         string? amount = null;
         object orderId = null;

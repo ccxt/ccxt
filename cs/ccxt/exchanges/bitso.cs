@@ -1456,10 +1456,10 @@ public partial class bitso : Exchange
         // canceledOrder
         // yWTQGxDMZ0VimZgZ
         //
-        object id = null;
+        string? id = null;
         if ((order is string))
         {
-            id = order;
+            id = ((string)order);
         } else
         {
             id = this.safeString(order, "oid");

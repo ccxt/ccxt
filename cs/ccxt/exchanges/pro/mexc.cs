@@ -690,7 +690,7 @@ public partial class mexc : ccxt.mexc
         // }
         //
         List<object> parsed = null;
-        object symbol = null;
+        string? symbol = null;
         string? timeframe = null;
         if (inOp(message, "publicSpotKline"))
         {
@@ -708,7 +708,7 @@ public partial class mexc : ccxt.mexc
             timeframe = this.findTimeframe(timeframeId, timeframes);
             string? marketId = this.safeString2(message, "s", "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            symbol = GetValue(market, "symbol");
+            symbol = ((string)GetValue(market, "symbol"));
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
         string messageHash = add(add(add("candles:", symbol), ":"), timeframe);
