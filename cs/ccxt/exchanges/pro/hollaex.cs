@@ -518,7 +518,7 @@ public partial class hollaex : ccxt.hollaex
         object expires = this.safeString(this.options, "ws-expires");
         if ((expires == null))
         {
-            object timeout = parseInt(((object)(divide(this.timeout, 1000))).ToString());
+            Int64? timeout = parseInt(((object)(divide(this.timeout, 1000))).ToString());
             expires = this.sum(this.seconds(), timeout);
             if ((expires == null))
             {

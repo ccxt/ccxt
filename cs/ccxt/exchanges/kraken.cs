@@ -2786,7 +2786,7 @@ public partial class kraken : Exchange
             List<object> requestIds = new List<object>() {};
             for (int k = 0; isLessThan(k, batchSize); postFixIncrement(ref k))
             {
-                object index = this.sum(multiply(j, batchSize), k);
+                Int64 index = this.sum(multiply(j, batchSize), k);
                 if (isLessThan(index, numTradeIds))
                 {
                     ((IList<object>)requestIds).Add(getValue(tradeIds, index));

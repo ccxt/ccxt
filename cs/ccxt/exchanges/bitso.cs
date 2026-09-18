@@ -1279,7 +1279,7 @@ public partial class bitso : Exchange
         // convert it to an integer unconditionally
         if (markerInParams)
         {
-            object marker = parseInt(getValue(parameters, "marker"));
+            Int64? marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "marker", marker },
             });
@@ -1533,7 +1533,7 @@ public partial class bitso : Exchange
         // convert it to an integer unconditionally
         if (markerInParams)
         {
-            object marker = parseInt(getValue(parameters, "marker"));
+            Int64? marker = parseInt(getValue(parameters, "marker"));
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "marker", marker },
             });

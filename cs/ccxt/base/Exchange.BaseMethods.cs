@@ -5812,7 +5812,7 @@ public partial class BaseExchange
         {
             return ((string?)((object)(null)));
         }
-        object precisionNumber = parseInt(precision);
+        Int64? precisionNumber = parseInt(precision);
         if (isEqual(precisionNumber, 0))
         {
             return ((string?)((object)("1")));
@@ -5859,7 +5859,7 @@ public partial class BaseExchange
             {
                 return null;
             }
-            object positivePrecision = parseInt(positivePrecisionString);
+            Int64? positivePrecision = parseInt(positivePrecisionString);
             string parsedPrecision = "1";
             for (int i = 0; isLessThan(i, subtract(positivePrecision, 1)); postFixIncrement(ref i))
             {

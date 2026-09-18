@@ -2767,7 +2767,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object orderId = parseInt(id);
+        Int64? orderId = parseInt(id);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", orderId },
             { "symbol", GetValue(market, "id") },

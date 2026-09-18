@@ -1455,6 +1455,10 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'milliseconds': 'Int64',
     'nonce': 'Int64',
     'parseToInt': 'Int64?',
+    // grvt#convertToBigIntCustom (generated): its single definition's single return path is
+    // `return parseInt (x);` — an Int64 or null box once parseInt is retyped (see
+    // CSHARP_NUMERIC_RETURN_TYPES below, which emits the same signature). cs90 U35.
+    'convertToBigIntCustom': 'Int64?',
     'parseNumber': 'double?',
     'safeNumber': 'double?',
     'safeNumber2': 'double?',
@@ -1649,6 +1653,17 @@ export const CSHARP_LOCAL_BARE_RETURN_TYPES = {
     // function and the C# call binds the inherited BaseExchange instance method); the name
     // resolves to the retyped `ecdsa` above in every declaration the corpus contains
     'ecdsa': 'Dictionary<string, object>',
+    // `parseInt (x)` is the TS global; the C# call binds Exchange.TranspileHelpers.cs#parseInt,
+    // whose every return path is the Convert.ToInt64 box or null (the catch) — cs90 U35
+    // retyped that signature from `object` to `Int64?`, so the call's own C# type IS Int64?
+    // and the ~10 generated declarations it feeds (`object leverage = parseInt (s)`) need no
+    // cast. The other ~40 call sites keep the value in an object context (a dict slot, a
+    // request value, an object local/param, `parseToNumeric`'s `return parseInt (...)`),
+    // where the box is unchanged. `parseFloat` is deliberately NOT listed: it is not on this
+    // unit's roster line, its 2 `object x = parseFloat (...)` declarations (htx, zaif) are an
+    // adjacent family with the same single-box shape (the Convert.ToDouble box or null), and
+    // REPORT.md records them as a residual for whoever owns that name.
+    'parseInt': 'Int64?',
 };
 
 // The generated non-async string-returning methods: installCsharpStringReturns (above) emits
@@ -2685,8 +2700,14 @@ function integerOrNullArgumentKind (csharp, node, context) {
     const kind = csharpArithmeticOperandKind (csharp, node, context);
     if (kind !== undefined) {
         // int / uint / long literals and int / Int64 proven expressions; a double operand can
-        // make the object sum hand back the double itself, so it proves nothing
-        return ARITHMETIC_SMALL_INT.includes (kind) ? kind : undefined;
+        // make the object sum hand back the double itself, so it proves nothing. `Int64?` is
+        // the nullable spelling of the same integer box and is the static C# type of a nested
+        // `a * b` / `a / b` / `a % b` over an Int64? operand (it binds the (Int64?, Int64?)
+        // twin) and of a `parseInt (...)` call (retyped Int64?, Exchange.TranspileHelpers.cs);
+        // sum's object overload maps a null operand to 0 exactly like its Int64? twin, so the
+        // emitted call's own type is Int64 on every path — the declaration needs no cast (cs90
+        // U35; the family's own int/Int64 spelling is unchanged).
+        return (ARITHMETIC_SMALL_INT.includes (kind) || kind === 'Int64?') ? kind : undefined;
     }
     return (csharpTypeOfValue (csharp, node, context) === 'Int64?') ? 'Int64?' : undefined;
 }
@@ -2709,6 +2730,84 @@ function modTwinCallType (csharp, initializer, context) {
         return 'Int64';
     }
     return nullableIntegerArithmeticKind (csharp, initializer, context);
+}
+
+// `Math.min (a, b)` / `Math.max (a, b)` print `mathMin (a, b)` / `mathMax (a, b)`. Unlike the
+// arithmetic twins above, the hand-written (object, object) helper returns ONE OF ITS
+// OPERANDS unchanged (`a == null || b == null -> null`, Exchange.TranspileHelpers.cs), so the
+// result's box is an operand box and only a pair whose every returnable box IS the named box
+// may be declared:
+//   int + int                    -> int      (both operands box Int32; the unbox never throws)
+//   Int64 + Int64                -> Int64    (a `long` literal boxes Int64 as well)
+//   double + double              -> double
+//   Int64 beside Int64 / Int64?  -> Int64?   (the Int64 box, or null when the nullable
+//                                             operand is null — the (Int64?) unbox is exact
+//                                             for both)
+// Every mixed pair is rejected: an int literal beside an Int64 / Int64? operand hands back
+// the Int32 box (the unbox would throw), and a double beside an integer hands back whichever
+// operand won. The typed twins S57 modelled are rejected by its own binding audit — adding
+// mathMin (Int64, Int64) / (int, int) / (double, double) / (Int64?, Int64?) re-binds 101
+// mixed-kind call sites to a DIFFERENT result box (campaigns/cs-strict/tools/S57/
+// audit-numeric-overload-bind.txt: mathMin 101 DIVERGENT, mathMax 1), so this unit adds no
+// overload and every declaration carries its own box-exact cast instead.
+function mathMinMaxBoxType (csharp, initializer, context) {
+    if (initializer?.kind !== ts.SyntaxKind.CallExpression || initializer.arguments?.length !== 2) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.Identifier
+            || callee.expression.escapedText !== 'Math'
+            || (callee.name?.escapedText !== 'min' && callee.name?.escapedText !== 'max')) {
+        return undefined;
+    }
+    const left = mathMinMaxOperandBox (csharp, initializer.arguments[0], context);
+    const right = mathMinMaxOperandBox (csharp, initializer.arguments[1], context);
+    if (left === undefined || right === undefined) {
+        return undefined;
+    }
+    if (left === 'int' && right === 'int') {
+        return { type: 'int', cast: 'int' };
+    }
+    if (left === 'Int64' && right === 'Int64') {
+        return { type: 'Int64', cast: 'Int64' };
+    }
+    const int64Family = (box) => (box === 'Int64' || box === 'Int64?');
+    if (int64Family (left) && int64Family (right) && (left === 'Int64?' || right === 'Int64?')) {
+        return { type: 'Int64?', cast: 'Int64?' };
+    }
+    // the double family is the same shape: a `double` operand boxes as Double and a `double?`
+    // operand boxes as Double or null (Nullable<T> boxes as T), so the pair is exact either
+    // way — the nullable spelling only when one operand can hand back the null branch
+    const doubleFamily = (box) => (box === 'double' || box === 'double?');
+    if (doubleFamily (left) && doubleFamily (right)) {
+        return (left === 'double?' || right === 'double?')
+            ? { type: 'double?', cast: 'double?' }
+            : { type: 'double', cast: 'double' };
+    }
+    return undefined;
+}
+
+// the BOX one operand of mathMin / mathMax contributes (see mathMinMaxBoxType): the operand
+// kinds csharpArithmeticOperandKind proves, with a `long` literal named by its box (Int64)
+// and the nullable spellings (`Int64?` / `double?` — a nullable value boxes as its
+// underlying type or null) from csharpTypeOfValue. A `uint` operand (a literal above
+// int.MaxValue) is deliberately NOT accepted — the helper would hand back a UInt32 box that
+// the (int) / (Int64) unbox rejects.
+function mathMinMaxOperandBox (csharp, node, context) {
+    const kind = csharpArithmeticOperandKind (csharp, node, context);
+    if (kind === 'int' || kind === 'Int64' || kind === 'double') {
+        return kind;
+    }
+    if (kind === 'long') {
+        return 'Int64';
+    }
+    if (kind === undefined) {
+        const type = csharpTypeOfValue (csharp, node, context);
+        if (type === 'Int64?' || type === 'double?') {
+            return type;
+        }
+    }
+    return undefined;
 }
 
 function integerBoxCastType (csharp, initializer, context) {
@@ -5694,6 +5793,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
+        // `const x = Math.min (a, b)` / `Math.max (a, b)`: the helper hands back one of its
+        // operands unchanged, so only a box-exact operand pair is nameable (mathMinMaxBoxType)
+        const mathBox = (integerBox === undefined && elementType === undefined) ? mathMinMaxBoxType (csharp, declaration.initializer, ctx) : undefined;
         if (modTwin !== undefined) {
             csharpType = modTwin;
         } else if (integerBox !== undefined) {
@@ -5702,6 +5804,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (elementType !== undefined) {
             csharpType = (elementType === 'string') ? 'string?' : elementType;
             cast = elementType;
+        } else if (mathBox !== undefined) {
+            csharpType = mathBox.type;
+            cast = mathBox.cast;
         } else if (marketRowStringReadType (csharp, declaration.initializer) === 'string') {
             // `const symbol = market['symbol']`: the market row's value at the string keys is
             // a string or null (census above), so the `(string)` cast names the box
@@ -7654,10 +7759,18 @@ export const CSHARP_NUMERIC_RETURN_TYPES = {
     // on the value's box), calculatePricePrecision (parseToNumeric is a mixed Int64/double
     // box), convertFromRawQuantity (pro/bitrue returns multiply (rawQuantity, contractSize)),
     // toEn (parseToNumeric), outcomeEncoding / outcomeAssetId (sum), getTimestamp
-    // (subtract with an object operand), convertToBigIntCustom / feeAmountMultiplier
-    // (parseInt is declared `object`), getClosestLimit / getAccountId /
-    // getOrderBookLimitByMarketType / parsePolyTimestamp (identifier/parameter passthrough).
+    //   (subtract with an object operand), feeAmountMultiplier (its single return path is
+    //   this.convertToBigIntCustom, so it is provable — but no declaration in the corpus is
+    //   fed by it, so naming it would move the signature for 0 sites), getClosestLimit /
+    //   getAccountId / getOrderBookLimitByMarketType / parsePolyTimestamp
+    //   (identifier/parameter passthrough).
+    // convertToBigIntCustom (grvt, 1 definition) was in that rejected list while `parseInt`
+    // was declared `object`; cs90 U35 retyped parseInt to Int64? (Exchange.TranspileHelpers.cs),
+    // so the definition's only return path — `return parseInt (x);` — is now the same
+    // Int64-or-null box the signature names, and its 4 `object x = this.convertToBigIntCustom (…)`
+    // declarations become Int64? with no cast.
     'convertFromRealAmount': 'double?',
+    'convertToBigIntCustom': 'Int64?',
     'encodeAccountType': 'Int64?',
     'encodeFlowType': 'Int64?',
     'fromWei': 'double?',

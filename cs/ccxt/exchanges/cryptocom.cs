@@ -1047,7 +1047,7 @@ public partial class cryptocom : Exchange
             bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
             bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             string? expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
-            object expiry = ((expiryString != null)) ? parseInt(expiryString) : null;
+            Int64? expiry = ((expiryString != null)) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             string? type = null;
             bool? contract = null;

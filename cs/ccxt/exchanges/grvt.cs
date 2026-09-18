@@ -2601,9 +2601,9 @@ public partial class grvt : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
-    public virtual object convertToBigIntCustom(object x)
+    public virtual Int64? convertToBigIntCustom(object x)
     {
-        return parseInt(x);
+        return ((Int64?)((object)(parseInt(x))));
     }
 
     public virtual Dictionary<string, object> eipMessageForOrder(object order, object structureType)
@@ -2615,7 +2615,7 @@ public partial class grvt : Exchange
         {
             object leg = getValue(orderLegs, i);
             Dictionary<string, object> market = this.market(getValue(leg, "instrument"));
-            object bigInt10 = this.convertToBigIntCustom("10");
+            Int64? bigInt10 = this.convertToBigIntCustom("10");
             int precisionValue = this.precisionFromString(this.safeString(GetValue(market, "precision"), "base"));
             string precisionValueStr = precisionValue.ToString();
             double sizeMultiplier = Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(precisionValueStr)));
@@ -2638,7 +2638,7 @@ public partial class grvt : Exchange
                 string? limitDec = this.safeString(limitParts, 1, "");
                 Int64 limitDecLength = add(limitDec.Length, 0); // php tr
                 string limitDecLengthStr = limitDecLength.ToString();
-                object powerNum = (limitDecLengthStr == "0") ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                Int64? powerNum = (limitDecLengthStr == "0") ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 legOrder["limitPrice"] = this.parseToInt(priceInteger);
             } else
@@ -3666,7 +3666,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> messageData = null;
         if (isEqual(structureType, "EIP712_TRANSFER_TYPE"))
         {
-            object amountMultiplier = this.convertToBigIntCustom("1000000");
+            Int64? amountMultiplier = this.convertToBigIntCustom("1000000");
             object amountInt = multiply(getValue(request, "num_tokens"), amountMultiplier);
             if (isEqual(currencyObj, null))
             {
@@ -3684,7 +3684,7 @@ public partial class grvt : Exchange
             };
         } else if (isEqual(structureType, "EIP712_WITHDRAWAL_TYPE"))
         {
-            object amountMultiplier = this.convertToBigIntCustom("1000000");
+            Int64? amountMultiplier = this.convertToBigIntCustom("1000000");
             if (isEqual(currencyObj, null))
             {
                 throw new ExchangeError (add(this.id, " createSignedRequest() missing currencyObj")) ;
@@ -3702,7 +3702,7 @@ public partial class grvt : Exchange
             messageData = this.eipMessageForOrder(request, structureType);
         } else if (isEqual(structureType, "EIP712_BUILDER_APPROVAL_TYPE"))
         {
-            object amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
+            Int64? amountMultiplier = this.convertToBigIntCustom(this.feeAmountMultiplier());
             messageData = new Dictionary<string, object>() {
                 { "mainAccountID", getValue(request, "main_account_id") },
                 { "builderAccountID", getValue(request, "builder_account_id") },
