@@ -725,7 +725,7 @@ func (this *Hyperliquid) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 		},
 	}
 	var message map[string]any = this.Extend(request, params)
-	if userAddress == nil {
+	if ccxt.IsEqual(userAddress, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a user address"))
 	}
 	var subscribeHash any = "subscribe:userFills::" + ccxt.ToLower(userAddress)
@@ -1119,7 +1119,7 @@ func (this *Hyperliquid) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "tid")
 	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))
-	if side != nil {
+	if !ccxt.IsEqual(side, nil) {
 		side = func() any {
 			if ccxt.IsEqual(side, "A") {
 				return "sell"
@@ -1355,7 +1355,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	isUnifiedEnabled = ccxt.DerefScalar(this.SafeBool(unifiedResult, 0))
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
-	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (isUnifiedEnabled == true)) && (dex == nil)
+	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var topic any = func() any {
 		if isSpot == true {
 			return "spotState"
@@ -1369,7 +1369,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 		"user": userAddress,
 	}
 	if isSpot == true {
-		if isUnifiedEnabled == true {
+		if ccxt.IsEqual(isUnifiedEnabled, true) {
 			subscription["isPortfolioMargin"] = true
 		}
 	} else {
@@ -1428,7 +1428,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	isUnifiedEnabled = ccxt.DerefScalar(this.SafeBool(unifiedResult, 0))
 	params = this.SafeDict(unifiedResult, 1, params)
 	var dex *string = this.SafeString(params, "dex")
-	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (isUnifiedEnabled == true)) && (dex == nil)
+	var isSpot bool = ((ccxt.IsEqual(typeVar, "spot")) || (ccxt.IsEqual(isUnifiedEnabled, true))) && (dex == nil)
 	var topic any = func() any {
 		if isSpot == true {
 			return "spotState"
@@ -1821,7 +1821,7 @@ func (this *Hyperliquid) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	// duplicates on the error channel ("Already subscribed"), which rejects every pending
 	// future on the connection. address lowercased because the server is case-insensitive.
 	// note: orderUpdates payloads carry no user, so resolution/data stays shared across users
-	if userAddress == nil {
+	if ccxt.IsEqual(userAddress, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a user address"))
 	}
 	var subscribeHash any = "subscribe:orderUpdates::" + ccxt.ToLower(userAddress)

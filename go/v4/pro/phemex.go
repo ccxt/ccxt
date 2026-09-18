@@ -413,7 +413,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account any = this.Account()
 		var used any = ccxt.DerefScalar(this.SafeString(balance, "totalUsedBalanceRv"))
-		if used == nil {
+		if ccxt.IsEqual(used, nil) {
 			var usedEv *string = this.SafeString(balance, "totalUsedBalanceEv")
 			if usedEv == nil {
 				var lockedTradingBalanceEv *string = this.SafeString(balance, "lockedTradingBalanceEv")
@@ -423,7 +423,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 			used = this.FromEn(usedEv, scale)
 		}
 		var total any = ccxt.DerefScalar(this.SafeString(balance, "accountBalanceRv"))
-		if total == nil {
+		if ccxt.IsEqual(total, nil) {
 			var totalEv *string = this.SafeString2(balance, "accountBalanceEv", "balanceEv")
 			total = this.FromEn(totalEv, scale)
 		}
@@ -1562,7 +1562,7 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "orderID")
 	var clientOrderId any = ccxt.DerefScalar(this.SafeString(order, "clOrdID"))
-	if (clientOrderId != nil) && (ccxt.GetLength(clientOrderId) < 1) {
+	if (!ccxt.IsEqual(clientOrderId, nil)) && (ccxt.GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")

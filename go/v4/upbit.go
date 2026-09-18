@@ -2399,7 +2399,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		// the timestamp in fetchOrder trades is missing
 		lastTradeTimestamp = GetValue(GetValue(trades, Subtract(numTrades, 1)), "timestamp")
 		var getFeesFromTrades bool = false
-		if feeCost == nil {
+		if IsEqual(feeCost, nil) {
 			getFeesFromTrades = true
 			feeCost = "0"
 		}
@@ -2417,7 +2417,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		average = Precise.StringDiv(cost, filled)
 	}
-	if feeCost != nil {
+	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"currency": GetValue(market, "quote"),
 			"cost":     feeCost,

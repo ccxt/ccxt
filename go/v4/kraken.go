@@ -1846,7 +1846,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 			return "taker"
 		}()
 	}
-	if datetime == nil {
+	if IsEqual(datetime, nil) {
 		datetime = DerefScalar(this.Iso8601(timestamp))
 	} else {
 		timestamp = this.Parse8601(datetime)
@@ -2427,7 +2427,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var amount any = nil
 	var cost any = nil
 	var triggerPrice any = nil
-	if orderDescription != nil {
+	if !IsEqual(orderDescription, nil) {
 		var parts []string = Split(orderDescription, " ")
 		side = DerefScalar(this.SafeString(parts, 0))
 		if isUsingCost == nil || *isUsingCost != true {
@@ -2443,7 +2443,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 		} else {
 			rawType = Add(Add(part4, " "), part5) // eg. stop loss, take profit, trailing stop
 		}
-		if (IsEqual(rawType, "stop loss")) || (IsEqual(rawType, "take profit")) {
+		if IsEqual(rawType, "stop loss") || IsEqual(rawType, "take profit") {
 			triggerPrice = DerefScalar(this.SafeString(parts, 6))
 			price = DerefScalar(this.SafeString(parts, 9))
 		} else if IsEqual(rawType, "limit") {
@@ -2457,7 +2457,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var symbol any = nil
 	if !IsEqual(foundMarket, nil) {
 		market = foundMarket
-	} else if marketId != nil {
+	} else if !IsEqual(marketId, nil) {
 		// delisted market ids go here
 		market = this.GetDelistedMarketById(marketId)
 	}
@@ -2469,10 +2469,10 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	// const cost = this.safeString (order, 'cost');
 	price = DerefScalar(this.SafeString(description, "price", price))
 	// when type = trailing stop returns price = '+50.0000%'
-	if (price != nil) && (EndsWith(price, "%") || Precise.StringEquals(price, "0.00000") || Precise.StringEquals(price, "0")) {
+	if (!IsEqual(price, nil)) && (EndsWith(price, "%") || Precise.StringEquals(price, "0.00000") || Precise.StringEquals(price, "0")) {
 		price = nil // this is not the price we want
 	}
-	if price == nil {
+	if IsEqual(price, nil) {
 		price = DerefScalar(this.SafeString(description, "price2"))
 		price = DerefScalar(this.SafeString2(order, "limitprice", "price", price))
 	}
@@ -2523,7 +2523,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var takeProfitPrice any = nil
 	// the dashed strings are not provided from fields (eg. fetch order)
 	// while spaced strings from "order" sentence (when other fields not available)
-	if rawType != nil {
+	if !IsEqual(rawType, nil) {
 		if StartsWith(rawType, "take-profit") {
 			takeProfitPrice = DerefScalar(this.SafeString(description, "price"))
 			price = this.OmitZero(this.SafeString(description, "price2"))
@@ -2542,7 +2542,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	// eg: `stop loss > limit 123`, so we need to parse them manually
 	if this.InArray(typeParsed, []any{"stop loss", "take profit"}) {
 		typeParsed = func() any {
-			if price == nil {
+			if IsEqual(price, nil) {
 				return "market"
 			}
 			return "limit"
@@ -2813,7 +2813,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 	}
 	var allTriggerPrices any = DerefScalar(this.SafeStringN(params, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent"}))
-	if allTriggerPrices != nil {
+	if !IsEqual(allTriggerPrices, nil) {
 		var offset *string = this.SafeString(params, "offset")
 		params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"})
 		if offset != nil {

@@ -1113,7 +1113,7 @@ func (this *Bingx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	} else {
 		url = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), marketType)
 	}
-	if url == nil {
+	if ccxt.IsEqual(url, nil) {
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(this.Id+" watchOHLCV is not supported for ", marketType), " markets.")))
 	}
 	var options any = this.SafeValue(this.Options, marketType, map[string]any{})

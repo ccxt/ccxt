@@ -2352,7 +2352,7 @@ func (this *Mexc) HandleUnsubscriptions(client any, messageHashes any) {
 			if splitHashesLength > 4 {
 				symbol = ccxt.Add(symbol, ccxt.Add(":", this.SafeString(splitHashes, 3)))
 			}
-			if (symbol != nil) && (ccxt.InOp(this.Ohlcvs, symbol)) {
+			if (!ccxt.IsEqual(symbol, nil)) && (ccxt.InOp(this.Ohlcvs, symbol)) {
 				ccxt.Remove(this.Ohlcvs, symbol)
 			}
 		} else if ccxt.GetIndexOf(messageHash, "orderbook") >= 0 {
@@ -2609,7 +2609,7 @@ func (this *Mexc) HandleMessage(client any, message any) {
 		"pong":                         this.HandlePong,
 		"push.funding.rate":            this.HandleFundingRate,
 	}
-	if (channel != nil) && (ccxt.InOp(methods, channel)) {
+	if (!ccxt.IsEqual(channel, nil)) && (ccxt.InOp(methods, channel)) {
 		var method any = ccxt.GetValue(methods, channel)
 		ccxt.CallDynamically(method, client, message)
 	}

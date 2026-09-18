@@ -724,7 +724,7 @@ func (this *Alpaca) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	var datetime *string = this.SafeString(trade, "filled_at")
 	var typeVar any = ccxt.DerefScalar(this.SafeString(trade, "type"))
-	if typeVar == nil {
+	if ccxt.IsEqual(typeVar, nil) {
 		return nil
 	}
 	if ccxt.GetIndexOf(typeVar, "limit") >= 0 {

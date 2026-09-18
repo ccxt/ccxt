@@ -934,7 +934,7 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	symbol = ccxt.GetValue(market, "symbol")
 	var price *string = this.SafeString(params, "price")
 	var candleType any = ccxt.DerefScalar(this.SafeString(params, "candleType"))
-	if candleType == nil {
+	if ccxt.IsEqual(candleType, nil) {
 		if price != nil && *price == "mark" {
 			candleType = "mark-prices"
 		} else if price != nil && *price == "index" {

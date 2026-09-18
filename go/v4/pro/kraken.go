@@ -2048,7 +2048,7 @@ func (this *Kraken) HandleErrorMessage(client any, message any) any {
 }
 func (this *Kraken) HandleMessage(client any, message any) {
 	var channel any = ccxt.DerefScalar(this.SafeString(message, "channel"))
-	if channel != nil {
+	if !ccxt.IsEqual(channel, nil) {
 		if ccxt.IsEqual(channel, "executions") {
 			var data any = this.SafeList(message, "data", []any{})
 			var first any = this.SafeDict(data, 0, map[string]any{})

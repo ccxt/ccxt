@@ -1151,7 +1151,7 @@ func (this *Gemini) ParseMarket(response any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(base, "/"), quote)
-	if settleId != nil {
+	if !IsEqual(settleId, nil) {
 		symbol = Add(Add(symbol, ":"), settle)
 		swap = true
 		contractSize = tickSize // always same
@@ -1919,7 +1919,7 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar any = DerefScalar(this.SafeString(order, "type"))
 	if IsEqual(typeVar, "exchange limit") {
 		typeVar = "limit"
-	} else if (IsEqual(typeVar, "market buy")) || (IsEqual(typeVar, "market sell")) {
+	} else if IsEqual(typeVar, "market buy") || IsEqual(typeVar, "market sell") {
 		typeVar = "market"
 	} else {
 		typeVar = GetValue(order, "type")
@@ -2134,7 +2134,7 @@ func (this *Gemini) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var clientOrderId any = DerefScalar(this.SafeString2(params, "clientOrderId", "client_order_id"))
 	params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
-	if clientOrderId == nil {
+	if IsEqual(clientOrderId, nil) {
 		clientOrderId = ToString(this.Milliseconds())
 	}
 	var market any = this.Market(symbol)

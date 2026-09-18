@@ -1847,7 +1847,7 @@ func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last any = this.FromEp(this.SafeString2(ticker, "lastEp", "closeRp"), market)
 	var quoteVolume any = this.FromEr(this.SafeString2(ticker, "turnoverEv", "turnoverRv"), market)
 	var baseVolume any = DerefScalar(this.SafeString(ticker, "volume"))
-	if baseVolume == nil {
+	if IsEqual(baseVolume, nil) {
 		baseVolume = this.FromEv(this.SafeString2(ticker, "volumeEv", "volumeRq"), market)
 	}
 	var open any = this.FromEp(this.SafeString(ticker, "openEp"), market)
@@ -2341,7 +2341,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			costString = DerefScalar(this.SafeString(trade, "execValueRv"))
 			feeCostString = this.OmitZero(this.SafeString(trade, "execFeeRv"))
 			feeRateString = DerefScalar(this.SafeString(trade, "feeRateRr"))
-			if feeCostString != nil {
+			if !IsEqual(feeCostString, nil) {
 				var currencyId *string = this.SafeString(trade, "currency")
 				feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(currencyId))
 			} else {
@@ -2363,7 +2363,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			amountString = DerefScalar(this.SafeString(trade, "execQty", amountString))
 			costString = this.FromEr(this.SafeString2(trade, "execQuoteQtyEv", "execValueEv"), market)
 			feeCostString = this.FromEr(this.OmitZero(this.SafeString(trade, "execFeeEv")), market)
-			if feeCostString != nil {
+			if !IsEqual(feeCostString, nil) {
 				feeRateString = this.FromEr(this.SafeString(trade, "feeRateEr"), market)
 				if IsEqual(GetValue(market, "spot"), true) {
 					feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")))
@@ -2376,7 +2376,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 				}
 			} else {
 				feeCostString = DerefScalar(this.SafeString(trade, "ptFeeRv"))
-				if feeCostString != nil {
+				if !IsEqual(feeCostString, nil) {
 					feeCurrencyCode = "PT"
 				}
 			}
@@ -2833,7 +2833,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "orderID")
 	var clientOrderId any = DerefScalar(this.SafeString(order, "clOrdID"))
-	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
+	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -2997,7 +2997,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(order, "orderID", "orderId")
 	var clientOrderId any = DerefScalar(this.SafeString2(order, "clOrdID", "clOrdId"))
-	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
+	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var marketId *string = this.SafeString(order, "symbol")
@@ -3007,7 +3007,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) any {
 	var side *string = this.ParseOrderSide(this.SafeStringLower(order, "side"))
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "orderType"))
 	var price any = DerefScalar(this.SafeString(order, "priceRp"))
-	if price == nil {
+	if IsEqual(price, nil) {
 		price = this.FromEp(this.SafeString(order, "priceEp"), market)
 	}
 	var amount *float64 = this.SafeNumber2(order, "orderQty", "orderQtyRq")
@@ -3199,7 +3199,7 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		var hedged *bool = this.SafeBool(params, "hedged", false)
 		params = this.Omit(params, "hedged")
 		var posSide any = this.SafeStringLower(params, "posSide")
-		if posSide == nil {
+		if IsEqual(posSide, nil) {
 			if hedged != nil && *hedged == true {
 				var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 				if reduceOnly != nil && *reduceOnly == true {
@@ -4614,7 +4614,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		code = "USDT"
 	} else if IsEqual(settle, "BTC") {
 		code = "BTC"
-	} else if code == nil {
+	} else if IsEqual(code, nil) {
 		code = func() any {
 			if IsEqual(subType, "linear") {
 				return "USD"
@@ -6650,7 +6650,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		code = "USDT"
 	} else if IsEqual(settle, "BTC") {
 		code = "BTC"
-	} else if code == nil {
+	} else if IsEqual(code, nil) {
 		code = func() any {
 			if IsEqual(subType, "linear") {
 				return "USD"

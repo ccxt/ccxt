@@ -2398,13 +2398,13 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 	var tif any = DerefScalar(this.SafeString2(params, "tif", "timeInForce"))
 	// market orders must be IOC
 	if typeId == "MARKET" {
-		if (tif != nil) && (!IsEqual(tif, "IOC")) {
+		if !IsEqual(tif, nil) && !IsEqual(tif, "IOC") {
 			panic(InvalidOrder(this.Id + " createOrder() market orders must have tif set to \"IOC\""))
 		}
 		tif = "IOC"
 	} else {
 		tif = func() any {
-			if tif == nil {
+			if IsEqual(tif, nil) {
 				return "GTC"
 			}
 			return tif

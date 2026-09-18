@@ -868,7 +868,7 @@ func (this *Extended) ParseCurrency(currency any) any {
 	//     }
 	//
 	var currencyId any = DerefScalar(this.SafeString(currency, "symbol"))
-	if (currencyId != nil) && (GetIndexOf(currencyId, "SPOT") >= 0) {
+	if (!IsEqual(currencyId, nil)) && (GetIndexOf(currencyId, "SPOT") >= 0) {
 		currencyId = Replace(currencyId, "SPOT", "")
 	}
 	var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
@@ -1601,7 +1601,7 @@ func (this *Extended) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	var price *string = this.SafeString(params, "price")
 	var candleType any = DerefScalar(this.SafeString(params, "candleType"))
-	if candleType == nil {
+	if IsEqual(candleType, nil) {
 		if price != nil && *price == "mark" {
 			candleType = "mark-prices"
 		} else if price != nil && *price == "index" {
@@ -3457,7 +3457,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	var postOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
-	if timeInForce == nil {
+	if IsEqual(timeInForce, nil) {
 		timeInForce = func() any {
 			if uppercaseType == "MARKET" {
 				return "IOC"
@@ -3481,7 +3481,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		params = GetValue(builderIdparamsVariable, 1)
 	}
 	var totalFee *string = fee
-	if builderFeeRate != nil {
+	if !IsEqual(builderFeeRate, nil) {
 		totalFee = Precise.StringAdd(fee, builderFeeRate)
 	}
 	var now int64 = this.Milliseconds()
@@ -3530,10 +3530,10 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		"reduceOnly":               reduceOnly,
 		"selfTradeProtectionLevel": "ACCOUNT",
 	}
-	if builderFeeRate != nil {
+	if !IsEqual(builderFeeRate, nil) {
 		request["builderFee"] = builderFeeRate
 	}
-	if builderId != nil {
+	if !IsEqual(builderId, nil) {
 		request["builderId"] = builderId
 	}
 	var cancelId *string = this.SafeString2(params, "cancelId", "previousOrderId")
@@ -3613,7 +3613,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 			request["takeProfit"] = requestTakeProfit
 		}
 	} else {
-		if triggerPriceStr != nil {
+		if !IsEqual(triggerPriceStr, nil) {
 			var triggerDirection *string = this.SafeStringUpper(params, "triggerDirection")
 			if triggerDirection == nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() requires triggerDirection for trigger order"))

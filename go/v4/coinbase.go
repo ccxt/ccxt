@@ -1051,7 +1051,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalAr
 	_ = params
 	var accountId any = DerefScalar(this.SafeString(params, "account_id"))
 	params = this.Omit(params, "account_id")
-	if accountId == nil {
+	if IsEqual(accountId, nil) {
 
 		retRes82712 := (<-this.LoadAccountsAsync())
 		PanicOnError(retRes82712)
@@ -1063,7 +1063,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalAr
 			}
 		}
 	}
-	if accountId == nil {
+	if IsEqual(accountId, nil) {
 		panic(ExchangeError(Add(Add(this.Id+" createDepositAddress() could not find the account with matching currency code ", code), ", specify an `account_id` extra param to target specific wallet")))
 	}
 	var request map[string]any = map[string]any{
@@ -1729,7 +1729,7 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCurrencyId any = DerefScalar(this.SafeString(feeObject, "currency"))
 	var feeCost *float64 = this.SafeNumber(feeObject, "amount", this.ParseNumber(v3FeeCost))
-	if (feeCurrencyId == nil) && (!IsEqual(market, nil)) && (feeCost != nil) {
+	if (IsEqual(feeCurrencyId, nil)) && (!IsEqual(market, nil)) && (feeCost != nil) {
 		feeCurrencyId = GetValue(market, "quote")
 	}
 	var datetime *string = this.SafeStringN(trade, []any{"created_at", "trade_time", "time"})
@@ -3733,14 +3733,14 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan any, opt
 	_ = params
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
 	params = this.Omit(params, []any{"account_id", "accountId"})
-	if accountId == nil {
+	if IsEqual(accountId, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
-		if accountId == nil {
+		if IsEqual(accountId, nil) {
 			panic(ExchangeError(Add(Add(this.Id+" prepareAccountRequestWithCurrencyCode() could not find account id for ", code), ". You might try to generate the deposit address in the website for that coin first.")))
 		}
 	}
@@ -3872,7 +3872,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var stopDirection any = DerefScalar(this.SafeString(params, "stop_direction"))
 	if IsEqual(typeVar, "limit") {
 		if isStop {
-			if stopDirection == nil {
+			if IsEqual(stopDirection, nil) {
 				stopDirection = func() any {
 					if IsEqual(side, "buy") {
 						return "STOP_DIRECTION_STOP_DOWN"
@@ -3906,7 +3906,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 		} else if isStopLoss || isTakeProfit {
 			var tpslPrice any = nil
 			if isStopLoss {
-				if stopDirection == nil {
+				if IsEqual(stopDirection, nil) {
 					stopDirection = func() any {
 						if IsEqual(side, "buy") {
 							return "STOP_DIRECTION_STOP_UP"
@@ -3916,7 +3916,7 @@ func (this *Coinbase) createOrderBody(ch chan any, symbol any, typeVar any, side
 				}
 				tpslPrice = this.PriceToPrecision(symbol, stopLossPrice)
 			} else {
-				if stopDirection == nil {
+				if IsEqual(stopDirection, nil) {
 					stopDirection = func() any {
 						if IsEqual(side, "buy") {
 							return "STOP_DIRECTION_STOP_DOWN"
@@ -5368,14 +5368,14 @@ func (this *Coinbase) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
 	params = this.Omit(params, []any{"account_id", "accountId"})
-	if accountId == nil {
+	if IsEqual(accountId, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
-		if accountId == nil {
+		if IsEqual(accountId, nil) {
 			panic(ExchangeError(Add(this.Id+" withdraw() could not find account id for ", code)))
 		}
 		request["account_id"] = accountId
@@ -5649,14 +5649,14 @@ func (this *Coinbase) depositBody(ch chan any, code any, amount any, id any, opt
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
 	params = this.Omit(params, []any{"account_id", "accountId"})
-	if accountId == nil {
+	if IsEqual(accountId, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
-		if accountId == nil {
+		if IsEqual(accountId, nil) {
 			panic(ExchangeError(Add(this.Id+" deposit() could not find account id for ", code)))
 		}
 	}
@@ -5743,14 +5743,14 @@ func (this *Coinbase) fetchDepositBody(ch chan any, id any, optionalArgs ...any)
 	}
 	var accountId any = DerefScalar(this.SafeString2(params, "account_id", "accountId"))
 	params = this.Omit(params, []any{"account_id", "accountId"})
-	if accountId == nil {
+	if IsEqual(accountId, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument"))
 		}
 
 		accountId = (<-this.FindAccountIdAsync(code, params))
 		PanicOnError(accountId)
-		if accountId == nil {
+		if IsEqual(accountId, nil) {
 			panic(ExchangeError(Add(this.Id+" fetchDeposit() could not find account id for ", code)))
 		}
 	}

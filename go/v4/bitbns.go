@@ -1179,7 +1179,7 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString2(trade, "rate", "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var side any = this.SafeStringLower(trade, "type")
-	if side != nil {
+	if !IsEqual(side, nil) {
 		if GetIndexOf(side, "buy") >= 0 {
 			side = "buy"
 		} else if GetIndexOf(side, "sell") >= 0 {
@@ -1538,7 +1538,7 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	var expTime *string = this.SafeString(transaction, "expTime", "")
 	var status any = nil
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		if GetIndexOf(typeVar, "deposit") >= 0 {
 			typeVar = "deposit"
 			status = "ok"

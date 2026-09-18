@@ -587,10 +587,10 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 	_ = params
 	this.CheckRequiredCredentials()
 	var expires any = ccxt.DerefScalar(this.SafeString(this.Options, "ws-expires"))
-	if expires == nil {
+	if ccxt.IsEqual(expires, nil) {
 		var timeout int64 = ccxt.ParseInt(ccxt.ToString((ccxt.Divide(this.Timeout, 1000))))
 		expires = this.Sum(this.Seconds(), timeout)
-		if expires == nil {
+		if ccxt.IsEqual(expires, nil) {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPrivate() expires is required"))
 		}
 		expires = ccxt.ToString(expires)

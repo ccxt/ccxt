@@ -4556,7 +4556,7 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	_ = currency
 	var address any = DerefScalar(this.SafeString(depositAddress, "address"))
 	// BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-	if address != nil {
+	if !IsEqual(address, nil) {
 		address = Replace(address, "bitcoincash:", "")
 	}
 	var code any = nil
@@ -7925,7 +7925,7 @@ func (this *Kucoin) HandleTradeType(optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var tradeType any = DerefScalar(this.SafeString(params, "tradeType"))
-	if tradeType == nil {
+	if IsEqual(tradeType, nil) {
 		if EvalTruthy(isContractMarket) {
 			tradeType = "FUTURES"
 		} else if marginMode != nil {
@@ -9687,11 +9687,11 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
 	var amount *string = this.SafeString(transaction, "amount")
 	var txid any = DerefScalar(this.SafeString(transaction, "walletTxId"))
-	if txid != nil {
+	if !IsEqual(txid, nil) {
 		var txidParts []string = Split(txid, "@")
 		var numTxidParts int = len(txidParts)
 		if numTxidParts > 1 {
-			if address == nil {
+			if IsEqual(address, nil) {
 				if GetLength(GetValue(txidParts, 1)) > 1 {
 					address = GetValue(txidParts, 1)
 				}
@@ -9700,7 +9700,7 @@ func (this *Kucoin) ParseTransaction(transaction any, optionalArgs ...any) any {
 		txid = GetValue(txidParts, 0)
 	}
 	var typeVar any = func() any {
-		if txid == nil {
+		if IsEqual(txid, nil) {
 			return "withdrawal"
 		}
 		return "deposit"
@@ -11034,13 +11034,13 @@ func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType")
 	var accountFrom any = func() any {
-		if accountFromRaw == nil {
+		if IsEqual(accountFromRaw, nil) {
 			return nil
 		}
 		return this.SafeString(accountsByType, accountFromRaw, accountFromRaw)
 	}()
 	var accountTo any = func() any {
-		if accountToRaw == nil {
+		if IsEqual(accountToRaw, nil) {
 			return nil
 		}
 		return this.SafeString(accountsByType, accountToRaw, accountToRaw)
@@ -13519,7 +13519,7 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 	var size *string = this.SafeStringN(position, []any{"currentQty", "size", "maxSize", "closeSize"})
 	var side any = this.SafeStringLower(position, "side")
 	var typeVar *string = this.SafeStringLower(position, "type")
-	if side == nil {
+	if IsEqual(side, nil) {
 		if size != nil {
 			if Precise.StringGt(size, "0") {
 				side = "long"
@@ -14617,7 +14617,7 @@ func (this *Kucoin) isUTAEnabledBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var uta any = DerefScalar(this.SafeBool(this.Options, "uta"))
-	if uta == nil {
+	if IsEqual(uta, nil) {
 
 		response := (<-this.UtaPrivateGetAccountMode(params))
 		PanicOnError(response)

@@ -362,7 +362,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "orderType")
 	var side any = ccxt.DerefScalar(this.SafeString(trade, "side"))
-	if side != nil {
+	if !ccxt.IsEqual(side, nil) {
 		if ccxt.IsEqual(side, "ask") {
 			side = "sell"
 		} else if ccxt.IsEqual(side, "bid") {

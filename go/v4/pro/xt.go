@@ -172,7 +172,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 					var result any = this.SafeDict(response, "result")
 					listenKey = ccxt.DerefScalar(this.SafeString(result, "accessToken"))
 				}
-				if listenKey == nil {
+				if ccxt.IsEqual(listenKey, nil) {
 					panic(ccxt.AuthenticationError(this.Id + " getListenKey() received an empty listen key"))
 				}
 				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "token", listenKey)
@@ -2045,7 +2045,7 @@ func (this *Xt) HandleSubscriptionStatus(client any, message any) any {
 	if id != nil {
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 		unsubscribe = ccxt.DerefScalar(this.SafeBool(subscription, "unsubscribe", false))
-		if unsubscribe == true {
+		if ccxt.IsEqual(unsubscribe, true) {
 			this.HandleUnSubscription(client, subscription)
 		}
 	}

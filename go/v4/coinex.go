@@ -5385,19 +5385,19 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var address *string = this.SafeString(transaction, "to_address")
 	var tag any = DerefScalar(this.SafeString(transaction, "memo"))
-	if tag != nil {
+	if !IsEqual(tag, nil) {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}
 	}
 	var remark any = DerefScalar(this.SafeString(transaction, "remark"))
-	if remark != nil {
+	if !IsEqual(remark, nil) {
 		if GetLength(remark) < 1 {
 			remark = nil
 		}
 	}
 	var txid any = DerefScalar(this.SafeString(transaction, "tx_id"))
-	if txid != nil {
+	if !IsEqual(txid, nil) {
 		if GetLength(txid) < 1 {
 			txid = nil
 		}

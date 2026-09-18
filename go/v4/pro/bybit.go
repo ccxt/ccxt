@@ -489,7 +489,7 @@ func (this *Bybit) watchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	params = this.CleanParams(params)
 	var options any = this.SafeValue(this.Options, "watchTicker", map[string]any{})
 	var topic any = ccxt.DerefScalar(this.SafeString(options, "name", "tickers"))
-	if (!ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && (!ccxt.IsEqual(topic, "tickers")) {
+	if (!ccxt.IsEqual(ccxt.GetValue(market, "spot"), true)) && !ccxt.IsEqual(topic, "tickers") {
 		panic(ccxt.BadRequest(this.Id + " watchTicker() only supports name tickers for contract markets"))
 	}
 	topic = ccxt.Add(topic, ccxt.Add(".", ccxt.GetValue(market, "id")))
@@ -1670,7 +1670,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeStringLower(trade, "S")
 	var takerOrMaker any = nil
 	var m any = this.SafeValue(trade, "m")
-	if side == nil {
+	if ccxt.IsEqual(side, nil) {
 		side = func() any {
 			if m == true {
 				return "buy"
@@ -2907,7 +2907,7 @@ func (this *Bybit) HandleBalance(client any, message any) {
 	for i := 0; i < len(rawBalances); i++ {
 		this.ParseWsBalance(ccxt.GetValue(rawBalances, i), account)
 	}
-	if account != nil {
+	if !ccxt.IsEqual(account, nil) {
 		if ccxt.IsEqual(this.SafeValue(this.Balance, account), nil) {
 			ccxt.AddElementToObject(this.Balance, account, map[string]any{})
 		}

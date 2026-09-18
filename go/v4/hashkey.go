@@ -1684,7 +1684,7 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var side any = this.SafeStringLower(trade, "side") // swap trades have side param
-	if side != nil {
+	if !IsEqual(side, nil) {
 		side = DerefScalar(this.SafeString(Split(side, "_"), 0))
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
@@ -2557,7 +2557,7 @@ func (this *Hashkey) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var id *string = this.SafeString2(transaction, "id", "orderId")
 	var address *string = this.SafeString(transaction, "address")
 	var status any = DerefScalar(this.SafeString(transaction, "status")) // for fetchDeposits
-	if status == nil {
+	if IsEqual(status, nil) {
 		var success *bool = this.SafeBool(transaction, "success", false) // for withdraw
 		if success != nil && *success == true {
 			status = "ok"

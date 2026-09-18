@@ -1705,7 +1705,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	if timeInForce == nil {
+	if IsEqual(timeInForce, nil) {
 		timeInForce = "GOOD_TIL_CANCEL"
 	}
 	if !isMarket {
@@ -1721,7 +1721,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	accountId := (<-this.GetAccountIdAsync())
 	PanicOnError(accountId)
-	if clientOrderId == nil {
+	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(accountId)
 	}
 	var finalClientOrderId any = clientOrderId // java req
@@ -1848,7 +1848,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	var amountNumber int64 = this.ParseToInt(Multiply(amount, mathPowResult))
 	var timestampSeconds int64 = this.ParseToInt(this.Milliseconds() / 1000)
 	var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
-	if clientOrderId == nil {
+	if IsEqual(clientOrderId, nil) {
 		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
 	}
 	var finalClientOrderId any = clientOrderId // java req

@@ -2675,7 +2675,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	params = ccxt.GetValue(postOnlyparamsVariable, 1)
 	var timeInForce any = ccxt.DerefScalar(this.SafeString(params, "timeInForce"))
 	params = this.Omit(params, "timeInForce")
-	if timeInForce == nil {
+	if ccxt.IsEqual(timeInForce, nil) {
 		timeInForce = func() any {
 			if isMarket {
 				return "FOK"
@@ -2882,7 +2882,7 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	var token *string = this.SafeString(params, "token", this.SafeString(this.Options, "collateralAddress"))
 	var spender *string = this.SafeString(params, "spender", this.SafeString(this.Options, "exchangeAddress"))
 	var owner any = ccxt.DerefScalar(this.SafeString(params, "owner", this.WalletAddress))
-	if owner == nil {
+	if ccxt.IsEqual(owner, nil) {
 		owner = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")

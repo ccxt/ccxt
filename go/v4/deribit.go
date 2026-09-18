@@ -818,7 +818,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		settle = base
 	}
 	var splitBase any = base
-	if base == nil {
+	if IsEqual(base, nil) {
 		panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing base"))
 	}
 	if IsGreaterThan(GetIndexOf(base, "_"), -1) {
@@ -1847,16 +1847,16 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbols, nil) {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
-			if (code != nil) && (code != GetValue(market, "base")) {
+			if !IsEqual(code, nil) && !IsEqual(code, GetValue(market, "base")) {
 				panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency"))
 			}
-			if code == nil {
+			if IsEqual(code, nil) {
 				code = GetValue(market, "base")
 				typeVar = GetValue(market, "type")
 			}
 		}
 	}
-	if code == nil {
+	if IsEqual(code, nil) {
 		panic(ArgumentsRequired(this.Id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for"))
 	}
 	var currency any = this.Currency(code)

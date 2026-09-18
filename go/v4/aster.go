@@ -1680,7 +1680,7 @@ func (this *Aster) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 			return "taker"
 		}()
-		if side == nil {
+		if IsEqual(side, nil) {
 			var isBuyer *bool = this.SafeBool(trade, "buyer")
 			if isBuyer != nil {
 				side = func() any {
@@ -4619,7 +4619,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var liquidationPrice any = this.ParseNumber(liquidationPriceString)
 	var collateralString any = nil
 	var marginMode any = DerefScalar(this.SafeString(position, "marginType"))
-	if (marginMode == nil) && (isolatedMarginString != nil) {
+	if IsEqual(marginMode, nil) && (isolatedMarginString != nil) {
 		marginMode = func() any {
 			if Precise.StringEq(isolatedMarginString, "0") {
 				return "cross"
@@ -4684,7 +4684,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 		collateralString = DerefScalar(this.SafeString(position, "isolatedMargin"))
 	}
 	collateralString = func() any {
-		if collateralString == nil {
+		if IsEqual(collateralString, nil) {
 			return "0"
 		}
 		return collateralString
@@ -4852,7 +4852,7 @@ func (this *Aster) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method")
 	defaultMethod = GetValue(defaultMethodparamsVariable, 0)
 	params = GetValue(defaultMethodparamsVariable, 1)
-	if defaultMethod == nil {
+	if IsEqual(defaultMethod, nil) {
 		var options any = this.SafeDict(this.Options, "fetchPositions")
 		if IsEqual(options, nil) {
 			defaultMethod = DerefScalar(this.SafeString(this.Options, "fetchPositions", "positionRisk"))
@@ -4984,7 +4984,7 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 		timestamp = nil
 	}
 	var isolated any = DerefScalar(this.SafeBool(position, "isolated"))
-	if isolated == nil {
+	if IsEqual(isolated, nil) {
 		var isolatedMarginRaw *string = this.SafeString(position, "isolatedMargin")
 		isolated = !Precise.StringEq(isolatedMarginRaw, "0")
 	}
@@ -5494,7 +5494,7 @@ func (this *Aster) Sign(path any, optionalArgs ...any) any {
 		var walletAddress any = DerefScalar(this.SafeString(this.Options, "cachedWalletAddress"))
 		var privateKeyHash any = this.Hash(this.Encode(this.PrivateKey), keccak, "hex")
 		var cachedPrivateKeyHash *string = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
-		if (walletAddress == nil) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
+		if (IsEqual(walletAddress, nil)) || (!IsEqual(cachedPrivateKeyHash, privateKeyHash)) {
 			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 			AddElementToObject(this.Options, "cachedWalletAddress", walletAddress)
 			AddElementToObject(this.Options, "privateKeyHashForCachedWalletAddress", privateKeyHash)

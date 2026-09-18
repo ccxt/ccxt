@@ -1017,14 +1017,14 @@ func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any = ccxt.DerefScalar(this.SafeString(signature, "r"))
 	var sHex any = ccxt.DerefScalar(this.SafeString(signature, "s"))
-	if rHex == nil {
+	if ccxt.IsEqual(rHex, nil) {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing rHex"))
 	}
 	var rHexLength int = ccxt.GetLength(rHex)
 	if (ccxt.Mod(rHexLength, 2)) != 0 {
 		rHex = ccxt.Add("0", rHex)
 	}
-	if sHex == nil {
+	if ccxt.IsEqual(sHex, nil) {
 		panic(ccxt.ExchangeError(this.Id + " signEvmTransaction() missing sHex"))
 	}
 	var sHexLength int = ccxt.GetLength(sHex)
@@ -1828,7 +1828,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		return this.SafeString(market, "outcome")
 	}()
 	var outcomeObj any = market
-	if outcome == nil {
+	if ccxt.IsEqual(outcome, nil) {
 		// the REST order has no top-level networkId; order book lives on the default network
 		var networkId *string = this.SafeString2(order, "networkId", "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
 		var marketId *string = this.SafeString(inner, "marketId")
@@ -1896,11 +1896,11 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	var marketSlug *string = this.SafeString(trade, "marketSlug", marketId)
 	var outcomeTitle *string = this.SafeString(trade, "outcomeTitle", rawOutcomeId)
 	var outcome any = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
-	if outcome == nil {
+	if ccxt.IsEqual(outcome, nil) {
 		outcome = this.SlugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle)
 	}
 	var marketSymbol any = ccxt.DerefScalar(this.SafeString(outcomeObj, "market"))
-	if marketSymbol == nil {
+	if ccxt.IsEqual(marketSymbol, nil) {
 		marketSymbol = this.SlugToMarketSymbol(marketSlug, marketSlug)
 	}
 	var label *string = this.SafeString(outcomeObj, "label")
@@ -1979,10 +1979,10 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var trader any = ccxt.DerefScalar(this.SafeString2(params, "trader", "address"))
-	if trader == nil {
+	if ccxt.IsEqual(trader, nil) {
 		trader = this.WalletAddressOrUndefined()
 	}
-	if trader == nil {
+	if ccxt.IsEqual(trader, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchOrders() for AMM history requires a trader address or wallet/privateKey"))
 	}
 	var request map[string]any = map[string]any{
@@ -2052,7 +2052,7 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan any, optionalArgs ...any) any {
 			continue
 		}
 		var currentOutcomeId *string = this.SafeString(row, "outcomeId")
-		if (rowOutcomeId != nil) && (!ccxt.IsEqual(currentOutcomeId, rowOutcomeId)) {
+		if (!ccxt.IsEqual(rowOutcomeId, nil)) && (!ccxt.IsEqual(currentOutcomeId, rowOutcomeId)) {
 			continue
 		}
 		ccxt.AppendToArray(&result, this.ParseAmmEventToOrder(row, outcomeObj))

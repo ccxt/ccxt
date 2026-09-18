@@ -1870,7 +1870,7 @@ func (this *Bitmex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var fee any = nil
 	var feeCost any = DerefScalar(this.SafeString(item, "fee"))
-	if feeCost != nil {
+	if !IsEqual(feeCost, nil) {
 		feeCost = this.ConvertToRealAmount(code, feeCost)
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCost),
@@ -1878,7 +1878,7 @@ func (this *Bitmex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}
 	}
 	var after any = DerefScalar(this.SafeString(item, "walletBalance"))
-	if after != nil {
+	if !IsEqual(after, nil) {
 		after = this.ConvertToRealAmount(code, after)
 	}
 	var before any = this.ParseNumber(Precise.StringSub(this.NumberToString(after), this.NumberToString(amount)))
@@ -2785,7 +2785,7 @@ func (this *Bitmex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPx", "stopPrice"})
 	var trailingAmount any = DerefScalar(this.SafeString2(params, "trailingAmount", "pegOffsetValue"))
 	var isTriggerOrder bool = (triggerPrice != nil)
-	var isTrailingAmountOrder bool = (trailingAmount != nil)
+	var isTrailingAmountOrder bool = !IsEqual(trailingAmount, nil)
 	if isTriggerOrder || isTrailingAmountOrder {
 		var triggerDirection *string = this.SafeString(params, "triggerDirection")
 		var triggerAbove bool = ((triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "above"))
@@ -2878,7 +2878,7 @@ func (this *Bitmex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	}
 	var request map[string]any = map[string]any{}
 	var trailingAmount any = DerefScalar(this.SafeString2(params, "trailingAmount", "pegOffsetValue"))
-	var isTrailingAmountOrder bool = (trailingAmount != nil)
+	var isTrailingAmountOrder bool = !IsEqual(trailingAmount, nil)
 	if isTrailingAmountOrder {
 		var triggerDirection *string = this.SafeString(params, "triggerDirection")
 		var triggerAbove bool = ((triggerDirection != nil && *triggerDirection == "ascending") || (triggerDirection != nil && *triggerDirection == "above"))

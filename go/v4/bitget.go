@@ -3583,7 +3583,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 		}()
 	}
 	var productType any = DerefScalar(this.SafeString2(params, "productType", "category", defaultProductType))
-	if (productType == nil) && (!IsEqual(market, nil)) {
+	if (IsEqual(productType, nil)) && (!IsEqual(market, nil)) {
 		var settle any = GetValue(market, "settle")
 		if IsEqual(GetValue(market, "spot"), true) {
 			var marginMode any = nil
@@ -3609,7 +3609,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 			productType = "COIN-FUTURES"
 		}
 	}
-	if productType == nil {
+	if IsEqual(productType, nil) {
 		panic(ArgumentsRequired(this.Id + " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\""))
 	}
 	params = this.Omit(params, []any{"productType", "category"})
@@ -11302,7 +11302,7 @@ func (this *Bitget) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		} else if IsEqual(productType, "SUSDC-FUTURES") {
 			marginCoin = "SUSDC"
 		} else if (IsEqual(productType, "SCOIN-FUTURES")) || (IsEqual(productType, "COIN-FUTURES")) {
-			if marginCoin == nil {
+			if IsEqual(marginCoin, nil) {
 				panic(ArgumentsRequired(this.Id + " fetchPositions() requires a marginCoin parameter that matches the productType"))
 			}
 		}

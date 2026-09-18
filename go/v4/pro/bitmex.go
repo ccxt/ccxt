@@ -1070,7 +1070,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParsePosition(rawPosition)
 		var side any = ccxt.DerefScalar(this.SafeString(position, "side"))
-		if side == nil {
+		if ccxt.IsEqual(side, nil) {
 			// BitMEX 'update' rows are deltas and may omit homeNotional, so
 			// parsePosition returns side = undefined. Carry the side forward from
 			// the cached position for this symbol, otherwise appending would break
@@ -1084,7 +1084,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 				ccxt.AddElementToObject(position, "side", side)
 			}
 		}
-		if side == nil {
+		if ccxt.IsEqual(side, nil) {
 			continue
 		}
 		ccxt.AppendToArray(&newPositions, position)

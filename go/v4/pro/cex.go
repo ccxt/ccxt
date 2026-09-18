@@ -465,7 +465,7 @@ func (this *Cex) HandleTicker(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	client.(ccxt.ClientInterface).Resolve(ticker, "tickers")
 	messageHash = ccxt.DerefScalar(this.SafeString(message, "oid"))
-	if messageHash != nil {
+	if !ccxt.IsEqual(messageHash, nil) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }

@@ -2619,7 +2619,7 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	var orderType *string = this.SafeStringLower(order, "order_type")
 	var isBid *bool = this.SafeBool(order, "is_bid")
 	var side any = DerefScalar(this.SafeString(order, "direction"))
-	if side == nil {
+	if IsEqual(side, nil) {
 		if isBid != nil && *isBid == true {
 			side = "buy"
 		} else {

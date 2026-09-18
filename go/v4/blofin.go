@@ -1216,8 +1216,8 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCost *string = this.SafeString(trade, "fee")
 	var fee any = nil
 	var feeCurrency any = DerefScalar(this.SafeString(trade, "feeCurrency"))
-	var isSpot bool = (feeCurrency != nil)
-	if feeCurrency == nil {
+	var isSpot bool = !IsEqual(feeCurrency, nil)
+	if IsEqual(feeCurrency, nil) {
 		feeCurrency = GetValue(market, "settle")
 	} else if IsEqual(feeCurrency, "base_currency") {
 		feeCurrency = GetValue(market, "base")
@@ -1940,7 +1940,7 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var clientOrderId any = DerefScalar(this.SafeString(order, "clientOrderId"))
-	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
+	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil // fix empty clientOrderId string
 	}
 	var stopLossTriggerPrice *float64 = this.SafeNumber(order, "slTriggerPrice")
@@ -3353,7 +3353,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var pos *string = this.SafeString(position, "positions")
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side any = DerefScalar(this.SafeString(position, "positionSide"))
-	var hedged bool = (!IsEqual(side, "net"))
+	var hedged bool = !IsEqual(side, "net")
 	var contracts any = this.ParseNumber(contractsAbs)
 	if pos != nil {
 		if IsEqual(side, "net") {
@@ -3393,7 +3393,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if initialMarginString == nil {
+	} else if IsEqual(initialMarginString, nil) {
 		var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
@@ -3471,7 +3471,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverages", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "marginMode", "cross")) // cross as default marginMode
 	}
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
@@ -3544,7 +3544,7 @@ func (this *Blofin) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "marginMode", "cross")) // cross as default marginMode
 	}
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {

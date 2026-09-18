@@ -1108,7 +1108,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var cost *string = this.SafeString(trade, "Y")
 	if cost == nil {
-		if (price != nil) && (amount != nil) {
+		if (price != nil) && (!ccxt.IsEqual(amount, nil)) {
 			cost = ccxt.Precise.StringMul(price, amount)
 		}
 	}
@@ -1124,7 +1124,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
-		if side == nil {
+		if ccxt.IsEqual(side, nil) {
 			side = func() any {
 				if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 					return "sell"
@@ -1531,7 +1531,7 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
-		if symbolString == nil {
+		if ccxt.IsEqual(symbolString, nil) {
 			continue
 		}
 		var market any = this.Market(symbolString)
@@ -1607,7 +1607,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var data any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var symbolString any = ccxt.DerefScalar(this.SafeString(data, 0))
-		if symbolString == nil {
+		if ccxt.IsEqual(symbolString, nil) {
 			continue
 		}
 		var market any = this.Market(symbolString)

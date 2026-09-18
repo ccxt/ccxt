@@ -298,7 +298,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 			} else {
 				tagLabel = this.SafeString2(tag, "slug", "title")
 			}
-			if tagLabel != nil {
+			if !IsEqual(tagLabel, nil) {
 				var tagKey any = this.NormalizeTagKey(tagLabel)
 				for wi := 0; wi < GetArrayLength(wanted); wi++ {
 					if GetIndexOf(tagKey, GetValue(wanted, wi)) >= 0 {
@@ -672,7 +672,7 @@ func (this *PredictionExchange) IndexMarketOutcomes(market any) {
 		// missing-key access that throws in Python/PHP, unlike TS undefined
 		AddElementToObject(oc, "outcomeId", ocId)
 		AddElementToObject(oc, "market", this.SafeString2(oc, "market", "marketSymbol"))
-		if ocSymbol != nil {
+		if !IsEqual(ocSymbol, nil) {
 			// shortenSlug is lossy, so two different markets can produce the same handle.
 			// on a real collision of same handle but different outcomeId, disambiguate the
 			// second one deterministically instead of silently overwriting the first —
@@ -1746,10 +1746,10 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var tradesLength int = GetArrayLength(trades)
 	var feeList any = []any{}
 	if tradesLength > 0 {
-		if filled == nil {
+		if IsEqual(filled, nil) {
 			filled = "0"
 		}
-		if cost == nil {
+		if IsEqual(cost, nil) {
 			cost = "0"
 		}
 		for i := 0; i < tradesLength; i++ {
@@ -1780,19 +1780,19 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 		}
 	}
 	// fill any totals the venue left undefined (linear, contract size 1)
-	if (filled == nil) && (amount != nil) && (remaining != nil) {
+	if (IsEqual(filled, nil)) && (amount != nil) && (remaining != nil) {
 		filled = Precise.StringSub(amount, remaining)
 	}
-	if (remaining == nil) && (amount != nil) && (filled != nil) {
+	if (remaining == nil) && (amount != nil) && (!IsEqual(filled, nil)) {
 		remaining = Precise.StringSub(amount, filled)
 	}
-	if (amount == nil) && (filled != nil) && (remaining != nil) {
+	if (amount == nil) && (!IsEqual(filled, nil)) && (remaining != nil) {
 		amount = Precise.StringAdd(filled, remaining)
 	}
-	if (average == nil) && (filled != nil) && (cost != nil) && Precise.StringGt(filled, "0") {
+	if (average == nil) && (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
 		average = Precise.StringDiv(cost, filled)
 	}
-	if (cost == nil) && (filled != nil) {
+	if (IsEqual(cost, nil)) && (!IsEqual(filled, nil)) {
 		var multiplyPrice any = func() any {
 			if average != nil {
 				return average
@@ -1818,15 +1818,15 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	var orderType *string = this.SafeString(outcomeOrder, "type")
 	var timeInForce any = this.SafeString(outcomeOrder, "timeInForce")
 	var postOnly any = DerefScalar(this.SafeBool(outcomeOrder, "postOnly"))
-	if timeInForce == nil {
+	if IsEqual(timeInForce, nil) {
 		if orderType != nil && *orderType == "market" {
 			timeInForce = "IOC"
 		}
-		if postOnly == true {
+		if IsEqual(postOnly, true) {
 			timeInForce = "PO"
 		}
-	} else if postOnly == nil {
-		postOnly = (timeInForce == "PO")
+	} else if IsEqual(postOnly, nil) {
+		postOnly = (IsEqual(timeInForce, "PO"))
 	}
 	var timestamp *int64 = this.SafeInteger(outcomeOrder, "timestamp")
 	var datetime *string = this.SafeString(outcomeOrder, "datetime")

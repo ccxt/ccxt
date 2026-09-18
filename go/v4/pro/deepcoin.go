@@ -269,7 +269,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			var expired bool = ccxt.IsGreaterThan((ccxt.Subtract(time, listenKeyExpiryTimestamp)), 60000) // 1 minute before expiry
 			listenKey = ccxt.DerefScalar(this.SafeString(this.Options, "listenKey"))
 			var response any = nil
-			if listenKey == nil {
+			if ccxt.IsEqual(listenKey, nil) {
 
 				response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params))
 				ccxt.PanicOnError(response)
@@ -292,7 +292,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 			if !ccxt.IsEqual(response, nil) {
 				var data any = this.SafeDict(response, "data", map[string]any{})
 				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
-				if listenKey == nil {
+				if ccxt.IsEqual(listenKey, nil) {
 					panic(ccxt.AuthenticationError(this.Id + " authenticate() received an empty listenKey"))
 				}
 				listenKeyExpiryTimestamp = this.SafeTimestamp(data, "expire_time")

@@ -443,7 +443,7 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 		expiry = DerefScalar(this.SafeString(optionParts, 3))
 		optionType = DerefScalar(this.SafeString(optionParts, 0))
 	}
-	if expiry != nil {
+	if !IsEqual(expiry, nil) {
 		expiry = Slice(expiry, 4, nil) + Slice(expiry, 2, 4) + Slice(expiry, 0, 2)
 	}
 	var settle string = quote
@@ -1768,7 +1768,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var sellerRole *string = this.SafeString(trade, "seller_role")
 	var side any = DerefScalar(this.SafeString(trade, "side"))
-	if side == nil {
+	if IsEqual(side, nil) {
 		if sellerRole != nil && *sellerRole == "taker" {
 			side = "sell"
 		} else if sellerRole != nil && *sellerRole == "maker" {
@@ -1778,7 +1778,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker *string = this.SafeString(trade, "role")
 	var metaData any = this.SafeDict(trade, "meta_data", map[string]any{})
 	var typeVar any = DerefScalar(this.SafeString(metaData, "order_type"))
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
 	}
 	var feeCostString *string = this.SafeString(trade, "commission")
@@ -2312,7 +2312,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar any = DerefScalar(this.SafeString(order, "order_type"))
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
 	}
 	var price *string = this.SafeString(order, "limit_price")

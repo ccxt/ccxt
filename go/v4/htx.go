@@ -2698,7 +2698,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		// check if parsed market is contract
 		if contract {
 			id = DerefScalar(this.SafeString(market, "contract_code"))
-			if id == nil {
+			if IsEqual(id, nil) {
 				panic(ExchangeError(this.Id + " method() missing id"))
 			}
 			lowercaseId = ToLower(id)
@@ -2710,7 +2710,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			inverse = !EvalTruthy(linear)
 			if swap {
 				typeVar = "swap"
-				if id == nil {
+				if IsEqual(id, nil) {
 					panic(ExchangeError(this.Id + " method() missing id"))
 				}
 				var parts []string = Split(id, "-")
@@ -2742,10 +2742,10 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			typeVar = "spot"
 			baseId = DerefScalar(this.SafeString(market, "base-currency"))
 			quoteId = DerefScalar(this.SafeString(market, "quote-currency"))
-			if quoteId == nil {
+			if IsEqual(quoteId, nil) {
 				panic(ExchangeError(this.Id + " method() missing quoteId"))
 			}
-			if baseId == nil {
+			if IsEqual(baseId, nil) {
 				panic(ExchangeError(this.Id + " method() missing baseId"))
 			}
 			id = Add(baseId, quoteId)
@@ -2815,7 +2815,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		// 9 Suspending of Trade
 		var created *int64 = nil
 		var createdDate any = DerefScalar(this.SafeString(market, "create_date")) // i.e 20230101
-		if createdDate != nil {
+		if !IsEqual(createdDate, nil) {
 			var createdArray []string = this.StringToCharsArray(createdDate)
 			createdDate = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(GetValue(createdArray, 0), GetValue(createdArray, 1)), GetValue(createdArray, 2)), GetValue(createdArray, 3)), "-"), GetValue(createdArray, 4)), GetValue(createdArray, 5)), "-"), GetValue(createdArray, 6)), GetValue(createdArray, 7)), " 00:00:00")
 			created = this.Parse8601(createdDate)
@@ -3578,7 +3578,7 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	var order *string = this.SafeString2(trade, "order-id", "order_id")
 	var side any = DerefScalar(this.SafeString2(trade, "direction", "side"))
 	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
-	if (typeVar != nil) && (GetIndexOf(typeVar, "-") >= 0) {
+	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "-") >= 0) {
 		var typeParts []string = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)
@@ -6390,7 +6390,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar any = nil
 	if isLinearOrder == true {
 		typeVar = DerefScalar(this.SafeString(order, "type"))
-		if (typeVar == nil) || (IsEqual(typeVar, "tp")) || (IsEqual(typeVar, "sl")) || (IsEqual(typeVar, "tpsl")) {
+		if (IsEqual(typeVar, nil)) || (IsEqual(typeVar, "tp")) || (IsEqual(typeVar, "sl")) || (IsEqual(typeVar, "tpsl")) {
 			typeVar = DerefScalar(this.SafeString2(order, "tp_type", "sl_type"))
 		}
 		if IsEqual(typeVar, "0") {
@@ -6404,7 +6404,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 				var orderType []string = Split(rawType, "-")
 				side = GetValue(orderType, 0)
 				typeVar = GetValue(orderType, 1)
-			} else if typeVar == nil {
+			} else if IsEqual(typeVar, nil) {
 				typeVar = rawType
 			}
 		}
@@ -6413,7 +6413,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeStringN(order, []any{"client_order_id", "client-or" + "der-id", "algo_client_order_id"}) // transpiler regex trick for php issue
 	var cost any = nil
 	var amount any = nil
-	if (typeVar != nil) && (GetIndexOf(typeVar, "market") >= 0) && (isLinearOrder != true) {
+	if (!IsEqual(typeVar, nil)) && (GetIndexOf(typeVar, "market") >= 0) && (isLinearOrder != true) {
 		cost = DerefScalar(this.SafeString(order, "field-cash-amount"))
 	} else {
 		amount = DerefScalar(this.SafeString2(order, "volume", "amount"))
@@ -8464,7 +8464,7 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var networkId *string = this.SafeString(transaction, "chain")
 	var txHash any = DerefScalar(this.SafeString(transaction, "tx-hash"))
-	if txHash == nil {
+	if IsEqual(txHash, nil) {
 		panic(ExchangeError(this.Id + " parseTransaction() missing txHash"))
 	}
 	if (networkId != nil && *networkId == "ETH") && (GetIndexOf(txHash, "0x") < 0) {
@@ -8777,7 +8777,7 @@ func (this *Htx) transferBody(ch chan any, code any, amount any, fromAccount any
 			// check if cross-margin or isolated
 			var symbol any = DerefScalar(this.SafeString(params, "symbol"))
 			params = this.Omit(params, "symbol")
-			if symbol != nil {
+			if !IsEqual(symbol, nil) {
 				symbol = this.MarketId(symbol)
 				request["margin-account"] = symbol
 			} else {

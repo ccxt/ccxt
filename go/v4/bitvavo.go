@@ -1570,18 +1570,18 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)"))
 	} else if IsEqual(fromAccount, "master") {
 		direction = "masterToSub"
-		if subaccountId == nil {
+		if IsEqual(subaccountId, nil) {
 			subaccountId = toAccount
 		}
 	} else if IsEqual(toAccount, "master") {
 		direction = "subToMaster"
-		if subaccountId == nil {
+		if IsEqual(subaccountId, nil) {
 			subaccountId = fromAccount
 		}
 	} else {
 		panic(ArgumentsRequired(this.Id + " transfer() requires either fromAccount or toAccount to be master"))
 	}
-	if subaccountId == nil {
+	if IsEqual(subaccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)"))
 	}
 	var request map[string]any = map[string]any{
@@ -1882,7 +1882,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
 	var isTakeProfit bool = (!IsEqual(takeProfitPrice, nil)) || (IsEqual(typeVar, "takeProfit")) || (IsEqual(typeVar, "takeProfitLimit"))
-	var isStopLoss bool = (!IsEqual(stopLossPrice, nil)) || (triggerPrice != nil) && (!isTakeProfit) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "stopLossLimit"))
+	var isStopLoss bool = (!IsEqual(stopLossPrice, nil)) || (!IsEqual(triggerPrice, nil)) && (!isTakeProfit) || (IsEqual(typeVar, "stopLoss")) || (IsEqual(typeVar, "stopLossLimit"))
 	if isStopLoss {
 		if !IsEqual(stopLossPrice, nil) {
 			triggerPrice = stopLossPrice
@@ -1904,7 +1904,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			return "takeProfitLimit"
 		}()
 	}
-	if triggerPrice != nil {
+	if !IsEqual(triggerPrice, nil) {
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["triggerType"] = "price"
 		request["triggerReference"] = "lastTrade" // 'bestBid', 'bestAsk', 'midPrice'

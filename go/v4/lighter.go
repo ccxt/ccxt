@@ -1633,7 +1633,7 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			return typeVar
 		}()
 		var baseId any = DerefScalar(this.SafeString(market, "symbol"))
-		if (baseId != nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
+		if !IsEqual(baseId, nil) && (GetIndexOf(baseId, "/") != OpNeg(1)) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
 		var quoteId string = "USDC"
@@ -1675,13 +1675,13 @@ func (this *Lighter) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"quoteId":  quoteId,
 			"settleId": settleId,
 			"type":     typeVar,
-			"spot":     (IsEqual(typeVar, "spot")),
+			"spot":     IsEqual(typeVar, "spot"),
 			"margin":   false,
-			"swap":     (IsEqual(typeVar, "swap")),
+			"swap":     IsEqual(typeVar, "swap"),
 			"future":   false,
 			"option":   false,
 			"active":   IsEqual(this.SafeString(market, "status"), "active"),
-			"contract": (IsEqual(typeVar, "swap")),
+			"contract": IsEqual(typeVar, "swap"),
 			"linear": func() any {
 				if IsEqual(typeVar, "swap") {
 					return true
@@ -3027,14 +3027,14 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var isAsk any = DerefScalar(this.SafeBool(order, "is_ask"))
-	if isAsk == nil {
+	if IsEqual(isAsk, nil) {
 		var isAskAsInteger *int64 = this.SafeInteger(order, "is_ask")
 		if isAskAsInteger != nil {
 			isAsk = (isAskAsInteger != nil && *isAskAsInteger == 1)
 		}
 	}
 	var side any = nil
-	if isAsk != nil {
+	if !IsEqual(isAsk, nil) {
 		side = func() any {
 			if EvalTruthy(isAsk) {
 				return "sell"
@@ -3043,14 +3043,14 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 		}()
 	}
 	var typeVar any = DerefScalar(this.SafeString(order, "type"))
-	if typeVar == nil {
+	if IsEqual(typeVar, nil) {
 		var typeAsInteger *int64 = this.SafeInteger(order, "order_type")
 		typeVar = this.ParseOrderTypeInteger(typeAsInteger)
 	}
 	var triggerPrice any = this.ParseNumber(this.OmitZero(this.SafeString(order, "trigger_price")))
 	var stopLossPrice any = nil
 	var takeProfitPrice any = nil
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		if GetIndexOf(typeVar, "stop-loss") >= 0 {
 			stopLossPrice = triggerPrice
 		}
@@ -3067,7 +3067,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 		tif = DerefScalar(this.SafeString(order, "time_in_force"))
 	}
 	var reduceOnly any = DerefScalar(this.SafeBool(order, "reduce_only"))
-	if reduceOnly == nil {
+	if IsEqual(reduceOnly, nil) {
 		var reduceOnlyAsInteger *int64 = this.SafeInteger(order, "reduce_only")
 		if reduceOnlyAsInteger != nil {
 			reduceOnly = (reduceOnlyAsInteger != nil && *reduceOnlyAsInteger == 1)
@@ -3085,7 +3085,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 		"symbol":              GetValue(market, "symbol"),
 		"type":                this.ParseOrderType(typeVar),
 		"timeInForce":         this.ParseOrderTimeInForce(tif),
-		"postOnly":            (IsEqual(tif, "post-only")),
+		"postOnly":            IsEqual(tif, "post-only"),
 		"reduceOnly":          reduceOnly,
 		"side":                side,
 		"price":               this.SafeString(order, "price"),
@@ -3636,7 +3636,7 @@ func (this *Lighter) ParseTransaction(transaction any, optionalArgs ...any) any 
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if typeVar == nil {
+	if IsEqual(typeVar, nil) {
 		typeVar = "deposit"
 	} else {
 		typeVar = "withdrawal"

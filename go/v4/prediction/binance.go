@@ -485,7 +485,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			listingRequest["l2Category"] = l2Category
 		}
 		var sortBy any = this.SafeStringUpper2(params, "sortBy", "sort")
-		if sortBy != nil {
+		if !ccxt.IsEqual(sortBy, nil) {
 			// map the unified sort values onto the server enum, one of RECOMMENDED,
 			// VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
 			// server-side equivalent and stays in params so the base
@@ -495,7 +495,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 			} else if ccxt.IsEqual(sortBy, "LIQUIDITY") {
 				sortBy = nil
 			}
-			if sortBy != nil {
+			if !ccxt.IsEqual(sortBy, nil) {
 				listingRequest["sortBy"] = sortBy
 				params = this.Omit(params, []any{"sort", "sortBy"})
 			}
@@ -1213,7 +1213,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		var outcome *string = this.SafeStringUpper(order, "outcome")
 		var market any = this.SafeMarket(marketId)
 		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
-		if outcomeName == nil {
+		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
 		}
 		outcomeName = ccxt.Add(outcomeName, ccxt.Add(":", outcome))
@@ -1675,7 +1675,7 @@ func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) 
 		var outcome *string = this.SafeStringUpper(position, "outcomeName")
 		var market any = this.SafeMarket(marketId)
 		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
-		if outcomeName == nil {
+		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
 		}
 		outcomeName = ccxt.Add(outcomeName, ccxt.Add(":", outcome))
@@ -1881,7 +1881,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 		var outcome *string = this.SafeStringUpper(trade, "outcome")
 		var market any = this.SafeMarket(marketId)
 		var outcomeName any = ccxt.DerefScalar(this.SafeString(market, "market"))
-		if outcomeName == nil {
+		if ccxt.IsEqual(outcomeName, nil) {
 			outcomeName = marketId
 		}
 		outcomeName = ccxt.Add(outcomeName, ccxt.Add(":", outcome))

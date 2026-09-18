@@ -171,7 +171,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString2(trade, "quantity", "amount")
 	var side any = this.SafeStringLower(trade, "side")
-	if side == nil {
+	if ccxt.IsEqual(side, nil) {
 		var marketSide *string = this.SafeStringLower(trade, "makerSide")
 		if marketSide != nil && *marketSide == "bid" {
 			side = "sell"

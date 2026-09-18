@@ -5493,7 +5493,7 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(trade, "id", "trade_id")
 	var timestamp any = nil
 	var msString any = DerefScalar(this.SafeString(trade, "create_time_ms"))
-	if msString != nil {
+	if !IsEqual(msString, nil) {
 		msString = Precise.StringMul(msString, "1000")
 		msString = Slice(msString, 0, 13)
 		timestamp = this.ParseToInt(msString)
@@ -6313,7 +6313,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			}
 		}
 		var textIsRequired *bool = this.SafeBool(params, "textIsRequired", false)
-		if clientOrderId != nil {
+		if !IsEqual(clientOrderId, nil) {
 			// user-defined, must follow the rules if not empty
 			//     prefixed with t-
 			//     no longer than 28 bytes without t- prefix
@@ -6394,7 +6394,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 			if timeInForce != nil {
 				AddElementToObject(GetValue(request, "initial"), "tif", timeInForce)
 			}
-			if clientOrderId != nil {
+			if !IsEqual(clientOrderId, nil) {
 				AddElementToObject(GetValue(request, "initial"), "text", clientOrderId)
 			}
 		} else {
@@ -6447,7 +6447,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					"rule":       rule,
 					"expiration": expiration,
 				})
-				if clientOrderId != nil {
+				if !IsEqual(clientOrderId, nil) {
 					AddElementToObject(GetValue(request, "trigger"), "text", clientOrderId)
 				}
 			}
@@ -7042,7 +7042,7 @@ func (this *Gate) FetchOrderRequest(id any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
 	var clientOrderId any = DerefScalar(this.SafeString2(params, "text", "clientOrderId"))
 	var orderId any = id
-	if clientOrderId != nil {
+	if !IsEqual(clientOrderId, nil) {
 		params = this.Omit(params, []any{"text", "clientOrderId"})
 		if GetValue(clientOrderId, 0) != "t" {
 			clientOrderId = Add("t-", clientOrderId)
@@ -8206,7 +8206,7 @@ func (this *Gate) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		marginMode = "cross"
 		stringifiedMargin = crossLeverageLimit
 	}
-	if (IsEqual(marginMode, "cross")) || (IsEqual(marginMode, "cross_margin")) {
+	if IsEqual(marginMode, "cross") || IsEqual(marginMode, "cross_margin") {
 		AddElementToObject(request, "cross_leverage_limit", stringifiedMargin)
 		AddElementToObject(request, "leverage", "0")
 	} else {
@@ -8336,7 +8336,7 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(contract, market, "_", "contract")
 	var size *string = this.SafeString2(position, "size", "accum_size")
 	var side any = DerefScalar(this.SafeString(position, "side"))
-	if side == nil {
+	if IsEqual(side, nil) {
 		if Precise.StringGt(size, "0") {
 			side = "long"
 		} else if Precise.StringLt(size, "0") {

@@ -3361,7 +3361,7 @@ func (this *Xt) createSpotOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var postOnly any = nil
-	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(timeInForce, "GTX")), params)
+	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), IsEqual(timeInForce, "GTX"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
 	if postOnly == true {
@@ -3414,14 +3414,14 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = nil
-	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), (IsEqual(timeInForce, "GTX")), params)
+	postOnlyparamsVariable := this.HandlePostOnly((IsEqual(typeVar, "market")), IsEqual(timeInForce, "GTX"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
 	if postOnly == true {
 		timeInForce = "GTX"
 	}
 	params = this.Omit(params, []any{"timeInForce", "postOnly"})
-	if timeInForce != nil {
+	if !IsEqual(timeInForce, nil) {
 		request["timeInForce"] = timeInForce
 	}
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -3499,7 +3499,7 @@ func (this *Xt) createContractOrderBody(ch chan any, symbol any, typeVar any, si
 		}
 	} else if isTrigger {
 		request["timeInForce"] = func() any {
-			if timeInForce == nil {
+			if IsEqual(timeInForce, nil) {
 				return "GTC"
 			}
 			return timeInForce
@@ -5016,7 +5016,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 	var lastUpdatedTimestamp *int64 = this.SafeInteger(order, "updatedTime")
 	var timeInForce any = DerefScalar(this.SafeString(order, "timeInForce"))
 	var postOnly any = nil
-	if timeInForce != nil {
+	if !IsEqual(timeInForce, nil) {
 		if IsEqual(timeInForce, "GTX") {
 			// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 			timeInForce = "PO"
@@ -5024,7 +5024,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) any {
 		postOnly = (IsEqual(timeInForce, "PO"))
 	}
 	var side any = this.SafeStringLower2(order, "side", "orderSide")
-	if side == nil {
+	if IsEqual(side, nil) {
 		// the stop loss and take profit entries carry only the position
 		// side, they close the position, so a long position closes with a
 		// sell and a short position closes with a buy
@@ -6281,7 +6281,7 @@ func (this *Xt) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var symbol *string = this.SafeSymbol(marketId, market, "_", "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "nextCollectionTime")
 	var interval any = DerefScalar(this.SafeString(contract, "collectionInternal"))
-	if interval != nil {
+	if !IsEqual(interval, nil) {
 		interval = Add(interval, "h")
 	}
 	return map[string]any{

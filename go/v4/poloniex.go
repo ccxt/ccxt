@@ -2204,7 +2204,7 @@ func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) any {
 		feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrency))
 		feeCost = DerefScalar(this.SafeString2(order, "tokenFee", "feeAmt"))
 	}
-	if feeCost != nil {
+	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"rate":     rate,
 			"cost":     feeCost,

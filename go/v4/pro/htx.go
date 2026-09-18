@@ -1103,7 +1103,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var isV5Linear bool = (linear && (swap || future))
 	if ccxt.IsEqual(typeVar, "spot") {
 		var mode any = nil
-		if mode == nil {
+		if ccxt.IsEqual(mode, nil) {
 			mode = ccxt.DerefScalar(this.SafeString2(this.Options, "watchMyTrades", "mode", "0"))
 			mode = ccxt.DerefScalar(this.SafeString(params, "mode", mode))
 			params = this.Omit(params, "mode")
@@ -1748,7 +1748,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) any {
 			typeVar = typeSide
 		}
 	}
-	if typeVar == nil {
+	if ccxt.IsEqual(typeVar, nil) {
 		typeVar = ccxt.DerefScalar(this.SafeString(order, "order_price_type"))
 	}
 	var side *string = this.SafeStringLower(typeSideParts, 0)
@@ -1817,7 +1817,7 @@ func (this *Htx) ParseOrderTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "tradeTime")
 	var typeVar any = ccxt.DerefScalar(this.SafeString(trade, "type"))
 	var side any = nil
-	if typeVar != nil {
+	if !ccxt.IsEqual(typeVar, nil) {
 		var typeParts []string = ccxt.Split(typeVar, "-")
 		side = ccxt.GetValue(typeParts, 0)
 		typeVar = ccxt.GetValue(typeParts, 1)

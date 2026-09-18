@@ -418,7 +418,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"limit":  limit,
 			"status": status,
 		}
-		if cursor != nil {
+		if !ccxt.IsEqual(cursor, nil) {
 			request["cursor"] = cursor
 		}
 
@@ -462,7 +462,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		cursor = ccxt.DerefScalar(this.SafeString(response, "cursor"))
 		var collectedLength int = ccxt.GetArrayLength(flatMarkets)
-		if ((cursor == nil) || (ccxt.IsEqual(cursor, ""))) || ccxt.IsLessThan(rawMarketsLength, limit) || ccxt.IsGreaterThanOrEqual(collectedLength, maxMarkets) {
+		if (ccxt.IsEqual(cursor, nil) || ccxt.IsEqual(cursor, "")) || ccxt.IsLessThan(rawMarketsLength, limit) || ccxt.IsGreaterThanOrEqual(collectedLength, maxMarkets) {
 			break
 		}
 	}
@@ -1895,7 +1895,7 @@ func (this *Kalshi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 		var trade any = ccxt.GetValue(trades, i)
-		if (wantedOutcome == nil) || (ccxt.IsEqual(this.SafeString(trade, "outcome"), wantedOutcome)) {
+		if (ccxt.IsEqual(wantedOutcome, nil)) || (ccxt.IsEqual(this.SafeString(trade, "outcome"), wantedOutcome)) {
 			ccxt.AppendToArray(&result, trade)
 		}
 	}
@@ -2168,7 +2168,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		var settlement any = ccxt.GetValue(parsed, i)
-		if (wantedOutcome == nil) || (ccxt.IsEqual(this.SafeString(settlement, "outcome"), wantedOutcome)) {
+		if (ccxt.IsEqual(wantedOutcome, nil)) || (ccxt.IsEqual(this.SafeString(settlement, "outcome"), wantedOutcome)) {
 			ccxt.AppendToArray(&result, settlement)
 		}
 	}
@@ -3282,7 +3282,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 				"with_nested_markets": true,
 				"limit":               reqLimit,
 			}
-			if cursor != nil {
+			if !ccxt.IsEqual(cursor, nil) {
 				request["cursor"] = cursor
 			}
 
@@ -3298,7 +3298,7 @@ func (this *Kalshi) fetchSeriesEventsBody(ch chan any, seriesTickers any, status
 			if (!ccxt.IsEqual(limit, nil)) && (ccxt.IsGreaterThanOrEqual(collectedAfterPage, limit)) {
 				break
 			}
-			if (cursor == nil) || (ccxt.IsEqual(cursor, "")) || (ccxt.IsLessThan(pageEventsLength, reqLimit)) {
+			if (ccxt.IsEqual(cursor, nil)) || (ccxt.IsEqual(cursor, "")) || (ccxt.IsLessThan(pageEventsLength, reqLimit)) {
 				break
 			}
 		}
@@ -3452,7 +3452,7 @@ func (this *Kalshi) ParseEvent(rawEvent any) any {
 		active = anyActive
 	}
 	var resolved any = ccxt.DerefScalar(this.SafeBool(rawEvent, "resolved"))
-	if (resolved == nil) && (marketsCount > 0) {
+	if (ccxt.IsEqual(resolved, nil)) && (marketsCount > 0) {
 		resolved = allResolved
 	}
 	var end any = ccxt.DerefScalar(this.Parse8601(this.SafeString(rawEvent, "end_date_iso")))

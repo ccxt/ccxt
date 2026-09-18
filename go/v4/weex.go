@@ -2854,7 +2854,7 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
 	params = this.Omit(params, "clientOrderId")
-	if clientOrderId == nil {
+	if IsEqual(clientOrderId, nil) {
 		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
 		clientOrderId = Add(Add(partner, "-"), this.Uuid22())
 	}
@@ -2979,7 +2979,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	if isStopLoss || isTakeProfit {
 		reduceOnly = true
 	}
-	var isReduceOnly bool = (reduceOnly == true)
+	var isReduceOnly bool = (IsEqual(reduceOnly, true))
 	var positionSide string = "LONG"
 	if isReduceOnly {
 		if IsEqual(side, "buy") {
@@ -3002,7 +3002,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	}
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
-	if clientOrderId == nil {
+	if IsEqual(clientOrderId, nil) {
 		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
 		clientOrderId = Add(Add(partner, "-"), this.Uuid22())
 	}

@@ -2707,7 +2707,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		panic(InvalidOrder(this.Id + " createOrder(): order side must be either \"buy\" or \"sell\""))
 	}
 	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
-	if clientOrderId == nil {
+	if IsEqual(clientOrderId, nil) {
 		clientOrderId = ToString(this.Nonce()) + "000" + ToString(this.RequestId())
 	}
 	params = this.Omit(params, []any{"clientOrderId"})
@@ -2731,7 +2731,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	if postOnly {
 		orderRequest["post_only"] = true
 	}
-	if timeInForce == nil {
+	if IsEqual(timeInForce, nil) {
 		timeInForce = "GOOD_TILL_TIME"
 	} else {
 		var tifMap map[string]any = map[string]any{

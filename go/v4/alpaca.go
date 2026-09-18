@@ -2025,7 +2025,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var orderType any = DerefScalar(this.SafeString(order, "order_type"))
-	if orderType != nil {
+	if !IsEqual(orderType, nil) {
 		if GetIndexOf(orderType, "limit") >= 0 {
 			// might be limit or stop-limit
 			orderType = "limit"
@@ -2853,7 +2853,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 				baseId = Slice(positionSymbol, 0, baseLength)
 			}
 		}
-		if baseId == nil {
+		if IsEqual(baseId, nil) {
 			continue
 		}
 		var positionCode *string = this.SafeCurrencyCode(baseId)

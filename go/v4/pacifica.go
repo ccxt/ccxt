@@ -3440,7 +3440,7 @@ func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger2(order, "created_at", "ct")
 	var status *string = this.SafeString2(order, "order_status", "os", "open") // open if method is fetchOpenOrders
 	var side any = DerefScalar(this.SafeString(order, "side", "d"))
-	if side != nil {
+	if !IsEqual(side, nil) {
 		side = func() any {
 			if IsEqual(side, "bid") {
 				return "buy"
@@ -3600,7 +3600,7 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) any {
 	}()
 	var isIsolated bool = (IsEqual(marginMode, "isolated"))
 	var side any = DerefScalar(this.SafeString(position, "side"))
-	if side != nil {
+	if !IsEqual(side, nil) {
 		side = func() any {
 			if IsEqual(side, "bid") {
 				return "long"

@@ -1788,7 +1788,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var options any = this.SafeValue(this.Options, "createOrder", map[string]any{})
 	var newOrderRespType any = this.SafeValue(options, "newOrderRespType", map[string]any{})
 	// if limit order
-	if (IsEqual(orderType, "LIMIT")) || (IsEqual(orderType, "STOP_LOSS_LIMIT")) || (IsEqual(orderType, "TAKE_PROFIT_LIMIT")) || (IsEqual(orderType, "LIMIT_MAKER")) {
+	if IsEqual(orderType, "LIMIT") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") || IsEqual(orderType, "LIMIT_MAKER") {
 		if IsEqual(price, nil) {
 			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
 		}
@@ -1798,7 +1798,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		if !IsEqual(orderType, "LIMIT_MAKER") {
 			request["timeInForce"] = this.SafeString(options, "timeInForce", "GTC")
 		}
-	} else if (IsEqual(orderType, "MARKET")) || (IsEqual(orderType, "STOP_LOSS")) || (IsEqual(orderType, "TAKE_PROFIT")) {
+	} else if IsEqual(orderType, "MARKET") || IsEqual(orderType, "STOP_LOSS") || IsEqual(orderType, "TAKE_PROFIT") {
 		newOrderRespType = DerefScalar(this.SafeString(newOrderRespType, "market", "FULL"))
 		if IsEqual(orderSide, "SELL") {
 			request["quantity"] = this.AmountToPrecision(symbol, amount)
@@ -1827,7 +1827,7 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			request["quoteOrderQty"] = quoteAmount
 		}
 	}
-	if (IsEqual(orderType, "STOP_LOSS")) || (IsEqual(orderType, "STOP_LOSS_LIMIT")) || (IsEqual(orderType, "TAKE_PROFIT")) || (IsEqual(orderType, "TAKE_PROFIT_LIMIT")) {
+	if IsEqual(orderType, "STOP_LOSS") || IsEqual(orderType, "STOP_LOSS_LIMIT") || IsEqual(orderType, "TAKE_PROFIT") || IsEqual(orderType, "TAKE_PROFIT_LIMIT") {
 		var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
 		if triggerPrice == nil {
 			panic(InvalidOrder(this.Id + " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders"))
@@ -2680,7 +2680,7 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var id *string = this.SafeString(transaction, "id")
 	var address *string = this.SafeString(transaction, "address")
 	var tag any = DerefScalar(this.SafeString(transaction, "addressTag"))
-	if tag != nil {
+	if !IsEqual(tag, nil) {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}

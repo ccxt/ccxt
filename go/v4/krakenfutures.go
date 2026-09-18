@@ -1435,7 +1435,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 		side = this.SafeString(priorEdit, "type")
 		typeVar = DerefScalar(this.SafeString(priorEdit, "type"))
 	}
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		typeVar = this.ParseOrderType(typeVar)
 	}
 	market = this.SafeMarket(marketId, market)
@@ -2848,7 +2848,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(details, nil) {
 		details = order
 	}
-	if statusId == nil {
+	if IsEqual(statusId, nil) {
 		statusId = DerefScalar(this.SafeString(details, "status"))
 	}
 	// This may be incorrectly marked as "open" if only execution report is given,
@@ -3462,15 +3462,15 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	//    }
 	//
 	var datetime *string = this.SafeString(response, "serverTime")
-	if (IsEqual(typeVar, "marginAccount")) || (IsEqual(typeVar, "margin")) {
-		if symbol == nil {
+	if IsEqual(typeVar, "marginAccount") || IsEqual(typeVar, "margin") {
+		if IsEqual(symbol, nil) {
 			panic(ArgumentsRequired(this.Id + " fetchBalance requires symbol argument for margin accounts"))
 		}
 		typeVar = symbol
 	}
-	if typeVar == nil {
+	if IsEqual(typeVar, nil) {
 		typeVar = func() any {
-			if symbol == nil {
+			if IsEqual(symbol, nil) {
 				return "flex"
 			}
 			return symbol
@@ -3481,13 +3481,13 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	var account any = this.SafeValue(accounts, accountName)
 	if IsEqual(account, nil) {
 		typeVar = func() any {
-			if typeVar == nil {
+			if IsEqual(typeVar, nil) {
 				return ""
 			}
 			return typeVar
 		}()
 		symbol = func() any {
-			if symbol == nil {
+			if IsEqual(symbol, nil) {
 				return ""
 			}
 			return symbol

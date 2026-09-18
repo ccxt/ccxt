@@ -2144,7 +2144,7 @@ func (this *BaseExchange) SafeLedgerEntry(entry any, optionalArgs ...any) any {
 		}
 	}
 	if (before != nil) && (after != nil) {
-		if direction == nil {
+		if IsEqual(direction, nil) {
 			if Precise.StringGt(before, after) {
 				direction = "out"
 			}
@@ -2586,8 +2586,8 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	var symbol *string = this.SafeString(order, "symbol")
 	var side *string = this.SafeString(order, "side")
 	var status *string = this.SafeString(order, "status")
-	var parseFilled bool = (filled == nil)
-	var parseCost bool = (cost == nil)
+	var parseFilled bool = (IsEqual(filled, nil))
+	var parseCost bool = (IsEqual(cost, nil))
 	var parseLastTradeTimeTimestamp bool = (IsEqual(lastTradeTimeTimestamp, nil))
 	var fee any = this.SafeValue(order, "fee")
 	var parseFee bool = (IsEqual(fee, nil))
@@ -2710,21 +2710,21 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	}
 	if amount == nil {
 		// ensure amount = filled + remaining
-		if (filled != nil) && (remaining != nil) {
+		if !IsEqual(filled, nil) && !IsEqual(remaining, nil) {
 			amount = Precise.StringAdd(filled, remaining)
 		} else if status != nil && *status == "closed" {
 			amount = filled
 		}
 	}
-	if filled == nil {
-		if (amount != nil) && (remaining != nil) {
+	if IsEqual(filled, nil) {
+		if (amount != nil) && !IsEqual(remaining, nil) {
 			filled = Precise.StringSub(amount, remaining)
 		} else if (status != nil && *status == "closed") && (amount != nil) {
 			filled = amount
 		}
 	}
-	if remaining == nil {
-		if (amount != nil) && (filled != nil) {
+	if IsEqual(remaining, nil) {
+		if (amount != nil) && !IsEqual(filled, nil) {
 			remaining = Precise.StringSub(amount, filled)
 		} else if status != nil && *status == "closed" {
 			remaining = "0"
@@ -2739,7 +2739,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	// linear
 	// price = cost / (filled * contract size)
 	if average == nil {
-		if (filled != nil) && (cost != nil) && Precise.StringGt(filled, "0") {
+		if (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) && Precise.StringGt(filled, "0") {
 			var filledTimesContractSize *string = Precise.StringMul(filled, contractSize)
 			if inverse != nil && *inverse == true {
 				average = Precise.StringDiv(filledTimesContractSize, cost)
@@ -2755,7 +2755,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	// linear
 	// cost = filled * contract size * price
 	var costPriceExists bool = (average != nil) || (price != nil)
-	if parseCost && (filled != nil) && costPriceExists {
+	if parseCost && (!IsEqual(filled, nil)) && costPriceExists {
 		var multiplyPrice any = nil
 		if average == nil {
 			multiplyPrice = price
@@ -2797,7 +2797,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	var timeInForce any = this.SafeString(order, "timeInForce")
 	var postOnly any = this.SafeValue(order, "postOnly")
 	// timeInForceHandling
-	if timeInForce == nil {
+	if IsEqual(timeInForce, nil) {
 		if !isTriggerOrSLTpOrder && (IsEqual(this.SafeString(order, "type"), "market")) {
 			timeInForce = "IOC"
 		}
@@ -2807,7 +2807,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 		}
 	} else if IsEqual(postOnly, nil) {
 		// timeInForce is not undefined here
-		postOnly = (timeInForce == "PO")
+		postOnly = IsEqual(timeInForce, "PO")
 	}
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "lastUpdateTimestamp")
@@ -6916,7 +6916,7 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 	_ = allowEmpty
 	var triggerDirection any = this.SafeString(params, "triggerDirection")
 	var exchangeSpecificDefined bool = (exchangeSpecificKey != nil) && (InOp(params, exchangeSpecificKey))
-	if triggerDirection != nil {
+	if !IsEqual(triggerDirection, nil) {
 		params = this.Omit(params, "triggerDirection")
 	}
 	// throw exception if:
@@ -6926,9 +6926,9 @@ func (this *BaseExchange) HandleTriggerDirectionAndParams(params any, optionalAr
 		panic(ArgumentsRequired(this.Id + " createOrder() : trigger orders require params[\"triggerDirection\"] to be either \"ascending\" or \"descending\""))
 	}
 	// if old format was provided, overwrite to new
-	if (triggerDirection == "up") || (triggerDirection == "above") {
+	if IsEqual(triggerDirection, "up") || IsEqual(triggerDirection, "above") {
 		triggerDirection = "ascending"
-	} else if (triggerDirection == "down") || (triggerDirection == "below") {
+	} else if IsEqual(triggerDirection, "down") || IsEqual(triggerDirection, "below") {
 		triggerDirection = "descending"
 	}
 	return []any{triggerDirection, params}
@@ -6961,13 +6961,13 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder any, exchangeSpecificParam an
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var timeInForcePostOnly bool = (timeInForce != nil && *timeInForce == "PO")
-	if postOnly != true {
+	if !IsEqual(postOnly, true) {
 		postOnly = timeInForcePostOnly
 	}
-	if postOnly != true {
+	if !IsEqual(postOnly, true) {
 		postOnly = exchangeSpecificParam
 	}
-	if postOnly == true {
+	if IsEqual(postOnly, true) {
 		if ioc || fok {
 			panic(InvalidOrder(Add(this.Id+" postOnly orders cannot have timeInForce equal to ", timeInForce)))
 		} else if EvalTruthy(isMarketOrder) {
@@ -6995,13 +6995,13 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var po bool = (timeInForce != nil && *timeInForce == "PO")
-	if postOnly != true {
+	if !IsEqual(postOnly, true) {
 		postOnly = po
 	}
-	if postOnly != true {
+	if !IsEqual(postOnly, true) {
 		postOnly = exchangeSpecificPostOnlyOption
 	}
-	if postOnly == true {
+	if IsEqual(postOnly, true) {
 		if ioc || fok {
 			panic(InvalidOrder(Add(this.Id+" postOnly orders cannot have timeInForce equal to ", timeInForce)))
 		} else if EvalTruthy(isMarketOrder) {
@@ -8235,7 +8235,7 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
 	for i := 0; i < GetArrayLength(input); i++ {
 		var entry any = GetValue(input, i)
 		var id any = this.SafeString(entry, "id")
-		if id == nil {
+		if IsEqual(id, nil) {
 			var price *string = this.SafeString(entry, "price")
 			var amount *string = this.SafeString(entry, "amount")
 			var timestamp *string = this.SafeString(entry, "timestamp")
@@ -8246,7 +8246,7 @@ func (this *BaseExchange) RemoveRepeatedTradesFromArray(input any) any {
 			}
 			id = Add(Add(Add(Add(Add("t_"+ToString(timestamp)+"_", side), "_"), price), "_"), amount)
 		}
-		if (id != nil) && !(InOp(uniqueResult, id)) {
+		if !IsEqual(id, nil) && !(InOp(uniqueResult, id)) {
 			AddElementToObject(uniqueResult, id, entry)
 		}
 	}

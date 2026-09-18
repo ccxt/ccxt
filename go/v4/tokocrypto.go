@@ -2935,13 +2935,13 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) a
 	_ = currency
 	var address *string = this.SafeString(transaction, "address")
 	var tag any = DerefScalar(this.SafeString(transaction, "addressTag")) // set but unused
-	if tag != nil {
+	if !IsEqual(tag, nil) {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}
 	}
 	var txid any = DerefScalar(this.SafeString(transaction, "txId"))
-	if (txid != nil) && (GetIndexOf(txid, "Internal transfer ") >= 0) {
+	if (!IsEqual(txid, nil)) && (GetIndexOf(txid, "Internal transfer ") >= 0) {
 		txid = Slice(txid, 18, nil)
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
@@ -2950,7 +2950,7 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) a
 	var insertTime *int64 = this.SafeInteger(transaction, "insertTime")
 	var createTime *int64 = this.SafeInteger2(transaction, "createTime", "timestamp")
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if typeVar == nil {
+	if IsEqual(typeVar, nil) {
 		if (insertTime != nil) && (createTime == nil) {
 			typeVar = "deposit"
 			timestamp = insertTime

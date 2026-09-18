@@ -2523,7 +2523,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 	PanicOnError(retRes19198)
 	var currency any = nil
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
-	if id == nil {
+	if IsEqual(id, nil) {
 		if code != nil {
 			currency = this.Currency(code)
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
@@ -2535,14 +2535,14 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 		}
 	}
 	var request map[string]any = map[string]any{}
-	if id != nil {
+	if !IsEqual(id, nil) {
 		request["id"] = id
 	}
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit
 	}
 	var response []any = nil
-	if id == nil {
+	if IsEqual(id, nil) {
 
 		transfers := (<-this.PrivateGetTransfers(this.Extend(request, params)))
 		PanicOnError(transfers)

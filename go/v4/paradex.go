@@ -2355,7 +2355,7 @@ func (this *Paradex) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["trigger_price"] = stopPrice
 	}
 	request["size"] = sizeString
-	if reduceOnly == true {
+	if IsEqual(reduceOnly, true) {
 		request["flags"] = []any{"REDUCE_ONLY"}
 	}
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})

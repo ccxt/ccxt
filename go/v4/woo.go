@@ -945,7 +945,7 @@ func (this *Woo) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var status any = DerefScalar(this.SafeString(data, "status"))
-	if status == nil {
+	if IsEqual(status, nil) {
 		status = "error"
 	} else if IsEqual(status, "0") {
 		status = "ok"

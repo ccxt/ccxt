@@ -2946,7 +2946,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 	var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "loadAccount", "tradingAccountId")
 	tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 	params = GetValue(tradingAccountIdparamsVariable, 1)
-	if tradingAccountId == nil {
+	if IsEqual(tradingAccountId, nil) {
 
 		response := (<-this.PrivateGetV1AccountsTradingAccounts(params))
 		PanicOnError(response)
@@ -2960,7 +2960,7 @@ func (this *Bullish) loadAccountBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if tradingAccountId == nil {
+	if IsEqual(tradingAccountId, nil) {
 		panic(ArgumentsRequired(this.Id + " loadAccount() requires a tradingAccountId parameter in options[\"tradingAccountId\"] or params[\"tradingAccountId\"], fetchAccounts() was not able to find the Primary account"))
 	}
 	AddElementToObject(this.Options, "tradingAccountId", tradingAccountId)

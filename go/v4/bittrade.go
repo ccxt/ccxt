@@ -1210,7 +1210,7 @@ func (this *Bittrade) ParseTrade(trade any, optionalArgs ...any) any {
 	var order *string = this.SafeString(trade, "order-id")
 	var side any = DerefScalar(this.SafeString(trade, "direction"))
 	var typeVar any = DerefScalar(this.SafeString(trade, "type"))
-	if typeVar != nil {
+	if !IsEqual(typeVar, nil) {
 		var typeParts []string = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)

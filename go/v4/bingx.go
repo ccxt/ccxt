@@ -2114,7 +2114,7 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var side any = this.SafeStringLower2(trade, "side", "S")
-	if side == nil {
+	if IsEqual(side, nil) {
 		if (isBuyerMaker != nil) || (m != nil) {
 			side = func() any {
 				if isMakerSide {
@@ -3237,7 +3237,7 @@ func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) any {
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	var percentage any = DerefScalar(this.SafeString(ticker, "priceChangePercent"))
-	if percentage != nil {
+	if !IsEqual(percentage, nil) {
 		percentage = Replace(percentage, "%", "")
 	}
 	var change *string = this.SafeString(ticker, "priceChange")
@@ -4124,7 +4124,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var hedged *bool = this.SafeBool(params, "hedged", false)
 		if hedged != nil && *hedged == true {
 			params = this.Omit(params, "reduceOnly")
-			if reduceOnly == true {
+			if IsEqual(reduceOnly, true) {
 				positionSide = func() any {
 					if IsEqual(side, "buy") {
 						return "SHORT"
@@ -4793,7 +4793,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 	var statusId *string = this.SafeStringUpperN(order, []any{"status", "X", "orderStatus"})
 	var feeCurrencyCode any = DerefScalar(this.SafeString2(order, "feeAsset", "N"))
 	var feeCost *string = this.SafeStringN(order, []any{"fee", "commission", "n"})
-	if feeCurrencyCode == nil {
+	if IsEqual(feeCurrencyCode, nil) {
 		if IsEqual(GetValue(market, "spot"), true) {
 			if side != nil && *side == "buy" {
 				feeCurrencyCode = GetValue(market, "base")
@@ -6273,7 +6273,7 @@ func (this *Bingx) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var networkCode any = this.NetworkIdToCode(networkId, code)
 	// despite its name the addressWithPrefix field sometimes arrives without
 	// the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
-	if address != nil {
+	if !IsEqual(address, nil) {
 		var isPrefixed bool = StartsWith(address, "0x") || StartsWith(address, "0X")
 		var evmNetworks []any = []any{"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"}
 		if !isPrefixed && this.InArray(networkCode, evmNetworks) {

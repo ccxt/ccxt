@@ -765,7 +765,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var orderType any = DerefScalar(this.SafeString2(order, "Type", "OrderType"))
 	var side any = nil
-	if orderType != nil {
+	if !IsEqual(orderType, nil) {
 		if GetIndexOf(orderType, "Bid") >= 0 {
 			side = "buy"
 		} else if GetIndexOf(orderType, "Offer") >= 0 {
@@ -1049,7 +1049,7 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var side any = DerefScalar(this.SafeString(trade, "OrderType"))
-	if side != nil {
+	if !IsEqual(side, nil) {
 		if GetIndexOf(side, "Bid") >= 0 {
 			side = "buy"
 		} else if GetIndexOf(side, "Offer") >= 0 {

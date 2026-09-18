@@ -4349,8 +4349,8 @@ func (this *Binance) Market(symbol any) any {
 	// defaultType has legacy support on binance
 	var defaultType any = DerefScalar(this.SafeString(this.Options, "defaultType"))
 	var defaultSubType *string = this.SafeString(this.Options, "defaultSubType")
-	var isLegacyLinear bool = (IsEqual(defaultType, "future"))
-	var isLegacyInverse bool = (IsEqual(defaultType, "delivery"))
+	var isLegacyLinear bool = IsEqual(defaultType, "future")
+	var isLegacyInverse bool = IsEqual(defaultType, "delivery")
 	var isLegacy bool = isLegacyLinear || isLegacyInverse
 	if IsString(symbol) {
 		if (!IsEqual(this.Markets, nil)) && (InOp(this.Markets, symbol)) {
@@ -4377,7 +4377,7 @@ func (this *Binance) Market(symbol any) any {
 				defaultType = "linear"
 			} else if isLegacyInverse {
 				defaultType = "inverse"
-			} else if defaultType == nil {
+			} else if IsEqual(defaultType, nil) {
 				defaultType = defaultSubType
 			}
 			// end diff
@@ -4389,7 +4389,7 @@ func (this *Binance) Market(symbol any) any {
 			}
 			return GetValue(markets, 0)
 		} else if (IsGreaterThan(GetIndexOf(symbol, "/"), -1)) && (GetIndexOf(symbol, ":") < 0) {
-			if (defaultType != nil) && (!IsEqual(defaultType, "spot")) {
+			if (!IsEqual(defaultType, nil)) && (!IsEqual(defaultType, "spot")) {
 				// support legacy symbols
 				basequoteVariable := Split(symbol, "/")
 				base := GetValue(basequoteVariable, 0)
@@ -4877,7 +4877,7 @@ func (this *Binance) ParseCurrency(rawCurrency any) any {
 		// }
 		var withdrawPrecision any = this.OmitZero(this.SafeString2(networkItem, "withdrawIntegerMultiple", "withdrawInternalMin"))
 		// zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
-		if (withdrawPrecision == nil) && (isFiat != nil && *isFiat == true) {
+		if IsEqual(withdrawPrecision, nil) && (isFiat != nil && *isFiat == true) {
 			withdrawPrecision = DerefScalar(this.SafeString(this.Options, "defaultFiatWithdrawPrecision"))
 		}
 		if networkCode != nil {
@@ -5311,7 +5311,7 @@ func (this *Binance) ParseMarket(market any) any {
 		contract = true
 		option = true
 		settleId = func() any {
-			if settleId == nil {
+			if IsEqual(settleId, nil) {
 				return "USDT"
 			}
 			return settleId
@@ -7450,7 +7450,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	method = DerefScalar(this.SafeString2(params, "fetchTradesMethod", "method", method))
 	if !IsEqual(limit, nil) {
 		var isFutureOrSwap bool = (IsEqual(GetValue(market, "swap"), true)) || (IsEqual(GetValue(market, "future"), true))
-		var isHistoricalEndpoint bool = (method != nil) && (GetIndexOf(method, "GetHistoricalTrades") >= 0)
+		var isHistoricalEndpoint bool = (!IsEqual(method, nil)) && (GetIndexOf(method, "GetHistoricalTrades") >= 0)
 		var maxLimitForContractHistorical any = func() any {
 			if isHistoricalEndpoint {
 				return 500
@@ -7465,7 +7465,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		}() // default = 500, maximum = 1000
 	}
 	params = this.Omit(params, []any{"until", "fetchTradesMethod"})
-	if method == nil {
+	if IsEqual(method, nil) {
 		if IsEqual(GetValue(market, "option"), true) {
 			method = "eapiPublicGetTrades"
 		} else if IsEqual(GetValue(market, "linear"), true) {
@@ -9727,7 +9727,7 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	if symbol != nil {
 		market = this.Market(symbol)
 		stock = DerefScalar(this.SafeBool(market, "stock", false))
-		if stock != true {
+		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
 	} else {
@@ -9813,7 +9813,7 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 			response = (<-this.SapiGetMarginOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if stock == true {
+	} else if IsEqual(stock, true) {
 
 		response = (<-this.SapiGetEquityOrderDetail(this.Extend(request, params)))
 		PanicOnError(response)
@@ -9928,7 +9928,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["startTime"] = since
 	}
 	if !IsEqual(limit, nil) {
-		if stock == true {
+		if IsEqual(stock, true) {
 			limit = mathMin(limit, 100) // max 100
 			request["size"] = limit
 		} else {
@@ -9938,7 +9938,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(until, nil) {
 		request["endTime"] = until
 	}
-	if stock == true {
+	if IsEqual(stock, true) {
 		if IsEqual(until, nil) {
 			until = this.Milliseconds()
 			request["endTime"] = until
@@ -10003,7 +10003,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 			response = (<-this.SapiGetMarginAllOrders(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if stock == true {
+		} else if IsEqual(stock, true) {
 
 			response = (<-this.SapiGetEquityOrderHistory(this.Extend(request, params)))
 			PanicOnError(response)
@@ -10219,7 +10219,7 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	if stock == true {
+	if IsEqual(stock, true) {
 		var result any = this.SafeList(response, "rows", []any{})
 
 		ch <- this.ParseOrders(result, market, since, limit)
@@ -10296,7 +10296,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		stock = DerefScalar(this.SafeBool(market, "stock", false))
-		if stock != true {
+		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
 	} else if !EvalTruthy(stock) {
@@ -10385,7 +10385,7 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.SapiGetMarginOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if stock == true {
+	} else if IsEqual(stock, true) {
 
 		response = (<-this.SapiGetEquityOrderOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -10701,7 +10701,7 @@ func (this *Binance) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchClosedOrders() requires a symbol argument"))
 	}
-	if stock == true {
+	if IsEqual(stock, true) {
 		AddElementToObject(params, "stock", true)
 		AddElementToObject(params, "orderStatus", "FILLED")
 	}
@@ -10765,7 +10765,7 @@ func (this *Binance) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) a
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchCanceledOrders() requires a symbol argument"))
 	}
-	if stock == true {
+	if IsEqual(stock, true) {
 		AddElementToObject(params, "stock", true)
 		AddElementToObject(params, "orderStatus", "CANCELED")
 	}
@@ -10829,7 +10829,7 @@ func (this *Binance) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 	} else if !EvalTruthy(stock) {
 		panic(ArgumentsRequired(this.Id + " fetchCanceledAndClosedOrders() requires a symbol argument"))
 	}
-	if stock == true {
+	if IsEqual(stock, true) {
 		AddElementToObject(params, "stock", true)
 		AddElementToObject(params, "orderStatus", "FILLED,CANCELED")
 	}
@@ -10895,7 +10895,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol != nil {
 		market = this.Market(symbol)
 		stock = DerefScalar(this.SafeBool(market, "stock", false))
-		if stock != true {
+		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
 	} else {
@@ -11007,7 +11007,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 			response = (<-this.SapiDeleteMarginOrder(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if stock == true {
+	} else if IsEqual(stock, true) {
 
 		response = (<-this.SapiPostEquityOrderCancel(this.Extend(request, params)))
 		PanicOnError(response)
@@ -11074,7 +11074,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 		stock = DerefScalar(this.SafeBool(market, "stock", false))
-		if stock != true {
+		if !IsEqual(stock, true) {
 			request["symbol"] = GetValue(market, "id")
 		}
 	} else {
@@ -11157,7 +11157,7 @@ func (this *Binance) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 			response = (<-this.SapiDeleteMarginOpenOrders(this.Extend(request, params)))
 			PanicOnError(response)
 		}
-	} else if stock == true {
+	} else if IsEqual(stock, true) {
 
 		response = (<-this.SapiPostEquityOrderCancelAll(this.Extend(request, params)))
 		PanicOnError(response)
@@ -11405,7 +11405,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	if (stock != true) && (!IsEqual(typeVar, "option")) && (symbol == nil) {
+	if (!IsEqual(stock, true)) && (!IsEqual(typeVar, "option")) && (symbol == nil) {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument"))
 	}
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
@@ -11438,7 +11438,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		if (IsEqual(typeVar, "option")) || (IsEqual(this.SafeBool(market, "contract"), true)) {
 			limit = mathMin(limit, 1000) // above 1000, returns error
 		}
-		if stock == true {
+		if IsEqual(stock, true) {
 			limit = mathMin(limit, 100) // max 100
 			request["size"] = limit
 		} else {
@@ -11458,7 +11458,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		var isPortfolioMarginparamsVariable []any = this.HandleOptionAndParams2(params, "fetchMyTrades", "papi", "portfolioMargin", false)
 		isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 		params = GetValue(isPortfolioMarginparamsVariable, 1)
-		if stock == true {
+		if IsEqual(stock, true) {
 			if IsEqual(endTime, nil) {
 				endTime = this.Milliseconds()
 				request["endTime"] = endTime
@@ -11662,7 +11662,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	var responseList any = []any{}
 	if !IsEqual(response, nil) {
-		if stock == true {
+		if IsEqual(stock, true) {
 			var rows any = this.SafeList(response, "rows", []any{})
 			responseList = rows
 		} else {
@@ -11816,8 +11816,8 @@ func (this *Binance) ParseDustTrade(trade any, optionalArgs ...any) any {
 		side = "sell"
 	}
 	var priceString any = nil
-	if costString != nil {
-		if (amountString != nil) && (!IsEqual(amountString, "")) {
+	if !IsEqual(costString, nil) {
+		if (!IsEqual(amountString, nil)) && (!IsEqual(amountString, "")) {
 			priceString = Precise.StringDiv(costString, amountString)
 		}
 	}
@@ -12161,13 +12161,13 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var id *string = this.SafeString2(transaction, "id", "orderNo")
 	var address *string = this.SafeString(transaction, "address")
 	var tag any = DerefScalar(this.SafeString(transaction, "addressTag")) // set but unused
-	if tag != nil {
+	if !IsEqual(tag, nil) {
 		if GetLength(tag) < 1 {
 			tag = nil
 		}
 	}
 	var txid any = DerefScalar(this.SafeString(transaction, "txId"))
-	if (txid != nil) && (GetIndexOf(txid, "Internal transfer ") >= 0) {
+	if (!IsEqual(txid, nil)) && (GetIndexOf(txid, "Internal transfer ") >= 0) {
 		txid = Slice(txid, 18, nil)
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
@@ -12179,7 +12179,7 @@ func (this *Binance) ParseTransaction(transaction any, optionalArgs ...any) any 
 	}
 	var updated *int64 = this.SafeInteger2(transaction, "successTime", "updateTime")
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
-	if typeVar == nil {
+	if IsEqual(typeVar, nil) {
 		var txType *string = this.SafeString(transaction, "transactionType")
 		if txType != nil {
 			typeVar = func() any {
@@ -12564,7 +12564,7 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 		var fromId *string = this.SafeString(accountsByType, fromAccount)
 		var toId *string = this.SafeString(accountsByType, toAccount)
-		if typeVar == nil {
+		if IsEqual(typeVar, nil) {
 			if fromId == nil {
 				var keys []string = ObjectKeys(accountsByType)
 				panic(ExchangeError(this.Id + " fromAccount parameter must be one of " + Join(keys, ", ")))
@@ -13934,7 +13934,7 @@ func (this *Binance) ParseAccountPosition(position any, optionalArgs ...any) any
 		timestamp = nil
 	}
 	var isolated any = DerefScalar(this.SafeBool(position, "isolated"))
-	if isolated == nil {
+	if IsEqual(isolated, nil) {
 		var isolatedMarginRaw *string = this.SafeString(position, "isolatedMargin")
 		isolated = !Precise.StringEq(isolatedMarginRaw, "0")
 	}
@@ -14162,7 +14162,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var liquidationPrice any = this.ParseNumber(liquidationPriceString)
 	var collateralString any = nil
 	var marginMode any = DerefScalar(this.SafeString(position, "marginType"))
-	if (marginMode == nil) && (isolatedMarginString != nil) {
+	if IsEqual(marginMode, nil) && (isolatedMarginString != nil) {
 		marginMode = func() any {
 			if Precise.StringEq(isolatedMarginString, "0") {
 				return "cross"
@@ -14227,7 +14227,7 @@ func (this *Binance) ParsePositionRisk(position any, optionalArgs ...any) any {
 		collateralString = DerefScalar(this.SafeString(position, "isolatedMargin"))
 	}
 	collateralString = func() any {
-		if collateralString == nil {
+		if IsEqual(collateralString, nil) {
 			return "0"
 		}
 		return collateralString
@@ -14766,7 +14766,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethodparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "method")
 	defaultMethod = GetValue(defaultMethodparamsVariable, 0)
 	params = GetValue(defaultMethodparamsVariable, 1) // check if there is a key in options|params
-	if defaultMethod == nil {
+	if IsEqual(defaultMethod, nil) {
 		// check if .options['fetchPositions'] dict exist at all
 		var options any = this.SafeDict(this.Options, "fetchPositions")
 		if IsEqual(options, nil) {
@@ -16202,7 +16202,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 		if (IsEqual(method, "POST")) && ((IsEqual(path, "order")) || (IsEqual(path, "sor/order"))) {
 			// inject in implicit API calls
 			var newClientOrderId any = DerefScalar(this.SafeString(params, "newClientOrderId"))
-			if newClientOrderId == nil {
+			if IsEqual(newClientOrderId, nil) {
 				var isSpotOrMargin bool = (IsGreaterThan(GetIndexOf(api, "sapi"), -1) || (IsEqual(api, "private")))
 				var marketType any = func() any {
 					if isSpotOrMargin {
@@ -16232,7 +16232,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 				for i := 0; i < GetArrayLength(batchOrders); i++ {
 					var batchOrder any = GetValue(batchOrders, i)
 					var newClientOrderId any = DerefScalar(this.SafeString(batchOrder, "newClientOrderId"))
-					if newClientOrderId == nil {
+					if IsEqual(newClientOrderId, nil) {
 						var defaultId string = "x-xcKtGhcu" // batchOrders can not be spot or margin
 						var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
 						var brokerId *string = this.SafeString(broker, "future", defaultId)

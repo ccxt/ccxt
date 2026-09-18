@@ -521,7 +521,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry any = GetValue(rawCurrency, i)
 		// set ID on first loop
-		if id == nil {
+		if IsEqual(id, nil) {
 			id = DerefScalar(this.SafeString(networkEntry, "currency_code"))
 			code = DerefScalar(this.SafeCurrencyCode(id))
 		}

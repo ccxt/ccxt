@@ -2840,7 +2840,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	// CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
 	// native override: params.orderType (GTC, GTD, FOK or FAK)
 	var orderTypeStr any = this.SafeStringUpper(params, "orderType")
-	if orderTypeStr == nil {
+	if ccxt.IsEqual(orderTypeStr, nil) {
 		// otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
 		var unifiedTif *string = this.SafeStringUpper(params, "timeInForce")
 		if unifiedTif != nil && *unifiedTif == "GTC" {
@@ -2853,7 +2853,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 			orderTypeStr = "GTD"
 		}
 	}
-	if orderTypeStr == nil {
+	if ccxt.IsEqual(orderTypeStr, nil) {
 		orderTypeStr = func() any {
 			if isMarket {
 				return "FOK"

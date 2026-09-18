@@ -1720,13 +1720,13 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 			side = "buy"
 		}
 	} else {
-		if side == nil {
+		if IsEqual(side, nil) {
 			panic(ExchangeError(this.Id + " parseTrade() returned no side"))
 		}
 		var parts []string = Split(side, "_")
 		side = DerefScalar(this.SafeString(parts, 0))
 		typeVar = DerefScalar(this.SafeString(parts, 1))
-		if typeVar == nil {
+		if IsEqual(typeVar, nil) {
 			typeVar = "limit"
 		}
 		var isMaker any = this.SafeValue(trade, "is_maker")
@@ -2788,7 +2788,7 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 	} else {
 		timestamp = this.SafeTimestamp(order, "created_date")
 		lastTradeTimestamp = this.SafeTimestamp(order, "finished_date")
-		if side != nil {
+		if !IsEqual(side, nil) {
 			var parts []string = Split(side, "_")
 			var numParts int = len(parts)
 			if numParts > 1 {
@@ -4903,7 +4903,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var marginMode any = DerefScalar(this.SafeString(position, "margin_mode"))
-	if marginMode != nil {
+	if !IsEqual(marginMode, nil) {
 		marginMode = func() any {
 			if IsEqual(marginMode, "crossed") {
 				return "cross"
@@ -4994,7 +4994,7 @@ func (this *Digifinex) setLeverageBody(ch chan any, leverage any, optionalArgs .
 	}
 	var defaultMarginMode *string = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
 	var marginMode any = this.SafeStringLower2(params, "marginMode", "defaultMarginMode", defaultMarginMode)
-	if marginMode != nil {
+	if !IsEqual(marginMode, nil) {
 		marginMode = func() any {
 			if IsEqual(marginMode, "cross") {
 				return "crossed"

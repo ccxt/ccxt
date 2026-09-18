@@ -3576,7 +3576,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 				"tif": timeInForce,
 			}
 		}
-		if triggerPrice == nil {
+		if IsEqual(triggerPrice, nil) {
 			triggerPrice = "0"
 		}
 		var orderReq map[string]any = map[string]any{
@@ -4439,7 +4439,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) any {
 	var status *string = this.SafeString2(order, "status", "ccxtStatus")
 	order = this.Omit(order, []any{"ccxtStatus"})
 	var side any = DerefScalar(this.SafeString(entry, "side"))
-	if side != nil {
+	if !IsEqual(side, nil) {
 		side = func() any {
 			if IsEqual(side, "A") {
 				return "sell"
@@ -4648,7 +4648,7 @@ func (this *Hyperliquid) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var id *string = this.SafeString(trade, "tid")
 	var side any = DerefScalar(this.SafeString(trade, "side"))
-	if side != nil {
+	if !IsEqual(side, nil) {
 		side = func() any {
 			if IsEqual(side, "A") {
 				return "sell"
@@ -5260,7 +5260,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 		}
 		var strAmount any = DerefScalar(this.NumberToString(amount))
 		var vaultAddress any = DerefScalar(this.SafeString2(params, "vaultAddress", "subAccountAddress"))
-		if vaultAddress != nil {
+		if !IsEqual(vaultAddress, nil) {
 			vaultAddress = this.FormatVaultAddress(vaultAddress)
 			strAmount = Add(Add(strAmount, " subaccount:"), vaultAddress)
 		}
@@ -6371,7 +6371,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 		var statuses any = this.SafeList(data, "statuses", []any{})
 		for i := 0; i < GetArrayLength(statuses); i++ {
 			message = DerefScalar(this.SafeString(GetValue(statuses, i), "error"))
-			if message != nil {
+			if !IsEqual(message, nil) {
 				break
 			}
 		}
@@ -6384,7 +6384,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 		}
 	}
 	var feedback any = Add(this.Id+" ", body)
-	var nonEmptyMessage bool = ((message != nil) && (!IsEqual(message, "")))
+	var nonEmptyMessage bool = ((!IsEqual(message, nil)) && (!IsEqual(message, "")))
 	if nonEmptyMessage {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

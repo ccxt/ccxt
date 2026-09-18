@@ -591,7 +591,7 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) a
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
 	var address any = DerefScalar(this.SafeString(cryptoPaymentDetail, "address"))
 	var tag any = nil
-	if address != nil {
+	if !IsEqual(address, nil) {
 		var addressParts []string = Split(address, "?dt=")
 		var numParts int = len(addressParts)
 		if numParts > 1 {

@@ -1825,7 +1825,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var id any = DerefScalar(this.SafeString(params, "id")) // account id
 	var min_row any = this.SafeValue(params, "min_row")
 	var max_row any = this.SafeValue(params, "max_row")
-	if id == nil {
+	if IsEqual(id, nil) {
 		if code == nil {
 			panic(ArgumentsRequired(this.Id + " fetchLedger() requires a currency code argument if no account id specified in params"))
 		}
@@ -1886,7 +1886,7 @@ func (this *Luno) ParseLedgerComment(comment any) any {
 	var thirdWord *string = this.SafeString(words, 2)
 	var fourthWord *string = this.SafeString(words, 3)
 	var typeVar any = DerefScalar(this.SafeString(types, firstWord))
-	if (typeVar == nil) && (thirdWord != nil && *thirdWord == "fee") {
+	if (IsEqual(typeVar, nil)) && (thirdWord != nil && *thirdWord == "fee") {
 		typeVar = "fee"
 	}
 	if (IsEqual(typeVar, "reserved")) && (fourthWord != nil && *fourthWord == "order") {

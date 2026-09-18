@@ -2856,7 +2856,7 @@ func (this *Okx) ParseMarket(market any) any {
 		}
 	}
 	var feesType any = func() any {
-		if typeVar == nil {
+		if IsEqual(typeVar, nil) {
 			return ""
 		}
 		return typeVar
@@ -4544,7 +4544,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 		margin = DerefScalar(this.SafeBool(params, "margin", false))
 	}
 	if spot == true {
-		if margin == true {
+		if IsEqual(margin, true) {
 			var defaultCurrency any = func() any {
 				if IsEqual(side, "buy") {
 					return GetValue(market, "quote")
@@ -4555,7 +4555,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 			AddElementToObject(request, "ccy", this.SafeCurrencyCode(currency))
 		}
 		var tradeMode any = func() any {
-			if margin == true {
+			if IsEqual(margin, true) {
 				return marginMode
 			}
 			return "cash"
@@ -4614,7 +4614,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	var marketIOC bool = (isMarketOrder && ioc) || (IsEqual(typeVar, "optimal_limit_ioc"))
 	var defaultTgtCcy *string = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy *string = this.SafeString(params, "tgtCcy", defaultTgtCcy)
-	if (contract != true) && (margin != true) {
+	if (contract != true) && (!IsEqual(margin, true)) {
 		AddElementToObject(request, "tgtCcy", tgtCcy)
 	}
 	if isMarketOrder || marketIOC {
@@ -5840,7 +5840,7 @@ func (this *Okx) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var clientOrderId any = DerefScalar(this.SafeString(order, "clOrdId"))
-	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
+	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil // fix empty clientOrderId string
 	}
 	var stopLossPrice *float64 = this.SafeNumber2(order, "slTriggerPx", "slOrdPx")
@@ -6844,11 +6844,11 @@ func (this *Okx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLedger", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "mgnMode"))
 	}
 	if method == nil || *method != "privateGetAssetBills" {
-		if marginMode != nil {
+		if !IsEqual(marginMode, nil) {
 			AddElementToObject(request, "mgnMode", marginMode)
 		}
 	}
@@ -7751,7 +7751,7 @@ func (this *Okx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var address *string = addressTo
 	var tagTo any = DerefScalar(this.SafeString2(transaction, "tag", "memo"))
 	tagTo = func() any {
-		if tagTo == nil {
+		if IsEqual(tagTo, nil) {
 			return this.SafeString(transaction, "pmtId")
 		}
 		return this.SafeString2(transaction, "pmtId", tagTo)
@@ -7843,7 +7843,7 @@ func (this *Okx) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "mgnMode", "cross")) // cross as default marginMode
 	}
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
@@ -8210,7 +8210,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var pos *string = this.SafeString(position, "pos") // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
 	var contractsAbs *string = Precise.StringAbs(pos)
 	var side any = DerefScalar(this.SafeString2(position, "posSide", "direction"))
-	var hedged bool = (!IsEqual(side, "net"))
+	var hedged bool = !IsEqual(side, "net")
 	var contracts any = this.ParseNumber(contractsAbs)
 	if IsEqual(GetValue(market, "margin"), true) {
 		// margin position
@@ -8226,7 +8226,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 				}()
 			}
 		}
-		if side == nil {
+		if IsEqual(side, nil) {
 			side = DerefScalar(this.SafeString(position, "direction"))
 		}
 	} else {
@@ -8269,7 +8269,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) any {
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
 	if initialMarginPercentage == nil {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
-	} else if initialMarginString == nil {
+	} else if IsEqual(initialMarginString, nil) {
 		if IsEqual(GetValue(market, "linear"), true) {
 			var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
@@ -9094,7 +9094,7 @@ func (this *Okx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "mgnMode", "cross")) // cross as default marginMode
 	}
 	if (!IsEqual(marginMode, "cross")) && (!IsEqual(marginMode, "isolated")) {
@@ -9827,7 +9827,7 @@ func (this *Okx) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalA
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "tdMode", "cross")) // cross as default marginMode
 	}
 	var request map[string]any = map[string]any{
@@ -9953,7 +9953,7 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	if marginMode == nil {
+	if IsEqual(marginMode, nil) {
 		marginMode = DerefScalar(this.SafeString(params, "mgnMode", "cross")) // cross as default marginMode
 	}
 	var request map[string]any = map[string]any{

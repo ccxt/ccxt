@@ -1828,7 +1828,7 @@ func (this *Revolutx) HandleErrors(code any, reason any, url any, method any, he
 		if IsObject(response) {
 			errorMessage = DerefScalar(this.SafeString2(response, "message", "error"))
 		}
-		if errorMessage != nil {
+		if !IsEqual(errorMessage, nil) {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 		}
 		return nil

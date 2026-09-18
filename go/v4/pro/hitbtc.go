@@ -1674,7 +1674,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 		return
 	}
 	var channel any = ccxt.DerefScalar(this.SafeString2(message, "ch", "method"))
-	if channel != nil {
+	if !ccxt.IsEqual(channel, nil) {
 		var splitChannel []string = ccxt.Split(channel, "/")
 		channel = ccxt.DerefScalar(this.SafeString(splitChannel, 0))
 		if ccxt.IsEqual(channel, "orderbook") {
@@ -1699,7 +1699,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 			"futures_balance": this.HandleBalance,
 		}
 		var method any = func() any {
-			if channel == nil {
+			if ccxt.IsEqual(channel, nil) {
 				return nil
 			}
 			return this.SafeValue(methods, channel)

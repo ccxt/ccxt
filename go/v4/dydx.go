@@ -1570,7 +1570,7 @@ func (this *Dydx) RetrieveCredentials() any {
 		return credentials
 	}
 	var privateKey any = DerefScalar(this.SafeString(this.Options, "privateKey"))
-	if privateKey == nil {
+	if IsEqual(privateKey, nil) {
 		var signature any = this.SignOnboardingAction()
 		privateKey = this.HashMessage(this.Base16ToBinary(Add(GetValue(signature, "r"), GetValue(signature, "s"))))
 	}

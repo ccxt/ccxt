@@ -510,7 +510,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	var takeProfitTriggerPrice *string = this.SafeString(params, "takeProfitPrice")
 	var isStopLossOrder bool = (stopLossTriggerPrice != nil)
 	var isTakeProfitOrder bool = (takeProfitTriggerPrice != nil)
-	var isStopOrder bool = (triggerPrice != nil)
+	var isStopOrder bool = !IsEqual(triggerPrice, nil)
 	var isTriggerOrder bool = isStopOrder || isStopLossOrder || isTakeProfitOrder
 	if isStopOrder {
 		var triggerDirection any = nil
@@ -566,7 +566,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		placeOrder["trigger"] = trigger
 	}
 	var appendix any = DerefScalar(this.SafeString(params, "appendix"))
-	if appendix == nil {
+	if IsEqual(appendix, nil) {
 		appendix = this.CreateOrderAppendix(isTriggerOrder, params)
 	}
 	order["appendix"] = appendix
@@ -720,7 +720,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	var cancelNonce any = this.CreateOrderNonce(recvWindow)
 	var orderNonce *string = Precise.StringAdd(cancelNonce, "1")
 	var appendix any = DerefScalar(this.SafeString(params, "appendix"))
-	if appendix == nil {
+	if IsEqual(appendix, nil) {
 		appendix = this.CreateOrderAppendix(false, params)
 	}
 	var requestId *int64 = this.SafeInteger(params, "id")
@@ -2973,7 +2973,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	var costString *string = this.SafeString(trade, "quote_filled")
 	var rawOrderAmount *string = this.SafeString(order, "amount")
 	var side any = DerefScalar(this.SafeString(trade, "trade_type"))
-	if (side == nil) && (rawOrderAmount != nil) {
+	if (IsEqual(side, nil)) && (rawOrderAmount != nil) {
 		if Precise.StringLt(rawOrderAmount, "0") {
 			side = "sell"
 		} else {
@@ -2981,7 +2981,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var price any = DerefScalar(this.SafeString(trade, "price"))
-	if price == nil {
+	if IsEqual(price, nil) {
 		var parsedPrice any = this.ParseX18(this.SafeString(order, "priceX18"))
 		price = func() any {
 			if IsEqual(parsedPrice, nil) {
@@ -3255,7 +3255,7 @@ func (this *Nado) ParseBalance(response any) any {
 		AddElementToObject(account, "total", amount)
 		// the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
 		AddElementToObject(account, "free", amount)
-		if code != nil {
+		if !IsEqual(code, nil) {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -3526,7 +3526,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		lastTradeTimestamp = this.SafeTimestamp(order, "last_fill_timestamp")
 		price = this.ParseX18(this.SafeString(order, "price_x18"))
 		status = DerefScalar(this.SafeString(order, "status"))
-		if status == nil {
+		if IsEqual(status, nil) {
 			if EvalTruthy(this.IsArchiveOrderClosed(order)) {
 				status = "closed"
 			}
@@ -3569,7 +3569,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		var data any = this.SafeDict(order, "data", map[string]any{})
 		id = DerefScalar(this.SafeString(data, "digest"))
-		if id == nil {
+		if IsEqual(id, nil) {
 			id = DerefScalar(this.SafeString(placeOrder, "digest"))
 			timestamp = this.SafeTimestamp(order, "placed_at")
 			lastUpdateTimestamp = this.SafeTimestamp(order, "updated_at")

@@ -1697,7 +1697,7 @@ func (this *Bithumb) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var priceString *string = this.SafeString2(trade, "price", "trade_price")
 	var amountString any = DerefScalar(this.SafeString(trade, "trade_volume"))
-	if amountString == nil {
+	if IsEqual(amountString, nil) {
 		amountString = this.FixCommaNumber(this.SafeString2(trade, "units_traded", "units"))
 	}
 	var costString *string = this.SafeString(trade, "total")
@@ -1941,7 +1941,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	}
 	request["side"] = sideRequest
 	var timeInForce any = DerefScalar(this.SafeString2(params, "timeInForce", "time_in_force"))
-	if timeInForce == nil {
+	if IsEqual(timeInForce, nil) {
 		timeInForce = "GTC"
 	} else {
 		params = this.Omit(params, "timeInForce")
@@ -1974,7 +1974,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if (IsEqual(price, nil)) && (cost == nil) {
+				if (IsEqual(price, nil)) && (IsEqual(cost, nil)) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
 					var amountString *string = this.NumberToString(amount)
@@ -1983,7 +1983,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				}
 			} else {
 				cost = func() any {
-					if cost == nil {
+					if IsEqual(cost, nil) {
 						return this.NumberToString(amount)
 					}
 					return cost
@@ -2534,7 +2534,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var typeVar any = DerefScalar(this.SafeString2(order, "order_type", "ord_type"))
 	var progressCount *string = this.SafeString(order, "progress_count")
-	if (typeVar == nil) && (price != nil) && (progressCount == nil) {
+	if (IsEqual(typeVar, nil)) && (price != nil) && (progressCount == nil) {
 		if Precise.StringEquals(price, "0") {
 			typeVar = "market"
 		} else {
@@ -3893,7 +3893,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 			for j := 0; j < GetArrayLength(value); j++ {
 				var item any = GetValue(value, j)
 				var valueString any = DerefScalar(this.SafeString(value, j))
-				if valueString == nil {
+				if IsEqual(valueString, nil) {
 					valueString = this.Json(item)
 				}
 				if GetLength(result) > 0 {

@@ -955,7 +955,7 @@ func (this *Derive) HandleMessage(client any, message any) {
 		}
 	}
 	var method any = func() any {
-		if event == nil {
+		if ccxt.IsEqual(event, nil) {
 			return nil
 		}
 		return this.SafeValue(methods, event)

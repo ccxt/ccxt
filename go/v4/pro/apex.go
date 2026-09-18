@@ -363,7 +363,7 @@ func (this *Apex) GetWsPublicUrl() any {
 	// timestamp on every watch* call would open a new connection each time.
 	// Cache it per exchange instance.
 	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPublicUrl"))
-	if url == nil {
+	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
 		ccxt.AddElementToObject(this.Options, "wsPublicUrl", url)
@@ -372,7 +372,7 @@ func (this *Apex) GetWsPublicUrl() any {
 }
 func (this *Apex) GetWsPrivateUrl() any {
 	var url any = ccxt.DerefScalar(this.SafeString(this.Options, "wsPrivateUrl"))
-	if url == nil {
+	if ccxt.IsEqual(url, nil) {
 		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
 		ccxt.AddElementToObject(this.Options, "wsPrivateUrl", url)

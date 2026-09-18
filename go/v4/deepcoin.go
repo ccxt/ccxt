@@ -1603,12 +1603,12 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks", map[string]any{})
 	var defaultNetwork *string = this.SafeString(defaultNetworks, code)
 	network = func() any {
-		if (network != nil) && (!IsEqual(network, "")) {
+		if !IsEqual(network, nil) && !IsEqual(network, "") {
 			return network
 		}
 		return defaultNetwork
 	}()
-	if network != nil {
+	if !IsEqual(network, nil) {
 		params = this.Omit(params, "network")
 	}
 
@@ -1616,7 +1616,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	PanicOnError(addressess)
 	var length int = GetArrayLength(addressess)
 	var address any = this.SafeDict(addressess, 0, map[string]any{})
-	if (network != nil) && (length > 1) {
+	if (!IsEqual(network, nil)) && (length > 1) {
 		for i := 0; i < length; i++ {
 			var entry any = GetValue(addressess, i)
 			if IsEqual(GetValue(entry, "network"), network) {

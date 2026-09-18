@@ -2254,7 +2254,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 		}
 	}
-	if (id == nil) && EvalTruthy(this.SafeBool(this.Options, "useCcxtTradeId", true)) {
+	if IsEqual(id, nil) && EvalTruthy(this.SafeBool(this.Options, "useCcxtTradeId", true)) {
 		id = this.CreateCcxtTradeId(timestamp, side, amountString, priceString, takerOrMaker)
 	}
 	return this.SafeTrade(map[string]any{
@@ -5856,7 +5856,7 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan any, code any, opti
 			networkId = this.NetworkCodeToId(networkCode, code)
 		}
 	}
-	if networkId != nil {
+	if !IsEqual(networkId, nil) {
 		request["network"] = networkId
 	}
 	params = this.Omit(params, "network")
@@ -5929,7 +5929,7 @@ func (this *Mexc) createDepositAddressBody(ch chan any, code any, optionalArgs .
 	} else {
 		networkId = this.NetworkCodeToId(networkCode, code)
 	}
-	if networkId != nil {
+	if !IsEqual(networkId, nil) {
 		request["network"] = networkId
 	}
 	params = this.Omit(params, "network")
@@ -6992,7 +6992,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 	if tag != nil {
 		request["memo"] = tag
 	}
-	if network != nil {
+	if !IsEqual(network, nil) {
 		request["netWork"] = network
 		params = this.Omit(params, []any{"network", "netWork"})
 	}

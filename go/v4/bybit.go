@@ -3696,10 +3696,10 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				panic(BadRequest(this.Id + " fetchTickers can only accept a list of symbols of the same type"))
 			}
 			if IsEqual(GetValue(market, "option"), true) {
-				if (code != nil) && (code != GetValue(market, "base")) {
+				if !IsEqual(code, nil) && !IsEqual(code, GetValue(market, "base")) {
 					panic(BadRequest(this.Id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers"))
 				}
-				if code == nil {
+				if IsEqual(code, nil) {
 					code = GetValue(market, "base")
 				}
 				params = this.Omit(params, []any{"code", "currency"})
@@ -3715,7 +3715,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	request["category"] = category
 	if IsEqual(category, "option") {
 		request["category"] = "option"
-		if code == nil {
+		if IsEqual(code, nil) {
 			code = "BTC"
 		}
 		request["baseCoin"] = code
@@ -4449,7 +4449,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 	var costString *string = this.SafeString(trade, "execValue")
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"time", "execTime", "tradeTime"})
 	var side any = this.SafeStringLower(trade, "side")
-	if side == nil {
+	if IsEqual(side, nil) {
 		var isBuyer *int64 = this.SafeInteger(trade, "isBuyer")
 		if isBuyer != nil {
 			side = func() any {
@@ -4474,7 +4474,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 		if IsEqual(lastLiquidityInd, "UNKNOWN") {
 			lastLiquidityInd = nil
 		}
-		if lastLiquidityInd != nil {
+		if !IsEqual(lastLiquidityInd, nil) {
 			if (IsEqual(lastLiquidityInd, "TAKER")) || (IsEqual(lastLiquidityInd, "MAKER")) {
 				takerOrMaker = ToLower(lastLiquidityInd)
 			} else {
@@ -5291,7 +5291,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var clientOrderId any = DerefScalar(this.SafeString(order, "orderLinkId"))
-	if (clientOrderId != nil) && (GetLength(clientOrderId) < 1) {
+	if (!IsEqual(clientOrderId, nil)) && (GetLength(clientOrderId) < 1) {
 		clientOrderId = nil
 	}
 	var avgPrice any = this.OmitZero(this.SafeString(order, "avgPrice"))
@@ -6032,7 +6032,7 @@ func (this *Bybit) EditOrderRequest(id any, symbol any, typeVar any, side any, o
 			return takeProfitTriggerPrice
 		}()
 	}
-	if triggerPrice != nil {
+	if !IsEqual(triggerPrice, nil) {
 		var triggerPriceRequest any = func() any {
 			if IsEqual(triggerPrice, "0") {
 				return triggerPrice
@@ -8967,7 +8967,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) any {
 			}
 			return "short"
 		}()
-	} else if side != nil {
+	} else if !IsEqual(side, nil) {
 		if IsEqual(side, "Buy") {
 			side = func() any {
 				if isHistory {
@@ -9216,13 +9216,13 @@ func (this *Bybit) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 			if leverage == nil {
 				sellLeverage = DerefScalar(this.SafeString2(params, "sell_leverage", "sellLeverage"))
 				buyLeverage = DerefScalar(this.SafeString2(params, "buy_leverage", "buyLeverage"))
-				if (sellLeverage == nil) && (buyLeverage == nil) {
+				if IsEqual(sellLeverage, nil) && IsEqual(buyLeverage, nil) {
 					panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters"))
 				}
-				if buyLeverage == nil {
+				if IsEqual(buyLeverage, nil) {
 					buyLeverage = sellLeverage
 				}
-				if sellLeverage == nil {
+				if IsEqual(sellLeverage, nil) {
 					sellLeverage = buyLeverage
 				}
 				params = this.Omit(params, []any{"buy_leverage", "sell_leverage", "sellLeverage", "buyLeverage"})

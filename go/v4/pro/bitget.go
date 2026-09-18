@@ -841,7 +841,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval any = ccxt.DerefScalar(this.SafeString(arg, "interval"))
 	var isUta any = nil
-	if interval == nil {
+	if ccxt.IsEqual(interval, nil) {
 		isUta = false
 		interval = ccxt.Replace(channel, "candle", "")
 	} else {
@@ -3548,7 +3548,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var interval any = ccxt.DerefScalar(this.SafeString(arg, "interval"))
 	var isUta any = nil
-	if interval == nil {
+	if ccxt.IsEqual(interval, nil) {
 		isUta = false
 		interval = ccxt.Replace(channel, "candle", "")
 	} else {

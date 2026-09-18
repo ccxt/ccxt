@@ -1881,7 +1881,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var orderId *string = this.SafeString(trade, "i")
 	if ccxt.InOp(trade, "m") {
-		if side == nil {
+		if ccxt.IsEqual(side, nil) {
 			side = func() any {
 				if ccxt.IsEqual(ccxt.GetValue(trade, "m"), true) {
 					return "sell"
@@ -1994,7 +1994,7 @@ func (this *Binance) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var stockparamsVariable []any = this.HandleOptionAndParams(params, "watchOHLCV", "stock")
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
-	if stock == true {
+	if ccxt.IsEqual(stock, true) {
 		if (!ccxt.IsEqual(timeframe, "5m")) && (!ccxt.IsEqual(timeframe, "1h")) && (!ccxt.IsEqual(timeframe, "1d")) && (!ccxt.IsEqual(timeframe, "1w")) && (!ccxt.IsEqual(timeframe, "1M")) {
 			panic(ccxt.BadRequest(this.Id + " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes"))
 		}
@@ -3282,7 +3282,7 @@ func (this *Binance) ParseWsTicker(message any, marketType any) any {
 	if ccxt.IsEqual(event, "24hrTicker") {
 		event = "ticker"
 	}
-	if (ccxt.IsEqual(event, "markPriceUpdate")) || (ccxt.IsEqual(event, "markPrice")) {
+	if ccxt.IsEqual(event, "markPriceUpdate") || ccxt.IsEqual(event, "markPrice") {
 		// handle this separately because some fields clash with the ticker fields
 		// futures use 'p' for mark price; options use 'mp'
 		return this.SafeTicker(map[string]any{
@@ -3452,7 +3452,7 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 			event = "bookTicker" // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
 		}
 		channelName = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(this.Options, "tickerChannelsMap"), event, event))
-		if channelName == nil {
+		if ccxt.IsEqual(channelName, nil) {
 			continue
 		}
 		var tickerMarketId *string = this.SafeString(ticker, "s")
@@ -3989,7 +3989,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
 	var subTypeInfo any = this.HandleSubTypeAndParams("keepAliveListenKey", nil, params)
 	var subType any = ccxt.GetValue(subTypeInfo, 0)
-	if (!ccxt.IsEqual(typeVar, "option")) && (!ccxt.IsEqual(typeVar, "stock")) {
+	if !ccxt.IsEqual(typeVar, "option") && !ccxt.IsEqual(typeVar, "stock") {
 		// guard options first: isLinear returns true for linear-settled options (subType='linear')
 		// which would incorrectly convert type='option' to 'future'.
 		// stock needs the same exemption: with a defaultSubType of 'linear' -
@@ -4123,7 +4123,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 		var subscriptionKeys []string = ccxt.ObjectKeys(clientSubscriptions)
 		for j := 0; j < len(subscriptionKeys); j++ {
 			var subscribeType string = ccxt.GetValue(subscriptionKeys, j).(string)
-			if subscribeType == typeVar {
+			if ccxt.IsEqual(subscribeType, typeVar) {
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, delayParams)
 
 				return nil
@@ -5762,10 +5762,10 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) any {
 	if event != nil && *event == "orderReport" {
 		var baseAssetCode *string = this.SafeString(order, "b")
 		var stockBaseSymbol any = baseAssetCode
-		if (stockBaseSymbol != nil) && (ccxt.GetIndexOf(stockBaseSymbol, "EQ_") == 0) {
+		if (!ccxt.IsEqual(stockBaseSymbol, nil)) && (ccxt.GetIndexOf(stockBaseSymbol, "EQ_") == 0) {
 			stockBaseSymbol = ccxt.Slice(stockBaseSymbol, 3, nil)
 		}
-		if stockBaseSymbol == nil {
+		if ccxt.IsEqual(stockBaseSymbol, nil) {
 			stockBaseSymbol = ccxt.DerefScalar(this.SafeString(order, "symbol"))
 		}
 		var stockQuote *string = this.SafeString(order, "q", "USDC")
@@ -7176,7 +7176,7 @@ func (this *Binance) HandleMessage(client any, message any) {
 		//         "A": "2.52500800"
 		//     }
 		//
-		if (event == nil) && (ccxt.InOp(message, "a")) && (ccxt.InOp(message, "b")) {
+		if ccxt.IsEqual(event, nil) && (ccxt.InOp(message, "a")) && (ccxt.InOp(message, "b")) {
 			this.HandleBidsAsks(client, message)
 		}
 	} else {

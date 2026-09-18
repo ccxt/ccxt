@@ -1094,7 +1094,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var costString *string = this.SafeString(trade, "cost")
 	var makerBuyer any = this.SafeValue(trade, "makerBuyer")
 	var side any = DerefScalar(this.SafeString(trade, "direction"))
-	if side == nil {
+	if IsEqual(side, nil) {
 		side = func() any {
 			if makerBuyer == true {
 				return "sell"

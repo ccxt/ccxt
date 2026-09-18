@@ -806,7 +806,7 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 	var price *string = this.SafeString(trade, "price")
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var side any = this.SafeStringLower(trade, "action")
-	if side == nil {
+	if IsEqual(side, nil) {
 		var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 		if isBuyer != nil && *isBuyer == true {
 			side = "buy"
@@ -1272,7 +1272,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(order, "id", "orderId")
 	var timestamp *int64 = this.SafeInteger2(order, "timestamp", "createdTimestamp")
 	var side any = DerefScalar(this.SafeString(order, "action"))
-	if side == nil {
+	if IsEqual(side, nil) {
 		panic(ExchangeError(this.Id + " parseOrder() returned no side"))
 	}
 	side = ToLower(side)

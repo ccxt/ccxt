@@ -1160,7 +1160,7 @@ func (this *Bitso) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = DerefScalar(this.SafeString(trade, "side"))
 	var makerSide *string = this.SafeString(trade, "maker_side")
 	var takerOrMaker any = nil
-	if side != nil {
+	if !IsEqual(side, nil) {
 		if IsEqual(side, makerSide) {
 			takerOrMaker = "maker"
 		} else {
@@ -2520,7 +2520,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 				success = false
 			}
 		}
-		if success != true {
+		if !IsEqual(success, true) {
 			var feedback any = Add(this.Id+" ", this.Json(response))
 			var error any = this.SafeValue(response, "error")
 			if IsEqual(error, nil) {

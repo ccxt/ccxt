@@ -3088,7 +3088,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 		amount = DerefScalar(this.SafeString(transaction, currencyId, amount))
 		feeCurrency = code
 	}
-	if amount != nil {
+	if !IsEqual(amount, nil) {
 		// withdrawals have a negative amount
 		amount = Precise.StringAbs(amount)
 	}
@@ -3111,7 +3111,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 	}
 	var tag any = nil
 	var address any = DerefScalar(this.SafeString(transaction, "address"))
-	if address != nil {
+	if !IsEqual(address, nil) {
 		// dt (destination tag) is embedded into the address field
 		var addressParts []string = Split(address, "?dt=")
 		var numParts int = len(addressParts)
@@ -3238,7 +3238,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString2(order, "id", "order_id")
 	var clientOrderId *string = this.SafeString2(order, "client_order_id", "orig_client_order_id")
 	var side any = DerefScalar(this.SafeString2(order, "type", "order_type"))
-	if side != nil {
+	if !IsEqual(side, nil) {
 		side = func() any {
 			if IsEqual(side, "1") {
 				return "sell"

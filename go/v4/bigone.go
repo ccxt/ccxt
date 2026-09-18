@@ -1321,7 +1321,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = DerefScalar(this.SafeString(trade, "side"))
 	var takerSide *string = this.SafeString(trade, "taker_side")
 	var takerOrMaker any = nil
-	if (takerSide != nil) && (side != nil) && (!IsEqual(side, "SELF_TRADING")) {
+	if (takerSide != nil) && (!IsEqual(side, nil)) && (!IsEqual(side, "SELF_TRADING")) {
 		takerOrMaker = func() any {
 			if IsEqual(takerSide, side) {
 				return "taker"
@@ -1329,7 +1329,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 			return "maker"
 		}()
 	}
-	if side == nil {
+	if IsEqual(side, nil) {
 		// taker side is not related to buy/sell side
 		// the following code is probably a mistake
 		side = func() any {
@@ -1734,7 +1734,7 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	var amount any = nil
 	var filled any = nil
 	var cost any = nil
-	if (typeVar != nil && *typeVar == "market") && (IsEqual(side, "buy")) {
+	if (typeVar != nil && *typeVar == "market") && IsEqual(side, "buy") {
 		cost = DerefScalar(this.SafeString(order, "filled_amount"))
 	} else {
 		amount = DerefScalar(this.SafeString(order, "amount"))
