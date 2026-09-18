@@ -1459,7 +1459,7 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
 			var query string = this.Urlencode(params)
-			if GetLength(query) != 0 {
+			if len(query) != 0 {
 				url = Add(url, "?"+query)
 			}
 		}
@@ -1469,7 +1469,7 @@ func (this *Cryptomus) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "sign", signature)
 	} else {
 		var query string = this.Urlencode(params)
-		if GetLength(query) != 0 {
+		if len(query) != 0 {
 			url = Add(url, "?"+query)
 		}
 	}

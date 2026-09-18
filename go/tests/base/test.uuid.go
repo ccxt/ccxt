@@ -19,8 +19,8 @@ func TestUuid() {
 	assert((id1 != id2), "uuid() must return unique values on each call")
 	assert((ccxt.ToString(id1) == id1), "uuid() must return a string")
 	assert((ccxt.ToString(id2) == id2), "uuid() must return a string")
-	assert((ccxt.IsEqual(ccxt.GetLength(id1), 36)), "uuid() must return a 36-character string, returned id1: "+id1)
-	assert((ccxt.IsEqual(ccxt.GetLength(id2), 36)), "uuid() must return a 36-character string, returned id2: "+id2)
+	assert((len(id1) == 36), "uuid() must return a 36-character string, returned id1: "+id1)
+	assert((len(id2) == 36), "uuid() must return a 36-character string, returned id2: "+id2)
 	assert((ccxt.IsEqual(ccxt.GetIndexOf(id1, "-"), 8)), "uuid() must have dash, returned id1: "+id1)
 	// uuid16() - 16-char hex string
 	var id16a string = exchange.Uuid16()
@@ -30,8 +30,8 @@ func TestUuid() {
 	assert((id16a != id16b), "uuid16() must return unique values on each call, returned id16a: "+id16a+", id16b: "+id16b)
 	assert((ccxt.ToString(id16a) == id16a), "uuid16() must return a string, returned id16a: "+id16a)
 	assert((ccxt.ToString(id16b) == id16b), "uuid16() must return a string, returned id16b: "+id16b)
-	assert((ccxt.IsEqual(ccxt.GetLength(id16a), 16)), "uuid16() must return a 16-character string, returned id16a: "+id16a)
-	assert((ccxt.IsEqual(ccxt.GetLength(id16b), 16)), "uuid16() must return a 16-character string, returned id16b: "+id16b)
+	assert((len(id16a) == 16), "uuid16() must return a 16-character string, returned id16a: "+id16a)
+	assert((len(id16b) == 16), "uuid16() must return a 16-character string, returned id16b: "+id16b)
 	// uuid22() - 22-char hex string
 	var id22a string = exchange.Uuid22()
 	var id22b string = exchange.Uuid22()
@@ -40,6 +40,6 @@ func TestUuid() {
 	assert((id22a != id22b), "uuid22() must return unique values on each call")
 	assert((ccxt.ToString(id22a) == id22a), "uuid22() must return a string, returned id22a: "+id22a)
 	assert((ccxt.ToString(id22b) == id22b), "uuid22() must return a string, returned id22b: "+id22b)
-	assert((ccxt.IsEqual(ccxt.GetLength(id22a), 22)), "uuid22() must return a 22-character string, returned id22a: "+id22a)
-	assert((ccxt.IsEqual(ccxt.GetLength(id22b), 22)), "uuid22() must return a 22-character string, returned id22b: "+id22b)
+	assert((len(id22a) == 22), "uuid22() must return a 22-character string, returned id22a: "+id22a)
+	assert((len(id22b) == 22), "uuid22() must return a 22-character string, returned id22b: "+id22b)
 }

@@ -119,7 +119,7 @@ func TestMicroseconds() {
 	var value int64 = exchange.Microseconds()
 	var valueString string = ccxt.ToString(value)
 	Assert((value > 0))
-	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 16)))
+	Assert((len(valueString) == 16))
 }
 func TestMilliseconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -130,7 +130,7 @@ func TestMilliseconds() {
 	var value int64 = exchange.Milliseconds()
 	var valueString string = ccxt.ToString(value)
 	Assert((value > 0))
-	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 13)))
+	Assert((len(valueString) == 13))
 }
 func TestSeconds() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -141,7 +141,7 @@ func TestSeconds() {
 	var value int64 = exchange.Seconds()
 	var valueString string = ccxt.ToString(value)
 	Assert((value > 0))
-	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 10)))
+	Assert((len(valueString) == 10))
 }
 func TestConvertExpireDate() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -170,7 +170,7 @@ func TestYymmdd() {
 	var value string = exchange.Yymmdd(testMs, "_")
 	Assert((value == "25_06_17"))
 	var value2 string = exchange.Yymmdd(exchange.Milliseconds())
-	Assert((ccxt.IsEqual(ccxt.GetLength(value2), 6)))
+	Assert((len(value2) == 6))
 	var intNum any = exchange.ParseToInt(value2)
 	Assert(ccxt.IsGreaterThan(intNum, 260000) && ccxt.IsLessThan(intNum, 360000)) // date between 2026 and 2036
 }
@@ -184,7 +184,7 @@ func TestYyyymmdd() {
 	var value string = exchange.Yyyymmdd(testMs, "_")
 	Assert((value == "2025_06_17"))
 	var value2 string = exchange.Yyyymmdd(exchange.Milliseconds())
-	Assert((ccxt.IsEqual(ccxt.GetLength(value2), 10)))
+	Assert((len(value2) == 10))
 	var intNum any = exchange.ParseToInt(ccxt.Replace((ccxt.Replace(value2, "-", "")), "-", ""))
 	Assert(ccxt.IsGreaterThan(intNum, 20260000) && ccxt.IsLessThan(intNum, 20360000)) // date between 2026 and 2036
 }

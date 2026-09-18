@@ -3819,7 +3819,7 @@ func (this *Bydfi) Sign(path any, optionalArgs ...any) any {
 	var sortedParams map[string]any = this.Keysort(params)
 	if IsEqual(method, "GET") {
 		query = this.Urlencode(sortedParams)
-		if GetLength(query) != 0 {
+		if len(query) != 0 {
 			endpoint = Add(endpoint, "?"+query)
 		}
 	}

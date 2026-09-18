@@ -3204,7 +3204,7 @@ func (this *Polymarket) SignClobOrder(message any, exchangeAddress any, domainVe
 	// innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
 	// orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
 	// php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
-	var ctLenHex string = this.IntToBase16(ccxt.GetLength(orderTypeString))
+	var ctLenHex string = this.IntToBase16(len(orderTypeString))
 	// assign before padStart so the PHP transpiler's str_pad regex (which only matches a
 	// simple identifier) picks it up instead of leaking a padStart() function call
 	var lenHex string = ccxt.PadStart(ctLenHex, 4, "0")

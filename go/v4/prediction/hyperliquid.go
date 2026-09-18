@@ -321,7 +321,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 				var thresholds any = []any{}
 				for i := 0; i < len(thresholdParts); i++ {
 					var trimmed string = ccxt.Trim(ccxt.GetValue(thresholdParts, i))
-					if ccxt.GetLength(trimmed) > 0 {
+					if len(trimmed) > 0 {
 						ccxt.AppendToArray(&thresholds, trimmed)
 					}
 				}

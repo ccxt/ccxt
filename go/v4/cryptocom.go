@@ -4558,7 +4558,7 @@ func (this *Cryptocom) ParseTradingFees(response any) any {
 	//
 	var result map[string]any = map[string]any{}
 	result["info"] = response
-	for i := 0; i < GetArrayLength(this.Symbols); i++ {
+	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		var isSwap any = GetValue(market, "swap")

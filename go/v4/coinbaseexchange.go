@@ -1569,7 +1569,7 @@ func (this *Coinbaseexchange) fetchTradingFeesBody(ch chan any, optionalArgs ...
 	var maker *float64 = this.SafeNumber(response, "maker_fee_rate")
 	var taker *float64 = this.SafeNumber(response, "taker_fee_rate")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(this.Symbols); i++ {
+	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,

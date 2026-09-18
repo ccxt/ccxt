@@ -6552,7 +6552,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var taker_fee *float64 = this.SafeNumber(data, "taker_fee_rate")
 	var maker_fee *float64 = this.SafeNumber(data, "maker_fee_rate")
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(this.Symbols); i++ {
+	for i := 0; i < len(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
 		if (isSpot && (GetValue(market, "spot") == true)) || (!isSpot && (GetValue(market, "spot") != true)) {

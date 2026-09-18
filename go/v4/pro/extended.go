@@ -87,7 +87,7 @@ func (this *Extended) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbooks/"), ccxt.GetValue(market, "id"))
-	if ccxt.GetLength(query) > 0 {
+	if len(query) > 0 {
 		url = ccxt.Add(url, "?"+query)
 	}
 
@@ -659,7 +659,7 @@ func (this *Extended) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/funding/"), ccxt.GetValue(market, "id"))
-	if ccxt.GetLength(query) > 0 {
+	if len(query) > 0 {
 		url = ccxt.Add(url, "?"+query)
 	}
 
@@ -750,7 +750,7 @@ func (this *Extended) watchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	var messageHash any = ccxt.Add("markPrice:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/prices/mark/"), ccxt.GetValue(market, "id"))
-	if ccxt.GetLength(query) > 0 {
+	if len(query) > 0 {
 		url = ccxt.Add(url, "?"+query)
 	}
 
@@ -831,7 +831,7 @@ func (this *Extended) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/publicTrades/"), ccxt.GetValue(market, "id"))
-	if ccxt.GetLength(query) > 0 {
+	if len(query) > 0 {
 		url = ccxt.Add(url, "?"+query)
 	}
 
