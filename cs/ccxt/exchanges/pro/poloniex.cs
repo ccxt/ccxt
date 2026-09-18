@@ -665,7 +665,7 @@ public partial class poloniex : ccxt.poloniex
         return new List<object> {this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")};
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, object message)
+    public virtual object handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -716,7 +716,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual object handleTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -898,7 +898,7 @@ public partial class poloniex : ccxt.poloniex
         }, market);
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual object handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // Order is created
@@ -1114,7 +1114,7 @@ public partial class poloniex : ccxt.poloniex
         });
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1175,7 +1175,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // snapshot
@@ -1278,7 +1278,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1346,7 +1346,7 @@ public partial class poloniex : ccxt.poloniex
         return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object parsedTrade)
+    public virtual void handleMyTrades(WebSocketClient client, IDictionary<string, object> parsedTrade)
     {
         // emulated using the orders' stream
         string messageHash = "myTrades";

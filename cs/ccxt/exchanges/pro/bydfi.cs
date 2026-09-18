@@ -1141,7 +1141,7 @@ public partial class bydfi : ccxt.bydfi
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);

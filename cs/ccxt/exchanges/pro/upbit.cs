@@ -209,7 +209,7 @@ public partial class upbit : ccxt.upbit
         return ccxt.BaseExchange.ToOHLCVList(await this.watchPublicMultiple(new List<object>() {symbol}, timeFrameOHLCV));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
@@ -257,7 +257,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(client, "resolve", new object[] {ticker, messageHash});
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         // { type: "orderbook",
         //   "code": "BTC-ETH",
@@ -315,7 +315,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         // { type: "trade",
         //   "code": "KRW-BTC",
@@ -349,7 +349,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         // {
         //     type: 'candle.1s',
@@ -643,7 +643,7 @@ public partial class upbit : ccxt.upbit
         }, market);
     }
 
-    public virtual void handleMyOrder(WebSocketClient client, object message)
+    public virtual void handleMyOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         // see: parseWsOrder
         string? tradeId = this.safeString(message, "trade_uuid");
@@ -671,7 +671,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(client, "resolve", new object[] {myTrades, messageHash});
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         Dictionary<string, object> parsed = this.parseWsOrder(message);
         string? symbol = this.safeString(parsed, "symbol");
@@ -727,7 +727,7 @@ public partial class upbit : ccxt.upbit
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(null, channel, messageHash));
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

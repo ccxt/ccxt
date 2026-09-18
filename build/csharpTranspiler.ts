@@ -1318,6 +1318,41 @@ const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
     xt: [ 'handleBalance', 'handleErrorMessage', 'handleFundingRate', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePosition', 'handleTicker', 'handleTickers', 'handleTrade' ],
 };
 
+// U52: the ws handlers of S40's table that stayed `object` because their dispatcher hands them an
+// `IDictionary<string, object>` -- retyped to the INTERFACE spelling, which is exactly the box the
+// argument already has, so no call site changes and the tree gains no conversion.  Admission
+// (campaigns/cs90/tools/U52/admit5.py, verify_U52.py) requires, per (venue, handler):
+//   * every reference is a dispatch-table method group whose reflective invoke is selected by a
+//     key read off the message (`string? k = this.safeString (message, …)` ->
+//     `this.safeValue (methods, k)`, the invoke guarded by `method != null`), so a non-dict frame
+//     selects no entry and never reaches the handler; or
+//   * a direct call whose 2nd argument is ALREADY statically a dict type in the emitted text (a
+//     `Dictionary<string, object>` / `IDictionary<string, object>` local, parameter, or another
+//     handler of this table -- the same-file chain), so the retype needs no
+//     `(Dictionary<string, object>)arg` assertion: the concrete spelling S40 uses would have to
+//     downcast the interface-typed argument at runtime (rejected there, see its report);
+//   * the handler body compiles unchanged under the interface parameter: no `(string)param` /
+//     `param as T` conversion the interface cannot make, no `ref`/`out` sink, no reassignment of
+//     the parameter (a reassignment site is a counter-proof: the value stops being the message).
+// A handler whose emitted text stops satisfying the call-site rule stays `object` whole -- the
+// pass is self-gating, it never guesses.
+const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
+    aster: [ 'handleBalanceAndPosition', 'handleBidAsk', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePositions', 'handleTicker', 'handleTrade' ],
+    bingx: [ 'handleUnSubscription' ],
+    bydfi: [ 'handleUnSubscription' ],
+    deepcoin: [ 'handleUnSubscription' ],
+    htx: [ 'handleUnSubscription' ],
+    hyperliquid: [ 'handleMyTradesUnsubscription', 'handleOHLCVUnsubscription', 'handleOrderBookUnsubscription', 'handleOrderUnsubscription', 'handlePositionsUnsubscription', 'handleSpotBalanceUnsubscription', 'handleTickerUnsubscription', 'handleTickersUnsubscription', 'handleTradesUnsubscription' ],
+    independentreserve: [ 'handleHeartbeat', 'handleOrderBook', 'handleSubscriptions', 'handleTrades' ],
+    modetrade: [ 'handleAuth', 'handleBalance', 'handleBidAsk', 'handleOHLCV', 'handleOrderBook', 'handleOrderUpdate', 'handlePing', 'handlePong', 'handlePositions', 'handleSubscribe', 'handleTicker', 'handleTickers', 'handleTrade' ],
+    myriad: [ 'handleOrder', 'handleOrderBook', 'handlePosition', 'handleTicker', 'handleTrades' ],
+    ndax: [ 'handleOHLCV', 'handleOrderBook', 'handleSubscriptionStatus', 'handleTicker', 'handleTrades' ],
+    pacifica: [ 'handleMyTradesUnsubscription', 'handleOHLCVUnsubscription', 'handleOrderBookUnsubscription', 'handleOrderUnsubscription', 'handleTickersUnsubscription', 'handleTradesUnsubscription' ],
+    poloniex: [ 'handleBalance', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrade' ],
+    upbit: [ 'handleBalance', 'handleMyOrder', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrades' ],
+    xt: [ 'handleUnSubscription' ],
+};
+
 // `sign()` / `handleErrors()` parameter types, keyed by POSITION (the venue overrides rename the
 // parameters: path/section, code/httpCode/statusCode, headers/responseHeaders, so only the
 // position carries the type; C# overrides are invariant on types, not names). The hand-written
@@ -4874,6 +4909,127 @@ class NewTranspiler {
         }
         return content;
     }
+    // U52: see WS_HANDLER_IDICT_MESSAGE.  Retypes this venue's admitted ws handler parameters to
+    // the interface spelling and edits NO call site -- every direct call already passes a
+    // statically dict-typed value, which the interface parameter accepts unchanged.  Self-gating:
+    // a handler with a call the gate cannot clear stays `object` whole.
+    retypeWsHandlerMessagesToInterface (content: string): string {
+        const venueMatch = /public partial class (\w+)\s*:/.exec (content);
+        if (venueMatch === null) {
+            return content;
+        }
+        const names = WS_HANDLER_IDICT_MESSAGE[venueMatch[1]];
+        if (names === undefined) {
+            return content;
+        }
+        const membership = new Set (names);
+        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
+        const sigs: { at: number, name: string }[] = [];
+        let signature;
+        while ((signature = sigRe.exec (content)) !== null) {
+            sigs.push ({ at: signature.index, name: signature[1] });
+        }
+        const enclosingName = (at: number) => {
+            let found = '';
+            for (const sig of sigs) {
+                if (sig.at >= at) {
+                    break;
+                }
+                found = sig.name;
+            }
+            return found;
+        };
+        // does the method enclosing `at` declare `name` with a dict type?  (a local, a parameter,
+        // or a value an earlier pass already asserted to the concrete spelling)
+        const dictTypedInMethod = (at: number, name: string) => {
+            let start = 0;
+            let end = content.length;
+            for (const sig of sigs) {
+                if (sig.at < at) {
+                    start = sig.at;
+                } else {
+                    end = sig.at;
+                    break;
+                }
+            }
+            for (const line of content.substring (start, end).split ('\n')) {
+                const trimmed = line.trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) {
+                    continue;
+                }
+                if (new RegExp ('(?:Dictionary<string, object>|IDictionary<string, object>)\\s+' + name + '\\b').test (line)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
+        const declarations: { index: number, text: string, param: string }[] = [];
+        let decl;
+        while ((decl = declRe.exec (content)) !== null) {
+            if (membership.has (decl[4])) {
+                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
+            }
+        }
+        const edits: { start: number, end: number, text: string }[] = [];
+        for (const declaration of declarations) {
+            const name = declaration.text.match (/handle\w+/)![0];
+            const needle = 'object ' + declaration.param;
+            const rel = declaration.text.lastIndexOf (needle);
+            if (rel === -1) {
+                continue;
+            }
+            const declLineStart = content.lastIndexOf ('\n', declaration.index) + 1;
+            const callRe = /(?<![\w.])(?:this\.|base\.)?(\w+)\s*\(/g;
+            let clear = true;
+            let call;
+            while ((call = callRe.exec (content)) !== null) {
+                if (call[1] !== name) {
+                    continue;
+                }
+                const open = call.index + call[0].length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    clear = false;
+                    break;
+                }
+                const lineStart = content.lastIndexOf ('\n', call.index) + 1;
+                const trimmed = content.substring (lineStart, content.indexOf ('\n', call.index)).trim ();
+                if (trimmed.startsWith ('//') || trimmed.startsWith ('*') || lineStart === declLineStart) {
+                    continue;
+                }
+                const spans = this.wsArgSpans (content, open + 1, close);
+                if (spans.length < 2) {
+                    clear = false;
+                    break;
+                }
+                const arg = spans[1].text.trim ();
+                if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
+                    continue;
+                }
+                if (!/^[A-Za-z_]\w*$/.test (arg)) {
+                    clear = false;
+                    break;
+                }
+                if (membership.has (enclosingName (call.index))) {
+                    continue;
+                }
+                if (!dictTypedInMethod (call.index, arg)) {
+                    clear = false;
+                    break;
+                }
+            }
+            if (!clear) {
+                continue;
+            }
+            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: 'IDictionary<string, object> ' + declaration.param });
+        }
+        edits.sort ((a, b) => b.start - a.start);
+        for (const edit of edits) {
+            content = content.substring (0, edit.start) + edit.text + content.substring (edit.end);
+        }
+        return content;
+    }
     // index of the `)` closing the `(` at `open`, skipping string literals and comments
     matchingParen (text: string, open: number): number {
         let depth = 0;
@@ -6135,7 +6291,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey);
+        content = this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypeStringReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages (this.retypeParameterArgs (this.pascalizeTypedCores (this.dropStringTimeframeCasts (this.retypeSignatureArgs (this.finalizeCoreArgTypes (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))))))))))))))), venueKey);
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeCacheElementWriteCasts (content);
         this.currentVenue = '';

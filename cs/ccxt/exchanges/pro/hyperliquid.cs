@@ -1705,7 +1705,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return ((bool?)((object)(false)));
     }
 
-    public virtual void handleOrderBookUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleOrderBookUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         //
         //        "subscription":{
@@ -1727,7 +1727,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleTradesUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleTradesUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         //
         string? coin = this.safeString(subscription, "coin");
@@ -1742,7 +1742,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleTickersUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleTickersUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         //
         string subMessageHash = "tickers";
@@ -1755,7 +1755,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleTickerUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleTickerUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         //
         string? coin = this.safeString(subscription, "coin");
@@ -1770,7 +1770,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleOHLCVUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleOHLCVUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string? coin = this.safeString(subscription, "coin");
         string? marketId = this.coinToMarketId(coin);
@@ -1789,7 +1789,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleOrderUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleOrderUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "order";
         string unSubHash = add("unsubscribe:", subHash);
@@ -1811,7 +1811,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanCache(topicStructure);
     }
 
-    public virtual void handleMyTradesUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleMyTradesUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "myTrades";
         string unSubHash = add("unsubscribe:", subHash);
@@ -1833,7 +1833,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         this.cleanCache(topicStructure);
     }
 
-    public virtual void handlePositionsUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handlePositionsUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "clearinghouseState";
         string unSubHash = add("unsubscribe:", subHash);
@@ -1849,7 +1849,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void handleSpotBalanceUnsubscription(WebSocketClient client, object subscription)
+    public virtual void handleSpotBalanceUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "spotState";
         string unSubHash = add("unsubscribe:", subHash);

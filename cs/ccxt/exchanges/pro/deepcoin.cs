@@ -1437,7 +1437,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string? subHash = this.safeString(subscription, "subHash");
         string? unsubHash = this.safeString(subscription, "unsubHash");

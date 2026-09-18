@@ -72,7 +72,7 @@ public partial class ndax : ccxt.ndax
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, message, messageHash));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         object payload = this.safeValue(message, "o", new Dictionary<string, object>() {});
         //
@@ -159,7 +159,7 @@ public partial class ndax : ccxt.ndax
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         List<object> payload = this.safeList(message, "o", new List<object>() {});
         //
@@ -265,7 +265,7 @@ public partial class ndax : ccxt.ndax
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -435,7 +435,7 @@ public partial class ndax : ccxt.ndax
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -565,7 +565,7 @@ public partial class ndax : ccxt.ndax
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
-    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    public virtual void handleSubscriptionStatus(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {

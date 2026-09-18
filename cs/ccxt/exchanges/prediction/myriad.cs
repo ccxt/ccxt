@@ -3778,7 +3778,7 @@ public partial class myriad : PredictionExchange
         ((IDictionary<string,object>)this.orderbooks)[(string)((string)sym)] = orderbook;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object data)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> data)
     {
         string? networkId = this.safeString(data, "networkId");
         string? marketId = this.safeString(data, "marketId");
@@ -3887,7 +3887,7 @@ public partial class myriad : PredictionExchange
         return null;
     }
 
-    public virtual void handleTrades(WebSocketClient client, object data)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> data)
     {
         string? networkId = this.safeString(data, "networkId");
         string? marketId = this.safeString(data, "marketId");
@@ -4102,7 +4102,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(result, since, limit, 0, true));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object data)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> data)
     {
         string? networkId = this.safeString(data, "networkId");
         string? marketId = this.safeString(data, "marketId");
@@ -4186,7 +4186,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", outcomeVar, since, limit, "timestamp", true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object data)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> data)
     {
         if (isEqual(this.orders, null))
         {
@@ -4301,7 +4301,7 @@ public partial class myriad : PredictionExchange
         ((IDictionary<string,object>)this.options)["positionBalances"] = balances;
     }
 
-    public virtual void handlePosition(WebSocketClient client, object data)
+    public virtual void handlePosition(WebSocketClient client, IDictionary<string, object> data)
     {
         if (isEqual(this.positions, null))
         {

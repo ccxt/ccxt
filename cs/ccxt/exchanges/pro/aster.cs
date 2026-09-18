@@ -414,7 +414,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -605,7 +605,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleBidAsk(WebSocketClient client, object message)
+    public virtual void handleBidAsk(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -795,7 +795,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleTrade(WebSocketClient client, object message)
+    public virtual void handleTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1140,7 +1140,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1355,7 +1355,7 @@ public partial class aster : ccxt.aster
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1792,7 +1792,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual void handlePositions(WebSocketClient client, object message)
+    public virtual void handlePositions(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2114,7 +2114,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // spot
@@ -2289,7 +2289,7 @@ public partial class aster : ccxt.aster
         return ((Dictionary<string, object>)((object)(this.safeMarket(marketId, null, null, marketType))));
     }
 
-    public virtual void handleBalanceAndPosition(WebSocketClient client, object message)
+    public virtual void handleBalanceAndPosition(WebSocketClient client, IDictionary<string, object> message)
     {
         this.handleBalance(client, message);
         this.handlePositions(client, message);
