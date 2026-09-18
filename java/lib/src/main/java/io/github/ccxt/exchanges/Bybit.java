@@ -5515,7 +5515,7 @@ public class Bybit extends BybitApi
             Boolean isStopLossOrder = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
-            Boolean switchToOco = (Helpers.isTrue(isStopLossOrder) && Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
+            Boolean switchToOco = (Helpers.isTrue(isStopLossOrder) && Helpers.isTrue(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
             String defaultMethod = null;
             if ((Helpers.isTrue(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true))) && (!java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
             {
@@ -5591,7 +5591,7 @@ public class Bybit extends BybitApi
         Boolean isMarket = java.util.Objects.equals(lowerCaseType, "market");
         Boolean isLimit = java.util.Objects.equals(lowerCaseType, "limit");
         Boolean isBuy = java.util.Objects.equals(side, "buy");
-        Boolean switchToOco = (Helpers.isTrue(isStopLossOrder) && Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
+        Boolean switchToOco = (Helpers.isTrue(isStopLossOrder) && Helpers.isTrue(isTakeProfitOrder)) || Boolean.TRUE.equals(this.safeBool(parameters, "tradingStopEndpoint", false));
         String defaultMethod = null;
         if (Helpers.isTrue(isTrailingOrder) || (java.util.Objects.equals(switchToOco, true)))
         {

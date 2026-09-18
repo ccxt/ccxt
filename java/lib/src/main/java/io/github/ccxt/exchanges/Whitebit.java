@@ -1626,7 +1626,7 @@ public class Whitebit extends WhitebitApi
                 {
                     continue;
                 }
-                if (!java.util.Objects.equals(codes, null) && !Helpers.isTrue(this.inArray(code, codes)))
+                if (!java.util.Objects.equals(codes, null) && !this.inArray(code, codes))
                 {
                     continue;
                 }

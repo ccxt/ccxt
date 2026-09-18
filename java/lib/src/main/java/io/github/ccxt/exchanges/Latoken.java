@@ -551,7 +551,7 @@ public class Latoken extends LatokenApi
             //         }
             //     ]
             //
-            if (Helpers.isTrue(this.safeBool(this.options, "adjustForTimeDifference", false)))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
             {
                 (this.loadTimeDifference()).join();
             }

@@ -807,7 +807,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets()).join();
             }
             String messageHash = "";
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = ("::" + String.join(",", (List<String>)(List<String>)(symbols)));
@@ -1084,7 +1084,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

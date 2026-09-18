@@ -954,7 +954,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             Map<String, Object> requiredParams = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
-                if (Helpers.isTrue(this.inArray(limit, new ArrayList<Object>(Arrays.asList(10, 25, 100, 500, 1000)))))
+                if (this.inArray(limit, new ArrayList<Object>(Arrays.asList(10, 25, 100, 500, 1000))))
                 {
                     ((Map<String, Object>)requiredParams).put("depth", limit); // default 10, valid options 10, 25, 100, 500, 1000
                 } else

@@ -455,7 +455,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object streamHash = "liquidations";
             symbols = this.marketSymbols(symbols, null, true, true);
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 ((List<Object>)subscriptionHashes).add(("!" + "forceOrder@arr"));
                 ((List<Object>)messageHashes).add("liquidations");
@@ -470,7 +470,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 streamHash = (streamHash + ("::" + String.join(",", (List<String>)symbols)));
             }
             Object firstMarket = null;
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 firstMarket = this.getMarketFromSymbols(symbols);
             }
@@ -714,7 +714,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList("myLiquidations"));
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
@@ -2893,7 +2893,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
             // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
             Boolean isOptionTicker = (java.util.Objects.equals(marketType, "option") && !Helpers.isTrue(isMarkPrice) && !Helpers.isTrue(isBidAsk));
-            if (Helpers.isTrue(isMarkPrice) && !Helpers.isTrue(this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future", "option")))))
+            if (Helpers.isTrue(isMarkPrice) && !this.inArray(marketType, new ArrayList<Object>(Arrays.asList("swap", "future", "option"))))
             {
                 throw new NotSupported((((Helpers.add((this.id + " "), methodName) + "() does not support ") + marketType) + " markets yet")) ;
             }
@@ -6048,7 +6048,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Object market = null;
             Object messageHash = "";
             symbols = this.marketSymbols(symbols);
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 market = this.getMarketFromSymbols(symbols);
                 if (java.util.Objects.equals(symbols, null))
@@ -6254,7 +6254,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }
@@ -6693,7 +6693,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                         // accumulate order fees
                         Object fees = this.safeValue(order, "fees");
                         Object fee = this.safeValue(order, "fee");
-                        if (!Helpers.isTrue(this.isEmpty(fees)))
+                        if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
                             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
@@ -6896,7 +6896,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

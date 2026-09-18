@@ -3587,7 +3587,7 @@ public class Lbank extends LbankApi
             {
                 String currencyId = this.safeString(fee, "assetCode");
                 String code = this.safeCurrencyCode(currencyId);
-                if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || Helpers.isTrue(this.inArray(code, codes))))
+                if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || this.inArray(code, codes)))
                 {
                     Double withdrawFee = this.safeNumber(fee, "fee");
                     if (!java.util.Objects.equals(withdrawFee, null))

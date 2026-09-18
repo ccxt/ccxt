@@ -1489,7 +1489,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Object market = null;
             String messageHash = "";
             symbols = this.marketSymbols(symbols);
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 market = this.getMarketFromSymbols(symbols);
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
@@ -1721,7 +1721,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object filteredSymbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

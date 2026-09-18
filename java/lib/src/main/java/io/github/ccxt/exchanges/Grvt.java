@@ -2299,7 +2299,7 @@ public class Grvt extends GrvtApi
             (this.loadMarketsAndSignIn()).join();
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
-            if (Helpers.isTrue(this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding")))) && Helpers.isTrue(this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding")))))
+            if (this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))) && this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("trading", "funding"))))
             {
                 Object tradingAccountId = null;
                 List<Object> tradingAccountIdparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
@@ -2839,7 +2839,7 @@ public class Grvt extends GrvtApi
             put( "nonce", Helpers.GetValue(Helpers.GetValue(order, "signature"), "nonce") );
             put( "expiration", Helpers.GetValue(Helpers.GetValue(order, "signature"), "expiration") );
         }};
-        if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+        if (java.util.Objects.equals(structureType, "EIP712_ORDER_WITH_BUILDER_TYPE") && Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
         {
             ((Map<String, Object>)returnValue).put("builder", Helpers.GetValue(order, "builder"));
             ((Map<String, Object>)returnValue).put("builderFee", this.parseToInt(Helpers.multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), Helpers.parseFloat(Helpers.GetValue(order, "builder_fee"))))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0

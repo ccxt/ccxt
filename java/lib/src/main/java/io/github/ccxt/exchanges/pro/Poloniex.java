@@ -192,7 +192,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 put( "channel", new ArrayList<Object>(Arrays.asList(finalName)) );
             }};
             Object marketIds = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 ((List<Object>)marketIds).add("all");
             } else
@@ -1294,7 +1294,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            if (!Helpers.isTrue(this.isEmpty(tickers)))
+            if (!this.isEmpty(tickers))
             {
                 client.resolve(tickers, messageHash);
             }

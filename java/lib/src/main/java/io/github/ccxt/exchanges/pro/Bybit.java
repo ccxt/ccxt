@@ -1113,7 +1113,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                     put( "default", new ArrayList<Object>(Arrays.asList(1, 50, 200, 1000)) );
                 }};
                 Object selectedLimits = this.safeList2(limits, ((Map<String, Object>)market).get("type"), "default", new ArrayList<Object>(Arrays.asList()));
-                if (!Helpers.isTrue(this.inArray(limit, selectedLimits)))
+                if (!this.inArray(limit, selectedLimits))
                 {
                     throw new BadRequest(((Helpers.add((this.id + " watchOrderBookForSymbols(): for "), ((Map<String, Object>)market).get("type")) + " markets limit can be one of: ") + this.json(selectedLimits))) ;
                 }
@@ -1820,7 +1820,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 {
                     execType = "Trade";
                 }
-                if ((!java.util.Objects.equals(execTypes, null)) && !Helpers.isTrue(this.inArray(execType, execTypes)))
+                if ((!java.util.Objects.equals(execTypes, null)) && !this.inArray(execType, execTypes))
                 {
                     continue;
                 }
@@ -1871,7 +1871,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             }
             Object method = "watchPositions";
             String messageHash = "";
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
@@ -2039,7 +2039,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }
@@ -2070,7 +2070,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             Object method = "watchPositions";
             String messageHash = "unsubscribe:positions";
             String subHash = "positions";
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 throw new NotSupported((this.id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
             }

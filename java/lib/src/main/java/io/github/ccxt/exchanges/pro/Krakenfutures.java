@@ -418,7 +418,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             String messageHash = "";
             symbols = this.marketSymbols(symbols);
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
             }
@@ -496,7 +496,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }

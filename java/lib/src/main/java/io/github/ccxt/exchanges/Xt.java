@@ -5740,7 +5740,7 @@ public class Xt extends XtApi
             String symbol = this.safeSymbol(marketId, market);
             if (!java.util.Objects.equals(symbols, null))
             {
-                if (Helpers.isTrue(this.inArray(symbol, symbols)))
+                if (this.inArray(symbol, symbols))
                 {
                     Helpers.addElementToObject(result, symbol, this.parseMarketLeverageTiers(entry, market));
                 }

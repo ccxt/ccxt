@@ -574,7 +574,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 limit = this.safeInteger(options, "depth", 150);
             }
-            if (!Helpers.isTrue(this.inArray(limit, allowedLimits)))
+            if (!this.inArray(limit, allowedLimits))
             {
                 throw new ExchangeError((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
@@ -1860,7 +1860,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             }
             Object market = null;
             Object messageHash = "";
-            if (Helpers.isTrue((!Helpers.isTrue(this.isEmpty(symbols)))) && (!java.util.Objects.equals(symbols, null)))
+            if (Helpers.isTrue((!this.isEmpty(symbols))) && (!java.util.Objects.equals(symbols, null)))
             {
                 market = this.getMarketFromSymbols(symbols);
                 messageHash = ("::" + String.join(",", (List<String>)symbols));
@@ -2017,7 +2017,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Helpers.addElementToObject(this.positions, url, new HashMap<String, Object>() {{}});
         }
         Object rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        if (Helpers.isTrue(this.isEmpty(rawPositions)))
+        if (this.isEmpty(rawPositions))
         {
             List<Object> prefixes = new ArrayList<Object>(Arrays.asList("cross:positions", "isolated:positions"));
             for (var i = 0; i < ((List<?>)prefixes).size(); i++)
@@ -2068,7 +2068,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String symbolsString = (String) Helpers.GetValue(parts, 1);
                 Object symbols = Helpers.split(symbolsString, ",");
                 Object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
-                if (!Helpers.isTrue(this.isEmpty(positions)))
+                if (!this.isEmpty(positions))
                 {
                     client.resolve(positions, messageHash);
                 }

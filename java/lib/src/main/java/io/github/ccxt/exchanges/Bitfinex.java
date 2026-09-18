@@ -1001,7 +1001,7 @@ public class Bitfinex extends BitfinexApi
                     put( "type", finalType );
                     put( "spot", finalSpot );
                     put( "tradfi", Bitfinex.this.inArray(id, securitiesMarketsIds) );
-                    put( "margin", (Helpers.isTrue(finalSpot) && Helpers.isTrue(Bitfinex.this.inArray(id, marginIds))) );
+                    put( "margin", (Helpers.isTrue(finalSpot) && Bitfinex.this.inArray(id, marginIds)) );
                     put( "swap", swap );
                     put( "future", false );
                     put( "option", false );

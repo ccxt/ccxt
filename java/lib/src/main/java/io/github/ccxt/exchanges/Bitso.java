@@ -2000,7 +2000,7 @@ public class Bitso extends BitsoApi
                 Object depositFee = Helpers.GetValue(depositFees, i);
                 String currencyId = this.safeString(depositFee, "currency");
                 String code = this.safeCurrencyCode(currencyId);
-                if ((!java.util.Objects.equals(codes, null)) && !Helpers.isTrue(this.inArray(code, codes)))
+                if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
                 {
                     continue;
                 }
@@ -2022,7 +2022,7 @@ public class Bitso extends BitsoApi
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
                 String code = this.safeCurrencyCode(currencyId);
-                if ((!java.util.Objects.equals(codes, null)) && !Helpers.isTrue(this.inArray(code, codes)))
+                if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
                 {
                     continue;
                 }

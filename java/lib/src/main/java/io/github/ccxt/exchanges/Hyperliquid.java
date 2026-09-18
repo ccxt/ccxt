@@ -2130,7 +2130,7 @@ public class Hyperliquid extends HyperliquidApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Helpers.isTrue(this.safeBool(this.options, "refSet", false)))
+            if (Boolean.TRUE.equals(this.safeBool(this.options, "refSet", false)))
             {
                 return true;
             }
@@ -2886,12 +2886,12 @@ public class Hyperliquid extends HyperliquidApi
             put( "orders", orderReq );
             put( "grouping", finalGrouping );
         }};
-        if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+        if (Boolean.TRUE.equals(this.safeBool(this.options, "approvedBuilderFee", false)))
         {
             String wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
             // when builderFee is disabled the builder is still attached but with a 0% fee (f = 0), for statistics purposes only
             Object feeInt = this.safeInteger(this.options, "feeInt", 10);
-            if (!Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+            if (!Boolean.TRUE.equals(this.safeBool(this.options, "builderFee", true)))
             {
                 feeInt = 0;
             }
@@ -2937,7 +2937,7 @@ public class Hyperliquid extends HyperliquidApi
 
             Object symbol = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(this.safeBool(parameters, "twap", false)))
+            if (Boolean.TRUE.equals(this.safeBool(parameters, "twap", false)))
             {
                 parameters = this.omit(parameters, "twap");
                 return (this.cancelTwapOrder(id, symbol, parameters)).join();
@@ -5007,10 +5007,10 @@ final Object finalClientOrderId = clientOrderId;
             }
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode");
             Long nonce = this.milliseconds();
-            if (Helpers.isTrue(this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("spot", "swap", "perp")))))
+            if (this.inArray(fromAccount, new ArrayList<Object>(Arrays.asList("spot", "swap", "perp"))))
             {
                 // handle swap <> spot account transfer
-                if (!Helpers.isTrue(this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("spot", "swap", "perp")))))
+                if (!this.inArray(toAccount, new ArrayList<Object>(Arrays.asList("spot", "swap", "perp"))))
                 {
                     throw new NotSupported((this.id + " transfer() only support spot <> swap transfer")) ;
                 }

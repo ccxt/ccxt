@@ -2310,7 +2310,7 @@ public class Alpaca extends AlpacaApi
             {
                 currency = this.currency(code);
             }
-            Boolean sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
+            Boolean sandboxMode = Helpers.isTrue(this.isSandboxModeEnabled) || Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false));
             if (java.util.Objects.equals(sandboxMode, true))
             {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route

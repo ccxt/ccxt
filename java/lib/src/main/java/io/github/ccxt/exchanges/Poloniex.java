@@ -4466,7 +4466,7 @@ public class Poloniex extends PoloniexApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("spot");
-        if (Helpers.isTrue(this.inArray(api, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate")))))
+        if (this.inArray(api, new ArrayList<Object>(Arrays.asList("swapPublic", "swapPrivate"))))
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("swap");
         }

@@ -2378,7 +2378,7 @@ public class Bitrue extends BitrueApi
                 ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                 ((Map<String, Object>)request).put("quantity", this.amountToPrecision(symbol, amount));
                 Object validOrderTypes = this.safeValue(((Map<String, Object>)market).get("info"), "orderTypes");
-                if (!Helpers.isTrue(this.inArray(uppercaseType, validOrderTypes)))
+                if (!this.inArray(uppercaseType, validOrderTypes))
                 {
                     throw new InvalidOrder(((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
                 }

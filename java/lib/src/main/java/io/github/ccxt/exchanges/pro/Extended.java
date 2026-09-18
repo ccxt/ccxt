@@ -569,7 +569,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(filtered)))
+            if (!this.isEmpty(filtered))
             {
                 client.resolve(filtered, messageHash);
             }

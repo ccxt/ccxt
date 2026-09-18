@@ -1217,7 +1217,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             }
             Object messageHashes = new ArrayList<Object>(Arrays.asList());
             symbols = this.marketSymbols(symbols);
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {

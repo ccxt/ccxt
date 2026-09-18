@@ -5377,7 +5377,7 @@ public class Phemex extends PhemexApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Boolean isCross = java.util.Objects.equals(marginMode, "cross");
-            if (Helpers.isTrue(this.inArray(((Map<String, Object>)market).get("settle"), new ArrayList<Object>(Arrays.asList("USDT", "USDC")))))
+            if (this.inArray(((Map<String, Object>)market).get("settle"), new ArrayList<Object>(Arrays.asList("USDT", "USDC"))))
             {
                 String currentLeverage = this.safeString(parameters, "leverage");
                 if (java.util.Objects.equals(currentLeverage, null))

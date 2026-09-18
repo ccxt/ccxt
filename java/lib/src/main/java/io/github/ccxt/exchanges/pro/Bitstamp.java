@@ -1035,7 +1035,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             Object entry = Helpers.GetValue(entries, i);
             String entrySymbol = this.safeString(entry, "symbol");
-            if (!Helpers.isTrue(this.inArray(entrySymbol, symbols)))
+            if (!this.inArray(entrySymbol, symbols))
             {
                 Helpers.callDynamically(newCache, "append", new Object[]{entry});
             }

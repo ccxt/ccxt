@@ -2282,7 +2282,7 @@ public class Bitstamp extends BitstampApi
             Object id = Helpers.GetValue(ids, i);
             Object fees = this.safeValue(response, i, new HashMap<String, Object>() {{}});
             String code = this.safeCurrencyCode(id);
-            if ((!java.util.Objects.equals(codes, null)) && !Helpers.isTrue(this.inArray(code, codes)))
+            if ((!java.util.Objects.equals(codes, null)) && !this.inArray(code, codes))
             {
                 continue;
             }

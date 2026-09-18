@@ -4003,7 +4003,7 @@ public class Blofin extends BlofinApi
         // const type = this.getPathAuthenticationType (path);
         if (java.util.Objects.equals(api, "public"))
         {
-            if (!Helpers.isTrue(this.isEmpty(query)))
+            if (!this.isEmpty(query))
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -4020,7 +4020,7 @@ public class Blofin extends BlofinApi
             Object sign_body = "";
             if (java.util.Objects.equals(method, "GET"))
             {
-                if (!Helpers.isTrue(this.isEmpty(query)))
+                if (!this.isEmpty(query))
                 {
                     String urlencodedQuery = ("?" + this.urlencode(query));
                     url = Helpers.add(url, urlencodedQuery);
@@ -4028,7 +4028,7 @@ public class Blofin extends BlofinApi
                 }
             } else
             {
-                if (!Helpers.isTrue(this.isEmpty(query)))
+                if (!this.isEmpty(query))
                 {
                     body = this.json(query);
                     sign_body = body;

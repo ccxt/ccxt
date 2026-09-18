@@ -2212,10 +2212,10 @@ public class Kucoin extends KucoinApi
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             Object types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
             Object credentialsSet = this.checkRequiredCredentials(false);
-            Boolean requestMarginables = Helpers.isTrue(credentialsSet) && Helpers.isTrue(this.safeBool(parameters, "marginables", true));
+            Boolean requestMarginables = Helpers.isTrue(credentialsSet) && Boolean.TRUE.equals(this.safeBool(parameters, "marginables", true));
             parameters = this.omit(parameters, "marginables");
             Boolean fetchContractMarkets = false;
-            if (Helpers.isTrue(this.inArray("swap", types)) || Helpers.isTrue(this.inArray("future", types)) || Helpers.isTrue(this.inArray("contract", types)))
+            if (this.inArray("swap", types) || this.inArray("future", types) || this.inArray("contract", types))
             {
                 fetchContractMarkets = true;
             }
@@ -2337,7 +2337,7 @@ public class Kucoin extends KucoinApi
                 String takerCoefficient = this.safeString(ticker, "takerCoefficient");
                 Boolean hasCrossMargin = (((Map<?, ?>)crossById).containsKey(id));
                 Boolean hasIsolatedMargin = (((Map<?, ?>)isolatedById).containsKey(id));
-                Boolean isMarginable = Helpers.isTrue(this.safeBool(market, "isMarginEnabled", false)) || Helpers.isTrue(hasCrossMargin) || Helpers.isTrue(hasIsolatedMargin);
+                Boolean isMarginable = Boolean.TRUE.equals(this.safeBool(market, "isMarginEnabled", false)) || Helpers.isTrue(hasCrossMargin) || Helpers.isTrue(hasIsolatedMargin);
     final Object finalId = id;
                 final Object finalBase = base;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -3401,7 +3401,7 @@ public class Kucoin extends KucoinApi
             // uta spot sends a ratio under this name and uta swap sends a percentage.
             // An unresolved market has no `spot` key at all, so read it the way okx
             // does and leave the value alone rather than scaling on a guess.
-            if (Helpers.isTrue(this.safeBool(market, "spot", false)))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 percentage = Precise.stringMul(percentage, "100");
             }
@@ -11585,7 +11585,7 @@ public class Kucoin extends KucoinApi
         {
             Object item = Helpers.GetValue(response, i);
             String code = this.safeCurrencyCode(this.safeString(item, "currency"));
-            if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || Helpers.isTrue(this.inArray(code, codes))))
+            if ((!java.util.Objects.equals(code, null)) && (java.util.Objects.equals(codes, null) || this.inArray(code, codes)))
             {
                 if (!(((Map<?, ?>)borrowRateHistories).containsKey(code)))
                 {
@@ -14114,7 +14114,7 @@ final Object finalMarket = market;
         headers = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
         Object url = Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api);
         String tradeType = this.safeString(query, "tradeType");
-        if (!Helpers.isTrue(this.isEmpty(query)))
+        if (!this.isEmpty(query))
         {
             if (((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE"))) && (!java.util.Objects.equals(path, "orders/multi-cancel")))
             {

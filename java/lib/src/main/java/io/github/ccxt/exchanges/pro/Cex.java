@@ -390,7 +390,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Map<String, Object> request = this.deepExtend(message, parameters);
             Object ticker = (this.watch(url, messageHash, request, messageHash, null)).join();
             Object tickerSymbol = Helpers.GetValue(ticker, "symbol");
-            if (!java.util.Objects.equals(symbols, null) && !Helpers.isTrue(this.inArray(tickerSymbol, symbols)))
+            if (!java.util.Objects.equals(symbols, null) && !this.inArray(tickerSymbol, symbols))
             {
                 return (this.watchTickers((Object)(symbols), (Object)(parameters))).join();
             }

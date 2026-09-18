@@ -1720,7 +1720,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object market = null;
             symbols = this.marketSymbols(symbols);
             Object payload = new ArrayList<Object>(Arrays.asList(("!" + "all")));
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 market = this.getMarketFromSymbols(symbols);
             }
@@ -1739,7 +1739,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "option", "options" );
             }});
             Object messageHash = (type + ":positions");
-            if (!Helpers.isTrue(this.isEmpty(symbols)))
+            if (!this.isEmpty(symbols))
             {
                 if (java.util.Objects.equals(symbols, null))
                 {
@@ -1913,7 +1913,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            if (!this.isEmpty(positions))
             {
                 client.resolve(positions, messageHash);
             }
@@ -2179,7 +2179,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarketType(type, isInverse);
             Object payload = new ArrayList<Object>(Arrays.asList());
             String messageHash = "";
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 if (!java.util.Objects.equals(typeId, "futures") && !Helpers.isTrue(isInverse))
                 {

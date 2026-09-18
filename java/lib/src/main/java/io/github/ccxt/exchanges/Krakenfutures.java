@@ -2390,7 +2390,7 @@ public class Krakenfutures extends KrakenfuturesApi
             put( "filled", OrderNotFound.class );
             put( "notFound", OrderNotFound.class );
         }};
-        if ((Helpers.inOp(errors, status)) && !Helpers.isTrue(this.inArray(status, omit)))
+        if ((Helpers.inOp(errors, status)) && !this.inArray(status, omit))
         {
             Helpers.throwDynamicException(Helpers.GetValue(errors, status), Helpers.add((Helpers.add((this.id + ": "), method) + " failed due to "), status));
         }
@@ -3629,7 +3629,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Object entry_symbol = this.safeValue(entry, "symbol");
                 if (!java.util.Objects.equals(marketIds, null))
                 {
-                    if (!Helpers.isTrue(this.inArray(entry_symbol, marketIds)))
+                    if (!this.inArray(entry_symbol, marketIds))
                     {
                         continue;
                     }

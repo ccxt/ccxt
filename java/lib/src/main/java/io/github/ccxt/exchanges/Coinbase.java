@@ -1510,7 +1510,7 @@ public class Coinbase extends CoinbaseApi
         String datetime = this.safeString(transaction, "created_at");
         String resource = this.safeString(transaction, "resource");
         String type = resource;
-        if (!Helpers.isTrue(this.inArray(type, new ArrayList<Object>(Arrays.asList("deposit", "withdrawal")))))
+        if (!this.inArray(type, new ArrayList<Object>(Arrays.asList("deposit", "withdrawal"))))
         {
             if (Helpers.isTrue(Precise.stringGt(amountString, "0")))
             {
@@ -2040,8 +2040,8 @@ public class Coinbase extends CoinbaseApi
         Object stablePairs = this.safeList(this.options, "stablePairs", new ArrayList<Object>(Arrays.asList()));
         Double defaultTakerFee = this.safeNumber(Helpers.GetValue(this.fees, "trading"), "taker");
         Double defaultMakerFee = this.safeNumber(Helpers.GetValue(this.fees, "trading"), "maker");
-        Object takerFee = ((Helpers.isTrue(this.inArray(id, stablePairs)))) ? 0.00001 : ((Object) this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee));
-        Object makerFee = ((Helpers.isTrue(this.inArray(id, stablePairs)))) ? 0 : ((Object) this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee));
+        Object takerFee = ((this.inArray(id, stablePairs))) ? 0.00001 : ((Object) this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee));
+        Object makerFee = ((this.inArray(id, stablePairs))) ? 0 : ((Object) this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee));
         final Object finalBase = base;
         final Object finalMarketType = marketType;
         final Object finalTradingDisabled = tradingDisabled;
@@ -2928,7 +2928,7 @@ public class Coinbase extends CoinbaseApi
         {
             Object balance = Helpers.GetValue(balances, b);
             String type = this.safeString(balance, "type");
-            if (Helpers.isTrue(this.inArray(type, accounts)))
+            if (this.inArray(type, accounts))
             {
                 Object value = this.safeDict(balance, "balance");
                 if (!java.util.Objects.equals(value, null))
@@ -2953,7 +2953,7 @@ public class Coinbase extends CoinbaseApi
                         Helpers.addElementToObject(result, code, account);
                     }
                 }
-            } else if (Helpers.isTrue(this.inArray(type, v3Accounts)))
+            } else if (this.inArray(type, v3Accounts))
             {
                 Object available = this.safeDict(balance, "available_balance");
                 Object hold = this.safeDict(balance, "hold");
@@ -6455,7 +6455,7 @@ public class Coinbase extends CoinbaseApi
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 Boolean isCloudAPiKey = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0)) || Helpers.isTrue((this.secret.startsWith("-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
-                Boolean isV2CloudAPiKey = Helpers.isEqual(this.secret.length(), 88) || Helpers.isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || Helpers.isTrue(this.secret.endsWith("="));
+                Boolean isV2CloudAPiKey = Helpers.isEqual(this.secret.length(), 88) || Boolean.TRUE.equals(this.safeBool(this.options, "v2CloudAPiKey", false)) || Helpers.isTrue(this.secret.endsWith("="));
                 if (Helpers.isTrue(isCloudAPiKey) || Helpers.isTrue(isV2CloudAPiKey))
                 {
                     if (Helpers.isTrue(isCloudAPiKey) && Helpers.isTrue(this.apiKey.startsWith("-----BEGIN")))

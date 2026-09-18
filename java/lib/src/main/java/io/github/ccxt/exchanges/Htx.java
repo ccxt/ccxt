@@ -8579,7 +8579,7 @@ public class Htx extends HtxApi
             }
             amount = Helpers.parseFloat(amountPrecision);
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new HashMap<String, Object>() {{}});
-            if (Helpers.isTrue(this.safeBool(withdrawOptions, "includeFee", false)))
+            if (Boolean.TRUE.equals(this.safeBool(withdrawOptions, "includeFee", false)))
             {
                 Double fee = this.safeNumber(parameters, "fee");
                 if (java.util.Objects.equals(fee, null))
@@ -8741,8 +8741,8 @@ public class Htx extends HtxApi
             Object toAccountId = this.convertTypeToAccount(toAccount);
             Boolean toCross = java.util.Objects.equals(toAccountId, "cross");
             Boolean fromCross = java.util.Objects.equals(fromAccountId, "cross");
-            Boolean toIsolated = ((!java.util.Objects.equals(this.ids, null)) && Helpers.isTrue(this.inArray(toAccountId, this.ids)));
-            Boolean fromIsolated = ((!java.util.Objects.equals(this.ids, null)) && Helpers.isTrue(this.inArray(fromAccountId, this.ids)));
+            Boolean toIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(toAccountId, this.ids));
+            Boolean fromIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(fromAccountId, this.ids));
             Boolean fromSpot = java.util.Objects.equals(fromAccountId, "pro");
             Boolean toSpot = java.util.Objects.equals(toAccountId, "pro");
             if (Helpers.isTrue(fromSpot) && Helpers.isTrue(toSpot))

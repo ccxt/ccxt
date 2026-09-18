@@ -765,7 +765,7 @@ public class Backpack extends BackpackApi
         Object active = null;
         Object deposit = null;
         Object withdraw = null;
-        if (Helpers.isTrue(this.isEmpty(parsedNetworks)))
+        if (this.isEmpty(parsedNetworks))
         {
             active = false;
             deposit = false;
@@ -2728,7 +2728,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.privateGetApiV1Position(parameters)).join();
             Object positions = this.parsePositions(response);
-            if (Helpers.isTrue(this.isEmpty(symbols)))
+            if (this.isEmpty(symbols))
             {
                 return positions;
             }

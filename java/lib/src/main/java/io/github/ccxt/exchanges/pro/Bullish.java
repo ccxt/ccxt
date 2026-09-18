@@ -856,7 +856,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             Object subscribeHash = "positions";
             Object messageHash = subscribeHash;
-            if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
+            if ((!java.util.Objects.equals(symbols, null)) && !this.isEmpty(symbols))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = (messageHash + ("::" + String.join(",", (List<String>)symbols)));
@@ -910,7 +910,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(symbolPositions)))
+            if (!this.isEmpty(symbolPositions))
             {
                 client.resolve(symbolPositions, messageHash);
             }
