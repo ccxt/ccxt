@@ -1039,7 +1039,7 @@ public partial class modetrade : Exchange
         });
     }
 
-    public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
+    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
     {
         string? feeCost = this.safeString(item, feeAmountKey);
         Dictionary<string, object> fee = null;
@@ -1092,11 +1092,11 @@ public partial class modetrade : Exchange
         string? price = this.safeString(trade, "executed_price");
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
-        object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
         string? feeCost = this.safeString(fee, "cost");
         if (((feeCost != null)) && ((fee != null)))
         {
-            ((IDictionary<string,object>)fee)["cost"] = feeCost;
+            fee["cost"] = feeCost;
         }
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
@@ -2916,7 +2916,7 @@ public partial class modetrade : Exchange
         string? side = this.safeString(item, "token_side");
         string direction = (side == "DEPOSIT") ? "in" : "out";
         Int64? timestamp = this.safeInteger(item, "created_time");
-        object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
@@ -2974,7 +2974,7 @@ public partial class modetrade : Exchange
         {
             movementDirection = "withdrawal";
         }
-        object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
+        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
         string? addressTo = this.safeString(transaction, "target_address");
         string? addressFrom = this.safeString(transaction, "source_address");
         Int64? timestamp = this.safeInteger(transaction, "created_time");

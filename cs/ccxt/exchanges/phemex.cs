@@ -1448,7 +1448,7 @@ public partial class phemex : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " customParseBidAsk() requires a market argument")) ;
         }
-        object amount = this.safeString(bidask, amountKey);
+        string? amount = this.safeString(bidask, amountKey);
         if (isEqual(getValue(market, "spot"), true))
         {
             amount = this.fromEv(amount, market);
@@ -1598,31 +1598,31 @@ public partial class phemex : Exchange
         return ((object)precise).ToString();
     }
 
-    public virtual object fromEp(object ep, object market = null)
+    public virtual string? fromEp(object ep, object market = null)
     {
         if ((isEqual(ep, null)) || (isEqual(market, null)))
         {
-            return ep;
+            return ((string?)((object)(ep)));
         }
-        return this.fromEn(ep, this.safeInteger(market, "priceScale"));
+        return ((string?)((object)(this.fromEn(ep, this.safeInteger(market, "priceScale")))));
     }
 
-    public virtual object fromEv(object ev, object market = null)
+    public virtual string? fromEv(object ev, object market = null)
     {
         if ((isEqual(ev, null)) || (isEqual(market, null)))
         {
-            return ev;
+            return ((string?)((object)(ev)));
         }
-        return this.fromEn(ev, this.safeInteger(market, "valueScale"));
+        return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
     }
 
-    public virtual object fromEr(object er, object market = null)
+    public virtual string? fromEr(object er, object market = null)
     {
         if ((isEqual(er, null)) || (isEqual(market, null)))
         {
-            return er;
+            return ((string?)((object)(er)));
         }
-        return this.fromEn(er, this.safeInteger(market, "ratioScale"));
+        return ((string?)((object)(this.fromEn(er, this.safeInteger(market, "ratioScale")))));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, object market = null)
@@ -1821,14 +1821,14 @@ public partial class phemex : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
-        object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), market);
-        object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), market);
-        object baseVolume = this.safeString(ticker, "volume");
+        string? last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), market);
+        string? quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), market);
+        string? baseVolume = this.safeString(ticker, "volume");
         if ((baseVolume == null))
         {
             baseVolume = this.fromEv(this.safeString2(ticker, "volumeEv", "volumeRq"), market);
         }
-        object open = this.fromEp(this.safeString(ticker, "openEp"), market);
+        string? open = this.fromEp(this.safeString(ticker, "openEp"), market);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -2223,11 +2223,11 @@ public partial class phemex : Exchange
         object timestamp = null;
         string? id = null;
         string? side = null;
-        object costString = null;
+        string? costString = null;
         string? type = null;
         Dictionary<string, object> fee = null;
         object feeCostString = null;
-        object feeRateString = null;
+        string? feeRateString = null;
         string? feeCurrencyCode = null;
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
@@ -2779,18 +2779,18 @@ public partial class phemex : Exchange
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object price = this.fromEp(this.safeString(order, "priceEp"), market);
-        object amount = this.fromEv(this.safeString(order, "baseQtyEv"), market);
-        object remaining = this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), market));
-        object filled = this.fromEv(this.safeString2(order, "cumBaseQtyEv", "cumBaseValueEv"), market);
-        object cost = this.fromEr(this.safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), market);
-        object average = this.fromEp(this.safeString(order, "avgPriceEp"), market);
+        string? price = this.fromEp(this.safeString(order, "priceEp"), market);
+        string? amount = this.fromEv(this.safeString(order, "baseQtyEv"), market);
+        string? remaining = this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), market));
+        string? filled = this.fromEv(this.safeString2(order, "cumBaseQtyEv", "cumBaseValueEv"), market);
+        string? cost = this.fromEr(this.safeString2(order, "cumQuoteValueEv", "quoteQtyEv"), market);
+        string? average = this.fromEp(this.safeString(order, "avgPriceEp"), market);
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.safeStringLower(order, "side");
         string? type = this.parseOrderType(this.safeString(order, "ordType"));
         Int64? timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
         Dictionary<string, object> fee = null;
-        object feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), market);
+        string? feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), market);
         if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
@@ -2950,7 +2950,7 @@ public partial class phemex : Exchange
         string? status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         string? side = this.parseOrderSide(this.safeStringLower(order, "side"));
         string? type = this.parseOrderType(this.safeString(order, "orderType"));
-        object price = this.safeString(order, "priceRp");
+        string? price = this.safeString(order, "priceRp");
         if ((price == null))
         {
             price = this.fromEp(this.safeString(order, "priceEp"), market);
@@ -4969,10 +4969,10 @@ public partial class phemex : Exchange
         string? marketId = this.safeString(contract, "symbol");
         string? symbol = this.safeSymbol(marketId, market);
         Int64? timestamp = this.safeIntegerProduct(contract, "timestamp", 0.000001);
-        object markEp = this.fromEp(this.safeString(contract, "markEp"), market);
-        object indexEp = this.fromEp(this.safeString(contract, "indexEp"), market);
-        object fundingRateEr = this.fromEr(this.safeString(contract, "fundingRateEr"), market);
-        object nextFundingRateEr = this.fromEr(this.safeString(contract, "predFundingRateEr"), market);
+        string? markEp = this.fromEp(this.safeString(contract, "markEp"), market);
+        string? indexEp = this.fromEp(this.safeString(contract, "indexEp"), market);
+        string? fundingRateEr = this.fromEr(this.safeString(contract, "fundingRateEr"), market);
+        string? nextFundingRateEr = this.fromEr(this.safeString(contract, "predFundingRateEr"), market);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -5614,7 +5614,7 @@ public partial class phemex : Exchange
         string? id = this.safeString(transfer, "linkKey");
         string? status = this.safeString(transfer, "status");
         string? amountEv = this.safeString(transfer, "amountEv");
-        object amountTransfered = this.fromEv(amountEv);
+        string? amountTransfered = this.fromEv(amountEv);
         string? currencyId = this.safeString(transfer, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? side = this.safeInteger(transfer, "side");

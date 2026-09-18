@@ -1823,7 +1823,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
@@ -2026,7 +2026,7 @@ public partial class pacifica : Exchange
             {
                 throw new NotSupported (add(add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
             }
-            object requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
+            List<object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             Dictionary<string, object> action = new Dictionary<string, object>() {
                 { "type", "Create" },
                 { "data", getValue(requestList, 0) },

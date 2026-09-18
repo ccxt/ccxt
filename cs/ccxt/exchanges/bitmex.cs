@@ -842,18 +842,18 @@ public partial class bitmex : Exchange
         return ((double?)((object)(this.parseNumber(finalAmount))));
     }
 
-    public virtual object convertToRealAmount(string code, object amount)
+    public virtual string? convertToRealAmount(string code, object amount)
     {
         if (isEqual(code, null))
         {
-            return amount;
+            return ((string?)((object)(amount)));
         } else if (isEqual(amount, null))
         {
-            return null;
+            return ((string?)((object)(null)));
         }
         Dictionary<string, object> currency = this.currency(code);
         string? precision = this.safeString(currency, "precision");
-        return Precise.stringMul(amount, precision);
+        return ((string?)((object)(Precise.stringMul(amount, precision))));
     }
 
     public override string? amountToPrecision(object symbol, object amount)
@@ -868,25 +868,25 @@ public partial class bitmex : Exchange
         return base.amountToPrecision(symbol, amount);
     }
 
-    public virtual object convertFromRawQuantity(object symbol, object rawQuantity, object currencySide = null)
+    public virtual double? convertFromRawQuantity(object symbol, object rawQuantity, object currencySide = null)
     {
         currencySide ??= "base";
         if (isEqual(this.safeValue(this.options, "oldPrecision"), true))
         {
-            return this.parseNumber(rawQuantity);
+            return ((double?)((object)(this.parseNumber(rawQuantity))));
         }
         symbol = this.safeSymbol(symbol);
         bool marketExists = this.inArray(symbol, this.symbols);
         if (!marketExists)
         {
-            return this.parseNumber(rawQuantity);
+            return ((double?)((object)(this.parseNumber(rawQuantity))));
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            return this.parseNumber(this.convertToRealAmount(((string)this.safeString(market, currencySide)), rawQuantity));
+            return ((double?)((object)(this.parseNumber(this.convertToRealAmount(((string)this.safeString(market, currencySide)), rawQuantity)))));
         }
-        return this.parseNumber(rawQuantity);
+        return ((double?)((object)(this.parseNumber(rawQuantity))));
     }
 
     public virtual object convertFromRawCost(object symbol, object rawQuantity)
@@ -1412,7 +1412,7 @@ public partial class bitmex : Exchange
         {
             object order = getValue(orders, i);
             string side = (isEqual(getValue(order, "side"), "Sell")) ? "asks" : "bids";
-            object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
+            double? amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
             double? price = this.safeNumber(order, "price");
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
@@ -1735,7 +1735,7 @@ public partial class bitmex : Exchange
         string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         string? amountString = this.safeString(item, "amount");
-        object amount = this.convertToRealAmount(((string)code), amountString);
+        string? amount = this.convertToRealAmount(((string)code), amountString);
         object timestamp = this.parse8601(this.safeString(item, "transactTime"));
         if (isEqual(timestamp, null))
         {
@@ -1745,7 +1745,7 @@ public partial class bitmex : Exchange
             timestamp = 0; // see comments above
         }
         Dictionary<string, object> fee = null;
-        object feeCost = this.safeString(item, "fee");
+        string? feeCost = this.safeString(item, "fee");
         if ((feeCost != null))
         {
             feeCost = this.convertToRealAmount(((string)code), feeCost);
@@ -1754,7 +1754,7 @@ public partial class bitmex : Exchange
                 { "currency", code },
             };
         }
-        object after = this.safeString(item, "walletBalance");
+        string? after = this.safeString(item, "walletBalance");
         if ((after != null))
         {
             after = this.convertToRealAmount(((string)code), after);
@@ -1943,9 +1943,9 @@ public partial class bitmex : Exchange
         }
         string? amountString = this.safeString(transaction, "amount");
         string? amountStringAbs = Precise.stringAbs(amountString);
-        object amount = this.convertToRealAmount(((string)getValue(currency, "code")), amountStringAbs);
+        string? amount = this.convertToRealAmount(((string)getValue(currency, "code")), amountStringAbs);
         string? feeCostString = this.safeString(transaction, "fee");
-        object feeCost = this.convertToRealAmount(((string)getValue(currency, "code")), feeCostString);
+        string? feeCost = this.convertToRealAmount(((string)getValue(currency, "code")), feeCostString);
         string? status = this.safeString(transaction, "transactStatus");
         if ((status != null))
         {
@@ -2096,7 +2096,7 @@ public partial class bitmex : Exchange
         //
         string? marketId = this.safeString(ohlcv, "symbol");
         market = this.safeMarket(marketId, market);
-        object volume = this.convertFromRawQuantity(getValue(market, "symbol"), this.safeString(ohlcv, "volume"));
+        double? volume = this.convertFromRawQuantity(getValue(market, "symbol"), this.safeString(ohlcv, "volume"));
         return new List<object> {this.parse8601(this.safeString(ohlcv, "timestamp")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), volume};
     }
 
@@ -2267,7 +2267,7 @@ public partial class bitmex : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         Int64? timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         string? priceString = this.safeString2(trade, "avgPx", "price");
-        object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
+        double? amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
         string? execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         string? id = this.safeString(trade, "trdMatchID");
         string? order = this.safeString(trade, "orderID");
@@ -2382,8 +2382,8 @@ public partial class bitmex : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         string? qty = this.safeString(order, "orderQty");
-        object cost = null;
-        object amount = null;
+        double? cost = null;
+        double? amount = null;
         bool? isInverse = false;
         if ((marketId == null))
         {
@@ -3157,8 +3157,8 @@ public partial class bitmex : Exchange
         string marginMode = (isEqual(crossMargin, true)) ? "cross" : "isolated";
         string? notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
         string? settleCurrencyCode = this.safeString(market, "settle");
-        object maintenanceMargin = this.convertToRealAmount(((string)settleCurrencyCode), this.safeString(position, "maintMargin"));
-        object unrealisedPnl = this.convertToRealAmount(((string)settleCurrencyCode), this.safeString(position, "unrealisedPnl"));
+        string? maintenanceMargin = this.convertToRealAmount(((string)settleCurrencyCode), this.safeString(position, "maintMargin"));
+        string? unrealisedPnl = this.convertToRealAmount(((string)settleCurrencyCode), this.safeString(position, "unrealisedPnl"));
         double? contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
         double? contractSize = this.safeNumber(market, "contractSize");
         string? side = null;

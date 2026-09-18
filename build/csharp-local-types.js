@@ -1042,7 +1042,11 @@ export const CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION = {
     'cancelOrderRequest': 'Dictionary<string, object>',
     'cancelOrdersRequest': 'Dictionary<string, object>',
     'createContractOrderRequest': 'Dictionary<string, object>',
-    'createOrderRequest': 'Dictionary<string, object>',
+    // U37: a name may box more than one collection when its venues disagree — dydx / pacifica /
+    // lighter's createOrderRequest returns the `new List<object>() {...}` pair, okx / paradex
+    // the request Dictionary. Each declaration proves whichever of the admissible boxes its own
+    // return paths print (the call site is typed only when the BOUND declaration proves it).
+    'createOrderRequest': [ 'Dictionary<string, object>', 'List<object>' ],
     'createOrdersRequest': 'Dictionary<string, object>',
     'createSpotOrderRequest': 'Dictionary<string, object>',
     'editOrderRequest': 'Dictionary<string, object>',
@@ -1079,6 +1083,23 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_COLLECTION_RETURN_METHOD
 // skipped, the return line stays byte-identical) — the by-declaration route.
 Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'orderToTrade': 'Dictionary<string, object>',
+});
+
+// U37 census: venue-local dict builders whose every declaration returns a local the local pass
+// already declares `Dictionary<string, object>` (a null-init `FeeString` written with the
+// object literal), so each declaration proves on its own.
+//   parseTokenAndFeeTemp — woo / woofipro / modetrade, 3 declarations, `return fee;` only.
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
+    'parseTokenAndFeeTemp': 'Dictionary<string, object>',
+});
+
+// U37 census: the dydx credential helpers. retrieveDydxCredentials is the hand-written
+// Exchange.cs stub (body is a single throw, so it has no return path to carry a cast) and
+// retrieveCredentials (dydx, one declaration, 5 call sites) returns only the `credentials`
+// local: safeDict result (IDictionary) joined with that stub (Dictionary) -> IDictionary.
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
+    'retrieveDydxCredentials': 'Dictionary<string, object>',
+    'retrieveCredentials': 'IDictionary<string, object>',
 });
 
 // the mapped collection type for a method declaration, or undefined to leave the printer's
@@ -1230,6 +1251,12 @@ function methodReturnsProveCollection (csharp, declaration, mapped) {
     return proved;
 }
 
+// the admissible boxes of a per-declaration entry: one mapped type, or the set of boxes the
+// same name's venues disagree on (createOrderRequest: a Dictionary or the pair List)
+function declarationMappedTypes (mapped) {
+    return Array.isArray (mapped) ? mapped : [ mapped ];
+}
+
 // the by-declaration mapped type of one declaration, cached; undefined when the method is async
 // (its signature is a Task named by csharpTranspiler#VENUE_TYPED_CORES) or a return path is not
 // provably the mapped box
@@ -1252,9 +1279,9 @@ function declarationCollectionReturnType (csharp, declaration, mapped) {
     }
     collectionDeclarationProofsInProgress.add (declaration);
     try {
-        const proof = methodReturnsProveCollection (csharp, declaration, mapped) ? mapped : false;
-        collectionDeclarationTypes.set (declaration, proof);
-        return (proof === false) ? undefined : proof;
+        const proof = declarationMappedTypes (mapped).find ((type) => methodReturnsProveCollection (csharp, declaration, type));
+        collectionDeclarationTypes.set (declaration, (proof === undefined) ? false : proof);
+        return proof;
     } finally {
         collectionDeclarationProofsInProgress.delete (declaration);
     }
@@ -1315,7 +1342,11 @@ function boundCollectionReturnType (csharp, call, name, mapped) {
 // skips the boundary cast on exactly these, because the proof already covers every return path
 function byDeclarationCollectionReturnIsProven (csharp, declaration) {
     const mapped = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[declaration?.name?.escapedText];
-    return mapped !== undefined && declarationCollectionReturnType (csharp, declaration, mapped) === mapped;
+    if (mapped === undefined) {
+        return false;
+    }
+    const proven = declarationCollectionReturnType (csharp, declaration, mapped);
+    return proven !== undefined && declarationMappedTypes (mapped).includes (proven);
 }
 
 // wrap printFunctionType / printReturnStatement on a Transpiler's C# printer. Idempotent.
@@ -1422,6 +1453,13 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     // return-path proof (mergeBalanceAccount: both paths return the caller's dict; createSignedRequest
     // — grvt's only declaration — its single return is the caller's dict literal).
     'mergeBalanceAccount': 'Dictionary<string, object>',
+    // U37: the venue-local helpers whose definitions installCsharpMethodReturnTypes retypes
+    // (CSHARP_METHOD_RETURN_TYPES) — the local is exactly the printed signature, no cast.
+    'fromEp': 'string?',
+    'fromEv': 'string?',
+    'fromEr': 'string?',
+    'convertToRealAmount': 'string?',
+    'signOrder': 'string?',
     'createSignedRequest': 'Dictionary<string, object>',
     // Exchange.BaseMethods.cs — generated, retyped from `object` by
     // csharpTranspiler.ts#retypeSafeCollectionHelpers (the TS return annotations cannot
@@ -1701,6 +1739,12 @@ for (const [ name, type ] of Object.entries ({
     'subscriptionExistsForHash': 'bool',
     'usesPrivateKey': 'bool',
     'parseMarketActive': 'bool?',
+    // U37: the market-type predicates. Both names are declared exactly twice tree-wide
+    // (binance.ts + aster.ts, each `: boolean` -> printed `bool`, every return a comparison)
+    // and every `this.isLinear/isInverse (...)` call site lives in those two files, so the
+    // call's own C# type is bool.
+    'isLinear': 'bool',
+    'isInverse': 'bool',
 })) {
     if (CSHARP_LOCAL_THIS_RETURN_TYPES[name] === undefined) {
         CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
@@ -2121,6 +2165,9 @@ const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     'isSandboxModeEnabled': 'bool',
     'orders': 'ccxt.pro.ArrayCache',
     'myTrades': 'ccxt.pro.ArrayCache',
+    // U37: every writer in cs/** stores `new ArrayCache (limit)` or null (Exchange.Options.cs
+    // declaration retyped with it); the reads feed filterBySymbolsSinceLimit / callDynamically.
+    'liquidations': 'ccxt.pro.ArrayCache',
 };
 
 // `let x: <alias> = undefined` -> nullable C# type (the null initialiser forces `?`)
@@ -2197,13 +2244,13 @@ function isArrayCacheBaseType (type) {
     return ARRAY_CACHE_BASE_TYPES.includes (bare);
 }
 
-// `this.orders` / `this.myTrades` — the retyped ws cache member reads
+// `this.orders` / `this.myTrades` / `this.liquidations` — the retyped ws cache member reads
 // (CSHARP_LOCAL_WS_MEMBER_TYPES); their declaration path joins the later writes along
 // CACHE_MEMBER_WIDENING_EDGES, so the join must know it is looking at one of them
 function wsCacheMemberRead (initializer) {
     return initializer?.kind === ts.SyntaxKind.PropertyAccessExpression
         && initializer.expression?.kind === ts.SyntaxKind.ThisKeyword
-        && (initializer.name?.escapedText === 'orders' || initializer.name?.escapedText === 'myTrades');
+        && (initializer.name?.escapedText === 'orders' || initializer.name?.escapedText === 'myTrades' || initializer.name?.escapedText === 'liquidations');
 }
 
 // every JS assignment operator (ts.SyntaxKind has no First/LastAssignmentOperator in v6)
@@ -3138,6 +3185,108 @@ function requestIdLocalInitializer (method, name) {
     return (conflict || initializer === undefined) ? undefined : initializer;
 }
 
+// ===== per-definition numeric boxes (U37) =====
+//
+// Venue-local numeric helpers whose same-file definition proves one box while a sibling
+// venue's declaration of the same name boxes something else, so a name-keyed table cannot
+// express them. The same proof retypes the definition's signature (csharpMethodReturnType)
+// and answers the call sites in the declaring file (callReturnType) — no cast on either side.
+//   convertFromRawQuantity — bitmex's 4 return paths are all this.parseNumber (...)
+//     (Exchange.cs `double?`); pro/bitrue's own declaration returns its rawQuantity param and
+//     `rawQuantity * contractSize` and stays `object`.
+export const CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS = {
+    'convertFromRawQuantity': 'double?',
+};
+
+// every `return` of the declaration (nested callbacks excluded) must prove, and at least one
+// must exist: the box has to be produced by a value the printer hands back
+function sameFileMethodReturnsProve (csharp, declaration, proves) {
+    let proved = true;
+    let returns = 0;
+    const visit = (node) => {
+        if (!proved || (node !== declaration && ts.isFunctionLike (node))) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            if (node.expression === undefined || !proves (node.expression)) {
+                proved = false;
+            }
+            return;
+        }
+        ts.forEachChild (node, visit);
+    };
+    ts.forEachChild (declaration, visit);
+    return proved && returns > 0;
+}
+
+// the C# box of one return expression of a numeric definition: null / undefined / a numeric
+// literal (an implicit numeric conversion, never a hard unbox), a call to a hand-written
+// helper whose own C# signature is `double?`, or an expression the classifier already names
+function numericReturnExpressionProves (csharp, expression, mapped) {
+    const node = unwrapPassthroughExpression (expression);
+    if (node === undefined) {
+        return false;
+    }
+    if (node.kind === ts.SyntaxKind.NullKeyword) {
+        return true; // the nullable spelling keeps a null path nameable
+    }
+    if (node.kind === ts.SyntaxKind.Identifier && node.escapedText === 'undefined') {
+        return true;
+    }
+    if (node.kind === ts.SyntaxKind.NumericLiteral) {
+        return true;
+    }
+    if (node.kind === ts.SyntaxKind.CallExpression) {
+        const callee = node.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+            const name = callee.name?.escapedText;
+            if (name === 'parseNumber' || name === 'safeNumber' || name === 'safeFloat') {
+                return true;
+            }
+        }
+    }
+    return typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (node) === mapped;
+}
+
+const sameFileNumericTypes = new WeakMap ();
+const sameFileNumericProofsInProgress = new Set ();
+
+function sameFileNumericDeclarationType (csharp, declaration, mapped) {
+    if (declaration?.kind !== ts.SyntaxKind.MethodDeclaration || declaration.name === undefined) {
+        return undefined;
+    }
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (declaration)) {
+        return undefined;
+    }
+    const cached = sameFileNumericTypes.get (declaration);
+    if (cached !== undefined) {
+        return (cached === false) ? undefined : cached;
+    }
+    if (sameFileNumericProofsInProgress.has (declaration)) {
+        return undefined; // a proof chain that reaches its own declaration
+    }
+    sameFileNumericProofsInProgress.add (declaration);
+    try {
+        const proof = sameFileMethodReturnsProve (csharp, declaration, (expression) => numericReturnExpressionProves (csharp, expression, mapped)) ? mapped : false;
+        sameFileNumericTypes.set (declaration, proof);
+        return (proof === false) ? undefined : proof;
+    } finally {
+        sameFileNumericProofsInProgress.delete (declaration);
+    }
+}
+
+// the mapped type of a `this.<name>(...)` call whose same-file declaration proves it, or
+// undefined (an inherited call in a file that does not declare the method keeps `object`)
+function sameFileNumericReturnType (csharp, call, name) {
+    const mapped = CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name];
+    if (mapped === undefined) {
+        return undefined;
+    }
+    const declaration = boundCollectionDeclaration (csharp, call, name);
+    return (declaration?.name?.escapedText === name) ? sameFileNumericDeclarationType (csharp, declaration, mapped) : undefined;
+}
+
 // ===== this.safeValue (recv, 'key') with a same-file dict / list twin =====
 //
 // `const x = this.safeValue (response, 'data')` boxes whatever the wire sent: the call is
@@ -3440,6 +3589,12 @@ function callReturnType (csharp, initializer) {
         const perDeclaration = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[methodName];
         if (perDeclaration !== undefined) {
             return boundCollectionReturnType (csharp, initializer, methodName, perDeclaration);
+        }
+        // a per-definition numeric helper (U37): same-file proof, no cast (the definition's
+        // own signature carries the type — see CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS)
+        const sameFileNumeric = sameFileNumericReturnType (csharp, initializer, methodName);
+        if (sameFileNumeric !== undefined) {
+            return sameFileNumeric;
         }
         // `this.safeIntegerProduct2 (obj, k1, k2, mult)` / `safeIntegerProductN (obj, keys, mult)`:
         // the hand-written ARITY overloads (Exchange.SafeMethods.cs) are exactly Int64? — they
@@ -6496,6 +6651,20 @@ export const CSHARP_METHOD_RETURN_TYPES = {
     'opinionWsUrl': 'string?',
     'urlEncodeQuery': 'string?',
     'urlencodeWithArrayBrackets': 'string?',
+    // U37 census: venue-local string helpers whose returns need the boundary cast.
+    //   fromEp / fromEv / fromEr — phemex + its pro override (49 call sites, all in those two
+    //     files; every argument is a safeString* result or a string-only local). Return paths:
+    //     the `ep` param (string-or-null at every call site), or this.fromEn (string?).
+    //   convertToRealAmount — bitmex, 11 call sites, every `amount` argument is a safeString
+    //     result / Precise.string* result / string-only local. Paths: `amount` param, null,
+    //     Precise.stringMul (string?).
+    //   signOrder — nado + derive only; both return their own signHash, whose add chain over
+    //     padHex/intToBase16/string literals boxes a string on every path.
+    'fromEp': 'string?',
+    'fromEv': 'string?',
+    'fromEr': 'string?',
+    'convertToRealAmount': 'string?',
+    'signOrder': 'string?',
 };
 
 // wrap printFunctionType() / printReturnStatement() so the methods above keep their real
@@ -7678,9 +7847,14 @@ function csharpMethodReturnType (csharp, node, own) {
     // name-keyed table cannot express it — the same per-definition proof the call sites use
     // (sameFileCallBoxType) retypes the Int64 counter definitions, which is what lets their
     // call-site casts go; the string-box definitions keep the printer's `object`
+    // U37: the same per-definition route for a numeric helper whose sibling venue's
+    // declaration does not prove (CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS).
+    const sameFileMapped = (CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name] !== undefined)
+        ? sameFileNumericDeclarationType (csharp, node, CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name])
+        : undefined;
     const mapped = (name === 'requestId')
         ? ((sameFileCallBoxType (node.getSourceFile?.()) === 'Int64') ? 'Int64' : undefined)
-        : CSHARP_NUMERIC_RETURN_TYPES[node.name?.escapedText];
+        : ((sameFileMapped !== undefined) ? sameFileMapped : CSHARP_NUMERIC_RETURN_TYPES[node.name?.escapedText]);
     if (mapped === undefined) {
         return undefined;
     }

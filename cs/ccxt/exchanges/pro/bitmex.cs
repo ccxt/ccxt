@@ -475,7 +475,7 @@ public partial class bitmex : ccxt.bitmex
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        object cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = this.liquidations;
         for (int i = 0; isLessThan(i, rawLiquidations.Count); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
@@ -1727,7 +1727,7 @@ public partial class bitmex : ccxt.bitmex
             for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
             {
                 double? price = this.safeFloat(getValue(data, i), "price");
-                object size = this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size"));
+                double? size = this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size"));
                 string? id = this.safeString(getValue(data, i), "id");
                 string? side = this.safeString(getValue(data, i), "side");
                 side = (isEqual(side, "Buy")) ? "bids" : "asks";
@@ -1758,7 +1758,7 @@ public partial class bitmex : ccxt.bitmex
                 string? symbol = ((string)getValue(market, "symbol"));
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 double? price = this.safeNumber(getValue(data, i), "price");
-                object size = (action == "delete") ? 0 : this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size", "0"));
+                double? size = (action == "delete") ? 0 : this.convertFromRawQuantity(symbol, this.safeString(getValue(data, i), "size", "0"));
                 string? id = this.safeString(getValue(data, i), "id");
                 string? side = this.safeString(getValue(data, i), "side");
                 side = (isEqual(side, "Buy")) ? "bids" : "asks";

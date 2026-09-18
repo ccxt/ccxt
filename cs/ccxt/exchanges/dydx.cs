@@ -1426,12 +1426,12 @@ public partial class dydx : Exchange
         return ((string?)((object)(this.encodeDydxTxRaw(signDoc, add(getValue(signature, "r"), getValue(signature, "s"))))));
     }
 
-    public virtual object retrieveCredentials()
+    public virtual IDictionary<string, object> retrieveCredentials()
     {
-        object credentials = this.safeDict(this.options, "dydxCredentials");
+        IDictionary<string, object> credentials = this.safeDict(this.options, "dydxCredentials");
         if ((credentials != null))
         {
-            return credentials;
+            return ((IDictionary<string, object>)((object)(credentials)));
         }
         object privateKey = this.safeString(this.options, "privateKey");
         if ((privateKey == null))
@@ -1440,10 +1440,10 @@ public partial class dydx : Exchange
             privateKey = this.hashMessage(this.base16ToBinary(add(getValue(signature, "r"), getValue(signature, "s"))));
         }
         credentials = this.retrieveDydxCredentials(privateKey);
-        ((IDictionary<string,object>)credentials)["privateKey"] = this.binaryToBase16(getValue(credentials, "privateKey"));
-        ((IDictionary<string,object>)credentials)["publicKey"] = this.binaryToBase16(getValue(credentials, "publicKey"));
+        credentials["privateKey"] = this.binaryToBase16(GetValue(credentials, "privateKey"));
+        credentials["publicKey"] = this.binaryToBase16(GetValue(credentials, "publicKey"));
         ((IDictionary<string,object>)this.options)["dydxCredentials"] = credentials;
-        return credentials;
+        return ((IDictionary<string, object>)((object)(credentials)));
     }
 
     public async virtual Task<Dictionary<string, object>> FetchDydxAccount()
@@ -1500,7 +1500,7 @@ public partial class dydx : Exchange
         return r;
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
@@ -1732,18 +1732,18 @@ public partial class dydx : Exchange
         {
             await this.loadMarkets();
         }
-        object credentials = this.retrieveCredentials();
+        IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         object lastBlockHeight = ccxt.BaseExchange.FromInt64(await this.FetchLatestBlockHeight());
         // params['latestBlockHeight'] = lastBlockHeight;
         Dictionary<string, object> newParams = this.extend(parameters, new Dictionary<string, object>() {
             { "latestBlockHeight", lastBlockHeight },
         });
-        object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
+        List<object> orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
         object orderId = getValue(orderRequestRes, 0);
         object orderRequest = getValue(orderRequestRes, 1);
         object chainName = getValue(this.options, "chainName");
-        string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), orderRequest, "", chainName, account, null);
+        string? signedTx = this.signDydxTx(GetValue(credentials, "privateKey"), orderRequest, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
         };
@@ -1842,7 +1842,7 @@ public partial class dydx : Exchange
                 goodTillBlock = add(latestBlockHeight, 20);
             }
         }
-        object credentials = this.retrieveCredentials();
+        IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         Dictionary<string, object> cancelPayload = new Dictionary<string, object>() {
             { "orderId", new Dictionary<string, object>() {
@@ -1862,7 +1862,7 @@ public partial class dydx : Exchange
             { "value", cancelPayload },
         };
         object chainName = getValue(this.options, "chainName");
-        string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
+        string? signedTx = this.signDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
         };
@@ -1920,7 +1920,7 @@ public partial class dydx : Exchange
             goodTillBlock = add(latestBlockHeight, 20);
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "goodTillBlock", "subaccountId"});
-        object credentials = this.retrieveCredentials();
+        IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         Dictionary<string, object> cancelOrders = new Dictionary<string, object>() {
             { "clientIds", clientOrderIds },
@@ -1939,7 +1939,7 @@ public partial class dydx : Exchange
             { "value", cancelPayload },
         };
         object chainName = getValue(this.options, "chainName");
-        string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
+        string? signedTx = this.signDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
         };
@@ -2199,7 +2199,7 @@ public partial class dydx : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"fromSubaccountId", "toSubaccountId"});
-        object credentials = this.retrieveCredentials();
+        IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         Int64? usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Dictionary<string, object> payload = null;
@@ -2247,7 +2247,7 @@ public partial class dydx : Exchange
         }
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, "", account);
         object chainName = getValue(this.options, "chainName");
-        string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
+        string? signedTx = this.signDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
         };
@@ -2429,7 +2429,7 @@ public partial class dydx : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"subaccountId"});
         Dictionary<string, object> currency = this.currency(code);
-        object credentials = this.retrieveCredentials();
+        IDictionary<string, object> credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         Int64? usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -2447,7 +2447,7 @@ public partial class dydx : Exchange
         };
         Dictionary<string, object> txFee = await this.estimateTxFee(signingPayload, tag, account);
         object chainName = getValue(this.options, "chainName");
-        string? signedTx = this.signDydxTx(getValue(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
+        string? signedTx = this.signDydxTx(GetValue(credentials, "privateKey"), signingPayload, tag, chainName, account, null, txFee);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "tx", signedTx },
         };

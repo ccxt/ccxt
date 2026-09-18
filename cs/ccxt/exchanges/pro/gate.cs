@@ -2057,7 +2057,7 @@ public partial class gate : ccxt.gate
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        object cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = this.liquidations;
         for (int i = 0; isLessThan(i, rawLiquidations.Count); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);

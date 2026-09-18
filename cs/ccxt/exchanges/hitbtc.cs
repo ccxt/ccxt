@@ -2743,7 +2743,7 @@ public partial class hitbtc : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object createOrderRequest(object market, object marketType, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object market, object marketType, object type, object side, object amount, object price = null, object marginMode = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool isLimit = (isEqual(type, "limit"));
