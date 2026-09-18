@@ -702,7 +702,7 @@ public partial class bitteam : Exchange
         statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
         this.options["_temp_currencies_statuses"] = statusesResponse;
         Dictionary<string, object> result = this.parseCurrencies(currencies);
-        this.options.Remove("_temp_currencies_statuses");
+        ((IDictionary<string,object>)this.options).Remove("_temp_currencies_statuses");
         return ((IDictionary<string, object>)((object)(result)));
     }
 

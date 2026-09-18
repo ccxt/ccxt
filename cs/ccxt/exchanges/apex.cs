@@ -572,7 +572,7 @@ public partial class apex : Exchange
         List<object> chains = this.safeList(multiChain, "chains", new List<object>() {});
         this.options["_temp_currencies_chains"] = chains;
         Dictionary<string, object> result = this.parseCurrencies(rows);
-        this.options.Remove("_temp_currencies_chains");
+        ((IDictionary<string,object>)this.options).Remove("_temp_currencies_chains");
         return ((IDictionary<string, object>)((object)(result)));
     }
 

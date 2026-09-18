@@ -11671,6 +11671,14 @@ function dictWriteMemberReceiverType (node) {
     if ((name === undefined) || !Object.prototype.hasOwnProperty.call (CSHARP_DICT_WRITE_MEMBER_TYPES, name)) {
         return undefined;
     }
+    // U64: a `delete this.<member>[k]` prints `.Remove(...)`, and ConcurrentDictionary<string, object>
+    // has no Remove(TKey) under netstandard2.0/2.1 (only TryRemove) -- the indexer/Keys/Values it does
+    // have, so the cast stays on that one use shape and the delete keeps `((IDictionary<string,object>)x)`
+    const use = node.parent;
+    if ((use?.kind === ts.SyntaxKind.ElementAccessExpression) && (use.parent?.kind === ts.SyntaxKind.DeleteExpression)
+        && (CSHARP_DICT_WRITE_MEMBER_TYPES[name] === 'ConcurrentDictionary<string, object>')) {
+        return undefined;
+    }
     return 'IDictionary<string, object>';
 }
 
