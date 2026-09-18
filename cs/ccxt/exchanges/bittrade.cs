@@ -972,7 +972,7 @@ public partial class bittrade : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", "step0" },
         };
         Dictionary<string, object> response = await this.marketGetDepth(this.extend(request, parameters));
@@ -1029,7 +1029,7 @@ public partial class bittrade : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.marketGetDetailMerged(this.extend(request, parameters));
         //
@@ -1084,7 +1084,7 @@ public partial class bittrade : Exchange
         {
             string? marketId = this.safeString(getValue(tickers, i), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = this.parseTicker(getValue(tickers, i), market);
             ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
             ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
@@ -1229,7 +1229,7 @@ public partial class bittrade : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1265,7 +1265,7 @@ public partial class bittrade : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limitVar, null))
         {
@@ -1308,7 +1308,7 @@ public partial class bittrade : Exchange
             }
         }
         result = this.sortBy(result, "timestamp");
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, getValue(market, "symbol"), since, limitVar));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(result, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limitVar));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1352,7 +1352,7 @@ public partial class bittrade : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(limitVar, null))
@@ -1580,7 +1580,7 @@ public partial class bittrade : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
         Dictionary<string, object> response = null;
@@ -1710,7 +1710,7 @@ public partial class bittrade : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? accountId = this.safeString(parameters, "account-id");
         if ((accountId == null))
@@ -1878,7 +1878,7 @@ public partial class bittrade : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -1909,7 +1909,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account-id", getValue(getValue(this.accounts, 0), "id") },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", add(add(side, "-"), type) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client-order-id"); // must be 64 chars max and unique within 24 hours
@@ -2147,7 +2147,7 @@ public partial class bittrade : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privatePostOrderOrdersBatchCancelOpenOrders(this.extend(request, parameters));
         //

@@ -745,7 +745,7 @@ public partial class onetrading : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            IDictionary<string, object> tierObject = ((bool) (isEqual(getValue(market, "spot"), true))) ? firstSpotTier : firstFuturesTier;
+            IDictionary<string, object> tierObject = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", spotFees },
                 { "symbol", symbol },
@@ -817,8 +817,8 @@ public partial class onetrading : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string? makerFee = ((bool) (isEqual(getValue(market, "spot"), true))) ? spotMakerFee : futuresMakerFee;
-            string? takerFee = ((bool) (isEqual(getValue(market, "spot"), true))) ? spotTakerFee : futuresTakerFee;
+            string? makerFee = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? spotMakerFee : futuresMakerFee;
+            string? takerFee = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? spotTakerFee : futuresTakerFee;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -925,7 +925,7 @@ public partial class onetrading : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketTickerInstrumentCode(this.extend(request, parameters));
         //
@@ -1020,7 +1020,7 @@ public partial class onetrading : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1083,7 +1083,7 @@ public partial class onetrading : Exchange
         //     }
         //
         Int64? timestamp = this.parse8601(this.safeString(response, "time"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1169,7 +1169,7 @@ public partial class onetrading : Exchange
             limitVar = 1500;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", period },
             { "unit", unit },
         };
@@ -1502,7 +1502,7 @@ public partial class onetrading : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
+            { "instrument_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", uppercaseType },
             { "side", ((string)side).ToUpper() },
             { "amount", this.amountToPrecision(symbol, amount) },
@@ -1622,7 +1622,7 @@ public partial class onetrading : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_code"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateDeleteAccountOrders(this.extend(request, parameters));
         //
@@ -1754,7 +1754,7 @@ public partial class onetrading : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_code"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1965,7 +1965,7 @@ public partial class onetrading : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_code"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_code"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {

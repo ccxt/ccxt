@@ -257,14 +257,14 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("orderbook:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -289,7 +289,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string subMessageHash = add("orderbook:", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -299,7 +299,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "l2Book" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -337,7 +337,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(entry, "coin");
         object marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> rawData = this.safeList(entry, "levels", new List<object>() {});
         Dictionary<string, object> data = new Dictionary<string, object>() {
             { "bids", this.safeList(rawData, 0, new List<object>() {}) },
@@ -374,7 +374,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         // the single-symbolVar path subscribes to the per-coin context channel, which hyperliquid
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
@@ -385,7 +385,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "activeAssetCtx" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
@@ -408,7 +408,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string subMessageHash = add("ticker:", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -416,7 +416,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "activeAssetCtx" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
@@ -621,7 +621,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 string? name = ((string)getValue(keys, i));
                 object marketId = this.coinToMarketId(name);
                 Dictionary<string, object> market = this.safeMarket(marketId, null, null, "swap");
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object ticker = this.parseWsTicker(new Dictionary<string, object>() {
                     { "price", this.safeNumber(mids, name) },
                 }, market);
@@ -666,7 +666,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(data, "coin");
         object marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> ctx = this.safeDict(data, "ctx", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(ctx, market));
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -764,14 +764,14 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("trade:", symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -800,7 +800,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string subMessageHash = add("trade:", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -808,7 +808,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "trades" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -843,7 +843,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(first, "coin");
         object marketId = this.coinToMarketId(coin);
         Dictionary<string, object> market = this.market(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -954,13 +954,13 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", timeframeVar },
             } },
         };
@@ -994,13 +994,13 @@ public partial class hyperliquid : ccxt.hyperliquid
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
                 { "type", "candle" },
-                { "coin", ((bool) (isEqual(getValue(market, "swap"), true))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))) ? getValue(market, "baseName") : (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", timeframeVar },
             } },
         };
@@ -1503,7 +1503,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));

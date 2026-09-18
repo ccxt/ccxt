@@ -677,7 +677,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderbook(this.extend(request, parameters));
         //
@@ -730,7 +730,7 @@ public partial class krakenfutures : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTickersSymbol(this.extend(request, parameters));
         //
@@ -953,7 +953,7 @@ public partial class krakenfutures : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string? uid = this.safeString(getValue(market, "info"), "feeScheduleUid");
+            string? uid = this.safeString((market.ContainsKey("info") ? market["info"] : null), "feeScheduleUid");
             IDictionary<string, object> schedule = this.safeDict(schedulesByUid, uid);
             if ((schedule == null))
             {
@@ -1047,7 +1047,7 @@ public partial class krakenfutures : Exchange
             throw new NotSupported ((string)(this.id + " fetchOHLCV() price parameter must be one of \"trade\", \"mark\", \"index\" or \"spot\"")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "price_type", priceType },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
@@ -1138,7 +1138,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object method = null;
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
@@ -1434,7 +1434,7 @@ public partial class krakenfutures : Exchange
             throw new ArgumentsRequired ((string)(this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         type = this.safeString(parameters, "orderType", type);
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool postOnly = false;
@@ -1455,7 +1455,7 @@ public partial class krakenfutures : Exchange
             type = "mkt";
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "size", this.amountToPrecision(symbol, amount) },
         };
@@ -3487,7 +3487,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new BadRequest ((string)(this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
@@ -3826,9 +3826,9 @@ public partial class krakenfutures : Exchange
         } else if ((!isEqual(this.markets, null)) && (inOp(this.markets, account)))
         {
             Dictionary<string, object> market = this.market(account);
-            string? marketId = ((string)getValue(market, "id"));
+            string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             List<object> splitId = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            if (isEqual(getValue(market, "inverse"), true))
+            if (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true))
             {
                 return ("fi_" + this.safeString(splitId, 1));
             } else

@@ -505,7 +505,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         //
@@ -618,7 +618,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -652,7 +652,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeIntegerProduct(response, "current_time", 1000);
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(result, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1));
     }
 
     /**
@@ -681,7 +681,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "lastId", lastId },
         };
         if (!isEqual(limit, null))
@@ -807,7 +807,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", timeframeVar },
         };
         if (!isEqual(limit, null))
@@ -955,7 +955,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "amount", this.amountToPrecision(symbol, amount) },
             { "price", this.priceToPrecision(symbol, price) },
@@ -1010,7 +1010,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderId", id },
         };
         Dictionary<string, object> response = await this.privatePostOrderCancel(this.extend(request, parameters));
@@ -1067,7 +1067,7 @@ public partial class p2b : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1213,7 +1213,7 @@ public partial class p2b : Exchange
         Int64? sinceSec = this.parseToInt(divide(sinceVar, 1000));
         Int64? untilSec = this.parseToInt(divide(until, 1000));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "startTime", sinceSec },
             { "endTime", untilSec },
         };
@@ -1309,7 +1309,7 @@ public partial class p2b : Exchange
         };
         if ((market != null))
         {
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {

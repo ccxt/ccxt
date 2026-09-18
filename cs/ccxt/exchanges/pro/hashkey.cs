@@ -99,7 +99,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string topic = ("kline_" + interval);
         string messageHash = add((add("ohlcv:", symbolVar) + ":"), timeframeVar);
@@ -202,7 +202,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string topic = "realtimes";
         string messageHash = add("ticker:", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.wathPublic(market, topic, messageHash, parameters));
@@ -268,7 +268,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string topic = "trade";
         string messageHash = add("trades:", symbolVar);
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
@@ -307,7 +307,7 @@ public partial class hashkey : ccxt.hashkey
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -348,7 +348,7 @@ public partial class hashkey : ccxt.hashkey
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string topic = "depth";
         string messageHash = add("orderbook:", symbolVar);
         object orderbook = await this.wathPublic(market, topic, messageHash, parameters);

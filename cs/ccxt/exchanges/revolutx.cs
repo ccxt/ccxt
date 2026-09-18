@@ -580,7 +580,7 @@ public partial class revolutx : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)marketIds).Add(getValue(market, "id"));
+                ((IList<object>)marketIds).Add((market.ContainsKey("id") ? market["id"] : null));
             }
             ((IDictionary<string,object>)request)["symbols"] = String.Join(",", ((IList<object>)marketIds).ToArray());
         }
@@ -678,7 +678,7 @@ public partial class revolutx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -750,7 +750,7 @@ public partial class revolutx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeInteger(this.timeframes, timeframeVar, 5) },
         };
         if (!isEqual(since, null))
@@ -853,7 +853,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((market != null))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1125,7 +1125,7 @@ public partial class revolutx : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
             { "order_configuration", orderConfiguration },
         };
@@ -1143,7 +1143,7 @@ public partial class revolutx : Exchange
         string? state = this.safeString(orderData, "state");
         Dictionary<string, object> order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
             { "id", venueOrderId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "status", state },
             { "side", side },
             { "type", type },
@@ -1264,7 +1264,7 @@ public partial class revolutx : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1333,7 +1333,7 @@ public partial class revolutx : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
@@ -1473,7 +1473,7 @@ public partial class revolutx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object thirtyDays = 2592000000;
         Int64? until = this.safeInteger2(parameters, "until", "until");
@@ -1591,7 +1591,7 @@ public partial class revolutx : Exchange
         string? state = this.safeString(orderData, "state");
         Dictionary<string, object> order = this.parseOrder(this.extend(orderData, new Dictionary<string, object>() {
             { "id", newVenueOrderId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "status", state },
             { "side", side },
             { "type", type },

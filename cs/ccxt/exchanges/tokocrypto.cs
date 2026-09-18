@@ -1595,7 +1595,7 @@ public partial class tokocrypto : Exchange
         };
         if ((price == "index"))
         {
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id"); // Index price takes this argument instead of symbol
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null); // Index price takes this argument instead of symbol
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = this.getMarketIdByType(market);
@@ -1981,7 +1981,7 @@ public partial class tokocrypto : Exchange
                 uppercaseType = "STOP_LOSS_LIMIT";
             }
         }
-        object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
+        object validOrderTypes = this.safeValue((market.ContainsKey("info") ? market["info"] : null), "orderTypes");
         if (!this.inArray(uppercaseType, validOrderTypes))
         {
             if (!isEqual(initialUppercaseType, uppercaseType))
@@ -2002,7 +2002,7 @@ public partial class tokocrypto : Exchange
             { "LIMIT_MAKER", 7 },
         };
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", add(add(getValue(market, "baseId"), "_"), getValue(market, "quoteId")) },
+            { "symbol", add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "_"), (market.ContainsKey("quoteId") ? market["quoteId"] : null)) },
             { "type", this.safeString(reverseOrderTypeMapping, uppercaseType) },
         };
         if (isEqual(side, "buy"))
@@ -2046,7 +2046,7 @@ public partial class tokocrypto : Exchange
         {
             if (isEqual(side, "buy"))
             {
-                object precision = getValue(getValue(market, "precision"), "price");
+                object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                 object quoteAmount = null;
                 object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
@@ -2085,7 +2085,7 @@ public partial class tokocrypto : Exchange
         {
             triggerPriceIsRequired = true;
             quantityIsRequired = true;
-            if ((isEqual(getValue(market, "linear"), true)) || (isEqual(getValue(market, "inverse"), true)))
+            if ((isEqual((market.ContainsKey("linear") ? market["linear"] : null), true)) || (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true)))
             {
                 priceIsRequired = true;
             }
@@ -2231,7 +2231,7 @@ public partial class tokocrypto : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -2392,7 +2392,7 @@ public partial class tokocrypto : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
         if (!isEqual(since, null))

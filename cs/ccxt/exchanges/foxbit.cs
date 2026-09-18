@@ -623,7 +623,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v3PublicGetMarketsMarketTicker24hr(this.extend(request, parameters));
         //  {
@@ -735,7 +735,7 @@ public partial class foxbit : Exchange
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "market_symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(entry, market);
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -761,7 +761,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         int defaultLimit = 20;
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "depth", ((bool) (isEqual(limit, null))) ? defaultLimit : limit },
         };
         Dictionary<string, object> response = await this.v3PublicGetMarketsMarketOrderbook(this.extend(request, parameters));
@@ -813,7 +813,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -861,7 +861,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
         if (!isEqual(since, null))
@@ -1000,7 +1000,7 @@ public partial class foxbit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market_symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market_symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1058,7 +1058,7 @@ public partial class foxbit : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_symbol", getValue(market, "id") },
+            { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)side).ToUpper() },
             { "type", typeVar },
         };
@@ -1145,7 +1145,7 @@ public partial class foxbit : Exchange
             bool? postOnly = this.safeBool(orderParams, "postOnly", false);
             double? triggerPrice = this.safeNumber(orderParams, "triggerPrice");
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "market_symbol", getValue(market, "id") },
+                { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "side", this.safeStringUpper(order, "side") },
                 { "type", type },
             };
@@ -1271,7 +1271,7 @@ public partial class foxbit : Exchange
         {
             Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)request)["type"] = "MARKET";
-            ((IDictionary<string,object>)request)["market_symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market_symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.v3PrivatePutOrdersCancel(this.extend(request, parameters));
         // {
@@ -1353,7 +1353,7 @@ public partial class foxbit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market_symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market_symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1419,7 +1419,7 @@ public partial class foxbit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_symbol", getValue(market, "id") },
+            { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1726,7 +1726,7 @@ public partial class foxbit : Exchange
             { "create", new Dictionary<string, object>() {
                 { "type", typeVar },
                 { "side", ((string)side).ToUpper() },
-                { "market_symbol", getValue(market, "id") },
+                { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         if (isEqual(typeVar, "LIMIT") || isEqual(typeVar, "MARKET"))

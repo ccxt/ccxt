@@ -563,10 +563,10 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> orderbook = await this.publicGetGetboard(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "size"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size"));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -616,7 +616,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetticker(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
@@ -713,7 +713,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -754,7 +754,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetGettradingcommission(this.extend(request, parameters));
         //
@@ -763,7 +763,7 @@ public partial class bitflyer : Exchange
         //   }
         //
         double? fee = this.safeNumber(response, "commission_rate");
-        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", fee },             { "taker", fee },             { "percentage", null },             { "tierBased", null },         });
+        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", response },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", fee },             { "taker", fee },             { "percentage", null },             { "tierBased", null },         });
     }
 
     /**
@@ -917,7 +917,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
             { "count", limitVar },
         };
         List<object> response = await this.privateGetGetchildorders(this.extend(request, parameters));
@@ -1023,7 +1023,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1347,7 +1347,7 @@ public partial class bitflyer : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "product_code", getValue(market, "id") },
+            { "product_code", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetGetfundingrate(this.extend(request, parameters));
         //

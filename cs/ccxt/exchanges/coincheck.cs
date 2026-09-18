@@ -539,10 +539,10 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderBooks(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null)));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -607,7 +607,7 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> ticker = await this.publicGetTicker(this.extend(request, parameters));
         //
@@ -781,7 +781,7 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -848,7 +848,7 @@ public partial class coincheck : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.safeValue(fees, getValue(market, "id"), new Dictionary<string, object>() {});
+            object fee = this.safeValue(fees, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
@@ -883,7 +883,7 @@ public partial class coincheck : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (isEqual(type, "market"))
         {

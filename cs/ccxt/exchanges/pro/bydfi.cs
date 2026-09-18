@@ -167,7 +167,7 @@ public partial class bydfi : ccxt.bydfi
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object marketId = getValue(market, "id");
+        object marketId = (market.ContainsKey("id") ? market["id"] : null);
         string messageHash = add("ticker::", symbol);
         object channel = add(marketId, "@ticker");
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(new List<object>() {messageHash}, new List<object>() {channel}, parameters));
@@ -398,8 +398,8 @@ public partial class bydfi : ccxt.bydfi
             string? tf = this.safeString(symbolAndTimeframe, 1);
             IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
             string? interval = this.safeString(timeframes, tf, tf);
-            ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
-            ((IList<object>)messageHashes).Add(((add("ohlcv::", getValue(market, "symbol")) + "::") + interval));
+            ((IList<object>)channels).Add(add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), interval));
+            ((IList<object>)messageHashes).Add(((add("ohlcv::", (market.ContainsKey("symbol") ? market["symbol"] : null)) + "::") + interval));
         }
         var symboltimeframecandlesVariable = await this.watchPublic(messageHashes, channels, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
@@ -440,8 +440,8 @@ public partial class bydfi : ccxt.bydfi
             Dictionary<string, object> market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
             string? interval = this.safeString(this.timeframes, tf, tf);
-            ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
-            ((IList<object>)messageHashes).Add(((add("unsubscribe::ohlcv::", getValue(market, "symbol")) + "::") + interval));
+            ((IList<object>)channels).Add(add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), interval));
+            ((IList<object>)messageHashes).Add(((add("unsubscribe::ohlcv::", (market.ContainsKey("symbol") ? market["symbol"] : null)) + "::") + interval));
         }
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -471,7 +471,7 @@ public partial class bydfi : ccxt.bydfi
         //
         string? marketId = this.safeString(message, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(message, "i");
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(interval, timeframes);
@@ -560,7 +560,7 @@ public partial class bydfi : ccxt.bydfi
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)channels).Add(add(add(add(getValue(market, "id"), "@depth"), depth), channelSuffix));
+            ((IList<object>)channels).Add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth), channelSuffix));
             ((IList<object>)messageHashes).Add(add("orderbook::", symbol));
         }
         object orderbook = await this.watchPublic(messageHashes, channels, parameters);
@@ -604,7 +604,7 @@ public partial class bydfi : ccxt.bydfi
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)channels).Add(add(add(add(getValue(market, "id"), "@depth"), depth), channelSuffix));
+            ((IList<object>)channels).Add(add(add(add((market.ContainsKey("id") ? market["id"] : null), "@depth"), depth), channelSuffix));
             ((IList<object>)messageHashes).Add(add("unsubscribe::orderbook::", symbol));
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -740,7 +740,7 @@ public partial class bydfi : ccxt.bydfi
         IDictionary<string, object> rawOrder = this.safeDict(message, "o", new Dictionary<string, object>() {});
         string? marketId = this.safeString(rawOrder, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = "orders";
         string symbolMessageHash = ((messageHash + "::") + symbol);
         if (isEqual(this.orders, null))
@@ -911,7 +911,7 @@ public partial class bydfi : ccxt.bydfi
         IDictionary<string, object> rawPosition = this.safeDict(positionsData, 0, new Dictionary<string, object>() {});
         string? marketId = this.safeString(rawPosition, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = "positions";
         string symbolMessageHash = ((messageHash + "::") + symbol);
         if (isEqual(this.positions, null))

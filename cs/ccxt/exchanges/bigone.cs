@@ -955,7 +955,7 @@ public partial class bigone : Exchange
         if (isEqual(type, "spot"))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "asset_pair_name", getValue(market, "id") },
+                { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             };
             Dictionary<string, object> response = await this.publicGetAssetPairsAssetPairNameTicker(this.extend(request, parameters));
             //
@@ -1105,10 +1105,10 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object response = null;
-        if (isEqual(getValue(market, "contract"), true))
+        if (isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
             response = await this.contractPublicGetDepthSymbolSnapshot(this.extend(request, parameters));
             //
@@ -1138,11 +1138,11 @@ public partial class bigone : Exchange
             //        from: '0'
             //    }
             //
-            return ccxt.BaseExchange.ToOrderBook(this.parseContractOrderBook(response, getValue(market, "symbol"), limit));
+            return ccxt.BaseExchange.ToOrderBook(this.parseContractOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), limit));
         } else
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "asset_pair_name", getValue(market, "id") },
+                { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             };
             if (!isEqual(limit, null))
             {
@@ -1164,7 +1164,7 @@ public partial class bigone : Exchange
             //     }
             //
             IDictionary<string, object> orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price", "quantity"));
+            return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "quantity"));
         }
     }
 
@@ -1386,12 +1386,12 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "contract"), true))
+        if (isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " fetchTrades () can only fetch trades for spot markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_pair_name", getValue(market, "id") },
+            { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetAssetPairsAssetPairNameTrades(this.extend(request, parameters));
         //
@@ -1458,7 +1458,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "contract"), true))
+        if (isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
         }
@@ -1470,7 +1470,7 @@ public partial class bigone : Exchange
             limitVar = ((bool) (sinceIsDefined && untilIsDefined)) ? 500 : 100; // default 100, max 500, if since and limitVar defined then fetch all the candles between them unless it exceeds the max of 500
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_pair_name", getValue(market, "id") },
+            { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitVar },
         };
@@ -1693,7 +1693,7 @@ public partial class bigone : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -1741,7 +1741,7 @@ public partial class bigone : Exchange
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_pair_name", getValue(market, "id") },
+            { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", requestSide },
             { "amount", this.amountToPrecision(symbol, amount) },
         };
@@ -1886,7 +1886,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_pair_name", getValue(market, "id") },
+            { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostOrdersCancel(this.extend(request, parameters));
         //
@@ -1975,7 +1975,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_pair_name", getValue(market, "id") },
+            { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2030,7 +2030,7 @@ public partial class bigone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_pair_name", getValue(market, "id") },
+            { "asset_pair_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {

@@ -1442,7 +1442,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderBookPair(this.extend(request, parameters));
         //
@@ -1467,7 +1467,7 @@ public partial class bitstamp : Exchange
             throw new ExchangeError ((string)(this.id + " fetchOrderBook() missing microtimestamp")) ;
         }
         Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
-        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), timestamp));
+        Dictionary<string, object> orderbook = ((Dictionary<string, object>)this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp));
         ((IDictionary<string,object>)orderbook)["nonce"] = microtimestamp;
         return ccxt.BaseExchange.ToOrderBook(orderbook);
     }
@@ -1539,7 +1539,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> ticker = await this.publicGetTickerPair(this.extend(request, parameters));
         //
@@ -1843,7 +1843,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "time", "hour" },
         };
         List<object> response = await this.publicGetTransactionsPair(this.extend(request, parameters));
@@ -1907,7 +1907,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "step", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         int duration = this.parseTimeframe(timeframeVar);
@@ -2029,7 +2029,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_symbol", getValue(market, "id") },
+            { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.privatePostFeesTrading(this.extend(request, parameters));
         //
@@ -2047,7 +2047,7 @@ public partial class bitstamp : Exchange
         //     ]
         //
         Dictionary<string, object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
-        IDictionary<string, object> tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
+        IDictionary<string, object> tradingFee = this.safeDict(tradingFeesByMarketId, (market.ContainsKey("id") ? market["id"] : null));
         if ((tradingFee == null))
         {
             tradingFee = new Dictionary<string, object>() {};
@@ -2265,7 +2265,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", this.amountToPrecision(symbol, amount) },
         };
         string? clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
@@ -2411,7 +2411,7 @@ public partial class bitstamp : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePostCancelAllOrdersPair(this.extend(request, parameters));
         } else
         {
@@ -2547,7 +2547,7 @@ public partial class bitstamp : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -2599,7 +2599,7 @@ public partial class bitstamp : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -3178,7 +3178,7 @@ public partial class bitstamp : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_symbol", getValue(market, "id") },
+            { "market_symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetFundingRateMarketSymbol(this.extend(request, parameters));
         //

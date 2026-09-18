@@ -271,7 +271,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("ticker" + "::"), getValue(market, "symbol"));
+        string messageHash = add(("ticker" + "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         return ccxt.BaseExchange.ToTicker(await this.watchPublic(market, messageHash, "7", parameters));
     }
 
@@ -292,7 +292,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("ticker" + "::"), getValue(market, "symbol"));
+        string messageHash = add(("ticker" + "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "ticker" },
         };
@@ -426,7 +426,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("trades" + "::"), getValue(market, "symbol"));
+        string messageHash = add(("trades" + "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         object trades = await this.watchPublic(market, messageHash, "2", parameters);
         if (isTrue(this.newUpdates))
         {
@@ -452,7 +452,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("trades" + "::"), getValue(market, "symbol"));
+        string messageHash = add(("trades" + "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "trades" },
         };
@@ -608,7 +608,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = add((add(("ohlcv" + "::"), symbolVar) + "::"), timeframeVar);
@@ -641,7 +641,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         string messageHash = add((add(("ohlcv" + "::"), symbol) + "::"), timeframeVar);
@@ -742,7 +742,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("orderbook" + "::"), getValue(market, "symbol"));
+        string messageHash = add(("orderbook" + "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         object suffix = null;
         var suffixparametersVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
         suffix = ((IList<object>)suffixparametersVariable)[0];
@@ -769,7 +769,7 @@ public partial class deepcoin : ccxt.deepcoin
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(("orderbook" + "::"), getValue(market, "symbol"));
+        string messageHash = add(("orderbook" + "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         object suffix = null;
         var suffixparametersVariable = this.orderBookSuffix(market, "unWatchOrderBook", parameters);
         suffix = ((IList<object>)suffixparametersVariable)[0];

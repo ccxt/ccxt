@@ -56,8 +56,8 @@ public partial class independentreserve : ccxt.independentreserve
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), getValue(market, "base")), "-"), getValue(market, "quote"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
         string messageHash = add("trades:", symbolVar);
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
@@ -152,13 +152,13 @@ public partial class independentreserve : ccxt.independentreserve
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         if (isEqual(limitVar, null))
         {
             limitVar = 100;
         }
         string? limitString = this.numberToString(limitVar);
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
+        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), (market.ContainsKey("base") ? market["base"] : null)), "-"), (market.ContainsKey("quote") ? market["quote"] : null));
         string messageHash = ((add("orderbook:", symbolVar) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },

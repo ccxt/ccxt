@@ -602,7 +602,7 @@ public partial class coinbaseinternational : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "granularity", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(since, null))
@@ -692,7 +692,7 @@ public partial class coinbaseinternational : Exchange
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
         Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument", getValue(market, "id") },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
             { "result_offset", offSet },
         };
         if (!isEqual(limit, null))
@@ -2062,8 +2062,8 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
             { "side", ((string)side).ToUpper() },
-            { "instrument", getValue(market, "id") },
-            { "size", this.amountToPrecision(getValue(market, "symbol"), amount) },
+            { "instrument", (market.ContainsKey("id") ? market["id"] : null) },
+            { "size", this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount) },
         };
         if (!isEqual(triggerPrice, null))
         {
@@ -2316,7 +2316,7 @@ public partial class coinbaseinternational : Exchange
         if ((!isEqual(symbol, null)) && (!isEqual(symbol, "")))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> orders = await this.v1PrivateDeleteOrders(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));

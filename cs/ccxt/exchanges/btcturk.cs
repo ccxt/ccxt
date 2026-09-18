@@ -507,7 +507,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pairSymbol", getValue(market, "id") },
+            { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderbook(this.extend(request, parameters));
         //     {
@@ -523,7 +523,7 @@ public partial class btcturk : Exchange
         //     }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", 0, 1));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -704,7 +704,7 @@ public partial class btcturk : Exchange
         Dictionary<string, object> market = this.market(symbol);
         // let maxCount = 50;
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pairSymbol", getValue(market, "id") },
+            { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -777,7 +777,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
@@ -898,7 +898,7 @@ public partial class btcturk : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderType", side },
             { "orderMethod", type },
-            { "pairSymbol", getValue(market, "id") },
+            { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
         if (!isEqual(type, "market"))
@@ -967,7 +967,7 @@ public partial class btcturk : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pairSymbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pairSymbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetOpenOrders(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -996,7 +996,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pairSymbol", getValue(market, "id") },
+            { "pairSymbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {

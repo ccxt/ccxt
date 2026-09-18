@@ -174,8 +174,8 @@ public partial class okx : ccxt.okx
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = add(messageHash, add(":", getValue(market, "id")));
-            ((IDictionary<string,object>)firstArgument)["instId"] = getValue(market, "id");
+            messageHash = add(messageHash, add(":", (market.ContainsKey("id") ? market["id"] : null)));
+            ((IDictionary<string,object>)firstArgument)["instId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "subscribe" },
@@ -515,7 +515,7 @@ public partial class okx : ccxt.okx
         parameters = ((IList<object>)channelparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbolVar));
     }
@@ -586,7 +586,7 @@ public partial class okx : ccxt.okx
         parameters = ((IList<object>)channelparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(ticker, symbolVar));
     }
@@ -695,7 +695,7 @@ public partial class okx : ccxt.okx
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object channel = this.safeString(arg, "channel");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
@@ -1349,7 +1349,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string interval = ((string)channel).Replace((string)"candle", (string)"");
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
@@ -1368,7 +1368,7 @@ public partial class okx : ccxt.okx
                 }
             }
             callDynamically(stored, "append", new object[] {parsed});
-            object messageHash = add(add(channel, ":"), getValue(market, "id"));
+            object messageHash = add(add(channel, ":"), (market.ContainsKey("id") ? market["id"] : null));
             (client as WebSocketClient).resolve(stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
@@ -1720,7 +1720,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> depths = new Dictionary<string, object>() {
             { "bbo-tbt", 1 },
             { "books", 400 },
@@ -2020,8 +2020,8 @@ public partial class okx : ccxt.okx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            type = getValue(market, "type");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            type = (market.ContainsKey("type") ? market["type"] : null);
             messageHash = add(add(messageHash, "::"), symbolVar);
         }
         if (isEqual(type, "future"))
@@ -2175,7 +2175,7 @@ public partial class okx : ccxt.okx
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string channel = ((string)this.safeString(arg, "channel", ""));
         List<object> data = this.safeList(message, "data", new List<object>() {});
         if (isEqual(this.positions, null))
@@ -2245,8 +2245,8 @@ public partial class okx : ccxt.okx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            type = getValue(market, "type");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            type = (market.ContainsKey("type") ? market["type"] : null);
         }
         if (isEqual(type, "future"))
         {
@@ -2358,7 +2358,7 @@ public partial class okx : ccxt.okx
                 callDynamically(stored, "append", new object[] {order});
                 object symbol = getValue(order, "symbol");
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)marketIds).Add(getValue(market, "id"));
+                ((IList<object>)marketIds).Add((market.ContainsKey("id") ? market["id"] : null));
             }
             (client as WebSocketClient).resolve(stored, channel);
             for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
@@ -2734,7 +2734,7 @@ public partial class okx : ccxt.okx
         }
         await this.authenticate();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "type"), "option"))
+        if (!isEqual((market.ContainsKey("type") ? market["type"] : null), "option"))
         {
             throw new BadRequest ((string)(this.id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
@@ -2745,7 +2745,7 @@ public partial class okx : ccxt.okx
             { "op", "mass-cancel" },
             { "args", new List<object> {this.extend(new Dictionary<string, object>() {
     { "instType", "OPTION" },
-    { "instFamily", getValue(market, "id") },
+    { "instFamily", (market.ContainsKey("id") ? market["id"] : null) },
 }, parameters)} },
         };
         return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, request, messageHash));

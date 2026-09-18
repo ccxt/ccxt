@@ -774,8 +774,8 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "baseId") },
-            { "quote", getValue(market, "quoteId") },
+            { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -902,8 +902,8 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "base", getValue(market, "baseId") },
-            { "quote", getValue(market, "quoteId") },
+            { "base", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTickerBaseQuote(this.extend(request, parameters));
         //
@@ -1085,8 +1085,8 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "baseId") },
-            { "quote", getValue(market, "quoteId") },
+            { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1141,8 +1141,8 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "baseId") },
-            { "quote", getValue(market, "quoteId") },
+            { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTradeFeeCurrencyQuote(this.extend(request, parameters));
         //
@@ -1153,7 +1153,7 @@ public partial class latoken : Exchange
         //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
     }
 
     public async virtual Task<Dictionary<string, object>> FetchPrivateTradingFee(object symbol, object parameters = null)
@@ -1165,8 +1165,8 @@ public partial class latoken : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "baseId") },
-            { "quote", getValue(market, "quoteId") },
+            { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetAuthTradeFeeCurrencyQuote(this.extend(request, parameters));
         //
@@ -1177,7 +1177,7 @@ public partial class latoken : Exchange
         //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", getValue(market, "symbol") },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
     }
 
     /**
@@ -1209,8 +1209,8 @@ public partial class latoken : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["currency"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quote"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["currency"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             response = await this.privateGetAuthTradePairCurrencyQuote(this.extend(request, parameters));
         } else
         {
@@ -1408,8 +1408,8 @@ public partial class latoken : Exchange
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "baseId") },
-            { "quote", getValue(market, "quoteId") },
+            { "currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quote", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
         };
         if (isEqual(isTrigger, true))
         {
@@ -1477,8 +1477,8 @@ public partial class latoken : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["currency"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quote"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["currency"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             if (isEqual(isTrigger, true))
             {
                 response = await this.privateGetAuthStopOrderPairCurrencyQuote(this.extend(request, parameters));
@@ -1609,8 +1609,8 @@ public partial class latoken : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "baseCurrency", getValue(market, "baseId") },
-            { "quoteCurrency", getValue(market, "quoteId") },
+            { "baseCurrency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
+            { "quoteCurrency", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
             { "side", ((string)side).ToUpper() },
             { "condition", "GTC" },
             { "type", uppercaseType },
@@ -1718,8 +1718,8 @@ public partial class latoken : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["currency"] = getValue(market, "baseId");
-            ((IDictionary<string,object>)request)["quote"] = getValue(market, "quoteId");
+            ((IDictionary<string,object>)request)["currency"] = (market.ContainsKey("baseId") ? market["baseId"] : null);
+            ((IDictionary<string,object>)request)["quote"] = (market.ContainsKey("quoteId") ? market["quoteId"] : null);
             if (isEqual(isTrigger, true))
             {
                 response = await this.privatePostAuthStopOrderCancelAllCurrencyQuote(this.extend(request, parameters));

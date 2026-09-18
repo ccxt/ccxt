@@ -771,7 +771,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeWindow", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(since, null))
@@ -812,7 +812,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketsMarketIdOrderbook(this.extend(request, parameters));
         //
@@ -907,7 +907,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketsMarketIdTicker(this.extend(request, parameters));
         //
@@ -937,7 +937,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", getValue(market, "id") },
+            { "id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketsMarketIdTicker(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
@@ -1034,7 +1034,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetMarketsMarketIdTrades(this.extend(request, parameters));
         //
@@ -1070,7 +1070,7 @@ public partial class btcmarkets : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", this.amountToPrecision(symbol, amount) },
             { "side", ((bool) (isEqual(side, "buy"))) ? "Bid" : "Ask" },
         };
@@ -1250,16 +1250,16 @@ public partial class btcmarkets : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object currency = null;
         string? cost = null;
-        if (isEqual(getValue(market, "quote"), "AUD"))
+        if (isEqual((market.ContainsKey("quote") ? market["quote"] : null), "AUD"))
         {
-            currency = getValue(market, "quote");
+            currency = (market.ContainsKey("quote") ? market["quote"] : null);
             string? amountString = this.numberToString(amount);
             string? priceString = this.numberToString(price);
             string? otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else
         {
-            currency = getValue(market, "base");
+            currency = (market.ContainsKey("base") ? market["base"] : null);
             cost = this.amountToPrecision(symbol, amount);
         }
         object rate = this.safeValue(market, takerOrMaker);
@@ -1408,7 +1408,7 @@ public partial class btcmarkets : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["marketId"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1483,7 +1483,7 @@ public partial class btcmarkets : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["marketId"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["marketId"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {

@@ -614,13 +614,13 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
             { "groupByPriceLimit", "False" },
         };
         Dictionary<string, object> response = await this.publicGetOrderBook(this.extend(request, parameters));
         IDictionary<string, object> orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeTimestamp(orderbook, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "amount"));
     }
 
     /**
@@ -641,7 +641,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         //
@@ -709,7 +709,7 @@ public partial class coinmate : Exchange
         {
             Dictionary<string, object> market = this.market(getValue(keys, i));
             Dictionary<string, object> ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
-            ((IDictionary<string,object>)result)[(string)getValue(market, "symbol")] = ticker;
+            ((IDictionary<string,object>)result)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = ticker;
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
@@ -1013,7 +1013,7 @@ public partial class coinmate : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["currencyPair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["currencyPair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1110,7 +1110,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
             { "minutesIntoHistory", 10 },
         };
         Dictionary<string, object> response = await this.publicGetTransactions(this.extend(request, parameters));
@@ -1152,7 +1152,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostTraderFees(this.extend(request, parameters));
         //
@@ -1167,7 +1167,7 @@ public partial class coinmate : Exchange
         string? takerString = this.safeString(data, "taker");
         double? maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
         double? taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", data },             { "symbol", getValue(market, "symbol") },             { "maker", maker },             { "taker", taker },             { "percentage", true },             { "tierBased", true },         });
+        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", data },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", maker },             { "taker", taker },             { "percentage", true },             { "tierBased", true },         });
     }
 
     /**
@@ -1216,7 +1216,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         // offset param that appears in other parts of the API doesn't appear to be supported here
         if (!isEqual(limit, null))
@@ -1362,7 +1362,7 @@ public partial class coinmate : Exchange
         string method = ("privatePost" + this.capitalize(side));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currencyPair", getValue(market, "id") },
+            { "currencyPair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (isEqual(type, "market"))
         {

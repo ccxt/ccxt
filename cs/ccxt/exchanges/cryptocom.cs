@@ -1162,7 +1162,7 @@ public partial class cryptocom : Exchange
                 symbol = symbols;
             }
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.v1PublicGetPublicGetTickers(this.extend(request, parameters));
         //
@@ -1249,7 +1249,7 @@ public partial class cryptocom : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -1340,7 +1340,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1416,7 +1416,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(limitVar, null))
@@ -1491,7 +1491,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if ((!isEqual(limit, null)) && (!isEqual(limit, 0)))
         {
@@ -1686,7 +1686,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)((string)side)).ToUpper() },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
@@ -1965,7 +1965,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)((string)side)).ToUpper() },
         };
         if (((uppercaseType == "LIMIT")) || ((uppercaseType == "STOP_LIMIT")) || ((uppercaseType == "TAKE_PROFIT_LIMIT")))
@@ -2186,7 +2186,7 @@ public partial class cryptocom : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
@@ -2261,7 +2261,7 @@ public partial class cryptocom : Exchange
         {
             object id = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
-                { "instrument_name", getValue(market, "id") },
+                { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
                 { "order_id", ((object)id).ToString() },
             };
             ((IList<object>)orderRequests).Add(order);
@@ -2299,7 +2299,7 @@ public partial class cryptocom : Exchange
             string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             Dictionary<string, object> orderItem = new Dictionary<string, object>() {
-                { "instrument_name", getValue(market, "id") },
+                { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
                 { "order_id", ((object)((string)id)).ToString() },
             };
             ((IList<object>)orderRequests).Add(orderItem);
@@ -2336,7 +2336,7 @@ public partial class cryptocom : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetOpenOrders(this.extend(request, parameters));
         //
@@ -2414,7 +2414,7 @@ public partial class cryptocom : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -3657,12 +3657,12 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "valuation_type", "estimated_funding_rate" },
             { "count", 1 },
         };
@@ -3758,12 +3758,12 @@ public partial class cryptocom : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "valuation_type", "funding_hist" },
         };
         if (!isEqual(since, null))
@@ -3814,7 +3814,7 @@ public partial class cryptocom : Exchange
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
     /**
@@ -3835,7 +3835,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetPositions(this.extend(request, parameters));
         //
@@ -3900,7 +3900,7 @@ public partial class cryptocom : Exchange
                 symbol = symbols;
             }
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["instrument_name"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["instrument_name"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetPositions(this.extend(request, parameters));
         //
@@ -4058,7 +4058,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", "MARKET" },
         };
         string? type = this.safeStringUpper(parameters, "type");
@@ -4069,7 +4069,7 @@ public partial class cryptocom : Exchange
         }
         if ((price != null))
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
         }
         Dictionary<string, object> response = await this.v1PrivatePostPrivateClosePosition(this.extend(request, parameters));
         //
@@ -4105,7 +4105,7 @@ public partial class cryptocom : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instrument_name", getValue(market, "id") },
+            { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v1PrivatePostPrivateGetInstrumentFeeRate(this.extend(request, parameters));
         //
@@ -4180,7 +4180,7 @@ public partial class cryptocom : Exchange
         {
             object symbol = getValue(this.symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object isSwap = getValue(market, "swap");
+            object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
             string takerFeeKey = ((bool) (isEqual(isSwap, true))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
             string makerFeeKey = ((bool) (isEqual(isSwap, true))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
             Dictionary<string, object> tradingFee = new Dictionary<string, object>() {

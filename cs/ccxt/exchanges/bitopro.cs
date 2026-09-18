@@ -592,7 +592,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTickersPair(this.extend(request, parameters));
         IDictionary<string, object> ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -667,7 +667,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -694,7 +694,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount"));
     }
 
     public override Dictionary<string, object> parseTrade(object trade, object market = null)
@@ -815,7 +815,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTradesPair(this.extend(request, parameters));
         List<object> trades = this.safeList(response, "data", new List<object>() {});
@@ -962,7 +962,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", resolution },
         };
         // we need to have a limitVar argument because "to" and "from" are required
@@ -1253,7 +1253,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
             { "action", side },
             { "amount", this.amountToPrecision(symbol, amount) },
             { "timestamp", this.milliseconds() },
@@ -1327,7 +1327,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateDeleteOrdersPairId(this.extend(request, parameters));
         //
@@ -1384,7 +1384,7 @@ public partial class bitopro : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object id = getValue(market, "uppercaseId");
+        object id = (market.ContainsKey("uppercaseId") ? market["uppercaseId"] : null);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((id != null))
         {
@@ -1426,7 +1426,7 @@ public partial class bitopro : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateDeleteOrdersPair(this.extend(request, parameters));
         } else
         {
@@ -1470,7 +1470,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetOrdersPairOrderId(this.extend(request, parameters));
         //
@@ -1523,7 +1523,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1591,7 +1591,7 @@ public partial class bitopro : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetOrdersOpen(this.extend(request, parameters));
         List<object> orders = this.safeList(response, "data", new List<object>() {});
@@ -1642,7 +1642,7 @@ public partial class bitopro : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetOrdersTradesPair(this.extend(request, parameters));
         List<object> trades = this.safeList(response, "data", new List<object>() {});

@@ -797,7 +797,7 @@ public partial class dydx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -869,7 +869,7 @@ public partial class dydx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(limit, null))
@@ -937,7 +937,7 @@ public partial class dydx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1152,7 +1152,7 @@ public partial class dydx : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["ticker"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["ticker"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1852,7 +1852,7 @@ public partial class dydx : Exchange
                 } },
                 { "clientId", clientOrderId },
                 { "orderFlags", orderFlags },
-                { "clobPairId", getValue(getValue(market, "info"), "clobPairId") },
+                { "clobPairId", getValue((market.ContainsKey("info") ? market["info"] : null), "clobPairId") },
             } },
             { "goodTilBlock", goodTillBlock },
             { "goodTilBlockTime", goodTillBlockTime },
@@ -1924,7 +1924,7 @@ public partial class dydx : Exchange
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         Dictionary<string, object> cancelOrders = new Dictionary<string, object>() {
             { "clientIds", clientOrderIds },
-            { "clobPairId", getValue(getValue(market, "info"), "clobPairId") },
+            { "clobPairId", getValue((market.ContainsKey("info") ? market["info"] : null), "clobPairId") },
         };
         Dictionary<string, object> cancelPayload = new Dictionary<string, object>() {
             { "subaccountId", new Dictionary<string, object>() {
@@ -1981,7 +1981,7 @@ public partial class dydx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters));
         //
@@ -2000,7 +2000,7 @@ public partial class dydx : Exchange
         //     ]
         // }
         //
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "size"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "size"));
     }
 
     public override object parseLedgerEntry(object item, object currency = null)

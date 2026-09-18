@@ -938,7 +938,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string orderSide = ((string)((string)side)).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_index", this.parseToInt(getValue(market, "id")) },
+            { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
         };
         object nonce = null;
         object apiKeyIndex = null;
@@ -1295,7 +1295,7 @@ public partial class lighter : Exchange
         }
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "market_index", this.parseToInt(getValue(market, "id")) },
+            { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "index", this.parseToInt(id) },
             { "base_amount", this.parseToInt(Precise.stringMul(amountStr, amountScale)) },
             { "price", this.parseToInt(Precise.stringMul(priceStr, priceScale)) },
@@ -1642,7 +1642,7 @@ public partial class lighter : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_id", getValue(market, "id") },
+            { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "limit", 100 },
         };
         if (!isEqual(limit, null))
@@ -1679,7 +1679,7 @@ public partial class lighter : Exchange
         //         ]
         //     }
         //
-        Dictionary<string, object> result = ((Dictionary<string, object>)this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "remaining_base_amount"));
+        Dictionary<string, object> result = ((Dictionary<string, object>)this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "remaining_base_amount"));
         return ccxt.BaseExchange.ToOrderBook(result);
     }
 
@@ -1804,7 +1804,7 @@ public partial class lighter : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_id", getValue(market, "id") },
+            { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetOrderBookDetails(this.extend(request, parameters));
         //
@@ -1962,7 +1962,7 @@ public partial class lighter : Exchange
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_id", getValue(market, "id") },
+            { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "count_back", 0 },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "start_timestamp", startTs },
@@ -2495,7 +2495,7 @@ public partial class lighter : Exchange
         await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_id", getValue(market, "id") },
+            { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "account_index", accountIndex },
         };
         Dictionary<string, object> response = await this.privateGetAccountActiveOrders(this.extend(request, parameters));
@@ -2581,7 +2581,7 @@ public partial class lighter : Exchange
         await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market_id", getValue(market, "id") },
+            { "market_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "account_index", accountIndex },
             { "limit", 100 },
         };
@@ -3392,7 +3392,7 @@ public partial class lighter : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market_id"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market_id"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetTrades(this.extend(request, parameters));
         //
@@ -3601,7 +3601,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "market_index", this.parseToInt(getValue(market, "id")) },
+            { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "initial_margin_fraction", this.parseToInt(divide(10000, leverage)) },
             { "margin_mode", ((bool) (isEqual(marginMode, "cross"))) ? 0 : 1 },
             { "nonce", nonce },
@@ -3645,7 +3645,7 @@ public partial class lighter : Exchange
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "market_index", this.parseToInt(getValue(market, "id")) },
+            { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "nonce", nonce },
             { "api_key_index", apiKeyIndex },
             { "account_index", accountIndex },
@@ -3878,7 +3878,7 @@ public partial class lighter : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object nonce = ccxt.BaseExchange.FromInt64(await this.FetchNonce(accountIndex, apiKeyIndex, parameters));
         Dictionary<string, object> signRaw = new Dictionary<string, object>() {
-            { "market_index", this.parseToInt(getValue(market, "id")) },
+            { "market_index", this.parseToInt((market.ContainsKey("id") ? market["id"] : null)) },
             { "usdc_amount", this.parseToInt(Precise.stringMul(this.pow("10", "6"), this.currencyToPrecision("USDC", amount))) },
             { "direction", direction },
             { "nonce", nonce },

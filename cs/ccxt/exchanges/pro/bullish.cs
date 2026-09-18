@@ -144,11 +144,11 @@ public partial class bullish : ccxt.bullish
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trades::", getValue(market, "symbol"));
+        string messageHash = add("trades::", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string url = "/trading-api/v1/market-data/trades";
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "anonymousTrades" },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object trades = await this.watchPublic(url, messageHash, request, parameters);
         if (isTrue(this.newUpdates))
@@ -202,7 +202,7 @@ public partial class bullish : ccxt.bullish
             callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
-        string messageHash = add("trades::", getValue(market, "symbol"));
+        string messageHash = add("trades::", (market.ContainsKey("symbol") ? market["symbol"] : null));
         (client as WebSocketClient).resolve(tradesArray, messageHash);
     }
 
@@ -224,8 +224,8 @@ public partial class bullish : ccxt.bullish
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), (market.ContainsKey("id") ? market["id"] : null));
         string messageHash = add("ticker::", symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, parameters, messageHash));  // no need to send a subscribe message, the server sends a ticker update on connect
     }
@@ -280,7 +280,7 @@ public partial class bullish : ccxt.bullish
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> parsed = this.parseTicker(data, market);
         if ((updateType == "update"))
         {
@@ -313,10 +313,10 @@ public partial class bullish : ccxt.bullish
         }
         Dictionary<string, object> market = this.market(symbol);
         string url = "/trading-api/v1/market-data/orderbook";
-        string messageHash = add("orderbook::", getValue(market, "symbol"));
+        string messageHash = add("orderbook::", (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "l2Orderbook" },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object orderbook = await this.watchPublic(url, messageHash, request, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());

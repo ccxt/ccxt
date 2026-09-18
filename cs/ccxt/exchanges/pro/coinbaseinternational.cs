@@ -106,8 +106,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         } else if ((symbolsLength == 1))
         {
             market = this.market(getValue(symbols, 0));
-            messageHash = add(add(name, "::"), getValue(market, "symbol"));
-            productIds = new List<object>() {((string)getValue(market, "id"))};
+            messageHash = add(add(name, "::"), (market.ContainsKey("symbol") ? market["symbol"] : null));
+            productIds = new List<object>() {((string)(market.ContainsKey("id") ? market["id"] : null))};
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if ((url == null))
@@ -268,7 +268,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            if (isEqual(getValue(market, "active"), true))
+            if (isEqual((market.ContainsKey("active") ? market["active"] : null), true))
             {
                 ((IList<object>)output).Add(symbol);
             }
@@ -518,7 +518,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         IDictionary<string, object> options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(options, timeframeVar, timeframeVar);
         object ohlcv = await this.subscribe(interval, new List<object>() {symbolVar}, parameters);
@@ -552,7 +552,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object messageHash = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "product_id");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? timeframe = this.findTimeframe(messageHash);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         if (isEqual(this.safeValue(getValue(this.ohlcvs, symbol), timeframe), null))

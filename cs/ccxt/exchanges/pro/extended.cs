@@ -63,10 +63,10 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("orderbook:", symbolVar);
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), getValue(market, "id"));
+        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbooks/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -99,7 +99,7 @@ public partial class extended : ccxt.extended
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "m");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("orderbook:" + symbol);
         Int64? timestamp = this.safeInteger(message, "ts");
         Int64? nonce = this.safeInteger(message, "seq");
@@ -205,7 +205,7 @@ public partial class extended : ccxt.extended
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         object orders = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
@@ -326,7 +326,7 @@ public partial class extended : ccxt.extended
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         object trades = await this.watchPrivate(messageHash, new Dictionary<string, object>() {
@@ -597,10 +597,10 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("fundingRate:", symbolVar);
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), getValue(market, "id"));
+        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/funding/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -675,10 +675,10 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("markPrice:", symbolVar);
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), getValue(market, "id"));
+        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/prices/mark/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -703,7 +703,7 @@ public partial class extended : ccxt.extended
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "m");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         Int64? timestamp = this.safeInteger(data, "ts");
         if ((isEqual(timestamp, null)) || ((timestamp == 0)))
         {
@@ -742,10 +742,10 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("trades:", symbolVar);
         string query = this.urlencode(parameters);
-        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), getValue(market, "id"));
+        object url = add(add(getValue(getValue(this.urls, "api"), "ws"), "/publicTrades/"), (market.ContainsKey("id") ? market["id"] : null));
         if (((string)query).Length > 0)
         {
             url = add(url, ("?" + query));
@@ -788,7 +788,7 @@ public partial class extended : ccxt.extended
         }
         string? marketId = this.safeString(first, "m");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trades:" + symbol);
         IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.trades, symbol);
@@ -840,7 +840,7 @@ public partial class extended : ccxt.extended
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? price = this.safeString(parameters, "price");
         string? candleType = this.safeString(parameters, "candleType");
         if ((candleType == null))
@@ -862,7 +862,7 @@ public partial class extended : ccxt.extended
         string query = this.urlencode(this.extend(new Dictionary<string, object>() {
             { "interval", interval },
         }, parameters));
-        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/candles/"), getValue(market, "id")), "/"), candleType), "?"), query);
+        object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/candles/"), (market.ContainsKey("id") ? market["id"] : null)), "/"), candleType), "?"), query);
         object ohlcv = await this.watch(url, messageHash, null, messageHash, new Dictionary<string, object>() {
             { "name", "ohlcv" },
             { "symbol", symbolVar },

@@ -223,7 +223,7 @@ public partial class bitrue : ccxt.bitrue
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         object url = await this.authenticate();
         string messageHash = "orders";
@@ -349,12 +349,12 @@ public partial class bitrue : ccxt.bitrue
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("orderbook:", symbolVar);
         object url = null;
         string? channel = null;
         string? cbId = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             string? baseIdLower = this.safeStringLower(market, "baseId");
             string? quoteIdLower = this.safeStringLower(market, "quoteId");
@@ -498,7 +498,7 @@ public partial class bitrue : ccxt.bitrue
             return null;
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             return rawQuantity;
         }
@@ -527,8 +527,8 @@ public partial class bitrue : ccxt.bitrue
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        if (!isEqual(getValue(market, "swap"), true))
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " watchTrades is only supported for swap markets")) ;
         }
@@ -657,8 +657,8 @@ public partial class bitrue : ccxt.bitrue
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        if (!isEqual(getValue(market, "swap"), true))
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " watchOHLCV is only supported for swap markets")) ;
         }
@@ -775,8 +775,8 @@ public partial class bitrue : ccxt.bitrue
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        if (!isEqual(getValue(market, "swap"), true))
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " watchTicker is only supported for swap markets")) ;
         }

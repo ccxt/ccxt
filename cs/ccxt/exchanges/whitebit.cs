@@ -1291,14 +1291,14 @@ public partial class whitebit : Exchange
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            object fee = this.safeValue(response, getValue(market, "baseId"), new Dictionary<string, object>() {});
+            object fee = this.safeValue(response, (market.ContainsKey("baseId") ? market["baseId"] : null), new Dictionary<string, object>() {});
             string? makerFee = this.safeString(fee, "maker_fee");
             string? takerFee = this.safeString(fee, "taker_fee");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "percentage", true },
                 { "tierBased", false },
                 { "maker", this.parseNumber(makerFee) },
@@ -1619,7 +1619,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v1PublicGetTicker(this.extend(request, parameters));
         //
@@ -1791,7 +1791,7 @@ public partial class whitebit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         // Try active orders first (if enabled)
         if ((checkActive == true))
@@ -1880,7 +1880,7 @@ public partial class whitebit : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                if (!isEqual(getValue(market, "contract"), true))
+                if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
                 {
                     onlyContractSymbols = false;
                     break;
@@ -2007,7 +2007,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2057,7 +2057,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.v4PublicGetTradesMarket(this.extend(request, parameters));
         //
@@ -2098,7 +2098,7 @@ public partial class whitebit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         object response = await this.v4PrivatePostTradeAccountExecutedHistory(this.extend(request, parameters));
         //
@@ -2268,7 +2268,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(since, null))
@@ -2426,7 +2426,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", side },
         };
         string? cost = null;
@@ -2571,7 +2571,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         // Handle clientOrderId vs orderId (clientOrderId takes priority)
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2650,7 +2650,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderId", parseInt(id) },
         };
         Dictionary<string, object> response = await this.v4PrivatePostOrderCancel(this.extend(request, parameters));
@@ -2699,7 +2699,7 @@ public partial class whitebit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
@@ -2799,7 +2799,7 @@ public partial class whitebit : Exchange
         }
         bool isBiggerThanZero = (isGreaterThan(timeout, 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (isBiggerThanZero)
         {
@@ -2938,7 +2938,7 @@ public partial class whitebit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -2992,8 +2992,8 @@ public partial class whitebit : Exchange
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -3201,7 +3201,7 @@ public partial class whitebit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -3965,7 +3965,7 @@ public partial class whitebit : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["market"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters));
         //
@@ -4205,7 +4205,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -4588,7 +4588,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -4689,7 +4689,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.v4PrivatePostCollateralAccountPositionsOpen(this.extend(request, parameters));
         //
@@ -4838,7 +4838,7 @@ public partial class whitebit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
+            { "market", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {

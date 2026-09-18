@@ -1531,16 +1531,16 @@ public partial class aster : Exchange
         object response = null;
         if (isMark)
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(request, parameters));
         } else if (isIndex)
         {
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.fapiPublicGetV3IndexPriceKlines(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if (isEqual(getValue(market, "linear"), true))
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
+            if (isEqual((market.ContainsKey("linear") ? market["linear"] : null), true))
             {
                 response = await this.fapiPublicGetV3Klines(this.extend(request, parameters));
             } else
@@ -1675,7 +1675,7 @@ public partial class aster : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1695,7 +1695,7 @@ public partial class aster : Exchange
         // use historical endpoint for targeted requests
         if (inOp(request, "startTime"))
         {
-            if (isEqual(getValue(market, "swap"), true))
+            if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
             {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, parameters));
             } else
@@ -1704,7 +1704,7 @@ public partial class aster : Exchange
             }
         } else
         {
-            if (isEqual(getValue(market, "swap"), true))
+            if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
             {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, parameters));
             } else
@@ -1737,7 +1737,7 @@ public partial class aster : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         string? marketType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
@@ -1808,14 +1808,14 @@ public partial class aster : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object response = null;
         if (!isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
         }
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPublicGetV3Depth(this.extend(request, parameters));
         } else
@@ -1955,10 +1955,10 @@ public partial class aster : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters));
         } else
@@ -2272,7 +2272,7 @@ public partial class aster : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object response = await this.fapiPublicGetV3PremiumIndex(this.extend(request, parameters));
         //
@@ -2385,7 +2385,7 @@ public partial class aster : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2514,7 +2514,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "marginType", marginModeVar },
         };
         Dictionary<string, object> response = await this.fapiPrivatePostV3MarginType(this.extend(request, parameters));
@@ -2602,10 +2602,10 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters));
         } else
@@ -2765,7 +2765,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clientOid"});
@@ -2777,7 +2777,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivateGetV3Order(this.extend(request, parameters));
         } else
@@ -2837,7 +2837,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clientOid"});
@@ -2849,7 +2849,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters));
         } else
@@ -2911,7 +2911,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2925,7 +2925,7 @@ public partial class aster : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(request, parameters));
         } else
@@ -2989,7 +2989,7 @@ public partial class aster : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (isEqual(symbol, null))
         {
@@ -3000,7 +3000,7 @@ public partial class aster : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
@@ -3080,7 +3080,7 @@ public partial class aster : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivatePostV3Order(request);
         } else
@@ -3155,9 +3155,9 @@ public partial class aster : Exchange
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
-            throw new NotSupported ((string)(add((this.id + " createOrders() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(add((this.id + " createOrders() does not support "), (market.ContainsKey("type") ? market["type"] : null)) + " orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "batchOrders", ordersRequests },
@@ -3225,7 +3225,7 @@ public partial class aster : Exchange
         bool isMarketOrder = (initialUppercaseType == "MARKET");
         bool isLimitOrder = (initialUppercaseType == "LIMIT");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", ((string)side).ToUpper() },
         };
         string? clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
@@ -3246,7 +3246,7 @@ public partial class aster : Exchange
         string? stopPrice = null;
         if (isTrailingPercentOrder)
         {
-            if (isEqual(getValue(market, "swap"), true))
+            if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
             {
                 uppercaseType = "TRAILING_STOP_MARKET";
                 ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
@@ -3294,13 +3294,13 @@ public partial class aster : Exchange
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
         if (isEqual(uppercaseType, "MARKET"))
         {
-            if (isEqual(getValue(market, "spot"), true))
+            if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
                 object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (isEqual(quoteOrderQty, true))
                 {
                     string? quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
-                    object precision = getValue(getValue(market, "precision"), "price");
+                    object precision = getValue((market.ContainsKey("precision") ? market["precision"] : null), "price");
                     if ((quoteOrderQtyNew != null))
                     {
                         ((IDictionary<string,object>)request)["quoteOrderQty"] = this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
@@ -3349,7 +3349,7 @@ public partial class aster : Exchange
         }
         if (quantityIsRequired)
         {
-            string? marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+            string? marketAmountPrecision = this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "amount");
             bool isPrecisionAvailable = ((marketAmountPrecision != null));
             if (isPrecisionAvailable)
             {
@@ -3365,7 +3365,7 @@ public partial class aster : Exchange
             {
                 throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
             }
-            string? pricePrecision = this.safeString(getValue(market, "precision"), "price");
+            string? pricePrecision = this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "price");
             bool isPricePrecisionAvailable = ((pricePrecision != null));
             if (isPricePrecisionAvailable)
             {
@@ -3395,7 +3395,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["timeInForce"] = tif;
         }
         object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
-        if (((this.safeBool(this.options, "builderFee") == true)) && (isEqual(getValue(market, "swap"), true)))
+        if (((this.safeBool(this.options, "builderFee") == true)) && (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true)))
         {
             ((IDictionary<string,object>)request)["builder"] = this.safeString(this.options, "builder");
             ((IDictionary<string,object>)request)["feeRate"] = this.safeString(this.options, "builderRate");
@@ -3423,10 +3423,10 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
         } else
@@ -3465,7 +3465,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
         if ((clientOrderId != null))
@@ -3477,7 +3477,7 @@ public partial class aster : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, parameters));
         } else
@@ -3512,7 +3512,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> clientOrderIdList = this.safeList(parameters, "origClientOrderIdList");
         if ((clientOrderIdList != null))
@@ -3523,7 +3523,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderIdList"] = ids;
         }
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters));
         } else
@@ -3557,7 +3557,7 @@ public partial class aster : Exchange
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "leverage", leverage },
         };
         Dictionary<string, object> response = await this.fapiPrivatePostV3Leverage(this.extend(request, parameters));
@@ -3751,7 +3751,7 @@ public partial class aster : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(type, null))
         {
@@ -3834,10 +3834,10 @@ public partial class aster : Exchange
         amount = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", addOrReduce },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amount },
         };
-        string? code = ((string)getValue(market, "quote"));
+        string? code = ((string)(market.ContainsKey("quote") ? market["quote"] : null));
         Dictionary<string, object> response = await this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters));
         //
         //     {
@@ -3937,7 +3937,7 @@ public partial class aster : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
@@ -4387,7 +4387,7 @@ public partial class aster : Exchange
             object position = getValue(positions, i);
             string? marketId = this.safeString(position, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            object code = ((bool) (isEqual(getValue(market, "linear"), true))) ? getValue(market, "quote") : getValue(market, "base");
+            object code = ((bool) (isEqual((market.ContainsKey("linear") ? market["linear"] : null), true))) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null);
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = ((maintenanceMargin != "0")) && ((maintenanceMargin != "0.00000000"));

@@ -267,10 +267,10 @@ public partial class paymium : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetDataCurrencyDepth(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount"));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -341,7 +341,7 @@ public partial class paymium : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> ticker = await this.publicGetDataCurrencyTicker(this.extend(request, parameters));
         //
@@ -411,7 +411,7 @@ public partial class paymium : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetDataCurrencyTrades(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
@@ -550,7 +550,7 @@ public partial class paymium : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", (this.capitalize(type) + "Order") },
-            { "currency", getValue(market, "id") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
             { "direction", side },
             { "amount", amount },
         };

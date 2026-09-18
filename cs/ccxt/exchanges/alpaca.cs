@@ -829,7 +829,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketId = ((string)getValue(market, "id"));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -917,7 +917,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? id = ((string)getValue(market, "id"));
+        string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? loc = this.safeString(parameters, "loc", "us");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", id },
@@ -964,7 +964,7 @@ public partial class alpaca : Exchange
         IDictionary<string, object> orderbooks = this.safeDict(response, "orderbooks", new Dictionary<string, object>() {});
         IDictionary<string, object> rawOrderbook = this.safeDict(orderbooks, id, new Dictionary<string, object>() {});
         Int64? timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(rawOrderbook, getValue(market, "symbol"), timestamp, "b", "a", "p", "s"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(rawOrderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "b", "a", "p", "s"));
     }
 
     /**
@@ -995,7 +995,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? marketId = ((string)getValue(market, "id"));
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? loc = this.safeString(parameters, "loc", "us");
         string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         object paginate = false;
@@ -1255,7 +1255,7 @@ public partial class alpaca : Exchange
             string? datetime = this.safeString(latestQuote, "t");
             Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
                 { "info", entry },
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "timestamp", this.parse8601(datetime) },
                 { "datetime", datetime },
                 { "high", this.safeString(dailyBar, "h") },
@@ -1387,7 +1387,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? id = ((string)getValue(market, "id"));
+        string? id = ((string)(market.ContainsKey("id") ? market["id"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", id },
             { "side", side },
@@ -1578,7 +1578,7 @@ public partial class alpaca : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))

@@ -824,7 +824,7 @@ public partial class bitteam : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pairName", getValue(market, "id") },
+            { "pairName", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", resolution },
         };
         Dictionary<string, object> response = await this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters));
@@ -894,7 +894,7 @@ public partial class bitteam : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters));
         //
@@ -956,7 +956,7 @@ public partial class bitteam : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -1590,7 +1590,7 @@ public partial class bitteam : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "name", getValue(market, "id") },
+            { "name", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTradeApiPairName(this.extend(request, parameters));
         //
@@ -1932,7 +1932,7 @@ public partial class bitteam : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters));
         //
@@ -1982,7 +1982,7 @@ public partial class bitteam : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pairId"] = getValue(market, "numericId");
+            ((IDictionary<string,object>)request)["pairId"] = (market.ContainsKey("numericId") ? market["numericId"] : null);
         }
         if (!isEqual(limit, null))
         {

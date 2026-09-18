@@ -465,7 +465,7 @@ public partial class phemex : ccxt.phemex
         string name = "trade";
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ((name + ":") + symbol);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
@@ -518,7 +518,7 @@ public partial class phemex : ccxt.phemex
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object candles = this.safeValue2(message, "kline", "kline_p", new List<object>() {});
         object first = this.safeValue(candles, 0, new List<object>() {});
         string? interval = this.safeString(first, 1);
@@ -564,9 +564,9 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
+        bool settleIsUSDT = isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT");
         string name = "spot_market24h";
         if (isEqual(isSwap, true))
         {
@@ -607,8 +607,8 @@ public partial class phemex : ccxt.phemex
         symbols = this.marketSymbols(symbols, null, false);
         object first = getValue(symbols, 0);
         Dictionary<string, object> market = this.market(first);
-        object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
+        bool settleIsUSDT = isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT");
         string name = "spot_market24h";
         if (isEqual(isSwap, true))
         {
@@ -661,11 +661,11 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
-        object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
+        bool settleIsUSDT = isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "trade_p" : "trade";
         string messageHash = add("trade:", symbolVar);
@@ -673,7 +673,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {getValue(market, "id")} },
+            { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash);
@@ -706,11 +706,11 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
-        object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
+        bool settleIsUSDT = isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "orderbook_p" : "orderbook";
         string messageHash = add("orderbook:", symbolVar);
@@ -718,7 +718,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {getValue(market, "id")} },
+            { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
@@ -751,11 +751,11 @@ public partial class phemex : ccxt.phemex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
-        object isSwap = getValue(market, "swap");
-        bool settleIsUSDT = isEqual(getValue(market, "settle"), "USDT");
+        object isSwap = (market.ContainsKey("swap") ? market["swap"] : null);
+        bool settleIsUSDT = isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "kline_p" : "kline";
         string messageHash = add((add("kline:", timeframeVar) + ":"), symbolVar);
@@ -763,7 +763,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
-            { "params", new List<object>() {getValue(market, "id"), this.safeInteger(this.timeframes, timeframeVar)} },
+            { "params", new List<object>() {(market.ContainsKey("id") ? market["id"] : null), this.safeInteger(this.timeframes, timeframeVar)} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
@@ -835,7 +835,7 @@ public partial class phemex : ccxt.phemex
         //
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? type = this.safeString(message, "type");
         Int64? depth = this.safeInteger(message, "depth");
         string name = "orderbook";
@@ -894,9 +894,9 @@ public partial class phemex : ccxt.phemex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = add(messageHash, getValue(market, "symbol"));
-            if (isEqual(getValue(market, "settle"), "USDT"))
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = add(messageHash, (market.ContainsKey("symbol") ? market["symbol"] : null));
+            if (isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT"))
             {
                 parameters = this.extend(parameters);
                 ((IDictionary<string,object>)parameters)["settle"] = "USDT";
@@ -1037,7 +1037,7 @@ public partial class phemex : ccxt.phemex
             object symbol = getValue(parsed, "symbol");
             if ((type == null))
             {
-                type = ((bool) (isEqual(getValue(market, "settle"), "USDT"))) ? "perpetual" : getValue(market, "type");
+                type = ((bool) (isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT"))) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
             }
             if ((symbol != null))
             {
@@ -1081,9 +1081,9 @@ public partial class phemex : ccxt.phemex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            messageHash = add(messageHash, getValue(market, "symbol"));
-            if (isEqual(getValue(market, "settle"), "USDT"))
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            messageHash = add(messageHash, (market.ContainsKey("symbol") ? market["symbol"] : null));
+            if (isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT"))
             {
                 parameters = this.extend(parameters);
                 ((IDictionary<string,object>)parameters)["settle"] = "USDT";
@@ -1321,8 +1321,8 @@ public partial class phemex : ccxt.phemex
             Dictionary<string, object> market = this.market(symbol);
             if ((type == null))
             {
-                bool isUsdt = isEqual(getValue(market, "settle"), "USDT");
-                type = ((bool) isUsdt) ? "perpetual" : getValue(market, "type");
+                bool isUsdt = isEqual((market.ContainsKey("settle") ? market["settle"] : null), "USDT");
+                type = ((bool) isUsdt) ? "perpetual" : (market.ContainsKey("type") ? market["type"] : null);
             }
             ((IDictionary<string,object>)marketIds)[(string)symbol] = true;
         }

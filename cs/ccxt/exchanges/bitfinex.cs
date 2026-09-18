@@ -818,14 +818,14 @@ public partial class bitfinex : Exchange
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
     }
 
     public override string? priceToPrecision(object symbol, object price)
     {
         symbol = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbol);
-        price = this.decimalToPrecision(price, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode);
+        price = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -1451,7 +1451,7 @@ public partial class bitfinex : Exchange
         object precision = this.handleOption("fetchOrderBook", "precision", "R0");
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "precision", precision },
         };
         if (!isEqual(limit, null))
@@ -1462,7 +1462,7 @@ public partial class bitfinex : Exchange
         List<object> orderbook = await this.publicGetBookSymbolPrecision(fullRequest);
         Int64 timestamp = this.milliseconds();
         Dictionary<string, object> result = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "bids", new List<object>() {} },
             { "asks", new List<object>() {} },
             { "timestamp", timestamp },
@@ -1692,7 +1692,7 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> ticker = await this.publicGetTickerSymbol(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
@@ -1817,7 +1817,7 @@ public partial class bitfinex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string sort = "-1";
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1897,7 +1897,7 @@ public partial class bitfinex : Exchange
             limitVar = mathMin(limitVar, 10000);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitVar },
         };
@@ -2091,7 +2091,7 @@ public partial class bitfinex : Exchange
         object amountString = this.amountToPrecision(symbol, amount);
         amountString = ((bool) (isEqual(side, "buy"))) ? amountString : ((string)Precise.stringNeg(amountString));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amountString },
         };
         string? triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
@@ -2144,7 +2144,7 @@ public partial class bitfinex : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if ((isEqual(getValue(market, "spot"), true)) && ((marginMode == null)))
+        if ((isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && ((marginMode == null)))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = ("EXCHANGE " + orderType);
@@ -2591,7 +2591,7 @@ public partial class bitfinex : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePostAuthROrdersSymbol(this.extend(request, parameters));
         }
         //
@@ -2692,7 +2692,7 @@ public partial class bitfinex : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePostAuthROrdersSymbolHist(this.extend(request, parameters));
         }
         //
@@ -2770,7 +2770,7 @@ public partial class bitfinex : Exchange
         object orderId = parseInt(id);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", orderId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         // valid for trades up to 10 days old
         List<object> response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters));
@@ -2820,7 +2820,7 @@ public partial class bitfinex : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePostAuthRTradesSymbolHist(this.extend(request, parameters));
         } else
         {
@@ -3192,11 +3192,11 @@ public partial class bitfinex : Exchange
                 { "percentage", true },
                 { "tierBased", true },
             };
-            if (inOp(fiat, getValue(market, "quote")))
+            if (inOp(fiat, (market.ContainsKey("quote") ? market["quote"] : null)))
             {
                 ((IDictionary<string,object>)fee)["maker"] = makerFeeFiat;
                 ((IDictionary<string,object>)fee)["taker"] = takerFeeFiat;
-            } else if (isEqual(getValue(market, "contract"), true))
+            } else if (isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
             {
                 ((IDictionary<string,object>)fee)["maker"] = makerFeeDeriv;
                 ((IDictionary<string,object>)fee)["taker"] = takerFeeDeriv;
@@ -3849,7 +3849,7 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -4093,7 +4093,7 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "keys", getValue(market, "id") },
+            { "keys", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetStatusDeriv(this.extend(request, parameters));
         //
@@ -4163,7 +4163,7 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -4409,12 +4409,12 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " setMargin() only support swap markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "collateral", this.parseToNumeric(amount) },
         };
         List<object> response = await this.privatePostAuthWDerivCollateralSet(this.extend(request, parameters));
@@ -4485,7 +4485,7 @@ public partial class bitfinex : Exchange
         } else
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePostAuthROrdersSymbol(this.extend(request, parameters));
         }
         //

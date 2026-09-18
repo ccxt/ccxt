@@ -75,20 +75,20 @@ public partial class testMainClass : BaseTest
         // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
         if (!(inOp(skippedProperties, "checkInactiveMarkets")))
         {
-            if ((market != null) && isEqual(getValue(market, "active"), false))
+            if ((market != null) && isEqual((market.ContainsKey("active") ? market["active"] : null), false))
             {
                 return;
             }
         }
         if (inOp(skippedProperties, "skipNonActiveMarkets"))
         {
-            if ((market == null) || (!isEqual(getValue(market, "active"), true)))
+            if ((market == null) || (!isEqual((market.ContainsKey("active") ? market["active"] : null), true)))
             {
                 return;
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        bool isStandardMarket = ((market != null) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        bool isStandardMarket = ((market != null) && isTrue(exchange.inArray((market.ContainsKey("type") ? market["type"] : null), new List<object>() {"spot", "swap", "future", "option"})));
         bool valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (isTrue(valuesShouldBePositive) && !(inOp(skippedProperties, "positiveValues")))
         {

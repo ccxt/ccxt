@@ -810,7 +810,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
         if (!isEqual(limit, null) && isLessThanOrEqual(limit, 100))
@@ -821,7 +821,7 @@ public partial class luno : Exchange
             response = await this.publicGetOrderbook(this.extend(request, parameters));
         }
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "volume"));
     }
 
     public virtual string? parseOrderStatus(object status)
@@ -951,7 +951,7 @@ public partial class luno : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = await this.privateGetListorders(this.extend(request, parameters));
         List<object> orders = this.safeList(response, "orders", new List<object>() {});
@@ -1074,7 +1074,7 @@ public partial class luno : Exchange
         {
             string? id = ((string)getValue(ids, i));
             Dictionary<string, object> market = this.safeMarket(id);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             object ticker = getValue(tickers, id);
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
@@ -1099,7 +1099,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         // {
@@ -1236,7 +1236,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1284,7 +1284,7 @@ public partial class luno : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "duration", this.safeValue(this.timeframes, timeframeVar, timeframeVar) },
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1352,7 +1352,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -1406,7 +1406,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateGetFeeInfo(this.extend(request, parameters));
         //
@@ -1442,7 +1442,7 @@ public partial class luno : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "pair", getValue(market, "id") },
+            { "pair", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
         if (isEqual(side, null))
@@ -1455,16 +1455,16 @@ public partial class luno : Exchange
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if (isEqual(side, "buy"))
             {
-                ((IDictionary<string,object>)request)["counter_volume"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+                ((IDictionary<string,object>)request)["counter_volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
             } else
             {
-                ((IDictionary<string,object>)request)["base_volume"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+                ((IDictionary<string,object>)request)["base_volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
             }
             response = await this.privatePostMarketorder(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(getValue(market, "symbol"), amount);
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), price);
             ((IDictionary<string,object>)request)["type"] = ((bool) (isEqual(side, "buy"))) ? "BID" : "ASK";
             response = await this.privatePostPostorder(this.extend(request, parameters));
         }

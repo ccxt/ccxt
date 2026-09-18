@@ -159,17 +159,17 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string? topic = this.safeString(options, "name", "market.{marketId}.detail");
-        if ((topic == "market.{marketId}.ticker") && !isEqual(getValue(market, "type"), "spot"))
+        if ((topic == "market.{marketId}.ticker") && !isEqual((market.ContainsKey("type") ? market["type"] : null), "spot"))
         {
             throw new BadRequest ((string)(this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
         }
         string? messageHash = this.implodeParams(topic, new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         });
-        object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
+        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         return ccxt.BaseExchange.ToTicker(await this.subscribePublic(url, symbolVar, messageHash, null, parameters));
     }
 
@@ -194,12 +194,12 @@ public partial class htx : ccxt.htx
         string topic = "ticker";
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string? channel = this.safeString(options, "name", "market.{marketId}.detail");
-        if ((channel == "market.{marketId}.ticker") && !isEqual(getValue(market, "type"), "spot"))
+        if ((channel == "market.{marketId}.ticker") && !isEqual((market.ContainsKey("type") ? market["type"] : null), "spot"))
         {
             throw new BadRequest ((string)(this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
         }
         string? subMessageHash = this.implodeParams(channel, new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         });
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
@@ -283,9 +283,9 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string messageHash = (add("market.", getValue(market, "id")) + ".trade.detail");
-        object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string messageHash = (add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".trade.detail");
+        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         object trades = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -317,7 +317,7 @@ public partial class htx : ccxt.htx
         IDictionary<string, object> options = this.safeDict(this.options, "watchTrades", new Dictionary<string, object>() {});
         string? channel = this.safeString(options, "name", "market.{marketId}.trade.detail");
         string? subMessageHash = this.implodeParams(channel, new Dictionary<string, object>() {
-            { "marketId", getValue(market, "id") },
+            { "marketId", (market.ContainsKey("id") ? market["id"] : null) },
         });
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
@@ -354,7 +354,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object tradesCache = this.safeValue(this.trades, symbol);
         if ((tradesCache == null))
         {
@@ -397,10 +397,10 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((add("market.", getValue(market, "id")) + ".kline.") + interval);
-        object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"));
+        string messageHash = ((add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".kline.") + interval);
+        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null));
         object ohlcv = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -433,9 +433,9 @@ public partial class htx : ccxt.htx
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string subMessageHash = ((add("market.", getValue(market, "id")) + ".kline.") + interval);
+        string subMessageHash = ((add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".kline.") + interval);
         string topic = "ohlcv";
-        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframeVar}};
+        ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar}};
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
     }
 
@@ -465,7 +465,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(parts, 3);
         string? timeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -507,7 +507,7 @@ public partial class htx : ccxt.htx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         List<object> allowedLimits = new List<object>() {5, 20, 150, 400};
         // 2) 5-level/20-level incremental MBP is a tick by tick feed,
         // which means whenever there is an order book change at that level, it pushes an update;
@@ -523,16 +523,16 @@ public partial class htx : ccxt.htx
             throw new ExchangeError ((string)(this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         string? messageHash = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
-            messageHash = ((add("market.", getValue(market, "id")) + ".mbp.") + this.numberToString(limitVar));
+            messageHash = ((add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".mbp.") + this.numberToString(limitVar));
         } else
         {
-            messageHash = (((add("market.", getValue(market, "id")) + ".depth.size_") + this.numberToString(limitVar)) + ".high_freq");
+            messageHash = (((add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".depth.size_") + this.numberToString(limitVar)) + ".high_freq");
         }
-        object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
+        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         object method = this.handleOrderBookSubscription;
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             parameters = this.extend(parameters);
             ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
@@ -566,14 +566,14 @@ public partial class htx : ccxt.htx
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 150);
         string? subMessageHash = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
-            subMessageHash = ((add("market.", getValue(market, "id")) + ".mbp.") + this.numberToString(depth));
+            subMessageHash = ((add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".mbp.") + this.numberToString(depth));
         } else
         {
-            subMessageHash = (((add("market.", getValue(market, "id")) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
+            subMessageHash = (((add("market.", (market.ContainsKey("id") ? market["id"] : null)) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
         }
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
         }
@@ -693,7 +693,7 @@ public partial class htx : ccxt.htx
         object parameters = this.safeValue(subscription, "params");
         Int64? attempts = this.safeInteger(subscription, "numAttempts", 0);
         Dictionary<string, object> market = this.market(symbol);
-        object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
+        object url = this.getUrlByMarketType((market.ContainsKey("type") ? market["type"] : null), (market.ContainsKey("linear") ? market["linear"] : null), false, true);
         string requestId = ((string)this.requestId());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "req", messageHash },
@@ -813,7 +813,7 @@ public partial class htx : ccxt.htx
         List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
         Int64? seqNum = this.safeInteger(tick, "seqNum");
@@ -835,8 +835,8 @@ public partial class htx : ccxt.htx
                 throw new ChecksumError ((string)add((this.id + " "), this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        bool spotConditon = (isEqual(getValue(market, "spot"), true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
-        bool nonSpotCondition = (isEqual(getValue(market, "contract"), true)) && (!isEqual(version, null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
+        bool spotConditon = (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
+        bool nonSpotCondition = (isEqual((market.ContainsKey("contract") ? market["contract"] : null), true)) && (!isEqual(version, null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
         if (((spotConditon == true)) || ((nonSpotCondition == true)))
         {
             object asks = this.safeValue(tick, "asks", new List<object>() {});
@@ -938,7 +938,7 @@ public partial class htx : ccxt.htx
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
         }
@@ -976,10 +976,10 @@ public partial class htx : ccxt.htx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            type = getValue(market, "type");
-            subType = ((bool) (isEqual(getValue(market, "linear"), true))) ? "linear" : "inverse";
-            marketId = getValue(market, "lowercaseId");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            type = (market.ContainsKey("type") ? market["type"] : null);
+            subType = ((bool) (isEqual((market.ContainsKey("linear") ? market["linear"] : null), true))) ? "linear" : "inverse";
+            marketId = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
         } else
         {
             type = this.safeString(this.options, "defaultType", "spot");
@@ -1134,10 +1134,10 @@ public partial class htx : ccxt.htx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            type = getValue(market, "type");
-            suffix = getValue(market, "lowercaseId");
-            subType = ((bool) (isEqual(getValue(market, "linear"), true))) ? "linear" : "inverse";
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            type = (market.ContainsKey("type") ? market["type"] : null);
+            suffix = (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null);
+            subType = ((bool) (isEqual((market.ContainsKey("linear") ? market["linear"] : null), true))) ? "linear" : "inverse";
         } else
         {
             type = this.safeString(this.options, "defaultType", "spot");
@@ -1379,7 +1379,7 @@ public partial class htx : ccxt.htx
                     { "trades", trades },
                     { "status", status },
                     { "lastTradeTimestamp", this.safeInteger(data, "tradeTime") },
-                    { "symbol", getValue(market, "symbol") },
+                    { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                     { "filled", this.parseNumber(filled) },
                     { "remaining", this.parseNumber(remaining) },
                     { "price", this.safeNumber(data, "orderPrice") },
@@ -1435,7 +1435,7 @@ public partial class htx : ccxt.htx
         {
             return;
         }
-        string genericMessageHash = ((string)messageHash).Replace((string)add(".", getValue(market, "lowercaseId")), (string)"");
+        string genericMessageHash = ((string)messageHash).Replace((string)add(".", (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null)), (string)"");
         string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
         genericMessageHash = ((string)genericMessageHash).Replace((string)("." + lowerCaseBaseId), (string)"");
         (client as WebSocketClient).resolve(this.orders, genericMessageHash);
@@ -2045,7 +2045,7 @@ public partial class htx : ccxt.htx
                         // isolated margin only allows filtering by symbol3
                         if (((symbol != null)) && ((market != null)))
                         {
-                            messageHash = add(messageHash, add(".", getValue(market, "id")));
+                            messageHash = add(messageHash, add(".", (market.ContainsKey("id") ? market["id"] : null)));
                             channel = messageHash;
                         } else
                         {
@@ -2083,7 +2083,7 @@ public partial class htx : ccxt.htx
                 // inverse swaps account
                 if ((market != null))
                 {
-                    messageHash = add(messageHash, add(".", getValue(market, "id")));
+                    messageHash = add(messageHash, add(".", (market.ContainsKey("id") ? market["id"] : null)));
                     channel = messageHash;
                 } else
                 {
@@ -3031,7 +3031,7 @@ public partial class htx : ccxt.htx
                 // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
-                string genericOrderHash = ((string)messageHash).Replace((string)add(".", getValue(market, "lowercaseId")), (string)"");
+                string genericOrderHash = ((string)messageHash).Replace((string)add(".", (market.ContainsKey("lowercaseId") ? market["lowercaseId"] : null)), (string)"");
                 string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
                 genericOrderHash = ((string)genericOrderHash).Replace((string)("." + lowerCaseBaseId), (string)"");
                 string genericTradesHash = ((genericOrderHash + ":") + "trade");

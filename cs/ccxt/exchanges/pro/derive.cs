@@ -94,7 +94,7 @@ public partial class derive : ccxt.derive
             limitVar = 10;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((add("orderbook.", getValue(market, "id")) + ".10.") + this.numberToString(limitVar));
+        string topic = ((add("orderbook.", (market.ContainsKey("id") ? market["id"] : null)) + ".10.") + this.numberToString(limitVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -132,7 +132,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "instrument_name");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? topic = this.safeString(parameters, "channel");
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -165,7 +165,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = (add("ticker_slim.", getValue(market, "id")) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        string topic = (add("ticker_slim.", (market.ContainsKey("id") ? market["id"] : null)) + ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -260,7 +260,7 @@ public partial class derive : ccxt.derive
             Dictionary<string, object> market = this.safeMarket(marketId);
             IDictionary<string, object> stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
             ticker = this.safeTicker(new Dictionary<string, object>() {
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "timestamp", this.safeInteger(data, "t") },
                 { "datetime", this.iso8601(this.safeInteger(data, "t")) },
                 { "bid", this.safeString(data, "b") },
@@ -311,7 +311,7 @@ public partial class derive : ccxt.derive
             limit = 10;
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = ((add("orderbook.", getValue(market, "id")) + ".10.") + this.numberToString(limit));
+        string topic = ((add("orderbook.", (market.ContainsKey("id") ? market["id"] : null)) + ".10.") + this.numberToString(limit));
         string messageHash = ("unwatch" + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -341,7 +341,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("trades.", getValue(market, "id"));
+        string topic = add("trades.", (market.ContainsKey("id") ? market["id"] : null));
         string messageHah = ("unwatch" + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -374,7 +374,7 @@ public partial class derive : ccxt.derive
         List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (inOp(this.orderbooks, symbol))
         {
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
@@ -393,7 +393,7 @@ public partial class derive : ccxt.derive
         List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (inOp(this.orderbooks, symbol))
         {
             ((IDictionary<string,object>)this.trades).Remove((string)symbol);
@@ -458,7 +458,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string topic = add("trades.", getValue(market, "id"));
+        string topic = add("trades.", (market.ContainsKey("id") ? market["id"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -473,7 +473,7 @@ public partial class derive : ccxt.derive
         object trades = await this.watchPublic(topic, request, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {getValue(market, "symbol"), limitVar});
+            limitVar = callDynamically(trades, "getLimit", new object[] {(market.ContainsKey("symbol") ? market["symbol"] : null), limitVar});
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true));
     }
@@ -488,7 +488,7 @@ public partial class derive : ccxt.derive
         List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object tradesArray = this.safeValue(this.trades, symbol);
         if ((tradesArray == null))
         {
@@ -584,7 +584,7 @@ public partial class derive : ccxt.derive
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -722,7 +722,7 @@ public partial class derive : ccxt.derive
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = messageHash + add(":", symbolVar);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

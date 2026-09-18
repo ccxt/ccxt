@@ -662,8 +662,8 @@ public partial class coinone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "quote_currency", getValue(market, "quote") },
-            { "target_currency", getValue(market, "base") },
+            { "quote_currency", (market.ContainsKey("quote") ? market["quote"] : null) },
+            { "target_currency", (market.ContainsKey("base") ? market["base"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -694,7 +694,7 @@ public partial class coinone : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(response, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks", "price", "qty"));
     }
 
     /**
@@ -724,8 +724,8 @@ public partial class coinone : Exchange
         {
             string? first = this.safeString(symbols, 0);
             market = this.market(first);
-            ((IDictionary<string,object>)request)["quote_currency"] = getValue(market, "quote");
-            ((IDictionary<string,object>)request)["target_currency"] = getValue(market, "base");
+            ((IDictionary<string,object>)request)["quote_currency"] = (market.ContainsKey("quote") ? market["quote"] : null);
+            ((IDictionary<string,object>)request)["target_currency"] = (market.ContainsKey("base") ? market["base"] : null);
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters));
         } else
         {
@@ -786,8 +786,8 @@ public partial class coinone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "quote_currency", getValue(market, "quote") },
-            { "target_currency", getValue(market, "base") },
+            { "quote_currency", (market.ContainsKey("quote") ? market["quote"] : null) },
+            { "target_currency", (market.ContainsKey("base") ? market["base"] : null) },
         };
         Dictionary<string, object> response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters));
         //
@@ -975,8 +975,8 @@ public partial class coinone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "quote_currency", getValue(market, "quote") },
-            { "target_currency", getValue(market, "base") },
+            { "quote_currency", (market.ContainsKey("quote") ? market["quote"] : null) },
+            { "target_currency", (market.ContainsKey("base") ? market["base"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1040,8 +1040,8 @@ public partial class coinone : Exchange
         // the exchange and return 404, the v2.1 order endpoint replaces them,
         // see https://github.com/ccxt/ccxt/issues/23174
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "quote_currency", getValue(market, "quoteId") },
-            { "target_currency", getValue(market, "baseId") },
+            { "quote_currency", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
+            { "target_currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "type", orderType },
             { "side", orderSide },
             { "price", this.priceToPrecision(symbol, price) },
@@ -1081,7 +1081,7 @@ public partial class coinone : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
-            { "currency", getValue(market, "id") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v2PrivatePostOrderQueryOrder(this.extend(request, parameters));
         //
@@ -1278,8 +1278,8 @@ public partial class coinone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "quote_currency", getValue(market, "quoteId") },
-            { "target_currency", getValue(market, "baseId") },
+            { "quote_currency", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
+            { "target_currency", (market.ContainsKey("baseId") ? market["baseId"] : null) },
         };
         Dictionary<string, object> response = await this.v2_1PrivatePostOrderOpenOrders(this.extend(request, parameters));
         //
@@ -1326,7 +1326,7 @@ public partial class coinone : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+            { "currency", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v2PrivatePostOrderCompleteOrders(this.extend(request, parameters));
         //

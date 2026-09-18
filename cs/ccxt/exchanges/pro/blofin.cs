@@ -242,7 +242,7 @@ public partial class blofin : ccxt.blofin
         IDictionary<string, object> data = this.safeDict(message, "data");
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         object messageHash = add(add(channelName, ":"), symbol);
         if (!(inOp(this.orderbooks, symbol)))
         {
@@ -284,7 +284,7 @@ public partial class blofin : ccxt.blofin
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(result, symbolVar));
     }
@@ -379,10 +379,10 @@ public partial class blofin : ccxt.blofin
         for (int i = 0; i < getArrayLength(symbolsList); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbolsList, i));
-            ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(add("bidask:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
             ((IList<object>)args).Add(new Dictionary<string, object>() {
                 { "channel", channel },
-                { "instId", getValue(market, "id") },
+                { "instId", (market.ContainsKey("id") ? market["id"] : null) },
             });
         }
         Dictionary<string, object> request = this.getSubscriptionRequest(args);
@@ -503,7 +503,7 @@ public partial class blofin : ccxt.blofin
         List<object> data = this.safeList(message, "data");
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string interval = ((string)((string)channelName)).Replace((string)"candle", (string)"");
         string? unifiedTimeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -757,10 +757,10 @@ public partial class blofin : ccxt.blofin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
         marketType = (string)((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        string messageHash = add("fundingRate:", getValue(market, "symbol"));
+        string messageHash = add("fundingRate:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         Dictionary<string, object> requestParams = new Dictionary<string, object>() {
             { "channel", "funding-rate" },
-            { "instId", getValue(market, "id") },
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> request = this.getSubscriptionRequest(new List<object>() {requestParams});
         object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
@@ -849,10 +849,10 @@ public partial class blofin : ccxt.blofin
                 }
                 Dictionary<string, object> topic = new Dictionary<string, object>() {
                     { "channel", channel },
-                    { "instId", getValue(market, "id") },
+                    { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                 };
                 ((IList<object>)rawSubscriptions).Add(topic);
-                ((IList<object>)messageHashes).Add(add(add(channel, ":"), getValue(market, "symbol")));
+                ((IList<object>)messageHashes).Add(add(add(channel, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
             }
         } else
         {

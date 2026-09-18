@@ -193,12 +193,12 @@ public partial class deribit : ccxt.deribit
         {
             await this.authenticate();
         }
-        string channel = ((add("ticker.", getValue(market, "id")) + ".") + interval);
+        string channel = ((add("ticker.", (market.ContainsKey("id") ? market["id"] : null)) + ".") + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "public/subscribe" },
             { "params", new Dictionary<string, object>() {
-                { "channels", new List<object>() {((add("ticker.", getValue(market, "id")) + ".") + interval)} },
+                { "channels", new List<object>() {((add("ticker.", (market.ContainsKey("id") ? market["id"] : null)) + ".") + interval)} },
             } },
             { "id", this.requestId() },
         };
@@ -239,7 +239,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(((add("ticker.", getValue(market, "id")) + ".") + interval));
+            ((IList<object>)channels).Add(((add("ticker.", (market.ContainsKey("id") ? market["id"] : null)) + ".") + interval));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -323,7 +323,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add("quote.", getValue(market, "id")));
+            ((IList<object>)channels).Add(add("quote.", (market.ContainsKey("id") ? market["id"] : null)));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -966,7 +966,7 @@ public partial class deribit : ccxt.deribit
         string? marketId = this.safeString(parts, 2);
         string? rawTimeframe = this.safeString(parts, 3);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> timeframes = this.safeDict(wsOptions, "timeframes", new Dictionary<string, object>() {});
         string? unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
@@ -1038,9 +1038,9 @@ public partial class deribit : ccxt.deribit
             {
                 market = this.market(current);
             }
-            object message = add(add(add(add(channelName, "."), getValue(market, "id")), "."), channelDescriptor);
+            object message = add(add(add(add(channelName, "."), (market.ContainsKey("id") ? market["id"] : null)), "."), channelDescriptor);
             ((IList<object>)rawSubscriptions).Add(message);
-            ((IList<object>)messageHashes).Add(add(add(add(add(channelName, "|"), getValue(market, "symbol")), "|"), channelDescriptor));
+            ((IList<object>)messageHashes).Add(add(add(add(add(channelName, "|"), (market.ContainsKey("symbol") ? market["symbol"] : null)), "|"), channelDescriptor));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

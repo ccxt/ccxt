@@ -1131,7 +1131,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1293,7 +1293,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v3PrivateGetTradeTradingFee(this.extend(request, parameters));
         //
@@ -1581,7 +1581,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -1606,7 +1606,7 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (!isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
@@ -1714,7 +1714,7 @@ public partial class woo : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string orderSide = ((string)((string)side)).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", orderSide },
         };
         object marginMode = null;
@@ -1770,7 +1770,7 @@ public partial class woo : Exchange
             string? cost = this.safeStringN(parameters, new List<object>() {"cost", "order_amount", "orderAmount"});
             parameters = this.omit(parameters, new List<object>() {"cost", "order_amount", "orderAmount"});
             bool isPriceProvided = !isEqual(price, null);
-            if ((isEqual(getValue(market, "spot"), true)) && (isPriceProvided || ((cost != null))))
+            if ((isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && (isPriceProvided || ((cost != null))))
             {
                 string? quoteAmount = null;
                 if ((cost != null))
@@ -1824,7 +1824,7 @@ public partial class woo : Exchange
         {
             ((IDictionary<string,object>)request)["algoType"] = "BRACKET";
             Dictionary<string, object> outterOrder = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "reduceOnly", false },
                 { "algoType", "POSITIONAL_TP_SL" },
                 { "childOrders", new List<object>() {} },
@@ -2099,7 +2099,7 @@ public partial class woo : Exchange
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         Dictionary<string, object> response = null;
         if ((trigger == true))
@@ -2247,7 +2247,7 @@ public partial class woo : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2551,7 +2551,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2649,12 +2649,12 @@ public partial class woo : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v3PublicGetFutures(this.extend(request, parameters));
         //
@@ -2792,7 +2792,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         if (!isEqual(limit, null))
@@ -2924,7 +2924,7 @@ public partial class woo : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -3805,7 +3805,7 @@ public partial class woo : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4035,7 +4035,7 @@ public partial class woo : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -4172,7 +4172,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v3PublicGetFundingRate(this.extend(request, parameters));
         //
@@ -4278,9 +4278,9 @@ public partial class woo : Exchange
             throw new ArgumentsRequired ((string)(this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(since, null))
         {
@@ -4387,13 +4387,13 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             response = await this.v3PrivateGetAccountInfo(parameters);
-        } else if (isEqual(getValue(market, "swap"), true))
+        } else if (isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
             object marginMode = null;
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
@@ -4403,7 +4403,7 @@ public partial class woo : Exchange
             response = await this.v3PrivateGetFuturesLeverage(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchLeverage() is not supported for "), getValue(market, "type")) + " markets")) ;
+            throw new NotSupported ((string)(add((this.id + " fetchLeverage() is not supported for "), (market.ContainsKey("type") ? market["type"] : null)) + " markets")) ;
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
@@ -4537,7 +4537,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "adjust_token", "USDT" },
             { "adjust_amount", amount },
             { "action", type },
@@ -4563,7 +4563,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));
         //
@@ -4627,7 +4627,7 @@ public partial class woo : Exchange
             if ((symbolsLength == 1))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, 0));
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         Dictionary<string, object> response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));
@@ -5123,7 +5123,7 @@ public partial class woo : Exchange
             if ((symbolsLength == 1))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, 0));
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         Dictionary<string, object> response = await this.v3PrivateGetFuturesPositions(this.extend(request, parameters));

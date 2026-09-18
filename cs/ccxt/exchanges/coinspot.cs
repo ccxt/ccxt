@@ -686,10 +686,10 @@ public partial class coinspot : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "cointype", getValue(market, "id") },
+            { "cointype", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> orderbook = await this.privatePostOrders(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "buyorders", "sellorders", "rate", "amount"));
     }
 
     public override Dictionary<string, object> parseTicker(object ticker, object market = null)
@@ -807,9 +807,9 @@ public partial class coinspot : Exchange
         {
             string? id = ((string)getValue(ids, i));
             Dictionary<string, object> market = this.safeMarket(id);
-            if (isEqual(getValue(market, "spot"), true))
+            if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
             {
-                string? symbol = ((string)getValue(market, "symbol"));
+                string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object ticker = getValue(prices, id);
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
             }
@@ -837,7 +837,7 @@ public partial class coinspot : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "cointype", getValue(market, "id") },
+            { "cointype", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostOrdersHistory(this.extend(request, parameters));
         //
@@ -1025,7 +1025,7 @@ public partial class coinspot : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "cointype", getValue(market, "id") },
+            { "cointype", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amount },
             { "rate", price },
         };

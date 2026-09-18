@@ -176,7 +176,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_place");
         object url = this.getUrlByMarket(market);
@@ -207,7 +207,7 @@ public partial class gate : ccxt.gate
         object request = this.createOrdersRequest(orders, parameters);
         object firstOrder = getValue(orders, 0);
         Dictionary<string, object> market = this.market(getValue(firstOrder, "symbol"));
-        if (!isEqual(getValue(market, "swap"), true))
+        if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
         {
             throw new NotSupported ((string)(this.id + " createOrdersWs is not supported for swap markets")) ;
         }
@@ -425,8 +425,8 @@ public partial class gate : ccxt.gate
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
-            if (!isEqual(getValue(market, "swap"), true))
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+            if (!isEqual((market.ContainsKey("swap") ? market["swap"] : null), true))
             {
                 throw new NotSupported ((string)(this.id + " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
             }
@@ -469,11 +469,11 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string? marketId = ((string)getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         object url = this.getUrlByMarket(market);
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
-        bool isNonEuSpot = (isEqual(getValue(market, "spot"), true)) && !isEuUrl;
+        bool isNonEuSpot = (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && !isEuUrl;
         string intervalDefault = ((bool) isNonEuSpot) ? "50" : "100ms";
         IList<object> intervalqueryVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         var interval = ((IList<object>) intervalqueryVariable)[0];
@@ -482,7 +482,7 @@ public partial class gate : ccxt.gate
         string messageHash = add(("orderbook" + ":"), symbolVar);
         if (isEqual(limitVar, null))
         {
-            limitVar = ((bool) (isEqual(getValue(market, "spot"), true))) ? 50 : 100; // max 100 atm
+            limitVar = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? 50 : 100; // max 100 atm
             if (isEqual(messageType, "options"))
             {
                 limitVar = 50; // max 50 for options
@@ -494,7 +494,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.order_book_update";
             payload = new List<object>() {marketId, interval};
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             channel = "spot.obu";
             object finalInterval = interval;
@@ -502,7 +502,7 @@ public partial class gate : ccxt.gate
             {
                 finalInterval = "400";
             }
-            payload = new List<object>() {add((add("ob.", getValue(market, "id")) + "."), finalInterval)};
+            payload = new List<object>() {add((add("ob.", (market.ContainsKey("id") ? market["id"] : null)) + "."), finalInterval)};
         } else
         {
             channel = add(messageType, ".order_book_update");
@@ -535,10 +535,10 @@ public partial class gate : ccxt.gate
         }
         Dictionary<string, object> market = this.market(symbol);
         object url = this.getUrlByMarket(market);
-        symbol = getValue(market, "symbol");
-        string? marketId = ((string)getValue(market, "id"));
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         bool isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
-        bool isNonEuSpot = (isEqual(getValue(market, "spot"), true)) && !isEuUrl;
+        bool isNonEuSpot = (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true)) && !isEuUrl;
         string intervalDefault = ((bool) isNonEuSpot) ? "50" : "100ms";
         object interval = intervalDefault;
         IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
@@ -548,7 +548,7 @@ public partial class gate : ccxt.gate
         object limit = this.safeInteger(parameters, "limit");
         if (isEqual(limit, null))
         {
-            limit = ((bool) (isEqual(getValue(market, "spot"), true))) ? 50 : 100; // max 100 atm
+            limit = ((bool) (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))) ? 50 : 100; // max 100 atm
             if (isEqual(messageType, "options"))
             {
                 limit = 50; // max 50 for options
@@ -560,7 +560,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.order_book_update";
             payload = new List<object>() {marketId, interval};
-        } else if (isEqual(getValue(market, "spot"), true))
+        } else if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             channel = "spot.obu";
             object finalInterval = interval;
@@ -568,7 +568,7 @@ public partial class gate : ccxt.gate
             {
                 finalInterval = "400";
             }
-            payload = new List<object>() {add((add("ob.", getValue(market, "id")) + "."), finalInterval)};
+            payload = new List<object>() {add((add("ob.", (market.ContainsKey("id") ? market["id"] : null)) + "."), finalInterval)};
         } else
         {
             channel = add(messageType, ".order_book_update");
@@ -836,7 +836,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
         object result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(result, symbolVar));
@@ -1187,12 +1187,12 @@ public partial class gate : ccxt.gate
         }
         // todo add options support
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
-        string? marketId = ((string)getValue(market, "id"));
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
+        string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".candlesticks");
-        string messageHash = add((("candles:" + interval) + ":"), getValue(market, "symbol"));
+        string messageHash = add((("candles:" + interval) + ":"), (market.ContainsKey("symbol") ? market["symbol"] : null));
         object url = this.getUrlByMarket(market);
         List<object> payload = new List<object>() {interval, marketId};
         object ohlcv = await this.subscribePublic(url, messageHash, payload, channel, parameters);
@@ -1297,7 +1297,7 @@ public partial class gate : ccxt.gate
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            marketId = getValue(market, "id");
+            marketId = (market.ContainsKey("id") ? market["id"] : null);
         }
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
@@ -1770,7 +1770,7 @@ public partial class gate : ccxt.gate
         {
             Dictionary<string, object> marketResolved = this.market(symbolVar);
             market = marketResolved;
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         string? type = null;
         object query = null;
@@ -1804,8 +1804,8 @@ public partial class gate : ccxt.gate
         List<object> payload = new List<object>() {("!" + "all")};
         if ((market != null))
         {
-            messageHash = messageHash + add(":", getValue(market, "id"));
-            object mid = getValue(market, "id");
+            messageHash = messageHash + add(":", (market.ContainsKey("id") ? market["id"] : null));
+            object mid = (market.ContainsKey("id") ? market["id"] : null);
             if ((mid != null))
             {
                 payload = new List<object>() {mid};
@@ -1905,9 +1905,9 @@ public partial class gate : ccxt.gate
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);
-            if (!isEqual(getValue(market, "id"), null))
+            if (!isEqual((market.ContainsKey("id") ? market["id"] : null), null))
             {
-                ((IDictionary<string,object>)marketIds)[(string)getValue(market, "id")] = true;
+                ((IDictionary<string,object>)marketIds)[(string)(market.ContainsKey("id") ? market["id"] : null)] = true;
             }
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);

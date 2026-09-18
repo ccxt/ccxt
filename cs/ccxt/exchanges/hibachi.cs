@@ -672,7 +672,7 @@ public partial class hibachi : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketDataTrades(this.extend(request, parameters));
         //
@@ -715,7 +715,7 @@ public partial class hibachi : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> rawPromises = new List<object> {this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))};
         List<object> promises = await promiseAll(rawPromises);
@@ -1476,7 +1476,7 @@ public partial class hibachi : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketDataOrderbook(this.extend(request, parameters));
         Dictionary<string, object> formattedResponse = new Dictionary<string, object>() {};
@@ -1801,7 +1801,7 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         timeframeVar = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", timeframeVar },
         };
         if (!isEqual(since, null))
@@ -2418,8 +2418,8 @@ public partial class hibachi : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["contractId"] = getValue(market, "numericId");
-            symbol = getValue(market, "symbol");
+            ((IDictionary<string,object>)request)["contractId"] = (market.ContainsKey("numericId") ? market["numericId"] : null);
+            symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2495,7 +2495,7 @@ public partial class hibachi : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketDataOpenInterest(this.extend(request, parameters));
         //
@@ -2523,7 +2523,7 @@ public partial class hibachi : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketDataPrices(this.extend(request, parameters));
         //
@@ -2543,7 +2543,7 @@ public partial class hibachi : Exchange
         IDictionary<string, object> funding = this.safeDict(response, "fundingRateEstimation", new Dictionary<string, object>() {});
         Int64 timestamp = this.milliseconds();
         Int64? nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
-        return ccxt.BaseExchange.ToFundingRate(new Dictionary<string, object>() {             { "info", funding },             { "symbol", getValue(market, "symbol") },             { "markPrice", null },             { "indexPrice", null },             { "interestRate", this.parseNumber("0") },             { "estimatedSettlePrice", null },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "fundingRate", this.safeNumber(funding, "estimatedFundingRate") },             { "fundingTimestamp", nextFundingTimestamp },             { "fundingDatetime", this.iso8601(nextFundingTimestamp) },             { "nextFundingRate", null },             { "nextFundingTimestamp", null },             { "nextFundingDatetime", null },             { "previousFundingRate", null },             { "previousFundingTimestamp", null },             { "previousFundingDatetime", null },             { "interval", "8h" },         });
+        return ccxt.BaseExchange.ToFundingRate(new Dictionary<string, object>() {             { "info", funding },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "markPrice", null },             { "indexPrice", null },             { "interestRate", this.parseNumber("0") },             { "estimatedSettlePrice", null },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "fundingRate", this.safeNumber(funding, "estimatedFundingRate") },             { "fundingTimestamp", nextFundingTimestamp },             { "fundingDatetime", this.iso8601(nextFundingTimestamp) },             { "nextFundingRate", null },             { "nextFundingTimestamp", null },             { "nextFundingDatetime", null },             { "previousFundingRate", null },             { "previousFundingTimestamp", null },             { "previousFundingDatetime", null },             { "interval", "8h" },         });
     }
 
     /**
@@ -2566,7 +2566,7 @@ public partial class hibachi : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketDataFundingRates(this.extend(request, parameters));
         //

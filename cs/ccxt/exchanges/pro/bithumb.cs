@@ -90,12 +90,12 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", getValue(market, "symbol"));
+        string messageHash = add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null));
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
         object request = new Dictionary<string, object>() {
             { "type", "ticker" },
-            { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
+            { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
             { "tickTypes", new List<object>() {tickTypes} },
         };
         if (isGenerationTwo)
@@ -160,10 +160,10 @@ public partial class bithumb : ccxt.bithumb
                 streamMarketId = this.getGen2MarketId(market);
             } else
             {
-                streamMarketId = (add(add(getValue(market, "base"), "_"), getValue(market, "quote")));
+                streamMarketId = (add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null)));
             }
             ((IList<object>)streamMarketIds).Add(streamMarketId);
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(add("ticker:", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         }
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
@@ -419,11 +419,11 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add(("orderbook" + ":"), symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
-            { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
+            { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
         };
         if (isGenerationTwo)
         {
@@ -626,11 +626,11 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = ((bool) isGenerationTwo) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("trade:", symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
-            { "symbols", new List<object>() {add(add(getValue(market, "base"), "_"), getValue(market, "quote"))} },
+            { "symbols", new List<object>() {add(add((market.ContainsKey("base") ? market["base"] : null), "_"), (market.ContainsKey("quote") ? market["quote"] : null))} },
         };
         if (isGenerationTwo)
         {
@@ -1023,7 +1023,7 @@ public partial class bithumb : ccxt.bithumb
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         object orders = await this.watch(url, messageHash, request, messageHash);

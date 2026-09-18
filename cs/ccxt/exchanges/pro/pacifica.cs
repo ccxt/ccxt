@@ -325,7 +325,7 @@ public partial class pacifica : ccxt.pacifica
                 { "clientOrderId", clientOrderId },
                 { "status", status },
                 { "info", response },
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             }));
         }
         return ccxt.BaseExchange.ToOrderList(ordersToReturn);
@@ -473,7 +473,7 @@ public partial class pacifica : ccxt.pacifica
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
                 { "source", "book" },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "agg_level", aggLevel },
             } },
         };
@@ -513,7 +513,7 @@ public partial class pacifica : ccxt.pacifica
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
                 { "source", "book" },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "agg_level", aggLevel },
             } },
         };
@@ -559,7 +559,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(entry, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         List<object> levels = this.safeList(entry, "l", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "bids", this.safeList(levels, 0, new List<object>() {}) },
@@ -785,7 +785,7 @@ public partial class pacifica : ccxt.pacifica
             object info = getValue(data, i);
             string? marketId = this.safeString(info, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(info, market));
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)parsedTickers).Add(ticker);
@@ -882,7 +882,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string messageHash = add("trade:", symbolVar);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -891,7 +891,7 @@ public partial class pacifica : ccxt.pacifica
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
                 { "source", "trades" },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -920,7 +920,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string subMessageHash = add("trade:", symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         bool isTestnet = this.isSandboxModeEnabled;
@@ -930,7 +930,7 @@ public partial class pacifica : ccxt.pacifica
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
                 { "source", "trades" },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             } },
         };
         Dictionary<string, object> message = this.extend(request, parameters);
@@ -960,7 +960,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> first = this.safeDict(entry, 0, new Dictionary<string, object>() {});
         string? marketId = this.safeString(first, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         if (!(inOp(this.trades, symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1092,7 +1092,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         bool isTestnet = this.isSandboxModeEnabled;
         string? parsedTf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
@@ -1101,7 +1101,7 @@ public partial class pacifica : ccxt.pacifica
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
                 { "source", "candle" },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", parsedTf },
             } },
         };
@@ -1135,7 +1135,7 @@ public partial class pacifica : ccxt.pacifica
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        symbol = (market.ContainsKey("symbol") ? market["symbol"] : null);
         bool isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
         object url = getValue(getValue(getValue(this.urls, urlKey), "ws"), "public");
@@ -1143,7 +1143,7 @@ public partial class pacifica : ccxt.pacifica
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
                 { "source", "candle" },
-                { "symbol", getValue(market, "id") },
+                { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
                 { "interval", timeframeVar },
             } },
         };
@@ -1175,7 +1175,7 @@ public partial class pacifica : ccxt.pacifica
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? timeframe = this.safeString(data, "i");
         if ((timeframe == null))
         {
@@ -1229,7 +1229,7 @@ public partial class pacifica : ccxt.pacifica
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
         bool isTestnet = this.isSandboxModeEnabled;
@@ -1384,7 +1384,7 @@ public partial class pacifica : ccxt.pacifica
     {
         string? marketId = this.safeString2(subscription, "symbol", "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string subMessageHash = ("orderbook:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
@@ -1398,7 +1398,7 @@ public partial class pacifica : ccxt.pacifica
     {
         string? marketId = this.safeString2(subscription, "symbol", "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string subMessageHash = ("trade:" + symbol);
         string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
@@ -1424,7 +1424,7 @@ public partial class pacifica : ccxt.pacifica
     {
         string? marketId = this.safeString2(subscription, "symbol", "s");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string? interval = this.safeString(subscription, "interval");
         string? timeframe = this.findTimeframe(interval);
         if ((timeframe == null))

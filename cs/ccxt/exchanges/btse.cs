@@ -912,7 +912,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "resolution", interval },
         };
         if (!isEqual(limit, null))
@@ -1005,7 +1005,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1031,7 +1031,7 @@ public partial class btse : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bids", "asks"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(data, (market.ContainsKey("symbol") ? market["symbol"] : null), timestamp, "bids", "asks"));
     }
 
     /**
@@ -1056,7 +1056,7 @@ public partial class btse : Exchange
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             throw new BadRequest ((string)(this.id + " fetchFundingRateHistory() supports contract markets only")) ;
         }
@@ -1081,7 +1081,7 @@ public partial class btse : Exchange
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "period", period },
         };
         object until = null;
@@ -1282,7 +1282,7 @@ public partial class btse : Exchange
             {
                 string? requestedSymbol = this.safeString(symbols, 0);
                 Dictionary<string, object> market = this.market(requestedSymbol);
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
         }
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1RiskLimits(this.extend(request, parameters));
@@ -1317,7 +1317,7 @@ public partial class btse : Exchange
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             if (isEqual(symbols, null) || this.inArray(symbol, symbols))
             {
                 List<object> levels = this.safeList(entry, "riskLimits", new List<object>() {});
@@ -1330,7 +1330,7 @@ public partial class btse : Exchange
                     ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                         { "tier", this.safeInteger(level, "level") },
                         { "symbol", symbol },
-                        { "currency", getValue(market, "settle") },
+                        { "currency", (market.ContainsKey("settle") ? market["settle"] : null) },
                         { "minNotional", null },
                         { "maxNotional", this.safeNumber(level, "value") },
                         { "maintenanceMarginRate", null },
@@ -1379,7 +1379,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (!isEqual((market.ContainsKey("contract") ? market["contract"] : null), true))
         {
             throw new BadRequest ((string)(this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
@@ -1423,7 +1423,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters));
         //
@@ -1529,12 +1529,12 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new BadRequest ((string)add((this.id + " fetchOpenInterest() symbol does not support market "), symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters));
         IDictionary<string, object> interest = this.safeDict(response, "data");
@@ -1607,12 +1607,12 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new BadRequest ((string)(this.id + " fetchFundingRate() symbol does not support spot markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data");
@@ -1736,7 +1736,7 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1814,7 +1814,7 @@ public partial class btse : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2102,7 +2102,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             return await this.CreateSpotOrder(symbol, type, side, amount, price, parameters);
         } else
@@ -2146,7 +2146,7 @@ public partial class btse : Exchange
         type = ((string)type).ToUpper();
         string upperSide = ((string)((string)side)).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderSide", upperSide },
         };
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2718,9 +2718,9 @@ public partial class btse : Exchange
             throw new ArgumentsRequired ((string)(this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
         }
         List<object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privatePutSpotApiV4TradeOrders(this.extend(request, parameters));
         } else
         {
@@ -2785,9 +2785,9 @@ public partial class btse : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         List<object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             response = await this.privateDeleteSpotApiV4TradeOrders(this.extend(request, parameters));
         } else
         {
@@ -2843,7 +2843,7 @@ public partial class btse : Exchange
         if (isEqual(marketType, "spot"))
         {
             // the literal ALL value cancels every open order across all pairs
-            ((IDictionary<string,object>)request)["symbol"] = ((bool) ((market != null))) ? getValue(market, "id") : "ALL";
+            ((IDictionary<string,object>)request)["symbol"] = ((bool) ((market != null))) ? (market.ContainsKey("id") ? market["id"] : null) : "ALL";
             response = await this.privateDeleteSpotApiV4TradeOrdersAll(this.extend(request, parameters));
         } else
         {
@@ -2926,7 +2926,7 @@ public partial class btse : Exchange
         {
             if ((market != null))
             {
-                ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+                ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
             }
             response = await this.privateGetSpotApiV4TradeOrders(this.extend(request, parameters));
         } else
@@ -3152,7 +3152,7 @@ public partial class btse : Exchange
             object feeInfo = getValue(responseList, i);
             string? marketId = this.safeString(feeInfo, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)getValue(market, "symbol"));
+            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             double? makerFee = this.safeNumber(feeInfo, "makerFee");
             double? takerFee = this.safeNumber(feeInfo, "takerFee");
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -3589,10 +3589,10 @@ public partial class btse : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             response = await this.privateGetSpotApiV4TradeFees(this.extend(request, parameters));
         } else

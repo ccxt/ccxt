@@ -1185,7 +1185,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1193,7 +1193,7 @@ public partial class gemini : Exchange
             ((IDictionary<string,object>)request)["limit_asks"] = limit;
         }
         Dictionary<string, object> response = await this.publicGetV1BookSymbol(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, (market.ContainsKey("symbol") ? market["symbol"] : null), null, "bids", "asks", "price", "amount"));
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV1(string symbol, object parameters = null)
@@ -1205,7 +1205,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetV1PubtickerSymbol(this.extend(request, parameters));
         //
@@ -1232,7 +1232,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetV2TickerSymbol(this.extend(request, parameters));
         //
@@ -1508,7 +1508,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1952,7 +1952,7 @@ public partial class gemini : Exchange
         string? priceString = this.priceToPrecision(symbol, price);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", amountString },
             { "price", priceString },
             { "side", side },
@@ -2100,7 +2100,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -2506,7 +2506,7 @@ public partial class gemini : Exchange
         string? timeframeId = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeframe", timeframeId },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters));
         //
@@ -2542,7 +2542,7 @@ public partial class gemini : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetV1RiskstatsSymbol(this.extend(request, parameters));
         //

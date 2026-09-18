@@ -1002,7 +1002,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetApiV1Ticker(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
@@ -1089,7 +1089,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetApiV1Depth(this.extend(request, parameters));
         //
@@ -1142,7 +1142,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "interval", interval },
         };
         object until = null;
@@ -1217,12 +1217,12 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new BadRequest ((string)add((this.id + " fetchFundingRate() symbol does not support market "), symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetApiV1MarkPrices(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, 0, new Dictionary<string, object>() {});
@@ -1283,12 +1283,12 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (isEqual((market.ContainsKey("spot") ? market["spot"] : null), true))
         {
             throw new BadRequest ((string)add((this.id + " fetchOpenInterest() symbol does not support market "), symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.publicGetApiV1OpenInterest(this.extend(request, parameters));
         IDictionary<string, object> interest = this.safeDict(response, 0, new Dictionary<string, object>() {});
@@ -1342,7 +1342,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1367,14 +1367,14 @@ public partial class backpack : Exchange
             Int64? timestamp = this.parse8601(datetime);
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", rate },
-                { "symbol", getValue(market, "symbol") },
+                { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
                 { "fundingRate", this.safeNumber(rate, "fundingRate") },
                 { "timestamp", timestamp },
                 { "datetime", datetime },
             });
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
-        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit));
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, (market.ContainsKey("symbol") ? market["symbol"] : null), since, limit));
     }
 
     /**
@@ -1399,7 +1399,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         if (!isEqual(limit, null))
         {
@@ -1443,7 +1443,7 @@ public partial class backpack : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(since, null))
         {
@@ -2056,7 +2056,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "side", this.encodeOrderSide(side) },
             { "orderType", this.capitalize(type) },
         };
@@ -2182,7 +2182,7 @@ public partial class backpack : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         List<object> response = await this.privateGetApiV1Orders(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
@@ -2211,7 +2211,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "orderId", id },
         };
         Dictionary<string, object> response = await this.privateGetApiV1Order(this.extend(request, parameters));
@@ -2242,7 +2242,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privateDeleteApiV1Order(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
@@ -2270,7 +2270,7 @@ public partial class backpack : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> response = await this.privateDeleteApiV1Orders(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
@@ -2299,7 +2299,7 @@ public partial class backpack : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {
@@ -2615,7 +2615,7 @@ public partial class backpack : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
         }
         if (!isEqual(limit, null))
         {

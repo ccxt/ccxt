@@ -179,8 +179,8 @@ public partial class bingx : ccxt.bingx
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object dataType = add(getValue(market, "id"), "@ticker");
-        string? messageHash = ((string)this.getMessageHash("ticker", getValue(market, "symbol")));
+        object dataType = add((market.ContainsKey("id") ? market["id"] : null), "@ticker");
+        string? messageHash = ((string)this.getMessageHash("ticker", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -216,8 +216,8 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object dataType = add(getValue(market, "id"), "@ticker");
-        string? subMessageHash = ((string)this.getMessageHash("ticker", getValue(market, "symbol")));
+        object dataType = add((market.ContainsKey("id") ? market["id"] : null), "@ticker");
+        string? subMessageHash = ((string)this.getMessageHash("ticker", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         string messageHash = ("unsubscribe::" + subMessageHash);
         string topic = "ticker";
         string methodName = "unWatchTicker";
@@ -286,7 +286,7 @@ public partial class bingx : ccxt.bingx
         bool isSwap = getIndexOf(client.url, "swap") >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         string? inverseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "inverse");
@@ -415,7 +415,7 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = getValue(market, "symbol");
+        symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? marketType = null;
         object subType = null;
         string? url = null;
@@ -432,7 +432,7 @@ public partial class bingx : ccxt.bingx
         {
             url = this.safeString(getValue(getValue(this.urls, "api"), "ws"), marketType);
         }
-        object rawHash = add(getValue(market, "id"), "@trade");
+        object rawHash = add((market.ContainsKey("id") ? market["id"] : null), "@trade");
         string messageHash = add("trade::", symbolVar);
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -482,8 +482,8 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object dataType = add(getValue(market, "id"), "@trade");
-        string? subMessageHash = ((string)this.getMessageHash("trade", getValue(market, "symbol")));
+        object dataType = add((market.ContainsKey("id") ? market["id"] : null), "@trade");
+        string? subMessageHash = ((string)this.getMessageHash("trade", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         string messageHash = ("unsubscribe::" + subMessageHash);
         string topic = "trades";
         string methodName = "unWatchTrades";
@@ -579,7 +579,7 @@ public partial class bingx : ccxt.bingx
         bool isSwap = getIndexOf(client.url, "swap") >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string messageHash = ("trade::" + symbol);
         object trades = null;
         if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -641,8 +641,8 @@ public partial class bingx : ccxt.bingx
         }
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
-        object subscriptionHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
-        string? messageHash = ((string)this.getMessageHash("orderbook", getValue(market, "symbol")));
+        object subscriptionHash = add(add(add((market.ContainsKey("id") ? market["id"] : null), "@"), "depth"), this.numberToString(depth));
+        string? messageHash = ((string)this.getMessageHash("orderbook", (market.ContainsKey("symbol") ? market["symbol"] : null)));
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -653,7 +653,7 @@ public partial class bingx : ccxt.bingx
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
         Dictionary<string, object> subscriptionArgs = new Dictionary<string, object>() {};
-        if (isEqual(getValue(market, "inverse"), true))
+        if (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true))
         {
             subscriptionArgs = new Dictionary<string, object>() {
                 { "id", uuid },
@@ -695,7 +695,7 @@ public partial class bingx : ccxt.bingx
         Dictionary<string, object> market = this.market(symbol);
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 100);
-        object subMessageHash = add(add(add(getValue(market, "id"), "@"), "depth"), this.numberToString(depth));
+        object subMessageHash = add(add(add((market.ContainsKey("id") ? market["id"] : null), "@"), "depth"), this.numberToString(depth));
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "orderbook";
         string methodName = "unWatchOrderBook";
@@ -787,7 +787,7 @@ public partial class bingx : ccxt.bingx
         bool isSwap = getIndexOf(client.url, "swap") >= 0;
         string marketType = ((bool) isSwap) ? "swap" : "spot";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
@@ -803,7 +803,7 @@ public partial class bingx : ccxt.bingx
         object snapshot = null;
         Int64? timestamp = this.safeInteger2(message, "timestamp", "ts");
         timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
-        if (isEqual(getValue(market, "inverse"), true))
+        if (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true))
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a");
         } else
@@ -925,7 +925,7 @@ public partial class bingx : ccxt.bingx
         List<object> candles = null;
         if (isSwap)
         {
-            if (isEqual(getValue(market, "inverse"), true))
+            if (isEqual((market.ContainsKey("inverse") ? market["inverse"] : null), true))
             {
                 candles = new List<object> {this.safeDict(message, "data", new Dictionary<string, object>() {})};
             } else
@@ -937,7 +937,7 @@ public partial class bingx : ccxt.bingx
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
         }
-        string? symbol = ((string)getValue(market, "symbol"));
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object rawTimeframe = getValue(((string)dataType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 1);
         IDictionary<string, object> marketOptions = this.safeDict(this.options, marketType);
@@ -1019,8 +1019,8 @@ public partial class bingx : ccxt.bingx
         object options = this.safeValue(this.options, marketType, new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
-        string? messageHash = ((string)this.getMessageHash("ohlcv", getValue(market, "symbol"), timeframeVar));
-        object subscriptionHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
+        string? messageHash = ((string)this.getMessageHash("ohlcv", (market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar));
+        object subscriptionHash = add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), rawTimeframe);
         string uuid = this.uuid();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", uuid },
@@ -1067,14 +1067,14 @@ public partial class bingx : ccxt.bingx
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object options = this.safeValue(this.options, getValue(market, "type"), new Dictionary<string, object>() {});
+        object options = this.safeValue(this.options, (market.ContainsKey("type") ? market["type"] : null), new Dictionary<string, object>() {});
         object timeframes = this.safeValue(options, "timeframes", new Dictionary<string, object>() {});
         string? rawTimeframe = this.safeString(timeframes, timeframeVar, timeframeVar);
-        object subMessageHash = add(add(getValue(market, "id"), "@kline_"), rawTimeframe);
+        object subMessageHash = add(add((market.ContainsKey("id") ? market["id"] : null), "@kline_"), rawTimeframe);
         string messageHash = add("unsubscribe::", subMessageHash);
         string topic = "ohlcv";
         string methodName = "unWatchOHLCV";
-        List<object> symbolsAndTimeframes = new List<object>() {new List<object>() {getValue(market, "symbol"), timeframeVar}};
+        List<object> symbolsAndTimeframes = new List<object>() {new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar}};
         ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = symbolsAndTimeframes;
         return await this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters);
     }
@@ -1108,7 +1108,7 @@ public partial class bingx : ccxt.bingx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];
@@ -1188,7 +1188,7 @@ public partial class bingx : ccxt.bingx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = getValue(market, "symbol");
+            symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         }
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         type = (string)((IList<object>)typeparametersVariable)[0];

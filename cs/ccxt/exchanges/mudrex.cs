@@ -370,7 +370,7 @@ public partial class mudrex : Exchange
         string? priceType = this.safeString(parameters, "price");
         parameters = this.omit(parameters, "price");
         // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
-        object assetPair = add(add(getValue(market, "baseId"), "/"), getValue(market, "quoteId"));
+        object assetPair = add(add((market.ContainsKey("baseId") ? market["baseId"] : null), "/"), (market.ContainsKey("quoteId") ? market["quoteId"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "assets", assetPair },
             { "aggregation", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -471,7 +471,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", getValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
         };
         Dictionary<string, object> response = await this.privateGetFuturesAssetId(this.extend(request, parameters));
@@ -780,7 +780,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", getValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
         };
         Dictionary<string, object> response = await this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters));
@@ -813,7 +813,7 @@ public partial class mudrex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string? marginType = this.safeString(parameters, "marginType", "ISOLATED");
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", getValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
             { "margin_type", marginType },
             { "leverage", leverage },
@@ -889,7 +889,7 @@ public partial class mudrex : Exchange
             throw new ArgumentsRequired ((string)(this.id + " createOrder() requires a price argument for market orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "asset_id", getValue(market, "id") },
+            { "asset_id", (market.ContainsKey("id") ? market["id"] : null) },
             { "is_symbol", 1 },
             { "leverage", this.numberToString(lev) },
             { "quantity", this.amountToPrecision(symbol, amount) },
@@ -1397,7 +1397,7 @@ public partial class mudrex : Exchange
                 {
                     continue;
                 }
-                if (isEqual(getValue(p, "symbol"), getValue(market, "symbol")))
+                if (isEqual(getValue(p, "symbol"), (market.ContainsKey("symbol") ? market["symbol"] : null)))
                 {
                     positionId = this.safeString(p, "id");
                     break;
@@ -1549,7 +1549,7 @@ public partial class mudrex : Exchange
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
-                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), getValue(market, "id"))))
+                    if (((market == null)) || (isEqual(this.safeString(entry, "symbol"), (market.ContainsKey("id") ? market["id"] : null))))
                     {
                         transactionsCount = this.sum(transactionsCount, 1);
                     }
