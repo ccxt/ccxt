@@ -4270,7 +4270,7 @@ func (this *Binance) IsLinear(typeVar any, optionalArgs ...any) bool {
 }
 func (this *Binance) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 func (this *Binance) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
@@ -4606,7 +4606,7 @@ func (this *Binance) EnableDemoTrading(enable any) {
 		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
 		this.Urls = newUrls
 	}
-	AddElementToObject(this.Options, "enableDemoTrading", enable)
+	this.Options.Store("enableDemoTrading", enable)
 }
 
 /**
@@ -5007,8 +5007,8 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	results := (<-promiseAll(promisesRaw))
 	PanicOnError(results)
 	var markets []any = []any{}
-	AddElementToObject(this.Options, "crossMarginPairsData", []any{})
-	AddElementToObject(this.Options, "isolatedMarginPairsData", []any{})
+	this.Options.Store("crossMarginPairsData", []any{})
+	this.Options.Store("isolatedMarginPairsData", []any{})
 	for i := 0; i < GetArrayLength(results); i++ {
 		var res any = this.SafeValue(results, i)
 		if (fetchMargins != nil && *fetchMargins == true) && IsArray(res) {
@@ -5016,9 +5016,9 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var length int = GetArrayLength(GetValue(this.Options, "crossMarginPairsData"))
 			// first one is the cross-margin promise
 			if IsEqual(length, 0) {
-				AddElementToObject(this.Options, "crossMarginPairsData", keysList)
+				this.Options.Store("crossMarginPairsData", keysList)
 			} else {
-				AddElementToObject(this.Options, "isolatedMarginPairsData", keysList)
+				this.Options.Store("isolatedMarginPairsData", keysList)
 			}
 		} else {
 			var resultMarkets any = this.SafeList2(res, "symbols", "optionSymbols", []any{})
@@ -14355,7 +14355,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 		} else {
 			panic(NotSupported(this.Id + " loadLeverageBrackets() supports linear and inverse contracts only"))
 		}
-		AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
+		this.Options.Store("leverageBrackets", this.CreateSafeDictionary())
 		if IsEqual(response, nil) {
 			panic(NullResponse(this.Id + " loadLeverageBrackets() returned empty response"))
 		}
@@ -16493,7 +16493,7 @@ func (this *Binance) requestBody(ch chan any, path any, optionalArgs ...any) any
 	PanicOnError(response)
 	// a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
 	if IsEqual(api, "private") {
-		AddElementToObject(this.Options, "hasAlreadyAuthenticatedSuccessfully", true)
+		this.Options.Store("hasAlreadyAuthenticatedSuccessfully", true)
 	}
 
 	ch <- response

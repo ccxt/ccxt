@@ -954,7 +954,7 @@ func (this *BaseExchange) EnableDemoTrading(enable any) {
 		var newUrls any = this.Omit(this.Urls, "apiBackupDemoTrading")
 		this.Urls = newUrls
 	}
-	AddElementToObject(this.Options, "enableDemoTrading", enable)
+	this.Options.Store("enableDemoTrading", enable)
 }
 func (this *BaseExchange) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -2094,8 +2094,8 @@ func (this *BaseExchange) OrderbookChecksumMessage(symbol any) any {
 }
 func (this *BaseExchange) CreateNetworksByIdObject() {
 	// automatically generate network-id-to-code mappings
-	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))                          // invert defined networks dictionary
-	AddElementToObject(this.Options, "networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{}))) // support manually overriden "networksById" dictionary too
+	var networkIdsToCodesGenerated any = this.InvertFlatStringDictionary(this.SafeValue(this.Options, "networks", map[string]any{}))            // invert defined networks dictionary
+	this.Options.Store("networksById", this.Extend(networkIdsToCodesGenerated, this.SafeValue(this.Options, "networksById", map[string]any{}))) // support manually overriden "networksById" dictionary too
 }
 func (this *BaseExchange) GetDefaultOptions() any {
 	return map[string]any{
@@ -4281,7 +4281,7 @@ func (this *BaseExchange) loadTradingLimitsBody(ch chan any, optionalArgs ...any
 				var symbol any = GetValue(symbolsArray, i)
 				AddElementToObject(markets, symbol, this.DeepExtend(GetValue(markets, symbol), GetValue(response, symbol)))
 			}
-			AddElementToObject(this.Options, "limitsLoaded", this.Milliseconds())
+			this.Options.Store("limitsLoaded", this.Milliseconds())
 		}
 	}
 
@@ -6551,7 +6551,7 @@ func (this *BaseExchange) loadTimeDifferenceBody(ch chan any, optionalArgs ...an
 	if IsEqual(serverTime, nil) {
 		panic(ExchangeError(this.Id + " loadTimeDifference() missing serverTime"))
 	}
-	AddElementToObject(this.Options, "timeDifference", Subtract(after, serverTime))
+	this.Options.Store("timeDifference", Subtract(after, serverTime))
 
 	ch <- GetValue(this.Options, "timeDifference")
 	return nil
