@@ -1188,8 +1188,8 @@ public partial class bitstamp : Exchange
         {
             object market = getValue(response, i);
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
-            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
-            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            var baseId = baseIdquoteIdVariable[0];
+            var quoteId = baseIdquoteIdVariable[1];
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             object settleId = null;
@@ -1216,7 +1216,7 @@ public partial class bitstamp : Exchange
             }
             bool isSpot = (type == "spot");
             string? settle = ((settleId != null) && !isEqual(settleId, "")) ? this.safeCurrencyCode(settleId) : null;
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "market_symbol") },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1390,8 +1390,8 @@ public partial class bitstamp : Exchange
         {
             object market = getValue(arr, i);
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
-            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
-            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            var baseId = baseIdquoteIdVariable[0];
+            var quoteId = baseIdquoteIdVariable[1];
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? description = this.safeString(market, "description");
@@ -1400,8 +1400,8 @@ public partial class bitstamp : Exchange
                 throw new ExchangeError (add(this.id, " parseCurrencies() missing description")) ;
             }
             var baseDescriptionquoteDescriptionVariable = description.Split(new [] {" / "}, StringSplitOptions.None).ToList<object>();
-            var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
-            var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
+            var baseDescription = baseDescriptionquoteDescriptionVariable[0];
+            var quoteDescription = baseDescriptionquoteDescriptionVariable[1];
             string? minimumOrder = this.safeString(market, "minimum_order_value");
             if ((minimumOrder == null))
             {
@@ -3540,7 +3540,7 @@ public partial class bitstamp : Exchange
             List<object> errors = new List<object>() {};
             if ((error is string))
             {
-                ((IList<object>)errors).Add(error);
+                errors.Add(error);
             } else if ((error != null))
             {
                 List<object> keys = new List<object>(((IDictionary<string,object>)error).Keys);
@@ -3553,20 +3553,20 @@ public partial class bitstamp : Exchange
                         errors = this.arrayConcat(errors, value);
                     } else
                     {
-                        ((IList<object>)errors).Add(value);
+                        errors.Add(value);
                     }
                 }
             }
             object reasonInner = this.safeValue(response, "reason", new Dictionary<string, object>() {});
             if ((reasonInner is string))
             {
-                ((IList<object>)errors).Add(reasonInner);
+                errors.Add(reasonInner);
             } else
             {
                 List<object> all = this.safeList(reasonInner, "__all__", new List<object>() {});
                 for (int i = 0; isLessThan(i, all.Count); postFixIncrement(ref i))
                 {
-                    ((IList<object>)errors).Add(getValue(all, i));
+                    errors.Add(getValue(all, i));
                 }
             }
             string? code = this.safeString(response, "code");

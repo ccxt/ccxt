@@ -162,8 +162,8 @@ public partial class bithumb : ccxt.bithumb
             {
                 streamMarketId = (add(add(GetValue(market, "base"), "_"), GetValue(market, "quote")));
             }
-            ((IList<object>)streamMarketIds).Add(streamMarketId);
-            ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+            streamMarketIds.Add(streamMarketId);
+            messageHashes.Add(add("ticker:", GetValue(market, "symbol")));
         }
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
@@ -950,7 +950,7 @@ public partial class bithumb : ccxt.bithumb
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)request).Add(getValue(subscriptions, getValue(keys, i)));
+            request.Add(getValue(subscriptions, getValue(keys, i)));
         }
         return ((List<object>)((object)(request)));
     }

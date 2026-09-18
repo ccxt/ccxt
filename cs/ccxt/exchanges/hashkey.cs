@@ -1185,8 +1185,8 @@ public partial class hashkey : Exchange
                 if (isTrue(Precise.stringGt(minInitialMargin, maxInitialMargin)))
                 {
                     var minInitialMarginmaxInitialMarginVariable = new List<object>() {maxInitialMargin, minInitialMargin};
-                    minInitialMargin = ((IList<object>)minInitialMarginmaxInitialMarginVariable)[0];
-                    maxInitialMargin = ((IList<object>)minInitialMarginmaxInitialMarginVariable)[1];
+                    minInitialMargin = minInitialMarginmaxInitialMarginVariable[0];
+                    maxInitialMargin = minInitialMarginmaxInitialMarginVariable[1];
                 }
                 minLeverage = this.parseToInt(Precise.stringDiv("1", maxInitialMargin));
                 maxLeverage = this.parseToInt(Precise.stringDiv("1", minInitialMargin));
@@ -3088,7 +3088,7 @@ public partial class hashkey : Exchange
             {
                 orderRequest["clientOrderId"] = this.uuid(); // both spot and swap endpoints require clientOrderId
             }
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> firstOrder = ((Dictionary<string, object>)getValue(ordersRequests, 0));
         string? firstSymbol = this.safeString(firstOrder, "symbol");
@@ -3113,7 +3113,7 @@ public partial class hashkey : Exchange
         {
             IDictionary<string, object> responseEntry = this.safeDict(result, i, new Dictionary<string, object>() {});
             IDictionary<string, object> responseOrder = this.safeDict(responseEntry, "order", new Dictionary<string, object>() {});
-            ((IList<object>)responseOrders).Add(responseOrder);
+            responseOrders.Add(responseOrder);
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(responseOrders));
     }
@@ -3784,9 +3784,9 @@ public partial class hashkey : Exchange
         object timeInForce = this.safeString(order, "timeInForce");
         object postOnly = null;
         var typetimeInForcepostOnlyVariable = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
-        timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
-        postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
+        type = typetimeInForcepostOnlyVariable[0];
+        timeInForce = typetimeInForcepostOnlyVariable[1];
+        postOnly = typetimeInForcepostOnlyVariable[2];
         string? average = this.omitZero(this.safeString(order, "avgPrice"));
         if ((price == null))
         {
@@ -3795,8 +3795,8 @@ public partial class hashkey : Exchange
         object side = this.safeStringLower(order, "side");
         object reduceOnly = null;
         var sidereduceOnlyVariable = this.parseOrderSideAndReduceOnly(side);
-        side = ((IList<object>)sidereduceOnlyVariable)[0];
-        reduceOnly = ((IList<object>)sidereduceOnlyVariable)[1];
+        side = sidereduceOnlyVariable[0];
+        reduceOnly = sidereduceOnlyVariable[1];
         string? feeCurrncyId = this.safeString(order, "feeCoin");
         if (feeCurrncyId == "")
         {
@@ -4041,7 +4041,7 @@ public partial class hashkey : Exchange
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(this.safeString(entry, "symbol"), market, null, "swap") },
                 { "fundingRate", this.safeNumber(entry, "settleRate") },
@@ -4522,7 +4522,7 @@ public partial class hashkey : Exchange
         {
             object tier = getValue(riskLimits, i);
             string? initialMarginRate = this.safeString(tier, "initialMargin");
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },

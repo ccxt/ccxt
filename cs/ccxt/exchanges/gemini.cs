@@ -771,8 +771,8 @@ public partial class gemini : Exchange
         if (method == "fetch_markets_from_web")
         {
             List<object> promises = new List<object>() {};
-            ((IList<object>)promises).Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
-            ((IList<object>)promises).Add(this.FetchUSDTMarkets(parameters)); // get usdt markets
+            promises.Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
+            promises.Add(this.FetchUSDTMarkets(parameters)); // get usdt markets
             List<object> promisesResult = await promiseAll(promises);
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1)));
         }
@@ -830,7 +830,7 @@ public partial class gemini : Exchange
             string? baseId = this.safeStringLower(amountPrecisionParts, 1, marketId.Replace((string)quoteId, (string)""));
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -918,7 +918,7 @@ public partial class gemini : Exchange
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
             Dictionary<string, object> rawResponse = await this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters));
-            ((IList<object>)result).Add(this.parseMarket(rawResponse));
+            result.Add(this.parseMarket(rawResponse));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -947,7 +947,7 @@ public partial class gemini : Exchange
         {
             if (!this.inArray(getValue(allMarketIds, i), brokenPairs))
             {
-                ((IList<object>)marketIds).Add(getValue(allMarketIds, i));
+                marketIds.Add(getValue(allMarketIds, i));
             }
         }
         if (isTrue(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
@@ -959,12 +959,12 @@ public partial class gemini : Exchange
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "symbol", marketId },
                 };
-                ((IList<object>)promises).Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
+                promises.Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
             }
             List<object> responses = await promiseAll(promises);
             for (int i = 0; isLessThan(i, responses?.Count ?? 0); postFixIncrement(ref i))
             {
-                ((IList<object>)result).Add(this.parseMarket(getValue(responses, i)));
+                result.Add(this.parseMarket(getValue(responses, i)));
             }
         } else
         {
@@ -979,7 +979,7 @@ public partial class gemini : Exchange
                     List<object> pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
                     if ((pairInfo != null) && !this.inArray(marketId, brokenPairs))
                     {
-                        ((IList<object>)result).Add(this.parseMarket(pairInfo));
+                        result.Add(this.parseMarket(pairInfo));
                     }
                 }
             } else
@@ -988,7 +988,7 @@ public partial class gemini : Exchange
                 {
                     if (!this.inArray(getValue(marketIds, i), brokenPairs))
                     {
-                        ((IList<object>)result).Add(this.parseMarket(getValue(marketIds, i)));
+                        result.Add(this.parseMarket(getValue(marketIds, i)));
                     }
                 }
             }

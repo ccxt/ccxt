@@ -274,7 +274,7 @@ public partial class luno : ccxt.luno
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
+            result.Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
         return ((List<object>)((object)(result)));
     }
@@ -290,7 +290,7 @@ public partial class luno : ccxt.luno
         if (!isEqual(thirdKey, null))
         {
             object thirdValue = this.safeString(bidask, thirdKey);
-            ((IList<object>)result).Add(thirdValue);
+            result.Add(thirdValue);
         }
         return ((List<object>)((object)(result)));
     }

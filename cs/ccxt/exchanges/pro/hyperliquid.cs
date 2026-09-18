@@ -211,7 +211,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         for (int i = 0; isLessThan(i, statuses.Count); postFixIncrement(ref i))
         {
             object status = getValue(statuses, i);
-            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+            orders.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", status },
                 { "status", status },
             }));
@@ -1246,7 +1246,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             account = "swap";
             IDictionary<string, object> clearinghouseState = this.safeDict(data, "clearinghouseState");
-            ((IList<object>)rawBalances).Add(clearinghouseState);
+            rawBalances.Add(clearinghouseState);
             info = clearinghouseState;
             timestamp = this.safeInteger(clearinghouseState, "time");
             this.handlePositions(client, message);
@@ -1412,7 +1412,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         string baseMessageHash = "clearinghouseState::positions";

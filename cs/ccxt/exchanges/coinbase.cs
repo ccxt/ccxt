@@ -876,7 +876,7 @@ public partial class coinbase : Exchange
         for (int i = 0; isLessThan(i, portfolios.Count); postFixIncrement(ref i))
         {
             object portfolio = getValue(portfolios, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(portfolio, "uuid") },
                 { "type", this.safeString(portfolio, "type") },
                 { "code", null },
@@ -1620,7 +1620,7 @@ public partial class coinbase : Exchange
                     object quoteCurrency = getValue(data, j);
                     string? quoteId = this.safeString(quoteCurrency, "id");
                     string? quote = this.safeCurrencyCode(quoteId);
-                    ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+                    result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                         { "id", add(add(baseId, "-"), quoteId) },
                         { "symbol", add(add(bs, "/"), quote) },
                         { "base", bs },
@@ -1684,10 +1684,10 @@ public partial class coinbase : Exchange
         List<object> spotUnresolvedPromises = new List<object>() {};
         if (usePrivate == true)
         {
-            ((IList<object>)spotUnresolvedPromises).Add(this.v3PrivateGetBrokerageProducts(parameters));
+            spotUnresolvedPromises.Add(this.v3PrivateGetBrokerageProducts(parameters));
         } else
         {
-            ((IList<object>)spotUnresolvedPromises).Add(this.v3PublicGetBrokerageMarketProducts(parameters));
+            spotUnresolvedPromises.Add(this.v3PublicGetBrokerageMarketProducts(parameters));
         }
         //
         //    {
@@ -1736,7 +1736,7 @@ public partial class coinbase : Exchange
         //
         if (isTrue(this.checkRequiredCredentials(false)))
         {
-            ((IList<object>)spotUnresolvedPromises).Add(this.v3PrivateGetBrokerageTransactionSummary(parameters));
+            spotUnresolvedPromises.Add(this.v3PrivateGetBrokerageTransactionSummary(parameters));
         }
         //
         //    {
@@ -1815,17 +1815,17 @@ public partial class coinbase : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseSpotMarket(getValue(data, i), feeTier));
+            result.Add(this.parseSpotMarket(getValue(data, i), feeTier));
         }
         List<object> futureData = this.safeList(expiringFutures, "products", new List<object>() {});
         for (int i = 0; isLessThan(i, futureData.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseContractMarket(getValue(futureData, i), expiringFeeTier));
+            result.Add(this.parseContractMarket(getValue(futureData, i), expiringFeeTier));
         }
         List<object> perpetualData = this.safeList(perpetualFutures, "products", new List<object>() {});
         for (int i = 0; isLessThan(i, perpetualData.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
+            result.Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
         }
         List<object> newMarkets = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
@@ -1841,7 +1841,7 @@ public partial class coinbase : Exchange
             {
                 market["alias"] = null;
             }
-            ((IList<object>)newMarkets).Add(market);
+            newMarkets.Add(market);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(newMarkets);
     }
@@ -5235,7 +5235,7 @@ public partial class coinbase : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             Dictionary<string, object> id = this.extend(this.parseDepositMethodId(getValue(ids, i)), parameters);
-            ((IList<object>)result).Add(id);
+            result.Add(id);
         }
         return ((List<object>)((object)(result)));
     }
@@ -5849,7 +5849,7 @@ public partial class coinbase : Exchange
                 { "asset_color", this.safeString(position, "asset_color", "") },
                 { "account_type", this.safeString(position, "account_type", "") },
             };
-            ((IList<object>)parsedPositions).Add(positionData);
+            parsedPositions.Add(positionData);
         }
         return ((List<object>)((object)(parsedPositions)));
     }

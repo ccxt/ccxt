@@ -419,7 +419,7 @@ public partial class hollaex : Exchange
             string? quoteId = this.safeString(market, "pair_2");
             object bs = this.commonCurrencyCode(((string)((string)baseId)).ToUpper());
             string? quote = this.commonCurrencyCode(((string)((string)quoteId)).ToUpper());
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "name") },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },

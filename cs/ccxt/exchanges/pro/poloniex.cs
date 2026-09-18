@@ -375,7 +375,7 @@ public partial class poloniex : ccxt.poloniex
         {
             object order = getValue(data, i);
             Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-            ((IList<object>)orders).Add(parsedOrder);
+            orders.Add(parsedOrder);
         }
         callDynamically(client, "resolve", new object[] {orders, messageHash});
     }
@@ -515,7 +515,7 @@ public partial class poloniex : ccxt.poloniex
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(symbols, i)));
+                messageHashes.Add(add(add(name, "::"), getValue(symbols, i)));
             }
         }
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
@@ -969,7 +969,7 @@ public partial class poloniex : ccxt.poloniex
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
                         callDynamically(orders, "append", new object[] {parsedOrder});
-                        ((IList<object>)marketIds).Add(marketId);
+                        marketIds.Add(marketId);
                         continue;
                     }
                     if (isEqual(getValue(previousOrder, "trades"), null))
@@ -1026,7 +1026,7 @@ public partial class poloniex : ccxt.poloniex
                     // update the newUpdates count
                     callDynamically(orders, "append", new object[] {previousOrder});
                 }
-                ((IList<object>)marketIds).Add(marketId);
+                marketIds.Add(marketId);
             }
         }
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
@@ -1082,7 +1082,7 @@ public partial class poloniex : ccxt.poloniex
         {
             trades = new List<object>() {};
             Dictionary<string, object> trade = this.parseWsOrderTrade(order);
-            ((IList<object>)trades).Add(trade);
+            trades.Add(trade);
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },

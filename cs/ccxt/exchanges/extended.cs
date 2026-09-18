@@ -947,7 +947,7 @@ public partial class extended : Exchange
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)marketIds).Add(getValue(market, "id"));
+                marketIds.Add(getValue(market, "id"));
             }
             request["market"] = marketIds;
         }
@@ -1218,7 +1218,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
@@ -1301,7 +1301,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(result, market, since, limit));
     }
@@ -1343,7 +1343,7 @@ public partial class extended : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(histories)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseFundingHistory(getValue(histories, i), market));
+            result.Add(this.parseFundingHistory(getValue(histories, i), market));
         }
         object symbol = (isEqual(market, null)) ? null : getValue(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -1585,7 +1585,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(this.parseFundingRateHistory(entry, market));
+            result.Add(this.parseFundingRateHistory(entry, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbolVar, sinceVar, limitVar));
@@ -1902,7 +1902,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(result, currency, since, limit));
     }
@@ -2031,7 +2031,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(result, currency, since, limit));
     }
@@ -2179,7 +2179,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(result, currency, since, limit));
     }
@@ -2725,7 +2725,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         object positions = this.parsePositions(result, symbols);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit, "timestamp"));
@@ -3667,7 +3667,7 @@ public partial class extended : Exchange
                     { "cursor", cursor },
                 });
             }
-            ((IList<object>)result).Add(entry);
+            result.Add(entry);
         }
         IList<object> orders = this.parseOrders(result, market, since, limit);
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));

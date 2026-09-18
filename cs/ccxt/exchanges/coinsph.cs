@@ -960,10 +960,10 @@ public partial class coinsph : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             Dictionary<string, object> limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
-            IDictionary<string, object> amountLimits = this.safeDict(limits, "LOT_SIZE", new Dictionary<string, object>() {});
-            IDictionary<string, object> priceLimits = this.safeDict(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
-            IDictionary<string, object> costLimits = this.safeDict(limits, "NOTIONAL", new Dictionary<string, object>() {});
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
+            object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
+            object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -1045,7 +1045,7 @@ public partial class coinsph : Exchange
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 string? id = ((string)GetValue(market, "id"));
-                ((IList<object>)ids).Add(id);
+                ids.Add(id);
             }
             request["symbols"] = ids;
         }
@@ -1245,7 +1245,7 @@ public partial class coinsph : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1261,7 +1261,7 @@ public partial class coinsph : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = ((Int64?)1000);
+            limitVar = 1000;
         }
         if (!isEqual(since, null))
         {
@@ -1468,7 +1468,7 @@ public partial class coinsph : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? id = this.safeString2(trade, "id", "tradeId");
         string? orderId = this.safeString(trade, "orderId");
         Int64? timestamp = this.safeInteger(trade, "time");
@@ -1643,16 +1643,16 @@ public partial class coinsph : Exchange
             } else if (orderSide == "BUY")
             {
                 string? quoteAmount = null;
-                bool? createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
+                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                 parameters = this.omit(parameters, "cost");
                 if (!isEqual(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (createMarketBuyOrderRequiresPrice == true)
+                } else if (isTrue(createMarketBuyOrderRequiresPrice))
                 {
                     if (isEqual(price, null))
                     {
@@ -2148,7 +2148,7 @@ public partial class coinsph : Exchange
         for (int i = 0; isLessThan(i, fees?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            string? symbol = ((string)GetValue(fee, "symbol"));
+            object symbol = GetValue(fee, "symbol");
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -2168,7 +2168,7 @@ public partial class coinsph : Exchange
         //
         string? marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },
@@ -2201,7 +2201,7 @@ public partial class coinsph : Exchange
             throw new InvalidAddress (add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         string? networkCode = this.safeString(parameters, "network");
-        string? networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
+        object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest (add(this.id, " withdraw() require network parameter")) ;
@@ -2494,7 +2494,7 @@ public partial class coinsph : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? networkCode = this.safeString(parameters, "network");
-        string? networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
+        object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
             throw new BadRequest (add(this.id, " fetchDepositAddress() require network parameter")) ;

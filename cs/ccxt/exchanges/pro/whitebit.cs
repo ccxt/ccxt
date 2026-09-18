@@ -318,8 +318,8 @@ public partial class whitebit : ccxt.whitebit
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
-            ((IList<object>)args).Add(GetValue(market, "id"));
+            messageHashes.Add(add("ticker:", GetValue(market, "symbol")));
+            args.Add(GetValue(market, "id"));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },

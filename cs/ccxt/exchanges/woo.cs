@@ -2763,7 +2763,7 @@ public partial class woo : Exchange
             Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
                 { "timestamp", timestamp },
             }, row);
-            ((IList<object>)result).Add(this.parseTicker(ticker));
+            result.Add(this.parseTicker(ticker));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
@@ -4320,7 +4320,7 @@ public partial class woo : Exchange
             object entry = getValue(rows, i);
             string? marketId = this.safeString(entry, "symbol");
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId) },
                 { "fundingRate", this.safeNumber(entry, "fundingRate") },

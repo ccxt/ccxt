@@ -1206,7 +1206,7 @@ public partial class aster : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object> {this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)};
-        ((IList<object>)promises).Add(this.signIn());
+        promises.Add(this.signIn());
         List<object> results = await promiseAll(promises);
         IDictionary<string, object> sapiResult = this.safeDict(results, 0, new Dictionary<string, object>() {});
         List<object> sapiRows = this.safeList(sapiResult, "symbols", new List<object>() {});
@@ -1313,7 +1313,7 @@ public partial class aster : Exchange
             // tmp skip some markets with base = undefined
             if ((this.safeString(market, "baseAsset") != null))
             {
-                ((IList<object>)fapiRowsFiltered).Add(market);
+                fapiRowsFiltered.Add(market);
             }
         }
         List<object> rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
@@ -2115,7 +2115,7 @@ public partial class aster : Exchange
             string? marketId = this.safeString(getValue(rows, i), "symbol");
             Dictionary<string, object> safeMarket = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(rows, i), safeMarket), parameters);
-            ((IList<object>)results).Add(priceData);
+            results.Add(priceData);
         }
         symbols = this.marketSymbols(symbols);
         return ccxt.BaseExchange.ToLastPrices(this.filterByArray(results, "symbol", symbols));
@@ -3144,14 +3144,14 @@ public partial class aster : Exchange
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> currentMarket = this.market(marketId);
-            ((IList<object>)orderSymbols).Add(GetValue(currentMarket, "symbol"));
+            orderSymbols.Add(GetValue(currentMarket, "symbol"));
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
@@ -4313,7 +4313,7 @@ public partial class aster : Exchange
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
             if (isTrue(Precise.stringGt(entryPriceString, "0")))
             {
-                ((IList<object>)result).Add(this.parsePositionRisk(rawPosition));
+                result.Add(this.parsePositionRisk(rawPosition));
             }
         }
         symbols = this.marketSymbols(symbols);
@@ -4400,7 +4400,7 @@ public partial class aster : Exchange
                         { "crossMargin", getValue(getValue(balances, code), "crossMargin") },
                         { "crossWalletBalance", getValue(getValue(balances, code), "crossWalletBalance") },
                     }), market);
-                    ((IList<object>)result).Add(parsed);
+                    result.Add(parsed);
                 }
             }
         }
@@ -4677,7 +4677,7 @@ public partial class aster : Exchange
                     object bracket = getValue(brackets, j);
                     string? floorValue = this.safeString(bracket, "notionalFloor");
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
-                    ((IList<object>)result).Add(new List<object>() {floorValue, maintenanceMarginPercentage});
+                    result.Add(new List<object>() {floorValue, maintenanceMarginPercentage});
                 }
                 ((IDictionary<string,object>)getValue(this.options, "leverageBrackets"))[(string)symbol] = result;
             }

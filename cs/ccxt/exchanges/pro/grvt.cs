@@ -193,8 +193,8 @@ public partial class grvt : ccxt.grvt
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object marketId = GetValue(market, "id");
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), interval.ToString()));
-            ((IList<object>)messageHashes).Add(add("ticker::", GetValue(market, "symbol")));
+            rawHashes.Add(add(add(marketId, "@"), interval.ToString()));
+            messageHashes.Add(add("ticker::", GetValue(market, "symbol")));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", channel },
@@ -351,8 +351,8 @@ public partial class grvt : ccxt.grvt
             Dictionary<string, object> market = this.market(symbol);
             object marketId = GetValue(market, "id");
             Int64? limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)limitRaw).ToString()));
-            ((IList<object>)messageHashes).Add(add("trade::", GetValue(market, "symbol")));
+            rawHashes.Add(add(add(marketId, "@"), ((object)limitRaw).ToString()));
+            messageHashes.Add(add("trade::", GetValue(market, "symbol")));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.trade" },
@@ -471,8 +471,8 @@ public partial class grvt : ccxt.grvt
             object marketId = GetValue(market, "id");
             string? unfiedTimeframe = this.safeString(data, 1, "1");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)rawHashes).Add(add(add(add(marketId, "@"), timeframeId), "-TRADE"));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), unfiedTimeframe));
+            rawHashes.Add(add(add(add(marketId, "@"), timeframeId), "-TRADE"));
+            messageHashes.Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), unfiedTimeframe));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.candle" },
@@ -612,8 +612,8 @@ public partial class grvt : ccxt.grvt
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object marketId = GetValue(market, "id");
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), extraPart));
-            ((IList<object>)messageHashes).Add(add("orderbook::", GetValue(market, "symbol")));
+            rawHashes.Add(add(add(marketId, "@"), extraPart));
+            messageHashes.Add(add("orderbook::", GetValue(market, "symbol")));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", channel },
@@ -751,12 +751,12 @@ public partial class grvt : ccxt.grvt
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)rawHashes).Add(add(add(subAccountId, "-"), GetValue(market, "id")));
-            ((IList<object>)messageHashes).Add(add("myTrades::", GetValue(market, "symbol")));
+            rawHashes.Add(add(add(subAccountId, "-"), GetValue(market, "id")));
+            messageHashes.Add(add("myTrades::", GetValue(market, "symbol")));
         } else
         {
-            ((IList<object>)messageHashes).Add("myTrades");
-            ((IList<object>)rawHashes).Add(subAccountId);
+            messageHashes.Add("myTrades");
+            rawHashes.Add(subAccountId);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.fill" },
@@ -853,13 +853,13 @@ public partial class grvt : ccxt.grvt
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)rawHashes).Add(add(add(subAccountId, "-"), GetValue(market, "id")));
-                ((IList<object>)messageHashes).Add(add("positions::", GetValue(market, "symbol")));
+                rawHashes.Add(add(add(subAccountId, "-"), GetValue(market, "id")));
+                messageHashes.Add(add("positions::", GetValue(market, "symbol")));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add("positions");
-            ((IList<object>)rawHashes).Add(subAccountId);
+            messageHashes.Add("positions");
+            rawHashes.Add(subAccountId);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.position" },
@@ -912,7 +912,7 @@ public partial class grvt : ccxt.grvt
         string? symbol = this.safeString(position, "symbol");
         callDynamically(this.positions, "append", new object[] {position});
         List<object> newPositions = new List<object>() {};
-        ((IList<object>)newPositions).Add(position);
+        newPositions.Add(position);
         callDynamically(client, "resolve", new object[] {newPositions, add("positions::", symbol)});
         callDynamically(client, "resolve", new object[] {newPositions, "positions"});
     }
@@ -948,13 +948,13 @@ public partial class grvt : ccxt.grvt
         List<object> rawHashes = new List<object>() {};
         if (isEqual(symbol, null))
         {
-            ((IList<object>)messageHashes).Add("orders");
-            ((IList<object>)rawHashes).Add(subAccountId);
+            messageHashes.Add("orders");
+            rawHashes.Add(subAccountId);
         } else
         {
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("order::", GetValue(market, "symbol")));
-            ((IList<object>)rawHashes).Add(add(add(subAccountId, "-"), GetValue(market, "id")));
+            messageHashes.Add(add("order::", GetValue(market, "symbol")));
+            rawHashes.Add(add(add(subAccountId, "-"), GetValue(market, "id")));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "stream", "v1.order" },

@@ -241,7 +241,7 @@ public partial class mexc : ccxt.mexc
         {
             request["method"] = "sub.tickers";
             request["params"] = new Dictionary<string, object>() {};
-            ((IList<object>)messageHashes).Add("ticker");
+            messageHashes.Add("ticker");
         }
         object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isSpot && isTrue(this.newUpdates))
@@ -342,7 +342,7 @@ public partial class mexc : ccxt.mexc
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
-            ((IList<object>)result).Add(ticker);
+            result.Add(ticker);
             string messageHash = add("ticker:", symbol);
             callDynamically(client, "resolve", new object[] {ticker, messageHash});
         }
@@ -448,9 +448,9 @@ public partial class mexc : ccxt.mexc
             if (isSpot)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)topics).Add(add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", GetValue(market, "id")));
+                topics.Add(add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", GetValue(market, "id")));
             }
-            ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
+            messageHashes.Add(add("bidask:", getValue(symbols, i)));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -958,7 +958,7 @@ public partial class mexc : ccxt.mexc
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
             }
-            ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(data);
+            (storedOrderBook as ccxt.pro.OrderBook).cache.Add(data);
             return;
         }
         try
@@ -1916,7 +1916,7 @@ public partial class mexc : ccxt.mexc
         {
             request["method"] = "unsub.tickers";
             request["params"] = new Dictionary<string, object>() {};
-            ((IList<object>)messageHashes).Add("unsubscribe:ticker");
+            messageHashes.Add("unsubscribe:ticker");
         }
         var client = this.client(url);
         this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
@@ -1961,9 +1961,9 @@ public partial class mexc : ccxt.mexc
             if (isSpot)
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)topics).Add(add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", GetValue(market, "id")));
+                topics.Add(add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", GetValue(market, "id")));
             }
-            ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", getValue(symbols, i)));
+            messageHashes.Add(add("unsubscribe:bidask:", getValue(symbols, i)));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"));
         Dictionary<string, object> request = new Dictionary<string, object>() {

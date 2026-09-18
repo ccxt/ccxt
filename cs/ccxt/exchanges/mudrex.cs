@@ -599,7 +599,7 @@ public partial class mudrex : Exchange
             }
             for (int i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
             {
-                ((IList<object>)aggregated).Add(getValue(items, i));
+                aggregated.Add(getValue(items, i));
             }
             if (isLessThan(numItems, pageLimit))
             {
@@ -613,7 +613,7 @@ public partial class mudrex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, aggregated.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseMarket(getValue(aggregated, i)));
+            result.Add(this.parseMarket(getValue(aggregated, i)));
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -1162,7 +1162,7 @@ public partial class mudrex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, rows?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)orders).Add(this.parseOrder(getValue(rows, i), market));
+            orders.Add(this.parseOrder(getValue(rows, i), market));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1250,7 +1250,7 @@ public partial class mudrex : Exchange
             string? symRaw = this.safeString(p, "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);
             Dictionary<string, object> pos = this.parsePosition(p, m);
-            ((IList<object>)outPos).Add(pos);
+            outPos.Add(pos);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(outPos, "symbol", symbols, false));
     }
@@ -1546,7 +1546,7 @@ public partial class mudrex : Exchange
             for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
             {
                 object entry = getValue(data, i);
-                ((IList<object>)allRows).Add(entry);
+                allRows.Add(entry);
                 if ((this.safeString(entry, "fee_type") == "TRANSACTION"))
                 {
                     // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
@@ -1578,12 +1578,12 @@ public partial class mudrex : Exchange
             string pairKey = add(add(add(add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
             if (feeType == "TRANSACTION")
             {
-                ((IList<object>)transactions).Add(entry);
-                ((IList<object>)transactionKeys).Add(pairKey);
+                transactions.Add(entry);
+                transactionKeys.Add(pairKey);
             } else if (feeType == "REBATE")
             {
-                ((IList<object>)rebateKeys).Add(pairKey);
-                ((IList<object>)rebateAmounts).Add(this.safeString(entry, "fee_amount", "0"));
+                rebateKeys.Add(pairKey);
+                rebateAmounts.Add(this.safeString(entry, "fee_amount", "0"));
             }
         }
         List<object> rows = new List<object>() {};
@@ -1602,10 +1602,10 @@ public partial class mudrex : Exchange
             }
             if ((rebate == null))
             {
-                ((IList<object>)rows).Add(getValue(transactions, i));
+                rows.Add(getValue(transactions, i));
             } else
             {
-                ((IList<object>)rows).Add(this.extend(getValue(transactions, i), new Dictionary<string, object>() {
+                rows.Add(this.extend(getValue(transactions, i), new Dictionary<string, object>() {
                     { "rebate_amount", rebate },
                 }));
             }

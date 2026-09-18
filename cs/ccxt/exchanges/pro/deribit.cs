@@ -91,7 +91,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; isLessThan(i, currencies.Count); postFixIncrement(ref i))
         {
             object currencyCode = getValue(currencies, i);
-            ((IList<object>)channels).Add(add("user.portfolio.", currencyCode));
+            channels.Add(add("user.portfolio.", currencyCode));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -239,7 +239,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add(add(add("ticker.", GetValue(market, "id")), "."), interval));
+            channels.Add(add(add(add("ticker.", GetValue(market, "id")), "."), interval));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -323,7 +323,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add("quote.", GetValue(market, "id")));
+            channels.Add(add("quote.", GetValue(market, "id")));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -740,12 +740,12 @@ public partial class deribit : ccxt.deribit
         List<object> cleanedBids = new List<object>() {};
         for (int i = 0; isLessThan(i, bids.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)cleanedBids).Add(new List<object>() {getValue(getValue(bids, i), 1), getValue(getValue(bids, i), 2)});
+            cleanedBids.Add(new List<object>() {getValue(getValue(bids, i), 1), getValue(getValue(bids, i), 2)});
         }
         List<object> cleanedAsks = new List<object>() {};
         for (int i = 0; isLessThan(i, asks.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)cleanedAsks).Add(new List<object>() {getValue(getValue(asks, i), 1), getValue(getValue(asks, i), 2)});
+            cleanedAsks.Add(new List<object>() {getValue(getValue(asks, i), 1), getValue(getValue(asks, i), 2)});
         }
         ((IDictionary<string,object>)data)["bids"] = cleanedBids;
         ((IDictionary<string,object>)data)["asks"] = cleanedAsks;
@@ -1039,8 +1039,8 @@ public partial class deribit : ccxt.deribit
                 market = this.market(current);
             }
             object message = add(add(add(add(channelName, "."), GetValue(market, "id")), "."), channelDescriptor);
-            ((IList<object>)rawSubscriptions).Add(message);
-            ((IList<object>)messageHashes).Add(add(add(add(add(channelName, "|"), GetValue(market, "symbol")), "|"), channelDescriptor));
+            rawSubscriptions.Add(message);
+            messageHashes.Add(add(add(add(add(channelName, "|"), GetValue(market, "symbol")), "|"), channelDescriptor));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },

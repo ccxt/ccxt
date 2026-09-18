@@ -101,7 +101,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             productIds = marketIds;
             for (int i = 0; isLessThan(i, parsedSymbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(parsedSymbols, i)));
+                messageHashes.Add(add(add(name, "::"), getValue(parsedSymbols, i)));
             }
         } else if ((symbolsLength == 1))
         {
@@ -167,8 +167,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             string? marketId = this.marketId(getValue(symbols, i));
             string? symbol = this.symbol(marketId);
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
+            productIds.Add(marketId);
+            messageHashes.Add(add(add(name, "::"), symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if ((url == null))
@@ -270,7 +270,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             Dictionary<string, object> market = this.market(symbol);
             if (isEqual(GetValue(market, "active"), true))
             {
-                ((IList<object>)output).Add(symbol);
+                output.Add(symbol);
             }
         }
         return ((List<object>)((object)(output)));

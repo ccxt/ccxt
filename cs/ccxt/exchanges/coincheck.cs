@@ -463,7 +463,7 @@ public partial class coincheck : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
+            result.Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
                 { "status", "open" },
             }));
         }

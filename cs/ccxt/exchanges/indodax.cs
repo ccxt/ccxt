@@ -413,7 +413,7 @@ public partial class indodax : Exchange
             string? quote = this.safeCurrencyCode(quoteId);
             Int64? isMaintenance = this.safeInteger(market, "is_maintenance");
             bool inMaintenance = (!isEqual(isMaintenance, null)) && ((isMaintenance != 0));
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },

@@ -925,13 +925,13 @@ public partial class bitrue : Exchange
             object marketType = getValue(types, i);
             if (isEqual(marketType, "spot"))
             {
-                ((IList<object>)promisesRaw).Add(this.spotV1PublicGetExchangeInfo(parameters));
+                promisesRaw.Add(this.spotV1PublicGetExchangeInfo(parameters));
             } else if (isEqual(marketType, "linear"))
             {
-                ((IList<object>)promisesRaw).Add(this.fapiV1PublicGetContracts(parameters));
+                promisesRaw.Add(this.fapiV1PublicGetContracts(parameters));
             } else if (isEqual(marketType, "inverse"))
             {
-                ((IList<object>)promisesRaw).Add(this.dapiV1PublicGetContracts(parameters));
+                promisesRaw.Add(this.dapiV1PublicGetContracts(parameters));
             } else
             {
                 throw new ExchangeError (add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;

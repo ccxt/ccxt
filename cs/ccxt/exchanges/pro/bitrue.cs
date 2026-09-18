@@ -486,7 +486,7 @@ public partial class bitrue : ccxt.bitrue
             double? price = this.safeNumber(level, 0);
             double? rawAmount = this.safeNumber(level, 1);
             object amount = this.convertFromRawQuantity(symbol, rawAmount);
-            ((IList<object>)result).Add(new List<object>() {price, amount});
+            result.Add(new List<object>() {price, amount});
         }
         return ((List<object>)((object)(result)));
     }

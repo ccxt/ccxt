@@ -281,7 +281,7 @@ public partial class btcbox : Exchange
             double? fee = (id == "BTC") ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
-            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            markets.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "uppercaseId", null },
                 { "symbol", symbol },

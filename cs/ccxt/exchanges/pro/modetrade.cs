@@ -319,7 +319,7 @@ public partial class modetrade : ccxt.modetrade
                 { "date", timestamp },
             }), market);
             ((IDictionary<string,object>)this.tickers)[(string)GetValue(market, "symbol")] = ticker;
-            ((IList<object>)result).Add(ticker);
+            result.Add(ticker);
         }
         callDynamically(client, "resolve", new object[] {result, topic});
     }
@@ -383,7 +383,7 @@ public partial class modetrade : ccxt.modetrade
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
-            ((IList<object>)result).Add(ticker);
+            result.Add(ticker);
         }
         callDynamically(client, "resolve", new object[] {result, topic});
     }
@@ -1116,11 +1116,11 @@ public partial class modetrade : ccxt.modetrade
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("positions::", symbol));
+                messageHashes.Add(add("positions::", symbol));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add("positions");
+            messageHashes.Add("positions");
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
@@ -1232,7 +1232,7 @@ public partial class modetrade : ccxt.modetrade
             string? marketId = this.safeString(rawPosition, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
             string messageHash = add("positions::", GetValue(market, "symbol"));
             callDynamically(client, "resolve", new object[] {position, messageHash});

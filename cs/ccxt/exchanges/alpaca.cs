@@ -1276,7 +1276,7 @@ public partial class alpaca : Exchange
                 { "baseVolume", this.safeString(dailyBar, "v") },
                 { "quoteVolume", Precise.stringMul(this.safeString(dailyBar, "v"), this.safeString(dailyBar, "vw")) },
             }, market);
-            ((IList<object>)results).Add(ticker);
+            results.Add(ticker);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(results, "symbol", symbolsVar));
     }
@@ -2171,7 +2171,7 @@ public partial class alpaca : Exchange
                 string entryDirection = isIncoming ? "INCOMING" : "OUTGOING";
                 if ((isEqual(type, "BOTH")) || (isEqual(entryDirection, type)))
                 {
-                    ((IList<object>)filtered).Add(entry);
+                    filtered.Add(entry);
                 }
             }
             return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(filtered, currency, since, limit, parameters));
@@ -2206,10 +2206,10 @@ public partial class alpaca : Exchange
             string? direction = this.safeString(entry, "direction");
             if (isEqual(direction, type))
             {
-                ((IList<object>)results).Add(entry);
+                results.Add(entry);
             } else if (isEqual(type, "BOTH"))
             {
-                ((IList<object>)results).Add(entry);
+                results.Add(entry);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(results, currency, since, limit, parameters));

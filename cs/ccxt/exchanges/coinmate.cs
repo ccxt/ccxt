@@ -501,8 +501,8 @@ public partial class coinmate : Exchange
             string? quoteId = this.safeString(market, "secondCurrency");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            object symbol = add(add(bs, "/"), quote);
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -900,10 +900,10 @@ public partial class coinmate : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        string tagVar = tag;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = (string)tagparametersVariable[0];
+        tagVar = tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))
@@ -969,7 +969,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        IDictionary<string, object> data = this.safeDict(response, "data");
+        object data = this.safeValue(response, "data");
         Dictionary<string, object> transaction = this.parseTransaction(data, currency);
         bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if ((fillResponseFromRequest == true))
@@ -997,7 +997,7 @@ public partial class coinmate : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        Int64? limitVar = limit;
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1005,7 +1005,7 @@ public partial class coinmate : Exchange
         }
         if (isEqual(limitVar, null))
         {
-            limitVar = ((Int64?)1000);
+            limitVar = 1000;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "limit", limitVar },
@@ -1486,7 +1486,7 @@ public partial class coinmate : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            string auth = add(add(nonce, this.uid), this.apiKey);
+            object auth = add(add(nonce, this.uid), this.apiKey);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },

@@ -997,7 +997,7 @@ public partial class cryptomus : Exchange
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
             object order = getValue(result, i);
-            ((IList<object>)orders).Add(this.parseOrder(order, market));
+            orders.Add(this.parseOrder(order, market));
         }
         return ccxt.BaseExchange.ToOrderList(orders);
     }
@@ -1287,8 +1287,8 @@ public partial class cryptomus : Exchange
             string? maker = this.safeString(tier, "maker_percent");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            ((IList<object>)makerFees).Add(new List<object>() {turnover, this.parseNumber(maker)});
-            ((IList<object>)takerFees).Add(new List<object>() {turnover, this.parseNumber(taker)});
+            makerFees.Add(new List<object>() {turnover, this.parseNumber(maker)});
+            takerFees.Add(new List<object>() {turnover, this.parseNumber(taker)});
         }
         return new Dictionary<string, object>() {
             { "maker", makerFees },

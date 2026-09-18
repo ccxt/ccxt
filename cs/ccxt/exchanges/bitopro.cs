@@ -1033,7 +1033,7 @@ public partial class bitopro : Exchange
             object candle = getValue(candles, i);
             if (isEqual(getValue(candle, 0), timestamp))
             {
-                ((IList<object>)result).Add(candle);
+                result.Add(candle);
                 i = this.sum(i, 1);
             } else
             {
@@ -1044,7 +1044,7 @@ public partial class bitopro : Exchange
                 ((List<object>)copy)[Convert.ToInt32(2)] = getValue(copy, 4);
                 ((List<object>)copy)[Convert.ToInt32(3)] = getValue(copy, 4);
                 ((List<object>)copy)[Convert.ToInt32(5)] = this.parseNumber("0");
-                ((IList<object>)result).Add(copy);
+                result.Add(copy);
             }
             timestamp = this.sum(timestamp, multiply(distance, 1000));
             resultLength = result.Count;
@@ -1352,7 +1352,7 @@ public partial class bitopro : Exchange
             object orderIds = getValue(data, marketId);
             for (int j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
             {
-                ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                orders.Add(this.safeOrder(new Dictionary<string, object>() {
                     { "info", getValue(orderIds, j) },
                     { "id", getValue(orderIds, j) },
                     { "symbol", this.safeSymbol(marketId) },

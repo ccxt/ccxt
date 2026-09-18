@@ -594,9 +594,9 @@ public partial class gemini : ccxt.gemini
         {
             object symbol = getValue(symbols, i);
             object messageHash = add(add(itemHashName, ":"), symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)marketIds).Add(GetValue(market, "id"));
+            marketIds.Add(GetValue(market, "id"));
         }
         string queryStr = String.Join(",", marketIds.ToArray());
         object url = add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&");
@@ -1000,13 +1000,13 @@ public partial class gemini : ccxt.gemini
                 bool isBidAsk = (eventReason == "top-of-book") || (isOrderBook && (eventReason == "initial") && (eventsLength == 2));
                 if (isBidAsk)
                 {
-                    ((IList<object>)bidaskItems).Add(eventVar);
+                    bidaskItems.Add(eventVar);
                 } else if (isOrderBook)
                 {
-                    ((IList<object>)orderBookItems).Add(eventVar);
+                    orderBookItems.Add(eventVar);
                 } else if (eventType == "trade")
                 {
-                    ((IList<object>)collectedEventsOfTrades).Add(getValue(events, i));
+                    collectedEventsOfTrades.Add(getValue(events, i));
                 }
             }
             int lengthBa = bidaskItems.Count;

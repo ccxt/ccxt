@@ -297,17 +297,17 @@ public partial class phemex : ccxt.phemex
         if (inOp(message, "market24h"))
         {
             object ticker = this.safeValue(message, "market24h");
-            ((IList<object>)tickers).Add(this.parseSwapTicker(ticker));
+            tickers.Add(this.parseSwapTicker(ticker));
         } else if (inOp(message, "spot_market24h"))
         {
             object ticker = this.safeValue(message, "spot_market24h");
-            ((IList<object>)tickers).Add(this.parseTicker(ticker));
+            tickers.Add(this.parseTicker(ticker));
         } else if (inOp(message, "data"))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
             {
-                ((IList<object>)tickers).Add(this.parsePerpetualTicker(getValue(data, i)));
+                tickers.Add(this.parsePerpetualTicker(getValue(data, i)));
             }
         }
         for (int i = 0; isLessThan(i, tickers.Count); postFixIncrement(ref i))
@@ -620,7 +620,7 @@ public partial class phemex : ccxt.phemex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+            messageHashes.Add(add("ticker:", getValue(symbols, i)));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
@@ -1282,7 +1282,7 @@ public partial class phemex : ccxt.phemex
             {
                 object rawOrder = getValue(orders, i);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
-                ((IList<object>)parsedOrders).Add(parsedOrder);
+                parsedOrders.Add(parsedOrder);
             }
         } else
         {
@@ -1298,10 +1298,10 @@ public partial class phemex : ccxt.phemex
                 if (((action != null)) && (action != "Cancel"))
                 {
                     // order + trade info together
-                    ((IList<object>)trades).Add(update);
+                    trades.Add(update);
                 }
                 Dictionary<string, object> parsedOrder = this.parseWSSwapOrder(update);
-                ((IList<object>)parsedOrders).Add(parsedOrder);
+                parsedOrders.Add(parsedOrder);
             }
         }
         this.handleMyTrades(client, trades);

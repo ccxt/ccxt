@@ -365,7 +365,7 @@ public partial class cex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object>() {};
-        ((IList<object>)promises).Add(this.publicPostGetCurrenciesInfo(parameters));
+        promises.Add(this.publicPostGetCurrenciesInfo(parameters));
         //
         //    {
         //        "ok": "ok",
@@ -380,7 +380,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        ((IList<object>)promises).Add(this.publicPostGetProcessingInfo(parameters));
+        promises.Add(this.publicPostGetProcessingInfo(parameters));
         //
         //    {
         //        "ok": "ok",
@@ -1588,7 +1588,7 @@ public partial class cex : Exchange
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
-            ((IList<object>)orders).Add(new Dictionary<string, object>() {
+            orders.Add(new Dictionary<string, object>() {
                 { "clientOrderId", id },
             });
         }

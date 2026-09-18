@@ -1126,7 +1126,7 @@ public partial class deribit : Exchange
         if (isTrue(fetchAllMarkets))
         {
             Dictionary<string, object> instrumentsResponse = await this.publicGetGetInstruments(parameters);
-            ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+            instrumentsResponses.Add(instrumentsResponse);
         } else
         {
             Dictionary<string, object> currenciesResponse = await this.publicGetGetCurrencies(parameters);
@@ -1235,7 +1235,7 @@ public partial class deribit : Exchange
                 //         "testnet":false
                 //     }
                 //
-                ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+                instrumentsResponses.Add(instrumentsResponse);
             }
         }
         for (int i = 0; isLessThan(i, instrumentsResponses.Count); postFixIncrement(ref i))
@@ -1318,7 +1318,7 @@ public partial class deribit : Exchange
                 }
                 double? minTradeAmount = this.safeNumber(market, "min_trade_amount");
                 double? tickSize = this.safeNumber(market, "tick_size");
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                result.Add(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", symbol },
                     { "base", bs },
@@ -3444,7 +3444,7 @@ public partial class deribit : Exchange
         {
             Int64? timestamp = this.safeInteger(getValue(volatilityResult, i), 0);
             double? volatilityObj = this.safeNumber(getValue(volatilityResult, i), 1);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", volatilityObj },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
@@ -3868,7 +3868,7 @@ public partial class deribit : Exchange
         {
             object fr = getValue(result, i);
             Dictionary<string, object> rate = this.parseFundingRate(fr, market);
-            ((IList<object>)rates).Add(rate);
+            rates.Add(rate);
         }
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(rates, symbol, sinceVar, limit));
     }

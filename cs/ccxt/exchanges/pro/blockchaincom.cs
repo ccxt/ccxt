@@ -645,7 +645,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         List<object> trades = new List<object>() {};
         if (tradeId != "0")
         {
-            ((IList<object>)trades).Add(new Dictionary<string, object>() {
+            trades.Add(new Dictionary<string, object>() {
                 { "id", tradeId },
             });
         }

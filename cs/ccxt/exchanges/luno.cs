@@ -643,7 +643,7 @@ public partial class luno : Exchange
                 taker = this.parseNumber("0.001");
                 maker = this.parseNumber("0.0008");
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "taker", taker },
@@ -718,7 +718,7 @@ public partial class luno : Exchange
             string? accountId = this.safeString(account, "account_id");
             string? currencyId = this.safeString(account, "asset");
             string? code = this.safeCurrencyCode(currencyId);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
                 { "code", code },

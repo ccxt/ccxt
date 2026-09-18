@@ -66,7 +66,7 @@ public partial class upbit : ccxt.upbit
             string? marketId = ((string)getValue(marketIds, i));
             object symbol = getValue(symbols, i);
             object messageHash = add(add(channel, ":"), symbol);
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
             if (!(inOp(subscriptions, messageHash)))
             {
                 ((IDictionary<string,object>)subscriptions)[(string)messageHash] = new Dictionary<string, object>() {
@@ -82,7 +82,7 @@ public partial class upbit : ccxt.upbit
         for (int i = 0; isLessThan(i, channelKeys.Count); postFixIncrement(ref i))
         {
             string? key = ((string)getValue(channelKeys, i));
-            ((IList<object>)finalMessage).Add(getValue(subscriptions, key));
+            finalMessage.Add(getValue(subscriptions, key));
         }
         return await this.watchMultiple(url, messageHashes, finalMessage, messageHashes);
     }
@@ -443,14 +443,14 @@ public partial class upbit : ccxt.upbit
         List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; isLessThan(i, channelKeys.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)requests).Add(getValue(subscriptions, getValue(channelKeys, i)));
+            requests.Add(getValue(subscriptions, getValue(channelKeys, i)));
         }
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
         for (int i = 0; isLessThan(i, requests.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)message).Add(getValue(requests, i));
+            message.Add(getValue(requests, i));
         }
         return await this.watch(url, messageHash, message, messageHash);
     }

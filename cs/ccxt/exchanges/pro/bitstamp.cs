@@ -190,7 +190,7 @@ public partial class bitstamp : ccxt.bitstamp
             {
                 this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
             }
-            ((IList<object>)(storedOrderBook as ccxt.pro.OrderBook).cache).Add(delta);
+            (storedOrderBook as ccxt.pro.OrderBook).cache.Add(delta);
             return;
         } else if (isGreaterThanOrEqual(nonce, deltaNonce))
         {

@@ -544,7 +544,7 @@ public partial class latoken : Exchange
                 string lowercaseQuote = quote.ToLower();
                 string capitalizedQuote = this.capitalize(lowercaseQuote);
                 string? status = this.safeString(market, "status");
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                result.Add(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", add(add(bs, "/"), quote) },
                     { "base", bs },
@@ -816,7 +816,7 @@ public partial class latoken : Exchange
             string? askQuantity = this.safeString(askEntry, "quantity");
             if (isTrue(Precise.stringGt(askQuantity, "0")))
             {
-                ((IList<object>)asks).Add(askEntry);
+                asks.Add(askEntry);
             }
         }
         for (int i = 0; isLessThan(i, rawBids.Count); postFixIncrement(ref i))
@@ -825,7 +825,7 @@ public partial class latoken : Exchange
             string? bidQuantity = this.safeString(bidEntry, "quantity");
             if (isTrue(Precise.stringGt(bidQuantity, "0")))
             {
-                ((IList<object>)bids).Add(bidEntry);
+                bids.Add(bidEntry);
             }
         }
         Dictionary<string, object> filtered = new Dictionary<string, object>() {

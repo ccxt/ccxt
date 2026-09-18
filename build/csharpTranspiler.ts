@@ -1682,6 +1682,13 @@ const CSHARP_NON_TYPES = new Set ([ 'return', 'if', 'else', 'for', 'foreach', 'w
     'namespace', 'delegate', 'event', 'params', 'checked', 'unchecked', 'from', 'where', 'select' ]);
 const CSHARP_LIST_TYPE_RECEIVER = /^(?:IList|List)</;
 const CSHARP_LIST_RECEIVER_CALL = /getArrayLength\(([A-Za-z_]\w*)\)|\(\(IList<object>\)([A-Za-z_]\w*)\)\.(ToArray|First|Last)\(\)/g;
+// U48 — `((IList<object>)x)` is an identity conversion when x's emitted static type already IS
+// List<object>/IList<object>. Dropped only in front of the accesses that resolve identically there
+// (indexer, Add, ToArray, First, Last); `.Reverse()/.Sort()` are void List INSTANCE methods.
+const CSHARP_IDENTITY_LIST_CAST = /\(\(IList<object>\)\s*([A-Za-z_]\w*)\s*\)(\.Add\(|\[|\.ToArray\(\)|\.First\(\)|\.Last\(\))/g;
+// the same identity around the hand-written ws cache: `ccxt.pro.OrderBook.cache` is declared
+// `IList<object>` (cs/ccxt/ws/OrderBook.cs:22/:33), so the cast is a no-op on that member read
+const CSHARP_ORDERBOOK_CACHE_CAST = /\(\(IList<object>\)(?:\(IList<object>\))?\(+([A-Za-z_]\w*) as ccxt\.pro\.OrderBook\)\.cache\)+\.Add\(/g;
 
 // locate a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any)
 // by name — the span stripCSharpMethod() cuts out, kept addressable so a rewritten method
@@ -4652,9 +4659,11 @@ class NewTranspiler {
     // own member: `x.Count` and the cast-less Linq call. A nullable receiver keeps the helper's
     // null->0 with `x?.Count ?? 0`; an `object` receiver keeps the helper and the cast untouched.
     nativeListHelperCalls (content: string): string {
+        content = this.csharpOrderbookCacheCasts (content);
         const masked = this.maskCsharpLiterals (content);
         const lines = content.split ('\n');
         const maskedLines = masked.split ('\n');
+        const returns = this.csharpFileReturnTypes (maskedLines);
         const starts: number[] = [];
         let offset = 0;
         for (const line of lines) {
@@ -4686,10 +4695,12 @@ class NewTranspiler {
                 continue;
             }
             const { lists, nonNull } = this.csharpTypedListReceivers (maskedLines.slice (a, b + 1));
+            const temps = this.csharpTempHolderListTypes (maskedLines.slice (a, b + 1), returns);
             const end = starts[b] + lines[b].length;
             const region = content.substring (starts[a], end);
-            if (lists.size > 0) {
-                const rewritten = this.csharpNativeListCalls (region, lists, nonNull);
+            if ((lists.size > 0) || (temps.size > 0)) {
+                let rewritten = (lists.size > 0) ? this.csharpNativeListCalls (region, lists, nonNull) : region;
+                rewritten = this.csharpIdentityListCasts (rewritten, lists, temps);
                 if (rewritten !== region) {
                     pieces.push (content.substring (cursor, starts[a]));
                     pieces.push (rewritten);
@@ -4976,6 +4987,160 @@ class NewTranspiler {
             return region;
         }
         out += region.substring (cursor);
+        return out;
+    }
+
+    // U48: drop the identity `((IList<object>)x)` cast for a receiver the enclosing method declares
+    // List<object>/IList<object> (csharpTypedListReceivers) or a destructuring holder whose `var` is
+    // inferred from a list producer (csharpTempHolderListTypes). The emitted value never changes.
+    csharpIdentityListCasts (region: string, lists: Map<string, string>, temps: Map<string, string>): string {
+        const names = new Map<string, string> (temps);
+        for (const [ name, type ] of lists) {
+            if (!names.has (name)) {
+                names.set (name, type);
+            }
+        }
+        if (names.size === 0) {
+            return region;
+        }
+        const masked = this.maskCsharpLiterals (region);
+        let out = '';
+        let cursor = 0;
+        let match: RegExpExecArray | null;
+        CSHARP_IDENTITY_LIST_CAST.lastIndex = 0;
+        while ((match = CSHARP_IDENTITY_LIST_CAST.exec (region)) !== null) {
+            const at = match.index;
+            if (masked[at] !== region[at]) {
+                continue; // inside a literal or a comment
+            }
+            if ((at > 0) && /[\w.]/.test (region[at - 1])) {
+                continue; // tail of a longer name
+            }
+            if (!names.has (match[1])) {
+                continue;
+            }
+            out += region.substring (cursor, at) + match[1] + match[2];
+            cursor = at + match[0].length;
+        }
+        if (cursor === 0) {
+            return region;
+        }
+        out += region.substring (cursor);
+        return out;
+    }
+
+    // U48: `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
+    // `IList<object>` on the hand-written ws cache (cs/ccxt/ws/OrderBook.cs:22/:33), so the cast
+    // (and the printer's doubly-cast spelling of it) is an identity conversion on the member read.
+    csharpOrderbookCacheCasts (content: string): string {
+        const masked = this.maskCsharpLiterals (content);
+        let out = '';
+        let cursor = 0;
+        let match: RegExpExecArray | null;
+        CSHARP_ORDERBOOK_CACHE_CAST.lastIndex = 0;
+        while ((match = CSHARP_ORDERBOOK_CACHE_CAST.exec (content)) !== null) {
+            const at = match.index;
+            if (masked[at] !== content[at]) {
+                continue; // inside a literal or a comment
+            }
+            out += content.substring (cursor, at) + '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(';
+            cursor = at + match[0].length;
+        }
+        if (cursor === 0) {
+            return content;
+        }
+        out += content.substring (cursor);
+        return out;
+    }
+
+    // U48: the static C# type of a destructuring holder (`var <name> = <initializer>`) — the return
+    // type the SAME file declares for `this.<method>` (the awaited `Task<T>` result under `await`),
+    // or a `new List<object>` / `.ToList<object>()` producer. Anything else keeps the cast.
+    csharpTempHolderListType (initializer: string, returns: Map<string, string>): string | undefined {
+        let text = initializer.trim ().replace (/;\s*$/, '').trim ();
+        const awaited = text.startsWith ('await ');
+        if (awaited) {
+            text = text.slice (6).trim ();
+        }
+        const call = /^this\.([A-Za-z_]\w*)\s*\(/.exec (text);
+        if (call !== null) {
+            const declared = returns.get (call[1]);
+            if (declared === undefined) {
+                return undefined;
+            }
+            const type = awaited ? this.csharpAwaitedType (declared) : declared;
+            return ((type === 'List<object>') || (type === 'IList<object>')) ? type : undefined;
+        }
+        if (awaited) {
+            return undefined;
+        }
+        if (/^new List<object>\s*[({]/.test (text) || /\.ToList<object>\(\)$/.test (text)) {
+            return 'List<object>';
+        }
+        return undefined;
+    }
+
+    // the static type of `await expr` for an expression declared `Task<T>` (undefined otherwise)
+    csharpAwaitedType (declared: string): string | undefined {
+        const m = /^Task<(.+)>$/.exec (declared.trim ());
+        return (m === null) ? undefined : m[1].trim ();
+    }
+
+    // U48: the destructuring holders of one method region whose static type is a list. A name the
+    // region declares with two different producers answers nothing — exactly one proof is required.
+    csharpTempHolderListTypes (maskedLines: string[], returns: Map<string, string>): Map<string, string> {
+        const types = new Map<string, Set<string>> ();
+        for (const line of maskedLines) {
+            const m = /^\s*var\s+([A-Za-z_]\w*)\s*=\s*(.*)$/.exec (line);
+            if (m === null) {
+                continue;
+            }
+            const type = this.csharpTempHolderListType (m[2], returns);
+            let seen = types.get (m[1]);
+            if (seen === undefined) {
+                seen = new Set<string> ();
+                types.set (m[1], seen);
+            }
+            seen.add (type ?? '?');
+        }
+        const out = new Map<string, string> ();
+        for (const [ name, seen ] of types) {
+            if (seen.size === 1) {
+                const type = seen.values ().next ().value as string;
+                if ((type === 'List<object>') || (type === 'IList<object>')) {
+                    out.set (name, type);
+                }
+            }
+        }
+        return out;
+    }
+
+    // U48: method name -> declared return type, from the emitted signatures of ONE file. A name the
+    // file declares twice with different return types (an overload family) answers nothing.
+    csharpFileReturnTypes (maskedLines: string[]): Map<string, string> {
+        const found = new Map<string, string | null> ();
+        for (const line of maskedLines) {
+            if (!CSHARP_MEMBER_SIGNATURE.test (line) || (line.indexOf ('(') < 0)) {
+                continue;
+            }
+            const m = /^\s*(?:public|private|protected|internal)\s+(?:(?:static|virtual|async|override|new|sealed|partial)\s+)*([A-Za-z_][\w<>,?.\[\]]*)\s+([A-Za-z_]\w*)\s*\(/.exec (line);
+            if (m === null) {
+                continue;
+            }
+            if (found.has (m[2])) {
+                if (found.get (m[2]) !== m[1]) {
+                    found.set (m[2], null);
+                }
+            } else {
+                found.set (m[2], m[1]);
+            }
+        }
+        const out = new Map<string, string> ();
+        for (const [ name, type ] of found) {
+            if (type !== null) {
+                out.set (name, type);
+            }
+        }
         return out;
     }
 

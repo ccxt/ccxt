@@ -2627,7 +2627,7 @@ public partial class okx : Exchange
             object account = getValue(data, i);
             string? accountId = this.safeString(account, "uid");
             string? type = this.safeString(account, "acctLv");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", type },
                 { "currency", null },
@@ -2671,7 +2671,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, types?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
+            promises.Add(this.FetchMarketsByType(getValue(types, i), parameters));
         }
         promises = await promiseAll(promises);
         for (int i = 0; isLessThan(i, promises?.Count ?? 0); postFixIncrement(ref i))
@@ -2882,7 +2882,7 @@ public partial class okx : Exchange
             {
                 object underlying = getValue(optionsUnderlying, i);
                 request["uly"] = underlying;
-                ((IList<object>)promises).Add(this.publicGetPublicInstruments(this.extend(request, parameters)));
+                promises.Add(this.publicGetPublicInstruments(this.extend(request, parameters)));
             }
             List<object> promisesResult = await promiseAll(promises);
             List<object> markets = new List<object>() {};
@@ -2946,7 +2946,7 @@ public partial class okx : Exchange
                     continue;
                 }
             }
-            ((IList<object>)marketsWithoutTest).Add(data);
+            marketsWithoutTest.Add(data);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(marketsWithoutTest));
     }
@@ -3886,7 +3886,7 @@ public partial class okx : Exchange
         {
             object rate = getValue(data, i);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
                 { "symbol", this.safeSymbol(this.safeString(rate, "instId")) },
                 { "fundingRate", this.safeNumber(rate, "realizedRate") },
@@ -4719,7 +4719,7 @@ public partial class okx : Exchange
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> response = await this.privatePostTradeBatchOrders(ordersRequests);
         // {
@@ -5057,7 +5057,7 @@ public partial class okx : Exchange
             {
                 for (int i = 0; isLessThan(i, getArrayLength(algoIds)); postFixIncrement(ref i))
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "algoId", getValue(algoIds, i) },
                         { "instId", GetValue(market, "id") },
                     });
@@ -5067,13 +5067,13 @@ public partial class okx : Exchange
             {
                 if (((trailing == true)) || ((trigger != null)))
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "algoId", getValue(ids, i) },
                         { "instId", GetValue(market, "id") },
                     });
                 } else
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "ordId", getValue(ids, i) },
                         { "instId", GetValue(market, "id") },
                     });
@@ -5085,13 +5085,13 @@ public partial class okx : Exchange
             {
                 if (((trailing == true)) || ((trigger != null)))
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "instId", GetValue(market, "id") },
                         { "algoClOrdId", getValue(clientOrderIds, i) },
                     });
                 } else
                 {
-                    ((IList<object>)request).Add(new Dictionary<string, object>() {
+                    request.Add(new Dictionary<string, object>() {
                         { "instId", GetValue(market, "id") },
                         { "clOrdId", getValue(clientOrderIds, i) },
                     });
@@ -5195,7 +5195,7 @@ public partial class okx : Exchange
                 { "instId", GetValue(market, "id") },
             };
             requestItem[(string)idKey] = ((clientOrderId != null)) ? clientOrderId : id;
-            ((IList<object>)request).Add(requestItem);
+            request.Add(requestItem);
         }
         Dictionary<string, object> response = null;
         if (method == "privatePostTradeCancelAlgos")
@@ -7535,7 +7535,7 @@ public partial class okx : Exchange
             {
                 object entry = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(entry);
-                ((IList<object>)marketIds).Add(GetValue(market, "id"));
+                marketIds.Add(GetValue(market, "id"));
             }
             int marketIdsLength = marketIds.Count;
             if (isGreaterThan(marketIdsLength, 0))
@@ -7603,7 +7603,7 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, positions.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(positions, i)));
+            result.Add(this.parsePosition(getValue(positions, i)));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false));
     }
@@ -8461,7 +8461,7 @@ public partial class okx : Exchange
             {
                 amount = positionBalanceChange;
             }
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", GetValue(marketInner, "symbol") },
                 { "code", code },
@@ -9176,7 +9176,7 @@ public partial class okx : Exchange
         {
             object tier = getValue(info, i);
             string? marketId = this.safeString(tier, "instId");
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "tier") },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", this.safeString(market, "quote") },
@@ -9946,7 +9946,7 @@ public partial class okx : Exchange
             for (int j = 0; isLessThan(j, details.Count); postFixIncrement(ref j))
             {
                 Dictionary<string, object> settlement = this.parseSettlement(getValue(details, j), market);
-                ((IList<object>)result).Add(this.extend(settlement, new Dictionary<string, object>() {
+                result.Add(this.extend(settlement, new Dictionary<string, object>() {
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
                 }));
@@ -11137,7 +11137,7 @@ public partial class okx : Exchange
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "timestamp", this.safeString(entry, 0) },
                 { "longShortRatio", this.safeString(entry, 1) },
             });

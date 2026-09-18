@@ -203,8 +203,8 @@ public partial class coinbase : ccxt.coinbase
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)GetValue(market, "id"));
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
+            productIds.Add(marketId);
+            messageHashes.Add(add(add(name, "::"), symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -252,9 +252,9 @@ public partial class coinbase : ccxt.coinbase
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)GetValue(market, "id"));
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
-            ((IList<object>)unWatchMessageHashes).Add(add(add(add("unsubscribe:", name), "::"), symbol));
+            productIds.Add(marketId);
+            watchMessageHashes.Add(add(add(name, "::"), symbol));
+            unWatchMessageHashes.Add(add(add(add("unsubscribe:", name), "::"), symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -524,7 +524,7 @@ public partial class coinbase : ccxt.coinbase
                 {
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 }
-                ((IList<object>)newTickers).Add(result);
+                newTickers.Add(result);
                 object messageHash = add(add(channel, "::"), symbol);
                 callDynamically(client, "resolve", new object[] {result, messageHash});
                 this.tryResolveUsdc(client, messageHash, result);
@@ -917,7 +917,7 @@ public partial class coinbase : ccxt.coinbase
                 {
                     if (!(inOp(marketIds, marketId)))
                     {
-                        ((IList<object>)marketIds).Add(marketId);
+                        marketIds.Add(marketId);
                     }
                 }
                 callDynamically(cachedOrders, "append", new object[] {parsed});

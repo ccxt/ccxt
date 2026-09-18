@@ -1116,7 +1116,7 @@ public partial class btse : Exchange
             Int64? timestamp = this.safeInteger(rate, "timestamp");
             if ((isEqual(timestamp, null)) || (isLessThanOrEqual(timestamp, until)))
             {
-                ((IList<object>)result).Add(rate);
+                result.Add(rate);
             }
         }
         return ccxt.BaseExchange.ToFundingRateHistoryList(result);
@@ -1327,7 +1327,7 @@ public partial class btse : Exchange
                     object level = getValue(levels, j);
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
-                    ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                    tiers.Add(new Dictionary<string, object>() {
                         { "tier", this.safeInteger(level, "level") },
                         { "symbol", symbol },
                         { "currency", getValue(market, "settle") },
@@ -1569,7 +1569,7 @@ public partial class btse : Exchange
             // spot rows do not carry an open interest
             if ((this.safeString(row, "openInterest") != null))
             {
-                ((IList<object>)rows).Add(row);
+                rows.Add(row);
             }
         }
         return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(rows, symbols));
@@ -1647,7 +1647,7 @@ public partial class btse : Exchange
             // spot rows do not carry a funding rate
             if ((this.safeString(row, "fundingRate") != null))
             {
-                ((IList<object>)rows).Add(row);
+                rows.Add(row);
             }
         }
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rows, symbols));
@@ -1779,7 +1779,7 @@ public partial class btse : Exchange
             Int64? timestamp = this.safeInteger(trade, "timestamp");
             if ((isEqual(timestamp, null)) || (isLessThanOrEqual(timestamp, until)))
             {
-                ((IList<object>)result).Add(trade);
+                result.Add(trade);
             }
         }
         return ccxt.BaseExchange.ToTradeList(result);
@@ -3255,7 +3255,7 @@ public partial class btse : Exchange
             string? type = this.safeString(entry, "type", "");
             if (inOp(allowed, type))
             {
-                ((IList<object>)rows).Add(entry);
+                rows.Add(entry);
             }
         }
         return ((object)new List<object>() {rows, currency});

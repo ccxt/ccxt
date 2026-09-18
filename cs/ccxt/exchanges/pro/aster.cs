@@ -190,8 +190,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@ticker"));
-            ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(this.safeStringLower(market, "id"), "@ticker"));
+            messageHashes.Add(add("ticker:", GetValue(market, "symbol")));
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -250,8 +250,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@ticker"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(this.safeStringLower(market, "id"), "@ticker"));
+            messageHashes.Add(add("unsubscribe:ticker:", GetValue(market, "symbol")));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -347,8 +347,8 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((use1sFreq == true)) ? "@1s" : "";
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
-            ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
+            messageHashes.Add(add("ticker:", GetValue(market, "symbol")));
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -408,8 +408,8 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string suffix = ((use1sFreq == true)) ? "@1s" : "";
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
+            messageHashes.Add(add("unsubscribe:ticker:", GetValue(market, "symbol")));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -544,8 +544,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
-            ((IList<object>)messageHashes).Add(add("bidask:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
+            messageHashes.Add(add("bidask:", GetValue(market, "symbol")));
         }
         object newTicker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -599,8 +599,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(this.safeStringLower(market, "id"), "@bookTicker"));
+            messageHashes.Add(add("unsubscribe:bidask:", GetValue(market, "symbol")));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -735,8 +735,8 @@ public partial class aster : ccxt.aster
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             object marketId = this.safeStringLower(market, "id");
-            ((IList<object>)subscriptionArgs).Add(add(marketId, "@aggTrade"));
-            ((IList<object>)messageHashes).Add(add("trade::", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(marketId, "@aggTrade"));
+            messageHashes.Add(add("trade::", GetValue(market, "symbol")));
         }
         object trades = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
@@ -789,8 +789,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(this.safeStringLower(market, "id"), "@aggTrade"));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(this.safeStringLower(market, "id"), "@aggTrade"));
+            messageHashes.Add(add("unsubscribe:trade:", GetValue(market, "symbol")));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -1077,8 +1077,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limitVar.ToString()));
-            ((IList<object>)messageHashes).Add(add("orderbook:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(add(this.safeStringLower(market, "id"), "@depth"), limitVar.ToString()));
+            messageHashes.Add(add("orderbook:", GetValue(market, "symbol")));
         }
         object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -1134,8 +1134,8 @@ public partial class aster : ccxt.aster
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@depth"), limit));
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", GetValue(market, "symbol")));
+            subscriptionArgs.Add(add(add(this.safeStringLower(market, "id"), "@depth"), limit));
+            messageHashes.Add(add("unsubscribe:orderbook:", GetValue(market, "symbol")));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -1284,8 +1284,8 @@ public partial class aster : ccxt.aster
             symbolString = GetValue(market, "symbol");
             string? unfiedTimeframe = this.safeString(data, 1);
             string? timeframeId = ((unfiedTimeframe == null)) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", GetValue(market, "symbol")), ":"), unfiedTimeframe));
+            subscriptionArgs.Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
+            messageHashes.Add(add(add(add("ohlcv:", GetValue(market, "symbol")), ":"), unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -1349,8 +1349,8 @@ public partial class aster : ccxt.aster
             symbolString = GetValue(market, "symbol");
             string? unfiedTimeframe = this.safeString(data, 1);
             string? timeframeId = ((unfiedTimeframe == null)) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
-            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:ohlcv:", GetValue(market, "symbol")), ":"), unfiedTimeframe));
+            subscriptionArgs.Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
+            messageHashes.Add(add(add(add("unsubscribe:ohlcv:", GetValue(market, "symbol")), ":"), unfiedTimeframe));
         }
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }
@@ -1723,13 +1723,13 @@ public partial class aster : ccxt.aster
         symbols = this.marketSymbols(symbols, "swap", true, true);
         if (isEqual(symbols, null))
         {
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         } else
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
+                messageHashes.Add(add(add(messageHash, "::"), symbol));
             }
         }
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1841,7 +1841,7 @@ public partial class aster : ccxt.aster
             Int64? timestamp = this.safeInteger(message, "E");
             position["timestamp"] = timestamp;
             position["datetime"] = this.iso8601(timestamp);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, messageHash);
@@ -2096,7 +2096,7 @@ public partial class aster : ccxt.aster
                         }
                         // save this trade in the order
                         List<object> orderTrades = this.safeList(order, "trades", new List<object>() {});
-                        ((IList<object>)orderTrades).Add(trade);
+                        orderTrades.Add(trade);
                         ((IDictionary<string,object>)order)["trades"] = orderTrades;
                     }
                 }

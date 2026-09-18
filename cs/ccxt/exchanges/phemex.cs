@@ -1361,7 +1361,7 @@ public partial class phemex : Exchange
                 });
                 market = this.parseSpotMarket(market);
             }
-            ((IList<object>)result).Add(market);
+            result.Add(market);
         }
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
@@ -1476,7 +1476,7 @@ public partial class phemex : Exchange
             object bidasks = this.safeValue(orderbook, side);
             for (int k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
             {
-                ((IList<object>)orders).Add(this.customParseBidAsk(getValue(bidasks, k), priceKey, amountKey, market));
+                orders.Add(this.customParseBidAsk(getValue(bidasks, k), priceKey, amountKey, market));
             }
             result[(string)side] = orders;
         }
@@ -4513,7 +4513,7 @@ public partial class phemex : Exchange
         for (int i = 0; isLessThan(i, positions.Count); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
-            ((IList<object>)result).Add(this.parsePosition(position));
+            result.Add(this.parsePosition(position));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
@@ -4838,7 +4838,7 @@ public partial class phemex : Exchange
             Int64? timestamp = this.safeInteger(entry, "createTime");
             string? execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
             string? currencyCode = this.safeCurrencyCode(this.safeString(entry, "currency"));
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeString(entry, "symbol") },
                 { "code", currencyCode },
@@ -5292,7 +5292,7 @@ public partial class phemex : Exchange
             object tier = getValue(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
             object minNotionalResponse = minNotional; // java req
-            ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+            tiers.Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
@@ -5745,7 +5745,7 @@ public partial class phemex : Exchange
         {
             object item = getValue(rates, i);
             Int64? timestamp = this.safeInteger(item, "fundingTime");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", item },
                 { "symbol", symbol },
                 { "fundingRate", this.safeNumber(item, "fundingRate") },
@@ -6254,7 +6254,7 @@ public partial class phemex : Exchange
         for (int i = 0; isLessThan(i, ranks.Count); postFixIncrement(ref i))
         {
             object rank = getValue(ranks, i);
-            ((IList<object>)result).Add(this.parseADLRank(rank));
+            result.Add(this.parseADLRank(rank));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbols, false));
     }

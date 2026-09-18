@@ -1074,7 +1074,7 @@ public partial class cryptocom : Exchange
             }
             bool? isLinear = (isEqual(contract, true)) ? true : null;
             bool? isInverse = (isEqual(contract, true)) ? false : null;
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", this.safeString(market, "symbol") },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1886,7 +1886,7 @@ public partial class cryptocom : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         string? contigency = this.safeString(parameters, "contingency_type", "LIST");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2264,7 +2264,7 @@ public partial class cryptocom : Exchange
                 { "instrument_name", GetValue(market, "id") },
                 { "order_id", id.ToString() },
             };
-            ((IList<object>)orderRequests).Add(order);
+            orderRequests.Add(order);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contingency_type", "LIST" },
@@ -2302,7 +2302,7 @@ public partial class cryptocom : Exchange
                 { "instrument_name", GetValue(market, "id") },
                 { "order_id", id.ToString() },
             };
-            ((IList<object>)orderRequests).Add(orderItem);
+            orderRequests.Add(orderItem);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contingency_type", "LIST" },
@@ -2473,8 +2473,8 @@ public partial class cryptocom : Exchange
         if (isGreaterThan(getIndexOf(addressString, "?"), 0))
         {
             var addressrawTagVariable = ((string)addressString).Split(new [] {"?"}, StringSplitOptions.None).ToList<object>();
-            address = ((IList<object>)addressrawTagVariable)[0];
-            rawTag = ((IList<object>)addressrawTagVariable)[1];
+            address = addressrawTagVariable[0];
+            rawTag = addressrawTagVariable[1];
             List<object> splitted = ((string)((string)rawTag)).Split(new [] {"="}, StringSplitOptions.None).ToList<object>();
             tag = getValue(splitted, 1);
         } else
@@ -2602,8 +2602,8 @@ public partial class cryptocom : Exchange
             string? currencyId = this.safeString(value, "currency");
             string? responseCode = this.safeCurrencyCode(currencyId);
             var addresstagVariable = this.parseAddress(addressString);
-            var address = ((IList<object>) addresstagVariable)[0];
-            var tag = ((IList<object>) addresstagVariable)[1];
+            var address = addresstagVariable[0];
+            var tag = addresstagVariable[1];
             this.checkAddress(address);
             string? networkId = this.safeString(value, "network");
             string? network = this.networkIdToCode(networkId, responseCode);
@@ -3133,8 +3133,8 @@ public partial class cryptocom : Exchange
         }
         string? addressString = this.safeString(transaction, "address");
         var addresstagVariable = this.parseAddress(addressString);
-        var address = ((IList<object>) addresstagVariable)[0];
-        var tag = ((IList<object>) addresstagVariable)[1];
+        var address = addresstagVariable[0];
+        var tag = addresstagVariable[1];
         string? currencyId = this.safeString(transaction, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "create_time");
@@ -3499,7 +3499,7 @@ public partial class cryptocom : Exchange
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         IDictionary<string, object> masterAccount = this.safeDict(result, "master_account", new Dictionary<string, object>() {});
         List<object> accounts = this.safeList(result, "sub_account_list", new List<object>() {});
-        ((IList<object>)accounts).Add(masterAccount);
+        accounts.Add(masterAccount);
         return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts, parameters));
     }
 
@@ -3635,7 +3635,7 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
+            result.Add(this.parseSettlement(getValue(settlements, i), market));
         }
         return result;
     }
@@ -3805,7 +3805,7 @@ public partial class cryptocom : Exchange
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "t");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", this.safeSymbol(marketId, market) },
                 { "fundingRate", this.safeNumber(entry, "v") },
@@ -3933,7 +3933,7 @@ public partial class cryptocom : Exchange
             object entry = getValue(positions, i);
             string? marketId = this.safeString(entry, "instrument_name");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
-            ((IList<object>)result).Add(this.parsePosition(entry, marketInner));
+            result.Add(this.parsePosition(entry, marketInner));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null, false));
     }

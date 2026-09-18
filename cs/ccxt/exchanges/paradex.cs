@@ -2185,7 +2185,7 @@ public partial class paradex : Exchange
         if (isTrue(modify))
         {
             orderReq["id"] = getValue(request, "id");
-            ((IList<object>)orderFields).Add(new Dictionary<string, object>() {
+            orderFields.Add(new Dictionary<string, object>() {
                 { "name", "id" },
                 { "type", "felt" },
             });
@@ -2377,7 +2377,7 @@ public partial class paradex : Exchange
             Dictionary<string, object> extendedParams = this.extend(parameters, orderParams);
             object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest(orderRequest);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         Dictionary<string, object> response = await this.privatePostOrdersBatch(ordersRequests);
         //
@@ -2407,7 +2407,7 @@ public partial class paradex : Exchange
         for (int i = 0; isLessThan(i, errors.Count); postFixIncrement(ref i))
         {
             object error = getValue(errors, i);
-            ((IList<object>)parsedOrders).Add(this.safeOrder(new Dictionary<string, object>() {
+            parsedOrders.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", error },
                 { "status", "rejected" },
             }));
@@ -2533,7 +2533,7 @@ public partial class paradex : Exchange
             {
                 orderStatus = "rejected";
             }
-            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+            orders.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", result },
                 { "id", this.safeString(result, "id") },
                 { "clientOrderId", this.safeString(result, "client_id") },
@@ -3202,7 +3202,7 @@ public partial class paradex : Exchange
             object row = getValue(rows, i);
             if (isEqual(getValue(row, "kind"), "DEPOSIT"))
             {
-                ((IList<object>)deposits).Add(row);
+                deposits.Add(row);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(deposits, null, since, limit));
@@ -3278,7 +3278,7 @@ public partial class paradex : Exchange
             object row = getValue(rows, i);
             if (isEqual(getValue(row, "kind"), "WITHDRAWAL"))
             {
-                ((IList<object>)deposits).Add(row);
+                deposits.Add(row);
             }
         }
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(deposits, null, since, limit));
@@ -3997,7 +3997,7 @@ public partial class paradex : Exchange
             object rate = getValue(results, i);
             Int64? timestamp = this.safeInteger(rate, "created_at");
             string? datetime = this.iso8601(timestamp);
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
                 { "symbol", GetValue(market, "symbol") },
                 { "fundingRate", this.safeNumber(rate, "funding_rate") },

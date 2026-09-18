@@ -430,10 +430,10 @@ public partial class zebpay : Exchange
             object type = getValue(types, i);
             if (isEqual(type, "spot"))
             {
-                ((IList<object>)promisesUnresolved).Add(this.FetchSpotMarkets(parameters));
+                promisesUnresolved.Add(this.FetchSpotMarkets(parameters));
             } else if (isEqual(type, "swap"))
             {
-                ((IList<object>)promisesUnresolved).Add(this.FetchSwapMarkets(parameters));
+                promisesUnresolved.Add(this.FetchSwapMarkets(parameters));
             } else
             {
                 throw new ExchangeError (add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), type), "\" is not a supported market type")) ;
@@ -503,8 +503,8 @@ public partial class zebpay : Exchange
         string? minWithdrawFeeString = null;
         string? minWithdrawString = null;
         string? minDepositString = null;
-        bool deposit = false;
-        bool withdraw = false;
+        object deposit = false;
+        object withdraw = false;
         for (int j = 0; isLessThan(j, chains.Count); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
@@ -558,7 +558,7 @@ public partial class zebpay : Exchange
             { "code", code },
             { "id", currencyId },
             { "name", name },
-            { "active", deposit && withdraw },
+            { "active", isTrue(deposit) && isTrue(withdraw) },
             { "deposit", deposit },
             { "withdraw", withdraw },
             { "fee", this.parseNumber(minWithdrawFeeString) },
@@ -687,7 +687,7 @@ public partial class zebpay : Exchange
         for (int i = 0; isLessThan(i, fees.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            string? symbol = ((string)GetValue(fee, "symbol"));
+            object symbol = GetValue(fee, "symbol");
             if ((symbol != null))
             {
                 result[(string)symbol] = fee;
@@ -846,7 +846,7 @@ public partial class zebpay : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        Int64? limitVar = limit;
+        object limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -856,7 +856,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(limitVar, null))
         {
-            limitVar = ((Int64?)100); // default is 200
+            limitVar = 100; // default is 200
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1118,7 +1118,7 @@ public partial class zebpay : Exchange
         Int64? timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? side = this.safeStringLower(trade, "side");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString2(trade, "amount", "quantity");
@@ -1232,8 +1232,8 @@ public partial class zebpay : Exchange
         if (isEqual(GetValue(market, "spot"), true))
         {
             var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
-            request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
-            parameters = ((IList<object>)requestparametersVariable)[1];
+            request = (Dictionary<string, object>)requestparametersVariable[0];
+            parameters = requestparametersVariable[1];
             response = await this.privateSpotPostV2ExOrders(this.extend(request, parameters));
         } else
         {
@@ -1557,7 +1557,7 @@ public partial class zebpay : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        string? symbol = ((string)getValue(market, "symbol"));
+        object symbol = getValue(market, "symbol");
         string? type = this.safeString(order, "type");
         double? timestamp = this.safeNumber(order, "timestamp");
         string? datetime = this.iso8601(timestamp);
@@ -1755,7 +1755,7 @@ public partial class zebpay : Exchange
         //    }
         //
         List<object> positions = this.safeList(response, "data", new List<object>() {});
-        IList<object> result = this.parsePositions(positions);
+        object result = this.parsePositions(positions);
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
@@ -1886,8 +1886,8 @@ public partial class zebpay : Exchange
             string? quoteId = this.safeString(market, "quoteAsset");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            string? symbol = ((string)add(add(bs, "/"), quote));
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            object symbol = add(add(bs, "/"), quote);
+            result.Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
                 { "base", bs },
@@ -1971,7 +1971,7 @@ public partial class zebpay : Exchange
             string? settle = this.safeCurrencyCode(quoteId);
             string? status = this.safeString(market, "status");
             object symbol = add(add(bs, "/"), quote);
-            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
+            result.Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(symbol, ":"), settle) },
                 { "base", bs },

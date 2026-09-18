@@ -1171,7 +1171,7 @@ public partial class btcmarkets : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             // numericIds[i] = parseInt (ids[i]);
-            ((IList<object>)numericIds).Add(parseInt(getValue(ids, i)));
+            numericIds.Add(parseInt(getValue(ids, i)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ids", numericIds },

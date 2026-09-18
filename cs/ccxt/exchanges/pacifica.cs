@@ -2031,7 +2031,7 @@ public partial class pacifica : Exchange
                 { "type", "Create" },
                 { "data", getValue(requestList, 0) },
             };
-            ((IList<object>)actions).Add(action);
+            actions.Add(action);
         }
         return this.batchOrdersRequest(actions);
     }
@@ -2090,7 +2090,7 @@ public partial class pacifica : Exchange
                 status = "open";
             }
             string? orderId = this.safeString(order, "order_id");
-            ((IList<object>)ordersToReturn).Add(this.safeOrder(new Dictionary<string, object>() {
+            ordersToReturn.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", orderId },
                 { "status", status },
@@ -2161,7 +2161,7 @@ public partial class pacifica : Exchange
             {
                 status = "canceled";
             }
-            ((IList<object>)ordersToReturn).Add(this.safeOrder(new Dictionary<string, object>() {
+            ordersToReturn.Add(this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "status", status },
                 { "symbol", symbol },
@@ -2182,7 +2182,7 @@ public partial class pacifica : Exchange
                 { "type", "Cancel" },
                 { "data", request },
             };
-            ((IList<object>)actions).Add(action);
+            actions.Add(action);
         }
         List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
         parameters = this.omit(parameters, "clientOrderIds");
@@ -2197,7 +2197,7 @@ public partial class pacifica : Exchange
                 { "type", "Cancel" },
                 { "data", request },
             };
-            ((IList<object>)actions).Add(action);
+            actions.Add(action);
         }
         return this.batchOrdersRequest(actions);
     }
@@ -2479,7 +2479,7 @@ public partial class pacifica : Exchange
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", GetValue(market, "symbol") },
                 { "fundingRate", this.safeNumber(entry, "funding_rate") },
@@ -3141,7 +3141,7 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(data, i), null));
+            result.Add(this.parsePosition(getValue(data, i), null));
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }

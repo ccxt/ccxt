@@ -555,7 +555,7 @@ public partial class deepcoin : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, types?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
+            promises.Add(this.FetchMarketsByType(getValue(types, i), parameters));
         }
         promises = await promiseAll(promises);
         for (int i = 0; isLessThan(i, promises?.Count ?? 0); postFixIncrement(ref i))

@@ -334,8 +334,8 @@ public partial class zaif : Exchange
             throw new ExchangeError (add(this.id, " parseMarket() missing name")) ;
         }
         var baseIdquoteIdVariable = name.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
-        var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+        var baseId = baseIdquoteIdVariable[0];
+        var quoteId = baseIdquoteIdVariable[1];
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         string? symbol = ((string)add(add(bs, "/"), quote));

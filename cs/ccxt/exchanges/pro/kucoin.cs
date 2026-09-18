@@ -513,9 +513,9 @@ public partial class kucoin : ccxt.kucoin
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("ticker:", symbol));
+                messageHashes.Add(add("ticker:", symbol));
                 Dictionary<string, object> market = this.market(symbol);
-                ((IList<object>)topics).Add(add(add(method, ":"), GetValue(market, "id")));
+                topics.Add(add(add(method, ":"), GetValue(market, "id")));
             }
         }
         object url = await this.negotiate(false, isFuturesMethod);
@@ -590,7 +590,7 @@ public partial class kucoin : ccxt.kucoin
             string? symbol = this.safeString(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string subMessageHash = add(add(messageHash, ":"), GetValue(market, "symbol"));
-            ((IList<object>)messageHashes).Add(subMessageHash);
+            messageHashes.Add(subMessageHash);
         }
         object tickers = await this.subscribePublicMultipleUta(messageHashes, "ticker", symbols, parameters);
         if (isTrue(this.newUpdates))
@@ -873,7 +873,7 @@ public partial class kucoin : ccxt.kucoin
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(add("bidask@", GetValue(market, "symbol")));
+            messageHashes.Add(add("bidask@", GetValue(market, "symbol")));
         }
         object url = await this.negotiate(false, isFuturesChannel);
         IList<object> marketIds = this.marketIds(symbols);
@@ -1292,9 +1292,9 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("trades:", symbol));
+            messageHashes.Add(add("trades:", symbol));
             object marketId = getValue(marketIds, i);
-            ((IList<object>)subscriptionHashes).Add(add(channelName, marketId));
+            subscriptionHashes.Add(add(channelName, marketId));
         }
         object trades = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, parameters);
         if (isTrue(this.newUpdates))
@@ -1339,14 +1339,14 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
-            ((IList<object>)subscriptionHashes).Add(add("trades:", symbol));
+            messageHashes.Add(add("unsubscribe:trades:", symbol));
+            subscriptionHashes.Add(add("trades:", symbol));
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        ((IList<object>)messageHashes).Add(topic);
-        ((IList<object>)subscriptionHashes).Add(topic);
+        messageHashes.Add(topic);
+        subscriptionHashes.Add(topic);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHashes", messageHashes },
             { "subMessageHashes", subscriptionHashes },
@@ -1698,9 +1698,9 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
+            messageHashes.Add(add("orderbook:", symbol));
             object marketId = getValue(marketIds, i);
-            ((IList<object>)subscriptionHashes).Add(add(add(method, ":"), marketId));
+            subscriptionHashes.Add(add(add(method, ":"), marketId));
         }
         Dictionary<string, object> subscription = new Dictionary<string, object>() {};
         if ((isEqual(method, "/market/level2")) || (isEqual(method, "/contractMarket/level2")))
@@ -1766,14 +1766,14 @@ public partial class kucoin : ccxt.kucoin
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
-            ((IList<object>)subscriptionHashes).Add(add("orderbook:", symbol));
+            messageHashes.Add(add("unsubscribe:orderbook:", symbol));
+            subscriptionHashes.Add(add("orderbook:", symbol));
         }
         // we have to add the topic to the messageHashes and subMessageHashes
         // because handleSubscriptionStatus needs them to remove the subscription from the client
         // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
-        ((IList<object>)messageHashes).Add(topic);
-        ((IList<object>)subscriptionHashes).Add(topic);
+        messageHashes.Add(topic);
+        subscriptionHashes.Add(topic);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "messageHashes", messageHashes },
             { "symbols", symbols },
@@ -1875,7 +1875,7 @@ public partial class kucoin : ccxt.kucoin
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, new Dictionary<string, object>() {}});
                 }
-                ((IList<object>)(IList<object>)((orderbook as ccxt.pro.OrderBook).cache)).Add(data);
+                (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
             } else if (isGreaterThanOrEqual(nonce, deltaEnd))
             {
@@ -1941,7 +1941,7 @@ public partial class kucoin : ccxt.kucoin
                 {
                     this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, limit, utaParams});
                 }
-                ((IList<object>)(IList<object>)((orderbook as ccxt.pro.OrderBook).cache)).Add(data);
+                (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
             } else if (isGreaterThanOrEqual(nonce, deltaEnd))
             {
@@ -3198,13 +3198,13 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols);
         if (isEqual(symbols, null))
         {
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         } else
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add(add(messageHash, ":"), symbol));
+                messageHashes.Add(add(add(messageHash, ":"), symbol));
             }
         }
         object url = await this.getUtaUrl();

@@ -1495,7 +1495,7 @@ public partial class ndax : Exchange
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
             string? accountId = this.safeString(response, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
                 { "currency", null },

@@ -1694,7 +1694,7 @@ public partial class bullish : Exchange
         {
             object entry = getValue(result, i);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
-            ((IList<object>)rates).Add(new Dictionary<string, object>() {
+            rates.Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbol },
                 { "fundingRate", this.safeNumber(entry, "fundingRate") },

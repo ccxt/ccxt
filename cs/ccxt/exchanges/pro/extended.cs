@@ -489,7 +489,7 @@ public partial class extended : ccxt.extended
                 continue;
             }
             Dictionary<string, object> position = this.parsePosition(rawPosition);
-            ((IList<object>)newPositions).Add(position);
+            newPositions.Add(position);
             callDynamically(stored, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client, "positions::");

@@ -1191,7 +1191,7 @@ public partial class onetrading : ccxt.onetrading
                     { "instrument_code", getValue(marketIds, i) },
                     { "time_granularity", marketTimeframeId },
                 };
-                ((IList<object>)properties).Add(property);
+                properties.Add(property);
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

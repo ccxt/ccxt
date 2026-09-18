@@ -600,7 +600,7 @@ public partial class bithumb : Exchange
                 {
                     continue;
                 }
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                result.Add(new Dictionary<string, object>() {
                     { "id", marketId },
                     { "symbol", add(add(bs, "/"), quote) },
                     { "base", bs },
@@ -658,7 +658,7 @@ public partial class bithumb : Exchange
             for (int i = 0; isLessThan(i, quotes.Count); postFixIncrement(ref i))
             {
                 request["quoteId"] = getValue(quotes, i);
-                ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                promises.Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             List<object> results = await promiseAll(promises);
             for (int i = 0; isLessThan(i, quotes.Count); postFixIncrement(ref i))
@@ -733,7 +733,7 @@ public partial class bithumb : Exchange
                         { "created", null },
                         { "info", market },
                     }, extension);
-                    ((IList<object>)result).Add(entry);
+                    result.Add(entry);
                 }
             }
         }
@@ -898,11 +898,11 @@ public partial class bithumb : Exchange
             for (int i = 0; isLessThan(i, orderBookUnits.Count); postFixIncrement(ref i))
             {
                 object entry = getValue(orderBookUnits, i);
-                ((IList<object>)bids).Add(new Dictionary<string, object>() {
+                bids.Add(new Dictionary<string, object>() {
                     { "price", this.safeString(entry, "bid_price") },
                     { "quantity", this.safeString(entry, "bid_size") },
                 });
-                ((IList<object>)asks).Add(new Dictionary<string, object>() {
+                asks.Add(new Dictionary<string, object>() {
                     { "price", this.safeString(entry, "ask_price") },
                     { "quantity", this.safeString(entry, "ask_size") },
                 });
@@ -1122,7 +1122,7 @@ public partial class bithumb : Exchange
             for (int i = 0; isLessThan(i, symbolsForMarketIdsLength); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbolsForMarketIds, i));
-                ((IList<object>)marketIds).Add(this.getGen2MarketId(market));
+                marketIds.Add(this.getGen2MarketId(market));
             }
             int marketIdsLength = marketIds.Count;
             if ((marketIdsLength == 0))
@@ -1134,8 +1134,8 @@ public partial class bithumb : Exchange
             if (!isEqual(symbols, null))
             {
                 request["markets"] = String.Join(",", marketIds.ToArray());
-                ((IList<object>)marketIdsChunks).Add(marketIds);
-                ((IList<object>)promises).Add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                marketIdsChunks.Add(marketIds);
+                promises.Add(this.publicGetV1Ticker(this.extend(request, parameters)));
             } else
             {
                 object maxMarketIdsPerRequest = this.safeInteger(this.options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300);
@@ -1146,14 +1146,14 @@ public partial class bithumb : Exchange
                 List<object> marketIdsChunk = new List<object>() {};
                 for (int i = 0; isLessThan(i, marketIdsLength); postFixIncrement(ref i))
                 {
-                    ((IList<object>)marketIdsChunk).Add(getValue(marketIds, i));
+                    marketIdsChunk.Add(getValue(marketIds, i));
                     int marketIdsChunkLength = marketIdsChunk.Count;
                     bool isLastMarketId = (isEqual(i, (subtract(marketIdsLength, 1))));
                     if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
                     {
-                        ((IList<object>)marketIdsChunks).Add(marketIdsChunk);
+                        marketIdsChunks.Add(marketIdsChunk);
                         request["markets"] = String.Join(",", marketIdsChunk.ToArray());
-                        ((IList<object>)promises).Add(this.publicGetV1Ticker(this.extend(request, parameters)));
+                        promises.Add(this.publicGetV1Ticker(this.extend(request, parameters)));
                         marketIdsChunk = new List<object>() {};
                     }
                 }
@@ -1275,7 +1275,7 @@ public partial class bithumb : Exchange
             for (int i = 0; isLessThan(i, quotes.Count); postFixIncrement(ref i))
             {
                 request["quoteId"] = getValue(quotes, i);
-                ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
+                promises.Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             List<object> responses = await promiseAll(promises);
             for (int i = 0; isLessThan(i, quotes.Count); postFixIncrement(ref i))
@@ -1813,7 +1813,7 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired (add(this.id, " createOrders() requires each order to have a symbol")) ;
             }
-            ((IList<object>)orderSymbols).Add(symbol);
+            orderSymbols.Add(symbol);
             string? type = this.safeString(rawOrder, "type");
             if ((type == null))
             {
@@ -1828,7 +1828,7 @@ public partial class bithumb : Exchange
             object price = this.safeValue(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            ((IList<object>)ordersRequests).Add(orderRequest);
+            ordersRequests.Add(orderRequest);
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));

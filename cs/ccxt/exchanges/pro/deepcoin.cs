@@ -745,8 +745,8 @@ public partial class deepcoin : ccxt.deepcoin
         string messageHash = add(add("orderbook", "::"), GetValue(market, "symbol"));
         object suffix = null;
         var suffixparametersVariable = this.orderBookSuffix(market, "watchOrderBook", parameters);
-        suffix = ((IList<object>)suffixparametersVariable)[0];
-        parameters = ((IList<object>)suffixparametersVariable)[1];
+        suffix = suffixparametersVariable[0];
+        parameters = suffixparametersVariable[1];
         object orderbook = await this.watchPublic(market, messageHash, "25", parameters, suffix);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -772,8 +772,8 @@ public partial class deepcoin : ccxt.deepcoin
         string messageHash = add(add("orderbook", "::"), GetValue(market, "symbol"));
         object suffix = null;
         var suffixparametersVariable = this.orderBookSuffix(market, "unWatchOrderBook", parameters);
-        suffix = ((IList<object>)suffixparametersVariable)[0];
-        parameters = ((IList<object>)suffixparametersVariable)[1];
+        suffix = suffixparametersVariable[0];
+        parameters = suffixparametersVariable[1];
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "topic", "orderbook" },
         };
@@ -851,7 +851,7 @@ public partial class deepcoin : ccxt.deepcoin
             } else
             {
                 // cache the updates until the snapshot is received
-                ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
+                (orderbook as ccxt.pro.OrderBook).cache.Add(message);
             }
         } else
         {
@@ -1222,11 +1222,11 @@ public partial class deepcoin : ccxt.deepcoin
             {
                 object symbol = getValue(symbols, i);
                 string symbolMessageHash = add(add(messageHash, "::"), symbol);
-                ((IList<object>)messageHashes).Add(symbolMessageHash);
+                messageHashes.Add(symbolMessageHash);
             }
         } else
         {
-            ((IList<object>)messageHashes).Add(messageHash);
+            messageHashes.Add(messageHash);
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "?listenKey="), listenKey);
         object positions = await this.watchMultiple(url, messageHashes, parameters, new List<object>() {"private"});
