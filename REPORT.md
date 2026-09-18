@@ -157,9 +157,13 @@ rewrites**. Every one of the 53 is justified:
 - The typed overloads add one boxing round-trip for the generated families at the funnel call
   sites: identical to the box/unbox every call site performed before (the argument was passed to
   a `(object)` parameter), so no new allocation in the hot path beyond the delegation.
-- Runtime lanes (`id-tests-cs` / `request-cs` / `response-cs`) are not run inside this worktree
-  (dotnet is farm-only); the farm build (`--targets cs`) is the compile gate the BRIEF mandates,
-  and it reported 0 warnings from this diff.
+- Runtime lanes: the farm's `--test` lane (`testCS` = base tests) was run for completeness on a
+  throwaway branch (job 772, exit=1) and **fails identically on the campaign base commit
+  `d847892a6fcf5699640862316303b6344a3e4daf`** (job 775, exit=1): `Tests.BaseTest.MultithreadTest`
+  performs a live `okx GET https://www.okx.com/api/v5/public/instruments` and the farm has no route
+  to it (`ccxt.NetworkError … Resource temporarily unavailable (www.okx.com:443)`). Every other step
+  of both jobs exited 0, so that red is environmental and pre-existing, not this unit's. The
+  static request/response/id lanes (`npm run *-cs`) run in CI, which has network.
 
 ## Farm
 
