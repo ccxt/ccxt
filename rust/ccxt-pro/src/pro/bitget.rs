@@ -2084,7 +2084,7 @@ impl BitgetCore {
         m.insert("liquidationPrice".to_string(), self.safe_number2(position.clone(), Value::Str("liquidationPrice".to_string()), Value::Str("liqPrice".to_string()), &[]));
         m.insert("entryPrice".to_string(), self.safe_number2(position.clone(), Value::Str("openPriceAvg".to_string()), Value::Str("avgPrice".to_string()), &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("unrealizedPL".to_string()), Value::Str("unrealisedPnl".to_string()), &[]));
-        m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("total".to_string()), Value::Str("size".to_string()), &[]));
         m.insert("contractSize".to_string(), contractSize.clone());
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
@@ -3150,7 +3150,7 @@ impl BitgetCore {
                 m.insert("args".to_string(), Value::List(vec![args.clone()]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -3179,7 +3179,7 @@ impl BitgetCore {
                 m.insert("args".to_string(), Value::List(vec![args.clone()]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -3208,7 +3208,7 @@ impl BitgetCore {
                 m.insert("args".to_string(), argsArray.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
 
     Value::Null
@@ -3243,7 +3243,7 @@ impl BitgetCore {
 })]));
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -3279,7 +3279,7 @@ impl BitgetCore {
                 m.insert("args".to_string(), Value::List(vec![args.clone()]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), subscriptionHash.clone()]).await;
 
     Value::Null

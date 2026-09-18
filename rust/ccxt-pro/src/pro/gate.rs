@@ -600,7 +600,7 @@ impl GateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.market(symbol.clone()) });
+        let mut market: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.market(symbol) });
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: Value = add(&messageType, &Value::Str(".order_cancel_cp".to_string()));
@@ -614,7 +614,7 @@ impl GateCore {
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         self.authenticate(url.clone(), messageType.clone()).await;
-        let __ws_arg_0 = self.extend(request.clone(), &[requestParams.clone()]);
+        let __ws_arg_0 = self.extend(request, &[requestParams.clone()]);
         let mut rawOrders: Value = self.request_private(url.clone(), __ws_arg_0, channel.clone(), &[]).await;
         return self.parse_orders(rawOrders.clone(), &[market.clone()]);
 
@@ -642,7 +642,7 @@ impl GateCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.market(symbol.clone()) });
+        let mut market: Value = (if is_true(&(Value::Bool(symbol == Value::Null))) { Value::Null } else { self.market(symbol) });
         let mut trigger: Value = self.safe_value_n(params.clone(), Value::List(vec![Value::Str("is_stop_order".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("is_stop_order".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut type_varqueryVariable = self.handle_market_type_and_params(Value::Str("cancelOrder".to_string()), &[market.clone(), params.clone()]);
@@ -656,7 +656,7 @@ impl GateCore {
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.clone(), messageType.clone()).await;
         add_element_to_object(&mut request, &Value::Str("order_id".to_string()), to_string_val(&id));
-        let __ws_arg_1 = self.extend(request.clone(), &[requestParams.clone()]);
+        let __ws_arg_1 = self.extend(request, &[requestParams.clone()]);
         let mut res: Value = self.request_private(url.clone(), __ws_arg_1, channel.clone(), &[]).await;
         return self.parse_order(res.clone(), &[market.clone()]);
 
@@ -732,7 +732,7 @@ impl GateCore {
         let mut channel: Value = add(&messageType, &Value::Str(".order_status".to_string()));
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.clone(), messageType.clone()).await;
-        let __ws_arg_2 = self.extend(request.clone(), &[requestParams.clone()]);
+        let __ws_arg_2 = self.extend(request, &[requestParams.clone()]);
         let mut rawOrder: Value = self.request_private(url.clone(), __ws_arg_2, channel.clone(), &[]).await;
         return self.parse_order(rawOrder.clone(), &[market.clone()]);
 
@@ -823,12 +823,12 @@ impl GateCore {
         let mut requestrequestParamsVariable = self.parent.prepare_orders_by_status_request(status.clone(), &[symbol.clone(), since.clone(), limit.clone(), params.clone()]);
         let mut request: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut requestParams: Value = requestrequestParamsVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut newRequest: Value = self.omit(request.clone(), Value::List(vec![Value::Str("settle".to_string())]), &[]);
+        let mut newRequest: Value = self.omit(request, Value::List(vec![Value::Str("settle".to_string())]), &[]);
         let mut messageType: Value = self.get_type_by_market(market.clone());
         let mut channel: Value = add(&messageType, &Value::Str(".order_list".to_string()));
         let mut url: Value = self.get_url_by_market(market.clone());
         self.authenticate(url.clone(), messageType.clone()).await;
-        let __ws_arg_3 = self.extend(newRequest.clone(), &[requestParams.clone()]);
+        let __ws_arg_3 = self.extend(newRequest, &[requestParams.clone()]);
         let mut rawOrders: Value = self.request_private(url.clone(), __ws_arg_3, channel.clone(), &[]).await;
         let mut orders: Value = self.parse_orders(rawOrders.clone(), &[market.clone()]);
         return self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
@@ -2363,7 +2363,7 @@ impl GateCore {
             }
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = self.market(symbol);
             if (market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null) != Value::Null) {
                 add_element_to_object(&mut marketIds, &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Bool(true));
             }
@@ -2578,7 +2578,7 @@ impl GateCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("contracts".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("contracts".to_string(), self.parse_number(amount, &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(liquidation.clone(), "fill_price", &[]));
         m.insert("baseValue".to_string(), Value::Null);
@@ -3029,7 +3029,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &tempSubscriptionHash, messageHash.clone());
             }
         }
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), subscription.clone()]).await;
 
     Value::Null
@@ -3051,7 +3051,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("payload".to_string(), payload.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
 
     Value::Null
@@ -3083,7 +3083,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("symbols".to_string(), symbols.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), sub.clone()]).await;
 
     Value::Null
@@ -3201,7 +3201,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // in case of authenticationError we will throw
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &tempSubscriptionHash, messageHash.clone());
         }
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), messageHash.clone()]).await;
 
     Value::Null

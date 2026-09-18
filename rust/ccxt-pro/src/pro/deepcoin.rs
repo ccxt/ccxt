@@ -536,7 +536,7 @@ impl DeepcoinCore {
                             m.insert("listenkey".to_string(), listenKey.clone());
                         m
                     });
-                    let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+                    let __ws_arg_2 = self.extend(request, &[params.clone()]);
                     response = self.parent.private_get_deepcoin_listenkey_extend(&[__ws_arg_2]).await;
                 }
             }

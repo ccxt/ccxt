@@ -1253,7 +1253,7 @@ impl BithumbCore {
                     m.insert("currency".to_string(), Value::Str("ALL".to_string()));
                 m
             });
-            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_2 = self.extend(request, &[params.clone()]);
             response = self.private_post_info_balance(&[__ws_arg_2]).await;
         }
         return self.parse_balance(response.clone());
@@ -1852,7 +1852,7 @@ impl BithumbCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("baseId".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("quoteId".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_9 = self.extend(request, &[params.clone()]);
             response = self.public_get_public_ticker_base_id_quote_id(&[__ws_arg_9]).await;
             //
             //     {
@@ -2021,7 +2021,7 @@ impl BithumbCore {
             add_element_to_object(&mut request, &Value::Str("interval".to_string()), self.safe_string(legacyTimeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             add_element_to_object(&mut request, &Value::Str("baseId".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("quoteId".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.public_get_public_candlestick_base_id_quote_id_interval(&[__ws_arg_14]).await;
             //
             //     {
@@ -2242,7 +2242,7 @@ impl BithumbCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("baseId".to_string()), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("quoteId".to_string()), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_16 = self.extend(request, &[params.clone()]);
             response = self.public_get_public_transaction_history_base_id_quote_id(&[__ws_arg_16]).await;
             //
             //     {
@@ -2333,7 +2333,7 @@ impl BithumbCore {
                 m.insert("batch_orders".to_string(), ordersRequests.clone());
             m
         });
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v2_orders_batch(&[__ws_arg_17]).await;
         //
         //     {
@@ -2507,7 +2507,7 @@ impl BithumbCore {
                 let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_post_trade_market_buy(&[__ws_arg_19]).await;
             }  else {
-                let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_20 = self.extend(request, &[params.clone()]);
                 response = self.private_post_trade_market_sell(&[__ws_arg_20]).await;
             }
         }
@@ -2736,7 +2736,7 @@ impl BithumbCore {
             add_element_to_object(&mut request, &Value::Str("order_id".to_string()), id.clone());
             add_element_to_object(&mut request, &Value::Str("order_currency".to_string()), base.clone());
             add_element_to_object(&mut request, &Value::Str("payment_currency".to_string()), quote.clone());
-            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_25 = self.extend(request, &[params.clone()]);
             response = self.private_post_info_order_detail(&[__ws_arg_25]).await;
             //
             //     {
@@ -2772,7 +2772,7 @@ impl BithumbCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let mut parsedOrder: Value = self.extend(data.clone(), &[orderData.clone()]);
+        let mut parsedOrder: Value = self.extend(data, &[orderData.clone()]);
         return self.parse_order(parsedOrder.clone(), &[market.clone()]);
 
     Value::Null
@@ -3072,7 +3072,7 @@ impl BithumbCore {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".to_string())))));
             }
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("after".to_string()), since.clone());
             }
@@ -3082,7 +3082,7 @@ impl BithumbCore {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
             add_element_to_object(&mut request, &Value::Str("order_currency".to_string()), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null));
             add_element_to_object(&mut request, &Value::Str("payment_currency".to_string()), market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_26 = self.extend(request, &[params.clone()]);
             response = self.private_post_info_orders(&[__ws_arg_26]).await;
         }
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -3175,7 +3175,7 @@ impl BithumbCore {
             //
             data = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         }  else {
-            let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_28 = self.extend(request, &[params.clone()]);
             response = self.private_get_v1_orders(&[__ws_arg_28]).await;
             //
             //     [
@@ -3348,7 +3348,7 @@ impl BithumbCore {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), side.clone());
             add_element_to_object(&mut request, &Value::Str("order_currency".to_string()), base.clone());
             add_element_to_object(&mut request, &Value::Str("payment_currency".to_string()), quote.clone());
-            let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_31 = self.extend(request, &[params.clone()]);
             response = self.private_post_trade_cancel(&[__ws_arg_31]).await;
         }
         let __ws_arg_32 = self.parse_order(response.clone(), &[market.clone()]);
@@ -3402,7 +3402,7 @@ impl BithumbCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("order_ids".to_string()), ids.clone());
         }
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v2_orders_cancel(&[__ws_arg_33]).await;
         //
         //     {
@@ -3431,7 +3431,7 @@ impl BithumbCore {
                 m.insert("side".to_string(), order.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params.clone()]);
         return self.cancel_order(order.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[order.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), __ws_arg_34]).await;
 
     Value::Null
@@ -3509,7 +3509,7 @@ impl BithumbCore {
                         m.insert("amount".to_string(), self.number_to_string(amount.clone()));
                     m
                 }); // KRW withdraw only accepts amount and two_factor_type parameters
-                let __ws_arg_35 = self.extend(krwRequest.clone(), &[params.clone()]);
+                let __ws_arg_35 = self.extend(krwRequest, &[params.clone()]);
                 response = self.private_post_v1_withdraws_krw(&[__ws_arg_35]).await;
             }  else {
                 if (network == Value::Null) {
@@ -3729,7 +3729,7 @@ impl BithumbCore {
         if (id != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("uuid".to_string()), id.clone());
         }
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v1_withdraw(&[__ws_arg_38]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -3788,7 +3788,7 @@ impl BithumbCore {
                 currency = self.currency(code.clone());
                 add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
-            let __ws_arg_40 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_40 = self.extend(request, &[params.clone()]);
             response = self.private_get_v1_withdraws(&[__ws_arg_40]).await;
         }
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -3834,7 +3834,7 @@ impl BithumbCore {
         if (id != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("uuid".to_string()), id.clone());
         }
-        let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_41 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v1_deposit(&[__ws_arg_41]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -3893,7 +3893,7 @@ impl BithumbCore {
                 currency = self.currency(code.clone());
                 add_element_to_object(&mut request, &Value::Str("currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
-            let __ws_arg_43 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_43 = self.extend(request, &[params.clone()]);
             response = self.private_get_v1_deposits(&[__ws_arg_43]).await;
         }
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
@@ -3937,7 +3937,7 @@ impl BithumbCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" createDepositAddress() requires a network parameter".to_string())))));
         }
         add_element_to_object(&mut request, &Value::Str("net_type".to_string()), network.clone());
-        let __ws_arg_44 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_44 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_v1_deposits_generate_coin_address(&[__ws_arg_44]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
@@ -3980,7 +3980,7 @@ impl BithumbCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), code)), Value::Str(" fetchDepositAddress() requires a network parameter".to_string())))));
         }
         add_element_to_object(&mut request, &Value::Str("net_type".to_string()), network.clone());
-        let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_45 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_v1_deposits_coin_address(&[__ws_arg_45]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
@@ -4128,7 +4128,7 @@ impl BithumbCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut endpoint: Value = Value::Str(format!("{}{}", Value::Str("/".to_string()), self.implode_params(path.clone(), params.clone())));
         let mut url: Value = Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), endpoint));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut queryKeys: Value = object_keys(&query);
         let mut queryKeysLength: Value = Value::Int(queryKeys.len() as i64);
         let mut hasQuery: bool = queryKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN);

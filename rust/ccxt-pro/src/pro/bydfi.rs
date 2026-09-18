@@ -408,7 +408,7 @@ impl BydfiCore {
             m
         });
         let __ws_arg_0 = self.deep_extend(message.clone(), &[params.clone()]);
-        let __ws_arg_1 = self.extend(subscriptionParams.clone(), &[subscription.clone()]);
+        let __ws_arg_1 = self.extend(subscriptionParams, &[subscription.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone(), __ws_arg_1]).await;
 
     Value::Null
@@ -740,7 +740,7 @@ impl BydfiCore {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
-            let mut market: Value = self.market(marketId.clone());
+            let mut market: Value = self.market(marketId);
             let mut tf: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(1), &[]);
             let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -792,7 +792,7 @@ impl BydfiCore {
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolAndTimeframe: Value = get_value(&symbolsAndTimeframes, &i);
             let mut marketId: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[]);
-            let mut market: Value = self.market(marketId.clone());
+            let mut market: Value = self.market(marketId);
             let mut tf: Value = self.safe_string(symbolAndTimeframe.clone(), Value::Int(1), &[]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
             append_to_array(&mut channels, add(&add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@kline_".to_string())), &interval));
@@ -1459,7 +1459,7 @@ impl BydfiCore {
             m
         });
         let mut response: Value = self.fetch_balance(&[params.clone()]).await;
-        { let __t = self.extend(response.clone(), &[self.balance.clone()]); self.balance = __t; }
+        { let __t = self.extend(response, &[self.balance.clone()]); self.balance = __t; }
         // don't remove the future from the .futures cache
         let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);
         future.resolve(&[]);

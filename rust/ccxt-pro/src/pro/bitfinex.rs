@@ -736,7 +736,7 @@ impl BitfinexCore {
         let mut data: Value = self.safe_value(message.clone(), Value::Int(2), &[]);
         let mut trade: Value = self.parse_ws_trade(data.clone(), &[]);
         let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut messageHash: Value = add(&Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1163,7 +1163,7 @@ impl BitfinexCore {
                 let mut side: Value = (if is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 let mut bookside: Value = get_value(&orderbookItem, &side);
-                bookside.store_array(Value::List(vec![self.parse_number(price.clone(), &[]), self.parse_number(size.clone(), &[]), self.parse_number(counter.clone(), &[])]));
+                bookside.store_array(Value::List(vec![self.parse_number(price, &[]), self.parse_number(size, &[]), self.parse_number(counter, &[])]));
             }
             client.resolve(&[orderbook.clone(), messageHash.clone()]);
         }
@@ -1236,7 +1236,7 @@ impl BitfinexCore {
             self.load_markets(&[]).await;
         }
         let mut balanceType: Value = self.safe_string_k(params.clone(), "wallet", &[Value::Str("exchange".to_string())]); // exchange, margin
-        params = self.omit(params.clone(), Value::Str("wallet".to_string()), &[]);
+        params = self.omit(params, Value::Str("wallet".to_string()), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".to_string()), balanceType));
         return self.subscribe_private(messageHash.clone()).await;
 
@@ -1488,7 +1488,7 @@ impl BitfinexCore {
                     m.insert("event".to_string(), event.clone());
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1632,7 +1632,7 @@ impl BitfinexCore {
             while { if !__for_first_109 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_109 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut symbol: Value = get_value(&keys, &i);
             let mut symbol: Value = get_value(&keys, &i);
-            let mut market: Value = self.market(symbol.clone());
+            let mut market: Value = self.market(symbol);
             let mut messageHash: Value = add(&Value::Str(format!("{}{}", name, Value::Str(":".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             client.resolve(&[self.orders.clone(), messageHash.clone()]);
         }

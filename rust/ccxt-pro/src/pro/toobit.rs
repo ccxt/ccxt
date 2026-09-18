@@ -525,7 +525,7 @@ impl ToobitCore {
                 m.insert("event".to_string(), Value::Str("sub".to_string()));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
@@ -677,7 +677,7 @@ impl ToobitCore {
                 m.insert("event".to_string(), Value::Str("sub".to_string()));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut symboltimeframestoredVariable = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_1, messageHashes.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
@@ -718,7 +718,7 @@ impl ToobitCore {
         //     }
         //
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
-        let mut market: Value = self.market(marketId.clone());
+        let mut market: Value = self.market(marketId);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -843,7 +843,7 @@ impl ToobitCore {
                 m.insert("event".to_string(), Value::Str("sub".to_string()));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut ticker: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut result: Value = Value::Map({
@@ -1002,7 +1002,7 @@ impl ToobitCore {
                 m.insert("event".to_string(), Value::Str("sub".to_string()));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_3, messageHashes.clone()]).await;
         return orderbook.limit();
 
@@ -1265,7 +1265,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(response.clone(), &[__ws_arg_4]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
+        { let __be_tmp = self.extend(response, &[__ws_arg_4]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         // don't remove the future from the .futures cache
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);

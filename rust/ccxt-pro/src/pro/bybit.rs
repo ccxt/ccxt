@@ -556,7 +556,7 @@ impl BybitCore {
         let mut market: Value = Value::Null;
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             isUsdcSettled = Value::Bool(market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC"));
             type_var = market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null);
         }  else {
@@ -1072,7 +1072,7 @@ impl BybitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut merged: Value = self.extend(rawTicker.clone(), &[data.clone()]);
+            let mut merged: Value = self.extend(rawTicker, &[data.clone()]);
             parsed = self.parse_ticker(merged.clone(), &[]);
         }
         if is_true(&(Value::Bool(parsed == Value::Null))) || is_true(&(Value::Bool(symbol == Value::Null))) {
@@ -3242,7 +3242,7 @@ impl BybitCore {
                     m.insert("args".to_string(), newTopics.clone());
                 m
             });
-            message = self.extend(request.clone(), &[params.clone()]);
+            message = self.extend(request, &[params.clone()]);
             subscription = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), reqId.clone());
@@ -3281,8 +3281,8 @@ impl BybitCore {
                 m.insert("symbols".to_string(), symbols.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
-        let __ws_arg_0 = self.extend(subscription.clone(), &[subExtension.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
+        let __ws_arg_0 = self.extend(subscription, &[subExtension.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), __ws_arg_0]).await;
 
     Value::Null
@@ -3310,7 +3310,7 @@ impl BybitCore {
                     m.insert("args".to_string(), Value::List(vec![self.apiKey.clone(), expires.clone(), signature.clone()]));
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;

@@ -2240,7 +2240,7 @@ impl BitstampCore {
             }
             if is_true(&(Value::Bool(quote != Value::Null))) && !is_true(&(Value::Bool(in_op(&result, &quote)))) {
                 let mut counterDecimals: Value = self.safe_integer_k(market.clone(), "counter_decimals", &[]);
-                add_element_to_object(&mut result, &quote, self.construct_currency_object(quoteId.clone(), quote.clone(), quoteDescription.clone(), counterDecimals.clone(), self.parse_number(cost.clone(), &[]), market.clone()));
+                add_element_to_object(&mut result, &quote, self.construct_currency_object(quoteId.clone(), quote.clone(), quoteDescription.clone(), counterDecimals.clone(), self.parse_number(cost, &[]), market.clone()));
             }
         }
         }
@@ -2274,7 +2274,7 @@ impl BitstampCore {
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_order_book_pair(&[__ws_arg_0]).await;
         //
         //     {
@@ -2380,7 +2380,7 @@ impl BitstampCore {
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut ticker: Value = self.public_get_ticker_pair(&[__ws_arg_1]).await;
         return self.parse_ticker(ticker.clone(), &[market.clone()]);
 
@@ -2656,7 +2656,7 @@ impl BitstampCore {
                 m.insert("time".to_string(), Value::Str("hour".to_string()));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_transactions_pair(&[__ws_arg_2]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2719,7 +2719,7 @@ impl BitstampCore {
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // min 1, max 1000
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_ohlc_pair(&[__ws_arg_3]).await;
         //
         //     {
@@ -2822,7 +2822,7 @@ impl BitstampCore {
                 m.insert("market_symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_fees_trading(&[__ws_arg_4]).await;
         //
         //     [
@@ -3124,7 +3124,7 @@ impl BitstampCore {
                 let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_post_buy_pair(&[__ws_arg_9]).await;
             }  else {
-                let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_10 = self.extend(request, &[params.clone()]);
                 response = self.private_post_sell_pair(&[__ws_arg_10]).await;
             }
         }
@@ -3180,7 +3180,7 @@ impl BitstampCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_replace_order(&[__ws_arg_11]).await;
         let mut order: Value = self.parse_order(response.clone(), &[market.clone()]);
         add_element_to_object(&mut order, &Value::Str("type".to_string()), type_var.clone());
@@ -3213,7 +3213,7 @@ impl BitstampCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_cancel_order(&[__ws_arg_12]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -3246,12 +3246,12 @@ impl BitstampCore {
         });
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_cancel_all_orders_pair(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;
         }
         //
@@ -3310,7 +3310,7 @@ impl BitstampCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
         }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_order_status(&[__ws_arg_15]).await;
         return self.parse_order_status(self.safe_string_k(response.clone(), "status", &[]));
 
@@ -3338,7 +3338,7 @@ impl BitstampCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("client_order_id".to_string()), Value::Str("clientOrderId".to_string()), &[]);
         let mut request: Value = Value::Map({
@@ -3351,7 +3351,7 @@ impl BitstampCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
         }
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_order_status(&[__ws_arg_16]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
@@ -3398,7 +3398,7 @@ impl BitstampCore {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_user_transactions_pair(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.private_post_user_transactions(&[__ws_arg_18]).await;
         }
         let mut result: Value = self.filter_by(response.clone(), Value::Str("type".to_string()), Value::Str("2".to_string()), &[]);
@@ -3443,7 +3443,7 @@ impl BitstampCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3453,7 +3453,7 @@ impl BitstampCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_funding_rate_history_pair(&[__ws_arg_19]).await;
         //
         //     {
@@ -3523,7 +3523,7 @@ impl BitstampCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_user_transactions(&[__ws_arg_20]).await;
         //
         //     [
@@ -3592,7 +3592,7 @@ impl BitstampCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("timedelta".to_string()), Value::Int(50000000)); // use max bitstamp approved value
         }
-        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_withdrawal_requests(&[__ws_arg_21]).await;
         return self.parse_transactions(response.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
@@ -3711,7 +3711,7 @@ impl BitstampCore {
         m.insert("type".to_string(), type_var.clone());
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("status".to_string(), status.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
@@ -4005,7 +4005,7 @@ impl BitstampCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_user_transactions(&[__ws_arg_22]).await;
         let mut currency: Value = Value::Null;
         if (code != Value::Null) {
@@ -4039,7 +4039,7 @@ impl BitstampCore {
                 m.insert("market_symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_funding_rate_market_symbol(&[__ws_arg_23]).await;
         return self.parse_funding_rate(response.clone(), &[market.clone()]);
 
@@ -4112,7 +4112,7 @@ impl BitstampCore {
             self.load_markets(&[]).await;
         }
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut response: Value = self.private_post_open_orders_all(&[params.clone()]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone(), Value::Map({
@@ -4227,7 +4227,7 @@ impl BitstampCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("iban".to_string()), address.clone());
             add_element_to_object(&mut request, &Value::Str("account_currency".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_25 = self.extend(request, &[params.clone()]);
             response = self.private_post_withdrawal_open(&[__ws_arg_25]).await;
         }
         return self.parse_transaction(response.clone(), &[currency.clone()]);
@@ -4270,7 +4270,7 @@ impl BitstampCore {
             response = self.private_post_transfer_from_main(&[__ws_arg_26]).await;
         }  else if (toAccount.as_str() == Some("main")) {
             add_element_to_object(&mut request, &Value::Str("subAccount".to_string()), fromAccount.clone());
-            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_27 = self.extend(request, &[params.clone()]);
             response = self.private_post_transfer_to_main(&[__ws_arg_27]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports from or to main".to_string())))));
@@ -4344,7 +4344,7 @@ impl BitstampCore {
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string()));
         url = Value::Str(format!("{}{}", url, add(&self.version, &Value::Str("/".to_string()))));
         url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("public")) {
             if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));

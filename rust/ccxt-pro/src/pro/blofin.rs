@@ -1178,7 +1178,7 @@ impl BlofinCore {
         let mut firstMarket: Value = Value::Null;
         let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
         if (firstSymbol != Value::Null) {
-            firstMarket = self.market(firstSymbol.clone());
+            firstMarket = self.market(firstSymbol);
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(callerMethodName.clone(), &[firstMarket.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1208,7 +1208,7 @@ impl BlofinCore {
                     let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
                     channel = Value::Str(format!("{}{}", channel, interval));
                 }  else {
-                    market = self.market(current.clone());
+                    market = self.market(current);
                 }
                 let mut topic: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();

@@ -297,7 +297,7 @@ impl NdaxCore {
                 m.insert("o".to_string(), self.json(payload.clone()));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -387,7 +387,7 @@ impl NdaxCore {
                 m.insert("o".to_string(), self.json(payload.clone()));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -504,7 +504,7 @@ impl NdaxCore {
                 m.insert("o".to_string(), self.json(payload.clone()));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());
@@ -696,7 +696,7 @@ impl NdaxCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), subscription.clone()]).await;
         return orderbook.limit();
 

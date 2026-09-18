@@ -473,7 +473,7 @@ impl MudrexCore {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unknown API namespace: ".to_string()))), api))));
         }
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut requestHeaders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -651,7 +651,7 @@ impl MudrexCore {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.market_get_price_mark_kline(&[__ws_arg_0]).await;
         }  else {
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params.clone()]);
             response = self.market_get_price_kline(&[__ws_arg_1]).await;
         }
         //
@@ -698,7 +698,7 @@ impl MudrexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ws_arg_2 = self.extend(params.clone(), &[Value::Map({
+        let __ws_arg_2 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("price".to_string(), Value::Str("mark".to_string()));
     m
@@ -732,7 +732,7 @@ impl MudrexCore {
                 m.insert("is_symbol".to_string(), Value::Int(1));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_asset_id(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -765,7 +765,7 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
@@ -947,8 +947,8 @@ impl MudrexCore {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(qtyStep.clone(), &[]));
-        m.insert("price".to_string(), self.parse_number(priceStep.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(qtyStep, &[]));
+        m.insert("price".to_string(), self.parse_number(priceStep, &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -1018,7 +1018,7 @@ impl MudrexCore {
             if (requested != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("trade_currency".to_string()), requested.clone());
             }
-            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_6 = self.extend(request, &[params.clone()]);
             response = self.private_get_futures_funds(&[__ws_arg_6]).await;
         }
         let mut currency: Value = requested.clone();
@@ -1086,7 +1086,7 @@ impl MudrexCore {
                 m.insert("is_symbol".to_string(), Value::Int(1));
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_asset_id_leverage(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1128,7 +1128,7 @@ impl MudrexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut marginType: Value = self.safe_string_k(params.clone(), "marginType", &[Value::Str("ISOLATED".to_string())]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1139,7 +1139,7 @@ impl MudrexCore {
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("marginType".to_string())]), &[]);
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_futures_asset_id_leverage(&[__ws_arg_8]).await;
         return response;
 
@@ -1202,7 +1202,7 @@ impl MudrexCore {
                 add_element_to_object(&mut riskRequest, &Value::Str("is_stoploss".to_string()), Value::Bool(true));
                 add_element_to_object(&mut riskRequest, &Value::Str("stoploss_price".to_string()), self.price_to_precision(symbol.clone(), stopLossPrice.clone()));
             }
-            let __ws_arg_9 = self.extend(riskRequest.clone(), &[params.clone()]);
+            let __ws_arg_9 = self.extend(riskRequest, &[params.clone()]);
             let mut riskResponse: Value = self.private_post_futures_positions_position_id_riskorder(&[__ws_arg_9]).await;
             let mut riskData: Value = self.safe_dict_k(riskResponse.clone(), "data", &[riskResponse.clone()]);
             return self.parse_order(riskData.clone(), &[market.clone()]);
@@ -1291,7 +1291,7 @@ impl MudrexCore {
         if (price != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("order_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_patch_futures_orders_order_id(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data.clone(), &[market.clone()]);
@@ -1413,14 +1413,14 @@ impl MudrexCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_futures_orders_order_id(&[__ws_arg_12]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data.clone(), &[market.clone()]);
@@ -1449,14 +1449,14 @@ impl MudrexCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_orders_order_id(&[__ws_arg_13]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
         return self.parse_order(data.clone(), &[market.clone()]);
@@ -1494,7 +1494,7 @@ impl MudrexCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut q, &Value::Str("limit".to_string()), limit.clone());
         }
-        let mut request: Value = self.extend(q.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(q, &[params.clone()]);
         let mut response: Value = Value::Null;
         if (state.as_str() == Some("closed")) {
             response = self.private_get_futures_orders_history(&[request.clone()]).await;
@@ -1615,7 +1615,7 @@ impl MudrexCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_14 = self.extend(q.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(q, &[params.clone()]);
         let mut response: Value = self.private_get_futures_positions(&[__ws_arg_14]).await;
         let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
         if (data == Value::Null) {
@@ -1671,7 +1671,7 @@ impl MudrexCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_positions_history(&[__ws_arg_15]).await;
         //
         //     {
@@ -1744,7 +1744,7 @@ impl MudrexCore {
         m.insert("notional".to_string(), notional.clone());
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "leverage", &[]));
         m.insert("collateral".to_string(), self.parse_number(initialMargin.clone(), &[]));
-        m.insert("initialMargin".to_string(), self.parse_number(initialMargin.clone(), &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMargin, &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "maintenance_margin", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
@@ -1823,7 +1823,7 @@ impl MudrexCore {
             return partialResponse;
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("position_id".to_string())]), &[]);
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_futures_positions_position_id_close(&[__ws_arg_17]).await;
         return response;
 
@@ -1875,7 +1875,7 @@ impl MudrexCore {
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("position_id".to_string())]), &[]);
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_futures_positions_position_id_add_margin(&[__ws_arg_18]).await;
         return response;
 
@@ -1951,7 +1951,7 @@ impl MudrexCore {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), pageSize.clone());
                 add_element_to_object(&mut request, &Value::Str("offset".to_string()), offset.clone());
             }
-            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_19 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.private_get_futures_fee_history(&[__ws_arg_19]).await;
             let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
             let mut dataLength: Value = Value::Int(data.len() as i64);
@@ -2156,7 +2156,7 @@ impl MudrexCore {
             let __ws_arg_20 = self.extend(body.clone(), &[params.clone()]);
             response = self.private_post_futures_transfers_inr(&[__ws_arg_20]).await;
         }  else {
-            let __ws_arg_21 = self.extend(body.clone(), &[params.clone()]);
+            let __ws_arg_21 = self.extend(body, &[params.clone()]);
             response = self.private_post_wallet_futures_transfer(&[__ws_arg_21]).await;
         }
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);

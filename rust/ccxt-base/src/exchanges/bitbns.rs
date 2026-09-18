@@ -763,7 +763,7 @@ impl BitbnsCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.www_get_order_fetch_orderbook(&[__ws_arg_0]).await;
         //
         //     {
@@ -1100,7 +1100,7 @@ impl BitbnsCore {
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.v2_post_orders(&[__ws_arg_1]).await;
         }  else {
-            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_2 = self.extend(request, &[params.clone()]);
             response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await;
         }
         //
@@ -1159,7 +1159,7 @@ impl BitbnsCore {
         let mut quoteSide: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")))) { Value::Str("usdtcancel".to_string()) } else { Value::Str("cancel".to_string()) });
         quoteSide = Value::Str(format!("{}{}", quoteSide, tail));
         add_element_to_object(&mut request, &Value::Str("side".to_string()), quoteSide.clone());
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         response = self.v2_post_cancel(&[__ws_arg_3]).await;
         let mut parsed: Value = (if is_true(&(Value::Bool(response == Value::Null))) { Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1203,7 +1203,7 @@ impl BitbnsCore {
         if (trigger.as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder cannot fetch stop orders".to_string())))));
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_post_order_status_symbol(&[__ws_arg_4]).await;
         //
         //     {
@@ -1278,7 +1278,7 @@ impl BitbnsCore {
                 m.insert("side".to_string(), (if is_true(&(Value::Bool(isTrigger.as_bool() == Some(true)))) { (Value::Str(format!("{}{}", quoteSide, Value::Str("StopOrders".to_string())))) } else { (Value::Str(format!("{}{}", quoteSide, Value::Str("Orders".to_string())))) }));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v2_post_getordersnew(&[__ws_arg_5]).await;
         //
         //     {
@@ -1428,7 +1428,7 @@ impl BitbnsCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("since".to_string()), self.iso8601(since.clone()));
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_post_list_executed_orders_symbol(&[__ws_arg_6]).await;
         //
         //     {
@@ -1507,7 +1507,7 @@ impl BitbnsCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1545,7 +1545,7 @@ impl BitbnsCore {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_post_deposit_history_symbol(&[__ws_arg_8]).await;
         //
         //     {
@@ -1607,7 +1607,7 @@ impl BitbnsCore {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_post_withdraw_history_symbol(&[__ws_arg_9]).await;
         //
         //     ...
@@ -1750,7 +1750,7 @@ impl BitbnsCore {
                 m.insert("symbol".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.v1_post_get_coin_address_symbol(&[__ws_arg_10]).await;
         //
         //     {

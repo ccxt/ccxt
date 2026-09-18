@@ -317,7 +317,7 @@ impl CoinoneCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -414,7 +414,7 @@ impl CoinoneCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -559,7 +559,7 @@ impl CoinoneCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit.clone());

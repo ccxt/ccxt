@@ -391,7 +391,7 @@ impl LighterCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_0, messageHash.clone(), subscription.clone()]).await;
 
     Value::Null
@@ -414,7 +414,7 @@ impl LighterCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_1, messageHashes.clone(), subscription.clone()]).await;
 
     Value::Null
@@ -437,7 +437,7 @@ impl LighterCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_2, messageHash.clone(), subscription.clone()]).await;
 
     Value::Null
@@ -566,7 +566,7 @@ impl LighterCore {
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.subscribe_public(messageHash.clone(), &[__ws_arg_3]).await;
         return orderbook.limit();
 
@@ -599,7 +599,7 @@ impl LighterCore {
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[symbol.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_4]).await;
 
     Value::Null
@@ -713,7 +713,7 @@ impl LighterCore {
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]);
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         return self.subscribe_public(messageHash.clone(), &[__ws_arg_5]).await;
 
     Value::Null
@@ -745,7 +745,7 @@ impl LighterCore {
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[symbol.clone()]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_6]).await;
 
     Value::Null
@@ -834,7 +834,7 @@ impl LighterCore {
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_8]).await;
 
     Value::Null
@@ -1071,7 +1071,7 @@ impl LighterCore {
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.subscribe_public(messageHash.clone(), &[__ws_arg_9]).await;
         return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
 
@@ -1103,7 +1103,7 @@ impl LighterCore {
         });
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_10]).await;
 
     Value::Null
@@ -1323,7 +1323,7 @@ impl LighterCore {
                 m.insert("channel".to_string(), add(&Value::Str("account_all_trades/".to_string()), &self.number_to_string(accountIndex.clone())));
             m
         });
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.subscribe_public(messageHash.clone(), &[__ws_arg_11]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -1361,7 +1361,7 @@ impl LighterCore {
                 m.insert("channel".to_string(), add(&Value::Str("account_all_trades/".to_string()), &self.number_to_string(accountIndex.clone())));
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_12]).await;
 
     Value::Null
@@ -1517,7 +1517,7 @@ impl LighterCore {
             m
         });
         let mut messageHash: Value = self.get_message_hash(Value::Str("liquidations".to_string()), &[symbol.clone()]);
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         return self.subscribe_public(messageHash.clone(), &[__ws_arg_13]).await;
 
     Value::Null
@@ -1556,7 +1556,7 @@ impl LighterCore {
             return self.subscribe_private(messageHash.clone(), &[__ws_arg_14]).await;
         }  else {
             add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("user_stats/".to_string()), &self.number_to_string(accountIndex.clone())));
-            let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_15 = self.extend(request, &[params.clone()]);
             return self.subscribe_public(messageHash.clone(), &[__ws_arg_15]).await;
         }
 
@@ -1709,7 +1709,7 @@ impl LighterCore {
             messageHash = self.get_message_hash(Value::Str("orders".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("account_all_orders/".to_string()), &self.number_to_string(accountIndex.clone())));
         }
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut orders: Value = self.subscribe_private(messageHash.clone(), &[__ws_arg_16]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());
@@ -1753,7 +1753,7 @@ impl LighterCore {
             add_element_to_object(&mut request, &Value::Str("channel".to_string()), add(&Value::Str("account_all_orders/".to_string()), &self.number_to_string(accountIndex.clone())));
         }
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".to_string()), subMessageHash));
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         return self.unsubscribe(messageHash.clone(), &[__ws_arg_17]).await;
 
     Value::Null

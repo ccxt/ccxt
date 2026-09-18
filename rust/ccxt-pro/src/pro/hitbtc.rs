@@ -452,7 +452,7 @@ impl HitbtcCore {
                 m.insert("ch".to_string(), name.clone());
             m
         });
-        let mut request: Value = self.extend(subscribe.clone(), &[params.clone()]);
+        let mut request: Value = self.extend(subscribe, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[request.clone(), messageHashes.clone()]).await;
 
     Value::Null
@@ -1626,7 +1626,7 @@ impl HitbtcCore {
                 m.insert("mode".to_string(), mode.clone());
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.subscribe_private(name.clone(), &[Value::Null, __ws_arg_1]).await;
 
     Value::Null
@@ -1713,7 +1713,7 @@ impl HitbtcCore {
             m
         });
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelOrderWs".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -1755,7 +1755,7 @@ impl HitbtcCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("cancelAllOrdersWs".to_string()), &[market.clone(), params.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }

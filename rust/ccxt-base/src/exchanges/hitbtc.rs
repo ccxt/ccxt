@@ -1701,7 +1701,7 @@ impl HitbtcCore {
             }
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_wallet_crypto_address(&[__ws_arg_0]).await;
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
@@ -1752,7 +1752,7 @@ impl HitbtcCore {
             }
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wallet_crypto_address(&[__ws_arg_1]).await;
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
@@ -1863,7 +1863,7 @@ impl HitbtcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_ticker_symbol(&[__ws_arg_2]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -1898,7 +1898,7 @@ impl HitbtcCore {
             let mut delimited: Value = join(&marketIds, &Value::Str(",".to_string()));
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), delimited.clone());
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_ticker(&[__ws_arg_3]).await;
         //
         //     {
@@ -2028,7 +2028,7 @@ impl HitbtcCore {
             let mut responseInner: Value = self.public_get_public_trades_symbol(&[__ws_arg_4]).await;
             return self.parse_trades(responseInner.clone(), &[market.clone()]);
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_trades(&[__ws_arg_5]).await;
         let mut trades: Value = Value::List(vec![]);
         let mut marketIds: Value = object_keys(&response);
@@ -2107,7 +2107,7 @@ impl HitbtcCore {
                 let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_history_trade(&[__ws_arg_8]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_9 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_history_trade(&[__ws_arg_9]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() not support this market type".to_string())))));
@@ -2252,7 +2252,7 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wallet_transactions(&[__ws_arg_10]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone(), params.clone()]);
 
@@ -2488,7 +2488,7 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_orderbook(&[__ws_arg_11]).await;
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2543,7 +2543,7 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), limit.clone());
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_orderbook_symbol(&[__ws_arg_12]).await;
         let mut timestamp: Value = self.parse8601(self.safe_string_k(response.clone(), "timestamp", &[]));
         return self.parse_order_book(response.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bid".to_string()), Value::Str("ask".to_string())]);
@@ -2607,7 +2607,7 @@ impl HitbtcCore {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_spot_fee_symbol(&[__ws_arg_13]).await;
         }  else if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("swap")) {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.private_get_futures_fee_symbol(&[__ws_arg_14]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() not support this market type".to_string())))));
@@ -2734,7 +2734,7 @@ impl HitbtcCore {
             let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_public_futures_candles_premium_index_symbol(&[__ws_arg_17]).await;
         }  else {
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.public_get_public_candles_symbol(&[__ws_arg_18]).await;
         }
         //
@@ -2835,7 +2835,7 @@ impl HitbtcCore {
                 let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_history_order(&[__ws_arg_21]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_22 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_history_order(&[__ws_arg_22]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchClosedOrders() not support this market type".to_string())))));
@@ -2896,7 +2896,7 @@ impl HitbtcCore {
                 let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_history_order(&[__ws_arg_25]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_26 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_history_order(&[__ws_arg_26]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() not support this market type".to_string())))));
@@ -2959,7 +2959,7 @@ impl HitbtcCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2983,7 +2983,7 @@ impl HitbtcCore {
                 let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_history_trade(&[__ws_arg_29]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_30 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_history_trade(&[__ws_arg_30]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrderTrades() not support this market type".to_string())))));
@@ -3046,7 +3046,7 @@ impl HitbtcCore {
                 let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_order(&[__ws_arg_33]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_34 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_order(&[__ws_arg_34]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() not support this market type".to_string())))));
@@ -3082,7 +3082,7 @@ impl HitbtcCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3106,7 +3106,7 @@ impl HitbtcCore {
                 let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_order_client_order_id(&[__ws_arg_37]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_38 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_order_client_order_id(&[__ws_arg_38]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() not support this market type".to_string())))));
@@ -3165,7 +3165,7 @@ impl HitbtcCore {
                 let __ws_arg_41 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_delete_futures_order(&[__ws_arg_41]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_42 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_42 = self.extend(request, &[params.clone()]);
                 response = self.private_delete_margin_order(&[__ws_arg_42]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() not support this market type".to_string())))));
@@ -3206,7 +3206,7 @@ impl HitbtcCore {
             m
         });
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
@@ -3225,7 +3225,7 @@ impl HitbtcCore {
                 let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_delete_futures_order_client_order_id(&[__ws_arg_45]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_46 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_46 = self.extend(request, &[params.clone()]);
                 response = self.private_delete_margin_order_client_order_id(&[__ws_arg_46]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() not support this market type".to_string())))));
@@ -3260,7 +3260,7 @@ impl HitbtcCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Null;
         let mut marginMode: Value = Value::Null;
@@ -3279,7 +3279,7 @@ impl HitbtcCore {
                 let __ws_arg_49 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_patch_futures_order_client_order_id(&[__ws_arg_49]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_50 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_50 = self.extend(request, &[params.clone()]);
                 response = self.private_patch_margin_order_client_order_id(&[__ws_arg_50]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" editOrder() not support this market type".to_string())))));
@@ -3334,7 +3334,7 @@ impl HitbtcCore {
             let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_margin_order(&[__ws_arg_52]).await;
         }  else {
-            let __ws_arg_53 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_53 = self.extend(request, &[params.clone()]);
             response = self.private_post_spot_order(&[__ws_arg_53]).await;
         }
         return self.parse_order(response.clone(), &[market.clone()]);
@@ -3650,7 +3650,7 @@ impl HitbtcCore {
                 m.insert("destination".to_string(), toId.clone());
             m
         });
-        let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_54 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_wallet_transfer(&[__ws_arg_54]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
@@ -3705,7 +3705,7 @@ impl HitbtcCore {
                 m.insert("amount".to_string(), self.currency_to_precision(code.clone(), amount.clone(), &[]));
             m
         });
-        let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_55 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_wallet_convert(&[__ws_arg_55]).await;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3770,7 +3770,7 @@ impl HitbtcCore {
         if (includeFee.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("include_fee".to_string()), Value::Bool(true));
         }
-        let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_56 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_wallet_crypto_withdraw(&[__ws_arg_56]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -3811,7 +3811,7 @@ impl HitbtcCore {
         if (type_var.as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRates() does not support ".to_string()))), type_var)), Value::Str(" markets".to_string())))));
         }
-        let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_57 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_futures_info(&[__ws_arg_57]).await;
         //
         //     {
@@ -3844,7 +3844,7 @@ impl HitbtcCore {
                 continue;
             }
             let mut rawFundingRate: Value = self.safe_value(response.clone(), marketId.clone(), &[]);
-            let mut marketInner: Value = self.market(marketId.clone());
+            let mut marketInner: Value = self.market(marketId);
             let mut symbol: Value = marketInner.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut fundingRate: Value = self.parse_funding_rate(rawFundingRate.clone(), &[marketInner.clone()]);
             add_element_to_object(&mut fundingRates, &symbol, fundingRate.clone());
@@ -3901,7 +3901,7 @@ impl HitbtcCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_58 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_futures_history_funding(&[__ws_arg_58]).await;
         //
         //    {
@@ -3998,7 +3998,7 @@ impl HitbtcCore {
                 let __ws_arg_60 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_account(&[__ws_arg_60]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_61 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_61 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_account(&[__ws_arg_61]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() not support this market type".to_string())))));
@@ -4089,7 +4089,7 @@ impl HitbtcCore {
                 let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_account_isolated_symbol(&[__ws_arg_63]).await;
             }  else if (marketType.as_str() == Some("margin")) {
-                let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_64 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_account_isolated_symbol(&[__ws_arg_64]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPosition() not support this market type".to_string())))));
@@ -4263,7 +4263,7 @@ impl HitbtcCore {
             marketIds = self.market_ids(&[symbols.clone()]);
             add_element_to_object(&mut request, &Value::Str("symbols".to_string()), join(&marketIds, &Value::Str(",".to_string())));
         }
-        let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_65 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_futures_info(&[__ws_arg_65]).await;
         //
         //     {
@@ -4329,7 +4329,7 @@ impl HitbtcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_66 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_futures_info_symbol(&[__ws_arg_66]).await;
         return self.parse_open_interest(response.clone(), &[market.clone()]);
 
@@ -4362,7 +4362,7 @@ impl HitbtcCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_67 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_67 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_futures_info_symbol(&[__ws_arg_67]).await;
         return self.parse_funding_rate(response.clone(), &[market.clone()]);
 
@@ -4453,7 +4453,7 @@ impl HitbtcCore {
             let __ws_arg_68 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_put_futures_account_isolated_symbol(&[__ws_arg_68]).await;
         }  else if is_true(&(Value::Bool(marketType.as_str() == Some("margin")))) || is_true(&(Value::Bool(marketType.as_str() == Some("spot")))) || is_true(&(Value::Bool(marginMode.as_str() == Some("isolated")))) {
-            let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_69 = self.extend(request, &[params.clone()]);
             response = self.private_put_margin_account_isolated_symbol(&[__ws_arg_69]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" modifyMarginHelper() not support this market type".to_string())))));
@@ -4621,7 +4621,7 @@ impl HitbtcCore {
                 let __ws_arg_73 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_get_futures_account_isolated_symbol(&[__ws_arg_73]).await;
             }  else if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("margin")) {
-                let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_74 = self.extend(request, &[params.clone()]);
                 response = self.private_get_margin_account_isolated_symbol(&[__ws_arg_74]).await;
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverage() not support this market type".to_string())))));
@@ -4690,7 +4690,7 @@ impl HitbtcCore {
                 m.insert("margin_balance".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        let __ws_arg_75 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_75 = self.extend(request, &[params.clone()]);
         return self.private_put_futures_account_isolated_symbol(&[__ws_arg_75]).await;
 
     Value::Null
@@ -4818,7 +4818,7 @@ impl HitbtcCore {
                 m.insert("margin_mode".to_string(), marginMode.clone());
             m
         });
-        let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_76 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_futures_position_margin_mode_symbol(&[__ws_arg_76]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 

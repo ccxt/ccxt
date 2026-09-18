@@ -420,7 +420,7 @@ impl BitvavoCore {
 })]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -457,7 +457,7 @@ impl BitvavoCore {
 })]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
 
     Value::Null
@@ -726,7 +726,7 @@ impl BitvavoCore {
 })]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
         if is_true(&self.newUpdates) {
             let mut first: Value = self.safe_value(trades.clone(), Value::Int(0), &[]);
@@ -844,7 +844,7 @@ impl BitvavoCore {
 })]));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut ohlcv: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = ohlcv.get_limit(symbol.clone(), limit.clone());
@@ -991,7 +991,7 @@ impl BitvavoCore {
                 m.insert("channels".to_string(), channels.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut symboltimeframecandlesVariable = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone()]).await;
         let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
@@ -1141,7 +1141,7 @@ impl BitvavoCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone(), subscription.clone()]).await;
         return orderbook.limit();
 
@@ -1202,7 +1202,7 @@ impl BitvavoCore {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch_multiple(url.clone(), messageHashes.clone(), &[message.clone(), messageHashes.clone(), subscription.clone()]).await;
         return orderbook.limit();
 
@@ -1383,7 +1383,7 @@ impl BitvavoCore {
                 m.insert("market".to_string(), marketId.clone());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[__ws_arg_0, messageHash.clone(), subscription.clone()]).await;
         return orderbook.limit();
 
@@ -1791,10 +1791,10 @@ impl BitvavoCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.watch_request(Value::Str("privateCancelOrders".to_string()), __ws_arg_1).await;
 
     Value::Null
@@ -1844,14 +1844,14 @@ impl BitvavoCore {
             self.load_markets(&[]).await;
         }
         self.authenticate(&[]).await;
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id.clone());
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         return self.watch_request(Value::Str("privateGetOrder".to_string()), __ws_arg_2).await;
 
     Value::Null
@@ -1941,7 +1941,7 @@ impl BitvavoCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("market".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut orders: Value = self.watch_request(Value::Str("privateGetOrdersOpen".to_string()), __ws_arg_3).await;
         return self.filter_by_symbol_since_limit(orders.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
 
@@ -2595,7 +2595,7 @@ impl BitvavoCore {
                     m.insert("timestamp".to_string(), timestamp.clone());
                 m
             });
-            let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+            let mut message: Value = self.extend(request, &[params.clone()]);
             future = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, future.clone());
         }

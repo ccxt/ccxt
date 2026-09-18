@@ -419,7 +419,7 @@ impl GrvtCore {
             self.load_markets(&[]).await;
         }
         symbol = self.symbol(symbol.clone());
-        let __ws_arg_1 = self.extend(params.clone(), &[Value::Map({
+        let __ws_arg_1 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("callerMethodName".to_string(), Value::Str("watchTicker".to_string()));
     m
@@ -778,7 +778,7 @@ impl GrvtCore {
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut data: Value = get_value(&symbolsAndTimeframes, &i);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
-            let mut market: Value = self.market(symbolString.clone());
+            let mut market: Value = self.market(symbolString);
             let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut unfiedTimeframe: Value = self.safe_string(data.clone(), Value::Int(1), &[Value::Str("1".to_string())]);
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
@@ -942,7 +942,7 @@ impl GrvtCore {
                 m.insert("selectors".to_string(), rawHashes.clone());
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_5, rawHashes.clone(), &[]).await;
         return orderbook.limit();
 
@@ -1104,7 +1104,7 @@ impl GrvtCore {
                 m.insert("selectors".to_string(), rawHashes.clone());
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_7, messageHashes.clone(), &[Value::Bool(false)]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -1220,7 +1220,7 @@ impl GrvtCore {
                 m.insert("selectors".to_string(), rawHashes.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut newPositions: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_8, rawHashes.clone(), &[Value::Bool(false)]).await;
         if is_true(&self.newUpdates) {
             return newPositions;
@@ -1319,7 +1319,7 @@ impl GrvtCore {
                 m.insert("selectors".to_string(), rawHashes.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut orders: Value = self.subscribe_multiple(messageHashes.clone(), __ws_arg_9, rawHashes.clone(), &[Value::Bool(false)]).await;
         if is_true(&self.newUpdates) {
             limit = orders.get_limit(symbol.clone(), limit.clone());

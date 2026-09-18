@@ -401,7 +401,7 @@ impl RevolutxCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut queryKeys: Value = object_keys(&query);
         let mut queryLength: Value = Value::Int(queryKeys.len() as i64);
         let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), implodedPath));
@@ -520,16 +520,16 @@ impl RevolutxCore {
         m.insert("feeSide".to_string(), Value::Str("get".to_string()));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(baseStep.clone(), &[]));
-        m.insert("price".to_string(), self.parse_number(quoteStep.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(baseStep, &[]));
+        m.insert("price".to_string(), self.parse_number(quoteStep, &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minOrderSize.clone(), &[]));
-        m.insert("max".to_string(), self.parse_number(maxOrderSize.clone(), &[]));
+        m.insert("min".to_string(), self.parse_number(minOrderSize, &[]));
+        m.insert("max".to_string(), self.parse_number(maxOrderSize, &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -540,7 +540,7 @@ impl RevolutxCore {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minOrderSizeQuote.clone(), &[]));
+        m.insert("min".to_string(), self.parse_number(minOrderSizeQuote, &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -583,7 +583,7 @@ impl RevolutxCore {
         if (region != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("region".to_string()), region.clone());
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get10_public_configuration_pairs(&[__ws_arg_0]).await;
         //
         //     {
@@ -611,7 +611,7 @@ impl RevolutxCore {
             let mut base: Value = self.safe_string_k(market.clone(), "base", &[]);
             let mut quote: Value = self.safe_string_k(market.clone(), "quote", &[]);
             let mut marketId: Value = add(&add(&base, &Value::Str("-".to_string())), &quote);
-            let mut marketData: Value = self.extend(market.clone(), &[Value::Map({
+            let mut marketData: Value = self.extend(market, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), marketId.clone());
                 m
@@ -652,7 +652,7 @@ impl RevolutxCore {
         m.insert("type".to_string(), type_var.clone());
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
-        m.insert("precision".to_string(), self.parse_number(precision.clone(), &[]));
+        m.insert("precision".to_string(), self.parse_number(precision, &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -708,7 +708,7 @@ impl RevolutxCore {
         if (region != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("region".to_string()), region.clone());
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get10_public_configuration_currencies(&[__ws_arg_1]).await;
         //
         //     {
@@ -732,7 +732,7 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currencyData: Value = self.extend(currency.clone(), &[Value::Map({
+            let mut currencyData: Value = self.extend(currency, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), key.clone());
                 m
@@ -972,7 +972,7 @@ impl RevolutxCore {
         if (region != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("region".to_string()), region.clone());
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get20_public_order_book_symbol(&[__ws_arg_3]).await;
         //
         //     {
@@ -1064,7 +1064,7 @@ impl RevolutxCore {
         if (region != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("region".to_string()), region.clone());
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get10_public_candles_symbol(&[__ws_arg_4]).await;
         //
         //     {
@@ -1175,7 +1175,7 @@ impl RevolutxCore {
         if (cursor != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("cursor".to_string()), cursor.clone());
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get10_public_trades_all(&[__ws_arg_5]).await;
         //
         //     {
@@ -1324,7 +1324,7 @@ impl RevolutxCore {
         if (totalFee != Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(totalFee.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(totalFee, &[]));
                     m.insert("currency".to_string(), feeCurrency.clone());
                 m
             });
@@ -1352,11 +1352,11 @@ impl RevolutxCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("type".to_string(), orderType.clone());
-        m.insert("price".to_string(), self.parse_number(price.clone(), &[]));
-        m.insert("average".to_string(), self.parse_number(averageFillPrice.clone(), &[]));
-        m.insert("amount".to_string(), self.parse_number(amountValue.clone(), &[]));
-        m.insert("filled".to_string(), self.parse_number(filledValue.clone(), &[]));
-        m.insert("remaining".to_string(), self.parse_number(remainingValue.clone(), &[]));
+        m.insert("price".to_string(), self.parse_number(price, &[]));
+        m.insert("average".to_string(), self.parse_number(averageFillPrice, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountValue, &[]));
+        m.insert("filled".to_string(), self.parse_number(filledValue, &[]));
+        m.insert("remaining".to_string(), self.parse_number(remainingValue, &[]));
         m.insert("status".to_string(), status.clone());
         m.insert("timeInForce".to_string(), timeInForce.clone());
         m.insert("timestamp".to_string(), createdDate.clone());
@@ -1451,7 +1451,7 @@ impl RevolutxCore {
                 m.insert("order_configuration".to_string(), orderConfiguration.clone());
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("quote_size".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("executionInstructions".to_string()), Value::Str("execution_instructions".to_string())]), &[])]);
+        let __ws_arg_6 = self.extend(request, &[self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("quote_size".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("executionInstructions".to_string()), Value::Str("execution_instructions".to_string())]), &[])]);
         let mut response: Value = self.private_post10_orders(&[__ws_arg_6]).await;
         //
         //     {
@@ -1473,7 +1473,7 @@ impl RevolutxCore {
 })]) });
         let mut venueOrderId: Value = self.safe_string_k(orderData.clone(), "venue_order_id", &[]);
         let mut state: Value = self.safe_string_k(orderData.clone(), "state", &[]);
-        let __ws_arg_7 = self.extend(orderData.clone(), &[Value::Map({
+        let __ws_arg_7 = self.extend(orderData, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), venueOrderId.clone());
         m.insert("symbol".to_string(), crate::value::get_value_k(&market, "id"));
@@ -1512,7 +1512,7 @@ impl RevolutxCore {
                 m.insert("venue_order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete10_orders_venue_order_id(&[__ws_arg_8]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1573,7 +1573,7 @@ impl RevolutxCore {
                 m.insert("venue_order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get10_orders_venue_order_id(&[__ws_arg_9]).await;
         //
         //     {
@@ -1594,7 +1594,7 @@ impl RevolutxCore {
 })]);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         return self.parse_order(data.clone(), &[market.clone()]);
 
@@ -1654,7 +1654,7 @@ impl RevolutxCore {
         if (side != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("side".to_string()), side.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[self.omit(params.clone(), Value::List(vec![Value::Str("cursor".to_string()), Value::Str("orderStates".to_string()), Value::Str("order_states".to_string()), Value::Str("orderTypes".to_string()), Value::Str("order_types".to_string()), Value::Str("side".to_string())]), &[])]);
+        let __ws_arg_10 = self.extend(request, &[self.omit(params, Value::List(vec![Value::Str("cursor".to_string()), Value::Str("orderStates".to_string()), Value::Str("order_states".to_string()), Value::Str("orderTypes".to_string()), Value::Str("order_types".to_string()), Value::Str("side".to_string())]), &[])]);
         let mut response: Value = self.private_get10_orders_active(&[__ws_arg_10]).await;
         //
         //     {
@@ -1743,7 +1743,7 @@ impl RevolutxCore {
         if (orderTypes != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("order_types".to_string()), join(&orderTypes, &Value::Str(",".to_string())));
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string()), Value::Str("cursor".to_string()), Value::Str("orderStates".to_string()), Value::Str("order_states".to_string()), Value::Str("orderTypes".to_string()), Value::Str("order_types".to_string())]), &[])]);
+        let __ws_arg_11 = self.extend(request, &[self.omit(params, Value::List(vec![Value::Str("until".to_string()), Value::Str("cursor".to_string()), Value::Str("orderStates".to_string()), Value::Str("order_states".to_string()), Value::Str("orderTypes".to_string()), Value::Str("order_types".to_string())]), &[])]);
         let mut response: Value = self.private_get10_orders_historical(&[__ws_arg_11]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
@@ -1783,7 +1783,7 @@ impl RevolutxCore {
     m
 }));
         let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".to_string()), Value::Str("order_states".to_string()), &[Value::List(vec![Value::Str("filled".to_string()), Value::Str("cancelled".to_string()), Value::Str("rejected".to_string()), Value::Str("replaced".to_string())])]);
-        let __ws_arg_12 = self.omit(params.clone(), Value::List(vec![Value::Str("orderStates".to_string()), Value::Str("order_states".to_string())]), &[]);
+        let __ws_arg_12 = self.omit(params, Value::List(vec![Value::Str("orderStates".to_string()), Value::Str("order_states".to_string())]), &[]);
         let mut requestParams: Value = self.extend(__ws_arg_12, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("order_states".to_string(), orderStates.clone());
@@ -1894,7 +1894,7 @@ impl RevolutxCore {
         if (cursor != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("cursor".to_string()), cursor.clone());
         }
-        let __ws_arg_13 = self.extend(request.clone(), &[self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[])]);
+        let __ws_arg_13 = self.extend(request, &[self.omit(params, Value::List(vec![Value::Str("until".to_string())]), &[])]);
         let mut response: Value = self.private_get10_trades_private_symbol(&[__ws_arg_13]).await;
         //
         //     {
@@ -1978,7 +1978,7 @@ impl RevolutxCore {
         if (executionInstructions != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("execution_instructions".to_string()), executionInstructions.clone());
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("cost".to_string()), Value::Str("quote_size".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("executionInstructions".to_string()), Value::Str("execution_instructions".to_string())]), &[])]);
+        let __ws_arg_14 = self.extend(request, &[self.omit(params, Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string()), Value::Str("cost".to_string()), Value::Str("quote_size".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("executionInstructions".to_string()), Value::Str("execution_instructions".to_string())]), &[])]);
         let mut response: Value = self.private_put10_orders_venue_order_id(&[__ws_arg_14]).await;
         //
         //     {
@@ -2000,7 +2000,7 @@ impl RevolutxCore {
 })]) });
         let mut newVenueOrderId: Value = self.safe_string_k(orderData.clone(), "venue_order_id", &[]);
         let mut state: Value = self.safe_string_k(orderData.clone(), "state", &[]);
-        let __ws_arg_15 = self.extend(orderData.clone(), &[Value::Map({
+        let __ws_arg_15 = self.extend(orderData, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), newVenueOrderId.clone());
         m.insert("symbol".to_string(), crate::value::get_value_k(&market, "id"));

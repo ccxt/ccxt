@@ -893,7 +893,7 @@ impl HyperliquidCore {
         m.insert("created".to_string(), Value::Null);
     m
 })]);
-        return self.omit(marketRow.clone(), Value::Str("symbol".to_string()), &[]);
+        return self.omit(marketRow, Value::Str("symbol".to_string()), &[]);
 
     Value::Null
 }
@@ -958,7 +958,7 @@ impl HyperliquidCore {
                 m.insert("coin".to_string(), coin.clone());
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_1]).await;
         //
         //     {
@@ -1199,7 +1199,7 @@ impl HyperliquidCore {
                 m.insert("coin".to_string(), self.safe_string_k(info.clone(), "coinName", &[]));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_3]).await;
         //
         //     {
@@ -1303,7 +1303,7 @@ impl HyperliquidCore {
             m
         });
         params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_4]).await;
         //
         //     [
@@ -1368,7 +1368,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_5]).await;
         //
         //     {
@@ -1457,7 +1457,7 @@ impl HyperliquidCore {
         // outcome positions are spot token balances under the "+<encoding>" coin form; they carry
         // the size (total) and entry notional (entryNtl). hyperliquid does not return the position
         // value / entry price / pnl, so they are computed from the current mid prices
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut promises: Value = Value::List(vec![self.public_post_info(&[__ws_arg_6]).await, self.public_post_info(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("allMids".to_string()));
@@ -1503,7 +1503,7 @@ impl HyperliquidCore {
                 }
             }
             let __ws_arg_7 = self.safe_string(mids.clone(), tradeCoin.clone(), &[]);
-            let mut enriched: Value = self.extend(balance.clone(), &[Value::Map({
+            let mut enriched: Value = self.extend(balance, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("markPx".to_string(), __ws_arg_7);
                 m
@@ -1562,7 +1562,7 @@ impl HyperliquidCore {
         m.insert("contracts".to_string(), total.clone());
         m.insert("contractSize".to_string(), Value::Int(1));
         m.insert("entryPrice".to_string(), entryPrice.clone());
-        m.insert("markPrice".to_string(), self.parse_number(markPxStr.clone(), &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPxStr, &[]));
         m.insert("notional".to_string(), notional.clone());
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "hold", &[]));
@@ -2098,7 +2098,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_8]).await;
         let mut ordersWithStatus: Value = Value::List(vec![]);
         let mut rawOrders: Value = Value::List(vec![]);
@@ -2111,7 +2111,7 @@ impl HyperliquidCore {
             while { if !__for_first_1209 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1209 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&rawOrders, &i);
             let mut order: Value = get_value(&rawOrders, &i);
-            append_to_array(&mut ordersWithStatus, self.extend(order.clone(), &[Value::Map({
+            append_to_array(&mut ordersWithStatus, self.extend(order, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ccxtStatus".to_string(), Value::Str("open".to_string()));
                 m
@@ -2158,7 +2158,7 @@ impl HyperliquidCore {
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_9]).await;
         // Deduplicate by oid keeping most recent statusTimestamp
         let mut deduped: Value = Value::Map({
@@ -2240,7 +2240,7 @@ impl HyperliquidCore {
             let mut isCloid: bool = Value::Int(id.len() as i64).as_f64().unwrap_or(f64::NAN) >= Value::Int(34).as_f64().unwrap_or(f64::NAN);
             add_element_to_object(&mut request, &Value::Str("oid".to_string()), (if isCloid { id.clone() } else { self.parse_to_numeric(id.clone()) }));
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_10]).await;
         let mut orderStatus: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2334,11 +2334,11 @@ impl HyperliquidCore {
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), self.safe_number_k(entry.clone(), "limitPx", &[]));
         m.insert("triggerPrice".to_string(), triggerPrice.clone());
-        m.insert("amount".to_string(), self.parse_number(totalAmount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(totalAmount, &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_number_k(entry.clone(), "avgPx", &[]));
-        m.insert("filled".to_string(), self.parse_number(filled.clone(), &[]));
-        m.insert("remaining".to_string(), self.parse_number(remaining.clone(), &[]));
+        m.insert("filled".to_string(), self.parse_number(filled, &[]));
+        m.insert("remaining".to_string(), self.parse_number(remaining, &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::List(vec![]));
     m
@@ -2431,7 +2431,7 @@ impl HyperliquidCore {
             m
         });
         // recentTrades returns the coin's most recent public trades (newest first)
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_11]).await;
         let mut trades: Value = Value::List(vec![]);
         if is_true(&Value::Bool(is_array(&response))) {
@@ -2492,7 +2492,7 @@ impl HyperliquidCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_info(&[__ws_arg_12]).await;
         let mut fills: Value = Value::List(vec![]);
         if is_true(&Value::Bool(is_array(&response))) {
@@ -2579,8 +2579,8 @@ impl HyperliquidCore {
         m.insert("type".to_string(), Value::Str("limit".to_string()));
         m.insert("side".to_string(), side.clone());
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
-        m.insert("price".to_string(), self.parse_number(price.clone(), &[]));
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("price".to_string(), self.parse_number(price, &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("cost".to_string(), cost.clone());
         m.insert("fee".to_string(), feeObject.clone());
     m

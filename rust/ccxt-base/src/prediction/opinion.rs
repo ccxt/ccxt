@@ -377,7 +377,7 @@ impl OpinionCore {
                     m.insert("page".to_string(), page.clone());
                 m
             });
-            let __ws_arg_0 = self.extend(request.clone(), &[rest.clone()]);
+            let __ws_arg_0 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.opinion_public_get_market(&[__ws_arg_0]).await;
             let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -706,7 +706,7 @@ impl OpinionCore {
                     m.insert("page".to_string(), page.clone());
                 m
             });
-            let __ws_arg_3 = self.extend(request.clone(), &[rest.clone()]);
+            let __ws_arg_3 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.opinion_public_get_market(&[__ws_arg_3]).await;
             let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1175,7 +1175,7 @@ impl OpinionCore {
                 m.insert("token_id".to_string(), tokenId.clone());
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_public_get_token_orderbook(&[__ws_arg_15]).await;
         //
         //     {
@@ -1661,7 +1661,7 @@ impl OpinionCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_post_order_cancel(&[__ws_arg_19]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1804,7 +1804,7 @@ impl OpinionCore {
 })]);
             add_element_to_object(&mut request, &Value::Str("marketId".to_string()), self.safe_integer_k(info.clone(), "marketId", &[]));
         }
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_order(&[__ws_arg_20]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1881,7 +1881,7 @@ impl OpinionCore {
                 m.insert("status".to_string(), Value::Str("1".to_string()));
             m
         });
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_22]).await;
 
     Value::Null
@@ -1912,7 +1912,7 @@ impl OpinionCore {
                 m.insert("status".to_string(), Value::Str("2,3,4,5".to_string()));
             m
         });
-        let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_23 = self.extend(request, &[params.clone()]);
         return self.fetch_orders(&[outcome.clone(), since.clone(), limit.clone(), __ws_arg_23]).await;
 
     Value::Null
@@ -1955,7 +1955,7 @@ impl OpinionCore {
 })]);
             add_element_to_object(&mut request, &Value::Str("marketId".to_string()), self.safe_integer_k(info.clone(), "marketId", &[]));
         }
-        let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_24 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_trade_user_wallet_address(&[__ws_arg_24]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2097,7 +2097,7 @@ impl OpinionCore {
                 m.insert("chain_id".to_string(), Value::Str("56".to_string()));
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_25 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_user_balance(&[__ws_arg_25]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2191,7 +2191,7 @@ impl OpinionCore {
                 m.insert("walletAddress".to_string(), self.walletAddress.clone());
             m
         });
-        let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_26 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.opinion_private_get_positions_user_wallet_address(&[__ws_arg_26]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3099,7 +3099,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.clone(), &[baseUrls.as_map().and_then(|__m| __m.get("opinion")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut existingHeaders: Value = (if is_true(&(Value::Bool(headers != Value::Null))) { headers.clone() } else { Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

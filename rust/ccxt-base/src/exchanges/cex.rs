@@ -984,7 +984,7 @@ impl CexCore {
         if (symbols != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pairs".to_string()), self.market_ids(&[symbols.clone()]));
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_0]).await;
         //
         //    {
@@ -1091,7 +1091,7 @@ impl CexCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("pageSize".to_string()), crate::runtime::Math::min(&limit, &Value::Int(10000))); // has a bug, still returns more trades
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_1]).await;
         //
         //    {
@@ -1180,7 +1180,7 @@ impl CexCore {
                 m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_order_book(&[__ws_arg_2]).await;
         //
         //    {
@@ -1266,7 +1266,7 @@ impl CexCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_candles(&[__ws_arg_3]).await;
         //
         //    {
@@ -1590,7 +1590,7 @@ impl CexCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -1727,7 +1727,7 @@ impl CexCore {
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.fetch_open_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_5]).await;
         return result.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
 
@@ -1758,7 +1758,7 @@ impl CexCore {
                 m.insert("orderId".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut result: Value = self.fetch_closed_orders(&[symbol.clone(), Value::Null, Value::Null, __ws_arg_6]).await;
         return result.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
 
@@ -1929,7 +1929,7 @@ impl CexCore {
             add_element_to_object(&mut request, &Value::Str("type".to_string()), Value::Str("Stop Limit".to_string()));
             add_element_to_object(&mut request, &Value::Str("stopPrice".to_string()), triggerPrice.clone());
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_do_my_new_order(&[__ws_arg_7]).await;
         //
         // on success
@@ -2014,7 +2014,7 @@ impl CexCore {
                 m.insert("timestamp".to_string(), self.milliseconds());
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_do_cancel_my_order(&[__ws_arg_8]).await;
         //
         //      {"ok":"ok","data":{}}
@@ -2124,7 +2124,7 @@ impl CexCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("dateTo".to_string()), until.clone());
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_my_transaction_history(&[__ws_arg_9]).await;
         //
         //    {
@@ -2173,7 +2173,7 @@ impl CexCore {
         m.insert("referenceId".to_string(), Value::Null);
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone()));
         m.insert("currency".to_string(), code.clone());
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("before".to_string(), Value::Null);
@@ -2240,7 +2240,7 @@ impl CexCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("dateTo".to_string()), until.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_my_funding_history(&[__ws_arg_10]).await;
         //
         //    {
@@ -2378,7 +2378,7 @@ impl CexCore {
             let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_do_deposit_funds_from_wallet(&[__ws_arg_11]).await;
         }  else {
-            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_12 = self.extend(request, &[params.clone()]);
             response = self.private_post_do_withdrawal_funds_to_wallet(&[__ws_arg_12]).await;
         }
         // both endpoints return the same structure, the only difference is that
@@ -2420,7 +2420,7 @@ impl CexCore {
                 m.insert("toAccountId".to_string(), toAccount.clone());
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_do_my_internal_transfer(&[__ws_arg_13]).await;
         //
         //    {
@@ -2515,7 +2515,7 @@ impl CexCore {
                 m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
             m
         });
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_deposit_address(&[__ws_arg_14]).await;
         //
         //    {
@@ -2566,7 +2566,7 @@ impl CexCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("public")) {
             if (method.as_str() == Some("GET")) {
                 if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {

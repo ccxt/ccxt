@@ -423,7 +423,7 @@ impl BlockchaincomCore {
                 m.insert("action".to_string(), Value::Str("subscribe".to_string()));
                 m.insert("channel".to_string(), Value::Str("prices".to_string()));
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("granularity".to_string(), self.parse_number(interval.clone(), &[]));
+                m.insert("granularity".to_string(), self.parse_number(interval, &[]));
             m
         });
         request = self.deep_extend(request.clone(), &[params.clone()]);
@@ -1161,7 +1161,7 @@ impl BlockchaincomCore {
                     m.insert("token".to_string(), self.secret.clone());
                 m
             });
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_1 = self.extend(request, &[params.clone()]);
             return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;

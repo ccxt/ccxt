@@ -3813,7 +3813,7 @@ impl OkxCore {
         m.insert("expiry".to_string(), timestamp.clone());
         m.insert("expiryDatetime".to_string(), datetime.clone());
         m.insert("optionType".to_string(), (if is_true(&(Value::Bool(optionType.as_str() == Some("C")))) { Value::Str("call".to_string()) } else { Value::Str("put".to_string()) }));
-        m.insert("strike".to_string(), self.parse_number(strike.clone(), &[]));
+        m.insert("strike".to_string(), self.parse_number(strike, &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Null);
@@ -4235,15 +4235,15 @@ impl OkxCore {
         let mut instIdCode: Value = self.safe_integer_k(market.clone(), "instIdCode", &[]);
         let __ws_arg_0 = self.safe_number_k(market.clone(), "ctVal", &[]);
         let __ws_arg_1 = self.iso8601(expiry.clone());
-        let __ws_arg_2 = self.parse_number(strikePrice.clone(), &[]);
+        let __ws_arg_2 = self.parse_number(strikePrice, &[]);
         let __ws_arg_3 = self.safe_integer2(market.clone(), Value::Str("contTdSwTime".to_string()), Value::Str("listTime".to_string()), &[]);
         let __ws_arg_4 = self.safe_number_k(market.clone(), "lotSz", &[]);
         let __ws_arg_5 = self.safe_number_k(market.clone(), "tickSz", &[]);
         let __ws_arg_6 = self.parse_number(Value::Str("1".to_string()), &[]);
-        let __ws_arg_7 = self.parse_number(maxLeverage.clone(), &[]);
+        let __ws_arg_7 = self.parse_number(maxLeverage, &[]);
         let __ws_arg_8 = self.safe_number_k(market.clone(), "minSz", &[]);
         let __ws_arg_9 = self.safe_number_k(market.clone(), "maxLmtSz", &[]);
-        return self.extend(fees.clone(), &[Value::Map({
+        return self.extend(fees, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
         m.insert("instIdCode".to_string(), instIdCode.clone());
@@ -4632,7 +4632,7 @@ impl OkxCore {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_market_books_full(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.public_get_market_books(&[__ws_arg_14]).await;
         }
         //
@@ -4773,7 +4773,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_market_ticker(&[__ws_arg_15]).await;
         //
         //     {
@@ -4904,7 +4904,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_mark_price(&[__ws_arg_17]).await;
         //
         // {
@@ -5120,7 +5120,7 @@ impl OkxCore {
                 let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
                 response = self.public_get_market_trades(&[__ws_arg_20]).await;
             }  else if (method.as_str() == Some("publicGetMarketHistoryTrades")) {
-                let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_21 = self.extend(request, &[params.clone()]);
                 response = self.public_get_market_history_trades(&[__ws_arg_21]).await;
             }
         }
@@ -5368,7 +5368,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_28 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_funding_rate_history(&[__ws_arg_28]).await;
         //
         //     {
@@ -5548,7 +5548,7 @@ impl OkxCore {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() supports spot, swap, future or option markets only".to_string())))));
         }
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_29 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_account_trade_fee(&[__ws_arg_29]).await;
         //
         //     {
@@ -5608,7 +5608,7 @@ impl OkxCore {
             let __ws_arg_30 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_asset_balances(&[__ws_arg_30]).await;
         }  else {
-            let __ws_arg_31 = self.extend(request.clone(), &[query.clone()]);
+            let __ws_arg_31 = self.extend(request, &[query.clone()]);
             response = self.private_get_account_balance(&[__ws_arg_31]).await;
         }
         return self.parse_balance_by_type(marketType.clone(), response.clone());
@@ -5644,7 +5644,7 @@ impl OkxCore {
                 m.insert("tgtCcy".to_string(), Value::Str("quote_ccy".to_string()));
             m
         });
-        let __ws_arg_32 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_32 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("buy".to_string()), cost.clone(), &[Value::Null, __ws_arg_32]).await;
 
     Value::Null
@@ -5678,7 +5678,7 @@ impl OkxCore {
                 m.insert("tgtCcy".to_string(), Value::Str("quote_ccy".to_string()));
             m
         });
-        let __ws_arg_33 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_33 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), Value::Str("sell".to_string()), cost.clone(), &[Value::Null, __ws_arg_33]).await;
 
     Value::Null
@@ -5808,7 +5808,7 @@ impl OkxCore {
                                 let mut amountString: Value = self.number_to_string(amount.clone());
                                 let mut priceString: Value = self.number_to_string(price.clone());
                                 let mut quoteAmount: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
-                                notional = self.parse_number(quoteAmount.clone(), &[]);
+                                notional = self.parse_number(quoteAmount, &[]);
                             }
                         }  else if (notional == Value::Null) {
                             panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)".to_string())))));
@@ -6105,7 +6105,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut extendedParams: Value = self.extend(orderParams.clone(), &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), extendedParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
@@ -6295,7 +6295,7 @@ impl OkxCore {
             let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_trade_amend_algos(&[__ws_arg_34]).await;
         }  else {
-            let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_35 = self.extend(request, &[params.clone()]);
             response = self.private_post_trade_amend_order(&[__ws_arg_35]).await;
         }
         //
@@ -6358,7 +6358,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -6370,8 +6370,8 @@ impl OkxCore {
         }  else {
             add_element_to_object(&mut request, &Value::Str("ordId".to_string()), id.clone());
         }
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
-        let __ws_arg_36 = self.extend(request.clone(), &[query.clone()]);
+        let mut query: Value = self.omit(params, Value::List(vec![Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
+        let __ws_arg_36 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_post_trade_cancel_order(&[__ws_arg_36]).await;
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
@@ -6424,7 +6424,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::List(vec![]);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "cancelOrders", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6672,7 +6672,7 @@ impl OkxCore {
                 m.insert("timeOut".to_string(), timeOut.clone());
             m
         });
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_trade_cancel_all_after(&[__ws_arg_37]).await;
         return response;
 
@@ -6947,7 +6947,7 @@ impl OkxCore {
             let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone(), &[]);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCostSigned.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCostSigned, &[]));
                     m.insert("currency".to_string(), feeCurrencyCode.clone());
                 m
             });
@@ -7020,7 +7020,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -7049,13 +7049,13 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("ordId".to_string()), id.clone());
             }
         }
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
+        let mut query: Value = self.omit(params, Value::List(vec![Value::Str("method".to_string()), Value::Str("clOrdId".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrderAlgo")) {
             let __ws_arg_38 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_order_algo(&[__ws_arg_38]).await;
         }  else {
-            let __ws_arg_39 = self.extend(request.clone(), &[query.clone()]);
+            let __ws_arg_39 = self.extend(request, &[query.clone()]);
             response = self.private_get_trade_order(&[__ws_arg_39]).await;
         }
         //
@@ -7201,7 +7201,7 @@ impl OkxCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -7229,13 +7229,13 @@ impl OkxCore {
         }  else if is_true(&(Value::Bool(trigger != Value::Null))) && is_true(&(Value::Bool(ordType == Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("ordType".to_string()), Value::Str("trigger".to_string()));
         }
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
+        let mut query: Value = self.omit(params, Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrdersAlgoPending")) {
             let __ws_arg_40 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_trade_orders_algo_pending(&[__ws_arg_40]).await;
         }  else {
-            let __ws_arg_41 = self.extend(request.clone(), &[query.clone()]);
+            let __ws_arg_41 = self.extend(request, &[query.clone()]);
             response = self.private_get_trade_orders_pending(&[__ws_arg_41]).await;
         }
         //
@@ -7373,7 +7373,7 @@ impl OkxCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut type_var: Value = Value::Null;
@@ -7406,7 +7406,7 @@ impl OkxCore {
             let mut algoId: Value = self.safe_string_k(params.clone(), "algoId", &[]);
             if (algoId != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("algoId".to_string()), algoId.clone());
-                params = self.omit(params.clone(), Value::Str("algoId".to_string()), &[]);
+                params = self.omit(params, Value::Str("algoId".to_string()), &[]);
             }
             if isTrigger {
                 if (ordType == Value::Null) {
@@ -7423,13 +7423,13 @@ impl OkxCore {
                 query = self.omit(query.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             }
         }
-        let mut send: Value = self.omit(query.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
+        let mut send: Value = self.omit(query, Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(request.clone(), &[send.clone()]);
             response = self.private_get_trade_orders_algo_history(&[__ws_arg_42]).await;
         }  else {
-            let __ws_arg_43 = self.extend(request.clone(), &[send.clone()]);
+            let __ws_arg_43 = self.extend(request, &[send.clone()]);
             response = self.private_get_trade_orders_history(&[__ws_arg_43]).await;
         }
         //
@@ -7580,7 +7580,7 @@ impl OkxCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut type_var: Value = Value::Null;
@@ -7624,7 +7624,7 @@ impl OkxCore {
             }
             add_element_to_object(&mut request, &Value::Str("state".to_string()), Value::Str("filled".to_string()));
         }
-        let mut send: Value = self.omit(query.clone(), Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
+        let mut send: Value = self.omit(query, Value::List(vec![Value::Str("method".to_string()), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), Value::Str("trailing".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if (method.as_str() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(request.clone(), &[send.clone()]);
@@ -7633,7 +7633,7 @@ impl OkxCore {
             let __ws_arg_45 = self.extend(request.clone(), &[send.clone()]);
             response = self.private_get_trade_orders_history_archive(&[__ws_arg_45]).await;
         }  else {
-            let __ws_arg_46 = self.extend(request.clone(), &[send.clone()]);
+            let __ws_arg_46 = self.extend(request, &[send.clone()]);
             response = self.private_get_trade_orders_history(&[__ws_arg_46]).await;
         }
         //
@@ -7772,7 +7772,7 @@ impl OkxCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -7786,7 +7786,7 @@ impl OkxCore {
         if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(Value::Bool(since == Value::Null))) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
         }
-        let __ws_arg_47 = self.extend(request.clone(), &[query.clone()]);
+        let __ws_arg_47 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_get_trade_fills_history(&[__ws_arg_47]).await;
         //
         //     {
@@ -7844,7 +7844,7 @@ impl OkxCore {
                 m.insert("ordId".to_string(), id.clone());
             m
         });
-        let __ws_arg_48 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_48 = self.extend(request, &[params.clone()]);
         return self.fetch_my_trades(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_48]).await;
 
     Value::Null
@@ -7926,7 +7926,7 @@ impl OkxCore {
             let __ws_arg_50 = self.extend(request.clone(), &[query.clone()]);
             response = self.private_get_asset_bills(&[__ws_arg_50]).await;
         }  else {
-            let __ws_arg_51 = self.extend(request.clone(), &[query.clone()]);
+            let __ws_arg_51 = self.extend(request, &[query.clone()]);
             response = self.private_get_account_bills(&[__ws_arg_51]).await;
         }
         //
@@ -8213,7 +8213,7 @@ impl OkxCore {
                 m.insert("ccy".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_52 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_52 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_deposit_address(&[__ws_arg_52]).await;
         //
         //     {
@@ -8350,8 +8350,8 @@ impl OkxCore {
             }
         }
         add_element_to_object(&mut request, &Value::Str("fee".to_string()), self.number_to_string(fee.clone())); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        let mut query: Value = self.omit(params.clone(), Value::List(vec![Value::Str("fee".to_string())]), &[]);
-        let __ws_arg_53 = self.extend(request.clone(), &[query.clone()]);
+        let mut query: Value = self.omit(params, Value::List(vec![Value::Str("fee".to_string())]), &[]);
+        let __ws_arg_53 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_post_asset_withdrawal(&[__ws_arg_53]).await;
         //
         //     {
@@ -8418,7 +8418,7 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("after".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_54 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_54 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_54]).await;
         //
         //     {
@@ -8493,7 +8493,7 @@ impl OkxCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("ccy".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_55 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_55 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_deposit_history(&[__ws_arg_55]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
         let mut deposit: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -8550,7 +8550,7 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("after".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_56 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_56]).await;
         //
         //     {
@@ -8617,7 +8617,7 @@ impl OkxCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("ccy".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_57 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_withdrawal_history(&[__ws_arg_57]).await;
         //
         //    {
@@ -8848,7 +8848,7 @@ impl OkxCore {
                 m.insert("mgnMode".to_string(), marginMode.clone());
             m
         });
-        let __ws_arg_58 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_58 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_account_leverage_info(&[__ws_arg_58]).await;
         //
         //     {
@@ -8938,7 +8938,7 @@ impl OkxCore {
         if (type_var != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("instType".to_string()), self.convert_to_instrument_type(type_var.clone()));
         }
-        let __ws_arg_59 = self.extend(request.clone(), &[query.clone()]);
+        let __ws_arg_59 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_get_account_positions(&[__ws_arg_59]).await;
         //
         //     {
@@ -9028,7 +9028,7 @@ impl OkxCore {
                 while { if !__for_first_1007 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1007 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = get_value(&symbols, &i);
                 let mut entry: Value = get_value(&symbols, &i);
-                let mut market: Value = self.market(entry.clone());
+                let mut market: Value = self.market(entry);
                 append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             }
@@ -9281,13 +9281,13 @@ impl OkxCore {
         m.insert("notional".to_string(), notional.clone());
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("liquidationPrice".to_string(), liquidationPrice.clone());
-        m.insert("entryPrice".to_string(), self.parse_number(entryPriceString.clone(), &[]));
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString.clone(), &[]));
+        m.insert("entryPrice".to_string(), self.parse_number(entryPriceString, &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealizedPnlString, &[]));
         m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realizedPnl", &[]));
         m.insert("percentage".to_string(), percentage.clone());
         m.insert("contracts".to_string(), contracts.clone());
         m.insert("contractSize".to_string(), contractSize.clone());
-        m.insert("markPrice".to_string(), self.parse_number(markPriceString.clone(), &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPriceString, &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "closeAvgPx", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("hedged".to_string(), hedged.clone());
@@ -9296,10 +9296,10 @@ impl OkxCore {
         m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(position.clone(), "uTime", &[]));
         m.insert("maintenanceMargin".to_string(), maintenanceMargin.clone());
         m.insert("maintenanceMarginPercentage".to_string(), maintenanceMarginPercentage.clone());
-        m.insert("collateral".to_string(), self.parse_number(collateralString.clone(), &[]));
-        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone(), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage.clone(), &[]));
-        m.insert("leverage".to_string(), self.parse_number(leverageString.clone(), &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMarginString, &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));
+        m.insert("leverage".to_string(), self.parse_number(leverageString, &[]));
         m.insert("marginRatio".to_string(), marginRatio.clone());
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -9356,7 +9356,7 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("from".to_string()), self.safe_string_k(params.clone(), "from", &[Value::Str("6".to_string())]));
             add_element_to_object(&mut request, &Value::Str("to".to_string()), self.safe_string_k(params.clone(), "to", &[Value::Str("6".to_string())]));
         }
-        let __ws_arg_62 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_62 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_asset_transfer(&[__ws_arg_62]).await;
         //
         //     {
@@ -9507,7 +9507,7 @@ impl OkxCore {
                 m.insert("transId".to_string(), id.clone());
             m
         });
-        let __ws_arg_63 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_63 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_transfer_state(&[__ws_arg_63]).await;
         //
         //     {
@@ -9574,7 +9574,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_64 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_64 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_account_bills_archive(&[__ws_arg_64]).await;
         //
         //    {
@@ -9813,7 +9813,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -9828,7 +9828,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_65 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_funding_rate(&[__ws_arg_65]).await;
         //
         //    {
@@ -9898,7 +9898,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), Value::Str("ANY".to_string()));
             m
         });
-        let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_66 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_funding_rate(&[__ws_arg_66]).await;
         //
         //    {
@@ -9973,7 +9973,7 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("instType".to_string()), self.convert_to_instrument_type(type_var.clone()));
         }
         // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-        let __ws_arg_67 = self.extend(request.clone(), &[query.clone()]);
+        let __ws_arg_67 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_get_account_bills_archive(&[__ws_arg_67]).await;
         //
         //    {
@@ -10028,7 +10028,7 @@ impl OkxCore {
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                     m.insert("id".to_string(), self.safe_string_k(entry.clone(), "billId", &[]));
-                    m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+                    m.insert("amount".to_string(), self.parse_number(amount, &[]));
                 m
             }));
         }
@@ -10068,7 +10068,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (marginMode == Value::Null) {
@@ -10091,7 +10091,7 @@ impl OkxCore {
             }
             add_element_to_object(&mut request, &Value::Str("posSide".to_string()), posSide.clone());
         }
-        let __ws_arg_68 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_68 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_68]).await;
         return response;
 
@@ -10169,7 +10169,7 @@ impl OkxCore {
                 m.insert("posMode".to_string(), hedgeMode.clone());
             m
         });
-        let __ws_arg_69 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_69 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_set_position_mode(&[__ws_arg_69]).await;
         return response;
 
@@ -10205,7 +10205,7 @@ impl OkxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut lever: Value = self.safe_integer2(params.clone(), Value::Str("lever".to_string()), Value::Str("leverage".to_string()), &[]);
         if is_true(&(Value::Bool(lever == Value::Null))) || is_true(&(lever.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) || is_true(&(lever.as_f64().unwrap_or(f64::NAN) > Value::Int(125).as_f64().unwrap_or(f64::NAN))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() params[\"lever\"] should be between 1 and 125".to_string())))));
@@ -10218,7 +10218,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_70 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_70 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_70]).await;
         return response;
 
@@ -10299,7 +10299,7 @@ impl OkxCore {
                 m.insert("ccy".to_string(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_71 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_71 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_account_interest_rate(&[__ws_arg_71]).await;
         //
         //    {
@@ -10433,7 +10433,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_72 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_72 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_finance_savings_lending_rate_history(&[__ws_arg_72]).await;
         //
         //     {
@@ -10488,7 +10488,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_73 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_73 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_finance_savings_lending_rate_history(&[__ws_arg_73]).await;
         //
         //     {
@@ -10529,7 +10529,7 @@ impl OkxCore {
                 m.insert("posSide".to_string(), posSide.clone());
             m
         });
-        let __ws_arg_74 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_74 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_position_margin_balance(&[__ws_arg_74]).await;
         //
         //     {
@@ -10630,7 +10630,7 @@ impl OkxCore {
         m.insert("symbol".to_string(), responseMarket.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone());
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
-        m.insert("amount".to_string(), self.parse_number(amount.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("code".to_string(), code.clone());
         m.insert("total".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
@@ -10723,7 +10723,7 @@ impl OkxCore {
         if (type_var.as_str() == Some("MARGIN")) {
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_76 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_position_tiers(&[__ws_arg_76]).await;
         //
         //    {
@@ -10853,10 +10853,10 @@ impl OkxCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_77 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_account_interest_accrued(&[__ws_arg_77]).await;
         //
         //    {
@@ -10934,7 +10934,7 @@ impl OkxCore {
                 m.insert("side".to_string(), Value::Str("borrow".to_string()));
             m
         });
-        let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_78 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_borrow_repay(&[__ws_arg_78]).await;
         //
         //     {
@@ -10994,7 +10994,7 @@ impl OkxCore {
                 m.insert("ordId".to_string(), id.clone());
             m
         });
-        let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_79 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_account_borrow_repay(&[__ws_arg_79]).await;
         //
         //     {
@@ -11080,7 +11080,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_80 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_open_interest(&[__ws_arg_80]).await;
         //
         //     {
@@ -11244,7 +11244,7 @@ impl OkxCore {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), until.clone());
                 params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             }
-            let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_83 = self.extend(request, &[params.clone()]);
             response = self.public_get_rubik_stat_contracts_open_interest_volume(&[__ws_arg_83]).await;
         }
         //
@@ -11363,7 +11363,7 @@ impl OkxCore {
             let mut ids: Value = self.currency_ids(&[codes.clone()]);
             add_element_to_object(&mut request, &Value::Str("ccy".to_string()), join(&ids, &Value::Str(",".to_string())));
         }
-        let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_84 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_currencies(&[__ws_arg_84]).await;
         //
         //    {
@@ -11552,7 +11552,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_85 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_delivery_exercise_history(&[__ws_arg_85]).await;
         //
         //     {
@@ -11630,7 +11630,7 @@ impl OkxCore {
                 while { if !__for_first_1018 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1018 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(details.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut settlement: Value = self.parse_settlement(get_value(&details, &j), market.clone());
                 let __ws_arg_86 = self.iso8601(timestamp.clone());
-                append_to_array(&mut result, self.extend(settlement.clone(), &[Value::Map({
+                append_to_array(&mut result, self.extend(settlement, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("timestamp".to_string(), timestamp.clone());
                         m.insert("datetime".to_string(), __ws_arg_86);
@@ -11675,7 +11675,7 @@ impl OkxCore {
                 m.insert("instType".to_string(), self.convert_to_instrument_type(marketType.clone()));
             m
         });
-        let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_87 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_underlying(&[__ws_arg_87]).await;
         //
         //     {
@@ -11722,7 +11722,7 @@ impl OkxCore {
                 m.insert("expTime".to_string(), self.safe_string(optionParts.clone(), Value::Int(2), &[]));
             m
         });
-        let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_88 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_88]).await;
         //
         //     {
@@ -11825,7 +11825,7 @@ impl OkxCore {
             }
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("uly".to_string()), Value::Str("instFamily".to_string())]), &[]);
-        let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_89 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_opt_summary(&[__ws_arg_89]).await;
         //
         //     {
@@ -11970,7 +11970,7 @@ impl OkxCore {
             let mut currency: Value = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("ccy".to_string()), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_90 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_trade_close_position(&[__ws_arg_90]).await;
         //
         //    {
@@ -12019,7 +12019,7 @@ impl OkxCore {
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_91 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_market_ticker(&[__ws_arg_91]).await;
         //
         //     {
@@ -12082,7 +12082,7 @@ impl OkxCore {
                 m.insert("instType".to_string(), Value::Str("OPTION".to_string()));
             m
         });
-        let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_92 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_market_tickers(&[__ws_arg_92]).await;
         //
         //     {
@@ -12196,7 +12196,7 @@ impl OkxCore {
                 m.insert("side".to_string(), Value::Str("sell".to_string()));
             m
         });
-        let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_93 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_asset_convert_estimate_quote(&[__ws_arg_93]).await;
         //
         //     {
@@ -12266,7 +12266,7 @@ impl OkxCore {
                 m.insert("side".to_string(), Value::Str("sell".to_string()));
             m
         });
-        let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_94 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_asset_convert_trade(&[__ws_arg_94]).await;
         //
         //     {
@@ -12328,7 +12328,7 @@ impl OkxCore {
                 m.insert("clTReqId".to_string(), id.clone());
             m
         });
-        let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_95 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_convert_history(&[__ws_arg_95]).await;
         //
         //     {
@@ -12405,7 +12405,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_96 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_asset_convert_history(&[__ws_arg_96]).await;
         //
         //     {
@@ -12714,7 +12714,7 @@ impl OkxCore {
             let __ws_arg_97 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_account_bills(&[__ws_arg_97]).await;
         }  else if since.as_f64().unwrap_or(f64::NAN) > threeMonthsAgo.as_f64().unwrap_or(f64::NAN) {
-            let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_98 = self.extend(request, &[params.clone()]);
             response = self.private_get_account_bills_archive(&[__ws_arg_98]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months".to_string())))));
@@ -12822,7 +12822,7 @@ impl OkxCore {
         if (instType != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("instType".to_string()), instType.clone());
         }
-        let __ws_arg_99 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_99 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_account_positions_history(&[__ws_arg_99]).await;
         //
         //    {
@@ -12892,7 +12892,7 @@ impl OkxCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLongShortRatioHistory() requires a symbol argument".to_string())))));
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -12912,7 +12912,7 @@ impl OkxCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_100 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_100 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_rubik_stat_contracts_long_short_account_ratio_contract(&[__ws_arg_100]).await;
         //
         //     {

@@ -362,7 +362,7 @@ impl BithumbCore {
 }), &[params.clone()])]);
             return self.watch(url.clone(), messageHash.clone(), &[request.clone(), messageHash.clone()]).await;
         }
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
 
     Value::Null

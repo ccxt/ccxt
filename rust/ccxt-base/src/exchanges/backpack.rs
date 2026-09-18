@@ -1461,7 +1461,7 @@ impl BackpackCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_tickers(&[__ws_arg_0]).await;
         let mut tickers: Value = self.parse_tickers(response.clone(), &[]);
         return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
@@ -1492,7 +1492,7 @@ impl BackpackCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_ticker(&[__ws_arg_1]).await;
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
@@ -1589,7 +1589,7 @@ impl BackpackCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_depth(&[__ws_arg_2]).await;
         //
         //     {
@@ -1670,7 +1670,7 @@ impl BackpackCore {
             add_element_to_object(&mut request, &Value::Str("priceType".to_string()), self.capitalize(price.clone()));
             params = self.omit(params.clone(), Value::Str("price".to_string()), &[]);
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_klines(&[__ws_arg_3]).await;
         let mut ohlcvs: Value = self.to_array(response.clone());
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -1711,7 +1711,7 @@ impl BackpackCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_mark_prices(&[__ws_arg_4]).await;
         let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1789,7 +1789,7 @@ impl BackpackCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_open_interest(&[__ws_arg_5]).await;
         let mut interest: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1861,7 +1861,7 @@ impl BackpackCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_api_v1_funding_rates(&[__ws_arg_6]).await;
         //
         //     [
@@ -1937,7 +1937,7 @@ impl BackpackCore {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_api_v1_trades_history(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_8 = self.extend(request, &[params.clone()]);
             response = self.public_get_api_v1_trades(&[__ws_arg_8]).await;
         }
         let mut responseList: Value = self.to_array(response.clone());
@@ -1994,7 +1994,7 @@ impl BackpackCore {
         if (fillType == Value::Null) {
             add_element_to_object(&mut request, &Value::Str("fillType".to_string()), Value::Str("User".to_string())); // default
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wapi_v1_history_fills(&[__ws_arg_9]).await;
         let mut responseList: Value = self.to_array(response.clone());
         return self.parse_trades(responseList.clone(), &[market.clone(), since.clone(), limit.clone()]);
@@ -2246,7 +2246,7 @@ impl BackpackCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), until.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposits(&[__ws_arg_10]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -2295,7 +2295,7 @@ impl BackpackCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("to".to_string()), until.clone());
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wapi_v1_capital_withdrawals(&[__ws_arg_11]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
@@ -2343,7 +2343,7 @@ impl BackpackCore {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".to_string())))));
         }
         add_element_to_object(&mut request, &Value::Str("blockchain".to_string()), networkId.clone());
-        let __ws_arg_12 = self.extend(request.clone(), &[query.clone()]);
+        let __ws_arg_12 = self.extend(request, &[query.clone()]);
         let mut response: Value = self.private_post_wapi_v1_capital_withdrawals(&[__ws_arg_12]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
@@ -2522,7 +2522,7 @@ impl BackpackCore {
                 m.insert("blockchain".to_string(), self.network_code_to_id(networkCode.clone(), &[currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]));
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_13 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wapi_v1_capital_deposit_address(&[__ws_arg_13]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
@@ -2632,7 +2632,7 @@ impl BackpackCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut extendedParams: Value = self.extend(orderParams.clone(), &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), extendedParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
         }
@@ -2729,7 +2729,7 @@ impl BackpackCore {
                 add_element_to_object(&mut request, &Value::Str("selfTradePrevention".to_string()), Value::Str("RejectBoth".to_string()));
             }
         }
-        return self.extend(request.clone(), &[params.clone()]);
+        return self.extend(request, &[params.clone()]);
 
     Value::Null
 }
@@ -2777,7 +2777,7 @@ impl BackpackCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_api_v1_orders(&[__ws_arg_14]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -2813,7 +2813,7 @@ impl BackpackCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_api_v1_order(&[__ws_arg_15]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -2849,7 +2849,7 @@ impl BackpackCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_api_v1_order(&[__ws_arg_16]).await;
         return self.parse_order(response.clone(), &[]);
 
@@ -2883,7 +2883,7 @@ impl BackpackCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_delete_api_v1_orders(&[__ws_arg_17]).await;
         return self.parse_orders(response.clone(), &[market.clone()]);
 
@@ -2924,7 +2924,7 @@ impl BackpackCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wapi_v1_history_orders(&[__ws_arg_18]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -3262,7 +3262,7 @@ impl BackpackCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_wapi_v1_history_funding(&[__ws_arg_19]).await;
         return self.parse_incomes(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 

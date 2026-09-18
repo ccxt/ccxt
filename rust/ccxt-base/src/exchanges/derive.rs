@@ -1432,7 +1432,7 @@ impl DeriveCore {
                 m.insert("instrument_type".to_string(), Value::Str("erc20".to_string()));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_0]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1455,7 +1455,7 @@ impl DeriveCore {
                 m.insert("instrument_type".to_string(), Value::Str("perp".to_string()));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_1]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1478,7 +1478,7 @@ impl DeriveCore {
                 m.insert("instrument_type".to_string(), Value::Str("option".to_string()));
             m
         });
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_all_instruments(&[__ws_arg_2]).await;
         let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1636,7 +1636,7 @@ impl DeriveCore {
                 m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_ticker(&[__ws_arg_3]).await;
         //
         // spot
@@ -1844,7 +1844,7 @@ impl DeriveCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("to_timestamp".to_string()), until.clone());
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_trade_history(&[__ws_arg_4]).await;
         //
         // {
@@ -1910,7 +1910,7 @@ impl DeriveCore {
                 continue;
             }
             let mut parsed: Value = self.parse_trade(rawTrade.clone(), &[market.clone()]);
-            let mut trade: Value = self.extend(parsed.clone(), &[params.clone()]);
+            let mut trade: Value = self.extend(parsed, &[params.clone()]);
             append_to_array(&mut result, trade.clone());
         }
         }
@@ -2019,7 +2019,7 @@ impl DeriveCore {
         if (until != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("to_timestamp".to_string()), until.clone());
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_post_get_funding_rate_history(&[__ws_arg_5]).await;
         //
         // {
@@ -2293,7 +2293,7 @@ impl DeriveCore {
             let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_order_debug(&[__ws_arg_6]).await;
         }  else {
-            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_7 = self.extend(request, &[params.clone()]);
             response = self.private_post_order(&[__ws_arg_7]).await;
         }
         //
@@ -2457,7 +2457,7 @@ impl DeriveCore {
         }
         add_element_to_object(&mut request, &Value::Str("signature".to_string()), signature.clone());
         params = self.omit(params.clone(), Value::List(vec![Value::Str("reduceOnly".to_string()), Value::Str("reduce_only".to_string()), Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string())]), &[]);
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_replace(&[__ws_arg_8]).await;
         //
         //   {
@@ -2594,7 +2594,7 @@ impl DeriveCore {
                 let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_post_cancel_trigger_order(&[__ws_arg_10]).await;
             }  else {
-                let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_11 = self.extend(request, &[params.clone()]);
                 response = self.private_post_cancel(&[__ws_arg_11]).await;
             }
         }
@@ -2681,7 +2681,7 @@ impl DeriveCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut subaccountId: Value = Value::Null;
         { let __destr_tmp = self.handle_derive_subaccount_id(Value::Str("cancelAllOrders".to_string()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -2696,7 +2696,7 @@ impl DeriveCore {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_cancel_by_instrument(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.private_post_cancel_all(&[__ws_arg_14]).await;
         }
         return Value::List(vec![self.safe_order(Value::Map({
@@ -2749,7 +2749,7 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -2760,7 +2760,7 @@ impl DeriveCore {
         if (isTrigger.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("status".to_string()), Value::Str("untriggered".to_string()));
         }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_orders(&[__ws_arg_15]).await;
         //
         // {
@@ -2845,7 +2845,7 @@ impl DeriveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("open".to_string()));
             m
@@ -2878,7 +2878,7 @@ impl DeriveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("filled".to_string()));
             m
@@ -2911,7 +2911,7 @@ impl DeriveCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("cancelled".to_string()));
             m
@@ -3119,7 +3119,7 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -3128,7 +3128,7 @@ impl DeriveCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
         }
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_16]).await;
         //
         // {
@@ -3214,7 +3214,7 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
@@ -3223,7 +3223,7 @@ impl DeriveCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("from_timestamp".to_string()), since.clone());
         }
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_17 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_trade_history(&[__ws_arg_17]).await;
         //
         // {
@@ -3306,7 +3306,7 @@ impl DeriveCore {
             m
         });
         params = self.omit(params.clone(), Value::List(vec![Value::Str("subaccount_id".to_string())]), &[]);
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_18 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_positions(&[__ws_arg_18]).await;
         //
         // {
@@ -3416,14 +3416,14 @@ impl DeriveCore {
         m.insert("maintenanceMargin".to_string(), self.safe_number_k(position.clone(), "maintenance_margin", &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), self.parse_number(notional.clone(), &[]));
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
-        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl.clone(), &[]));
-        m.insert("contracts".to_string(), self.parse_number(size.clone(), &[]));
-        m.insert("contractSize".to_string(), self.parse_number(contractSize.clone(), &[]));
+        m.insert("unrealizedPnl".to_string(), self.parse_number(unrealisedPnl, &[]));
+        m.insert("contracts".to_string(), self.parse_number(size, &[]));
+        m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
-        m.insert("markPrice".to_string(), self.parse_number(markPrice.clone(), &[]));
+        m.insert("markPrice".to_string(), self.parse_number(markPrice, &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
@@ -3475,7 +3475,7 @@ impl DeriveCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (since != Value::Null) {
@@ -3484,7 +3484,7 @@ impl DeriveCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone());
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_19 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_funding_history(&[__ws_arg_19]).await;
         //
         // {
@@ -3589,7 +3589,7 @@ impl DeriveCore {
                 m.insert("wallet".to_string(), deriveWalletAddress.clone());
             m
         });
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_all_portfolios(&[__ws_arg_20]).await;
         //
         // {
@@ -3718,7 +3718,7 @@ impl DeriveCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
         }
-        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_21 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_deposit_history(&[__ws_arg_21]).await;
         //
         // {
@@ -3782,7 +3782,7 @@ impl DeriveCore {
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("start_timestamp".to_string()), since.clone());
         }
-        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_22 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_get_withdrawal_history(&[__ws_arg_22]).await;
         //
         // {

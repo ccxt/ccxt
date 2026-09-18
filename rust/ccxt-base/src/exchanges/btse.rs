@@ -1242,15 +1242,15 @@ impl BtseCore {
         m.insert("inverse".to_string(), (if is_true(&isSpot) { Value::Null } else { Value::Bool(false) }));
         m.insert("taker".to_string(), crate::value::get_value_k(&fees, "taker"));
         m.insert("maker".to_string(), crate::value::get_value_k(&fees, "maker"));
-        m.insert("contractSize".to_string(), self.parse_number(contractSize.clone(), &[]));
+        m.insert("contractSize".to_string(), self.parse_number(contractSize, &[]));
         m.insert("expiry".to_string(), expiry.clone());
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry.clone()));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), self.parse_number(amountPrecision.clone(), &[]));
-        m.insert("price".to_string(), self.parse_number(pricePrecision.clone(), &[]));
+        m.insert("amount".to_string(), self.parse_number(amountPrecision, &[]));
+        m.insert("price".to_string(), self.parse_number(pricePrecision, &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -1263,13 +1263,13 @@ impl BtseCore {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minAmountString.clone(), &[]));
-        m.insert("max".to_string(), self.parse_number(maxAmountString.clone(), &[]));
+        m.insert("min".to_string(), self.parse_number(minAmountString, &[]));
+        m.insert("max".to_string(), self.parse_number(maxAmountString, &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.parse_number(minPriceString.clone(), &[]));
+        m.insert("min".to_string(), self.parse_number(minPriceString, &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1412,7 +1412,7 @@ impl BtseCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), crate::runtime::Math::min(&limit, &Value::Int(50))); // the endpoint supports a maximum depth of 50
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_orderbook(&[__ws_arg_1]).await;
         //
         //     {
@@ -1492,7 +1492,7 @@ impl BtseCore {
         });
         let mut until: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingRateHistory".to_string()), Value::Str("until".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_recent_funding_history(&[__ws_arg_2]).await;
         //
         //     {
@@ -1602,7 +1602,7 @@ impl BtseCore {
                     m.insert("wallet".to_string(), wallet.clone());
                 m
             });
-            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_3 = self.extend(request, &[params.clone()]);
             response = self.private_get_futures_api_v23_user_wallet(&[__ws_arg_3]).await;
         }
         return self.parse_balance(response.clone());
@@ -1722,7 +1722,7 @@ impl BtseCore {
             let mut length: Value = Value::Int(symbols.len() as i64);
             if (length.as_f64() == Some(1.0)) {
                 let mut requestedSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
-                let mut market: Value = self.market(requestedSymbol.clone());
+                let mut market: Value = self.market(requestedSymbol);
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
@@ -1901,7 +1901,7 @@ impl BtseCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_5]).await;
         //
         //     {
@@ -2022,7 +2022,7 @@ impl BtseCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_6]).await;
         let mut interest: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if (interest == Value::Null) {
@@ -2120,7 +2120,7 @@ impl BtseCore {
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         if (data == Value::Null) {
@@ -2272,7 +2272,7 @@ impl BtseCore {
         // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
         let mut until: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchTrades".to_string()), Value::Str("until".to_string()), &[]); until = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_public_api_market_v1_trades(&[__ws_arg_8]).await;
         //
         //     {
@@ -3140,7 +3140,7 @@ impl BtseCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut marketType: Value = Value::Str("spot".to_string());
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchOrder".to_string()), &[market.clone(), params.clone(), marketType.clone()]); marketType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
@@ -3151,7 +3151,7 @@ impl BtseCore {
         }  else {
             // the futures endpoint doubles as the single order lookup when an
             // order id is sent and responds with a bare array
-            let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_16 = self.extend(request, &[params.clone()]);
             response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_16]).await;
         }
         // accept a bare order dict, a data envelope and a one element array
@@ -3244,7 +3244,7 @@ impl BtseCore {
             }  else {
                 add_element_to_object(&mut request, &Value::Str("amendType".to_string()), Value::Str("PRICE".to_string()));
             }
-            let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_18 = self.extend(request, &[params.clone()]);
             response = self.private_put_futures_api_v3_trade_orders(&[__ws_arg_18]).await;
         }
         let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
@@ -3315,7 +3315,7 @@ impl BtseCore {
             //     ]
             //
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.futures_request_id(market.clone()));
-            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_20 = self.extend(request, &[params.clone()]);
             response = self.private_delete_futures_api_v3_trade_orders(&[__ws_arg_20]).await;
         }
         let mut order: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
@@ -3408,7 +3408,7 @@ impl BtseCore {
         }  else {
             // the futures param is named timeoutMs and is required, zero disarms
             add_element_to_object(&mut request, &Value::Str("timeoutMs".to_string()), timeout.clone());
-            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_24 = self.extend(request, &[params.clone()]);
             response = self.private_post_futures_api_v3_trade_orders_cancel_all_after(&[__ws_arg_24]).await;
         }
         return response;
@@ -3459,7 +3459,7 @@ impl BtseCore {
             if (market != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.futures_request_id(market.clone()));
             }
-            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_26 = self.extend(request, &[params.clone()]);
             response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_26]).await;
         }
         // the endpoints have no server side time filters, accept a bare array
@@ -4214,7 +4214,7 @@ impl BtseCore {
         }  else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
-            let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_30 = self.extend(request, &[params.clone()]);
             response = self.private_get_futures_api_v23_user_fees(&[__ws_arg_30]).await;
         }
         let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
@@ -4369,8 +4369,8 @@ impl BtseCore {
         m.insert("entryPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "entryPrice", &[]), &[]));
         m.insert("markPrice".to_string(), self.parse_number(self.safe_string_k(position.clone(), "markPrice", &[]), &[]));
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("takeProfitPrice".to_string(), self.parse_number(takeProfitPrice.clone(), &[]));
-        m.insert("stopLossPrice".to_string(), self.parse_number(stopLossPrice.clone(), &[]));
+        m.insert("takeProfitPrice".to_string(), self.parse_number(takeProfitPrice, &[]));
+        m.insert("stopLossPrice".to_string(), self.parse_number(stopLossPrice, &[]));
         m.insert("notional".to_string(), self.parse_number(self.safe_string2(position.clone(), Value::Str("notionalValue".to_string()), Value::Str("orderValue".to_string()), &[]), &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.parse_number(self.safe_string_k(position.clone(), "unrealizedProfitLoss", &[]), &[]));
@@ -4448,7 +4448,7 @@ impl BtseCore {
                 m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
             m
         });
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_32 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_api_v3_trade_position_mode(&[__ws_arg_32]).await;
         //
         //     [
@@ -4507,7 +4507,7 @@ impl BtseCore {
                 m.insert("positionMode".to_string(), positionMode.clone());
             m
         });
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_33 = self.extend(request, &[params.clone()]);
         return self.private_post_futures_api_v3_trade_position_mode(&[__ws_arg_33]).await;
 
     Value::Null
@@ -4534,7 +4534,7 @@ impl BtseCore {
                 m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
             m
         });
-        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_34 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_api_v3_trade_leverage(&[__ws_arg_34]).await;
         let mut data: Value = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4625,7 +4625,7 @@ impl BtseCore {
                 m.insert("positionMode".to_string(), positionMode.clone());
             m
         });
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_35 = self.extend(request, &[params.clone()]);
         return self.private_post_futures_api_v3_trade_position_mode(&[__ws_arg_35]).await;
 
     Value::Null
@@ -4706,7 +4706,7 @@ impl BtseCore {
                 m.insert("symbol".to_string(), self.futures_request_id(market.clone()));
             m
         });
-        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_37 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_api_v3_trade_leverage(&[__ws_arg_37]).await;
         //
         //     [
@@ -4802,7 +4802,7 @@ impl BtseCore {
         if (marginMode != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), to_upper(&marginMode));
         }
-        let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_38 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_futures_api_v3_trade_leverage(&[__ws_arg_38]).await;
         return response;
 

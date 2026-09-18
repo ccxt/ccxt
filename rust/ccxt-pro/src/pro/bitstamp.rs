@@ -345,7 +345,7 @@ impl BitstampCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         return orderbook.limit();
 
@@ -413,7 +413,7 @@ impl BitstampCore {
                 m.insert("symbols".to_string(), symbols.clone());
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), unsubHash.clone(), &[__ws_arg_0, unsubHash.clone(), subscription.clone()]).await;
 
     Value::Null
@@ -565,7 +565,7 @@ impl BitstampCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         let mut trades: Value = self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
         if is_true(&self.newUpdates) {
             limit = trades.get_limit(symbol.clone(), limit.clone());
@@ -723,7 +723,7 @@ impl BitstampCore {
 }));
             m
         });
-        let mut message: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut message: Value = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[message.clone(), messageHash.clone()]).await;
 
     Value::Null
@@ -940,7 +940,7 @@ impl BitstampCore {
         if (symbol == Value::Null) {
             return;
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
@@ -1046,7 +1046,7 @@ impl BitstampCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut stored: Value = self.orders.clone();
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         add_element_to_object(&mut order, &Value::Str("event".to_string()), self.safe_string_k(message.clone(), "event", &[]));
         let mut parsed: Value = self.parse_ws_order(order.clone(), &[market.clone()]);
         stored.append(parsed.clone());
@@ -1466,7 +1466,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         add_element_to_object(&mut subscription, &Value::Str("messageHash".to_string()), messageHash.clone());
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_1, messageHash.clone(), subscription.clone()]).await;
 
     Value::Null

@@ -1426,7 +1426,7 @@ impl DeribitCore {
                 let mut rawTf: Value = self.safe_string(self.timeframes.clone(), unifiedTf.clone(), &[unifiedTf.clone()]);
                 channelDescriptor = rawTf.clone();
             }  else {
-                market = self.market(current.clone());
+                market = self.market(current);
             }
             let mut message: Value = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", channelName, Value::Str(".".to_string()))), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".".to_string()))), &channelDescriptor);
             append_to_array(&mut rawSubscriptions, message.clone());
@@ -1618,7 +1618,7 @@ impl DeribitCore {
 }));
                 m
             });
-            let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_0 = self.extend(request, &[params.clone()]);
             future = self.watch(url.clone(), messageHash.clone(), &[__ws_arg_0, messageHash.clone()]).await;
             add_element_to_object(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash, future.clone());
         }

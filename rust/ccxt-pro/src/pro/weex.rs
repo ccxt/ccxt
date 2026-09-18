@@ -1060,7 +1060,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut extendedParams: Value = self.extend(params.clone(), &[Value::Map({
+        let mut extendedParams: Value = self.extend(params, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("callerMethodName".to_string(), Value::Str("watchOHLCV".to_string()));
             m
@@ -1099,7 +1099,7 @@ impl WeexCore {
         let mut messageHashes: Value = Value::List(vec![]);
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::List(vec![])]);
         let mut firstSymbol: Value = self.safe_string(firstEntry.clone(), Value::Int(0), &[]);
-        let mut firstMarket: Value = self.market(firstSymbol.clone());
+        let mut firstMarket: Value = self.market(firstSymbol);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut priceType: Value = Value::Str("LAST_PRICE".to_string());
         if (isContract.as_bool() == Some(true)) {
@@ -1185,7 +1185,7 @@ impl WeexCore {
         let mut unSubHashes: Value = Value::List(vec![]);
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::List(vec![])]);
         let mut firstSymbol: Value = self.safe_string(firstEntry.clone(), Value::Int(0), &[]);
-        let mut firstMarket: Value = self.market(firstSymbol.clone());
+        let mut firstMarket: Value = self.market(firstSymbol);
         let mut isContract: Value = firstMarket.as_map().and_then(|__m| __m.get("contract")).cloned().unwrap_or(Value::Null);
         let mut priceType: Value = Value::Str("LAST_PRICE".to_string());
         if (isContract.as_bool() == Some(true)) {
@@ -2335,7 +2335,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(response.clone(), &[__ws_arg_2]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
+        { let __be_tmp = self.extend(response, &[__ws_arg_2]); add_element_to_object(&mut self.balance, &type_var, __be_tmp); };
         // don't remove the future from the .futures cache
         if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
             let mut future: Value = get_value(&get_value(&client, &Value::Str("futures".to_string())), &messageHash);

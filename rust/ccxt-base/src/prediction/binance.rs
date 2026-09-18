@@ -477,7 +477,7 @@ impl BinanceCore {
                     m.insert("limit".to_string(), reqLimit.clone());
                 m
             });
-            let __ws_arg_0 = self.extend(request.clone(), &[rest.clone()]);
+            let __ws_arg_0 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.sapi_private_get_market_list(&[__ws_arg_0]).await;
             //
             //     {
@@ -550,7 +550,7 @@ impl BinanceCore {
                 m.insert("marketTopicId".to_string(), topicId.clone());
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         return self.sapi_private_get_market_detail(&[__ws_arg_1]).await;
 
     Value::Null
@@ -695,7 +695,7 @@ impl BinanceCore {
                     params = self.omit(params.clone(), Value::List(vec![Value::Str("sort".to_string()), Value::Str("sortBy".to_string())]), &[]);
                 }
             }
-            let __ws_arg_2 = self.extend(listingRequest.clone(), &[rest.clone()]);
+            let __ws_arg_2 = self.extend(listingRequest, &[rest.clone()]);
             let mut listed: Value = self.fetch_raw_topics(fetchCap.clone(), &[__ws_arg_2]).await;
             rawTopics = self.complete_raw_topics(listed.clone()).await;
         }
@@ -771,7 +771,7 @@ impl BinanceCore {
                 m
             });
             add_element_to_object(&mut request, &Value::Str("topK".to_string()), limit.clone());
-            let __ws_arg_3 = self.extend(request.clone(), &[rest.clone()]);
+            let __ws_arg_3 = self.extend(request, &[rest.clone()]);
             let mut response: Value = self.sapi_private_get_market_search(&[__ws_arg_3]).await;
             //
             //     [
@@ -1155,7 +1155,7 @@ impl BinanceCore {
                 m.insert("marketId".to_string(), self.safe_string_k(info.clone(), "marketId", &[]));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_5]).await;
         return self.parse_prediction_ticker(response.clone(), &[outcomeObj.clone()]);
 
@@ -1198,7 +1198,7 @@ impl BinanceCore {
             if isMirrored {
                 last = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".to_string()), &lastString), &[]);
             }  else {
-                last = self.parse_number(lastString.clone(), &[]);
+                last = self.parse_number(lastString, &[]);
             }
         }
         let mut now: Value = self.milliseconds();
@@ -1281,7 +1281,7 @@ impl BinanceCore {
                         m.insert("marketId".to_string(), marketId.clone());
                     m
                 });
-                let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_6 = self.extend(request, &[params.clone()]);
                 response = self.sapi_private_get_order_book_last_trade_price(&[__ws_arg_6]).await;
                 add_element_to_object(&mut responsesByMarketId, &marketId, response.clone());
             }
@@ -1324,7 +1324,7 @@ impl BinanceCore {
                 m.insert("tokenId".to_string(), self.safe_string2(outcomeObj.clone(), Value::Str("outcomeId".to_string()), Value::Str("id".to_string()), &[]));
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_book(&[__ws_arg_7]).await;
         //
         //     {
@@ -1553,7 +1553,7 @@ impl BinanceCore {
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOpenOrders".to_string()), &[params.clone()]).await;
         add_element_to_object(&mut request, &Value::Str("walletAddress".to_string()), crate::value::get_value_k(&wallet, "walletAddress"));
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_list(&[__ws_arg_8]).await;
         //
         // {
@@ -1655,7 +1655,7 @@ impl BinanceCore {
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOrders".to_string()), &[params.clone()]).await;
         add_element_to_object(&mut request, &Value::Str("walletAddress".to_string()), crate::value::get_value_k(&wallet, "walletAddress"));
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_9 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_history(&[__ws_arg_9]).await;
         //
         // {
@@ -1739,7 +1739,7 @@ impl BinanceCore {
                 m.insert("walletAddress".to_string(), crate::value::get_value_k(&wallet, "walletAddress"));
             m
         });
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_10 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_position_list(&[__ws_arg_10]).await;
         //
         // {
@@ -1841,7 +1841,7 @@ impl BinanceCore {
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchOrders".to_string()), &[params.clone()]).await;
         add_element_to_object(&mut request, &Value::Str("walletAddress".to_string()), crate::value::get_value_k(&wallet, "walletAddress"));
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_position_filter(&[__ws_arg_11]).await;
         //
         //
@@ -1972,7 +1972,7 @@ impl BinanceCore {
         }
         let mut wallet: Value = self.fetch_wallet(Value::Str("fetchMyTrades".to_string()), &[params.clone()]).await;
         add_element_to_object(&mut request, &Value::Str("walletAddress".to_string()), crate::value::get_value_k(&wallet, "walletAddress"));
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.sapi_private_get_order_history(&[__ws_arg_12]).await;
         //
         // {
@@ -2078,7 +2078,7 @@ impl BinanceCore {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), Value::Str("USDT".to_string()));
-                    m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
                 m
             });
         }
@@ -2321,7 +2321,7 @@ impl BinanceCore {
                 m.insert("accountType".to_string(), accountType.clone());
             m
         })]);
-        let __ws_arg_15 = self.extend(orderRequest.clone(), &[params.clone()]);
+        let __ws_arg_15 = self.extend(orderRequest, &[params.clone()]);
         let mut response: Value = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_15]).await;
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2371,7 +2371,7 @@ impl BinanceCore {
                 m.insert("cost".to_string(), cost.clone());
             m
         });
-        let __ws_arg_16 = self.extend(req.clone(), &[params.clone()]);
+        let __ws_arg_16 = self.extend(req, &[params.clone()]);
         return self.create_order(symbol.clone(), Value::Str("market".to_string()), side.clone(), cost.clone(), &[Value::Null, __ws_arg_16]).await;
 
     Value::Null
@@ -2548,7 +2548,7 @@ impl BinanceCore {
         let mut baseUrls: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null);
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.clone(), &[baseUrls.as_map().and_then(|__m| __m.get("sapi")).cloned().unwrap_or(Value::Null)]);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         self.check_required_credentials(&[]);
         let __ws_arg_18 = self.nonce();
         let mut extendedParams: Value = self.extend(Value::Map({

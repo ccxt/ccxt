@@ -1012,7 +1012,7 @@ impl CoinspotCore {
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut orderbook: Value = self.private_post_orders(&[__ws_arg_0]).await;
         return self.parse_order_book(orderbook.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".to_string()), Value::Str("sellorders".to_string()), Value::Str("rate".to_string()), Value::Str("amount".to_string())]);
 
@@ -1198,7 +1198,7 @@ impl CoinspotCore {
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_orders_history(&[__ws_arg_1]).await;
         //
         //     {
@@ -1242,12 +1242,12 @@ impl CoinspotCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         if (since != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startdate".to_string()), self.yyyymmdd(since.clone(), &[]));
         }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_ro_my_transactions(&[__ws_arg_2]).await;
         //  {
         //      "status": "ok",
@@ -1348,7 +1348,7 @@ impl CoinspotCore {
             let mut feeCurrencyId: Value = Value::Str("AUD".to_string());
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), self.parse_number(feeCost.clone(), &[]));
+                    m.insert("cost".to_string(), self.parse_number(feeCost, &[]));
                     m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone(), &[]));
                 m
             });
@@ -1364,9 +1364,9 @@ impl CoinspotCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), self.parse_number(priceString.clone(), &[]));
-        m.insert("amount".to_string(), self.parse_number(amountString.clone(), &[]));
-        m.insert("cost".to_string(), self.parse_number(costString.clone(), &[]));
+        m.insert("price".to_string(), self.parse_number(priceString, &[]));
+        m.insert("amount".to_string(), self.parse_number(amountString, &[]));
+        m.insert("cost".to_string(), self.parse_number(costString, &[]));
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[market.clone()]);
@@ -1403,7 +1403,7 @@ impl CoinspotCore {
         if (type_var.as_str() == Some("market")) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".to_string())))));
         }
-        let mut market: Value = self.market(symbol.clone());
+        let mut market: Value = self.market(symbol);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -1416,7 +1416,7 @@ impl CoinspotCore {
             let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_my_buy(&[__ws_arg_3]).await;
         }  else if (sideUpper.as_str() == Some("SELL")) {
-            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_4 = self.extend(request, &[params.clone()]);
             response = self.private_post_my_sell(&[__ws_arg_4]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder only support buy/sell side".to_string())))));
@@ -1462,7 +1462,7 @@ impl CoinspotCore {
             let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_my_buy_cancel(&[__ws_arg_5]).await;
         }  else {
-            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_6 = self.extend(request, &[params.clone()]);
             response = self.private_post_my_sell_cancel(&[__ws_arg_6]).await;
         }
         return self.safe_order(Value::Map({

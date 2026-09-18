@@ -2726,7 +2726,7 @@ impl XtCore {
             let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_inverse_get_future_market_v1_public_q_kline(&[__ws_arg_1]).await;
         }  else {
-            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_2 = self.extend(request, &[params.clone()]);
             response = self.public_spot_get_kline(&[__ws_arg_2]).await;
         }
         //
@@ -2855,7 +2855,7 @@ impl XtCore {
                 let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
                 response = self.public_linear_get_future_market_v1_public_q_depth(&[__ws_arg_4]).await;
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_5 = self.extend(request, &[params.clone()]);
                 response = self.public_inverse_get_future_market_v1_public_q_depth(&[__ws_arg_5]).await;
             }
         }
@@ -2954,7 +2954,7 @@ impl XtCore {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_inverse_get_future_market_v1_public_q_agg_ticker(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_8 = self.extend(request, &[params.clone()]);
             response = self.public_spot_get_ticker24h(&[__ws_arg_8]).await;
         }
         //
@@ -3052,7 +3052,7 @@ impl XtCore {
             let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_linear_get_future_market_v1_public_q_agg_tickers(&[__ws_arg_10]).await;
         }  else {
-            let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_11 = self.extend(request, &[params.clone()]);
             response = self.public_spot_get_ticker24h(&[__ws_arg_11]).await;
         }
         //
@@ -3167,7 +3167,7 @@ impl XtCore {
             let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_linear_get_future_market_v1_public_q_ticker_books(&[__ws_arg_13]).await;
         }  else {
-            let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_14 = self.extend(request, &[params.clone()]);
             response = self.public_spot_get_ticker_book(&[__ws_arg_14]).await;
         }
         //
@@ -3312,7 +3312,7 @@ impl XtCore {
         m.insert("last".to_string(), self.safe_string_k(ticker.clone(), "c", &[]));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), self.safe_number_k(ticker.clone(), "cv", &[]));
-        m.insert("percentage".to_string(), self.parse_number(percentage.clone(), &[]));
+        m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_number2(ticker.clone(), Value::Str("a".to_string()), Value::Str("q".to_string()), &[]));
         m.insert("quoteVolume".to_string(), self.safe_number_k(ticker.clone(), "v", &[]));
@@ -3366,7 +3366,7 @@ impl XtCore {
                 let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
                 response = self.public_linear_get_future_market_v1_public_q_deal(&[__ws_arg_16]).await;
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_17 = self.extend(request, &[params.clone()]);
                 response = self.public_inverse_get_future_market_v1_public_q_deal(&[__ws_arg_17]).await;
             }
         }
@@ -3471,7 +3471,7 @@ impl XtCore {
             if (limit != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
             }
-            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_20 = self.extend(request, &[params.clone()]);
             response = self.private_spot_get_trade(&[__ws_arg_20]).await;
         }
         //
@@ -4153,7 +4153,7 @@ impl XtCore {
                 let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_linear_post_future_trade_v1_order_create(&[__ws_arg_28]).await;
             }  else if (market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
-                let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_29 = self.extend(request, &[params.clone()]);
                 response = self.private_inverse_post_future_trade_v1_order_create(&[__ws_arg_29]).await;
             }
         }
@@ -4253,7 +4253,7 @@ impl XtCore {
             let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_linear_get_future_trade_v1_order_detail(&[__ws_arg_37]).await;
         }  else {
-            let __ws_arg_38 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_38 = self.extend(request, &[params.clone()]);
             response = self.private_spot_get_order_order_id(&[__ws_arg_38]).await;
         }
         //
@@ -4466,7 +4466,7 @@ impl XtCore {
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrders".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut marginOrSpotRequest: Value = (if is_true(&(Value::Bool(marginMode != Value::Null))) { Value::Str("LEVER".to_string()) } else { Value::Str("SPOT".to_string()) });
             add_element_to_object(&mut request, &Value::Str("bizType".to_string()), marginOrSpotRequest.clone());
-            let __ws_arg_45 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_45 = self.extend(request, &[params.clone()]);
             response = self.private_spot_get_history_order(&[__ws_arg_45]).await;
         }
         //
@@ -4722,7 +4722,7 @@ impl XtCore {
                 let __ws_arg_56 = self.extend(request.clone(), &[params.clone()]);
                 response = self.private_spot_get_history_order(&[__ws_arg_56]).await;
             }  else {
-                let __ws_arg_57 = self.extend(request.clone(), &[params.clone()]);
+                let __ws_arg_57 = self.extend(request, &[params.clone()]);
                 response = self.private_spot_get_open_order(&[__ws_arg_57]).await;
             }
         }
@@ -5045,7 +5045,7 @@ impl XtCore {
         }
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5108,7 +5108,7 @@ impl XtCore {
             let __ws_arg_65 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_linear_post_future_trade_v1_order_cancel(&[__ws_arg_65]).await;
         }  else {
-            let __ws_arg_66 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_66 = self.extend(request, &[params.clone()]);
             response = self.private_spot_delete_order_order_id(&[__ws_arg_66]).await;
         }
         //
@@ -5228,7 +5228,7 @@ impl XtCore {
             { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]); marginMode = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let mut marginOrSpotRequest: Value = (if is_true(&(Value::Bool(marginMode != Value::Null))) { Value::Str("LEVER".to_string()) } else { Value::Str("SPOT".to_string()) });
             add_element_to_object(&mut request, &Value::Str("bizType".to_string()), marginOrSpotRequest.clone());
-            let __ws_arg_75 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_75 = self.extend(request, &[params.clone()]);
             response = self.private_spot_delete_open_order(&[__ws_arg_75]).await;
         }
         return Value::List(vec![self.safe_order(response.clone(), &[])]);
@@ -5262,14 +5262,14 @@ impl XtCore {
         });
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
-            market = self.market(symbol.clone());
+            market = self.market(symbol);
         }
         let mut subType: Value = Value::Null;
         { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("cancelOrders".to_string()), &[market.clone(), params.clone()]); subType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (subType != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() does not support swap and future orders, only spot orders are accepted".to_string())))));
         }
-        let __ws_arg_76 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_76 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_spot_delete_batch_order(&[__ws_arg_76]).await;
         return Value::List(vec![self.safe_order(response.clone(), &[])]);
 
@@ -5545,7 +5545,7 @@ impl XtCore {
             let __ws_arg_77 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_inverse_get_future_user_v1_balance_bills(&[__ws_arg_77]).await;
         }  else if is_true(&(Value::Bool(subType.as_str() == Some("linear")))) || is_true(&(Value::Bool(type_var.as_str() == Some("swap")))) || is_true(&(Value::Bool(type_var.as_str() == Some("future")))) {
-            let __ws_arg_78 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_78 = self.extend(request, &[params.clone()]);
             response = self.private_linear_get_future_user_v1_balance_bills(&[__ws_arg_78]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported".to_string())))));
@@ -5677,7 +5677,7 @@ impl XtCore {
                 m.insert("chain".to_string(), networkId.clone());
             m
         });
-        let __ws_arg_79 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_79 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_spot_get_deposit_address(&[__ws_arg_79]).await;
         //
         //     {
@@ -5759,7 +5759,7 @@ impl XtCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 10, max 200
         }
-        let __ws_arg_80 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_80 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_spot_get_deposit_history(&[__ws_arg_80]).await;
         //
         //     {
@@ -5834,7 +5834,7 @@ impl XtCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 10, max 200
         }
-        let __ws_arg_81 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_81 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_spot_get_withdraw_history(&[__ws_arg_81]).await;
         //
         //     {
@@ -5914,7 +5914,7 @@ impl XtCore {
         if (tag != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("memo".to_string()), tag.clone());
         }
-        let __ws_arg_82 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_82 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_spot_post_withdraw(&[__ws_arg_82]).await;
         //
         //     {
@@ -6081,7 +6081,7 @@ impl XtCore {
             let __ws_arg_83 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_inverse_post_future_user_v1_position_adjust_leverage(&[__ws_arg_83]).await;
         }  else {
-            let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_84 = self.extend(request, &[params.clone()]);
             response = self.private_linear_post_future_user_v1_position_adjust_leverage(&[__ws_arg_84]).await;
         }
         return response;
@@ -6158,7 +6158,7 @@ impl XtCore {
             let __ws_arg_85 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_inverse_post_future_user_v1_position_margin(&[__ws_arg_85]).await;
         }  else {
-            let __ws_arg_86 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_86 = self.extend(request, &[params.clone()]);
             response = self.private_linear_post_future_user_v1_position_margin(&[__ws_arg_86]).await;
         }
         return self.parse_margin_modification(response.clone(), &[market.clone()]);
@@ -6320,7 +6320,7 @@ impl XtCore {
             let __ws_arg_87 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_inverse_get_future_market_v1_public_leverage_bracket_detail(&[__ws_arg_87]).await;
         }  else {
-            let __ws_arg_88 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_88 = self.extend(request, &[params.clone()]);
             response = self.public_linear_get_future_market_v1_public_leverage_bracket_detail(&[__ws_arg_88]).await;
         }
         //
@@ -6455,7 +6455,7 @@ impl XtCore {
             let __ws_arg_89 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_inverse_get_future_market_v1_public_q_funding_rate_record(&[__ws_arg_89]).await;
         }  else {
-            let __ws_arg_90 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_90 = self.extend(request, &[params.clone()]);
             response = self.public_linear_get_future_market_v1_public_q_funding_rate_record(&[__ws_arg_90]).await;
         }
         //
@@ -6562,7 +6562,7 @@ impl XtCore {
             let __ws_arg_91 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_inverse_get_future_market_v1_public_q_funding_rate(&[__ws_arg_91]).await;
         }  else {
-            let __ws_arg_92 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_92 = self.extend(request, &[params.clone()]);
             response = self.public_linear_get_future_market_v1_public_q_funding_rate(&[__ws_arg_92]).await;
         }
         //
@@ -6661,7 +6661,7 @@ impl XtCore {
             let __ws_arg_93 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_inverse_get_future_market_v1_public_contract_open_interest(&[__ws_arg_93]).await;
         }  else {
-            let __ws_arg_94 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_94 = self.extend(request, &[params.clone()]);
             response = self.public_linear_get_future_market_v1_public_contract_open_interest(&[__ws_arg_94]).await;
         }
         //
@@ -6886,7 +6886,7 @@ impl XtCore {
             let __ws_arg_95 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_inverse_get_future_user_v1_balance_funding_rate_list(&[__ws_arg_95]).await;
         }  else {
-            let __ws_arg_96 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_96 = self.extend(request, &[params.clone()]);
             response = self.private_linear_get_future_user_v1_balance_funding_rate_list(&[__ws_arg_96]).await;
         }
         //
@@ -7052,7 +7052,7 @@ impl XtCore {
         }  else {
             let __ws_arg_101 = self.extend(request.clone(), &[params.clone()]);
             append_to_array(&mut promisesUnresolved, self.private_linear_get_future_user_v1_position_list(&[__ws_arg_101]).await);
-            let __ws_arg_102 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_102 = self.extend(request, &[params.clone()]);
             append_to_array(&mut promisesUnresolved, self.private_linear_get_future_user_v1_position_break_list(&[__ws_arg_102]).await);
         }
         let mut responsebreakResponseVariable = promise_all(&promisesUnresolved).await;
@@ -7264,7 +7264,7 @@ impl XtCore {
             let __ws_arg_103 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_inverse_get_future_trade_v1_position_list_history(&[__ws_arg_103]).await;
         }  else {
-            let __ws_arg_104 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_104 = self.extend(request, &[params.clone()]);
             response = self.private_linear_get_future_trade_v1_position_list_history(&[__ws_arg_104]).await;
         }
         //
@@ -7402,7 +7402,7 @@ impl XtCore {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("realizedProfit".to_string()), Value::Str("closeProfit".to_string()), &[]));
-        m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPriceString.clone(), &[]));
+        m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPriceString, &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("percentage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
@@ -7446,7 +7446,7 @@ impl XtCore {
                 m.insert("to".to_string(), toAccountId.clone());
             m
         });
-        let __ws_arg_105 = self.extend(request.clone(), &[params.clone()]);
+        let __ws_arg_105 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_spot_post_balance_transfer(&[__ws_arg_105]).await;
         return self.parse_transfer(response.clone(), &[currency.clone()]);
 
@@ -7525,7 +7525,7 @@ impl XtCore {
             let __ws_arg_106 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_inverse_post_future_user_v1_position_change_type(&[__ws_arg_106]).await;
         }  else {
-            let __ws_arg_107 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_107 = self.extend(request, &[params.clone()]);
             response = self.private_linear_post_future_user_v1_position_change_type(&[__ws_arg_107]).await;
         }
         return response;
@@ -7610,7 +7610,7 @@ impl XtCore {
             }
         }  else {
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
-            let __ws_arg_112 = self.extend(request.clone(), &[params.clone()]);
+            let __ws_arg_112 = self.extend(request, &[params.clone()]);
             response = self.private_spot_put_order_order_id(&[__ws_arg_112]).await;
         }
         let mut result: Value = (if is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) { response.clone() } else { self.safe_dict_k(response.clone(), "result", &[Value::Map({
@@ -7718,7 +7718,7 @@ impl XtCore {
             payload = request.clone();
         }
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &endpoint), &payload);
-        let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
+        let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         let mut urlencoded: Value = self.urlencode(self.keysort(query.clone(), &[]), &[]);
         headers = Value::Map({
             let mut m = indexmap::IndexMap::new();

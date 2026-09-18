@@ -395,7 +395,7 @@ impl CoinbaseinternationalCore {
             let __ws_arg_0 = self.extend(subscribe.clone(), &[params.clone()]);
             return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_0, messageHashes.clone()]).await;
         }
-        let __ws_arg_1 = self.extend(subscribe.clone(), &[params.clone()]);
+        let __ws_arg_1 = self.extend(subscribe, &[params.clone()]);
         return self.watch(url.clone(), messageHash.clone(), &[__ws_arg_1, messageHash.clone()]).await;
 
     Value::Null
@@ -456,7 +456,7 @@ impl CoinbaseinternationalCore {
                 m.insert("signature".to_string(), signature.clone());
             m
         });
-        let __ws_arg_2 = self.extend(subscribe.clone(), &[params.clone()]);
+        let __ws_arg_2 = self.extend(subscribe, &[params.clone()]);
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[__ws_arg_2, messageHashes.clone()]).await;
 
     Value::Null
