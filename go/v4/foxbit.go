@@ -2065,17 +2065,17 @@ func (this *Foxbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		},
 	}
 	if (IsEqual(typeVar, "LIMIT")) || (IsEqual(typeVar, "MARKET")) {
-		AddElementToObject(GetValue(request, "create"), "quantity", this.AmountToPrecision(symbol, amount))
+		AddElementToObject(request["create"], "quantity", this.AmountToPrecision(symbol, amount))
 		if IsEqual(typeVar, "LIMIT") {
-			AddElementToObject(GetValue(request, "create"), "price", this.PriceToPrecision(symbol, price))
+			AddElementToObject(request["create"], "price", this.PriceToPrecision(symbol, price))
 		}
 	}
 	if IsEqual(typeVar, "STOP_MARKET") {
-		AddElementToObject(GetValue(request, "create"), "stop_price", this.PriceToPrecision(symbol, price))
-		AddElementToObject(GetValue(request, "create"), "quantity", this.AmountToPrecision(symbol, amount))
+		AddElementToObject(request["create"], "stop_price", this.PriceToPrecision(symbol, price))
+		AddElementToObject(request["create"], "quantity", this.AmountToPrecision(symbol, amount))
 	}
 	if IsEqual(typeVar, "INSTANT") {
-		AddElementToObject(GetValue(request, "create"), "amount", this.PriceToPrecision(symbol, amount))
+		AddElementToObject(request["create"], "amount", this.PriceToPrecision(symbol, amount))
 	}
 
 	response := (<-this.V3PrivatePostOrdersCancelReplace(this.Extend(request, params)))

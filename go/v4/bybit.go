@@ -10580,7 +10580,7 @@ func (this *Bybit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var currencyCode *string = this.SafeString(currency, "code")
 			var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
 			if networkCode != nil {
-				AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+				AddElementToObject(result["networks"], networkCode, map[string]any{
 					"deposit": map[string]any{
 						"fee":        nil,
 						"percentage": nil,
@@ -10592,8 +10592,8 @@ func (this *Bybit) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 				})
 			}
 			if chainsLength == 1 {
-				AddElementToObject(GetValue(result, "withdraw"), "fee", this.SafeNumber(chain, "withdrawFee"))
-				AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
+				AddElementToObject(result["withdraw"], "fee", this.SafeNumber(chain, "withdrawFee"))
+				AddElementToObject(result["withdraw"], "percentage", false)
 			}
 		}
 	}

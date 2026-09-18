@@ -3303,7 +3303,7 @@ func (this *Bitvavo) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	}
 	var networkCode any = this.NetworkIdToCode(networkId, currencyCode)
 	if networkCode != nil {
-		AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+		AddElementToObject(result["networks"], networkCode, map[string]any{
 			"deposit":  result["deposit"],
 			"withdraw": result["withdraw"],
 		})

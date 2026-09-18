@@ -918,7 +918,7 @@ func (this *Hitbtc) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		},
 	}
 	if !ccxt.IsEqual(limit, nil) {
-		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "limit", limit)
+		ccxt.AddElementToObject(request["params"], "limit", limit)
 	}
 
 	ohlcv := (<-this.SubscribePublicAsync(name, "candles", []any{symbol}, this.DeepExtend(request, params)))

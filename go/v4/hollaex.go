@@ -2476,7 +2476,7 @@ func (this *Hollaex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			}
 			var networkCodeUpper string = ToUpper(networkCode) // default to the upper case network code
 			var withdrawalFee *float64 = this.SafeNumber(value, "value")
-			AddElementToObject(GetValue(result, "networks"), networkCodeUpper, map[string]any{
+			AddElementToObject(result["networks"], networkCodeUpper, map[string]any{
 				"deposit":  nil,
 				"withdraw": withdrawalFee,
 			})

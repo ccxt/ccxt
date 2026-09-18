@@ -954,35 +954,35 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		if func() bool { _, ok := filtersByType["PRICE_FILTER"]; return ok }() {
 			var filter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
-			AddElementToObject(GetValue(entry, "precision"), "price", this.SafeNumber(filter, "tickSize"))
+			AddElementToObject(entry["precision"], "price", this.SafeNumber(filter, "tickSize"))
 			// PRICE_FILTER reports zero values for maxPrice
 			// since they updated filter types in November 2018
 			// https://github.com/ccxt/ccxt/issues/4286
 			// therefore limits['price']['max'] doesn't have any meaningful value except undefined
-			AddElementToObject(GetValue(entry, "limits"), "price", map[string]any{
+			AddElementToObject(entry["limits"], "price", map[string]any{
 				"min": this.SafeNumber(filter, "minPrice"),
 				"max": this.SafeNumber(filter, "maxPrice"),
 			})
-			AddElementToObject(GetValue(entry, "precision"), "price", GetValue(filter, "tickSize"))
+			AddElementToObject(entry["precision"], "price", GetValue(filter, "tickSize"))
 		}
 		if func() bool { _, ok := filtersByType["LOT_SIZE"]; return ok }() {
 			var filter any = this.SafeValue(filtersByType, "LOT_SIZE", map[string]any{})
-			AddElementToObject(GetValue(entry, "precision"), "amount", this.SafeNumber(filter, "stepSize"))
-			AddElementToObject(GetValue(entry, "limits"), "amount", map[string]any{
+			AddElementToObject(entry["precision"], "amount", this.SafeNumber(filter, "stepSize"))
+			AddElementToObject(entry["limits"], "amount", map[string]any{
 				"min": this.SafeNumber(filter, "minQty"),
 				"max": this.SafeNumber(filter, "maxQty"),
 			})
 		}
 		if func() bool { _, ok := filtersByType["MARKET_LOT_SIZE"]; return ok }() {
 			var filter any = this.SafeValue(filtersByType, "MARKET_LOT_SIZE", map[string]any{})
-			AddElementToObject(GetValue(entry, "limits"), "market", map[string]any{
+			AddElementToObject(entry["limits"], "market", map[string]any{
 				"min": this.SafeNumber(filter, "minQty"),
 				"max": this.SafeNumber(filter, "maxQty"),
 			})
 		}
 		if func() bool { _, ok := filtersByType["MIN_NOTIONAL"]; return ok }() {
 			var filter any = this.SafeValue(filtersByType, "MIN_NOTIONAL", map[string]any{})
-			AddElementToObject(GetValue(GetValue(entry, "limits"), "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
+			AddElementToObject(GetValue(entry["limits"], "cost"), "min", this.SafeNumber2(filter, "minNotional", "notional"))
 		}
 		AppendToArray(&result, entry)
 	}

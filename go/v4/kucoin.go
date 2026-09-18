@@ -3216,7 +3216,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 			var chainId *string = this.SafeString(chain, "chainId")
 			var networkCodeNew any = this.NetworkIdToCode(chainId, this.SafeString(currency, "code"))
 			if networkCodeNew != nil {
-				AddElementToObject(GetValue(resultNew, "networks"), networkCodeNew, map[string]any{
+				AddElementToObject(resultNew["networks"], networkCodeNew, map[string]any{
 					"withdraw": map[string]any{
 						"fee":        this.SafeNumber2(chain, "withdrawalMinFee", "withdrawMinFee"),
 						"percentage": false,
@@ -3248,7 +3248,7 @@ func (this *Kucoin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(currencyId, currency)
 	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
 	if networkCode != nil {
-		AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+		AddElementToObject(result["networks"], networkCode, map[string]any{
 			"withdraw": minWithdrawFee,
 			"deposit": map[string]any{
 				"fee":        nil,

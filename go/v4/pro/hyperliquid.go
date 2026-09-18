@@ -615,8 +615,8 @@ func (this *Hyperliquid) watchTickersBody(ch chan any, optionalArgs ...any) any 
 	if defaultDex != nil {
 		params = this.Omit(params, "dex")
 		messageHash = ccxt.Add("tickers:", defaultDex)
-		ccxt.AddElementToObject(ccxt.GetValue(request, "subscription"), "type", "allMids")
-		ccxt.AddElementToObject(ccxt.GetValue(request, "subscription"), "dex", defaultDex)
+		ccxt.AddElementToObject(request["subscription"], "type", "allMids")
+		ccxt.AddElementToObject(request["subscription"], "dex", defaultDex)
 	}
 
 	tickers := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))

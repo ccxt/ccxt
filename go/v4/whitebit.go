@@ -1659,7 +1659,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 						"percent": this.SafeNumber(GetValue(depositFee, "flex"), "percent"),
 					}
 				}
-				AddElementToObject(GetValue(limits, "deposit"), "fee", depositFeeData)
+				AddElementToObject(limits["deposit"], "fee", depositFeeData)
 			}
 			if (!IsEqual(withdrawFee, nil)) && (!IsEqual(withdrawFee, nil)) {
 				var withdrawFeeData map[string]any = map[string]any{
@@ -1672,7 +1672,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 						"percent": this.SafeNumber(GetValue(withdrawFee, "flex"), "percent"),
 					}
 				}
-				AddElementToObject(GetValue(limits, "withdraw"), "fee", withdrawFeeData)
+				AddElementToObject(limits["withdraw"], "fee", withdrawFeeData)
 			}
 		}
 		// Add network-specific limits if available

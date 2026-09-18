@@ -6354,15 +6354,15 @@ func (this *Coinex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var entry any = GetValue(chains, i)
 		var isWithdrawEnabled *bool = this.SafeBool(entry, "withdraw_enabled")
 		if isWithdrawEnabled != nil && *isWithdrawEnabled == true {
-			AddElementToObject(GetValue(result, "withdraw"), "fee", this.SafeNumber(entry, "withdrawal_fee"))
-			AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
+			AddElementToObject(result["withdraw"], "fee", this.SafeNumber(entry, "withdrawal_fee"))
+			AddElementToObject(result["withdraw"], "percentage", false)
 			var networkId *string = this.SafeString(entry, "chain")
 			if (networkId != nil) && (networkId == nil || *networkId != "") {
 				var currencyId *string = this.SafeString(asset, "ccy")
 				var feeCode *string = this.SafeCurrencyCode(currencyId, currency)
 				var networkCode any = this.NetworkIdToCode(networkId, feeCode)
 				if networkCode != nil {
-					AddElementToObject(GetValue(result, "networks"), networkCode, map[string]any{
+					AddElementToObject(result["networks"], networkCode, map[string]any{
 						"withdraw": map[string]any{
 							"fee":        this.SafeNumber(entry, "withdrawal_fee"),
 							"percentage": false,
