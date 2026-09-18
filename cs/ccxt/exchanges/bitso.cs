@@ -779,7 +779,7 @@ public partial class bitso : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2001,7 +2001,7 @@ public partial class bitso : Exchange
                 ((IDictionary<string,object>)getValue(getValue(result, code), "info"))[(string)code] = withdrawFee;
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**

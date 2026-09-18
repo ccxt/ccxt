@@ -1533,7 +1533,7 @@ public partial class bittrade : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2124,7 +2124,7 @@ public partial class bittrade : Exchange
                 { "clientOrderId", this.safeString(order, "client-order-id") },
             }));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**

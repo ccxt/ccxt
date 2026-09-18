@@ -1803,10 +1803,10 @@ public partial class zebpay : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", amount },
             { "direction", "in" },
-        }))));
+        });
     }
 
     /**
@@ -1847,10 +1847,10 @@ public partial class zebpay : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
             { "amount", amount },
             { "direction", "out" },
-        }))));
+        });
     }
 
     public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters = null)
@@ -2028,7 +2028,7 @@ public partial class zebpay : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public override Dictionary<string, object> parsePosition(object position, object market = null)

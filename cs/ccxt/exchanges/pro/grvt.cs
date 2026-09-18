@@ -132,7 +132,7 @@ public partial class grvt : ccxt.grvt
         Int64 newValue = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = newValue;
         this.unlockId();
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     /**

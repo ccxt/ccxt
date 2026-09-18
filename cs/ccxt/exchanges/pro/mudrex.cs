@@ -43,7 +43,7 @@ public partial class mudrex : ccxt.mudrex
     {
         Int64 reqid = this.sum(this.safeInteger(this.options, "correlationId", 0), 1);
         ((IDictionary<string,object>)this.options)["correlationId"] = reqid;
-        return ((Int64)((object)(reqid))!);
+        return reqid;
     }
 
     /**

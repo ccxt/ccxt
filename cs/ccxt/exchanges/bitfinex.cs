@@ -1125,7 +1125,7 @@ public partial class bitfinex : Exchange
             object code = getValue(parsed, "code");
             result[(string)code] = parsed;
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseCurrencyCustom(object id, object indexed, object indexedNetworks)
@@ -1180,7 +1180,7 @@ public partial class bitfinex : Exchange
                 };
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeCurrencyStructure(new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
             { "info", new List<object>() {id, label, pool, feeValues, undl} },
@@ -1203,7 +1203,7 @@ public partial class bitfinex : Exchange
             } },
             { "networks", networks },
             { "margin", this.inArray(id, getValue(indexed, "marginables")) },
-        }))));
+        });
     }
 
     /**

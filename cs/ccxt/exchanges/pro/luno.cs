@@ -276,7 +276,7 @@ public partial class luno : ccxt.luno
         {
             ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual List<object> customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object thirdKey = null)
@@ -292,7 +292,7 @@ public partial class luno : ccxt.luno
             object thirdValue = this.safeString(bidask, thirdKey);
             ((IList<object>)result).Add(thirdValue);
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public override void handleDelta(object orderbook, object message)

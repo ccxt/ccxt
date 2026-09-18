@@ -1177,7 +1177,7 @@ public partial class polymarket : PredictionExchange
                 { "created", null },
             });
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -1556,7 +1556,7 @@ public partial class polymarket : PredictionExchange
         {
             quoteVolume = this.safeNumber2(getValue(market, "info"), "volume24hr", "volume");
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
             { "outcomeId", this.safeString(market, "outcomeId") },
             { "label", this.safeString(market, "label") },
@@ -1580,7 +1580,7 @@ public partial class polymarket : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -2036,7 +2036,7 @@ public partial class polymarket : PredictionExchange
                 { "rate", this.parseNumber(Precise.stringDiv(feeRateBps, "10000")) },
             };
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", timestamp },
@@ -2053,7 +2053,7 @@ public partial class polymarket : PredictionExchange
             { "amount", amount },
             { "cost", null },
             { "fee", fee },
-        }, mkt))));
+        }, mkt);
     }
 
     /**
@@ -2105,7 +2105,7 @@ public partial class polymarket : PredictionExchange
             { "used", null },
             { "total", total },
         };
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2319,7 +2319,7 @@ public partial class polymarket : PredictionExchange
         double? amount = this.safeNumber(order, "original_size");
         double? filled = this.safeNumber(order, "size_matched", 0);
         Int64? ts = this.safeIntegerProduct(order, "created_at", 1000);
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
             { "info", order },
@@ -2345,7 +2345,7 @@ public partial class polymarket : PredictionExchange
             { "remaining", null },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, mkt))));
+        }, mkt);
     }
 
     /**
@@ -3241,7 +3241,7 @@ public partial class polymarket : PredictionExchange
             object rawEvent = getValue(rawEvents, i);
             ((IList<object>)result).Add(this.parseEvent(rawEvent));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -3506,7 +3506,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.clobPrivateGetAuthDeriveApiKey(parameters);
-        return ((Dictionary<string, object>)((object)(this.setApiCredentials(response))));
+        return this.setApiCredentials(response);
     }
 
     /**
@@ -3566,7 +3566,7 @@ public partial class polymarket : PredictionExchange
         ((IDictionary<string,object>)this.options)["l2ApiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
         ((IDictionary<string,object>)this.options)["l2Secret"] = ((IDictionary<string,object>)creds)["secret"];
         ((IDictionary<string,object>)this.options)["l2Passphrase"] = ((IDictionary<string,object>)creds)["passphrase"];
-        return ((Dictionary<string, object>)((object)(creds)));
+        return creds;
     }
 
     /**

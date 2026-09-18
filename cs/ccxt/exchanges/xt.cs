@@ -3020,7 +3020,7 @@ public partial class xt : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -5267,7 +5267,7 @@ public partial class xt : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "ADD", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
     }
 
     /**
@@ -5284,7 +5284,7 @@ public partial class xt : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "SUB", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string? addOrReduce, object parameters = null)
@@ -5324,7 +5324,7 @@ public partial class xt : Exchange
         //         "result": null
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.parseMarginModification(response, market))));
+        return this.parseMarginModification(response, market);
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -6058,7 +6058,7 @@ public partial class xt : Exchange
             string key = add(add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
             breakBySymbolSide[(string)key] = breakEntry;
         }
-        return ((Dictionary<string, object>)((object)(breakBySymbolSide)));
+        return breakBySymbolSide;
     }
 
     /**

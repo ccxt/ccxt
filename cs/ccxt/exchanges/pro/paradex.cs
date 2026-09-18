@@ -45,7 +45,7 @@ public partial class paradex : ccxt.paradex
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public async virtual Task<object> authenticate(object parameters = null)

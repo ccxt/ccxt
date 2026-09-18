@@ -54,13 +54,13 @@ public partial class derive : ccxt.derive
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public async virtual Task<object> watchPublic(object messageHash, object message, object subscription)
     {
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
@@ -358,7 +358,7 @@ public partial class derive : ccxt.derive
     public async virtual Task<object> unWatchPublic(object messageHash, object message, object subscription)
     {
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
@@ -515,7 +515,7 @@ public partial class derive : ccxt.derive
         object authenticated = this.safeValue(client.subscriptions, messageHash);
         if ((authenticated == null))
         {
-            Int64 requestId = ((Int64)this.requestId(url));
+            Int64 requestId = this.requestId(url);
             string now = this.milliseconds().ToString();
             object signature = this.signMessage(now, this.privateKey);
             string? deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
@@ -543,7 +543,7 @@ public partial class derive : ccxt.derive
     {
         await this.authenticate();
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });

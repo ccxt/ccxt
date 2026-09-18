@@ -174,7 +174,7 @@ public partial class bybit : ccxt.bybit
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         this.unlockId();
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public async virtual Task<object> getUrlByMarketType(object symbol = null, object isPrivate = null, object method = null, object parameters = null)
@@ -2026,7 +2026,7 @@ public partial class bybit : ccxt.bybit
         string? marketId = this.safeString2(liquidation, "symbol", "s");
         market = this.safeMarket(marketId, market, "", "contract");
         Int64? timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
-        return ((Dictionary<string, object>)((object)(this.safeLiquidation(new Dictionary<string, object>() {
+        return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },
             { "contracts", this.safeNumber2(liquidation, "size", "v") },
@@ -2037,7 +2037,7 @@ public partial class bybit : ccxt.bybit
             { "quoteValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }))));
+        });
     }
 
     /**
@@ -2668,7 +2668,7 @@ public partial class bybit : ccxt.bybit
         int newTopicsLength = newTopics.Count;
         if (isGreaterThan(newTopicsLength, 0))
         {
-            Int64 reqId = ((Int64)this.requestId());
+            Int64 reqId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "op", "subscribe" },
                 { "req_id", reqId },
@@ -2687,7 +2687,7 @@ public partial class bybit : ccxt.bybit
     {
         parameters ??= new Dictionary<string, object>();
         subExtension ??= new Dictionary<string, object>();
-        Int64 reqId = ((Int64)this.requestId());
+        Int64 reqId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
             { "req_id", reqId },

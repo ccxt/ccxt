@@ -310,7 +310,7 @@ public partial class coinbase : ccxt.coinbase
             }
             subscribe["jwt"] = this.safeString(this.options, "wsToken");
         }
-        return ((Dictionary<string, object>)((object)(subscribe)));
+        return subscribe;
     }
 
     /**

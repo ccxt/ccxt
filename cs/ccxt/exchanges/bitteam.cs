@@ -2328,7 +2328,7 @@ public partial class bitteam : Exchange
                 };
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(balance))));
+        return this.safeBalance(balance);
     }
 
     /**

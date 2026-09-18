@@ -522,7 +522,7 @@ public partial class deepcoin : Exchange
                 { "type", instType },
             });
         }
-        return ((List<object>)((object)(base.handleMarketTypeAndParams(methodName, market, parameters, defaultValue))));
+        return base.handleMarketTypeAndParams(methodName, market, parameters, defaultValue);
     }
 
     public virtual string? convertToInstrumentType(object type)
@@ -1193,7 +1193,7 @@ public partial class deepcoin : Exchange
             account["free"] = this.safeString(balance, "availBal");
             result[(string)((string)code)] = account;
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

@@ -1199,7 +1199,7 @@ public partial class bitrue : Exchange
         }
         result["timestamp"] = timestamp;
         result["datetime"] = this.iso8601(timestamp);
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

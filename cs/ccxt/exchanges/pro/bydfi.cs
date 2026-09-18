@@ -91,7 +91,7 @@ public partial class bydfi : ccxt.bydfi
         Int64 reqid = this.sum(this.safeInteger(this.options, "reqid", 0), 1);
         ((IDictionary<string,object>)this.options)["reqid"] = reqid;
         this.unlockId();
-        return ((Int64)((object)(reqid))!);
+        return reqid;
     }
 
     public async virtual Task<object> watchPublic(object messageHashes, object channels, object parameters = null, object subscription = null)
@@ -99,7 +99,7 @@ public partial class bydfi : ccxt.bydfi
         parameters ??= new Dictionary<string, object>();
         subscription ??= new Dictionary<string, object>();
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 id = ((Int64)this.requestId());
+        Int64 id = this.requestId();
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -131,7 +131,7 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> subscription = new Dictionary<string, object>() {};
         if ((privateSubscription == null))
         {
-            Int64 id = ((Int64)this.requestId());
+            Int64 id = this.requestId();
             string timestamp = this.milliseconds().ToString();
             object payload = add(this.apiKey, timestamp);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
@@ -304,7 +304,7 @@ public partial class bydfi : ccxt.bydfi
                 ((IList<object>)messageHashes).Add(key);
             }
         }
-        return ((List<object>)((object)(messageHashes)));
+        return messageHashes;
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -1116,7 +1116,7 @@ public partial class bydfi : ccxt.bydfi
                     result[(string)code] = account;
                 }
             }
-            object parsedBalance = this.safeBalance(result);
+            Dictionary<string, object> parsedBalance = this.safeBalance(result);
             this.balance = this.extend(this.balance, parsedBalance);
             callDynamically(client, "resolve", new object[] {this.balance, messageHash});
         }

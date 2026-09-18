@@ -2072,9 +2072,9 @@ public partial class gate : Exchange
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     /**
@@ -3363,7 +3363,7 @@ public partial class gate : Exchange
             Dictionary<string, object> market = this.market(symbol);
             result[(string)symbol] = this.parseTradingFee(response, market);
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseTradingFee(object info, IDictionary<string, object> market = null)
@@ -8253,7 +8253,7 @@ public partial class gate : Exchange
         //
         // empty response
         //
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     /**
@@ -8297,7 +8297,7 @@ public partial class gate : Exchange
             response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters));
             response = this.safeDict(response, 0);
         }
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     /**
@@ -8347,7 +8347,7 @@ public partial class gate : Exchange
         //         "unpaid_interest": "0.003333333333"
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     /**
@@ -8390,7 +8390,7 @@ public partial class gate : Exchange
             // returns {"label":"REQUEST_FORBIDDEN","message":"Request is forbidden"}
             response = await this.privateMarginPostCrossLoans(this.extend(request, parameters));
         }
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(response, currency))));
+        return this.parseMarginLoan(response, currency);
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
@@ -8689,7 +8689,7 @@ public partial class gate : Exchange
         {
             throw new NotSupported (add(this.id, " modifyMarginHelper() not support this market type")) ;
         }
-        return ((Dictionary<string, object>)((object)(this.parseMarginModification(response, market))));
+        return this.parseMarginModification(response, market);
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -8753,7 +8753,7 @@ public partial class gate : Exchange
     {
         object amountVar = amount;
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amountVar), parameters))));
+        return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amountVar), parameters);
     }
 
     /**
@@ -8770,7 +8770,7 @@ public partial class gate : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, parameters);
     }
 
     /**

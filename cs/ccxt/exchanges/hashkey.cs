@@ -2001,7 +2001,7 @@ public partial class hashkey : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public virtual object parseSwapBalance(object balance)
@@ -4321,7 +4321,7 @@ public partial class hashkey : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     /**
@@ -4338,7 +4338,7 @@ public partial class hashkey : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
@@ -4385,10 +4385,10 @@ public partial class hashkey : Exchange
         //         "timestamp": "1726869763318"
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "type", type },
             { "amount", amount },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)

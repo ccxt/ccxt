@@ -2000,12 +2000,12 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public virtual Dictionary<string, object> wrapAsPostAction(object request)
     {
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         return new Dictionary<string, object>() {
             { "requestId", requestId },
             { "request", new Dictionary<string, object>() {

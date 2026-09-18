@@ -748,7 +748,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> bestAsk = this.safeDict(asks, 0, new Dictionary<string, object>() {});
         double? last = this.safeNumber(priceResult, "price");
         Int64? timestamp = this.safeInteger(priceResult, "timestamp", this.milliseconds());
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(marketAny, "outcome") },
             { "outcomeId", this.safeString2(marketAny, "outcomeId", "id") },
             { "label", this.safeString(marketAny, "label") },
@@ -770,7 +770,7 @@ public partial class opinion : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "info", ticker },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -1301,7 +1301,7 @@ public partial class opinion : PredictionExchange
         string? sideEnum = this.safeStringLower(order, "sideEnum");
         string? tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
         object timestamp = this.safeTimestamp(order, "createdAt");
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
             { "info", order },
@@ -1321,7 +1321,7 @@ public partial class opinion : PredictionExchange
             { "filled", this.safeNumber(order, "filledShares") },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, ((object)market)))));
+        }, ((object)market));
     }
 
     /**
@@ -1530,7 +1530,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> outcomeObj = this.safeOutcome(tokenId, ((object)market));
         object timestamp = this.safeTimestamp(trade, "createdAt");
         string? side = this.safeStringLower(trade, "side");
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "txHash") },
             { "timestamp", timestamp },
             { "side", side },
@@ -1545,7 +1545,7 @@ public partial class opinion : PredictionExchange
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
             { "market", this.safeString2(outcomeObj, "market", "outcome") },
-        }))));
+        });
     }
 
     /**
@@ -1854,7 +1854,7 @@ public partial class opinion : PredictionExchange
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         this.apiKey = ((string)((IDictionary<string,object>)creds)["apiKey"]);
-        return ((Dictionary<string, object>)((object)(creds)));
+        return creds;
     }
 
     /**

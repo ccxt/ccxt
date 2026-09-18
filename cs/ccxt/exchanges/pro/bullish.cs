@@ -52,7 +52,7 @@ public partial class bullish : ccxt.bullish
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public override object ping(WebSocketClient client)
@@ -390,7 +390,7 @@ public partial class bullish : ccxt.bullish
             string? amount = this.safeString(entry, add(i, 1));
             ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**

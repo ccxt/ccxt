@@ -3147,7 +3147,7 @@ public partial class woo : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3819,10 +3819,10 @@ public partial class woo : Exchange
         //     }
         //
         Dictionary<string, object> transaction = this.parseMarginLoan(response, currency);
-        return ((Dictionary<string, object>)((object)(this.extend(transaction, new Dictionary<string, object>() {
+        return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
             { "symbol", symbol },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null)
@@ -4508,7 +4508,7 @@ public partial class woo : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "ADD", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
     }
 
     /**
@@ -4525,7 +4525,7 @@ public partial class woo : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters);
     }
 
     public async virtual Task<Dictionary<string, object>> modifyMarginHelper(object symbol, object amount, string? type, object parameters = null)

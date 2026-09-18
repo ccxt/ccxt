@@ -213,7 +213,7 @@ public partial class binance : ccxt.binance
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public virtual bool isSpotUrl(WebSocketClient client)
@@ -355,7 +355,7 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         object url = this.getStockWsUrl("market");
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         object query = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
@@ -445,7 +445,7 @@ public partial class binance : ccxt.binance
         }
         int numSubscriptions = subscriptionHashes.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream(type, streamHash, numSubscriptions));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
             { "params", subscriptionHashes },
@@ -598,7 +598,7 @@ public partial class binance : ccxt.binance
         string? marketId = this.safeString(liquidation, "s");
         market = this.safeMarket(marketId, market, null, "swap");
         Int64? timestamp = this.safeInteger(liquidation, "T");
-        return ((Dictionary<string, object>)((object)(this.safeLiquidation(new Dictionary<string, object>() {
+        return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.safeNumber(liquidation, "l") },
@@ -609,7 +609,7 @@ public partial class binance : ccxt.binance
             { "quoteValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }))));
+        });
     }
 
     /**
@@ -854,7 +854,7 @@ public partial class binance : ccxt.binance
         }
         int messageHashesLength = messageHashes.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
             { "params", subParams },
@@ -927,7 +927,7 @@ public partial class binance : ccxt.binance
         }
         int messageHashesLength = subMessageHashes.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
             { "params", subParams },
@@ -996,7 +996,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchOrderBookWs only supports swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
@@ -1431,7 +1431,7 @@ public partial class binance : ccxt.binance
         object query = this.omit(parameters, "type");
         int subParamsLength = subParams.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
             { "params", subParams },
@@ -1534,7 +1534,7 @@ public partial class binance : ccxt.binance
         object query = this.omit(parameters, "type");
         int subParamsLength = subParams.Count;
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
             { "params", subParams },
@@ -1943,7 +1943,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
         }
         object url = add(add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV"));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
             { "params", rawHashes },
@@ -2037,7 +2037,7 @@ public partial class binance : ccxt.binance
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", GetValue(market, "symbol")), "::"), timeframeString));
         }
         object url = add(add(this.getWsUrl(wsUrlType, this.getFutureWsCategory(klineType)), "/"), this.stream(wsUrlType, "multipleOHLCV"));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "UNSUBSCRIBE" },
             { "params", rawHashes },
@@ -2178,7 +2178,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchTickerWs only supports swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "method", this.handleTickerWs },
@@ -2234,7 +2234,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchOHLCVWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
@@ -2773,7 +2773,7 @@ public partial class binance : ccxt.binance
             streamHash = add(add(channelName, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object url = add(add(this.getWsUrl(rawMarketType, this.getFutureWsCategory(channelName)), "/"), this.stream(rawMarketType, streamHash));
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", isTrue(isUnsubscribe) ? "UNSUBSCRIBE" : "SUBSCRIBE" },
             { "params", subscriptionArgs },
@@ -3172,7 +3172,7 @@ public partial class binance : ccxt.binance
             signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
         }
         extendedParams["signature"] = signature;
-        return ((Dictionary<string, object>)((object)(extendedParams)));
+        return extendedParams;
     }
 
     /**
@@ -3206,7 +3206,7 @@ public partial class binance : ccxt.binance
         }
         client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
         ((IDictionary<string,object>)client.subscriptions)[(string)marketTypeVar] = true;
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string requestHash = requestId.ToString();
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", requestHash },
@@ -3321,7 +3321,7 @@ public partial class binance : ccxt.binance
                 }
                 Int64? expirationTime = this.safeInteger(response, "expirationTime");
                 // Step 2: Subscribe to user data stream via WebSocket API
-                Int64 requestId = ((Int64)this.requestId(url));
+                Int64 requestId = this.requestId(url);
                 string requestHash = requestId.ToString();
                 Dictionary<string, object> message = new Dictionary<string, object>() {
                     { "id", requestHash },
@@ -3733,7 +3733,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchBalanceWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
@@ -3889,7 +3889,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchPositionsWs only supports swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
@@ -4261,7 +4261,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " createOrderWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
         parameters = this.omit(parameters, "sor", "SOR");
@@ -4442,7 +4442,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " editOrderWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         bool isSwap = (marketType == "future" || marketType == "delivery");
         Dictionary<string, object> payload = new Dictionary<string, object>() {};
@@ -4612,7 +4612,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> market = this.market(symbol);
         string? type = this.getMarketType("cancelOrderWs", market, parameters);
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
@@ -4687,7 +4687,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " cancelAllOrdersWs only supports spot markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
@@ -4738,7 +4738,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchOrderWs only supports spot or swap markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
@@ -4800,7 +4800,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchOrdersWs only supports spot markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
@@ -4874,7 +4874,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(this.id, " fetchOpenOrdersWs only supports spot markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
@@ -4945,7 +4945,7 @@ public partial class binance : ccxt.binance
             }
             object stockUrl = this.getStockWsUrl("user");
             object stockStreamName = add(stockListenKey, "@orderReport");
-            Int64 stockRequestId = ((Int64)this.requestId(stockUrl));
+            Int64 stockRequestId = this.requestId(stockUrl);
             string stockMessageHash = "orders";
             if (!isEqual(symbolVar, null))
             {
@@ -5966,7 +5966,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(add(add(this.id, " fetchMyTradesWs does not support "), type), " markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
@@ -6029,7 +6029,7 @@ public partial class binance : ccxt.binance
             throw new BadRequest (add(add(add(this.id, " fetchTradesWs does not support "), type), " markets")) ;
         }
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string messageHash = requestId.ToString();
         object returnRateLimits = false;
         IList<object> returnRateLimitsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);

@@ -1113,7 +1113,7 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(firstPosData, "instId");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(firstPosData, "uTIme");
-        return ((Dictionary<string, object>)((object)(this.safeLiquidation(new Dictionary<string, object>() {
+        return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.safeNumber(firstPosData, "pos") },
@@ -1123,7 +1123,7 @@ public partial class okx : ccxt.okx
             { "quoteValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }))));
+        });
     }
 
     public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -1153,7 +1153,7 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(liquidation, "instId");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(liquidationDetails, "ts");
-        return ((Dictionary<string, object>)((object)(this.safeLiquidation(new Dictionary<string, object>() {
+        return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },
             { "contracts", this.safeNumber(liquidationDetails, "sz") },
@@ -1164,7 +1164,7 @@ public partial class okx : ccxt.okx
             { "quoteValue", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-        }))));
+        });
     }
 
     /**

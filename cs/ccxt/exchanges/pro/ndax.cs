@@ -33,7 +33,7 @@ public partial class ndax : ccxt.ndax
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     /**
@@ -57,7 +57,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeLevel1";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -138,7 +138,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeTrades";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -243,7 +243,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeTicker";
         string messageHash = add(add(add(add(name, ":"), timeframeVar), ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
@@ -407,7 +407,7 @@ public partial class ndax : ccxt.ndax
         string name = "SubscribeLevel2";
         string messageHash = add(add(name, ":"), GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         limitVar = (isEqual(limitVar, null)) ? 100 : limitVar;
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "OMSId", omsId },

@@ -69,7 +69,7 @@ public partial class deribit : ccxt.deribit
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     /**
@@ -1198,7 +1198,7 @@ public partial class deribit : ccxt.deribit
         if ((future == null))
         {
             this.checkRequiredCredentials();
-            Int64 requestId = ((Int64)this.requestId());
+            Int64 requestId = this.requestId();
             string lineBreak = "\n"; // eslint-disable-line quotes
             string signature = this.hmac(this.encode(add(add(add(timeString, lineBreak), nonce), lineBreak)), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {

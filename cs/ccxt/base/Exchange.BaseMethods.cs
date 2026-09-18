@@ -624,7 +624,7 @@ public partial class BaseExchange
         {
             result = this.arrayConcat(result, getValue(arraysOfArrays, i));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual string? findTimeframe(object timeframe, object timeframes = null)
@@ -837,7 +837,7 @@ public partial class BaseExchange
                 ((IList<object>)result).Add(messageHash);
             }
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual IList<object> filterByLimit(object array, object limit = null, object key = null, object fromStart = null)
@@ -1536,7 +1536,7 @@ public partial class BaseExchange
         {
             return ((Int64?)((object)(null)));
         }
-        return ((Int64?)((object)(timestamp)));
+        return timestamp;
     }
 
     public virtual void afterConstruct()
@@ -2294,10 +2294,10 @@ public partial class BaseExchange
     {
         Dictionary<string, object> extendedRestDescribe = this.deepExtend(((Exchange)parentRestInstance).describe(), ((Exchange)currentRestInstance).describe());
         Dictionary<string, object> superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
-        return ((Dictionary<string, object>)((object)(superWithRestDescribe)));
+        return superWithRestDescribe;
     }
 
-    public virtual object safeBalance(object balance)
+    public virtual Dictionary<string, object> safeBalance(object balance)
     {
         object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
         List<object> codes = new List<object>(((IDictionary<string,object>)balances).Keys);
@@ -2342,7 +2342,7 @@ public partial class BaseExchange
         {
             ((IDictionary<string,object>)balance)["debt"] = debtBalance;
         }
-        return ((object)balance);
+        return ((Dictionary<string, object>)((object)(((object)balance))));
     }
 
     public virtual Dictionary<string, object> safeOrder(object order, object market = null)
@@ -2818,7 +2818,7 @@ public partial class BaseExchange
         return this.calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker, null, parameters);
     }
 
-    public virtual object safeLiquidation(object liquidation, object market = null)
+    public virtual Dictionary<string, object> safeLiquidation(object liquidation, object market = null)
     {
         string? contracts = this.safeString(liquidation, "contracts");
         string? contractSize = this.safeString(market, "contractSize");
@@ -2838,7 +2838,7 @@ public partial class BaseExchange
         ((IDictionary<string,object>)liquidation)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)liquidation)["baseValue"] = this.parseNumber(baseValue);
         ((IDictionary<string,object>)liquidation)["quoteValue"] = this.parseNumber(quoteValue);
-        return liquidation;
+        return ((Dictionary<string, object>)((object)(liquidation)));
     }
 
     public virtual Dictionary<string, object> safeTrade(object trade, object market = null)
@@ -2999,7 +2999,7 @@ public partial class BaseExchange
             itemWithKey[(string)keyName] = key;
             ((IList<object>)result).Add(itemWithKey);
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> invertFlatStringDictionary(object dict)
@@ -3015,7 +3015,7 @@ public partial class BaseExchange
                 reversed[(string)value] = key;
             }
         }
-        return ((Dictionary<string, object>)((object)(reversed)));
+        return reversed;
     }
 
     public virtual string? stringToBase16(object str)
@@ -3112,7 +3112,7 @@ public partial class BaseExchange
             List<object> reducedFeeValues = new List<object>(((IDictionary<string,object>)getValue(feeValues, i)).Values);
             result = this.arrayConcat(result, reducedFeeValues);
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> safeTicker(object ticker, object market = null)
@@ -3341,7 +3341,7 @@ public partial class BaseExchange
         {
             ((IList<object>)result).Add(new List<object>() {isTrue(ms) ? this.safeInteger(timestamps, i) : this.safeTimestamp(timestamps, i), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)});
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> convertOHLCVToTradingView(object ohlcvs, object timestamp = null, object open = null, object high = null, object low = null, object close = null, object volume = null, object ms = null)
@@ -3376,7 +3376,7 @@ public partial class BaseExchange
             object resultVolume = getValue(result, volume);
             ((IList<object>)resultVolume).Add(getValue(getValue(ohlcvs, i), 5));
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public async virtual Task<object> fetchWebEndpoint(object method, object endpointMethod, object returnAsJson, object startRegex = null, object endRegex = null)
@@ -3608,7 +3608,7 @@ public partial class BaseExchange
         {
             ((IList<object>)result).Add(this.parseOrderBookBidAsk(getValue(bidasks, i), priceKey, amountKey, countOrIdKey));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual IList<object> filterByKey(object objects, object key, object value = null)
@@ -4108,7 +4108,7 @@ public partial class BaseExchange
             Dictionary<string, object> account = this.extend(this.parseAccount(getValue(accountsArray, i)), parameters);
             ((IList<object>)result).Add(account);
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual IList<object> parseTradesHelper(object isWs, object trades, object market = null, object since = null, object limit = null, object parameters = null)
@@ -4354,7 +4354,7 @@ public partial class BaseExchange
         {
             ((IList<object>)results).Add(getValue(getValue(newArray, i), key));
         }
-        return ((List<object>)((object)(results)));
+        return results;
     }
 
     public virtual object getSymbolsForMarketType(object marketType = null, object subType = null, object symbolWithActiveStatus = null, object symbolWithUnknownStatus = null)
@@ -4632,7 +4632,7 @@ public partial class BaseExchange
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_count)] = this.sum(getValue(getValue(ohlcvs, candle), i_count), 1);
             }
         }
-        return ((List<object>)((object)(ohlcvs)));
+        return ohlcvs;
     }
 
     public virtual object parseTradingViewOHLCV(Dictionary<string, object> ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null)
@@ -4674,7 +4674,7 @@ public partial class BaseExchange
         {
             ((IList<object>)bidAsk).Add(countOrId);
         }
-        return ((List<object>)((object)(bidAsk)));
+        return bidAsk;
     }
 
     public virtual Dictionary<string, object> safeCurrency(object currencyId, object currency = null)
@@ -4764,7 +4764,7 @@ public partial class BaseExchange
                         result["symbol"] = add(add(bs, "/"), quote);
                     }
                 }
-                return ((Dictionary<string, object>)((object)(result)));
+                return result;
             }
         }
         if (!isEqual(market, null))
@@ -4779,7 +4779,7 @@ public partial class BaseExchange
         {
             throw new ExchangeError (add(this.id, " safeMarket() failed to build market structure")) ;
         }
-        return ((Dictionary<string, object>)((object)(emptyMarket)));
+        return emptyMarket;
     }
 
     public virtual object marketOrNull(object symbol = null)
@@ -5136,7 +5136,7 @@ public partial class BaseExchange
         * @returns {Array} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
         */
         parameters ??= new Dictionary<string, object>();
-        return ((List<object>)((object)(this.handleOptionAndParams(parameters, methodName, "marginMode", defaultValue))));
+        return this.handleOptionAndParams(parameters, methodName, "marginMode", defaultValue);
     }
 
     public virtual void throwExactlyMatchedException(object exact, object str, object message)
@@ -6650,7 +6650,7 @@ public partial class BaseExchange
                 depositWithdrawFees[(string)((string)code)] = this.parseDepositWithdrawFee(dictionary, currency);
             }
         }
-        return ((Dictionary<string, object>)((object)(depositWithdrawFees)));
+        return depositWithdrawFees;
     }
 
     public virtual object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
@@ -6753,7 +6753,7 @@ public partial class BaseExchange
             return ((Dictionary<string, object>)((object)(null)));
         }
         Dictionary<string, object> market = this.market(firstMarket);
-        return ((Dictionary<string, object>)((object)(market)));
+        return market;
     }
 
     public virtual List<object> parseWsOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null)
@@ -6765,7 +6765,7 @@ public partial class BaseExchange
         {
             ((IList<object>)results).Add(this.parseWsOHLCV(getValue(ohlcvs, i), market));
         }
-        return ((List<object>)((object)(results)));
+        return results;
     }
 
     public async virtual Task<List<ccxt.Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -6829,7 +6829,7 @@ public partial class BaseExchange
         Dictionary<string, object> res = new Dictionary<string, object>() {};
         res[(string)symbol] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)getValue(res, symbol))[timeframe] = data;
-        return ((Dictionary<string, object>)((object)(res)));
+        return res;
     }
 
     public virtual List<object> handleMaxEntriesPerRequestAndParams(object method, object maxEntriesPerRequest = null, object parameters = null)
@@ -7339,7 +7339,7 @@ public partial class BaseExchange
                 newDict[(string)key] = getValue(dict, key);
             }
         }
-        return ((Dictionary<string, object>)((object)(newDict)));
+        return newDict;
     }
 
     public virtual List<object> handleUntilOption(object key, object request, object parameters, object multiplier = null)
@@ -7455,7 +7455,7 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "option");
             optionStructures[(string)GetValue(market, "symbol")] = this.parseOption(info, currency, market);
         }
-        return ((Dictionary<string, object>)((object)(optionStructures)));
+        return optionStructures;
     }
 
     public virtual Dictionary<string, object> parseMarginModes(object response, IList<object> symbols = null, object symbolKey = null, object marketType = null)
@@ -7475,7 +7475,7 @@ public partial class BaseExchange
                 marginModeStructures[(string)GetValue(market, "symbol")] = this.parseMarginMode(info, market);
             }
         }
-        return ((Dictionary<string, object>)((object)(marginModeStructures)));
+        return marginModeStructures;
     }
 
     public virtual object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
@@ -7500,7 +7500,7 @@ public partial class BaseExchange
                 leverageStructures[(string)GetValue(market, "symbol")] = this.parseLeverage(info, market);
             }
         }
-        return ((Dictionary<string, object>)((object)(leverageStructures)));
+        return leverageStructures;
     }
 
     public virtual Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)
@@ -7683,7 +7683,7 @@ public partial class BaseExchange
         List<object> marginModifications = new List<object>() {};
         if (isEqual(response, null))
         {
-            return ((List<object>)((object)(marginModifications)));
+            return marginModifications;
         }
         for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
@@ -7695,7 +7695,7 @@ public partial class BaseExchange
                 ((IList<object>)marginModifications).Add(this.parseMarginModification(info, market));
             }
         }
-        return ((List<object>)((object)(marginModifications)));
+        return marginModifications;
     }
 
     public async virtual Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, object parameters = null)

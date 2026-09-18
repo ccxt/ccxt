@@ -3147,7 +3147,7 @@ public partial class woofipro : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3744,7 +3744,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> modification = this.parseMarginModification(response, market);
         modification["type"] = (isEqual(type, "ADD")) ? "add" : "reduce";
         modification["amount"] = this.parseNumber(this.numberToString(amount));
-        return ((Dictionary<string, object>)((object)(modification)));
+        return modification;
     }
 
     /**
@@ -3760,7 +3760,7 @@ public partial class woofipro : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "ADD", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
     }
 
     /**
@@ -3776,7 +3776,7 @@ public partial class woofipro : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters);
     }
 
     public override Dictionary<string, object> parseLeverage(object leverage, IDictionary<string, object> market = null)

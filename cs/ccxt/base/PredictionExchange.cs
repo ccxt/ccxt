@@ -438,7 +438,7 @@ public partial class PredictionExchange : BaseExchange
                 ((IList<object>)result).Add(eventVar);
             }
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public async virtual Task<object> loadEventsHelper(object reload = null, object parameters = null)

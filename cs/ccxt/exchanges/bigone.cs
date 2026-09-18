@@ -1178,7 +1178,7 @@ public partial class bigone : Exchange
             object amount = getValue(bidsAsks, price);
             ((IList<object>)result).Add(new List<object> {this.parseNumber(price), this.parseNumber(amount)});
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual object parseContractOrderBook(object orderbook, object symbol, object limit = null)
@@ -1540,7 +1540,7 @@ public partial class bigone : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

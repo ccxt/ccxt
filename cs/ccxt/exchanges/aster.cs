@@ -2481,7 +2481,7 @@ public partial class aster : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -3847,9 +3847,9 @@ public partial class aster : Exchange
         //         "type": 1
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "code", code },
-        }))));
+        });
     }
 
     /**
@@ -3865,7 +3865,7 @@ public partial class aster : Exchange
     public async override Task<Dictionary<string, object>> reduceMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 2, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 2, parameters);
     }
 
     /**
@@ -3881,7 +3881,7 @@ public partial class aster : Exchange
     public async override Task<Dictionary<string, object>> addMargin(string symbol, double amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, 1, parameters))));
+        return await this.modifyMarginHelper(symbol, amount, 1, parameters);
     }
 
     public override Dictionary<string, object> parseIncome(object income, IDictionary<string, object> market = null)
@@ -4404,7 +4404,7 @@ public partial class aster : Exchange
                 }
             }
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseAccountPosition(Dictionary<string, object> position, IDictionary<string, object> market = null)
@@ -5069,7 +5069,7 @@ public partial class aster : Exchange
             string capitalizedKey = this.capitalize(key);
             capitalized[(string)capitalizedKey] = value;
         }
-        return ((Dictionary<string, object>)((object)(capitalized)));
+        return capitalized;
     }
 
     public async override Task loadMarketsAndSignIn()

@@ -751,7 +751,7 @@ public partial class limitless : PredictionExchange
                 ((IList<object>)result).Add(raw);
             }
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseEvent(object eventVar)
@@ -1287,7 +1287,7 @@ public partial class limitless : PredictionExchange
         }
         Int64 now = this.milliseconds();
         string? outcomeSymbol = this.safeOutcomeSymbol(null, market);
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcomeSymbol },
             { "outcomeId", this.safeString(market, "outcomeId") },
             { "label", this.safeString(market, "label") },
@@ -1311,7 +1311,7 @@ public partial class limitless : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", this.parseNumber(volumeStr) },
             { "info", ticker },
-        }))));
+        });
     }
 
     /**
@@ -2160,7 +2160,7 @@ public partial class limitless : PredictionExchange
                 { "currency", feeCurrency },
             };
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
             { "info", order },
@@ -2186,7 +2186,7 @@ public partial class limitless : PredictionExchange
             { "remaining", this.applyScale(remaining) },
             { "fee", fee },
             { "trades", new List<object>() {} },
-        }))));
+        });
     }
 
     /**
@@ -2937,7 +2937,7 @@ public partial class limitless : PredictionExchange
                 costStr = Precise.stringMul(priceStr, amountStr);
             }
             string? feedOutcome = this.safeOutcomeSymbol(null, market);
-            return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+            return this.safePredictionTrade(new Dictionary<string, object>() {
                 { "id", this.safeString(trade, "txHash") },
                 { "info", trade },
                 { "timestamp", ts },
@@ -2954,7 +2954,7 @@ public partial class limitless : PredictionExchange
                 { "amount", this.parseNumber(amountStr) },
                 { "cost", this.parseNumber(costStr) },
                 { "fee", null },
-            }))));
+            });
         }
         //
         //     {
@@ -3024,7 +3024,7 @@ public partial class limitless : PredictionExchange
         string label = ((outcomeIndex == 0)) ? "yes" : "no";
         object outcome = this.getOutcomeBySlugAndLabel(slug, label, market);
         string? tradeOutcome = this.safeString(outcome, "outcome");
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", timestamp },
@@ -3041,7 +3041,7 @@ public partial class limitless : PredictionExchange
             { "amount", amount },
             { "cost", cost },
             { "fee", null },
-        }))));
+        });
     }
 
     public virtual object getOutcomeBySlugAndLabel(object slug, object label, object market = null)

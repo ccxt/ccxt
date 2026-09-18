@@ -988,7 +988,7 @@ public partial class cex : Exchange
                 result[(string)symbol] = this.parseTradingFee(response, market);
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
@@ -1128,7 +1128,7 @@ public partial class cex : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

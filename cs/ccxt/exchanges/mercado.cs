@@ -619,7 +619,7 @@ public partial class mercado : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1148,7 +1148,7 @@ public partial class mercado : Exchange
                 ((IList<object>)result).Add(getValue(trades, y));
             }
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -938,7 +938,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? type = this.safeString(ticker, "type");
         if ((type == null))
         {
-            return ((Dictionary<string, object>)((object)(base.parseTicker(ticker, market))));
+            return base.parseTicker(ticker, market);
         }
         string? marketId = this.safeString(ticker, "product_id");
         string? symbol = this.safeSymbol(marketId, market, "-");

@@ -6997,7 +6997,7 @@ public partial class bitget : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -11845,10 +11845,10 @@ public partial class bitget : Exchange
         //         "data": ""
         //     }
         //
-        return ((Dictionary<string, object>)((object)(this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
+        return this.extend(this.parseMarginModification(response, market), new Dictionary<string, object>() {
             { "amount", this.parseNumber(amount) },
             { "type", type },
-        }))));
+        });
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -11901,7 +11901,7 @@ public partial class bitget : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " reduceMargin() requires a holdSide parameter, either long or short")) ;
         }
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "reduce", parameters);
     }
 
     /**
@@ -11922,7 +11922,7 @@ public partial class bitget : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " addMargin() requires a holdSide parameter, either long or short")) ;
         }
-        return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
+        return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
     /**
@@ -12608,7 +12608,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency))));
+        return this.parseMarginLoan(data, currency);
     }
 
     /**
@@ -12651,7 +12651,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency, market))));
+        return this.parseMarginLoan(data, currency, market);
     }
 
     /**
@@ -12695,7 +12695,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency, market))));
+        return this.parseMarginLoan(data, currency, market);
     }
 
     /**
@@ -12735,7 +12735,7 @@ public partial class bitget : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return ((Dictionary<string, object>)((object)(this.parseMarginLoan(data, currency))));
+        return this.parseMarginLoan(data, currency);
     }
 
     public virtual Dictionary<string, object> parseMarginLoan(object info, Dictionary<string, object> currency = null, IDictionary<string, object> market = null)

@@ -88,7 +88,7 @@ public partial class phemex : ccxt.phemex
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         this.unlockId();
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public virtual Dictionary<string, object> parseSwapTicker(object ticker, IDictionary<string, object> market = null)
@@ -573,7 +573,7 @@ public partial class phemex : ccxt.phemex
             name = settleIsUSDT ? "perp_market24h_pack_p" : "market24h";
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         string subscriptionHash = add(name, ".subscribe");
         string messageHash = add("ticker:", symbolVar);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -615,7 +615,7 @@ public partial class phemex : ccxt.phemex
             name = settleIsUSDT ? "perp_market24h_pack_p" : "market24h";
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         string subscriptionHash = add(name, ".subscribe");
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -663,7 +663,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)GetValue(market, "swap"));
         bool settleIsUSDT = isEqual(GetValue(market, "settle"), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
@@ -708,7 +708,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)GetValue(market, "swap"));
         bool settleIsUSDT = isEqual(GetValue(market, "settle"), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
@@ -753,7 +753,7 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         bool? isSwap = ((bool?)GetValue(market, "swap"));
         bool settleIsUSDT = isEqual(GetValue(market, "settle"), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
@@ -1721,7 +1721,7 @@ public partial class phemex : ccxt.phemex
         this.checkRequiredCredentials();
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         var client = this.client(url);
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         string messageHash = "authenticated";
         var future = this.safeValue(client.subscriptions, messageHash);
         if ((future == null))

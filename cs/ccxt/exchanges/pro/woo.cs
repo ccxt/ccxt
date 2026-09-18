@@ -79,14 +79,14 @@ public partial class woo : ccxt.woo
         Int64? previousValue = this.safeInteger(options, url, 0);
         Int64 newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
-        return ((Int64)((object)(newValue))!);
+        return newValue;
     }
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
         string urlUid = (!isEqual(this.uid, "")) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
@@ -99,7 +99,7 @@ public partial class woo : ccxt.woo
         parameters ??= new Dictionary<string, object>();
         string urlUid = (!isEqual(this.uid, "")) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         string unsubHash = add("unsubscribe::", subHash);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "id", requestId },
@@ -150,7 +150,7 @@ public partial class woo : ccxt.woo
         object topic = add(add(GetValue(market, "id"), "@"), method);
         string urlUid = (!isEqual(this.uid, "")) ? add("/", this.uid) : "";
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -1057,7 +1057,7 @@ public partial class woo : ccxt.woo
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
@@ -1070,7 +1070,7 @@ public partial class woo : ccxt.woo
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
-        Int64 requestId = ((Int64)this.requestId(url));
+        Int64 requestId = this.requestId(url);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };

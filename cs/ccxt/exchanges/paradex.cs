@@ -1777,14 +1777,14 @@ public partial class paradex : Exchange
                 { "chainId", GetValue(systemConfig, "l1_chain_id") },
                 { "version", "1" },
             };
-            return ((Dictionary<string, object>)((object)(l1D)));
+            return l1D;
         }
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Paradex" },
             { "chainId", GetValue(systemConfig, "starknet_chain_id") },
             { "version", 1 },
         };
-        return ((Dictionary<string, object>)((object)(domain)));
+        return domain;
     }
 
     public async virtual Task<object> retrieveAccount()
@@ -1833,7 +1833,7 @@ public partial class paradex : Exchange
         ((IDictionary<string,object>)parameters)["account"] = getValue(account, "address");
         ((IDictionary<string,object>)parameters)["public_key"] = getValue(account, "publicKey");
         Dictionary<string, object> response = await this.privatePostOnboarding(parameters);
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     public async virtual Task<object> authenticateRest(object parameters = null)
@@ -2845,7 +2845,7 @@ public partial class paradex : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**

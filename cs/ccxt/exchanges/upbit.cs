@@ -674,7 +674,7 @@ public partial class upbit : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -994,7 +994,7 @@ public partial class upbit : Exchange
         {
             ((IList<object>)queries).Add(idsString);
         }
-        return ((List<object>)((object)(queries)));
+        return queries;
     }
 
     /**

@@ -1511,7 +1511,7 @@ public partial class lbank : Exchange
                     result[(string)code] = account;
                 }
             }
-            return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+            return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfoAccount
         object balances = this.safeValue(data, "balances");
@@ -1530,7 +1530,7 @@ public partial class lbank : Exchange
                     result[(string)codeInner] = account;
                 }
             }
-            return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+            return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfo
         bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
@@ -1549,9 +1549,9 @@ public partial class lbank : Exchange
                     result[(string)codeInner] = account;
                 }
             }
-            return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+            return this.safeBalance(result);
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     public override Dictionary<string, object> parseFundingRate(object ticker, IDictionary<string, object> market = null)
@@ -3312,7 +3312,7 @@ public partial class lbank : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)

@@ -488,7 +488,7 @@ public partial class bitrue : ccxt.bitrue
             object amount = this.convertFromRawQuantity(symbol, rawAmount);
             ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)

@@ -91,7 +91,7 @@ public partial class coinex : ccxt.coinex
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
         this.unlockId();
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -1605,7 +1605,7 @@ public partial class coinex : ccxt.coinex
         {
             return await (future as Exchange.Future);
         }
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
             { "future", messageHash },

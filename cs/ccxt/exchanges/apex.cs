@@ -410,7 +410,7 @@ public partial class apex : Exchange
         account["free"] = this.safeString(response, "availableBalance");
         account["total"] = this.safeString(response, "totalEquityValue");
         result[(string)code] = account;
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1429,7 +1429,7 @@ public partial class apex : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     public virtual string? generateRandomClientIdOmni(object _accountId)

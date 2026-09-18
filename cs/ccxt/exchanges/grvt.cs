@@ -778,7 +778,7 @@ public partial class grvt : Exchange
         //    }
         //
         ((IDictionary<string,object>)this.options)["signInExpiration"] = add(now, 86400000); // 24 hours
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     public async virtual Task<Dictionary<string, object>> signInWithPrivateKey(object parameters = null)
@@ -807,7 +807,7 @@ public partial class grvt : Exchange
         //    }
         //
         ((IDictionary<string,object>)this.options)["signInExpiration"] = add(now, 86400000); // 24 hours
-        return ((Dictionary<string, object>)((object)(response)));
+        return response;
     }
 
     public async virtual Task<object> initializeClient(object parameters = null)
@@ -1724,7 +1724,7 @@ public partial class grvt : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2662,7 +2662,7 @@ public partial class grvt : Exchange
             returnValue["builder"] = getValue(order, "builder");
             returnValue["builderFee"] = this.parseToInt(multiply(this.convertToBigIntCustom(this.feeAmountMultiplier()), parseFloat(getValue(order, "builder_fee")))); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
         }
-        return ((Dictionary<string, object>)((object)(returnValue)));
+        return returnValue;
     }
 
     /**
@@ -3776,7 +3776,7 @@ public partial class grvt : Exchange
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
