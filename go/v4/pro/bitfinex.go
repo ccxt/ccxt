@@ -702,9 +702,9 @@ func (this *Bitfinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	marketId = ccxt.GetValue(market, "id")
 	var typeVar any = ccxt.DerefScalar(this.SafeString(trade, 6))
 	if !ccxt.IsEqual(typeVar, nil) {
-		if ccxt.IsGreaterThan(ccxt.GetIndexOf(typeVar, "LIMIT"), -1) {
+		if ccxt.GetIndexOf(typeVar, "LIMIT") > -1 {
 			typeVar = "limit"
-		} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(typeVar, "MARKET"), -1) {
+		} else if ccxt.GetIndexOf(typeVar, "MARKET") > -1 {
 			typeVar = "market"
 		}
 	}
@@ -1539,9 +1539,9 @@ func (this *Bitfinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	}
 	var remaining *string = ccxt.Precise.StringAbs(this.SafeString(order, 6))
 	var typeVar any = ccxt.DerefScalar(this.SafeString(order, 8, ""))
-	if ccxt.IsGreaterThan(ccxt.GetIndexOf(typeVar, "LIMIT"), -1) {
+	if ccxt.GetIndexOf(typeVar, "LIMIT") > -1 {
 		typeVar = "limit"
-	} else if ccxt.IsGreaterThan(ccxt.GetIndexOf(typeVar, "MARKET"), -1) {
+	} else if ccxt.GetIndexOf(typeVar, "MARKET") > -1 {
 		typeVar = "market"
 	}
 	var rawState *string = this.SafeString(order, 13, "")

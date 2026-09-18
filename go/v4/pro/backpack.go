@@ -1250,7 +1250,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 		}
 		ccxt.AppendToArray(storedOrderBook.(ccxt.OrderBookInterface).GetCache(), data)
 		return
-	} else if (deltaNonce != nil) && (ccxt.IsGreaterThan(nonce, deltaNonce)) {
+	} else if (deltaNonce != nil) && (nonce != nil && *nonce > *deltaNonce) {
 		return
 	}
 	this.HandleDelta(storedOrderBook, data)
@@ -1296,7 +1296,7 @@ func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
 		if (deltaStart == nil) || (deltaEnd == nil) {
 			return ccxt.GetArrayLength(cache)
 		}
-		if (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (ccxt.IsLessThan(nonce, deltaEnd)) {
+		if (ccxt.IsGreaterThanOrEqual(nonce, ccxt.Subtract(deltaStart, 1))) && (deltaEnd != nil && (nonce == nil || *nonce < *deltaEnd)) {
 			return i
 		}
 	}

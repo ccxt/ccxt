@@ -14977,7 +14977,7 @@ func (this *Bitget) Sign(path any, optionalArgs ...any) any {
 				var sortedParams map[string]any = this.Keysort(params)
 				var queryInner any = "?" + this.Urlencode(sortedParams, true)
 				// check #21169 pr
-				if IsGreaterThan(GetIndexOf(queryInner, "%24"), -1) {
+				if GetIndexOf(queryInner, "%24") > -1 {
 					queryInner = Replace(queryInner, "%24", "$")
 				}
 				url = Add(url, queryInner)

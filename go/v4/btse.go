@@ -1872,7 +1872,7 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// a wire value of zero minutes reaches this, and zero hours is not an
 	// interval: a caller annualising a rate divides by it. anything under an
 	// hour rounds to the same string, and the vocabulary has no minutes
-	if (fundingIntervalMinutes != nil) && (IsGreaterThanOrEqual(fundingIntervalMinutes, 60)) {
+	if (fundingIntervalMinutes != nil) && (*fundingIntervalMinutes >= 60) {
 		var hours int64 = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
 		interval = ToString(hours) + "h"
 	}

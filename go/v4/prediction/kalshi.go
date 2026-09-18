@@ -2205,7 +2205,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) any {
 	// the leg the user actually held (kalshi reports separate yes/no counts + costs)
 	var yesCount *float64 = this.SafeNumber2(settlement, "yes_count_fp", "yes_count", 0)
 	var noCount *float64 = this.SafeNumber2(settlement, "no_count_fp", "no_count", 0)
-	var heldYes bool = (ccxt.IsGreaterThanOrEqual(yesCount, noCount))
+	var heldYes bool = (noCount == nil || (yesCount != nil && *yesCount >= *noCount))
 	var heldLabel any = func() any {
 		if heldYes {
 			return "YES"
@@ -2304,7 +2304,7 @@ func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) a
 	var contractsValue any = nil
 	if yesContracts != nil {
 		positionSide = func() any {
-			if ccxt.IsGreaterThanOrEqual(yesContracts, 0) {
+			if *yesContracts >= 0 {
 				return "long"
 			}
 			return "short"

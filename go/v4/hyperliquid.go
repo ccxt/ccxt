@@ -4224,7 +4224,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 					return deduplicatedByOid[*oid]
 				}(), "statusTimestamp")
 				var currentTimestamp *int64 = this.SafeInteger(rawOrder, "statusTimestamp")
-				if (currentTimestamp != nil) && ((existingTimestamp == nil) || IsGreaterThan(currentTimestamp, existingTimestamp)) {
+				if (currentTimestamp != nil) && ((existingTimestamp == nil) || (*currentTimestamp > *existingTimestamp)) {
 					AddElementToObject(deduplicatedByOid, oid, rawOrder)
 				}
 			}
@@ -6357,10 +6357,10 @@ func (this *Hyperliquid) CoinToMarketId(coin any) any {
 		var code *string = this.SafeString(hip3Dict, "code", coin)
 		return *code + "/" + *quote + ":" + *quote
 	}
-	if IsGreaterThan(GetIndexOf(coin, "/"), -1) || IsGreaterThan(GetIndexOf(coin, "@"), -1) {
+	if (GetIndexOf(coin, "/") > -1) || (GetIndexOf(coin, "@") > -1) {
 		return coin // spot
 	}
-	if IsGreaterThan(GetIndexOf(coin, ":"), -1) {
+	if GetIndexOf(coin, ":") > -1 {
 		coin = Replace(coin, ":", "-") // hip3
 	}
 	return Add(this.SafeCurrencyCode(coin), "/USDC:USDC")

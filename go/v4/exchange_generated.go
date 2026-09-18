@@ -765,7 +765,7 @@ func (this *BaseExchange) CheckAddress(optionalArgs ...any) any {
 	// check the address is not the same letter like 'aaaaa' nor too short nor has a space
 	var uniqChars any = (this.Unique(this.StringToCharsArray(address)))
 	var length int = GetArrayLength(uniqChars) // py transpiler trick
-	if (length == 1) || IsLessThan(GetLength(address), this.MinFundingAddressLength) || IsGreaterThan(GetIndexOf(address, " "), -1) {
+	if (length == 1) || IsLessThan(GetLength(address), this.MinFundingAddressLength) || (GetIndexOf(address, " ") > -1) {
 		panic(InvalidAddress(this.Id + " address is invalid or has less than " + ToString(this.MinFundingAddressLength) + " characters: \"" + ToString(address) + "\""))
 	}
 	return address

@@ -4457,7 +4457,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
-	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, maxLeverage)) {
+	if (leverage == nil || *leverage < 1) || (leverage != nil && (maxLeverage == nil || *leverage > *maxLeverage)) {
 		panic(BadRequest(Add(this.Id+" setMarginMode() leverage should be between 1 and "+ToString(maxLeverage)+" for ", symbol)))
 	}
 	var request map[string]any = map[string]any{

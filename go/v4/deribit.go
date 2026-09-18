@@ -803,17 +803,17 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var symbolBase []string = Split(symbol, "/")
 	var base any = nil
 	var expiry any = nil
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 		expiry = DerefScalar(this.SafeString(optionParts, 1))
-		if IsGreaterThan(GetIndexOf(symbol, "USDC"), -1) {
+		if GetIndexOf(symbol, "USDC") > -1 {
 			base = Add(base, "_USDC")
 		}
 	} else {
 		base = DerefScalar(this.SafeString(optionParts, 0))
 		expiry = this.ConvertMarketIdExpireDate(this.SafeString(optionParts, 1))
 	}
-	if IsGreaterThan(GetIndexOf(symbol, "USDC"), -1) {
+	if GetIndexOf(symbol, "USDC") > -1 {
 		quote = "USDC"
 		settle = "USDC"
 	} else {
@@ -823,7 +823,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	if IsEqual(base, nil) {
 		panic(ExchangeError(this.Id + " createExpiredOptionMarket() missing base"))
 	}
-	if IsGreaterThan(GetIndexOf(base, "_"), -1) {
+	if GetIndexOf(base, "_") > -1 {
 		var splitSymbol []string = Split(base, "_")
 		splitBase = this.SafeString(splitSymbol, 0)
 	}

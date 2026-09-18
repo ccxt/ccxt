@@ -1775,7 +1775,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 			if tradeTimestamp != nil {
 				if lastTradeTimestamp == nil {
 					lastTradeTimestamp = tradeTimestamp
-				} else if IsGreaterThan(tradeTimestamp, lastTradeTimestamp) {
+				} else if lastTradeTimestamp == nil || *tradeTimestamp > *lastTradeTimestamp {
 					lastTradeTimestamp = tradeTimestamp
 				}
 			}

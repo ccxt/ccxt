@@ -2384,7 +2384,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(data, "pagination")
 		var currentPage *int64 = this.SafeInteger(pagination, "num_pages", 0)
-		if IsGreaterThan(page, currentPage) {
+		if currentPage == nil || *page > *currentPage {
 
 			ch <- []any{}
 			return nil
@@ -2879,7 +2879,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(result, "pagination")
 		var currentPage *int64 = this.SafeInteger(pagination, "num_pages", 0)
-		if IsGreaterThan(page, currentPage) {
+		if currentPage == nil || *page > *currentPage {
 
 			ch <- []any{}
 			return nil
@@ -3153,7 +3153,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	if page != nil {
 		var pagination map[string]any = SafeMapTyped(result, "pagination")
 		var currentPage *int64 = this.SafeInteger(pagination, "num_pages", 0)
-		if IsGreaterThan(page, currentPage) {
+		if currentPage == nil || *page > *currentPage {
 
 			ch <- []any{}
 			return nil

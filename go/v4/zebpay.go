@@ -2555,7 +2555,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	params = this.Omit(params, "defaultType")
-	var isV1 bool = IsGreaterThan(GetIndexOf(path, "v1/"), -1)
+	var isV1 bool = (GetIndexOf(path, "v1/") > -1)
 	var marketType any = func() any {
 		if isV1 {
 			return "swap"
