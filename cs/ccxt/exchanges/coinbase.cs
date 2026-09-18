@@ -3374,7 +3374,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
@@ -3551,7 +3551,7 @@ public partial class coinbase : Exchange
             {
                 throw new NotSupported ((string)(this.id + " createOrder() only stop limit orders are supported")) ;
             }
-            if ((isEqual(getValue(market, "spot"), true)) && (isEqual(side, "buy")))
+            if ((((getValue(market, "spot") as bool?) == true)) && (isEqual(side, "buy")))
             {
                 string? total = null;
                 object createMarketBuyOrderRequiresPrice = true;
@@ -5539,7 +5539,7 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "future"), true))
+        if (((getValue(market, "future") as bool?) == true))
         {
             string? productId = this.safeString(market, "product_id");
             if ((productId == null))
@@ -5766,7 +5766,7 @@ public partial class coinbase : Exchange
         {
             object symbol = getValue(this.symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            if ((isSpot && (isEqual(getValue(market, "spot"), true))) || (!isSpot && (!isEqual(getValue(market, "spot"), true))))
+            if ((isSpot && (((getValue(market, "spot") as bool?) == true))) || (!isSpot && (((getValue(market, "spot") as bool?) != true))))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                     { "info", response },

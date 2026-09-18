@@ -268,7 +268,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            if (isEqual(getValue(market, "active"), true))
+            if (((getValue(market, "active") as bool?) == true))
             {
                 ((IList<object>)output).Add(symbol);
             }

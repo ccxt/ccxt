@@ -861,7 +861,7 @@ public partial class bitmex : Exchange
         symbol = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbol);
         object oldPrecision = this.safeValue(this.options, "oldPrecision");
-        if ((isEqual(getValue(market, "spot"), true)) && (!isEqual(oldPrecision, true)))
+        if ((((getValue(market, "spot") as bool?) == true)) && (!isEqual(oldPrecision, true)))
         {
             amount = this.convertFromRealAmount(getValue(market, "base"), amount);
         }
@@ -882,7 +882,7 @@ public partial class bitmex : Exchange
             return this.parseNumber(rawQuantity);
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             return this.parseNumber(this.convertToRealAmount(((string)this.safeString(market, currencySide)), rawQuantity));
         }
@@ -2557,7 +2557,7 @@ public partial class bitmex : Exchange
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         if ((reduceOnly != null))
         {
-            if ((!isEqual(getValue(market, "swap"), true)) && (!isEqual(getValue(market, "future"), true)))
+            if ((((getValue(market, "swap") as bool?) != true)) && (((getValue(market, "future") as bool?) != true)))
             {
                 throw new InvalidOrder ((string)(add((this.id + " createOrder() does not support reduceOnly for "), getValue(market, "type")) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
@@ -3460,7 +3460,7 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "type"), "swap") && !isEqual(getValue(market, "type"), "future"))
+        if (((getValue(market, "type") as string) != "swap") && ((getValue(market, "type") as string) != "future"))
         {
             throw new BadSymbol ((string)(this.id + " setLeverage() supports future and swap contracts only")) ;
         }
@@ -3499,7 +3499,7 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((!isEqual(getValue(market, "type"), "swap")) && (!isEqual(getValue(market, "type"), "future")))
+        if ((((getValue(market, "type") as string) != "swap")) && (((getValue(market, "type") as string) != "future")))
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap and future contracts only")) ;
         }

@@ -1217,7 +1217,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new BadRequest ((string)add((this.id + " fetchFundingRate() symbol does not support market "), symbol)) ;
         }
@@ -1283,7 +1283,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new BadRequest ((string)add((this.id + " fetchOpenInterest() symbol does not support market "), symbol)) ;
         }

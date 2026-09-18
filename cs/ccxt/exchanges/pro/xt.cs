@@ -774,7 +774,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " watchFundingRate() supports swap contracts only")) ;
         }
@@ -799,7 +799,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " unWatchFundingRate() supports swap contracts only")) ;
         }
@@ -1679,7 +1679,7 @@ public partial class xt : ccxt.xt
         }
         Dictionary<string, object> market = this.market(tradeSymbol);
         callDynamically(stored, "append", new object[] {parsedTrade});
-        string tradeType = ((bool) (isEqual(getValue(market, "contract"), true))) ? "contract" : "spot";
+        string tradeType = ((bool) (((getValue(market, "contract") as bool?) == true))) ? "contract" : "spot";
         (client as WebSocketClient).resolve(stored, ("trade::" + tradeType));
     }
 

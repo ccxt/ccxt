@@ -194,7 +194,7 @@ public partial class bybit : ccxt.bybit
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
+            isUsdcSettled = ((getValue(market, "settle") as string) == "USDC");
             type = getValue(market, "type");
         } else
         {
@@ -417,7 +417,7 @@ public partial class bybit : ccxt.bybit
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
         string topic = ((string)this.safeString(options, "name", "tickers"));
-        if ((!isEqual(getValue(market, "spot"), true)) && !isEqual(topic, "tickers"))
+        if ((((getValue(market, "spot") as bool?) != true)) && !isEqual(topic, "tickers"))
         {
             throw new BadRequest ((string)(this.id + " watchTicker() only supports name tickers for contract markets")) ;
         }
@@ -986,7 +986,7 @@ public partial class bybit : ccxt.bybit
         if (isEqual(limitVar, null))
         {
             limitVar = 50;
-            if (isEqual(getValue(market, "option"), true))
+            if (((getValue(market, "option") as bool?) == true))
             {
                 limitVar = 100;
             }
@@ -1044,7 +1044,7 @@ public partial class bybit : ccxt.bybit
         } else
         {
             Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
-            limit = ((bool) (isEqual(getValue(firstMarket, "spot"), true))) ? 50 : 500;
+            limit = ((bool) (((getValue(firstMarket, "spot") as bool?) == true))) ? 50 : 500;
         }
         channel = channel + ((object)limit).ToString();
         List<object> subMessageHashes = new List<object>() {};

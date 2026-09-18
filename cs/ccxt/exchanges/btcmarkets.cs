@@ -1250,7 +1250,7 @@ public partial class btcmarkets : Exchange
         Dictionary<string, object> market = this.market(symbol);
         object currency = null;
         string? cost = null;
-        if (isEqual(getValue(market, "quote"), "AUD"))
+        if (((getValue(market, "quote") as string) == "AUD"))
         {
             currency = getValue(market, "quote");
             string? amountString = this.numberToString(amount);

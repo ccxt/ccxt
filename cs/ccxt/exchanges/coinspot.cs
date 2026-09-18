@@ -807,7 +807,7 @@ public partial class coinspot : Exchange
         {
             string? id = ((string)getValue(ids, i));
             Dictionary<string, object> market = this.safeMarket(id);
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 string? symbol = ((string)getValue(market, "symbol"));
                 object ticker = getValue(prices, id);

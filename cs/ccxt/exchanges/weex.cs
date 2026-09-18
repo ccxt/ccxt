@@ -1587,7 +1587,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchMarkPrice() supports contract markets only")) ;
         }
@@ -1682,7 +1682,7 @@ public partial class weex : Exchange
             ((IDictionary<string,object>)request)["limit"] = 200; // default is 15, max is 200
         }
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.publicGetApiV3MarketDepth(this.extend(request, parameters));
         } else
@@ -1738,7 +1738,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             return await this.FetchSpotOHLCV(((string)symbol),((string)timeframeVar),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
@@ -1924,7 +1924,7 @@ public partial class weex : Exchange
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         List<object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.publicGetApiV3MarketTrades(this.extend(request, parameters));
         } else
@@ -2486,7 +2486,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) == true))
         {
             return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
         } else
@@ -3413,7 +3413,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " fetchOrders() supports spot markets only")) ;
         }
@@ -4164,7 +4164,7 @@ public partial class weex : Exchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            if (!isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) != true))
             {
                 throw new NotSupported ((string)(this.id + " fetchFundingHistory() supports swap contracts only")) ;
             }
@@ -4517,7 +4517,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new NotSupported ((string)(this.id + " fetchTradingFee() is not supported for spot markets")) ;
         }

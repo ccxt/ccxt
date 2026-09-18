@@ -653,7 +653,7 @@ public partial class bingx : ccxt.bingx
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
         Dictionary<string, object> subscriptionArgs = new Dictionary<string, object>() {};
-        if (isEqual(getValue(market, "inverse"), true))
+        if (((getValue(market, "inverse") as bool?) == true))
         {
             subscriptionArgs = new Dictionary<string, object>() {
                 { "id", uuid },
@@ -803,7 +803,7 @@ public partial class bingx : ccxt.bingx
         object snapshot = null;
         Int64? timestamp = this.safeInteger2(message, "timestamp", "ts");
         timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
-        if (isEqual(getValue(market, "inverse"), true))
+        if (((getValue(market, "inverse") as bool?) == true))
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a");
         } else
@@ -925,7 +925,7 @@ public partial class bingx : ccxt.bingx
         List<object> candles = null;
         if (isSwap)
         {
-            if (isEqual(getValue(market, "inverse"), true))
+            if (((getValue(market, "inverse") as bool?) == true))
             {
                 candles = new List<object> {this.safeDict(message, "data", new Dictionary<string, object>() {})};
             } else

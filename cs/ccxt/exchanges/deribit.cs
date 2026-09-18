@@ -2184,13 +2184,13 @@ public partial class deribit : Exchange
                 { "maker", getValue(market, "maker") },
                 { "taker", getValue(market, "taker") },
             };
-            if (isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) == true))
             {
                 fee = this.extend(fee, perpetualFee);
-            } else if (isEqual(getValue(market, "future"), true))
+            } else if (((getValue(market, "future") as bool?) == true))
             {
                 fee = this.extend(fee, futureFee);
-            } else if (isEqual(getValue(market, "option"), true))
+            } else if (((getValue(market, "option") as bool?) == true))
             {
                 fee = this.extend(fee, optionFee);
             }
@@ -3946,7 +3946,7 @@ public partial class deribit : Exchange
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new NotSupported ((string)(add((this.id + " fetchLiquidations() does not support "), getValue(market, "type")) + " markets")) ;
         }
@@ -4035,7 +4035,7 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new NotSupported ((string)(add((this.id + " fetchMyLiquidations() does not support "), getValue(market, "type")) + " markets")) ;
         }
@@ -4432,7 +4432,7 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "contract"), true))
+        if (((getValue(market, "contract") as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchOpenInterest() supports contract markets only")) ;
         }

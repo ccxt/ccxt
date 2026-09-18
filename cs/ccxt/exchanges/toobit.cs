@@ -1949,7 +1949,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             var requestparametersVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
@@ -2454,7 +2454,7 @@ public partial class toobit : Exchange
         };
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, parameters));
         } else
@@ -3246,7 +3246,7 @@ public partial class toobit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "type"), "swap"))
+        if (((getValue(market, "type") as string) != "swap"))
         {
             throw new BadSymbol ((string)(this.id + " setMarginMode() supports swap contracts only")) ;
         }

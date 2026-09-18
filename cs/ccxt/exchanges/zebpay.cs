@@ -605,7 +605,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.privateSpotGetV2ExTradefee(this.extend(request, parameters));
             //
@@ -719,7 +719,7 @@ public partial class zebpay : Exchange
             { "symbol", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if (!isEqual(limit, null))
             {
@@ -770,7 +770,7 @@ public partial class zebpay : Exchange
             { "symbol", getValue(market, "id") },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.publicSpotGetV2MarketTicker(this.extend(request, parameters));
         } else
@@ -861,20 +861,20 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         } else
         {
             ((IDictionary<string,object>)request)["interval"] = timeframeVar;
         }
-        if ((isEqual(getValue(market, "contract"), true)) && (!isEqual(limitVar, null)))
+        if ((((getValue(market, "contract") as bool?) == true)) && (!isEqual(limitVar, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
         if (!isEqual(since, null))
         {
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 ((IDictionary<string,object>)request)["startTime"] = since;
             } else
@@ -889,7 +889,7 @@ public partial class zebpay : Exchange
             parameters = this.omit(parameters, new List<object>() {"endtime", "until"});
         }
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             if (isEqual(until, null) || isEqual(since, null))
             {
@@ -958,12 +958,12 @@ public partial class zebpay : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if ((isEqual(getValue(market, "spot"), true)) && !isEqual(limit, null))
+        if ((((getValue(market, "spot") as bool?) == true)) && !isEqual(limit, null))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, parameters));
         } else
@@ -1229,7 +1229,7 @@ public partial class zebpay : Exchange
             { "side", ((string)side).ToUpper() },
         };
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
             request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
@@ -1333,7 +1333,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
             response = await this.privateSpotDeleteV2ExOrder(this.extend(request, parameters));
@@ -1423,7 +1423,7 @@ public partial class zebpay : Exchange
         };
         Dictionary<string, object> response = null;
         List<object> orders = new List<object>() {};
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["currentPage"] = 1;
             if (!isEqual(limit, null))
@@ -1498,7 +1498,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Dictionary<string, object> response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
             response = await this.privateSpotGetV2ExOrder(this.extend(request, parameters));

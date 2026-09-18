@@ -806,12 +806,12 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
         string? type = ((string)getValue(firstMarket, "type"));
-        if (isEqual(getValue(firstMarket, "option"), true))
+        if (((getValue(firstMarket, "option") as bool?) == true))
         {
             type = "option";
-        } else if (isEqual(getValue(firstMarket, "contract"), true))
+        } else if (((getValue(firstMarket, "contract") as bool?) == true))
         {
-            type = ((bool) (isEqual(getValue(firstMarket, "linear"), true))) ? "future" : "delivery";
+            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -897,12 +897,12 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, false, true, true);
         Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
         string? type = ((string)getValue(firstMarket, "type"));
-        if (isEqual(getValue(firstMarket, "option"), true))
+        if (((getValue(firstMarket, "option") as bool?) == true))
         {
             type = "option";
-        } else if (isEqual(getValue(firstMarket, "contract"), true))
+        } else if (((getValue(firstMarket, "contract") as bool?) == true))
         {
-            type = ((bool) (isEqual(getValue(firstMarket, "linear"), true))) ? "future" : "delivery";
+            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
         }
         string name = "depth";
         string streamHash = "multipleOrderbook";
@@ -1392,9 +1392,9 @@ public partial class binance : ccxt.binance
         if (isEqual(isOption, true))
         {
             type = "option";
-        } else if (isEqual(getValue(firstMarket, "contract"), true))
+        } else if (((getValue(firstMarket, "contract") as bool?) == true))
         {
-            type = ((bool) (isEqual(getValue(firstMarket, "linear"), true))) ? "future" : "delivery";
+            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
         }
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1492,9 +1492,9 @@ public partial class binance : ccxt.binance
         if (isEqual(isOption, true))
         {
             type = "option";
-        } else if (isEqual(getValue(firstMarket, "contract"), true))
+        } else if (((getValue(firstMarket, "contract") as bool?) == true))
         {
-            type = ((bool) (isEqual(getValue(firstMarket, "linear"), true))) ? "future" : "delivery";
+            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
         }
         List<object> subMessageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
@@ -1902,13 +1902,13 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
         string? type = ((string)getValue(firstMarket, "type"));
         string? wsUrlType = type;
-        if (isEqual(getValue(firstMarket, "option"), true))
+        if (((getValue(firstMarket, "option") as bool?) == true))
         {
             type = "option";
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-        } else if (isEqual(getValue(firstMarket, "contract"), true))
+        } else if (((getValue(firstMarket, "contract") as bool?) == true))
         {
-            type = ((bool) (isEqual(getValue(firstMarket, "linear"), true))) ? "future" : "delivery";
+            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
             wsUrlType = type;
         }
         bool isSpot = (isEqual(type, "spot"));
@@ -1994,13 +1994,13 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> firstMarket = this.market(getValue(marketSymbols, 0));
         string? type = ((string)getValue(firstMarket, "type"));
         string? wsUrlType = type;
-        if (isEqual(getValue(firstMarket, "option"), true))
+        if (((getValue(firstMarket, "option") as bool?) == true))
         {
             type = "option";
             wsUrlType = "optionMarket"; // eOptions klines are served from /market/ws
-        } else if (isEqual(getValue(firstMarket, "contract"), true))
+        } else if (((getValue(firstMarket, "contract") as bool?) == true))
         {
-            type = ((bool) (isEqual(getValue(firstMarket, "linear"), true))) ? "future" : "delivery";
+            type = ((bool) (((getValue(firstMarket, "linear") as bool?) == true))) ? "future" : "delivery";
             wsUrlType = type;
         }
         bool isSpot = (isEqual(type, "spot"));
@@ -2929,7 +2929,7 @@ public partial class binance : ccxt.binance
         // carries `w`, so a miniTicker uses the contract size.
         string? baseVolume = this.safeString(message, "v");
         string? quoteVolume = this.safeString(message, "q");
-        if (isEqual(getValue(market, "inverse"), true))
+        if (((getValue(market, "inverse") as bool?) == true))
         {
             string? contracts = baseVolume;
             baseVolume = quoteVolume;
@@ -4282,7 +4282,7 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
         bool? test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
-        if ((isEqual(getValue(market, "linear"), true)) && (isEqual(getValue(market, "swap"), true)) && isConditional)
+        if ((((getValue(market, "linear") as bool?) == true)) && (((getValue(market, "swap") as bool?) == true)) && isConditional)
         {
             ((IDictionary<string,object>)payload)["algoType"] = "CONDITIONAL";
         }
@@ -4301,7 +4301,7 @@ public partial class binance : ccxt.binance
                 ((IDictionary<string,object>)message)["method"] = "order.test";
             }
         }
-        if ((isEqual(getValue(market, "linear"), true)) && (isEqual(getValue(market, "swap"), true)) && isConditional)
+        if ((((getValue(market, "linear") as bool?) == true)) && (((getValue(market, "swap") as bool?) == true)) && isConditional)
         {
             ((IDictionary<string,object>)message)["method"] = "algoOrder.place";
         }
@@ -4623,7 +4623,7 @@ public partial class binance : ccxt.binance
         };
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientAlgoId", "origClientOrderId", "clientOrderId"});
-        bool shouldUseAlgoOrder = (isEqual(getValue(market, "linear"), true)) && (isEqual(getValue(market, "swap"), true)) && ((isConditional == true));
+        bool shouldUseAlgoOrder = (((getValue(market, "linear") as bool?) == true)) && (((getValue(market, "swap") as bool?) == true)) && ((isConditional == true));
         if ((clientOrderId != null))
         {
             if ((shouldUseAlgoOrder == true))

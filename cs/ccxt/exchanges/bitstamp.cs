@@ -3075,7 +3075,7 @@ public partial class bitstamp : Exchange
             {
                 market = this.getMarketFromTrade(item);
             }
-            string direction = ((bool) (isEqual(getValue(parsedTrade, "side"), "buy"))) ? "in" : "out";
+            string direction = ((bool) (((getValue(parsedTrade, "side") as string) == "buy"))) ? "in" : "out";
             return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
                 { "id", getValue(parsedTrade, "id") },

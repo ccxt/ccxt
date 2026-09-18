@@ -187,7 +187,7 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         string requestId = ((object)this.requestId()).ToString();
         Dictionary<string, object> market = this.market(symbol);
-        string urlType = ((bool) (isEqual(getValue(market, "contract"), true))) ? "futures" : "spot";
+        string urlType = ((bool) (((getValue(market, "contract") as bool?) == true))) ? "futures" : "spot";
         string tradeType = ((string)urlType).ToUpper();
         object action = "subscribe";
         if (!isEqual(subscription, null))

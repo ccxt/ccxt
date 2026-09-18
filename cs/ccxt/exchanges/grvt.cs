@@ -2774,7 +2774,7 @@ public partial class grvt : Exchange
             {
                 object symbol = getValue(symbols, i);
                 Dictionary<string, object> market = this.market(symbol);
-                if (!isEqual(getValue(market, "contract"), true))
+                if (((getValue(market, "contract") as bool?) != true))
                 {
                     throw new BadRequest ((string)(this.id + " fetchPositions() supports contract markets only")) ;
                 }

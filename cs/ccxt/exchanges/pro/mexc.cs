@@ -96,7 +96,7 @@ public partial class mexc : ccxt.mexc
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("ticker:", getValue(market, "symbol"));
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             string channel = add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", getValue(market, "id"));
             return ccxt.BaseExchange.ToTicker(await this.watchSpotPublic(channel, messageHash, parameters));
@@ -186,7 +186,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
         object ticker = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             ticker = this.parseWsTicker(rawTicker, market);
             ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
@@ -602,7 +602,7 @@ public partial class mexc : ccxt.mexc
         string? timeframeId = this.safeString(timeframes, timeframeVar);
         string messageHash = add((add("candles:", symbolVar) + ":"), timeframeVar);
         object ohlcv = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             string channel = ((add("spot@public.kline.v3.api.pb@", getValue(market, "id")) + "@") + timeframeId);
             ohlcv = await this.watchSpotPublic(channel, messageHash, parameters);
@@ -807,7 +807,7 @@ public partial class mexc : ccxt.mexc
         symbolVar = getValue(market, "symbol");
         string messageHash = add("orderbook:", symbolVar);
         object orderbook = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             object frequency = null;
             IList<object> frequencyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
@@ -1048,7 +1048,7 @@ public partial class mexc : ccxt.mexc
         symbolVar = getValue(market, "symbol");
         string messageHash = add("trades:", symbolVar);
         object trades = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             string channel = add("spot@public.aggre.deals.v3.api.pb@100ms@", getValue(market, "id"));
             trades = await this.watchSpotPublic(channel, messageHash, parameters);
@@ -1140,7 +1140,7 @@ public partial class mexc : ccxt.mexc
         for (int j = 0; j < trades.Count; postFixIncrement(ref j))
         {
             object parsedTrade = null;
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 parsedTrade = this.parseWsTrade(getValue(trades, j), market);
             } else
@@ -1245,7 +1245,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
         object trade = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             trade = this.parseWsTrade(data, market);
         } else if ((data != null))
@@ -1485,7 +1485,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
         object parsed = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             parsed = this.parseWsOrder(data, market);
             Int64? sendTime = this.safeInteger(message, "sendTime");
@@ -1859,7 +1859,7 @@ public partial class mexc : ccxt.mexc
         string messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
         object url = null;
         string? channel = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             channel = add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", getValue(market, "id"));
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
@@ -2001,7 +2001,7 @@ public partial class mexc : ccxt.mexc
         string? timeframeId = this.safeString(timeframes, timeframeVar);
         string messageHash = add((add("unsubscribe:candles:", symbol) + ":"), timeframeVar);
         object url = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             string channel = ((add("spot@public.kline.v3.api.pb@", getValue(market, "id")) + "@") + timeframeId);
@@ -2042,7 +2042,7 @@ public partial class mexc : ccxt.mexc
         symbol = getValue(market, "symbol");
         string messageHash = add("unsubscribe:orderbook:", symbol);
         object url = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             object frequency = null;
@@ -2086,7 +2086,7 @@ public partial class mexc : ccxt.mexc
         symbol = getValue(market, "symbol");
         string messageHash = add("unsubscribe:trades:", symbol);
         object url = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
             string channel = add("spot@public.aggre.deals.v3.api.pb@100ms@", getValue(market, "id"));

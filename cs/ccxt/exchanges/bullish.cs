@@ -1663,7 +1663,7 @@ public partial class bullish : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, maxLimit));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchFundingRateHistory() supports swap markets only")) ;
         }

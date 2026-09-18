@@ -3487,7 +3487,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new BadRequest ((string)(this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
@@ -3828,7 +3828,7 @@ public partial class krakenfutures : Exchange
             Dictionary<string, object> market = this.market(account);
             string? marketId = ((string)getValue(market, "id"));
             List<object> splitId = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            if (isEqual(getValue(market, "inverse"), true))
+            if (((getValue(market, "inverse") as bool?) == true))
             {
                 return ("fi_" + this.safeString(splitId, 1));
             } else

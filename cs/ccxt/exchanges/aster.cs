@@ -1540,7 +1540,7 @@ public partial class aster : Exchange
         } else
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            if (isEqual(getValue(market, "linear"), true))
+            if (((getValue(market, "linear") as bool?) == true))
             {
                 response = await this.fapiPublicGetV3Klines(this.extend(request, parameters));
             } else
@@ -1695,7 +1695,7 @@ public partial class aster : Exchange
         // use historical endpoint for targeted requests
         if (inOp(request, "startTime"))
         {
-            if (isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) == true))
             {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, parameters));
             } else
@@ -1704,7 +1704,7 @@ public partial class aster : Exchange
             }
         } else
         {
-            if (isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) == true))
             {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, parameters));
             } else
@@ -1815,7 +1815,7 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 500, 1000}, limit);
         }
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPublicGetV3Depth(this.extend(request, parameters));
         } else
@@ -1958,7 +1958,7 @@ public partial class aster : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, parameters));
         } else
@@ -2605,7 +2605,7 @@ public partial class aster : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, parameters));
         } else
@@ -2777,7 +2777,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivateGetV3Order(this.extend(request, parameters));
         } else
@@ -2849,7 +2849,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, parameters));
         } else
@@ -2925,7 +2925,7 @@ public partial class aster : Exchange
         request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(request, parameters));
         } else
@@ -3080,7 +3080,7 @@ public partial class aster : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivatePostV3Order(request);
         } else
@@ -3155,7 +3155,7 @@ public partial class aster : Exchange
         }
         orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             throw new NotSupported ((string)(add((this.id + " createOrders() does not support "), getValue(market, "type")) + " orders")) ;
         }
@@ -3246,7 +3246,7 @@ public partial class aster : Exchange
         string? stopPrice = null;
         if (isTrailingPercentOrder)
         {
-            if (isEqual(getValue(market, "swap"), true))
+            if (((getValue(market, "swap") as bool?) == true))
             {
                 uppercaseType = "TRAILING_STOP_MARKET";
                 ((IDictionary<string,object>)request)["callbackRate"] = trailingPercent;
@@ -3294,7 +3294,7 @@ public partial class aster : Exchange
         ((IDictionary<string,object>)request)["type"] = uppercaseType;
         if (isEqual(uppercaseType, "MARKET"))
         {
-            if (isEqual(getValue(market, "spot"), true))
+            if (((getValue(market, "spot") as bool?) == true))
             {
                 object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (isEqual(quoteOrderQty, true))
@@ -3395,7 +3395,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["timeInForce"] = tif;
         }
         object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
-        if (((this.safeBool(this.options, "builderFee") == true)) && (isEqual(getValue(market, "swap"), true)))
+        if (((this.safeBool(this.options, "builderFee") == true)) && (((getValue(market, "swap") as bool?) == true)))
         {
             ((IDictionary<string,object>)request)["builder"] = this.safeString(this.options, "builder");
             ((IDictionary<string,object>)request)["feeRate"] = this.safeString(this.options, "builderRate");
@@ -3426,7 +3426,7 @@ public partial class aster : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters));
         } else
@@ -3477,7 +3477,7 @@ public partial class aster : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"origClientOrderId", "clientOrderId"});
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, parameters));
         } else
@@ -3523,7 +3523,7 @@ public partial class aster : Exchange
             ((IDictionary<string,object>)request)["orderIdList"] = ids;
         }
         object response = null;
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, parameters));
         } else
@@ -4387,7 +4387,7 @@ public partial class aster : Exchange
             object position = getValue(positions, i);
             string? marketId = this.safeString(position, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            object code = ((bool) (isEqual(getValue(market, "linear"), true))) ? getValue(market, "quote") : getValue(market, "base");
+            object code = ((bool) (((getValue(market, "linear") as bool?) == true))) ? getValue(market, "quote") : getValue(market, "base");
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = ((maintenanceMargin != "0")) && ((maintenanceMargin != "0.00000000"));

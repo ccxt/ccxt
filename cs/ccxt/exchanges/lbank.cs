@@ -915,7 +915,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             object responseForSwap = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {getValue(market, "symbol")}, parameters));
             return ccxt.BaseExchange.ToTicker(this.safeValue(responseForSwap, getValue(market, "symbol")));
@@ -1132,7 +1132,7 @@ public partial class lbank : Exchange
         //
         object orderbook = this.safeValue(response, "data", new Dictionary<string, object>() {});
         Int64 timestamp = this.milliseconds();
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume"));
         }
@@ -1828,7 +1828,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }

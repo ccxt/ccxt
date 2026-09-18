@@ -162,7 +162,7 @@ public partial class htx : ccxt.htx
         symbolVar = getValue(market, "symbol");
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string? topic = this.safeString(options, "name", "market.{marketId}.detail");
-        if ((topic == "market.{marketId}.ticker") && !isEqual(getValue(market, "type"), "spot"))
+        if ((topic == "market.{marketId}.ticker") && ((getValue(market, "type") as string) != "spot"))
         {
             throw new BadRequest ((string)(this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
         }
@@ -194,7 +194,7 @@ public partial class htx : ccxt.htx
         string topic = "ticker";
         IDictionary<string, object> options = this.safeDict(this.options, "watchTicker", new Dictionary<string, object>() {});
         string? channel = this.safeString(options, "name", "market.{marketId}.detail");
-        if ((channel == "market.{marketId}.ticker") && !isEqual(getValue(market, "type"), "spot"))
+        if ((channel == "market.{marketId}.ticker") && ((getValue(market, "type") as string) != "spot"))
         {
             throw new BadRequest ((string)(this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
         }
@@ -523,7 +523,7 @@ public partial class htx : ccxt.htx
             throw new ExchangeError ((string)(this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         string? messageHash = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             messageHash = ((add("market.", getValue(market, "id")) + ".mbp.") + this.numberToString(limitVar));
         } else
@@ -532,7 +532,7 @@ public partial class htx : ccxt.htx
         }
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
         object method = this.handleOrderBookSubscription;
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             parameters = this.extend(parameters);
             ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
@@ -566,14 +566,14 @@ public partial class htx : ccxt.htx
         IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
         Int64? depth = this.safeInteger(options, "depth", 150);
         string? subMessageHash = null;
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             subMessageHash = ((add("market.", getValue(market, "id")) + ".mbp.") + this.numberToString(depth));
         } else
         {
             subMessageHash = (((add("market.", getValue(market, "id")) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
         }
-        if (!isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) != true))
         {
             ((IDictionary<string,object>)parameters)["data_type"] = "incremental";
         }
@@ -835,8 +835,8 @@ public partial class htx : ccxt.htx
                 throw new ChecksumError ((string)add((this.id + " "), this.orderbookChecksumMessage(symbol))) ;
             }
         }
-        bool spotConditon = (isEqual(getValue(market, "spot"), true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
-        bool nonSpotCondition = (isEqual(getValue(market, "contract"), true)) && (!isEqual(version, null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
+        bool spotConditon = (((getValue(market, "spot") as bool?) == true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
+        bool nonSpotCondition = (((getValue(market, "contract") as bool?) == true)) && (!isEqual(version, null)) && (isEqual(subtract(version, 1), getValue(orderbook, "nonce")));
         if (((spotConditon == true)) || ((nonSpotCondition == true)))
         {
             object asks = this.safeValue(tick, "asks", new List<object>() {});
@@ -938,7 +938,7 @@ public partial class htx : ccxt.htx
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        if (isEqual(getValue(market, "spot"), true))
+        if (((getValue(market, "spot") as bool?) == true))
         {
             this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
         }
@@ -978,7 +978,7 @@ public partial class htx : ccxt.htx
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             type = getValue(market, "type");
-            subType = ((bool) (isEqual(getValue(market, "linear"), true))) ? "linear" : "inverse";
+            subType = ((bool) (((getValue(market, "linear") as bool?) == true))) ? "linear" : "inverse";
             marketId = getValue(market, "lowercaseId");
         } else
         {
@@ -1137,7 +1137,7 @@ public partial class htx : ccxt.htx
             symbolVar = getValue(market, "symbol");
             type = getValue(market, "type");
             suffix = getValue(market, "lowercaseId");
-            subType = ((bool) (isEqual(getValue(market, "linear"), true))) ? "linear" : "inverse";
+            subType = ((bool) (((getValue(market, "linear") as bool?) == true))) ? "linear" : "inverse";
         } else
         {
             type = this.safeString(this.options, "defaultType", "spot");

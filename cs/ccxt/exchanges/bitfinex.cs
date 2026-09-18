@@ -2144,7 +2144,7 @@ public partial class bitfinex : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if ((isEqual(getValue(market, "spot"), true)) && ((marginMode == null)))
+        if ((((getValue(market, "spot") as bool?) == true)) && ((marginMode == null)))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = ("EXCHANGE " + orderType);
@@ -3196,7 +3196,7 @@ public partial class bitfinex : Exchange
             {
                 ((IDictionary<string,object>)fee)["maker"] = makerFeeFiat;
                 ((IDictionary<string,object>)fee)["taker"] = takerFeeFiat;
-            } else if (isEqual(getValue(market, "contract"), true))
+            } else if (((getValue(market, "contract") as bool?) == true))
             {
                 ((IDictionary<string,object>)fee)["maker"] = makerFeeDeriv;
                 ((IDictionary<string,object>)fee)["taker"] = takerFeeDeriv;
@@ -4409,7 +4409,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new NotSupported ((string)(this.id + " setMargin() only support swap markets")) ;
         }

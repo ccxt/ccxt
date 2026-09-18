@@ -1924,10 +1924,10 @@ public partial class hitbtc : Exchange
             { "symbol", getValue(market, "id") },
         };
         object response = null;
-        if (isEqual(getValue(market, "type"), "spot"))
+        if (((getValue(market, "type") as string) == "spot"))
         {
             response = await this.privateGetSpotFeeSymbol(this.extend(request, parameters));
-        } else if (isEqual(getValue(market, "type"), "swap"))
+        } else if (((getValue(market, "type") as string) == "swap"))
         {
             response = await this.privateGetFuturesFeeSymbol(this.extend(request, parameters));
         } else
@@ -3698,7 +3698,7 @@ public partial class hitbtc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " fetchOpenInterest() supports swap contracts only")) ;
         }
@@ -3741,7 +3741,7 @@ public partial class hitbtc : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if (!isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) != true))
         {
             throw new BadSymbol ((string)(this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
@@ -3817,7 +3817,7 @@ public partial class hitbtc : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? leverage = this.safeString(parameters, "leverage");
-        if (isEqual(getValue(market, "swap"), true))
+        if (((getValue(market, "swap") as bool?) == true))
         {
             if ((leverage == null))
             {
@@ -3999,13 +3999,13 @@ public partial class hitbtc : Exchange
             response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
         } else
         {
-            if (isEqual(getValue(market, "type"), "spot"))
+            if (((getValue(market, "type") as string) == "spot"))
             {
                 response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "type"), "swap"))
+            } else if (((getValue(market, "type") as string) == "swap"))
             {
                 response = await this.privateGetFuturesAccountIsolatedSymbol(this.extend(request, parameters));
-            } else if (isEqual(getValue(market, "type"), "margin"))
+            } else if (((getValue(market, "type") as string) == "margin"))
             {
                 response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
             } else
@@ -4087,7 +4087,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? amount = this.safeNumber(parameters, "margin_balance");
         Int64? maxLeverage = this.safeInteger(getValue(getValue(market, "limits"), "leverage"), "max", 50);
-        if (!isEqual(getValue(market, "type"), "swap"))
+        if (((getValue(market, "type") as string) != "swap"))
         {
             throw new BadSymbol ((string)(this.id + " setLeverage() supports swap contracts only")) ;
         }
