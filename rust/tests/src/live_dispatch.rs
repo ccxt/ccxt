@@ -111,8 +111,9 @@ type WriteOptionsFn = fn(*mut (), Value);
 /// Writes a canned HTTP response into the cached Core's `mock_response`.
 /// Used by static *response* tests: `setFetchResponse` stashes the JSON
 /// payload on the snapshot, and the next dispatch pushes it to the Core
-/// so `fetch_typed` returns it without hitting the network. Single-use —
-/// `fetch_typed` clears `mock_response` once consumed.
+/// so every `fetch_typed` within that dispatch returns it without network I/O
+/// (including subsequent pagination requests). The next REST dispatch replaces
+/// the Core's mock with the next fixture's payload, or Null when none is set.
 type WriteMockFn = fn(*mut (), Value);
 
 /// Per-Core typed drop. Necessary because `*mut ()` erases the type, so

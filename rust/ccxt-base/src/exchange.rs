@@ -312,7 +312,8 @@ pub struct Exchange {
     /// Canned HTTP response for static *response* tests — when set,
     /// `fetch_typed` returns it without hitting the network so the
     /// exchange's parser runs against fixture data. Mirrors Go's
-    /// `MockResponse` field. Cleared back to `Null` after dispatch.
+    /// `MockResponse` field. Reused for all requests in a fixture; the test
+    /// dispatcher replaces or clears it before the next REST dispatch.
     pub mock_response:           Value,
     pub last_json_response:      Value,
     pub lastRestRequestTimestamp: Value,
@@ -2365,6 +2366,33 @@ pub(crate) fn url_pct(s: &str) -> String {
 mod response_mock_tests {
     use super::ExchangeRuntime;
     use crate::{get_value, Value};
+
+    #[tokio::test]
+    async fn response_mock_serves_multiple_requests_until_reset() {
+        // Conflicting proxies reject any unmocked request before network I/O.
+        let config = Value::from_json(&serde_json::json!({
+            "httpProxy": "http://fake:8080", "httpsProxy": "http://fake:8080",
+            "enableRateLimit": false,
+        }));
+        let mut exchange = crate::exchanges::binance::BinanceCore::new(Some(config));
+        let response = Value::from_json(&serde_json::json!({ "price": "100" }));
+        exchange.exchange.mock_response = response.clone();
+        for symbol in ["BTCUSDT", "ETHUSDT"] {
+            let params = Value::from_json(&serde_json::json!({ "symbol": symbol }));
+            let result = exchange.request_typed(
+                "ticker/price", &["public".to_string()], "GET", params, Value::Int(1),
+            ).await.expect("each request must use the same mock without network access");
+            assert_eq!(result, response);
+            assert_eq!(exchange.exchange.last_request_url, Value::Str(format!(
+                "https://api.binance.com/api/v3/ticker/price?symbol={symbol}",
+            )));
+        }
+        exchange.exchange.mock_response = Value::Null;
+        let error = exchange.request_typed(
+            "ticker/price", &["public".to_string()], "GET", Value::Null, Value::Int(1),
+        ).await.expect_err("reset must restore the normal transport path");
+        assert!(error.to_string().contains("InvalidProxySettings"));
+    }
 
     #[tokio::test]
     async fn response_mock_preserves_public_request_url() {
