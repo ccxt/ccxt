@@ -10141,7 +10141,7 @@ final Object finalMinNotional = minNotional;
                 {
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = Helpers.subtract(now, 7776000000L);
+                        since = (now - 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(marginMode, "isolated"))
@@ -10161,7 +10161,7 @@ final Object finalMinNotional = minNotional;
                     parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
                     if (java.util.Objects.equals(since, null))
                     {
-                        since = Helpers.subtract(now, 7776000000L);
+                        since = (now - 7776000000L);
                         ((Map<String, Object>)request).put("startTime", since);
                     }
                     if (java.util.Objects.equals(endTime, null))

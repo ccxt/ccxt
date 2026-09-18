@@ -5573,6 +5573,26 @@ export function installJavaNumericLocalTypes (transpiler) {
     }
     // (3) the declaration line: `<iden>Object <name> = <value>` -> `<iden><type> <name> = <value>`
     const original = printer.printVariableDeclarationList.bind (printer);
+    // (4) declared Java type of every declaration this module rewrites, read back by the
+    // printer's own arithmetic rule (src/javaTranspiler.ts): `-`/`*`/`/` print natively
+    // when both operands are declared Long/Double (or literals) — the locals this module
+    // retypes are exactly the ones the printer cannot name by itself. Written as the
+    // declaration line is printed, so a use printed before it keeps the helper call.
+    const declaredNumericTypes = new WeakMap ();
+    printer.javaExpressionTypeResolver = function (node) {
+        if (node === undefined || node.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+        } catch (e) {
+            return undefined;
+        }
+        return (declaration !== undefined && declaration.kind === ts.SyntaxKind.VariableDeclaration)
+            ? declaredNumericTypes.get (declaration)
+            : undefined;
+    };
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = original (node, identation);
         if (node.declarations?.length !== 1) {
@@ -5597,6 +5617,7 @@ export function installJavaNumericLocalTypes (transpiler) {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
+        declaredNumericTypes.set (declaration, javaType);
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
     };
     // SS-15: the outermost census wrapper (env-gated, inert unless CCXT_SS15_CENSUS=1) —
