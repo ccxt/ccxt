@@ -3125,8 +3125,8 @@ public partial class krakenfutures : Exchange
         {
             await this.loadMarkets();
         }
-        object type = this.safeString2(parameters, "type", "account");
-        object symbol = this.safeString(parameters, "symbol");
+        string? type = this.safeString2(parameters, "type", "account");
+        string? symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, new List<object>() {"type", "account", "symbol"});
         Dictionary<string, object> response = await this.privateGetAccounts(parameters);
         //
@@ -3217,7 +3217,7 @@ public partial class krakenfutures : Exchange
         //    }
         //
         string? datetime = this.safeString(response, "serverTime");
-        if (isEqual(type, "marginAccount") || isEqual(type, "margin"))
+        if (type == "marginAccount" || type == "margin")
         {
             if ((symbol == null))
             {

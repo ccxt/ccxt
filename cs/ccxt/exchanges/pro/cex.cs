@@ -453,7 +453,7 @@ public partial class cex : ccxt.cex
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        object timestamp = this.safeInteger(ticker, "timestamp");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
         if (!isEqual(timestamp, null))
         {
             timestamp = multiply(timestamp, 1000);

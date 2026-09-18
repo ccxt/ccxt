@@ -3801,7 +3801,7 @@ public partial class gate : Exchange
         //         "update": 1634350208.724
         //     }
         //
-        object timestamp = this.safeInteger(response, "current");
+        Int64? timestamp = this.safeInteger(response, "current");
         if (isEqual(timestamp, null))
         {
             throw new ExchangeError (add(this.id, " method() missing timestamp")) ;

@@ -2094,11 +2094,11 @@ public partial class coinbaseinternational : Exchange
             request["portfolio"] = portfolio;
         }
         bool? postOnly = this.safeBool2(parameters, "postOnly", "post_only");
-        object tif = this.safeString2(parameters, "tif", "timeInForce");
+        string? tif = this.safeString2(parameters, "tif", "timeInForce");
         // market orders must be IOC
         if (typeId == "MARKET")
         {
-            if ((tif != null) && !isEqual(tif, "IOC"))
+            if ((tif != null) && tif != "IOC")
             {
                 throw new InvalidOrder (add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
             }

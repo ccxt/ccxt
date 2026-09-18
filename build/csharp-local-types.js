@@ -3876,10 +3876,14 @@ function localIdentifierType (csharp, node) {
         return undefined; // `let a = cond ? a : 'x'` must not recurse
     }
     localReadTypesInFlight.add (binding);
+    // the same isolation as declarationCsharpType: another declaration's answer is what the
+    // printer emitted for it, never what the self-read override would make of it
+    const savedSelfReads = selfReadStack.splice (0, selfReadStack.length);
     try {
         return csharpLocalType (csharp, binding);
     } finally {
         localReadTypesInFlight.delete (binding);
+        selfReadStack.push (...savedSelfReads);
     }
 }
 
@@ -4249,10 +4253,12 @@ function declarationCsharpType (csharp, declaration, context) {
     const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     const nested = { scope, stack: context.stack, depth: context.depth + 1 };
     context.stack.add (declaration);
+    const savedSelfReads = selfReadStack.splice (0, selfReadStack.length);
     try {
         return csharpLocalType (csharp, declaration, nested);
     } finally {
         context.stack.delete (declaration);
+        selfReadStack.push (...savedSelfReads);
     }
 }
 
@@ -4283,6 +4289,12 @@ function resolveLocalReadType (csharp, context, identifier) {
     }
     if (!declaration.initializer || declaration.parent?.declarations?.length !== 1) {
         return undefined; // uninitialised, or a list the printer never rewrites as one declaration
+    }
+    const selfRead = selfReadStack[selfReadStack.length - 1];
+    if (selfRead !== undefined && selfRead.declaration === declaration) {
+        // a later write of the declaration being classified reads the local itself: its C#
+        // static type is the type that classification is computing (see selfReadWriteType)
+        return selfRead.type;
     }
     if (context.stack.has (declaration) || context.depth >= MAX_RESOLVE_DEPTH) {
         return undefined; // cycle (`a = b; b = a;`) or a pathological chain
@@ -4430,7 +4442,12 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // checked (see the self-concat / self-omit sections).
                         const selfConcat = (csharpType === 'string') && (selfConcatWriteType (csharp, context, declaration, parent.right) === 'string');
                         const selfOmit = (csharpType === 'Dictionary<string, object>') && (selfOmitWriteType (csharp, context, declaration, parent.right) === 'Dictionary<string, object>');
-                        if (!selfConcat && !selfOmit) {
+                        // the same arm as the join's: a write that reads this very declaration
+                        // resolves the read to the candidate type it is being checked against
+                        const selfRead = (!selfConcat && !selfOmit && safeHelperLocalInitializer (declaration.initializer))
+                            ? selfReadWriteType (csharp, context, declaration, csharpType, parent.right)
+                            : undefined;
+                        if (!selfConcat && !selfOmit && !assignable (csharpType, selfRead)) {
                             return false;
                         }
                     }
@@ -6330,6 +6347,53 @@ function installProvenStringCastDrops (csharp) {
 // annotation's own type is unreachable for the actual writes (see csharpLocalTypeOf)
 const NUMERIC_BOOL_LOCAL_TYPES = [ 'int?', 'Int64?', 'double?', 'bool?' ];
 
+// ---------------------------------------------------------------------------
+// The safeString*/safeInteger*/safeTimestamp*/safeNumber* declarations (the helper call IS the
+// initialiser) join every later write through typeFromValueOrWrites. A write that reads the
+// local itself cannot be resolved by the plain scan: the read's C# static type is the type
+// this very call is deciding, so csharpTypeOfValue() sees a classification in progress and
+// answers undefined (`let timestamp = this.safeInteger (...); timestamp = timestamp * 1000`).
+// The arm below answers exactly those reads with the RUNNING type and re-resolves the write;
+// the value keeps the printed expression, and the result is joined box-identically like any
+// other write, so a write whose box or value would move still keeps the declaration `object`.
+const SAFE_HELPER_LOCAL_METHODS = new Set ([ 'safeString', 'safeString2', 'safeStringLower',
+    'safeStringUpper', 'safeInteger', 'safeInteger2', 'safeTimestamp', 'safeNumber' ]);
+
+// `this.<safeString*|safeInteger*|safeTimestamp|safeNumber> (...)` as the whole initialiser
+function safeHelperLocalInitializer (node) {
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    return SAFE_HELPER_LOCAL_METHODS.has (callee.name?.escapedText);
+}
+
+// the declaration whose later write is being resolved right now, with the type a read of it
+// will have once the declaration is retyped (see selfReadWriteType)
+const selfReadStack = [];
+
+// The C# static type of a write that reads the declaration being classified, with every such
+// read answered by the running type. Only that one declaration is overridden: every OTHER
+// declaration's read resolves through the normal path — and that path is isolated from this
+// stack (declarationCsharpType / localIdentifierType), because another declaration's answer
+// has to be the type the printer emits for it, which was computed without this override.
+// The caller rejects the write unless joinTypes() accepts it (the box identity rule); the
+// retype scan re-checks every read and write against the final type.
+function selfReadWriteType (csharp, context, declaration, runningType, node) {
+    if (runningType === undefined || runningType === 'null') {
+        return undefined;
+    }
+    selfReadStack.push ({ declaration, type: runningType });
+    try {
+        return csharpTypeOfValue (csharp, node, context);
+    } finally {
+        selfReadStack.pop ();
+    }
+}
+
 // the declared type from the initializer (`initial` — a proven type, or 'null' for a
 // literal null/undefined) joined with every later plain `x = ...` write in the method:
 // joinTypes() widens T/T? and List<object>/IList<object> along box-identical edges, and
@@ -6400,6 +6464,13 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // `x = this.omit (x, keys)` accumulator write: same self-read shape, proven
             // against the running Dictionary type (see selfOmitWriteType).
             written = selfOmitWriteType (csharp, context, declaration, parent.right);
+        }
+        if (written === undefined && safeHelperLocalInitializer (declaration.initializer)) {
+            // `let x = this.safeString (…); … x = <expression reading x>`: the read of x inside
+            // the write is statically the declaration's own type, so the expression can only be
+            // resolved against the running type (see selfReadWriteType). A write whose box or
+            // value would move is still rejected by joinTypes below.
+            written = selfReadWriteType (csharp, context, declaration, type, parent.right);
         }
         if (written === undefined) {
             return undefined;
