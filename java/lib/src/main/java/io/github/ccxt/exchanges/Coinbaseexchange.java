@@ -1236,7 +1236,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             //     }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            List<Object> marketIds = Helpers.objectKeys(response);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             String delimiter = "-";
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -2764,7 +2764,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                 request = (request + ("?" + this.urlencode(query)));
             }
         }
-        Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)), request);
+        String url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + request);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2778,7 +2778,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
                     payload = body;
                 }
             }
-            Object what = Helpers.add(Helpers.add(Helpers.add(nonce, method), request), payload);
+            String what = ((Helpers.add(nonce, method) + request) + payload);
             Object secret = null;
             try
             {

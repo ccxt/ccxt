@@ -70,7 +70,7 @@ public class TestCurrency extends BaseTest {
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
-        List<Object> networkKeys = Helpers.objectKeys(networks);
+        Object networkKeys = new ArrayList<Object>(((Map<String, Object>)networks).keySet());
         Object networkKeysLength = ((List<?>)networkKeys).size();
         if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
@@ -83,7 +83,7 @@ public class TestCurrency extends BaseTest {
         {
             Object message = exchange.exceptionMessage(e);
             // check structure if key is numeric, not string
-            if (Helpers.getIndexOf(message, "\"id\" key") >= 0)
+            if (((String)message).indexOf("\"id\" key") >= 0)
             {
                 // @ts-ignore
                 ((Map<String, Object>)format).put("id", 123);

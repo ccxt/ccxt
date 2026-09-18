@@ -648,7 +648,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)messageHashes).add(((Helpers.add((("multi:" + name) + "@"), ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> intervals = Helpers.objectKeys(marketIdsByInterval);
+            Object intervals = new ArrayList<Object>(((Map<String, Object>)marketIdsByInterval).keySet());
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -740,7 +740,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 ((List<Object>)subMessageHashes).add(((Helpers.add((("multi:" + name) + "@"), ((Map<String, Object>)market).get("id")) + "_") + interval));
             }
             Object channels = new ArrayList<Object>(Arrays.asList());
-            List<Object> intervals = Helpers.objectKeys(marketIdsByInterval);
+            Object intervals = new ArrayList<Object>(((Map<String, Object>)marketIdsByInterval).keySet());
             for (var i = 0; i < ((List<?>)intervals).size(); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -2223,7 +2223,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> methods = new HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
-        List<Object> names = Helpers.objectKeys(subscriptions);
+        Object names = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)names).size(); i++)
         {
             Object name = Helpers.GetValue(names, i);

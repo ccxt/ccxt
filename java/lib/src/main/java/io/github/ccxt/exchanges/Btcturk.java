@@ -376,7 +376,7 @@ public class Btcturk extends BtcturkApi
             //    }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -389,7 +389,7 @@ public class Btcturk extends BtcturkApi
         String quoteId = this.safeString(entry, "denominator");
         String base = this.safeCurrencyCode(baseId);
         String quote = this.safeCurrencyCode(quoteId);
-        Object filters = this.safeList(entry, "filters", new ArrayList<Object>(Arrays.asList()));
+        List<Object> filters = (List<Object>) this.safeList(entry, "filters", new ArrayList<Object>(Arrays.asList()));
         Object minPrice = null;
         Object maxPrice = null;
         Object minAmount = null;
@@ -469,7 +469,7 @@ public class Btcturk extends BtcturkApi
 
     public Object parseBalance(Object response)
     {
-        Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -649,7 +649,7 @@ public class Btcturk extends BtcturkApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> response = (this.publicGetTicker(parameters)).join();
-            Object tickers = this.safeList(response, "data");
+            List<Object> tickers = (List<Object>) this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
@@ -798,7 +798,7 @@ public class Btcturk extends BtcturkApi
             //       ]
             //     }
             //
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             Object dataList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(data, null))
             {
@@ -858,7 +858,7 @@ public class Btcturk extends BtcturkApi
                 put( "resolution", Btcturk.this.safeValue(Btcturk.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
-            ((Map<String, Object>)request).put("to", this.parseToInt(((((double) until) / ((double) 1000)))));
+            ((Map<String, Object>)request).put("to", this.parseToInt((Helpers.divide(until, 1000))));
             if (!java.util.Objects.equals(since, null))
             {
                 ((Map<String, Object>)request).put("from", this.parseToInt(Helpers.divide(since, 1000)));
@@ -933,12 +933,12 @@ public class Btcturk extends BtcturkApi
         Object limit = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object tail = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : false;
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        Object timestamp = this.safeList(ohlcvs, "t", new ArrayList<Object>(Arrays.asList()));
-        Object high = this.safeList(ohlcvs, "h", new ArrayList<Object>(Arrays.asList()));
-        Object open = this.safeList(ohlcvs, "o", new ArrayList<Object>(Arrays.asList()));
-        Object low = this.safeList(ohlcvs, "l", new ArrayList<Object>(Arrays.asList()));
-        Object close = this.safeList(ohlcvs, "c", new ArrayList<Object>(Arrays.asList()));
-        Object volume = this.safeList(ohlcvs, "v", new ArrayList<Object>(Arrays.asList()));
+        List<Object> timestamp = (List<Object>) this.safeList(ohlcvs, "t", new ArrayList<Object>(Arrays.asList()));
+        List<Object> high = (List<Object>) this.safeList(ohlcvs, "h", new ArrayList<Object>(Arrays.asList()));
+        List<Object> open = (List<Object>) this.safeList(ohlcvs, "o", new ArrayList<Object>(Arrays.asList()));
+        List<Object> low = (List<Object>) this.safeList(ohlcvs, "l", new ArrayList<Object>(Arrays.asList()));
+        List<Object> close = (List<Object>) this.safeList(ohlcvs, "c", new ArrayList<Object>(Arrays.asList()));
+        List<Object> volume = (List<Object>) this.safeList(ohlcvs, "v", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)timestamp).size(); i++)
         {
             final Object finalI = i;
@@ -1074,8 +1074,8 @@ public class Btcturk extends BtcturkApi
             }
             Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
-            Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1139,7 +1139,7 @@ public class Btcturk extends BtcturkApi
             //     }
             //   ]
             // }
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1276,7 +1276,7 @@ public class Btcturk extends BtcturkApi
             //       "code": "0"
             //     }
             //
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             Object dataList = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(data, null))
             {

@@ -345,7 +345,7 @@ public class Mudrex extends MudrexApi
         Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
-            Object errors = this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(errors, 0, new HashMap<String, Object>() {{}});
             String text = this.safeString(first, "text", this.json(response));
             String errCode = this.safeString(first, "code");
@@ -354,15 +354,15 @@ public class Mudrex extends MudrexApi
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), text, ((this.id + " ") + text));
             String msg = ((this.id + " ") + text);
             Object low = text.toLowerCase();
-            if (Helpers.isEqual(code, 401) || Helpers.getIndexOf(low, "auth") >= 0)
+            if (Helpers.isEqual(code, 401) || ((String)low).indexOf("auth") >= 0)
             {
                 throw new AuthenticationError(msg) ;
             }
-            if (Helpers.isEqual(code, 429) || Helpers.getIndexOf(low, "rate") >= 0)
+            if (Helpers.isEqual(code, 429) || ((String)low).indexOf("rate") >= 0)
             {
                 throw new RateLimitExceeded(msg) ;
             }
-            if (Helpers.getIndexOf(low, "insufficient") >= 0)
+            if (((String)low).indexOf("insufficient") >= 0)
             {
                 throw new InsufficientFunds(msg) ;
             }
@@ -446,7 +446,7 @@ public class Mudrex extends MudrexApi
             if (!java.util.Objects.equals(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                endTime = this.parseToInt((((double) until) / ((double) 1000)));
+                endTime = this.parseToInt(Helpers.divide(until, 1000));
             } else if (Helpers.isGreaterThan(endTime, now))
             {
                 endTime = now;
@@ -473,7 +473,7 @@ public class Mudrex extends MudrexApi
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> assetTicks = (Map<String, Object>) this.safeDict(data, "asset_ticks", new HashMap<String, Object>() {{}});
-            Object ohlcvs = this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new ArrayList<Object>(Arrays.asList()));
+            List<Object> ohlcvs = (List<Object>) this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1480,7 +1480,7 @@ public class Mudrex extends MudrexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -1749,7 +1749,7 @@ public class Mudrex extends MudrexApi
                     ((Map<String, Object>)request).put("offset", offset);
                 }
                 Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
-                Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 Object dataLength = ((List<?>)data).size();
                 for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
                 {

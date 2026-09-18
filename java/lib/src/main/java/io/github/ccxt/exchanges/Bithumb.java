@@ -570,7 +570,7 @@ public class Bithumb extends BithumbApi
     public Object getGen2MarketId(Object market)
     {
         String marketId = this.safeString(market, "id");
-        if ((!java.util.Objects.equals(marketId, null)) && (Helpers.getIndexOf(marketId, "-") >= 0))
+        if ((!java.util.Objects.equals(marketId, null)) && (((String)marketId).indexOf("-") >= 0))
         {
             return marketId;
         }
@@ -694,7 +694,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                Object quotes = new ArrayList<Object>(((Map<String, Object>)quoteCurrencies).keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
@@ -709,7 +709,7 @@ public class Bithumb extends BithumbApi
                     Object response = Helpers.GetValue(results, i);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
-                    Object currencyIds = Helpers.objectKeys(data);
+                    Object currencyIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -821,7 +821,7 @@ public class Bithumb extends BithumbApi
         Map<String, Object> balances = (Map<String, Object>) this.safeDict(response, "data");
         if (!java.util.Objects.equals(balances, null))
         {
-            Object codes = Helpers.objectKeys(this.currencies);
+            List<Object> codes = Helpers.objectKeys(this.currencies);
             for (var i = 0; i < ((List<?>)codes).size(); i++)
             {
                 Object code = Helpers.GetValue(codes, i);
@@ -1286,7 +1286,7 @@ public class Bithumb extends BithumbApi
                             tickers = new ArrayList<Object>(Arrays.asList(response));
                         } else
                         {
-                            Object ids = Helpers.objectKeys(response);
+                            List<Object> ids = Helpers.objectKeys(response);
                             for (var j = 0; j < ((List<?>)ids).size(); j++)
                             {
                                 Object id = Helpers.GetValue(ids, j);
@@ -1319,7 +1319,7 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = Helpers.objectKeys(quoteCurrencies);
+                Object quotes = new ArrayList<Object>(((Map<String, Object>)quoteCurrencies).keySet());
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
@@ -1328,12 +1328,12 @@ public class Bithumb extends BithumbApi
                         Object symbol = Helpers.GetValue(symbols, i);
                         Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                         String quoteId = this.safeString(market, "quoteId");
-                        if ((!java.util.Objects.equals(quoteId, null)) && (((Map<?, ?>)quoteCurrencies).containsKey(quoteId)))
+                        if ((!java.util.Objects.equals(quoteId, null)) && (quoteCurrencies.containsKey(quoteId)))
                         {
                             ((Map<String, Object>)requiredQuotes).put((String)quoteId, true);
                         }
                     }
-                    Object requiredQuoteIds = Helpers.objectKeys(requiredQuotes);
+                    Object requiredQuoteIds = new ArrayList<Object>(((Map<String, Object>)requiredQuotes).keySet());
                     String populatedQuotes = this.safeString(requiredQuoteIds, 0);
                     if (!java.util.Objects.equals(populatedQuotes, null))
                     {
@@ -1354,7 +1354,7 @@ public class Bithumb extends BithumbApi
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
-                    Object currencyIds = Helpers.objectKeys(tickers);
+                    List<Object> currencyIds = Helpers.objectKeys(tickers);
                     for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -2561,7 +2561,7 @@ public class Bithumb extends BithumbApi
         Object timestamp = null;
         if (!java.util.Objects.equals(datetime, null))
         {
-            if (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), -1))
+            if (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), -1))
             {
                 Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
@@ -3296,7 +3296,7 @@ public class Bithumb extends BithumbApi
         currency = this.safeCurrency(currencyId, currency);
         String datetime = this.safeString(transaction, "created_at");
         Object timestamp = this.parse8601(datetime);
-        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), -1)))
+        if ((!java.util.Objects.equals(datetime, null)) && (Helpers.isGreaterThan(((String)datetime).indexOf("+09:00"), -1)))
         {
             Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
@@ -3908,7 +3908,7 @@ public class Bithumb extends BithumbApi
 
     public Object urlencodeWithArrayBrackets(Object query)
     {
-        Object keys = Helpers.objectKeys(query);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)query).keySet());
         Object result = "";
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
@@ -3954,9 +3954,9 @@ public class Bithumb extends BithumbApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + endpoint);
+        String url = (this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api)) + endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object queryKeys = Helpers.objectKeys(query);
+        List<Object> queryKeys = Helpers.objectKeys(query);
         Object queryKeysLength = ((List<?>)queryKeys).size();
         Boolean hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
         if (java.util.Objects.equals(api, "public"))

@@ -229,10 +229,10 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         String stream = this.safeString(message, "stream");
         if (!java.util.Objects.equals(stream, null))
         {
-            if (Helpers.getIndexOf(stream, "kline") >= 0 || Helpers.getIndexOf(stream, "markKline") >= 0)
+            if (((String)stream).indexOf("kline") >= 0 || ((String)stream).indexOf("markKline") >= 0)
             {
                 this.handleOHLCV(client, message);
-            } else if (Helpers.getIndexOf(stream, "ticker") >= 0)
+            } else if (((String)stream).indexOf("ticker") >= 0)
             {
                 this.handleTicker(client, message);
             }
@@ -259,7 +259,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(stream, "@");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)stream).split(java.util.regex.Pattern.quote("@"))));
         String interval = (String) Helpers.GetValue(parts, 1);
         Object tf = this.findTimeframe(interval);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});

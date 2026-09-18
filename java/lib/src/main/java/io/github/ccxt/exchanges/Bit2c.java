@@ -371,7 +371,7 @@ public class Bit2c extends Bit2cApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -682,7 +682,7 @@ public class Bit2c extends Bit2cApi
             //     }
             //
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(fees);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)fees).keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1102,7 +1102,7 @@ public class Bit2c extends Bit2cApi
     public Object removeCommaFromValue(Object str)
     {
         Object newString = "";
-        Object strParts = Helpers.split(str, ",");
+        List<Object> strParts = (List<Object>) Helpers.split(str, ",");
         for (var i = 0; i < Helpers.getArrayLength(strParts); i++)
         {
             newString = Helpers.add(newString, Helpers.GetValue(strParts, i));

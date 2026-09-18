@@ -530,7 +530,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
-        List<Object> parts = (List<Object>) Helpers.split(channel, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         String interval = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId);
@@ -779,10 +779,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Object parameters = this.safeValue(message, "params", new HashMap<String, Object>() {{}});
         Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel");
-        List<Object> parts = (List<Object>) Helpers.split(channel, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         Object descriptor = "";
         Object partsLength = ((List<?>)parts).size();
-        Boolean isDetailed = Helpers.isEqual(partsLength, 5);
+        Boolean isDetailed = java.util.Objects.equals(partsLength, 5);
         if (Boolean.TRUE.equals(isDetailed))
         {
             String group = this.safeString(parts, 2);
@@ -1022,7 +1022,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
+            if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
@@ -1062,7 +1062,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         //
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         String channel = this.safeString(parameters, "channel", "");
-        List<Object> parts = (List<Object>) Helpers.split(channel, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
         String rawTimeframe = this.safeString(parts, 3);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1239,7 +1239,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String channel = this.safeString(parameters, "channel");
         if (!java.util.Objects.equals(channel, null))
         {
-            List<Object> parts = (List<Object>) Helpers.split(channel, ".");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
             String channelId = this.safeString(parts, 0);
             Map<String, Object> userHandlers = new HashMap<String, Object>() {{
                 put( "trades", "handleMyTrades");

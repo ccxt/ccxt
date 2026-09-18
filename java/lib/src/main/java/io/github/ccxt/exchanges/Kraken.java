@@ -773,13 +773,13 @@ public class Kraken extends KrakenApi
             //
             Map<String, Object> markets = (Map<String, Object>) this.safeDict(assetsResponse, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> cachedCurrencies = (Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(markets);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object id = Helpers.GetValue(keys, i);
                 Boolean isSynthetic = false;
-                if (Helpers.getIndexOf(id, ":BTNL") >= 0)
+                if (((String)id).indexOf(":BTNL") >= 0)
                 {
                     isSynthetic = true;
                 }
@@ -816,7 +816,7 @@ public class Kraken extends KrakenApi
                 {
                     throw new ExchangeError((this.id + " method() missing base")) ;
                 }
-                if (Boolean.TRUE.equals(spot) && (((Map<?, ?>)cachedCurrencies).containsKey(base)))
+                if (Boolean.TRUE.equals(spot) && (cachedCurrencies.containsKey(base)))
                 {
                     Object currency = this.safeValue(cachedCurrencies, base);
                     Double currencyPrecision = this.safeNumber(currency, "precision");
@@ -1028,7 +1028,7 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " parseCurrency() missing id")) ;
         }
-        if (Helpers.getIndexOf(id, ".") < 0)
+        if (((String)id).indexOf(".") < 0)
         {
             String altName = this.safeString(rawCurrency, "altname");
             // handle cases like below:
@@ -1058,7 +1058,7 @@ public class Kraken extends KrakenApi
         {
             throw new ExchangeError((this.id + " parseCurrency() missing code")) ;
         }
-        Boolean isFiat = Helpers.getIndexOf(code, ".HOLD") >= 0;
+        Boolean isFiat = ((String)code).indexOf(".HOLD") >= 0;
         rawCurrency = this.omit(rawCurrency, "_coin_id");
         final Object finalId = id;
         final Object finalCode = code;
@@ -1095,7 +1095,7 @@ public class Kraken extends KrakenApi
         {
             return (String) currencyId;
         }
-        if (Helpers.getIndexOf(currencyId, ".") > 0)
+        if (((String)currencyId).indexOf(".") > 0)
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("."))));
@@ -1347,7 +1347,7 @@ public class Kraken extends KrakenApi
             }
             Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Map<String, Object> tickers = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(tickers);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)tickers).keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
@@ -1464,7 +1464,7 @@ public class Kraken extends KrakenApi
                 {
                     throw new ExchangeError((this.id + " fetchOHLCV() missing parsedTimeframe")) ;
                 }
-                Object timeFrameInSeconds = (parsedTimeframe * 60L);
+                Object timeFrameInSeconds = Helpers.multiply(parsedTimeframe, 60);
                 ((Map<String, Object>)request).put("since", this.numberToString(Helpers.subtract(scaledSince, timeFrameInSeconds))); // expected to be in seconds
             }
             Map<String, Object> response = (this.publicGetOHLC(this.extend(request, parameters))).join();
@@ -1618,7 +1618,7 @@ public class Kraken extends KrakenApi
             //                                                "balance": "0.0000051000"           },
             Object result = this.safeValue(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> ledger = (Map<String, Object>) this.safeDict(result, "ledger", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(ledger);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)ledger).keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1660,7 +1660,7 @@ public class Kraken extends KrakenApi
             //                                          "fee": "0.0050000000",
             //                                      "balance": "0.0000051000"           } } }
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(result);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)result).keySet());
             List<Object> items = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -1940,7 +1940,7 @@ public class Kraken extends KrakenApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object currencyIds = Helpers.objectKeys(balances);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -2094,7 +2094,7 @@ public class Kraken extends KrakenApi
             }};
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
             String flags = this.safeString((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), "oflags", "");
-            Boolean isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1));
+            Boolean isUsingCost = Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1);
             Map<String, Object> response = (this.privatePostAddOrder(this.extend((orderRequest == null || 0 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(0)), (orderRequest == null || 1 >= ((List<?>)orderRequest).size() ? null : ((List<?>)orderRequest).get(1))))).join();
             //
             //     {
@@ -2468,7 +2468,7 @@ public class Kraken extends KrakenApi
             price = this.safeString2(order, "limitprice", "price", price);
         }
         String flags = this.safeString(order, "oflags", "");
-        Boolean isPostOnly = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "post"), Helpers.opNeg(1));
+        Boolean isPostOnly = Helpers.isGreaterThan(((String)flags).indexOf("post"), -1);
         Double average = this.safeNumber(order, "price");
         if (!java.util.Objects.equals(market, null))
         {
@@ -2480,10 +2480,10 @@ public class Kraken extends KrakenApi
                     put( "cost", feeCost );
                     put( "rate", null );
                 }};
-                if (Helpers.getIndexOf(flags, "fciq") >= 0)
+                if (((String)flags).indexOf("fciq") >= 0)
                 {
                     ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("quote"));
-                } else if (Helpers.getIndexOf(flags, "fcib") >= 0)
+                } else if (((String)flags).indexOf("fcib") >= 0)
                 {
                     ((Map<String, Object>)fee).put("currency", ((Map<String, Object>)market).get("base"));
                 }
@@ -2623,7 +2623,7 @@ final Object finalId = id;
         String cost = this.safeString(parameters, "cost");
         String flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("cost", "oflags")));
-        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1))); // volume in quote currency
+        Boolean isViqcOrder = (!java.util.Objects.equals(flags, null)) && (Helpers.isGreaterThan(((String)flags).indexOf("viqc"), -1)); // volume in quote currency
         if (Boolean.TRUE.equals(isMarketOrder) && (!java.util.Objects.equals(cost, null) || Boolean.TRUE.equals(isViqcOrder)))
         {
             if (java.util.Objects.equals(cost, null) && (!java.util.Objects.equals(amount, null)))
@@ -3024,7 +3024,7 @@ final Object finalId = id;
                 //     }
                 //
                 Object rawTrades = this.safeValue(response, "result");
-                Object ids = Helpers.objectKeys(rawTrades);
+                List<Object> ids = Helpers.objectKeys(rawTrades);
                 for (var i = 0; i < ((List<?>)ids).size(); i++)
                 {
                     Helpers.addElementToObject(Helpers.GetValue(rawTrades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
@@ -3065,7 +3065,7 @@ final Object finalId = id;
             }}, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object orderIds = Helpers.objectKeys(result);
+            Object orderIds = new ArrayList<Object>(((Map<String, Object>)result).keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3149,7 +3149,7 @@ final Object finalId = id;
             //
             Map<String, Object> tradesResult = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> trades = (Map<String, Object>) this.safeDict(tradesResult, "trades", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(trades);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)trades).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
@@ -3208,7 +3208,7 @@ final Object finalId = id;
             {
                 if ((!java.util.Objects.equals(this.last_http_response, null)) && (!java.util.Objects.equals(this.last_http_response, "")))
                 {
-                    if (Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order") >= 0)
+                    if (((String)this.last_http_response).indexOf("EOrder:Unknown order") >= 0)
                     {
                         throw new OrderNotFound(((this.id + " cancelOrder() error ") + this.last_http_response)) ;
                     }
@@ -3434,7 +3434,7 @@ final Object finalId = id;
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> open = (Map<String, Object>) this.safeDict(result, "open", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object orderIds = Helpers.objectKeys(open);
+            Object orderIds = new ArrayList<Object>(((Map<String, Object>)open).keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3543,7 +3543,7 @@ final Object finalId = id;
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> closed = (Map<String, Object>) this.safeDict(result, "closed", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object orderIds = Helpers.objectKeys(closed);
+            Object orderIds = new ArrayList<Object>(((Map<String, Object>)closed).keySet());
             for (var i = 0; i < ((List<?>)orderIds).size(); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -4049,7 +4049,7 @@ final Object finalId = id;
                         {
                             throw new ExchangeError((this.id + " fetchDepositAddress() missing entry")) ;
                         }
-                        if (Helpers.getIndexOf(entry, network) >= 0)
+                        if (((String)entry).indexOf(network) >= 0)
                         {
                             depositMethod = entry;
                             break;
@@ -4520,7 +4520,7 @@ final Object finalId = id;
                 if (Helpers.inOp(response, "result"))
                 {
                     Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-                    if (((Map<?, ?>)result).containsKey("orders"))
+                    if (result.containsKey("orders"))
                     {
                         List<Object> orders = (List<Object>) this.safeList(result, "orders", new ArrayList<Object>(Arrays.asList()));
                         for (var i = 0; i < ((List<?>)orders).size(); i++)

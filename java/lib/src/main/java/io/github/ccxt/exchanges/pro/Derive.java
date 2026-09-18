@@ -294,7 +294,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            List<Object> parts = (List<Object>) Helpers.split(topic, ".");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             String marketId = this.safeString(parts, 1);
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
             Map<String, Object> stats = (Map<String, Object>) this.safeDict(data, "stats", new HashMap<String, Object>() {{}});
@@ -476,14 +476,14 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> status = (Map<String, Object>) this.safeDict(result, "status");
         if (!java.util.Objects.equals(status, null))
         {
-            List<Object> topics = Helpers.objectKeys(status);
+            Object topics = new ArrayList<Object>(((Map<String, Object>)status).keySet());
             for (var i = 0; i < ((List<?>)topics).size(); i++)
             {
                 Object topic = Helpers.GetValue(topics, i);
-                if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orderbook"), 0))
+                if (((String)topic).indexOf("orderbook") >= 0)
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "trades"), 0))
+                } else if (((String)topic).indexOf("trades") >= 0)
                 {
                     this.handleTradesUnSubscription(client, topic);
                 }
@@ -913,8 +913,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             String channel = this.safeString(parameters, "channel");
             if (!java.util.Objects.equals(channel, null))
             {
-                List<Object> parsedChannel = (List<Object>) Helpers.split(channel, ".");
-                if ((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "orders"), 0)) || Helpers.isGreaterThan(Helpers.getIndexOf(channel, "trades"), 0))
+                Object parsedChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+                if ((((String)channel).indexOf("orders") >= 0) || ((String)channel).indexOf("trades") > 0)
                 {
                     eventVar = this.safeString(parsedChannel, 1);
                     // {subaccounr_id}.trades

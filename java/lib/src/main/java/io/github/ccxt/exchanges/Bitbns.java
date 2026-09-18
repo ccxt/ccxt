@@ -417,7 +417,7 @@ public class Bitbns extends BitbnsApi
                 Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(marketLimits, "cost", new HashMap<String, Object>() {{}});
                 Boolean usdt = (java.util.Objects.equals(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
-                Object uppercaseId = ((Boolean.TRUE.equals(usdt))) ? (Helpers.add(Helpers.add(baseId, "_"), quoteId)) : baseId;
+                Object uppercaseId = ((Boolean.TRUE.equals(usdt))) ? ((Helpers.add(baseId, "_") + quoteId)) : baseId;
     final Object finalBase = base;
                 final Object finalBaseId = baseId;
                 final Object finalQuoteId = quoteId;
@@ -656,7 +656,7 @@ public class Bitbns extends BitbnsApi
             put( "datetime", Bitbns.this.iso8601(timestamp) );
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(data);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1016,7 +1016,7 @@ public class Bitbns extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         }).thenApply(Order::new);
@@ -1085,7 +1085,7 @@ public class Bitbns extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1134,10 +1134,10 @@ public class Bitbns extends BitbnsApi
         String side = this.safeStringLower(trade, "type");
         if (!java.util.Objects.equals(side, null))
         {
-            if (Helpers.getIndexOf(side, "buy") >= 0)
+            if (((String)side).indexOf("buy") >= 0)
             {
                 side = "buy";
-            } else if (Helpers.getIndexOf(side, "sell") >= 0)
+            } else if (((String)side).indexOf("sell") >= 0)
             {
                 side = "sell";
             }
@@ -1264,7 +1264,7 @@ public class Bitbns extends BitbnsApi
             //         "code": 200
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1370,7 +1370,7 @@ public class Bitbns extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1412,7 +1412,7 @@ public class Bitbns extends BitbnsApi
             //
             //     ...
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -1473,11 +1473,11 @@ public class Bitbns extends BitbnsApi
         String status = null;
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.getIndexOf(type, "deposit") >= 0)
+            if (((String)type).indexOf("deposit") >= 0)
             {
                 type = "deposit";
                 status = "ok";
-            } else if (Helpers.getIndexOf(type, "withdraw") >= 0 || Helpers.getIndexOf(expTime, "withdraw") >= 0)
+            } else if (((String)type).indexOf("withdraw") >= 0 || ((String)expTime).indexOf("withdraw") >= 0)
             {
                 type = "withdrawal";
             }

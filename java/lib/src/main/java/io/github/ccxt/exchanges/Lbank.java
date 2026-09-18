@@ -1602,7 +1602,7 @@ public class Lbank extends LbankApi
         {
             Object used = this.safeValue(data, "freeze", new HashMap<String, Object>() {{}});
             Map<String, Object> free = (Map<String, Object>) this.safeDict(data, "free", new HashMap<String, Object>() {{}});
-            Object currencies = Helpers.objectKeys(free);
+            Object currencies = new ArrayList<Object>(((Map<String, Object>)free).keySet());
             for (var i = 0; i < ((List<?>)currencies).size(); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);
@@ -1686,7 +1686,7 @@ public class Lbank extends LbankApi
         Object intervalString = null;
         if (!java.util.Objects.equals(positionFeeTime, null))
         {
-            Long interval = this.parseToInt((((double) (((double) positionFeeTime) / ((double) 60))) / ((double) 60)));
+            Long interval = this.parseToInt(Helpers.divide(Helpers.divide(positionFeeTime, 60), 60));
             intervalString = (String.valueOf(interval) + "h");
         }
         final Object finalIntervalString = intervalString;
@@ -3724,7 +3724,7 @@ public class Lbank extends LbankApi
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
-            Object echostr = (this.uuid22() + this.uuid16());
+            String echostr = (this.uuid22() + this.uuid16());
             query = this.extend(new HashMap<String, Object>() {{
                 put( "api_key", Lbank.this.apiKey );
             }}, query);

@@ -885,7 +885,7 @@ public class Tokocrypto extends TokocryptoApi
                 (this.loadTimeDifference()).join();
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)list).size(); i++)
             {
@@ -903,7 +903,7 @@ public class Tokocrypto extends TokocryptoApi
                 Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (java.util.Objects.equals(status, "1"));
-                Object permissions = this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
+                List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)permissions).size(); j++)
                 {
                     if (java.util.Objects.equals(Helpers.GetValue(permissions, j), "TRD_GRP_003"))
@@ -971,22 +971,22 @@ public class Tokocrypto extends TokocryptoApi
                 if (filtersByType.containsKey("PRICE_FILTER"))
                 {
                     Map<String, Object> filter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
+                    Helpers.addElementToObject(entry.get("precision"), "price", this.safeNumber(filter, "tickSize"));
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
                     // https://github.com/ccxt/ccxt/issues/4286
                     // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "price", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(entry.get("limits"), "price", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minPrice") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxPrice") );
     }});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", ((Map<String, Object>)filter).get("tickSize"));
+                    Helpers.addElementToObject(entry.get("precision"), "price", ((Map<String, Object>)filter).get("tickSize"));
                 }
                 if (filtersByType.containsKey("LOT_SIZE"))
                 {
                     Object filter = this.safeValue(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(entry.get("precision"), "amount", this.safeNumber(filter, "stepSize"));
+                    Helpers.addElementToObject(entry.get("limits"), "amount", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
@@ -994,7 +994,7 @@ public class Tokocrypto extends TokocryptoApi
                 if (filtersByType.containsKey("MARKET_LOT_SIZE"))
                 {
                     Object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new HashMap<String, Object>() {{
+                    Helpers.addElementToObject(entry.get("limits"), "market", new HashMap<String, Object>() {{
         put( "min", Tokocrypto.this.safeNumber(filter, "minQty") );
         put( "max", Tokocrypto.this.safeNumber(filter, "maxQty") );
     }});
@@ -1002,7 +1002,7 @@ public class Tokocrypto extends TokocryptoApi
                 if (filtersByType.containsKey("MIN_NOTIONAL"))
                 {
                     Object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
+                    Helpers.addElementToObject(Helpers.GetValue(entry.get("limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
                 }
                 ((List<Object>)result).add(entry);
             }
@@ -1305,7 +1305,7 @@ public class Tokocrypto extends TokocryptoApi
                 //    }
                 //
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(responseInner, "data", new HashMap<String, Object>() {{}});
-                Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+                List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
                 return this.parseTrades(list, market, since, limit);
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1741,7 +1741,7 @@ public class Tokocrypto extends TokocryptoApi
                 data = response;
             } else
             {
-                Object dataList = this.safeList(response, "data");
+                List<Object> dataList = (List<Object>) this.safeList(response, "data");
                 if (!java.util.Objects.equals(dataList, null))
                 {
                     data = dataList;
@@ -1823,7 +1823,7 @@ public class Tokocrypto extends TokocryptoApi
             put( "datetime", Tokocrypto.this.iso8601(timestamp) );
         }};
         Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-        Object balances = this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -2394,7 +2394,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2583,7 +2583,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> trades = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -2731,7 +2731,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> deposits = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2805,7 +2805,7 @@ public class Tokocrypto extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object withdrawals = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> withdrawals = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -2890,7 +2890,7 @@ public class Tokocrypto extends TokocryptoApi
             }
         }
         String txid = this.safeString(transaction, "txId");
-        if ((!java.util.Objects.equals(txid, null)) && (Helpers.getIndexOf(txid, "Internal transfer ") >= 0))
+        if ((!java.util.Objects.equals(txid, null)) && (((String)txid).indexOf("Internal transfer ") >= 0))
         {
             txid = (txid == null ? null : ((String)txid).substring(Math.min(18, ((String)txid).length())));
         }
@@ -3132,15 +3132,15 @@ public class Tokocrypto extends TokocryptoApi
         // will switch "code" checks eventually, when we know all of them
         if (Helpers.isGreaterThanOrEqual(code, 400))
         {
-            if (Helpers.getIndexOf(body, "Price * QTY is zero or less") >= 0)
+            if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (Helpers.getIndexOf(body, "LOT_SIZE") >= 0)
+            if (((String)body).indexOf("LOT_SIZE") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (Helpers.getIndexOf(body, "PRICE_FILTER") >= 0)
+            if (((String)body).indexOf("PRICE_FILTER") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }
@@ -3225,7 +3225,7 @@ public class Tokocrypto extends TokocryptoApi
         } else if ((((Map<?, ?>)config).containsKey("byLimit")) && (Helpers.inOp(parameters, "limit")))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)byLimit).size(); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

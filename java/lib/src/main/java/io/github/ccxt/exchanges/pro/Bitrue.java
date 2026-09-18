@@ -459,7 +459,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String channelKind = this.safeString(parts, 1);
         Boolean isFutures = (java.util.Objects.equals(channelKind, "e"));
         Object market = null;
@@ -504,7 +504,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        List<Object> symbols = Helpers.objectKeys(markets);
+        Object symbols = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
         for (var i = 0; i < ((List<?>)symbols).size(); i++)
         {
             Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));
@@ -627,7 +627,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -766,7 +766,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -803,7 +803,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object symbol = ((Map<String, Object>)market).get("symbol");
         Long idSeconds = this.safeInteger(tick, "id");
-        Object timestamp = (((java.util.Objects.equals(idSeconds, null)))) ? null : (idSeconds * 1000L);
+        Object timestamp = (((java.util.Objects.equals(idSeconds, null)))) ? null : Helpers.multiply(idSeconds, 1000);
         Double open = this.safeNumber(tick, "open");
         Double high = this.safeNumber(tick, "high");
         Double low = this.safeNumber(tick, "low");
@@ -876,7 +876,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         String channel = this.safeString(message, "channel");
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String wsBaseQuote = this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (java.util.Objects.equals(market, null))
@@ -984,16 +984,16 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         if (Helpers.inOp(message, "channel"))
         {
             String channel = this.safeString(message, "channel");
-            if (Helpers.isGreaterThan(((String)channel).indexOf("_depth_step"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)channel).indexOf("_depth_step"), -1))
             {
                 this.handleOrderBook(client, message);
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_trade_ticker"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_trade_ticker"), -1))
             {
                 this.handleTrades(client, message);
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_kline_"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_kline_"), -1))
             {
                 this.handleOHLCV(client, message);
-            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_ticker"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(((String)channel).indexOf("_ticker"), -1))
             {
                 this.handleTicker(client, message);
             }

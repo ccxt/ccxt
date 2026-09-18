@@ -84,7 +84,7 @@ public class TestSharedMethods extends BaseTest {
         }
         if ((format instanceof List))
         {
-            Assert(Helpers.isArray(entry), ("entry is not an array" + logText));
+            Assert((entry instanceof List), ("entry is not an array" + logText));
             Object realLength = ((List<?>)entry).size();
             Object expectedLength = ((List<?>)format).size();
             Assert(java.util.Objects.equals(realLength, expectedLength), (("entry length is not equal to expected length of " + String.valueOf(expectedLength)) + logText));
@@ -378,7 +378,7 @@ public class TestSharedMethods extends BaseTest {
         Assert(!java.util.Objects.equals(value, null) || Helpers.isTrue(allowNull), ("value is null" + logText));
         if (!java.util.Objects.equals(value, null))
         {
-            Assert(!Helpers.isTrue(Precise.stringEq(value, compareTo)), Helpers.add(Helpers.add((Helpers.add(Helpers.add(stringValue(key), " key (with a value of "), stringValue(value)) + ") was expected not to be equal to "), stringValue(compareTo)), logText));
+            Assert(!Precise.stringEq(value, compareTo), Helpers.add(Helpers.add((Helpers.add(Helpers.add(stringValue(key), " key (with a value of "), stringValue(value)) + ") was expected not to be equal to "), stringValue(compareTo)), logText));
         }
     }
     public static void AssertInArray(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object key, Object expectedArray, Object... optionalArgs)
@@ -405,7 +405,7 @@ public class TestSharedMethods extends BaseTest {
         Object keyString = stringValue(key);
         if (Helpers.isTrue(((key instanceof Integer) || (key instanceof Long))))
         {
-            Assert(Helpers.isArray(entry), ("fee container is expected to be an array" + logText));
+            Assert((entry instanceof List), ("fee container is expected to be an array" + logText));
             Assert(Helpers.isLessThan(key, ((List<?>)entry).size()), ((Helpers.add("fee key ", keyString) + " was expected to be present in entry") + logText));
         } else
         {
@@ -621,7 +621,7 @@ public class TestSharedMethods extends BaseTest {
         // if strict check, then 'status' must be 'open' and filled amount should be less then whole order amount
         Object strictOpen = Boolean.TRUE.equals(statusOpen) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isLessThan(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object nonstrictOpen = (Boolean.TRUE.equals(statusOpen) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object nonstrictOpen = (Boolean.TRUE.equals(statusOpen) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Precise.stringLt(filled, amount));
         // check
         if (java.util.Objects.equals(AssertedStatus, "open"))
         {
@@ -633,9 +633,9 @@ public class TestSharedMethods extends BaseTest {
         // ### CLOSED STATUS
         //
         // if strict check, then 'status' must be 'closed' and filled amount should be equal to the whole order amount
-        Object closedStrict = Boolean.TRUE.equals(statusClosed) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isTrue(Precise.stringEq(filled, amount)));
+        Object closedStrict = Boolean.TRUE.equals(statusClosed) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Precise.stringEq(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object closedNonStrict = (Boolean.TRUE.equals(statusClosed) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Helpers.isTrue(Precise.stringEq(filled, amount)));
+        Object closedNonStrict = (Boolean.TRUE.equals(statusClosed) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Precise.stringEq(filled, amount));
         // check
         if (java.util.Objects.equals(AssertedStatus, "closed"))
         {
@@ -647,9 +647,9 @@ public class TestSharedMethods extends BaseTest {
         // ### CANCELED STATUS
         //
         // if strict check, then 'status' must be 'canceled' and filled amount should be less then whole order amount
-        Object canceledStrict = Boolean.TRUE.equals(statusClanceled) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object canceledStrict = Boolean.TRUE.equals(statusClanceled) && (Boolean.TRUE.equals(filledDefined) && Boolean.TRUE.equals(amountDefined) && Precise.stringLt(filled, amount));
         // if non-strict check, then accept & ignore undefined values
-        Object canceledNonStrict = (Boolean.TRUE.equals(statusClanceled) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Helpers.isTrue(Precise.stringLt(filled, amount)));
+        Object canceledNonStrict = (Boolean.TRUE.equals(statusClanceled) || Boolean.TRUE.equals(statusUndefined)) && ((!Boolean.TRUE.equals(filledDefined) || !Boolean.TRUE.equals(amountDefined)) || Precise.stringLt(filled, amount));
         // check
         if (java.util.Objects.equals(AssertedStatus, "canceled"))
         {
@@ -755,7 +755,7 @@ public class TestSharedMethods extends BaseTest {
         {
             logText = ((logText + " ") + hint);
         }
-        Assert(Helpers.isArray(entry), ("response is expected to be an array" + logText));
+        Assert((entry instanceof List), ("response is expected to be an array" + logText));
         if (!(Helpers.inOp(skippedProperties, "emptyResponse")))
         {
             return;
@@ -799,7 +799,7 @@ public class TestSharedMethods extends BaseTest {
         // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
         // in the per-lane callers - this tells them whether the probe is needed
         Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
-        if (Helpers.getIndexOf(eMessage, "percentage should be above") >= 0 || Helpers.getIndexOf(eMessage, "percentage should be below") >= 0)
+        if (((String)eMessage).indexOf("percentage should be above") >= 0 || ((String)eMessage).indexOf("percentage should be below") >= 0)
         {
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -822,7 +822,7 @@ public class TestSharedMethods extends BaseTest {
         // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
         Object ohlcv = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
-        if (Helpers.getIndexOf(eMessage, "percentage should be above") >= 0 || Helpers.getIndexOf(eMessage, "percentage should be below") >= 0)
+        if (((String)eMessage).indexOf("percentage should be above") >= 0 || ((String)eMessage).indexOf("percentage should be below") >= 0)
         {
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))

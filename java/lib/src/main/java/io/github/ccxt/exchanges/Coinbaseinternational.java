@@ -2005,7 +2005,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                 String marketId = this.safeString(instrument, "symbol");
                 String symbol = this.safeSymbol(marketId);
                 Map<String, Object> quote = (Map<String, Object>) this.safeDict(instrument, "quote", new HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(tickers, symbol, this.parseTicker(quote, this.safeMarket(marketId)));
+                ((Map<String, Object>)tickers).put((String)symbol, this.parseTicker(quote, this.safeMarket(marketId)));
             }
             return this.filterByArray(tickers, "symbol", symbols, true);
         }).thenApply(Tickers::new);
@@ -2164,11 +2164,11 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             String currencyId = this.safeString(rawBalance, "asset_name");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "total", this.safeString(rawBalance, "quantity"));
-            Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "hold"));
+            ((Map<String, Object>)account).put("total", this.safeString(rawBalance, "quantity"));
+            ((Map<String, Object>)account).put("used", this.safeString(rawBalance, "hold"));
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3009,7 +3009,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     payload = body;
                 }
             }
-            Object auth = ((Helpers.add(nonce, method) + savedPath) + payload);
+            String auth = ((Helpers.add(nonce, method) + savedPath) + payload);
             Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{

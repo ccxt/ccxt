@@ -1121,7 +1121,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 ((Map<String, Object>)marketIds).put((String)symbol, true);
             }
         }
-        List<Object> keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -1409,7 +1409,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Helpers.addElementToObject(marketIds, symbol, true);
         }
-        List<Object> keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = (("orders" + ":") + Helpers.GetValue(keys, i));
@@ -1710,7 +1710,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         }
         String methodName = this.safeString(message, "method", "");
-        if ((Helpers.inOp(message, "market24h")) || (Helpers.inOp(message, "spot_market24h")) || (Helpers.getIndexOf(methodName, "perp_market24h_pack_p") >= 0))
+        if ((Helpers.inOp(message, "market24h")) || (Helpers.inOp(message, "spot_market24h")) || (((String)methodName).indexOf("perp_market24h_pack_p") >= 0))
         {
             this.handleTicker(client, message);
             return;

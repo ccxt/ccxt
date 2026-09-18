@@ -326,7 +326,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
-        List<Object> keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -475,7 +475,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
-        List<Object> keys = Helpers.objectKeys(marketIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)marketIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -532,7 +532,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            List<Object> parts = (List<Object>) Helpers.split(key, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
             String currencyId = this.safeString(parts, 0);
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();

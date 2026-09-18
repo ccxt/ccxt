@@ -322,7 +322,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         Object channel = this.safeValue(subscription, "channel");
         String key = this.safeString(subscription, "key", "");
-        List<Object> keyParts = (List<Object>) Helpers.split(key, ":");
+        Object keyParts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote(":"))));
         String interval = this.safeString(keyParts, 1);
         Object marketId = key;
         marketId = Helpers.replace(((String)marketId), "trade:", "");
@@ -330,7 +330,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object timeframe = this.findTimeframe(interval);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object messageHash = ((Helpers.add(Helpers.add(channel, ":"), interval) + ":") + marketId);
+        String messageHash = ((Helpers.add(Helpers.add(channel, ":"), interval) + ":") + marketId);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -647,10 +647,10 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String type = this.safeString(trade, 6);
         if (!java.util.Objects.equals(type, null))
         {
-            if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), -1))
             {
                 type = "limit";
-            } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), Helpers.opNeg(1)))
+            } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), -1))
             {
                 type = "market";
             }
@@ -683,7 +683,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
-            takerOrMaker = (((Helpers.isEqual(maker, Helpers.opNeg(1))))) ? "taker" : "maker";
+            takerOrMaker = (((Helpers.isEqual(maker, -1)))) ? "taker" : "maker";
         }
         final Object finalType = type;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1105,7 +1105,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             Helpers.addElementToObject(this.balance, balanceType, this.safeBalance(oldBalance));
             ((Map<String, Object>)updatedTypes).put((String)balanceType, true);
         }
-        List<Object> updatesKeys = Helpers.objectKeys(updatedTypes);
+        Object updatesKeys = new ArrayList<Object>(((Map<String, Object>)updatedTypes).keySet());
         for (var i = 0; i < ((List<?>)updatesKeys).size(); i++)
         {
             Object type = Helpers.GetValue(updatesKeys, i);
@@ -1220,7 +1220,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String symbol = this.safeSymbol(marketId);
             if (!java.util.Objects.equals(unifiedChannel, null))
             {
-                Object subId = ((("unsubscribe:" + unifiedChannel) + ":") + symbol);
+                String subId = ((("unsubscribe:" + unifiedChannel) + ":") + symbol);
                 ((Map)client.subscriptions).put((String)subId, channelId);
             }
         }
@@ -1394,7 +1394,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         String name = "orders";
         client.resolve(this.orders, name);
-        List<Object> keys = Helpers.objectKeys(symbolIds);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbolIds).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1468,15 +1468,15 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         }
         String remaining = Precise.stringAbs(this.safeString(order, 6));
         String type = this.safeString(order, 8, "");
-        if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)type).indexOf("LIMIT"), -1))
         {
             type = "limit";
-        } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), Helpers.opNeg(1)))
+        } else if (Helpers.isGreaterThan(((String)type).indexOf("MARKET"), -1))
         {
             type = "market";
         }
         String rawState = this.safeString(order, 13, "");
-        List<Object> stateParts = (List<Object>) Helpers.split(rawState, " ");
+        Object stateParts = new ArrayList<Object>(Arrays.asList(((String)rawState).split(java.util.regex.Pattern.quote(" "))));
         String trimmedStatus = this.safeString(stateParts, 0);
         String status = this.parseWsOrderStatus(trimmedStatus);
         String price = this.safeString(order, 16);

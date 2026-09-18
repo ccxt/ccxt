@@ -767,7 +767,7 @@ public class Btse extends BtseApi
             }
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Markets(parameters)).join();
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -1032,7 +1032,7 @@ public class Btse extends BtseApi
             //         "time": 1786604274378
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1182,7 +1182,7 @@ public class Btse extends BtseApi
             //         "time": 1786607775380
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object rates = this.parseFundingRateHistories(data, market, since, limit);
             if (java.util.Objects.equals(until, null))
             {
@@ -1295,12 +1295,12 @@ public class Btse extends BtseApi
         for (var i = 0; i < Helpers.getArrayLength(response); i++)
         {
             Object row = Helpers.GetValue(response, i);
-            Object assets = this.safeList(row, "assets");
+            List<Object> assets = (List<Object>) this.safeList(row, "assets");
             if (!java.util.Objects.equals(assets, null))
             {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                Object inUse = this.safeList(row, "assetsInUse", new ArrayList<Object>(Arrays.asList()));
+                List<Object> inUse = (List<Object>) this.safeList(row, "assetsInUse", new ArrayList<Object>(Arrays.asList()));
                 for (var j = 0; j < ((List<?>)inUse).size(); j++)
                 {
                     Object usedRow = Helpers.GetValue(inUse, j);
@@ -1335,7 +1335,7 @@ public class Btse extends BtseApi
                 ((Map<String, Object>)frees).put((String)code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
             }
         }
-        List<Object> codes = Helpers.objectKeys(totals);
+        Object codes = new ArrayList<Object>(((Map<String, Object>)totals).keySet());
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -1397,7 +1397,7 @@ public class Btse extends BtseApi
             //
             // a single-symbol request returns the entry directly in data
             //
-            Object data = this.safeList(response, "data");
+            List<Object> data = (List<Object>) this.safeList(response, "data");
             if (java.util.Objects.equals(data, null))
             {
                 Map<String, Object> single = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
@@ -1412,7 +1412,7 @@ public class Btse extends BtseApi
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 if (java.util.Objects.equals(symbols, null) || this.inArray(symbol, symbols))
                 {
-                    Object levels = this.safeList(entry, "riskLimits", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> levels = (List<Object>) this.safeList(entry, "riskLimits", new ArrayList<Object>(Arrays.asList()));
                     List<Object> tiers = new ArrayList<Object>(Arrays.asList());
                     for (var j = 0; j < ((List<?>)levels).size(); j++)
                     {
@@ -1436,7 +1436,7 @@ public class Btse extends BtseApi
             // the exchange only provides the cap of each risk tier, so the floor
             // is derived from the previous tier: 0 for the first tier, and the
             // previous tier's maxNotional for every subsequent tier
-            List<Object> symbolKeys = Helpers.objectKeys(result);
+            Object symbolKeys = new ArrayList<Object>(((Map<String, Object>)result).keySet());
             for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
             {
                 Object symbolKey = Helpers.GetValue(symbolKeys, i);
@@ -1507,7 +1507,7 @@ public class Btse extends BtseApi
             // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
             parameters = this.omit(parameters, "type");
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -1570,7 +1570,7 @@ public class Btse extends BtseApi
             Object data = this.safeDict(response, "data");
             if (java.util.Objects.equals(data, null))
             {
-                Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
@@ -1656,7 +1656,7 @@ public class Btse extends BtseApi
             Object interest = this.safeDict(response, "data");
             if (java.util.Objects.equals(interest, null))
             {
-                Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 interest = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseOpenInterest(interest, market);
@@ -1683,7 +1683,7 @@ public class Btse extends BtseApi
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1747,7 +1747,7 @@ public class Btse extends BtseApi
             Object data = this.safeDict(response, "data");
             if (java.util.Objects.equals(data, null))
             {
-                Object rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
                 data = this.safeDict(rows, 0, new HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(data, market);
@@ -1774,7 +1774,7 @@ public class Btse extends BtseApi
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1831,7 +1831,7 @@ public class Btse extends BtseApi
         // hour rounds to the same string, and the vocabulary has no minutes
         if ((!java.util.Objects.equals(fundingIntervalMinutes, null)) && (Helpers.isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
         {
-            Long hours = this.parseToInt((((double) fundingIntervalMinutes) / ((double) 60)));
+            Long hours = this.parseToInt(Helpers.divide(fundingIntervalMinutes, 60));
             interval = (String.valueOf(hours) + "h");
         }
         final Object finalMarket = market;
@@ -1911,7 +1911,7 @@ public class Btse extends BtseApi
             //         "time": 1786605671650
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> trades = this.parseTrades(data, market, since, limit);
             if (java.util.Objects.equals(until, null))
             {
@@ -3414,7 +3414,7 @@ public class Btse extends BtseApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object typesList = this.safeList(new HashMap<String, Object>() {{
+            List<Object> typesList = (List<Object>) this.safeList(new HashMap<String, Object>() {{
                 put( "types", historyTypes );
             }}, "types", new ArrayList<Object>(Arrays.asList()));
             (this.loadMarkets()).join();
@@ -4002,7 +4002,7 @@ public class Btse extends BtseApi
         String marketId = this.safeString(position, "positionId");
         if (!java.util.Objects.equals(marketId, null))
         {
-            List<Object> parts = (List<Object>) Helpers.split(marketId, "|");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("|"))));
             marketId = this.safeString(parts, 0);
         } else
         {

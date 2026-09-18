@@ -393,7 +393,7 @@ public class Mercado extends MercadoApi
                 {
                     continue;
                 }
-                Object id = (quote + base);
+                String id = (quote + base);
     final Object finalBase = base;
                 final Object finalQuote = quote;
                             ((List<Object>)result).add(new HashMap<String, Object>() {{
@@ -659,12 +659,12 @@ public class Mercado extends MercadoApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> currencyIds = Helpers.objectKeys(balances);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
             String code = this.safeCurrencyCode(currencyId);
-            if (((Map<?, ?>)balances).containsKey(currencyId))
+            if (balances.containsKey(currencyId))
             {
                 Object balance = this.safeValue(balances, currencyId, new HashMap<String, Object>() {{}});
                 Object account = this.account();

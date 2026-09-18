@@ -180,7 +180,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         if (java.util.Objects.equals(data, null))
         {
             return;
@@ -312,8 +312,8 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Helpers.callDynamically(orderbook, "reset", new Object[]{orderBookSnapshot});
         } else
         {
-            Object asks = this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -397,7 +397,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         this.handleBidAsk(client, message);
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = this.parseWsTicker(Helpers.GetValue(data, i));
@@ -436,7 +436,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object symbolsList = (List<String>)(symbols);
-            Map<String, Object> firstMarket = (Map<String, Object>) this.market(Helpers.GetValue(symbolsList, 0));
+            Map<String, Object> firstMarket = (Map<String, Object>) this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
             String channel = "tickers";
             Object marketType = null;
             List<Object> marketTypeparametersVariable = (List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
@@ -469,7 +469,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
 
     public void handleBidAsk(Client client, Object message)
     {
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object ticker = this.parseWsBidAsk(Helpers.GetValue(data, i));
@@ -546,7 +546,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Object limit = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
             Object symbolsLength = ((List<?>)symbolsAndTimeframes).size();
-            if (Helpers.isEqual(symbolsLength, 0) || !(Helpers.GetValue(symbolsAndTimeframes, 0) instanceof List))
+            if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
             {
                 throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
             }
@@ -585,7 +585,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         String marketId = this.safeString(arg, "instId");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -762,7 +762,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object orders = this.orders;
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object order = this.parseWsOrder(Helpers.GetValue(data, i));
@@ -832,7 +832,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         Object cache = this.positions;
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
         String channelName = this.safeString(arg, "channel");
-        Object data = this.safeList(message, "data");
+        List<Object> data = (List<Object>) this.safeList(message, "data");
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -903,7 +903,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRate(first);
         Object symbol = ((Map<String, Object>)fundingRate).get("symbol");
@@ -1061,7 +1061,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg");
             String channelName = this.safeString(arg, "channel");
             method = this.safeValue(methods, channelName);
-            if ((java.util.Objects.equals(method, null)) && (Helpers.getIndexOf(channelName, "candle") >= 0))
+            if ((java.util.Objects.equals(method, null)) && (((String)channelName).indexOf("candle") >= 0))
             {
                 method = methods.get("candle");
             }

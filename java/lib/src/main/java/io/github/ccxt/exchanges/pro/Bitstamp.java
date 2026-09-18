@@ -206,7 +206,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -268,12 +268,12 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Long firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (java.util.Objects.equals(firstElementNonce, null))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         Long nonce = this.safeInteger(orderbook, "nonce");
         if ((java.util.Objects.equals(nonce, null)) || (Helpers.isLessThan(nonce, firstElementNonce)))
         {
-            return Helpers.opNeg(1);
+            return -1;
         }
         for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
@@ -378,7 +378,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         String id = this.safeString(trade, "id");
-        Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
+        Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
         if (java.util.Objects.equals(market, null))
@@ -432,7 +432,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -507,7 +507,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -746,7 +746,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         //
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
-        Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
+        Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
         market = this.safeMarket(null, market);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String feeCost = this.safeString(trade, "fee");
@@ -944,7 +944,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(channel, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("_"))));
         String marketId = this.safeString(parts, 3);
         String symbol = this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -969,7 +969,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        if (Helpers.isGreaterThan(((String)channel).indexOf("order_book"), Helpers.opNeg(1)))
+        if (Helpers.isGreaterThan(((String)channel).indexOf("order_book"), -1))
         {
             this.handleOrderBookSubscription(client, message);
         }
@@ -1094,11 +1094,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "private-my_orders", "handleOrders");
             put( "private-my_trades", "handleMyTrades");
         }};
-        List<Object> keys = Helpers.objectKeys(methods);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            if (Helpers.isGreaterThan(((String)channel).indexOf(((String)key)), Helpers.opNeg(1)))
+            if (Helpers.isGreaterThan(((String)channel).indexOf(((String)key)), -1))
             {
                 Object method = Helpers.GetValue(methods, key);
                 Helpers.callDynamically(this, method, new Object[] {client, message});

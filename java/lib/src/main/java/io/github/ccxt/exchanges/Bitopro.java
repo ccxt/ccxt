@@ -440,14 +440,14 @@ public class Bitopro extends BitoproApi
         String code = this.safeCurrencyCode(currencyId);
         Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit");
         Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw");
-        Object isFiat = this.inArray(code, fiatCurrencies);
+        boolean isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", currencyId );
             put( "code", code );
             put( "info", rawCurrency );
-            put( "type", ((Boolean.TRUE.equals(isFiat))) ? "fiat" : "crypto" );
+            put( "type", ((isFiat)) ? "fiat" : "crypto" );
             put( "name", null );
             put( "active", ((java.util.Objects.equals(finalDeposit, true)) && (java.util.Objects.equals(finalWithdraw, true))) );
             put( "deposit", finalDeposit );

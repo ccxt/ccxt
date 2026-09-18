@@ -110,7 +110,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
 
     public String getAccountTypeFromUrl(Object url)
     {
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(url, "fstream"), -1))
+        if (Helpers.isGreaterThan(((String)url).indexOf("fstream"), -1))
         {
             return "swap";
         }
@@ -402,7 +402,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -469,7 +469,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1586,7 +1586,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Long lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
             Map<String, Object> listenKeyRefreshRateOptions = (Map<String, Object>) this.safeDict(this.options, "listenKeyRefreshRate", new HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
-            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), listenKeyRefreshRate))
+            if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate))
             {
                 // single-flight leader election on a never-dialed client, see
                 // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
@@ -1732,8 +1732,8 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Client client = this.client(url);
             this.setBalanceCache(client, type);
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)))
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
@@ -1752,7 +1752,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             return;
         }
         Object options = this.safeValue(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (java.util.Objects.equals(fetchBalanceSnapshot, true))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -1855,7 +1855,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "info", message);
         message = this.safeDict(message, "a", message);
-        Object B = this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
+        List<Object> B = (List<Object>) this.safeList(message, "B", new ArrayList<Object>(Arrays.asList()));
         String wallet = this.safeString(this.options, "wallet", "wb");
         for (var i = 0; i < ((List<?>)B).size(); i++)
         {
@@ -2029,7 +2029,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         }
         Object cache = this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "a", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
         {
@@ -2246,7 +2246,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String executionType = this.safeString(message, "x");
         if (java.util.Objects.equals(executionType, "TRADE"))
         {
-            Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "fstream"), 0);
+            Boolean isSwap = ((String)client.url).indexOf("fstream") >= 0;
             String type = ((Boolean.TRUE.equals(isSwap))) ? "swap" : "spot";
             Map<String, Object> fakeMarket = (Map<String, Object>) this.safeMarketStructure(new HashMap<String, Object>() {{
                 put( "type", type );
@@ -2271,7 +2271,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                         if (!this.isEmpty(fees))
                         {
                             Boolean insertNewFeeCurrency = true;
-                            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
+                            for (var i = 0; i < Helpers.getArrayLength(fees); i++)
                             {
                                 Object orderFee = Helpers.GetValue(fees, i);
                                 if (Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), ((Map<String, Object>)tradeFee).get("currency")))
@@ -2307,7 +2307,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             Helpers.addElementToObject(order, "fee", tradeFee);
                         }
                         // save this trade in the order
-                        Object orderTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> orderTrades = (List<Object>) this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
                         ((List<Object>)orderTrades).add(trade);
                         Helpers.addElementToObject(order, "trades", orderTrades);
                     }

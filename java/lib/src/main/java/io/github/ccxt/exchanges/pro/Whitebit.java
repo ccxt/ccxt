@@ -297,7 +297,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
+        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
         {
             this.handleDelta(bookside, Helpers.GetValue(deltas, i));
         }
@@ -411,7 +411,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object currentMessageHash = Helpers.GetValue(messageHashes, i);
-            if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currentMessageHash, "tickers"), 0) && Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currentMessageHash, symbol), 0))
+            if (((String)currentMessageHash).indexOf("tickers") >= 0 && ((String)currentMessageHash).indexOf(((String)symbol)) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
@@ -1023,7 +1023,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             return;
         }
-        Boolean isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
+        Boolean isMargin = (((String)method).indexOf("Margin") >= 0);
         List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
@@ -1043,7 +1043,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 }
             } else
             {
-                List<Object> keys = Helpers.objectKeys(balanceDict);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)balanceDict).keySet());
                 for (var j = 0; j < ((List<?>)keys).size(); j++)
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
@@ -1061,7 +1061,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         this.balance = this.safeBalance(this.balance);
         String messageHash = "wallet:";
-        if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Spot"), 0))
+        if (((String)method).indexOf("Spot") >= 0)
         {
             messageHash = (messageHash + "spot");
         } else
@@ -1153,7 +1153,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 {
                     // resubscribe
                     Object marketIdsNew = new ArrayList<Object>(Arrays.asList());
-                    marketIdsNew = Helpers.objectKeys(subscription);
+                    marketIdsNew = new ArrayList<Object>(((Map<String, Object>)subscription).keySet());
                     if (Helpers.isTrue(isNested))
                     {
                         marketIdsNew = new ArrayList<Object>(Arrays.asList(marketIdsNew));

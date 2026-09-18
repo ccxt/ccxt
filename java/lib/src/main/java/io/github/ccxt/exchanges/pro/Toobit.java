@@ -1408,9 +1408,9 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
             {
@@ -1462,7 +1462,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             Long lastAuthenticatedTime = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "lastAuthenticatedTime", 0);
             Long listenKeyRefreshRate = this.safeInteger(((Map<String, Object>)this.options).get("ws"), "listenKeyRefreshRate", 1200000);
             Object delay = this.sum(listenKeyRefreshRate, 10000);
-            if (Helpers.isGreaterThan((time - lastAuthenticatedTime), delay))
+            if (Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay))
             {
                 this.checkRequiredCredentials();
                 // single-flight leader election on a never-dialed client, see

@@ -868,7 +868,7 @@ public class Poloniex extends PoloniexApi
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object ohlcvLength = Helpers.getArrayLength(ohlcv);
         Boolean isContract = Helpers.isEqual(ohlcvLength, 9);
-        if (Helpers.isTrue(isContract))
+        if (Boolean.TRUE.equals(isContract))
         {
             return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, 7), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 5)));
         }
@@ -904,7 +904,7 @@ public class Poloniex extends PoloniexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 500)).join();
             }
@@ -972,7 +972,7 @@ public class Poloniex extends PoloniexApi
             //     ]
             //
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue((response instanceof List)))
+            if ((response instanceof List))
             {
                 candles = response;
             }
@@ -1225,7 +1225,7 @@ public class Poloniex extends PoloniexApi
         Boolean active = java.util.Objects.equals(status, "OPEN");
         Boolean linear = java.util.Objects.equals(((Map<String, Object>)market).get("ctType"), "LINEAR");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        if (Helpers.isTrue(linear))
+        if (Boolean.TRUE.equals(linear))
         {
             symbol = Helpers.add(symbol, Helpers.add(":", settle));
         } else
@@ -1261,7 +1261,7 @@ public class Poloniex extends PoloniexApi
             put( "active", active );
             put( "contract", true );
             put( "linear", linear );
-            put( "inverse", !Helpers.isTrue(linear) );
+            put( "inverse", !Boolean.TRUE.equals(linear) );
             put( "contractSize", Poloniex.this.safeNumber(market, "ctVal") );
             put( "expiry", null );
             put( "expiryDatetime", null );
@@ -1432,7 +1432,7 @@ public class Poloniex extends PoloniexApi
                 if (Helpers.isGreaterThan(symbolsLength, 0))
                 {
                     market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
-                    if (Helpers.isEqual(symbolsLength, 1))
+                    if (java.util.Objects.equals(symbolsLength, 1))
                     {
                         ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
                     }
@@ -1898,7 +1898,7 @@ public class Poloniex extends PoloniexApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
@@ -2121,7 +2121,7 @@ public class Poloniex extends PoloniexApi
         Object resultingTrades = this.safeValue(order, "resultingTrades");
         if (!java.util.Objects.equals(resultingTrades, null))
         {
-            if (!Helpers.isTrue((resultingTrades instanceof List)))
+            if (!(resultingTrades instanceof List))
             {
                 resultingTrades = this.safeValue(resultingTrades, this.safeString(market, "id", marketId));
             }
@@ -2554,7 +2554,7 @@ public class Poloniex extends PoloniexApi
             upperCaseType = "LIMIT_MAKER";
         }
         Helpers.addElementToObject(request, "type", upperCaseType);
-        if (Helpers.isTrue(isMarket))
+        if (Boolean.TRUE.equals(isMarket))
         {
             if (java.util.Objects.equals(side, "buy"))
             {
@@ -2568,7 +2568,7 @@ public class Poloniex extends PoloniexApi
                 if (!java.util.Objects.equals(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (Helpers.isTrue(createMarketBuyOrderRequiresPrice) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
+                } else if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice) && (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true)))
                 {
                     if (java.util.Objects.equals(price, null))
                     {
@@ -2982,7 +2982,7 @@ public class Poloniex extends PoloniexApi
             put( "datetime", null );
         }};
         // for swap
-        if (!Helpers.isTrue((response instanceof List)))
+        if (!(response instanceof List))
         {
             Long ts = this.safeInteger(response, "uTime");
             ((Map<String, Object>)result).put("timestamp", ts);
@@ -3312,7 +3312,7 @@ public class Poloniex extends PoloniexApi
             //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
             //     }
             //
-            List<Object> keys = Helpers.objectKeys(response);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             Object length = ((List<?>)keys).size();
             if (Helpers.isLessThan(length, 1))
             {
@@ -3712,7 +3712,7 @@ public class Poloniex extends PoloniexApi
             //
             Map<String, Object> data = new HashMap<String, Object>() {{}};
             List<Object> entries = new ArrayList<Object>(Arrays.asList());
-            if (Helpers.isTrue((response instanceof List)))
+            if ((response instanceof List))
             {
                 entries = response;
             }

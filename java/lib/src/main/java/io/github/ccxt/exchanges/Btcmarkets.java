@@ -584,7 +584,7 @@ public class Btcmarkets extends BtcmarketsApi
         Object tag = null;
         if (!java.util.Objects.equals(address, null))
         {
-            List<Object> addressParts = (List<Object>) Helpers.split(address, "?dt=");
+            Object addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
             Object numParts = ((List<?>)addressParts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {
@@ -1790,7 +1790,7 @@ public class Btcmarkets extends BtcmarketsApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
-            Object auth = Helpers.add(Helpers.add(method, request), nonce);
+            Object auth = ((method + request) + nonce);
             if ((java.util.Objects.equals(method, "GET")) || (java.util.Objects.equals(method, "DELETE")))
             {
                 if (((List<?>)new ArrayList<Object>(((Map<String, Object>)query).keySet())).size() > 0)

@@ -783,7 +783,7 @@ public class Hibachi extends HibachiApi
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.publicGetMarketDataPrices(this.extend(request, parameters)), this.publicGetMarketDataStats(this.extend(request, parameters))));
             Object promises = (Helpers.promiseAll(rawPromises)).join();
-            Object pricesResponse = Helpers.GetValue(promises, 0);
+            Object pricesResponse = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
             // {
             //     "askPrice": "3514.650296",
             //     "bidPrice": "3513.596112",
@@ -796,7 +796,7 @@ public class Hibachi extends HibachiApi
             //     "symbol": "ETH/USDT-P",
             //     "tradePrice": "2372.746570"
             // }
-            Object statsResponse = Helpers.GetValue(promises, 1);
+            Object statsResponse = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             // {
             //     "high24h": "3819.507827",
             //     "low24h": "3754.474162",
@@ -1625,7 +1625,7 @@ public class Hibachi extends HibachiApi
         {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             Object hash = this.hash(message, sha256(), "hex");
-            Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+            Object signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
             String v = this.intToBase16(Helpers.GetValue(signature, "v"));
@@ -2383,7 +2383,7 @@ public class Hibachi extends HibachiApi
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
             Object promises = (Helpers.promiseAll(rawPromises)).join();
-            Object responseCapitalHistory = Helpers.GetValue(promises, 0);
+            Object responseCapitalHistory = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
             //
             // {
             //     "transactions": [
@@ -2438,7 +2438,7 @@ public class Hibachi extends HibachiApi
             // }
             //
             List<Object> rowsCapitalHistory = (List<Object>) this.safeList(responseCapitalHistory, "transactions", new ArrayList<Object>(Arrays.asList()));
-            Object responseTradingHistory = Helpers.GetValue(promises, 1);
+            Object responseTradingHistory = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             //
             // {
             //     "tradingHistory": [

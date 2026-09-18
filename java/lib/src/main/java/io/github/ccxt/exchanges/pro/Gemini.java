@@ -318,7 +318,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
                 ((Map<String, Object>)storesForSymbols).put((String)symbol, stored);
             }
-            List<Object> symbols = Helpers.objectKeys(storesForSymbols);
+            Object symbols = new ArrayList<Object>(((Map<String, Object>)storesForSymbols).keySet());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -404,7 +404,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //
         String type = this.safeString(message, "type", "");
         Object timeframeId = (type == null ? null : ((String)type).substring(Math.min(8, ((String)type).length())));
-        Object timeframeEndIndex = Helpers.getIndexOf(timeframeId, "_");
+        Object timeframeEndIndex = ((String)timeframeId).indexOf("_");
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = this.safeString(message, "symbol", "").toLowerCase();
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -1027,7 +1027,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         //         }
         //     ]
         //
-        Object isArray = Helpers.isArray(message);
+        Object isArray = (message instanceof List);
         if (Boolean.TRUE.equals(isArray))
         {
             this.handleOrder(client, message);
@@ -1045,7 +1045,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             put( "heartbeat", "handleHeartbeat");
         }};
         String type = this.safeString(message, "type", "");
-        if (Helpers.getIndexOf(type, "candles") >= 0)
+        if (((String)type).indexOf("candles") >= 0)
         {
             this.handleOHLCV(client, message);
             return;
@@ -1075,7 +1075,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 String eventType = this.safeString(eventVar, "type");
                 Boolean isOrderBook = (java.util.Objects.equals(eventType, "change")) && (Helpers.inOp(eventVar, "side")) && this.inArray(Helpers.GetValue(eventVar, "side"), new ArrayList<Object>(Arrays.asList("ask", "bid")));
                 String eventReason = this.safeString(eventVar, "reason");
-                Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Boolean.TRUE.equals(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && Helpers.isEqual(eventsLength, 2));
+                Boolean isBidAsk = (java.util.Objects.equals(eventReason, "top-of-book")) || (Boolean.TRUE.equals(isOrderBook) && (java.util.Objects.equals(eventReason, "initial")) && java.util.Objects.equals(eventsLength, 2));
                 if (Boolean.TRUE.equals(isBidAsk))
                 {
                     ((List<Object>)bidaskItems).add(eventVar);
@@ -1122,7 +1122,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             this.checkRequiredCredentials();
             Object startIndex = Helpers.getArrayLength(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"));
-            Object urlParamsIndex = Helpers.getIndexOf(url, "?");
+            Object urlParamsIndex = ((String)url).indexOf("?");
             Object urlLength = url.length();
             Object endIndex = (((Helpers.isGreaterThanOrEqual(urlParamsIndex, 0)))) ? urlParamsIndex : urlLength;
             Object request = Helpers.slice(url, startIndex, endIndex);

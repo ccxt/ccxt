@@ -45,7 +45,7 @@ public class TestAfterConstruct extends BaseTest {
             }
             // 1) ensure 'networks' dictionary exists in options
             Assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
-            if ((((List<?>)Helpers.objectKeys(networks)).size() == 0))
+            if ((((List<?>)new ArrayList<Object>(((Map<String, Object>)networks).keySet())).size() == 0))
             {
                 return;
             }

@@ -1135,7 +1135,7 @@ public class Alpaca extends AlpacaApi
                         ((Map<String, Object>)request).put("page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                         bars = this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
-                        Object page = this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
+                        List<Object> page = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
                         Object pageLength = ((List<?>)page).size();
                         if (java.util.Objects.equals(pageLength, 0))
                         {
@@ -1313,7 +1313,7 @@ public class Alpaca extends AlpacaApi
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> snapshots = (Map<String, Object>) this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(snapshots);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)snapshots).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -1489,7 +1489,7 @@ public class Alpaca extends AlpacaApi
             if (!java.util.Objects.equals(triggerPrice, null))
             {
                 Object newType = null;
-                if (Helpers.getIndexOf(type, "limit") >= 0)
+                if (((String)type).indexOf("limit") >= 0)
                 {
                     newType = "stop_limit";
                 } else
@@ -1499,7 +1499,7 @@ public class Alpaca extends AlpacaApi
                 ((Map<String, Object>)request).put("stop_price", this.priceToPrecision(symbol, triggerPrice));
                 ((Map<String, Object>)request).put("type", newType);
             }
-            if (Helpers.getIndexOf(type, "limit") >= 0)
+            if (((String)type).indexOf("limit") >= 0)
             {
                 ((Map<String, Object>)request).put("limit_price", this.priceToPrecision(symbol, price));
             }
@@ -1953,7 +1953,7 @@ public class Alpaca extends AlpacaApi
         String orderType = this.safeString(order, "order_type");
         if (!java.util.Objects.equals(orderType, null))
         {
-            if (Helpers.getIndexOf(orderType, "limit") >= 0)
+            if (((String)orderType).indexOf("limit") >= 0)
             {
                 // might be limit or stop-limit
                 orderType = "limit";
@@ -2310,7 +2310,7 @@ public class Alpaca extends AlpacaApi
             {
                 currency = this.currency(code);
             }
-            Boolean sandboxMode = this.isSandboxModeEnabled || Helpers.isTrue(this.safeBool(this.options, "sandboxMode", false));
+            Boolean sandboxMode = this.isSandboxModeEnabled || Boolean.TRUE.equals(this.safeBool(this.options, "sandboxMode", false));
             if (java.util.Objects.equals(sandboxMode, true))
             {
                 // paper-trading hosts do not serve the crypto wallets api at all, so route
@@ -2342,7 +2342,7 @@ public class Alpaca extends AlpacaApi
                     Object entry = Helpers.GetValue(ledger, i);
                     String activityType = this.safeString(entry, "activity_type");
                     String amount = this.safeString(entry, "net_amount");
-                    Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Helpers.isTrue(Precise.stringLt(amount, "0")));
+                    Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(amount, "0"));
                     String entryDirection = ((Boolean.TRUE.equals(isIncoming))) ? "INCOMING" : "OUTGOING";
                     if ((java.util.Objects.equals(type, "BOTH")) || (java.util.Objects.equals(entryDirection, type)))
                     {
@@ -2517,7 +2517,7 @@ public class Alpaca extends AlpacaApi
         if (!java.util.Objects.equals(activityType, null))
         {
             String netAmount = this.safeString(transaction, "net_amount");
-            Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Helpers.isTrue(Precise.stringLt(netAmount, "0")));
+            Boolean isIncoming = (java.util.Objects.equals(activityType, "CSD")) || ((java.util.Objects.equals(activityType, "TRANS")) && !Precise.stringLt(netAmount, "0"));
             timestamp = this.parse8601(Helpers.add(this.safeString(transaction, "date"), "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = ((Boolean.TRUE.equals(isIncoming))) ? "deposit" : "withdrawal";
@@ -2729,7 +2729,7 @@ public class Alpaca extends AlpacaApi
         //     ]
         //
         Map<String, Object> account = (Map<String, Object>) this.safeDict(response, "account", new HashMap<String, Object>() {{}});
-        Object positions = this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -2753,7 +2753,7 @@ public class Alpaca extends AlpacaApi
                 continue;
             }
             Object baseId = null;
-            if (Helpers.getIndexOf(positionSymbol, "/") >= 0)
+            if (((String)positionSymbol).indexOf("/") >= 0)
             {
                 Object parts = new ArrayList<Object>(Arrays.asList(((String)positionSymbol).split(java.util.regex.Pattern.quote("/"))));
                 baseId = this.safeString(parts, 0);

@@ -1055,7 +1055,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     messageHash = "orders:verbose";
                 }
                 // get order without symbol
-                for (var i = 0; i < Helpers.getArrayLength(orders); i++)
+                for (var i = 0; i < ((List<?>)orders).size(); i++)
                 {
                     Object currentOrder = Helpers.GetValue(orders, i);
                     if (Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id")))
@@ -1150,11 +1150,11 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
         }
-        Object length = Helpers.getArrayLength(this.orders);
+        Object length = ((List<?>)this.orders).size();
         if (Helpers.isGreaterThan(length, 0))
         {
             client.resolve(this.orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
@@ -1676,7 +1676,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         Long timestamp = this.safeInteger(message, "timestamp");
         if (!java.util.Objects.equals(holding, null))
         {
-            Object holdingKeys = Helpers.objectKeys(holding); // cashAccount
+            List<Object> holdingKeys = Helpers.objectKeys(holding); // cashAccount
             Map<String, Object> holdingResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1699,7 +1699,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }
         if (!java.util.Objects.equals(futures, null))
         {
-            Object futuresKeys = Helpers.objectKeys(futures); // marginAccount
+            List<Object> futuresKeys = Helpers.objectKeys(futures); // marginAccount
             Map<String, Object> futuresResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1729,7 +1729,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         if (!java.util.Objects.equals(flexFutures, null))
         {
             Map<String, Object> flexFutureCurrencies = (Map<String, Object>) this.safeDict(flexFutures, "currencies", new HashMap<String, Object>() {{}});
-            Object flexFuturesKeys = Helpers.objectKeys(flexFutureCurrencies); // multi-collateral margin account
+            Object flexFuturesKeys = new ArrayList<Object>(((Map<String, Object>)flexFutureCurrencies).keySet()); // multi-collateral margin account
             Map<String, Object> flexFuturesResult = new HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );
@@ -1802,7 +1802,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         }
-        Object tradeSymbolKeys = Helpers.objectKeys(tradeSymbols);
+        Object tradeSymbolKeys = new ArrayList<Object>(((Map<String, Object>)tradeSymbols).keySet());
         for (var i = 0; i < ((List<?>)tradeSymbolKeys).size(); i++)
         {
             Object symbol = Helpers.GetValue(tradeSymbolKeys, i);
@@ -1949,7 +1949,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         // below rejects every pending future on the connection, so a stray
         // re-subscribe warning would kill unrelated in-flight watch* calls —
         // mirrors the bitmart 90008 fix.
-        if (!java.util.Objects.equals(errMsg, null) && Helpers.getIndexOf(errMsg, "Already subscribed") >= 0)
+        if (!java.util.Objects.equals(errMsg, null) && ((String)errMsg).indexOf("Already subscribed") >= 0)
         {
             return false;
         }

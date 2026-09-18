@@ -774,17 +774,17 @@ public class Independentreserve extends IndependentreserveApi
         String side = null;
         if (!java.util.Objects.equals(orderType, null))
         {
-            if (Helpers.getIndexOf(orderType, "Bid") >= 0)
+            if (((String)orderType).indexOf("Bid") >= 0)
             {
                 side = "buy";
-            } else if (Helpers.getIndexOf(orderType, "Offer") >= 0)
+            } else if (((String)orderType).indexOf("Offer") >= 0)
             {
                 side = "sell";
             }
-            if (Helpers.getIndexOf(orderType, "Market") >= 0)
+            if (((String)orderType).indexOf("Market") >= 0)
             {
                 orderType = "market";
-            } else if (Helpers.getIndexOf(orderType, "Limit") >= 0)
+            } else if (((String)orderType).indexOf("Limit") >= 0)
             {
                 orderType = "limit";
             }
@@ -1047,10 +1047,10 @@ public class Independentreserve extends IndependentreserveApi
         String side = this.safeString(trade, "OrderType");
         if (!java.util.Objects.equals(side, null))
         {
-            if (Helpers.getIndexOf(side, "Bid") >= 0)
+            if (((String)side).indexOf("Bid") >= 0)
             {
                 side = "buy";
-            } else if (Helpers.getIndexOf(side, "Offer") >= 0)
+            } else if (((String)side).indexOf("Offer") >= 0)
             {
                 side = "sell";
             }
@@ -1464,7 +1464,7 @@ public class Independentreserve extends IndependentreserveApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), "/"), path);
         if (java.util.Objects.equals(api, "public"))
         {
-            if (((List<?>)Helpers.objectKeys(parameters)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)parameters).keySet())).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(parameters)));
             }
@@ -1473,7 +1473,7 @@ public class Independentreserve extends IndependentreserveApi
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
             Object auth = new ArrayList<Object>(Arrays.asList(url, ("apiKey=" + this.apiKey), ("nonce=" + String.valueOf(nonce))));
-            List<Object> keys = Helpers.objectKeys(parameters);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)parameters).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object key = Helpers.GetValue(keys, i);

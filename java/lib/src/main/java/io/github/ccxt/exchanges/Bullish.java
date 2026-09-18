@@ -1032,7 +1032,7 @@ public class Bullish extends BullishApi
             } else
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
-                List<Object> idParts = (List<Object>) Helpers.split(id, "-");
+                Object idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
                 Object datePart = this.safeString(idParts, 2);
                 Object dateYmd = (datePart == null ? null : ((String)datePart).substring(Math.min(2, ((String)datePart).length())));
                 symbol = (symbol + ("-" + dateYmd));
@@ -1430,7 +1430,7 @@ public class Bullish extends BullishApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = this.safeStringLower(trade, "side");
-        Object isTaker = this.safeBool(trade, "isTaker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
         Object currency = ((Map<String, Object>)market).get("quote");
         String code = this.safeCurrencyCode(currency);
         Double feeCost = this.safeNumber(trade, "quoteFee");
@@ -1866,7 +1866,7 @@ public class Bullish extends BullishApi
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
             (CompletableFuture.allOf(((CompletableFuture<?>) this.loadMarkets()), ((CompletableFuture<?>) this.handleToken()))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 parameters = this.handlePaginationParams("fetchOrders", since, parameters);
@@ -2311,7 +2311,7 @@ public class Bullish extends BullishApi
             {
                 ((Map<String, Object>)request).put("type", ((String)type).toUpperCase());
             }
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             if (java.util.Objects.equals(postOnly, true))
             {
                 parameters = this.omit(parameters, "postOnly");
@@ -2625,7 +2625,7 @@ public class Bullish extends BullishApi
             //         "totalCount": 1
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object currency = null;
             if (!java.util.Objects.equals(code, null))
             {
@@ -2736,7 +2736,7 @@ public class Bullish extends BullishApi
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
-        Object sources = this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
+        List<Object> sources = (List<Object>) this.safeList(transactionDetails, "sources", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> source = (Map<String, Object>) this.safeDict(sources, 0, new HashMap<String, Object>() {{}});
         String sourceAddress = this.safeString(source, "address");
         Map<String, Object> fee = new HashMap<String, Object>() {{
@@ -3346,7 +3346,7 @@ public class Bullish extends BullishApi
             //     }
             //
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Object transfer = this.parseTransfer(response, currency);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
@@ -3453,7 +3453,7 @@ public class Bullish extends BullishApi
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(startTimestamp, null))
             {
-                startTimestamp = (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
+                startTimestamp = Helpers.subtract(now, ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
             }
             if (java.util.Objects.equals(until, null))
             {

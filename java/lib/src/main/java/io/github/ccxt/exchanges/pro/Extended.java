@@ -333,7 +333,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
                 ((Map<String, Object>)result).put((String)code, account);
             }
         }
-        Object spotBalances = this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> spotBalances = (List<Object>) this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
         {
             Map<String, Object> spotBalance = (Map<String, Object>) this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
@@ -435,7 +435,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Object stored = this.myTrades;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawTrades = this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawTrades = (List<Object>) this.safeList(data, "trades", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Map<String, Object> first = (Map<String, Object>) this.safeDict(rawTrades, 0);
         if (java.util.Objects.equals(first, null))
@@ -449,7 +449,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        List<Object> keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -542,7 +542,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Object stored = this.positions;
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> first = (Map<String, Object>) this.safeDict(rawPositions, 0);
         if (java.util.Objects.equals(first, null))
@@ -565,9 +565,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
             {
@@ -630,7 +630,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             ((Map<String, Object>)symbols).put((String)symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
-        List<Object> keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String messageHash = ("orders:" + Helpers.GetValue(keys, i));
@@ -877,7 +877,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         //         "seq": 2
         //     }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0);
         if (java.util.Objects.equals(first, null))
         {
@@ -1026,7 +1026,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         ((Map<String, Object>)subscription).put("nonce", nonce);
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object parsed = this.parseOHLCV(Helpers.GetValue(data, i));

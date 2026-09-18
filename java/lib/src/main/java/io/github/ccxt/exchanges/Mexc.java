@@ -1413,7 +1413,7 @@ public class Mexc extends MexcApi
                 //
                 //     {}
                 //
-                List<Object> keys = Helpers.objectKeys(response);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
                 Object length = ((List<?>)keys).size();
                 status = (((Helpers.isGreaterThan(length, 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
@@ -2445,7 +2445,7 @@ public class Mexc extends MexcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                isSingularMarket = Helpers.isEqual(length, 1);
+                isSingularMarket = java.util.Objects.equals(length, 1);
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
             }
@@ -2731,7 +2731,7 @@ public class Mexc extends MexcApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object length = ((List<?>)symbols).size();
-                isSingularMarket = Helpers.isEqual(length, 1);
+                isSingularMarket = java.util.Objects.equals(length, 1);
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
             List<Object> marketTypequeryVariable = (List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
@@ -5691,7 +5691,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
                 Object networkUnified = this.networkIdToCode(networkCode, code);
                 Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-                if ((!java.util.Objects.equals(networkUnified, null)) && (((Map<?, ?>)networks).containsKey(networkUnified)))
+                if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
                 {
                     Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
                     Object networkInfo = this.safeValue(network, "info", new HashMap<String, Object>() {{}});
@@ -5757,7 +5757,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object networkId = null;
             Object networkUnified = this.networkIdToCode(networkCode, code);
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
-            if ((!java.util.Objects.equals(networkUnified, null)) && (((Map<?, ?>)networks).containsKey(networkUnified)))
+            if ((!java.util.Objects.equals(networkUnified, null)) && (networks.containsKey(networkUnified)))
             {
                 Object network = (((java.util.Objects.equals(networkUnified, null)))) ? new HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new HashMap<String, Object>() {{}});
                 Object networkInfo = this.safeValue(network, "info", new HashMap<String, Object>() {{}});
@@ -5815,7 +5815,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     result = this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    List<Object> keys = Helpers.objectKeys(addressStructures);
+                    Object keys = new ArrayList<Object>(((Map<String, Object>)addressStructures).keySet());
                     String key = this.safeString(keys, 0);
                     result = this.safeDict(addressStructures, key);
                 }
@@ -6555,12 +6555,12 @@ final Object finalRiskIncrVol = riskIncrVol;
             String toId = this.safeString(accounts, toAccount, toAccount);
             if (java.util.Objects.equals(fromId, null))
             {
-                Object keys = Helpers.objectKeys(accounts);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accounts).keySet());
                 throw new ExchangeError(((this.id + " fromAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             if (java.util.Objects.equals(toId, null))
             {
-                Object keys = Helpers.objectKeys(accounts);
+                Object keys = new ArrayList<Object>(((Map<String, Object>)accounts).keySet());
                 throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
             }
             final Object finalFromId = fromId;
@@ -7226,7 +7226,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object symbolsLength = ((List<?>)symbols).size();
-                if (Helpers.isEqual(symbolsLength, 1))
+                if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = (Map<String, Object>) this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
                     ((Map<String, Object>)request).put("symbol", ((Map<String, Object>)market).get("id"));
@@ -7391,7 +7391,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 }
             }
             Object paramsEncoded = "";
-            if (((List<?>)Helpers.objectKeys(urlParams)).size() > 0)
+            if (((List<?>)new ArrayList<Object>(((Map<String, Object>)urlParams).keySet())).size() > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = (url + ("?" + paramsEncoded));

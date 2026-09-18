@@ -755,7 +755,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(networkCode, null))
             {
                 final Object finalNetworkCode = networkCode;
-                Helpers.addElementToObject(networks, networkCode, new HashMap<String, Object>() {{
+                ((Map<String, Object>)networks).put((String)networkCode, new HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", finalNetworkCode );
     put( "active", null );
@@ -833,8 +833,8 @@ public class Digifinex extends DigifinexApi
             }
             ((List<Object>)promisesRaw).add(this.publicSwapGetPublicInstruments(parameters));
             Object promises = (Helpers.promiseAll(promisesRaw)).join();
-            Object spotMarkets = Helpers.GetValue(promises, 0);
-            Object swapMarkets = Helpers.GetValue(promises, 1);
+            Object spotMarkets = (promises == null || 0 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(0));
+            Object swapMarkets = (promises == null || 1 >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(1));
             //
             // spot and margin
             //
@@ -1025,7 +1025,7 @@ public class Digifinex extends DigifinexApi
                 {
                     throw new ExchangeError((this.id + " fetchMarketsV1() missing id")) ;
                 }
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 var baseId = ((List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode(baseId);
@@ -1123,12 +1123,12 @@ public class Digifinex extends DigifinexApi
             Object account = this.account();
             String free = this.safeString2(balance, "free", "avail_balance");
             String total = this.safeString2(balance, "total", "equity");
-            Helpers.addElementToObject(account, "free", free);
-            Helpers.addElementToObject(account, "used", Precise.stringSub(total, free));
-            Helpers.addElementToObject(account, "total", total);
+            ((Map<String, Object>)account).put("free", free);
+            ((Map<String, Object>)account).put("used", Precise.stringSub(total, free));
+            ((Map<String, Object>)account).put("total", total);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -1415,7 +1415,7 @@ public class Digifinex extends DigifinexApi
                 Object symbol = ((Map<String, Object>)ticker).get("symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(result, symbol, ticker);
+                    ((Map<String, Object>)result).put((String)symbol, ticker);
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -1726,7 +1726,7 @@ public class Digifinex extends DigifinexApi
             {
                 throw new ExchangeError((this.id + " parseTrade() returned no side")) ;
             }
-            List<Object> parts = (List<Object>) Helpers.split(side, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (java.util.Objects.equals(type, null))
@@ -2309,7 +2309,7 @@ public class Digifinex extends DigifinexApi
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market"));
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit"));
         String marketIdRequest = ((Boolean.TRUE.equals(swap))) ? "instrument_id" : "symbol";
-        Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
+        ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
         Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         Object postOnlyParsed = null;
         if (Boolean.TRUE.equals(swap))
@@ -2754,7 +2754,7 @@ public class Digifinex extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (!java.util.Objects.equals(side, null))
             {
-                List<Object> parts = (List<Object>) Helpers.split(side, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_"))));
                 Object numParts = ((List<?>)parts).size();
                 if (Helpers.isGreaterThan(numParts, 1))
                 {
@@ -2854,7 +2854,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(market, null))
             {
                 String marketIdRequest = ((Boolean.TRUE.equals(swap))) ? "instrument_id" : "symbol";
-                Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
+                ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
             }
             Object response = null;
             if (!java.util.Objects.equals(marginMode, null) || java.util.Objects.equals(marketType, "margin"))
@@ -2983,7 +2983,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(market, null))
             {
                 String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
-                Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
+                ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3237,7 +3237,7 @@ public class Digifinex extends DigifinexApi
             String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
             if (!java.util.Objects.equals(symbol, null))
             {
-                Helpers.addElementToObject(request, marketIdRequest, this.safeString(market, "id"));
+                ((Map<String, Object>)request).put((String)marketIdRequest, this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3422,7 +3422,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency(code);
-                Helpers.addElementToObject(request, currencyIdRequest, ((Map<String, Object>)currency).get("id"));
+                ((Map<String, Object>)request).put((String)currencyIdRequest, ((Map<String, Object>)currency).get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -4177,7 +4177,7 @@ public class Digifinex extends DigifinexApi
             Object borrowRate = this.parseBorrowRate(item);
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, borrowRate);
+                ((Map<String, Object>)result).put((String)code, borrowRate);
             }
         }
         return result;
@@ -4485,7 +4485,7 @@ public class Digifinex extends DigifinexApi
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                     }
-                    symbol = Helpers.GetValue(symbols, 0);
+                    symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
                 } else
                 {
                     symbol = symbols;
@@ -4505,7 +4505,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(market, null))
             {
                 String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
-                Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
+                ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
             }
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot") || java.util.Objects.equals(marketType, "margin"))
@@ -4617,7 +4617,7 @@ public class Digifinex extends DigifinexApi
                 marketType = "margin";
             }
             String marketIdRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "instrument_id" : "symbol";
-            Helpers.addElementToObject(request, marketIdRequest, ((Map<String, Object>)market).get("id"));
+            ((Map<String, Object>)request).put((String)marketIdRequest, ((Map<String, Object>)market).get("id"));
             Object response = null;
             if (java.util.Objects.equals(marketType, "spot") || java.util.Objects.equals(marketType, "margin"))
             {
@@ -4682,7 +4682,7 @@ public class Digifinex extends DigifinexApi
             //
             String dataRequest = (((java.util.Objects.equals(marketType, "swap")))) ? "data" : "positions";
             List<Object> data = (List<Object>) this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
-            Object position = this.parsePosition(Helpers.GetValue(data, 0), market);
+            Object position = this.parsePosition((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
             if (java.util.Objects.equals(marketType, "swap"))
             {
                 return position;
@@ -5219,7 +5219,7 @@ final Object finalI = i;
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (java.util.Objects.equals(depositWithdrawFee, null))
                 {
-                    Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
+                    ((Map<String, Object>)depositWithdrawFees).put((String)code, this.depositWithdrawFee(new HashMap<String, Object>() {{}}));
                     Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "info", new ArrayList<Object>(Arrays.asList()));
                 }
                 Object depositWithdrawInfo = Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "info");
@@ -5252,12 +5252,12 @@ final Object finalI = i;
                 }
             }
         }
-        List<Object> depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        Object depositWithdrawCodes = new ArrayList<Object>(((Map<String, Object>)depositWithdrawFees).keySet());
         for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Helpers.addElementToObject(depositWithdrawFees, code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
+            ((Map<String, Object>)depositWithdrawFees).put((String)code, this.assignDefaultDepositWithdrawFees(Helpers.GetValue(depositWithdrawFees, code), currency));
         }
         return depositWithdrawFees;
     }

@@ -463,12 +463,12 @@ public class Delta extends DeltaApi
     {
         // support expired option contracts
         String quote = "USDT";
-        List<Object> optionParts = (List<Object>) Helpers.split(symbol, "-");
-        List<Object> symbolBase = (List<Object>) Helpers.split(symbol, "/");
+        Object optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
+        Object symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         String base = null;
         Object expiry = null;
         String optionType = null;
-        if (Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), -1))
+        if (Helpers.isGreaterThan(((String)symbol).indexOf("/"), -1))
         {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2251,7 +2251,7 @@ public class Delta extends DeltaApi
         Object timestamp = null;
         if (!java.util.Objects.equals(createdAt, null))
         {
-            if (Helpers.getIndexOf(createdAt, "-") >= 0)
+            if (((String)createdAt).indexOf("-") >= 0)
             {
                 timestamp = this.parse8601(createdAt);
             } else
@@ -4726,7 +4726,7 @@ public class Delta extends DeltaApi
                 put( "api-key", Delta.this.apiKey );
                 put( "timestamp", timestamp );
             }};
-            Object auth = Helpers.add(Helpers.add(method, timestamp), requestPath);
+            Object auth = (Helpers.add(method, timestamp) + requestPath);
             if (java.util.Objects.equals(method, "GET"))
             {
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)

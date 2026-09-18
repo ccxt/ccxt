@@ -280,7 +280,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             return message;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
@@ -397,7 +397,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             return message;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -516,7 +516,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -708,7 +708,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         Object delayTime = 1000;
                         if ((!java.util.Objects.equals(lastTimestamp, null)) && (!java.util.Objects.equals(snapshotTimestamp, null)))
                         {
-                            delayTime = this.sum(1000, (lastTimestamp - snapshotTimestamp));
+                            delayTime = this.sum(1000, Helpers.subtract(lastTimestamp, snapshotTimestamp));
                         }
                         Helpers.addElementToObject(subscription, "numAttempts", numAttempts);
                         ((Map)client.subscriptions).put((String)messageHash, subscription);
@@ -973,7 +973,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -983,7 +983,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 return;
             }
-            List<Object> sizeParts = (List<Object>) Helpers.split(size, "_");
+            Object sizeParts = new ArrayList<Object>(Arrays.asList(((String)size).split(java.util.regex.Pattern.quote("_"))));
             Long limit = this.safeInteger(sizeParts, 1);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
         }
@@ -1480,7 +1480,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             // contract branch
             parsedOrder = this.parseWsOrder(message, market);
-            Object rawTrades = this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTrades = (List<Object>) this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
             Object tradesLength = ((List<?>)rawTrades).size();
             if (Helpers.isGreaterThan(tradesLength, 0))
             {
@@ -1716,9 +1716,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object type = null;
         if (!java.util.Objects.equals(typeSide, null))
         {
-            if (Helpers.getIndexOf(typeSide, "-") >= 0)
+            if (((String)typeSide).indexOf("-") >= 0)
             {
-                typeSideParts = Helpers.split(typeSide, "-");
+                typeSideParts = new ArrayList<Object>(Arrays.asList(((String)typeSide).split(java.util.regex.Pattern.quote("-"))));
                 type = this.safeStringLower(typeSideParts, 1);
             } else
             {
@@ -1802,7 +1802,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object side = null;
         if (!java.util.Objects.equals(type, null))
         {
-            List<Object> typeParts = (List<Object>) Helpers.split(type, "-");
+            Object typeParts = new ArrayList<Object>(Arrays.asList(((String)type).split(java.util.regex.Pattern.quote("-"))));
             side = Helpers.GetValue(typeParts, 0);
             type = (String) Helpers.GetValue(typeParts, 1);
         }
@@ -2016,7 +2016,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             Helpers.addElementToObject(this.positions, url, new HashMap<String, Object>() {{}});
         }
-        Object rawPositions = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawPositions = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         if (this.isEmpty(rawPositions))
         {
             List<Object> prefixes = new ArrayList<Object>(Arrays.asList("cross:positions", "isolated:positions"));
@@ -2055,7 +2055,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             ((List<Object>)Helpers.GetValue(positionsByMarginMode, marginMode)).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
-        List<Object> marginModes = Helpers.objectKeys(positionsByMarginMode);
+        Object marginModes = new ArrayList<Object>(((Map<String, Object>)positionsByMarginMode).keySet());
         for (var i = 0; i < ((List<?>)marginModes).size(); i++)
         {
             Object marginMode = Helpers.GetValue(marginModes, i);
@@ -2064,9 +2064,9 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
             {
                 Object messageHash = Helpers.GetValue(messageHashes, j);
-                List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
                 String symbolsString = (String) Helpers.GetValue(parts, 1);
-                List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+                Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
                 Object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
                 if (!this.isEmpty(positions))
                 {
@@ -2336,7 +2336,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         //     }
         //
         String channel = this.safeString(message, "ch");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
@@ -2366,7 +2366,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (java.util.Objects.equals(topic, "account"))
             {
                 Map<String, Object> accountData = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-                Object details = this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
+                List<Object> details = (List<Object>) this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
                 Object detailsLength = ((List<?>)details).size();
                 for (var i = 0; Helpers.isLessThan(i, detailsLength); i++)
                 {
@@ -2392,7 +2392,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 return;
             }
             Object first = this.safeValue(data, 0, new HashMap<String, Object>() {{}});
-            List<Object> splitTopic = (List<Object>) Helpers.split(topic, ".");
+            Object splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             String messageHash = this.safeString(splitTopic, 0);
             Object subscription = this.safeValue2(client.subscriptions, messageHash, Helpers.add(messageHash, ".*"));
             if (java.util.Objects.equals(subscription, null))
@@ -2544,8 +2544,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, i);
@@ -2680,7 +2680,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             this.handleMyTrade(client, message);
             return;
         }
-        if (Helpers.getIndexOf(privateType, "accounts.update") >= 0)
+        if (((String)privateType).indexOf("accounts.update") >= 0)
         {
             this.handleBalance(client, message);
             return;
@@ -2695,19 +2695,19 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (java.util.Objects.equals(op, "notify"))
         {
             String topic = this.safeString(message, "topic", "");
-            if (Helpers.getIndexOf(topic, "orders") >= 0)
+            if (((String)topic).indexOf("orders") >= 0)
             {
                 this.handleOrder(client, message);
             }
-            if (Helpers.getIndexOf(topic, "trade") >= 0)
+            if (((String)topic).indexOf("trade") >= 0)
             {
                 this.handleMyTrade(client, message);
             }
-            if (Helpers.getIndexOf(topic, "account") >= 0)
+            if (((String)topic).indexOf("account") >= 0)
             {
                 this.handleBalance(client, message);
             }
-            if (Helpers.getIndexOf(topic, "positions") >= 0)
+            if (((String)topic).indexOf("positions") >= 0)
             {
                 this.handlePositions(client, message);
             }
@@ -3131,7 +3131,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 // this trades object is artificially created
                 // in handleOrder
-                Object rawTrades = this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
                 Object marketId = this.safeValue(message, "symbol");
                 Map<String, Object> market = (Map<String, Object>) this.market(marketId);
                 for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
@@ -3229,7 +3229,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Object orderTypeParts = new ArrayList<Object>(Arrays.asList());
         if (!java.util.Objects.equals(orderType, null))
         {
-            orderTypeParts = Helpers.split(orderType, "-");
+            orderTypeParts = new ArrayList<Object>(Arrays.asList(((String)orderType).split(java.util.regex.Pattern.quote("-"))));
             type = this.safeString(orderTypeParts, 1, orderType);
         }
         Object fee = null;
@@ -3368,7 +3368,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 put( "symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)finalMarket).get("symbol"))) );
                 put( "topic", finalTopic );
             }};
-            Object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);

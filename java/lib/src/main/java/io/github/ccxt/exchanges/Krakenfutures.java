@@ -567,7 +567,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2018-07-19T11:32:39.433Z"
             //    }
             //
-            Object instruments = this.safeList(response, "instruments", new ArrayList<Object>(Arrays.asList()));
+            List<Object> instruments = (List<Object>) this.safeList(response, "instruments", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)instruments).size(); i++)
             {
@@ -575,13 +575,13 @@ public class Krakenfutures extends KrakenfuturesApi
                 String id = this.safeString(market, "symbol");
                 String marketType = this.safeString(market, "type");
                 String type = null;
-                Boolean index = (Helpers.getIndexOf(marketType, " index") >= 0);
+                Boolean index = (((String)marketType).indexOf(" index") >= 0);
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
                 if (!Boolean.TRUE.equals(index))
                 {
-                    linear = (Helpers.getIndexOf(marketType, "_vanilla") >= 0);
+                    linear = (((String)marketType).indexOf("_vanilla") >= 0);
                     inverse = !Helpers.isTrue(linear);
                     String settleTime = this.safeString(market, "lastTradingTime");
                     type = (((java.util.Objects.equals(settleTime, null)))) ? "swap" : "future";
@@ -593,7 +593,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Boolean swap = (java.util.Objects.equals(type, "swap"));
                 Boolean future = (java.util.Objects.equals(type, "future"));
                 Object symbol = id;
-                List<Object> split = (List<Object>) Helpers.split(id, "_");
+                Object split = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
                 String splitMarket = this.safeString(split, 1);
                 Object baseId = Helpers.slice(splitMarket, 0, Helpers.subtract(splitMarket.length(), 3));
                 String quoteId = "usd"; // always USD
@@ -876,7 +876,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2022-02-18T14:16:29.440Z"
             //    }
             //
-            Object tickers = this.safeList(response, "tickers");
+            List<Object> tickers = (List<Object>) this.safeList(response, "tickers");
             return this.parseTickers(tickers, symbols);
         }).thenApply(Tickers::new);
 
@@ -1010,7 +1010,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //
                 volumes = this.safeDict(volumesResponse, "volumesByFeeSchedule", new HashMap<String, Object>() {{}});
             }
-            Object feeSchedules = this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
+            List<Object> feeSchedules = (List<Object>) this.safeList(response, "feeSchedules", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> schedulesByUid = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)feeSchedules).size(); i++)
             {
@@ -1018,7 +1018,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 String uid = this.safeString(schedule, "uid");
                 if (!java.util.Objects.equals(uid, null))
                 {
-                    Helpers.addElementToObject(schedulesByUid, uid, schedule);
+                    ((Map<String, Object>)schedulesByUid).put((String)uid, schedule);
                 }
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1034,7 +1034,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     continue;
                 }
                 String volume = this.safeString(volumes, uid, "0");
-                Helpers.addElementToObject(result, symbol, this.parseTradingFee(schedule, market, volume));
+                ((Map<String, Object>)result).put((String)symbol, this.parseTradingFee(schedule, market, volume));
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1056,14 +1056,14 @@ public class Krakenfutures extends KrakenfuturesApi
         // fees are expressed in percent, tiers are sorted by ascending usdVolume
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object volume = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-        Object tiers = this.safeList(fee, "tiers", new ArrayList<Object>(Arrays.asList()));
+        List<Object> tiers = (List<Object>) this.safeList(fee, "tiers", new ArrayList<Object>(Arrays.asList()));
         String makerFee = null;
         String takerFee = null;
         for (var i = 0; i < ((List<?>)tiers).size(); i++)
         {
             Object tier = Helpers.GetValue(tiers, i);
             String tierVolume = this.safeString(tier, "usdVolume");
-            if ((java.util.Objects.equals(volume, null)) || Helpers.isTrue(Precise.stringGe(volume, tierVolume)))
+            if ((java.util.Objects.equals(volume, null)) || Precise.stringGe(volume, tierVolume))
             {
                 makerFee = this.safeString(tier, "makerFee");
                 takerFee = this.safeString(tier, "takerFee");
@@ -1171,7 +1171,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "more_candles": true
             //    }
             //
-            Object candles = this.safeList(response, "candles");
+            List<Object> candles = (List<Object>) this.safeList(response, "candles");
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1302,7 +1302,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 //        "continuationToken": "QTexMDE0OTe33NTcyXy8xNDIzAjc1NjY5MwI="
                 //    }
                 //
-                Object elements = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+                List<Object> elements = (List<Object>) this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
                 // we need to reverse the list to fix chronology
                 rawTrades = new ArrayList<Object>(Arrays.asList());
                 Object length = ((List<?>)elements).size();
@@ -1464,10 +1464,10 @@ public class Krakenfutures extends KrakenfuturesApi
         String fillType = this.safeString(trade, "fillType");
         if (!java.util.Objects.equals(fillType, null))
         {
-            if (Helpers.getIndexOf(fillType, "taker") >= 0)
+            if (((String)fillType).indexOf("taker") >= 0)
             {
                 takerOrMaker = "taker";
-            } else if (Helpers.getIndexOf(fillType, "maker") >= 0)
+            } else if (((String)fillType).indexOf("maker") >= 0)
             {
                 takerOrMaker = "maker";
             }
@@ -1793,7 +1793,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //     ]
             // }
             //
-            Object data = this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1910,7 +1910,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
+            List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
             Object clientOrderIdsLength = ((List<?>)clientOrderIds).size();
             if (Helpers.isGreaterThan(clientOrderIdsLength, 0))
             {
@@ -1966,7 +1966,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //       }
             //     ]
             // }
-            Object batchStatus = this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
+            List<Object> batchStatus = (List<Object>) this.safeList(response, "batchStatus", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(batchStatus);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2026,7 +2026,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //    }
             //
             Map<String, Object> cancelStatus = (Map<String, Object>) this.safeDict(response, "cancelStatus");
-            Object orderEvents = this.safeList(cancelStatus, "orderEvents", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orderEvents = (List<Object>) this.safeList(cancelStatus, "orderEvents", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orderEvents).size(); i++)
             {
@@ -2107,7 +2107,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetOpenorders(parameters)).join();
-            Object orders = this.safeList(response, "openOrders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "openOrders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2143,7 +2143,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 market = this.market(symbol);
             }
             Map<String, Object> response = (this.privateGetOrdersStatus(parameters)).join();
-            Object orders = this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2234,7 +2234,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
-            Object allOrders = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> allOrders = (List<Object>) this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
@@ -2316,13 +2316,13 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
-            Object allOrders = this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
+            List<Object> allOrders = (List<Object>) this.safeList(response, "elements", new ArrayList<Object>(Arrays.asList()));
             List<Object> canceledAndRejected = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)allOrders).size(); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(order, "event", new HashMap<String, Object>() {{}});
-                Boolean isCancelledTriggerOrder = (((Map<?, ?>)eventVar).containsKey("OrderTriggerCancelled"));
+                Boolean isCancelledTriggerOrder = (eventVar.containsKey("OrderTriggerCancelled"));
                 Object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
                 if (!java.util.Objects.equals(orderPlaced, null))
                 {
@@ -2774,7 +2774,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "trades", null );
             }});
         }
-        Object orderEvents = this.safeList(order, "orderEvents", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orderEvents = (List<Object>) this.safeList(order, "orderEvents", new ArrayList<Object>(Arrays.asList()));
         String errorStatus = this.safeString(order, "status");
         Object orderEventsLength = ((List<?>)orderEvents).size();
         if ((((Map<?, ?>)order).containsKey("orderEvents")) && (!java.util.Objects.equals(errorStatus, null)) && (java.util.Objects.equals(orderEventsLength, 0)))
@@ -2867,7 +2867,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 vwapSum = ((String)Precise.stringAdd(vwapSum, Precise.stringMul(tradeAmount, tradePrice)));
             }
             average = Precise.stringDiv(vwapSum, filled2);
-            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isClosed))) && Boolean.TRUE.equals(isPrior) && Helpers.isTrue(Precise.stringGe(filled2, amount)))
+            if ((!java.util.Objects.equals(amount, null)) && Helpers.isTrue((!Boolean.TRUE.equals(isClosed))) && Boolean.TRUE.equals(isPrior) && Precise.stringGe(filled2, amount))
             {
                 status = "closed";
                 isClosed = true;
@@ -3026,7 +3026,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object fills = this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(fills, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -3105,7 +3105,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object logs = this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> logs = (List<Object>) this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
             // each execution emits two rows: a cash leg(asset is a currency) and
             // a position-size leg(asset equals the contract id) - keep the cash legs only
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
@@ -3205,7 +3205,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        ]
             //    }
             //
-            Object logs = this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> logs = (List<Object>) this.safeList(response, "logs", new ArrayList<Object>(Arrays.asList()));
             return this.parseIncomes(logs, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -3313,7 +3313,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 // unified ledger contract: after = before +/- amount - fee
                 amount = Precise.stringAdd(amount, feeCost);
             }
-            if (Helpers.isTrue(Precise.stringLt(amount, "0")))
+            if (Precise.stringLt(amount, "0"))
             {
                 direction = "out";
                 amount = Precise.stringAbs(amount);
@@ -3560,7 +3560,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Boolean isCash = (java.util.Objects.equals(accountType, "cashAccount"));
         Object balances = this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> currencyIds = Helpers.objectKeys(balances);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)balances).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -3570,7 +3570,7 @@ public class Krakenfutures extends KrakenfuturesApi
             {
                 continue;
             }
-            List<Object> splitCode = (List<Object>) Helpers.split(code, "_");
+            Object splitCode = new ArrayList<Object>(Arrays.asList(((String)code).split(java.util.regex.Pattern.quote("_"))));
             Object codeLength = ((List<?>)splitCode).size();
             if (Helpers.isGreaterThan(codeLength, 1))
             {
@@ -3579,21 +3579,21 @@ public class Krakenfutures extends KrakenfuturesApi
             Object account = this.account();
             if (Boolean.TRUE.equals(isFlex))
             {
-                Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
-                Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
+                ((Map<String, Object>)account).put("total", this.safeString(balance, "quantity"));
+                ((Map<String, Object>)account).put("free", this.safeString(balance, "available"));
             } else if (Boolean.TRUE.equals(isCash))
             {
-                Helpers.addElementToObject(account, "used", "0.0");
-                Helpers.addElementToObject(account, "total", balance);
+                ((Map<String, Object>)account).put("used", "0.0");
+                ((Map<String, Object>)account).put("total", balance);
             } else
             {
                 Object auxiliary = this.safeValue(response, "auxiliary");
-                Helpers.addElementToObject(account, "free", this.safeString(auxiliary, "af"));
-                Helpers.addElementToObject(account, "total", this.safeString(auxiliary, "pv"));
+                ((Map<String, Object>)account).put("free", this.safeString(auxiliary, "af"));
+                ((Map<String, Object>)account).put("total", this.safeString(auxiliary, "pv"));
             }
             if (!java.util.Objects.equals(code, null))
             {
-                Helpers.addElementToObject(result, code, account);
+                ((Map<String, Object>)result).put((String)code, account);
             }
         }
         return this.safeBalance(result);
@@ -3621,7 +3621,7 @@ public class Krakenfutures extends KrakenfuturesApi
             }
             Object marketIds = this.marketIds(symbols);
             Map<String, Object> response = (this.publicGetTickers(parameters)).join();
-            Object tickers = this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
+            List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> fundingRates = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
@@ -3681,17 +3681,17 @@ public class Krakenfutures extends KrakenfuturesApi
         String fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         String nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         String nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (Helpers.isTrue(Precise.stringGt(fundingRateResult, "0.25")))
+        if (Precise.stringGt(fundingRateResult, "0.25"))
         {
             fundingRateResult = "0.25";
-        } else if (Helpers.isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(fundingRateResult, "-0.25"))
         {
             fundingRateResult = "-0.25";
         }
-        if (Helpers.isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
+        if (Precise.stringGt(nextFundingRateResult, "0.25"))
         {
             nextFundingRateResult = "0.25";
-        } else if (Helpers.isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
+        } else if (Precise.stringLt(nextFundingRateResult, "-0.25"))
         {
             nextFundingRateResult = "-0.25";
         }
@@ -3843,7 +3843,7 @@ public class Krakenfutures extends KrakenfuturesApi
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
         // the crash guarded against in #19896 is still avoided, since we no
         // longer call .length on a non-list value
-        Object positions = this.safeList(response, "openPositions");
+        List<Object> positions = (List<Object>) this.safeList(response, "openPositions");
         if (java.util.Objects.equals(positions, null))
         {
             throw new ExchangeNotAvailable((this.id + " fetchPositions() returned a response without an \"openPositions\" list")) ;
@@ -3985,7 +3985,7 @@ public class Krakenfutures extends KrakenfuturesApi
             //        "serverTime": "2018-07-19T11:32:39.433Z"
             //    }
             //
-            Object data = this.safeList(response, "instruments");
+            List<Object> data = (List<Object>) this.safeList(response, "instruments");
             return this.parseLeverageTiers(data, symbols, "symbol");
         }).thenApply(LeverageTiers::new);
 
@@ -4112,7 +4112,7 @@ final Object finalI = i;
         {
             Map<String, Object> market = (Map<String, Object>) this.market(account);
             Object marketId = ((Map<String, Object>)market).get("id");
-            List<Object> splitId = (List<Object>) Helpers.split(((String)marketId), "_");
+            Object splitId = new ArrayList<Object>(Arrays.asList(((String)((String)marketId)).split(java.util.regex.Pattern.quote("_"))));
             if (java.util.Objects.equals(((Map<String, Object>)market).get("inverse"), true))
             {
                 return Helpers.add("fi_", this.safeString(splitId, 1));
@@ -4289,7 +4289,7 @@ final Object finalI = i;
             //         ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
+            List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             return this.parseLeverages(leveragePreferences, symbols, "symbol");
         }).thenApply(Leverages::new);
 
@@ -4336,7 +4336,7 @@ final Object finalI = i;
             //         "leveragePreferences": [ { symbol: "PF_LTCUSD", maxLeverage: "5.00" } ]
             //     }
             //
-            Object leveragePreferences = this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
+            List<Object> leveragePreferences = (List<Object>) this.safeList(response, "leveragePreferences", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> data = (Map<String, Object>) this.safeDict(leveragePreferences, 0, new HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);

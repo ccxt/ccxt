@@ -295,7 +295,7 @@ public class Btcbox extends BtcboxApi
             var response2 = ((List<Object>) response1response2Variable).get(1);
             //
             Map<String, Object> result2Data = (Map<String, Object>) this.safeDict(response2, "data", new HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(response1);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)response1).keySet());
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
@@ -306,7 +306,7 @@ public class Btcbox extends BtcboxApi
                 Object quoteId = quote.toLowerCase();
                 Object id = baseCurr.toLowerCase();
                 Map<String, Object> res = (Map<String, Object>) this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
-                Object symbol = ((baseCurr + "/") + quote);
+                String symbol = ((baseCurr + "/") + quote);
                 Object fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
                 Map<String, Object> details = (Map<String, Object>) this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
                 Map<String, Object> tradeDetails = (Map<String, Object>) this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
@@ -435,17 +435,17 @@ public class Btcbox extends BtcboxApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
             Object code = Helpers.GetValue(codes, i);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
-            Object free = (currencyId + "_balance");
+            String free = (currencyId + "_balance");
             if (Helpers.inOp(response, free))
             {
                 Object account = this.account();
-                Object used = (currencyId + "_lock");
+                String used = (currencyId + "_lock");
                 ((Map<String, Object>)account).put("free", this.safeString(response, free));
                 ((Map<String, Object>)account).put("used", this.safeString(response, used));
                 ((Map<String, Object>)result).put((String)code, account);
@@ -1066,9 +1066,9 @@ public class Btcbox extends BtcboxApi
             return null;  // either public API (no error codes expected) or success
         }
         Object code = this.safeValue(response, "code");
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
     public CompletableFuture<Object> request(Object path, Object... optionalArgs)

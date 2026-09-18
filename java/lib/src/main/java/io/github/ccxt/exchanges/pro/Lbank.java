@@ -611,7 +611,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             timestamp = this.parse8601(datetime);
         }
         String rawSide = this.safeString2(trade, "direction", 3);
-        List<Object> parts = (List<Object>) Helpers.split(rawSide, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)rawSide).split(java.util.regex.Pattern.quote("_"))));
         String firstPart = this.safeString(parts, 0);
         String secondPart = this.safeString(parts, 1);
         String side = firstPart;
@@ -777,7 +777,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         Object market = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object orderUpdate = this.safeValue(order, "orderUpdate", new HashMap<String, Object>() {{}});
         String rawType = this.safeString(orderUpdate, "type", "");
-        List<Object> typeParts = (List<Object>) Helpers.split(rawType, "_");
+        Object typeParts = new ArrayList<Object>(Arrays.asList(((String)rawType).split(java.util.regex.Pattern.quote("_"))));
         String side = this.safeString(typeParts, 0);
         String exchangeType = this.safeString(typeParts, 1);
         String type = null;

@@ -386,7 +386,7 @@ public class Coincheck extends CoincheckApi
             if (Helpers.inOp(response, currencyId))
             {
                 Object account = this.account();
-                Object reserved = (currencyId + "_reserved");
+                String reserved = (currencyId + "_reserved");
                 ((Map<String, Object>)account).put("free", this.safeString(response, currencyId));
                 ((Map<String, Object>)account).put("used", this.safeString(response, reserved));
                 ((Map<String, Object>)result).put((String)code, account);
@@ -1339,7 +1339,7 @@ public class Coincheck extends CoincheckApi
         if (!java.util.Objects.equals(success, true))
         {
             String error = this.safeString(response, "error");
-            Object feedback = ((this.id + " ") + this.json(response));
+            String feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             throw new ExchangeError(((this.id + " ") + this.json(response))) ;

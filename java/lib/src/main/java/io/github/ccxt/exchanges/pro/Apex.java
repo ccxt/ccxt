@@ -180,7 +180,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
         Object trades = data;
-        List<Object> parts = (List<Object>) Helpers.split(topic, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -431,8 +431,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
-            Object bids = this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = (List<Object>) this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = (List<Object>) this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -566,7 +566,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             symbol = ((Map<String, Object>)parsed).get("symbol");
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
-            List<Object> topicParts = (List<Object>) Helpers.split(topic, ".");
+            Object topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             Object topicLength = ((List<?>)topicParts).size();
             String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null);
@@ -689,12 +689,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         String topic = this.safeString(message, "topic");
-        List<Object> topicParts = (List<Object>) Helpers.split(topic, ".");
+        Object topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
         Object topicLength = ((List<?>)topicParts).size();
         String timeframeId = this.safeString(topicParts, 1);
         Object timeframe = this.findTimeframe(timeframeId);
         String marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        Boolean isSpot = Helpers.isGreaterThan(((String)client.url).indexOf("spot"), -1);
         String marketType = ((Boolean.TRUE.equals(isSpot))) ? "spot" : "contract";
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -911,7 +911,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        List<Object> keys = Helpers.objectKeys(symbols);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             String currentMessageHash = ("myTrades:" + Helpers.GetValue(keys, i));
@@ -967,7 +967,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             ((Map<String, Object>)symbols).put((String)((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        List<Object> symbolsArray = Helpers.objectKeys(symbols);
+        Object symbolsArray = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
         for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
         {
             String currentMessageHash = ("orders:" + Helpers.GetValue(symbolsArray, i));
@@ -1080,9 +1080,9 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
@@ -1102,7 +1102,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Object timestamp = String.valueOf(this.milliseconds());
             String request_path = "/ws/accounts";
             String http_method = "GET";
-            Object messageString = (((timestamp + http_method) + request_path));
+            String messageString = (((timestamp + http_method) + request_path));
             Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             String messageHash = "authenticated";
             Client client = this.client(url);
@@ -1201,7 +1201,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 // this short-circuit the catch-clause's `client.reject(error,
                 // messageHash)` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
-                if (!java.util.Objects.equals(ret_msg, null) && Helpers.getIndexOf(ret_msg, "already subscribed") >= 0)
+                if (!java.util.Objects.equals(ret_msg, null) && ((String)ret_msg).indexOf("already subscribed") >= 0)
                 {
                     return false;
                 }
@@ -1267,7 +1267,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        List<Object> keys = Helpers.objectKeys(methods);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)methods).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1346,17 +1346,17 @@ public class Apex extends io.github.ccxt.exchanges.Apex
     public void handleAccount(Client client, Object message)
     {
         Map<String, Object> contents = (Map<String, Object>) this.safeDict(message, "contents", new HashMap<String, Object>() {{}});
-        Object fills = this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
+        List<Object> fills = (List<Object>) this.safeList(contents, "fills", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(fills, null))
         {
             this.handleMyTrades(client, fills);
         }
-        Object positions = this.safeList(contents, "positions", new ArrayList<Object>(Arrays.asList()));
+        List<Object> positions = (List<Object>) this.safeList(contents, "positions", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(positions, null))
         {
             this.handlePositions(client, positions);
         }
-        Object orders = this.safeList(contents, "orders", new ArrayList<Object>(Arrays.asList()));
+        List<Object> orders = (List<Object>) this.safeList(contents, "orders", new ArrayList<Object>(Arrays.asList()));
         if (!java.util.Objects.equals(orders, null))
         {
             this.handleOrder(client, orders);

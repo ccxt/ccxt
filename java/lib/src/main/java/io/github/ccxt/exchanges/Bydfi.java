@@ -602,7 +602,7 @@ public class Bydfi extends BydfiApi
             //         ],
             //         "success": true
             //     }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -649,7 +649,7 @@ public class Bydfi extends BydfiApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add((Helpers.add(Helpers.add(base, "/"), quote) + ":"), settle);
-        Object inverse = this.safeBool(market, "reverse");
+        Boolean inverse = (Boolean) this.safeBool(market, "reverse");
         String limitMaxQty = this.safeString(market, "limitMaxQty");
         String marketMaxQty = this.safeString(market, "marketMaxQty");
         String maxAmountString = Precise.stringMax(limitMaxQty, marketMaxQty);
@@ -857,7 +857,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -891,7 +891,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 500;
@@ -948,7 +948,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1134,7 +1134,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1197,7 +1197,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(data, symbols);
         }).thenApply(Tickers::new);
 
@@ -1227,7 +1227,7 @@ public class Bydfi extends BydfiApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.publicGetV1FapiMarketTicker24hr(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         }).thenApply(Ticker::new);
@@ -1425,7 +1425,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRateHistories(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
@@ -1621,7 +1621,7 @@ public class Bydfi extends BydfiApi
         List<Object> hedgedparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = ((List<Object>) hedgedparametersVariable).get(0);
         parameters = ((List<Object>) hedgedparametersVariable).get(1);
-        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
         if (Boolean.TRUE.equals(hedged))
         {
             parameters = this.omit(parameters, "reduceOnly");
@@ -1633,7 +1633,7 @@ public class Bydfi extends BydfiApi
                 ((Map<String, Object>)request).put("positionSide", (((java.util.Objects.equals(reduceOnly, true)))) ? "LONG" : "SHORT");
             }
         }
-        Object closePosition = this.safeBool(parameters, "closePosition", false);
+        Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
         if (!java.util.Objects.equals(closePosition, true))
         {
             parameters = this.omit(parameters, "closePosition");
@@ -1727,7 +1727,7 @@ public class Bydfi extends BydfiApi
                 put( "orders", ordersRequests );
             }};
             Map<String, Object> response = (this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1822,7 +1822,7 @@ public class Bydfi extends BydfiApi
                 put( "editOrders", ordersRequests );
             }};
             Map<String, Object> response = (this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1927,7 +1927,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2018,7 +2018,7 @@ public class Bydfi extends BydfiApi
             {
                 response = (this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2082,7 +2082,7 @@ public class Bydfi extends BydfiApi
             {
                 response = (this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> order = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
@@ -2117,7 +2117,7 @@ public class Bydfi extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 500;
@@ -2193,7 +2193,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -2569,7 +2569,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, symbols);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -2607,7 +2607,7 @@ public class Bydfi extends BydfiApi
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Map<String, Object> response = (this.privateGetV1FapiTradePositions(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parsePositions(data, new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"))));
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
@@ -2781,7 +2781,7 @@ public class Bydfi extends BydfiApi
             Map<String, Object> response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
             //
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data);
             return this.filterBySinceLimit(positions, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -2871,7 +2871,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -3227,7 +3227,7 @@ public class Bydfi extends BydfiApi
                 //     }
                 response = (this.privateGetV1FapiAccountBalance(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
@@ -3299,7 +3299,7 @@ public class Bydfi extends BydfiApi
             //
             Object transfer = this.parseTransfer(response, currency);
             Map<String, Object> transferOptions = (Map<String, Object>) this.safeDict(this.options, "transfer", new HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (java.util.Objects.equals(fillResponseFromRequest, true))
             {
                 Long timestamp = this.milliseconds();
@@ -3345,7 +3345,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 50;
@@ -3397,7 +3397,7 @@ public class Bydfi extends BydfiApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -3528,7 +3528,7 @@ public class Bydfi extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (java.util.Objects.equals(paginate, true))
             {
                 Integer maxLimit = 50;
@@ -3611,7 +3611,7 @@ public class Bydfi extends BydfiApi
                 //
                 response = (this.privateGetV1SpotWithdrawRecords(this.extend(request, parameters))).join();
             }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             final Object finalType = type;
             Map<String, Object> transactionParams = new HashMap<String, Object>() {{
                 put( "type", finalType );

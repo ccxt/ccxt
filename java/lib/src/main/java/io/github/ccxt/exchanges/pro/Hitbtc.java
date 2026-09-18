@@ -165,7 +165,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Boolean isBatch = Helpers.getIndexOf(name, "batch") >= 0;
+            Boolean isBatch = ((String)name).indexOf("batch") >= 0;
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "public");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbols, null) && !Boolean.TRUE.equals(isBatch))
@@ -330,7 +330,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Map<String, Object> snapshot = (Map<String, Object>) this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         String type = (((!java.util.Objects.equals(snapshot, null) && !java.util.Objects.equals(snapshot, null)))) ? "snapshot" : "update";
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -514,7 +514,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "tickers";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -658,7 +658,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String topic = "bidask";
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
@@ -778,7 +778,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         for (var i = 0; i < ((List<?>)marketIds).size(); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -929,7 +929,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         String channel = this.safeString(message, "ch", "");
         Object splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
         String period = this.safeString(splitChannel, 1);
@@ -1659,7 +1659,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 // to do improve this, not very reliable right now
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, new HashMap<String, Object>() {{}});
                 Object arrayLength = ((List<?>)result).size();
-                if ((java.util.Objects.equals(arrayLength, 0)) || (((Map<?, ?>)first).containsKey("client_order_id")))
+                if ((java.util.Objects.equals(arrayLength, 0)) || (first.containsKey("client_order_id")))
                 {
                     this.handleOrderRequest(client, message);
                 }

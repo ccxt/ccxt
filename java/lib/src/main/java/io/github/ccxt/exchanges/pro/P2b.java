@@ -377,7 +377,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Object data = this.safeList(message, "params");
         data = this.safeList(data, 0);
         String method = this.safeString(message, "method");
-        List<Object> splitMethod = (List<Object>) Helpers.split(method, ".");
+        Object splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String channel = this.safeString(splitMethod, 0);
         String marketId = this.safeString(data, 7);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -423,7 +423,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //        "id": null
         //    }
         //
-        Object data = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         Object trades = this.safeList(data, 1);
         String marketId = this.safeString(data, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
@@ -480,11 +480,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //        "id": null
         //    }
         //
-        Object data = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(data, 0);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         String method = this.safeString(message, "method");
-        List<Object> splitMethod = (List<Object>) Helpers.split(method, ".");
+        Object splitMethod = new ArrayList<Object>(Arrays.asList(((String)method).split(java.util.regex.Pattern.quote("."))));
         String messageHashStart = this.safeString(splitMethod, 0);
         Map<String, Object> tickerData = (Map<String, Object>) this.safeDict(data, 1);
         Object ticker = null;
@@ -527,11 +527,11 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         //        "id": null
         //    }
         //
-        Object parameters = this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        Object isFullUpdate = this.safeBool(parameters, 0, false);
+        List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
+        Boolean isFullUpdate = (Boolean) this.safeBool(parameters, 0, false);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, 1);
-        Object asks = this.safeList(data, "asks");
-        Object bids = this.safeList(data, "bids");
+        List<Object> asks = (List<Object>) this.safeList(data, "asks");
+        List<Object> bids = (List<Object>) this.safeList(data, "bids");
         String marketId = this.safeString(parameters, 2);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");

@@ -139,7 +139,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", data );
         }};
-        List<Object> currencyIds = Helpers.objectKeys(freeBalance);
+        Object currencyIds = new ArrayList<Object>(((Map<String, Object>)freeBalance).keySet());
         for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -1344,7 +1344,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(pair, ":");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId);

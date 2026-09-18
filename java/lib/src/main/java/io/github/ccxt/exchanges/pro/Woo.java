@@ -150,7 +150,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "subMessageHashes", new ArrayList<Object>(Arrays.asList(subHash)) );
                 put( "unsubMessageHashes", new ArrayList<Object>(Arrays.asList(unsubHash)) );
             }};
-            Object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
@@ -454,7 +454,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String name = "ticker";
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object topic = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + name);
+            String topic = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + name);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -765,7 +765,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //     }
         //
         String topic = this.safeString(message, "topic");
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)data).size(); i++)
@@ -841,7 +841,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
-            Object topic = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
+            String topic = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -883,7 +883,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object topic = "ohlcv";
             String name = "kline";
-            Object subHash = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
+            String subHash = (((Helpers.add(((Map<String, Object>)market).get("id"), "@") + name) + "_") + interval);
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
             return (this.unwatchPublic(subHash, ((Map<String, Object>)market).get("symbol"), topic, parameters)).join();
         });
@@ -1721,7 +1721,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> rawPositions = (Map<String, Object>) this.safeDict(data, "positions", new HashMap<String, Object>() {{}});
-        Object postitionsIds = Helpers.objectKeys(rawPositions);
+        Object postitionsIds = new ArrayList<Object>(((Map<String, Object>)rawPositions).keySet());
         if (java.util.Objects.equals(this.positions, null))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1804,7 +1804,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data");
         Object balances = this.safeValue(data, "balances");
-        Object keys = Helpers.objectKeys(balances);
+        List<Object> keys = Helpers.objectKeys(balances);
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);
@@ -1908,7 +1908,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             if (!java.util.Objects.equals(errorMessage, null))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
             }
             return false;
@@ -1944,8 +1944,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String subscribeHash = this.safeString(message, "data");
         String unsubscribeHash = Helpers.add("unsubscribe::", subscribeHash);
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object unsubMessageHashes = this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> unsubMessageHashes = (List<Object>) this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
         {
             Object subHash = Helpers.GetValue(subMessageHashes, i);

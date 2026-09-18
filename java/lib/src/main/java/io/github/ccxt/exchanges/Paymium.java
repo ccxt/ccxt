@@ -693,7 +693,7 @@ public class Paymium extends PaymiumApi
                 (this.loadMarkets()).join();
             }
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
-            if (Helpers.getIndexOf(toAccount, "@") < 0)
+            if (((String)toAccount).indexOf("@") < 0)
             {
                 throw new ExchangeError((this.id + " transfer() only allows transfers to an email address")) ;
             }
@@ -826,7 +826,7 @@ public class Paymium extends PaymiumApi
         {
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
-            Object auth = Helpers.add(nonce, url);
+            Object auth = (nonce + url);
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{
                 put( "Api-Key", Paymium.this.apiKey );

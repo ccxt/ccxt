@@ -906,9 +906,9 @@ public class Phemex extends PhemexApi
         {
             return value;
         }
-        Object parts = Helpers.split(((String)value), ",");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(","))));
         value = String.join("", (List<String>)parts);
-        parts = Helpers.split(((String)value), " ");
+        parts = new ArrayList<Object>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(" "))));
         return this.safeNumber(parts, 0);
     }
 
@@ -995,11 +995,11 @@ public class Phemex extends PhemexApi
         if (java.util.Objects.equals(settle, "USDT"))
         {
             contractSize = this.parseNumber("1");
-        } else if (!Helpers.isEqual(((String)contractSizeString).indexOf(" "), Helpers.opNeg(1)))
+        } else if (!Helpers.isEqual(((String)contractSizeString).indexOf(" "), -1))
         {
             // "1 USD"
             // "0.005 ETH"
-            List<Object> parts = (List<Object>) Helpers.split(contractSizeString, " ");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)contractSizeString).split(java.util.regex.Pattern.quote(" "))));
             contractSize = this.parseNumber(Helpers.GetValue(parts, 0));
         } else
         {
@@ -1380,12 +1380,12 @@ public class Phemex extends PhemexApi
             //
             Map<String, Object> v2ProductsData = (Map<String, Object>) this.safeDict(v2Products, "data", new HashMap<String, Object>() {{}});
             Object products = this.safeList(v2ProductsData, "products", new ArrayList<Object>(Arrays.asList()));
-            Object perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new ArrayList<Object>(Arrays.asList()));
+            List<Object> perpetualProductsV2 = (List<Object>) this.safeList(v2ProductsData, "perpProductsV2", new ArrayList<Object>(Arrays.asList()));
             products = this.arrayConcat(products, perpetualProductsV2);
             Object riskLimits = this.safeList(v2ProductsData, "riskLimits", new ArrayList<Object>(Arrays.asList()));
-            Object riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new ArrayList<Object>(Arrays.asList()));
+            List<Object> riskLimitsV2 = (List<Object>) this.safeList(v2ProductsData, "riskLimitsV2", new ArrayList<Object>(Arrays.asList()));
             riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
-            Object currencies = this.safeList(v2ProductsData, "currencies", new ArrayList<Object>(Arrays.asList()));
+            List<Object> currencies = (List<Object>) this.safeList(v2ProductsData, "currencies", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> riskLimitsById = this.indexBy(riskLimits, "symbol");
             Map<String, Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
             Map<String, Object> currenciesByCode = this.indexBy(currencies, "currency");
@@ -1543,10 +1543,10 @@ public class Phemex extends PhemexApi
             {
                 ((List<Object>)orders).add(this.customParseBidAsk(Helpers.GetValue(bidasks, k), priceKey, amountKey, market));
             }
-            Helpers.addElementToObject(result, side, orders);
+            ((Map<String, Object>)result).put((String)side, orders);
         }
-        Helpers.addElementToObject(result, bidsKey, this.sortBy(Helpers.GetValue(result, bidsKey), 0, true));
-        Helpers.addElementToObject(result, asksKey, this.sortBy(Helpers.GetValue(result, asksKey), 0));
+        ((Map<String, Object>)result).put((String)bidsKey, this.sortBy(Helpers.GetValue(result, bidsKey), 0, true));
+        ((Map<String, Object>)result).put((String)asksKey, this.sortBy(Helpers.GetValue(result, asksKey), 0));
         return result;
     }
 
@@ -1837,7 +1837,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(rows, market, timeframe, since, userLimit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -2072,7 +2072,7 @@ public class Phemex extends PhemexApi
             {
                 response = (this.v2GetMdV2Ticker24hrAll(query)).join();
             }
-            Object result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseTickers(result, symbols);
         }).thenApply(Tickers::new);
 
@@ -2502,7 +2502,7 @@ public class Phemex extends PhemexApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)data).size(); i++)
         {
             Object balance = Helpers.GetValue(data, i);
@@ -2520,9 +2520,9 @@ public class Phemex extends PhemexApi
             String used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
             Object lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
             timestamp = (((java.util.Objects.equals(timestamp, null)))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
-            Helpers.addElementToObject(account, "total", total);
-            Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(result, ((String)code), account);
+            ((Map<String, Object>)account).put("total", total);
+            ((Map<String, Object>)account).put("used", used);
+            ((Map<String, Object>)result).put((String)((String)code), account);
         }
         ((Map<String, Object>)result).put("timestamp", timestamp);
         ((Map<String, Object>)result).put("datetime", this.iso8601(timestamp));
@@ -2574,9 +2574,9 @@ public class Phemex extends PhemexApi
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         String totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
         Boolean needsConversion = (!java.util.Objects.equals(code, "USDT"));
-        Helpers.addElementToObject(account, "total", ((Boolean.TRUE.equals(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
-        Helpers.addElementToObject(account, "used", ((Boolean.TRUE.equals(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
-        Helpers.addElementToObject(result, ((String)code), account);
+        ((Map<String, Object>)account).put("total", ((Boolean.TRUE.equals(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
+        ((Map<String, Object>)account).put("used", ((Boolean.TRUE.equals(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
+        ((Map<String, Object>)result).put((String)((String)code), account);
         return this.safeBalance(result);
     }
 
@@ -3821,7 +3821,7 @@ public class Phemex extends PhemexApi
                 order = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             } else if (java.util.Objects.equals(((Map<String, Object>)market).get("spot"), true))
             {
-                Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
                 Object numRows = ((List<?>)rows).size();
                 if (Helpers.isLessThan(numRows, 1))
                 {
@@ -3964,7 +3964,7 @@ public class Phemex extends PhemexApi
                 return this.parseOrders(data, market, since, limit);
             } else
             {
-                Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
                 return this.parseOrders(rows, market, since, limit);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -4071,7 +4071,7 @@ public class Phemex extends PhemexApi
                 return this.parseOrders(data, market, since, limit);
             } else
             {
-                Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+                List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
                 return this.parseOrders(rows, market, since, limit);
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -4382,7 +4382,7 @@ public class Phemex extends PhemexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4437,7 +4437,7 @@ public class Phemex extends PhemexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
@@ -4748,7 +4748,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object positions = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> positions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)positions).size(); i++)
             {
@@ -4821,7 +4821,7 @@ public class Phemex extends PhemexApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Object positions = this.parsePositions(data, new ArrayList<Object>(Arrays.asList(symbol)));
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -5087,7 +5087,7 @@ public class Phemex extends PhemexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
@@ -5552,7 +5552,7 @@ public class Phemex extends PhemexApi
             //
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object riskLimits = this.safeList(data, "riskLimits");
+            List<Object> riskLimits = (List<Object>) this.safeList(data, "riskLimits");
             return this.parseLeverageTiers(riskLimits, symbols, "symbol");
         }).thenApply(LeverageTiers::new);
 
@@ -5691,7 +5691,7 @@ final Object finalI = i;
             {
                 throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
             }
-            if ((Helpers.isLessThan(leverage, Helpers.opNeg(100))) || (Helpers.isGreaterThan(leverage, 100)))
+            if ((Helpers.isLessThan(leverage, -100)) || (Helpers.isGreaterThan(leverage, 100)))
             {
                 throw new BadRequest((this.id + " setLeverage() leverage should be between -100 and 100")) ;
             }
@@ -5902,7 +5902,7 @@ final Object finalI = i;
             //     }
             //
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object transfers = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> transfers = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseTransfers(transfers, currency, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -6460,7 +6460,7 @@ final Object finalI = i;
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
@@ -6627,7 +6627,7 @@ final Object finalI = i;
                 response = (this.privateGetAccountsAccountPositions(this.extend(request, parameters))).join();
             }
             Object data = this.safeValue(response, "data", new HashMap<String, Object>() {{}});
-            Object ranks = this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+            List<Object> ranks = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)ranks).size(); i++)
             {

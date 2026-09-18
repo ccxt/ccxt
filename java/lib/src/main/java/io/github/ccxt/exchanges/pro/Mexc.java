@@ -909,7 +909,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         String msg = this.safeString(message, "msg", "");
-        List<Object> parts = (List<Object>) Helpers.split(msg, "@");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
         String marketId = this.safeString(parts, 2);
         String symbol = this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}));
@@ -925,7 +925,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             return -1;
         }
-        if (Helpers.isLessThan(nonce, (firstDeltaNonce - 1L)))
+        if (Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1)))
         {
             return -1;
         }
@@ -2266,10 +2266,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object subMessageHash = Helpers.replace(((String)messageHash), "unsubscribe:", "");
             this.cleanUnsubscription(client, subMessageHash, messageHash);
-            if (Helpers.getIndexOf(messageHash, "ticker") >= 0)
+            if (((String)messageHash).indexOf("ticker") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:ticker:", "");
-                if (Helpers.getIndexOf(symbol, "unsubscribe") >= 0)
+                if (((String)symbol).indexOf("unsubscribe") >= 0)
                 {
                     // unWatchTickers
                     List<Object> symbols = Helpers.objectKeys(this.tickers);
@@ -2281,16 +2281,16 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     ((Map<String,Object>)this.tickers).remove((String)symbol);
                 }
-            } else if (Helpers.getIndexOf(messageHash, "bidask") >= 0)
+            } else if (((String)messageHash).indexOf("bidask") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:bidask:", "");
                 if (((Map<?, ?>)this.bidsasks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.bidsasks).remove((String)symbol);
                 }
-            } else if (Helpers.getIndexOf(messageHash, "candles") >= 0)
+            } else if (((String)messageHash).indexOf("candles") >= 0)
             {
-                List<Object> splitHashes = (List<Object>) Helpers.split(messageHash, ":");
+                Object splitHashes = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
                 String symbol = this.safeString(splitHashes, 2);
                 Object splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (Helpers.isGreaterThan(splitHashesLength, 4))
@@ -2301,21 +2301,21 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     ((Map<String,Object>)this.ohlcvs).remove((String)symbol);
                 }
-            } else if (Helpers.getIndexOf(messageHash, "orderbook") >= 0)
+            } else if (((String)messageHash).indexOf("orderbook") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:orderbook:", "");
                 if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.orderbooks).remove((String)symbol);
                 }
-            } else if (Helpers.getIndexOf(messageHash, "trades") >= 0)
+            } else if (((String)messageHash).indexOf("trades") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:trades:", "");
                 if (((Map<?, ?>)this.trades).containsKey(symbol))
                 {
                     ((Map<String,Object>)this.trades).remove((String)symbol);
                 }
-            } else if (Helpers.getIndexOf(messageHash, "fundingRate") >= 0)
+            } else if (((String)messageHash).indexOf("fundingRate") >= 0)
             {
                 Object symbol = Helpers.replace(((String)messageHash), "unsubscribe:fundingRate:", "");
                 if (((Map<?, ?>)this.fundingRates).containsKey(symbol))
@@ -2429,9 +2429,9 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (java.util.Objects.equals(msg, "PONG"))
         {
             this.handlePong(client, message);
-        } else if (Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), -1))
+        } else if (Helpers.isGreaterThan(((String)msg).indexOf("@"), -1))
         {
-            List<Object> parts = (List<Object>) Helpers.split(msg, "@");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
             String channel = this.safeString(parts, 1);
             Map<String, Object> methods = new HashMap<String, Object>() {{
                 put( "public.increase.depth.v3.api", "handleOrderBookSubscription");
@@ -2466,7 +2466,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //    }
         // }
         String channel = this.safeString(message, "channel", "");
-        List<Object> channelParts = (List<Object>) Helpers.split(channel, "@");
+        Object channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("@"))));
         String channelId = this.safeString(channelParts, 1);
         if (java.util.Objects.equals(channelId, "public.kline.v3.api.pb"))
         {
@@ -2522,7 +2522,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             channel = this.safeString(message, "channel");
         } else
         {
-            List<Object> parts = (List<Object>) Helpers.split(c, "@");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)c).split(java.util.regex.Pattern.quote("@"))));
             channel = this.safeString(parts, 1, "");
         }
         Map<String, Object> methods = new HashMap<String, Object>() {{

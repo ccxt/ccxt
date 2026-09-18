@@ -538,7 +538,7 @@ public class Bitteam extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
-        List<Object> parts = (List<Object>) Helpers.split(id, "_");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("_"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId);
@@ -774,7 +774,7 @@ public class Bitteam extends BitteamApi
         Object statuses = this.safeValue(statusesResponse, numericId, new HashMap<String, Object>() {{}});
         Object deposit = this.safeValue(statuses, "depositStatus");
         Object withdraw = this.safeValue(statuses, "withdrawStatus");
-        List<Object> networkIds = Helpers.objectKeys(feesByNetworkId);
+        Object networkIds = new ArrayList<Object>(((Map<String, Object>)feesByNetworkId).keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");
@@ -2786,15 +2786,15 @@ public class Bitteam extends BitteamApi
         {
             if (Helpers.isEqual(code, 404))
             {
-                if ((Helpers.getIndexOf(url, "/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
+                if ((((String)url).indexOf("/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {
-                    List<Object> parts = (List<Object>) Helpers.split(url, "/order/");
+                    Object parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/order/"))));
                     String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((Helpers.add((this.id + " order "), orderId) + " not found")) ;
                 }
-                if (Helpers.getIndexOf(url, "/cmc/orderbook/") >= 0)
+                if (((String)url).indexOf("/cmc/orderbook/") >= 0)
                 {
-                    List<Object> parts = (List<Object>) Helpers.split(url, "/cmc/orderbook/");
+                    Object parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/cmc/orderbook/"))));
                     String symbolId = this.safeString(parts, 1);
                     throw new BadSymbol((Helpers.add((this.id + " symbolId "), symbolId) + " not found")) ;
                 }

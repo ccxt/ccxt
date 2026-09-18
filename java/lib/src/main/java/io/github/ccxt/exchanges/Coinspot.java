@@ -618,7 +618,7 @@ public class Coinspot extends CoinspotApi
             for (var i = 0; i < ((List<?>)balances).size(); i++)
             {
                 Object currencies = Helpers.GetValue(balances, i);
-                Object currencyIds = Helpers.objectKeys(currencies);
+                List<Object> currencyIds = Helpers.objectKeys(currencies);
                 for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
                 {
                     Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -634,7 +634,7 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            Object currencyIds = Helpers.objectKeys(balances);
+            List<Object> currencyIds = Helpers.objectKeys(balances);
             for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -849,7 +849,7 @@ public class Coinspot extends CoinspotApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(prices);
+            Object ids = new ArrayList<Object>(((Map<String, Object>)prices).keySet());
             for (var i = 0; i < ((List<?>)ids).size(); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1193,9 +1193,9 @@ public class Coinspot extends CoinspotApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object isVersionedApi = Helpers.isArray(api);
-        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
-        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
+        Object isVersionedApi = (api instanceof List);
+        Object version = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)) : null;
+        Object accessType = ((Boolean.TRUE.equals(isVersionedApi))) ? (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)) : api;
         String endpoint = ("/" + this.implodeParams(path, parameters));
         Object fullPath = (((!java.util.Objects.equals(version, null)))) ? (Helpers.add("/", version) + endpoint) : endpoint;
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), accessType), fullPath);

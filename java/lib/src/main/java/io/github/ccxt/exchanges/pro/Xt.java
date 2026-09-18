@@ -206,8 +206,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
     public void handleDelta(Object orderbook, Object delta)
     {
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(delta, "i", "u"));
-        Object obAsks = this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
-        Object obBids = this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
+        List<Object> obAsks = (List<Object>) this.safeList(delta, "a", new ArrayList<Object>(Arrays.asList()));
+        List<Object> obBids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; i < ((List<?>)obBids).size(); i++)
@@ -256,7 +256,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
-            Object id = (this.numberToString(this.milliseconds()) + name); // call back ID
+            String id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", ((Boolean.TRUE.equals(isContract))) ? "SUBSCRIBE" : "subscribe" );
                 put( "id", id );
@@ -332,7 +332,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             type = ((List<Object>) typeparametersVariable).get(0);
             parameters = ((List<Object>) typeparametersVariable).get(1);
             Object isContract = (!java.util.Objects.equals(type, "spot"));
-            Object id = (this.numberToString(this.milliseconds()) + name); // call back ID
+            String id = (this.numberToString(this.milliseconds()) + name); // call back ID
             Map<String, Object> unsubscribe = new HashMap<String, Object>() {{
                 put( "method", ((Boolean.TRUE.equals(isContract))) ? "UNSUBSCRIBE" : "unsubscribe" );
                 put( "id", id );
@@ -370,7 +370,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 put( "symbols", symbols );
                 put( "topic", topic );
             }};
-            Object symbolsAndTimeframes = this.safeList(subscriptionParams, "symbolsAndTimeframes");
+            List<Object> symbolsAndTimeframes = (List<Object>) this.safeList(subscriptionParams, "symbolsAndTimeframes");
             if (!java.util.Objects.equals(symbolsAndTimeframes, null))
             {
                 ((Map<String, Object>)subscription).put("symbolsAndTimeframes", symbolsAndTimeframes);
@@ -1075,9 +1075,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object positions = this.filterByArray(new ArrayList<Object>(Arrays.asList(position)), "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
@@ -1238,7 +1238,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //        ]
         //    }
         //
-        Object data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(data, 0);
         String spotTest = this.safeString2(firstTicker, "cv", "aq");
         String tradeType = (((!java.util.Objects.equals(spotTest, null)))) ? "spot" : "contract";
@@ -1259,9 +1259,9 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 2);
-            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             List<Object> tickersSymbols = Helpers.objectKeys(tickers);
             Object numTickers = ((List<?>)tickersSymbols).size();
@@ -1318,7 +1318,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         if (!java.util.Objects.equals(marketId, null))
         {
             String timeframe = this.safeString(data, "i", "");
-            String tradeType = (((((Map<?, ?>)data).containsKey("q")))) ? "spot" : "contract";
+            String tradeType = (((data.containsKey("q")))) ? "spot" : "contract";
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = ((Map<String, Object>)market).get("symbol");
             Object parsed = this.parseOHLCV(data, market);
@@ -1460,17 +1460,17 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         if (!java.util.Objects.equals(marketId, null))
         {
             String eventVar = this.safeString(message, "event", "");
-            List<Object> splitEvent = (List<Object>) Helpers.split(eventVar, ",");
+            Object splitEvent = new ArrayList<Object>(Arrays.asList(((String)eventVar).split(java.util.regex.Pattern.quote(","))));
             eventVar = this.safeString(splitEvent, 0, "");
             String tradeType = "spot";
-            if ((!java.util.Objects.equals(data, null)) && (((Map<?, ?>)data).containsKey("fu")))
+            if ((!java.util.Objects.equals(data, null)) && (data.containsKey("fu")))
             {
                 tradeType = "contract";
             }
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = ((Map<String, Object>)market).get("symbol");
-            Object obAsks = this.safeList(data, "a");
-            Object obBids = this.safeList(data, "b");
+            List<Object> obAsks = (List<Object>) this.safeList(data, "a");
+            List<Object> obBids = (List<Object>) this.safeList(data, "b");
             String messageHash = ((eventVar + "::") + tradeType);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
@@ -1718,7 +1718,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String marketId = this.safeString2(order, "s", "symbol");
         if (!java.util.Objects.equals(marketId, null))
         {
-            String tradeType = (((((Map<?, ?>)order).containsKey("symbol")))) ? "contract" : "spot";
+            String tradeType = (((order.containsKey("symbol")))) ? "contract" : "spot";
             Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object parsed = this.parseWsOrder(order, market);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1775,7 +1775,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Helpers.addElementToObject(this.balance, code, account);
         }
         this.balance = this.safeBalance(this.balance);
-        String tradeType = (((((Map<?, ?>)data).containsKey("coin")))) ? "contract" : "spot";
+        String tradeType = (((data.containsKey("coin")))) ? "contract" : "spot";
         client.resolve(this.balance, Helpers.add("balance::", tradeType));
     }
 
@@ -1861,7 +1861,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             if (java.util.Objects.equals(topic, "trade"))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data");
-                if ((!java.util.Objects.equals(data, null)) && ((((Map<?, ?>)data).containsKey("oi")) || (((Map<?, ?>)data).containsKey("orderId"))))
+                if ((!java.util.Objects.equals(data, null)) && ((data.containsKey("oi")) || (data.containsKey("orderId"))))
                 {
                     method = "handleMyTrades";
                 } else
@@ -1919,8 +1919,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
+        List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, j);

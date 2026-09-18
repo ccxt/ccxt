@@ -789,7 +789,7 @@ public class Bitrue extends BitrueApi
             //
             //     {}
             //
-            List<Object> keys = Helpers.objectKeys(response);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)response).keySet());
             Object keysLength = ((List<?>)keys).size();
             String formattedStatus = (((Helpers.isGreaterThan(keysLength, 0)))) ? "maintenance" : "ok";
             return new HashMap<String, Object>() {{
@@ -1098,7 +1098,7 @@ public class Bitrue extends BitrueApi
         Object settle = null;
         if (Boolean.TRUE.equals(isContract))
         {
-            List<Object> symbolSplit = (List<Object>) Helpers.split(id, "-");
+            Object symbolSplit = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (java.util.Objects.equals(isLinear, true))
@@ -3224,13 +3224,13 @@ public class Bitrue extends BitrueApi
         {
             if (!java.util.Objects.equals(addressTo, null))
             {
-                List<Object> parts = (List<Object>) Helpers.split(addressTo, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)addressTo).split(java.util.regex.Pattern.quote("_"))));
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (!java.util.Objects.equals(addressFrom, null))
             {
-                List<Object> parts = (List<Object>) Helpers.split(addressFrom, "_");
+                Object parts = new ArrayList<Object>(Arrays.asList(((String)addressFrom).split(java.util.regex.Pattern.quote("_"))));
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3247,7 +3247,7 @@ public class Bitrue extends BitrueApi
         String currencyId = this.safeString2(transaction, "symbol", "coin");
         if (!java.util.Objects.equals(currencyId, null))
         {
-            List<Object> parts = (List<Object>) Helpers.split(currencyId, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)currencyId).split(java.util.regex.Pattern.quote("_"))));
             currencyId = this.safeString(parts, 0);
             String networkId = this.safeString(parts, 1);
             if (!java.util.Objects.equals(networkId, null))
@@ -3469,7 +3469,7 @@ public class Bitrue extends BitrueApi
         String toAccount = null;
         if (!java.util.Objects.equals(transferType, null))
         {
-            List<Object> accountSplit = (List<Object>) Helpers.split(transferType, "_to_");
+            Object accountSplit = new ArrayList<Object>(Arrays.asList(((String)transferType).split(java.util.regex.Pattern.quote("_to_"))));
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }
@@ -3859,15 +3859,15 @@ public class Bitrue extends BitrueApi
         // will switch "code" checks eventually, when we know all of them
         if (Helpers.isGreaterThanOrEqual(code, 400))
         {
-            if (Helpers.getIndexOf(body, "Price * QTY is zero or less") >= 0)
+            if (((String)body).indexOf("Price * QTY is zero or less") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
-            if (Helpers.getIndexOf(body, "LOT_SIZE") >= 0)
+            if (((String)body).indexOf("LOT_SIZE") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
-            if (Helpers.getIndexOf(body, "PRICE_FILTER") >= 0)
+            if (((String)body).indexOf("PRICE_FILTER") >= 0)
             {
                 throw new InvalidOrder(((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }

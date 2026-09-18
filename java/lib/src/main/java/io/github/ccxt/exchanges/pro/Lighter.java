@@ -375,7 +375,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channel = this.safeString(message, "channel");
         if (java.util.Objects.equals(channel, "market_stats:all"))
         {
-            Object marketIds = Helpers.objectKeys(data);
+            Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -946,7 +946,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Object parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote(":"))));
         String accountIndex = (String) Helpers.GetValue(parts, 1);
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "trades", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         Object idsLength = ((List<?>)marketIds).size();
         if (java.util.Objects.equals(idsLength, 0))
         {
@@ -1323,7 +1323,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //
         String channel = this.safeString(message, "channel", "");
         String type = "spot";
-        if (Helpers.getIndexOf(channel, "user_stats:") >= 0)
+        if (((String)channel).indexOf("user_stats:") >= 0)
         {
             type = "swap";
         }
@@ -1331,7 +1331,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         if (java.util.Objects.equals(type, "spot"))
         {
             Map<String, Object> assets = (Map<String, Object>) this.safeDict(message, "assets", new HashMap<String, Object>() {{}});
-            Object assetIds = Helpers.objectKeys(assets);
+            Object assetIds = new ArrayList<Object>(((Map<String, Object>)assets).keySet());
             for (var i = 0; i < ((List<?>)assetIds).size(); i++)
             {
                 Object assetId = Helpers.GetValue(assetIds, i);
@@ -1635,7 +1635,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         //    }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "orders", new HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        Object marketIds = new ArrayList<Object>(((Map<String, Object>)data).keySet());
         Object idsLength = ((List<?>)marketIds).size();
         if (java.util.Objects.equals(idsLength, 0))
         {
@@ -1697,7 +1697,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             Boolean handled = false;
             if (!java.util.Objects.equals(id, null))
             {
-                Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+                List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
                 for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
                 {
                     Object subscriptionHash = Helpers.GetValue(subscriptionKeys, i);
@@ -1745,42 +1745,42 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             return;
         }
         String channel = this.safeString(message, "channel", "");
-        if (Helpers.getIndexOf(channel, "order_book:") >= 0)
+        if (((String)channel).indexOf("order_book:") >= 0)
         {
             this.handleOrderBook(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "market_stats:") >= 0)
+        if (((String)channel).indexOf("market_stats:") >= 0)
         {
             this.handleTicker(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "trade:") >= 0)
+        if (((String)channel).indexOf("trade:") >= 0)
         {
             this.handleTrades(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "account_all_trades:") >= 0)
+        if (((String)channel).indexOf("account_all_trades:") >= 0)
         {
             this.handleMyTrades(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "account_all_assets:") >= 0)
+        if (((String)channel).indexOf("account_all_assets:") >= 0)
         {
             this.handleBalance(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "user_stats:") >= 0)
+        if (((String)channel).indexOf("user_stats:") >= 0)
         {
             this.handleBalance(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "account_orders:") >= 0)
+        if (((String)channel).indexOf("account_orders:") >= 0)
         {
             this.handleOrders(client, message);
             return;
         }
-        if (Helpers.getIndexOf(channel, "account_all_orders:") >= 0)
+        if (((String)channel).indexOf("account_all_orders:") >= 0)
         {
             this.handleOrders(client, message);
             return;
@@ -1861,7 +1861,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             // it here would make the next watchTicker re-subscribe a channel the venue still
             // considers subscribed, and its "30003 Already Subscribed" frame carries no id,
             // so handleErrorMessage rejects every future on the socket
-            Object subscriptionHashes = Helpers.objectKeys(client.subscriptions);
+            List<Object> subscriptionHashes = Helpers.objectKeys(client.subscriptions);
             for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
             {
                 Object subscriptionHash = Helpers.GetValue(subscriptionHashes, i);

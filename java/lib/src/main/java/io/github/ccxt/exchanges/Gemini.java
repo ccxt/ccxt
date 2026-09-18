@@ -834,18 +834,18 @@ public class Gemini extends GeminiApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>")).join();
-            Object error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
+            String error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
             List<Object> tables = (List<Object>) Helpers.split(data, "tbody>");
             Object numTables = Helpers.getArrayLength(tables);
             if (Helpers.isLessThan(numTables, 2))
             {
-                throw new NotSupported((String)error) ;
+                throw new NotSupported(error) ;
             }
             List<Object> rows = (List<Object>) Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
             Object numRows = Helpers.getArrayLength(rows);
             if (Helpers.isLessThan(numRows, 2))
             {
-                throw new NotSupported((String)error) ;
+                throw new NotSupported(error) ;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             // skip the first element (empty string)
@@ -856,7 +856,7 @@ public class Gemini extends GeminiApi
                 Object numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isLessThan(numCells, 5))
                 {
-                    throw new NotSupported((String)error) ;
+                    throw new NotSupported(error) ;
                 }
                 //     [
                 //         '<td>btcusd', // currency
@@ -966,7 +966,7 @@ public class Gemini extends GeminiApi
             {
                 return new ArrayList<Object>(Arrays.asList());  // sandbox does not have usdt markets
             }
-            Object fetchUsdtMarkets = this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
+            List<Object> fetchUsdtMarkets = (List<Object>) this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)fetchUsdtMarkets).size(); i++)
             {
@@ -999,7 +999,7 @@ public class Gemini extends GeminiApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchMarketsFromAPI", new HashMap<String, Object>() {{}});
-            Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> allMarketIds = new ArrayList<Object>(Arrays.asList());
             if ((marketIdsRaw instanceof List))
@@ -1032,14 +1032,14 @@ public class Gemini extends GeminiApi
             } else
             {
                 // use trading-pairs info, if it was fetched
-                Object tradingPairs = this.safeList(this.options, "tradingPairs");
+                List<Object> tradingPairs = (List<Object>) this.safeList(this.options, "tradingPairs");
                 if (!java.util.Objects.equals(tradingPairs, null))
                 {
                     Map<String, Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; i < ((List<?>)marketIds).size(); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
-                        Object pairInfo = this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
+                        List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (!java.util.Objects.equals(pairInfo, null) && !this.inArray(marketId, brokenPairs))
                         {
                             ((List<Object>)result).add(this.parseMarket(pairInfo));
@@ -1108,7 +1108,7 @@ public class Gemini extends GeminiApi
         Object linear = null;
         Object inverse = null;
         Boolean isString = ((response instanceof String));
-        Object isArray = (Helpers.isArray(response));
+        Object isArray = ((response instanceof List));
         if (!Boolean.TRUE.equals(isString) && !Boolean.TRUE.equals(isArray))
         {
             marketId = this.safeStringLower(response, "symbol");
@@ -1133,11 +1133,11 @@ public class Gemini extends GeminiApi
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
             Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
-            Boolean isPerp = (Helpers.getIndexOf(marketIdUpper, "PERP") >= 0);
+            Boolean isPerp = (((String)marketIdUpper).indexOf("PERP") >= 0);
             Object marketIdWithoutPerp = Helpers.replace(((String)marketIdUpper), "PERP", "");
             Map<String, Object> conflictingMarkets = (Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new HashMap<String, Object>() {{}});
             Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
-            if (((Map<?, ?>)conflictingMarkets).containsKey(lowerCaseId))
+            if (conflictingMarkets.containsKey(lowerCaseId))
             {
                 Object conflictingMarket = Helpers.GetValue(conflictingMarkets, lowerCaseId);
                 baseId = Helpers.GetValue(conflictingMarket, "base");
@@ -1538,7 +1538,7 @@ public class Gemini extends GeminiApi
             //     ]
             //
             Object result = this.parseTickers(response, symbols);
-            Object brokenPairs = this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
+            List<Object> brokenPairs = (List<Object>) this.safeList(this.options, "brokenPairs", new ArrayList<Object>(Arrays.asList()));
             return this.removeKeysFromDict(result, brokenPairs);
         }).thenApply(Tickers::new);
 
@@ -2592,7 +2592,7 @@ public class Gemini extends GeminiApi
         {
             this.checkRequiredCredentials();
             String apiKey = this.apiKey;
-            if (Helpers.getIndexOf(apiKey, "account") < 0)
+            if (((String)apiKey).indexOf("account") < 0)
             {
                 throw new AuthenticationError((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
@@ -2642,7 +2642,7 @@ public class Gemini extends GeminiApi
         {
             if ((body instanceof String))
             {
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             }
             return null;  // fallback to default error handler

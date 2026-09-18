@@ -1371,7 +1371,7 @@ public class Bitstamp extends BitstampApi
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
-            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan(((now - timestamp)), expires)))
+            if ((java.util.Objects.equals(timestamp, null)) || (Helpers.isGreaterThan((Helpers.subtract(now, timestamp)), expires)))
             {
                 List<Object> response = (this.publicGetMarkets(parameters)).join();
                 //
@@ -1457,7 +1457,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " parseCurrencies() missing description")) ;
             }
-            var baseDescriptionquoteDescriptionVariable = Helpers.split(description, " / ");
+            var baseDescriptionquoteDescriptionVariable = new ArrayList<Object>(Arrays.asList(((String)description).split(java.util.regex.Pattern.quote(" / "))));
             var baseDescription = ((List<Object>) baseDescriptionquoteDescriptionVariable).get(0);
             var quoteDescription = ((List<Object>) baseDescriptionquoteDescriptionVariable).get(1);
             String minimumOrder = this.safeString(market, "minimum_order_value");
@@ -1465,7 +1465,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
-            List<Object> parts = (List<Object>) Helpers.split(minimumOrder, " ");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)minimumOrder).split(java.util.regex.Pattern.quote(" "))));
             String cost = (String) Helpers.GetValue(parts, 0);
             if ((!java.util.Objects.equals(base, null)) && !(result.containsKey(base)))
             {
@@ -1528,7 +1528,7 @@ public class Bitstamp extends BitstampApi
             {
                 throw new ExchangeError((this.id + " fetchOrderBook() missing microtimestamp")) ;
             }
-            Long timestamp = this.parseToInt((((double) microtimestamp) / ((double) 1000)));
+            Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
             Object orderbook = this.parseOrderBook(response, ((Map<String, Object>)market).get("symbol"), timestamp);
             ((Map<String, Object>)orderbook).put("nonce", microtimestamp);
             return orderbook;
@@ -1697,7 +1697,7 @@ public class Bitstamp extends BitstampApi
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
-            if (Helpers.getIndexOf(id, "_") < 0)
+            if (((String)id).indexOf("_") < 0)
             {
                 Long value = this.safeInteger(transaction, id);
                 if ((!java.util.Objects.equals(value, null)) && (!Helpers.isEqual(value, 0)))
@@ -1787,11 +1787,11 @@ public class Bitstamp extends BitstampApi
         Object rawMarketId = null;
         if (java.util.Objects.equals(market, null))
         {
-            List<Object> keys = Helpers.objectKeys(trade);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)trade).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object currentKey = Helpers.GetValue(keys, i);
-                if (!java.util.Objects.equals(currentKey, "order_id") && Helpers.getIndexOf(currentKey, "_") >= 0)
+                if (!java.util.Objects.equals(currentKey, "order_id") && ((String)currentKey).indexOf("_") >= 0)
                 {
                     rawMarketId = currentKey;
                     market = this.safeMarket(rawMarketId, market, "_");
@@ -1831,7 +1831,7 @@ public class Bitstamp extends BitstampApi
         Object timestamp = null;
         if (!java.util.Objects.equals(datetimeString, null))
         {
-            if (Helpers.getIndexOf(datetimeString, " ") >= 0)
+            if (((String)datetimeString).indexOf(" ") >= 0)
             {
                 // iso8601
                 timestamp = this.parse8601(datetimeString);
@@ -2276,7 +2276,7 @@ public class Bitstamp extends BitstampApi
         Object codes = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> currencies = this.indexBy(response, "currency");
-        List<Object> ids = Helpers.objectKeys(currencies);
+        Object ids = new ArrayList<Object>(((Map<String, Object>)currencies).keySet());
         for (var i = 0; i < ((List<?>)ids).size(); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -3050,7 +3050,7 @@ public class Bitstamp extends BitstampApi
         if (!java.util.Objects.equals(address, null))
         {
             // dt (destination tag) is embedded into the address field
-            List<Object> addressParts = (List<Object>) Helpers.split(address, "?dt=");
+            Object addressParts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote("?dt="))));
             Object numParts = ((List<?>)addressParts).size();
             if (Helpers.isGreaterThan(numParts, 1))
             {
@@ -3272,10 +3272,10 @@ public class Bitstamp extends BitstampApi
         {
             Object parsedTrade = this.parseTrade(item);
             Object market = null;
-            List<Object> keys = Helpers.objectKeys(item);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)item).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
-                if (Helpers.getIndexOf(Helpers.GetValue(keys, i), "_") >= 0)
+                if (((String)Helpers.GetValue(keys, i)).indexOf("_") >= 0)
                 {
                     Object marketId = Helpers.replace(((String)Helpers.GetValue(keys, i)), "_", "");
                     market = this.safeMarket(marketId, market);
@@ -3779,7 +3779,7 @@ public class Bitstamp extends BitstampApi
                 }
             }
             Object authBody = (((!java.util.Objects.equals(body, null) && !java.util.Objects.equals(body, "")))) ? body : "";
-            Object auth = (((((Helpers.add(Helpers.add(xAuth, method), Helpers.replace(((String)url), "https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
+            String auth = (((((Helpers.add(Helpers.add(xAuth, method), Helpers.replace(((String)url), "https://", "")) + contentType) + xAuthNonce) + xAuthTimestamp) + xAuthVersion) + authBody);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             ((Map<String, Object>)headers).put("X-Auth-Signature", signature);
         }

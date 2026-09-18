@@ -766,7 +766,7 @@ public class Pacifica extends PacificaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (Helpers.isTrue(this.isSandboxModeEnabled))
+            if (this.isSandboxModeEnabled)
             {
                 return false;
             }
@@ -849,7 +849,7 @@ public class Pacifica extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object markets = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -913,7 +913,7 @@ public class Pacifica extends PacificaApi
         String baseId = this.safeString(market, "base_asset", id);
         String instrumentType = this.safeString(market, "instrument_type");
         Boolean isSpot = (java.util.Objects.equals(instrumentType, "spot"));
-        Boolean isSwap = !Helpers.isTrue(isSpot);
+        Boolean isSwap = !Boolean.TRUE.equals(isSpot);
         String quoteId = "USDC";
         String settleId = null;
         String type = "spot";
@@ -928,13 +928,13 @@ public class Pacifica extends PacificaApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing id")) ;
         }
-        if (Helpers.isTrue(isSpot))
+        if (Boolean.TRUE.equals(isSpot))
         {
-            List<Object> idParts = (List<Object>) Helpers.split(id, "-");
+            Object idParts = new ArrayList<Object>(Arrays.asList(((String)id).split(java.util.regex.Pattern.quote("-"))));
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         Boolean isolatedOnly = (Boolean) this.safeBool(market, "isolated_only", false);
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             settleId = quoteId;
             type = "swap";
@@ -950,7 +950,7 @@ public class Pacifica extends PacificaApi
         String quote = this.safeCurrencyCode(quoteId);
         String settle = this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        if (Helpers.isTrue(isSwap))
+        if (Boolean.TRUE.equals(isSwap))
         {
             symbol = Helpers.add((symbol + ":"), settle);
         }
@@ -1098,7 +1098,7 @@ public class Pacifica extends PacificaApi
             ((Map<String, Object>)usdcAccount).put("total", this.safeString(data, "balance"));
             ((Map<String, Object>)usdcAccount).put("used", this.safeString(data, "total_margin_used"));
             ((Map<String, Object>)result).put("USDC", usdcAccount);
-            Object spotBalances = this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
+            List<Object> spotBalances = (List<Object>) this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
             {
                 Object balance = Helpers.GetValue(spotBalances, i);
@@ -1438,7 +1438,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object levels = this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
+            List<Object> levels = (List<Object>) this.safeList(data, "l", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "bids", Pacifica.this.safeList(levels, 0, new ArrayList<Object>(Arrays.asList())) );
                 put( "asks", Pacifica.this.safeList(levels, 1, new ArrayList<Object>(Arrays.asList())) );
@@ -1487,7 +1487,7 @@ public class Pacifica extends PacificaApi
             //     "code": null
             //   }
             //
-            Object result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> result = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseFundingRates(result, symbols);
         }).thenApply(FundingRates::new);
 
@@ -1582,7 +1582,7 @@ public class Pacifica extends PacificaApi
             List<Object> paginateparametersVariable = (List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit)).join();
             }
@@ -1636,7 +1636,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object candles = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> candles = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -1708,7 +1708,7 @@ public class Pacifica extends PacificaApi
             //   "last_order_id": 1557404170
             // }
             //
-            Object recentTrades = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> recentTrades = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseTrades(recentTrades, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
@@ -1756,7 +1756,7 @@ public class Pacifica extends PacificaApi
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -2035,17 +2035,17 @@ public class Pacifica extends PacificaApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null));
         String timeInForce = this.mapTimeInForce(tifRaw);
-        if (Helpers.isTrue(isMarket))
+        if (Boolean.TRUE.equals(isMarket))
         {
             operationType = "create_market_order";
             ((Map<String, Object>)sigPayload).put("reduce_only", reduceOnly);
             Object defaultSlippage = this.handleOption("createOrder", "defaultSlippage", "0.5");
             String slippage = this.safeString2(parameters, "slippage", "slippage_percent", defaultSlippage);
             ((Map<String, Object>)sigPayload).put("slippage_percent", slippage);
-        } else if ((Helpers.isTrue(isTakeProfitOrder) || Helpers.isTrue(isStopLossOrder)) && (java.util.Objects.equals(price, null)))
+        } else if ((Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder)) && (java.util.Objects.equals(price, null)))
         {
             operationType = "set_position_tpsl";
-        } else if (Helpers.isTrue(isStopOrder))
+        } else if (Boolean.TRUE.equals(isStopOrder))
         {
             operationType = "create_stop_order";
             ((Map<String, Object>)sigPayload).put("reduce_only", reduceOnly);
@@ -2078,7 +2078,7 @@ public class Pacifica extends PacificaApi
                 ((Map<String, Object>)sigPayload).put("tif", timeInForce);
             }
         }
-        if (Helpers.isTrue(isTakeProfitOrder))
+        if (Boolean.TRUE.equals(isTakeProfitOrder))
         {
             final Object finalTakeProfitPrice = takeProfitPrice;
             Map<String, Object> tpPayload = new HashMap<String, Object>() {{
@@ -2090,7 +2090,7 @@ public class Pacifica extends PacificaApi
             }
             ((Map<String, Object>)sigPayload).put("take_profit", tpPayload);
         }
-        if (Helpers.isTrue(isStopLossOrder))
+        if (Boolean.TRUE.equals(isStopLossOrder))
         {
             final Object finalStopLossPrice = stopLossPrice;
             Map<String, Object> slPayload = new HashMap<String, Object>() {{
@@ -2241,7 +2241,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -2320,7 +2320,7 @@ public class Pacifica extends PacificaApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
+            List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -2363,7 +2363,7 @@ public class Pacifica extends PacificaApi
             }};
             ((List<Object>)actions).add(action);
         }
-        Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
+        List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
         parameters = this.omit(parameters, "clientOrderIds");
         for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
         {
@@ -2661,7 +2661,7 @@ public class Pacifica extends PacificaApi
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -2754,7 +2754,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -2966,7 +2966,7 @@ public class Pacifica extends PacificaApi
             //   "last_order_id": 1557370337
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -3004,7 +3004,7 @@ public class Pacifica extends PacificaApi
             paginate = ((List<Object>) paginateparametersVariable).get(0);
             parameters = ((List<Object>) paginateparametersVariable).get(1);
             Integer defaultLimit = 100; // max default 100
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -3063,7 +3063,7 @@ public class Pacifica extends PacificaApi
 
     public Object addPaginationCursorToResult(Object response)
     {
-        Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
         Boolean hasMore = (Boolean) this.safeBool(response, "has_more", false);
         Object dataLength = ((List<?>)data).size();
@@ -3155,7 +3155,7 @@ public class Pacifica extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // return last state
             List<Object> sorted = this.sortBy(data, "created_at", true);
             Object lastIdx = ((List<?>)sorted).size();
@@ -3424,7 +3424,7 @@ public class Pacifica extends PacificaApi
             //   "code": null,
             //   "last_order_id": 1557431179
             // }
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -3733,7 +3733,7 @@ public class Pacifica extends PacificaApi
             }
             symbols = this.marketSymbols(symbols);
             Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
         }).thenApply(OpenInterests::new);
 
@@ -3851,7 +3851,7 @@ public class Pacifica extends PacificaApi
             userAddress = ((List<Object>) userAddressparametersVariable).get(0);
             parameters = ((List<Object>) userAddressparametersVariable).get(1);
             Integer defaultLimit = 100; // Default max limit
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchLedger", code, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -3991,7 +3991,7 @@ public class Pacifica extends PacificaApi
                 ((Map<String, Object>)request).put("limit", limit);
             }
             Integer defaultLimit = 100;
-            if (Helpers.isTrue(paginate))
+            if (Boolean.TRUE.equals(paginate))
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
@@ -4387,7 +4387,7 @@ public class Pacifica extends PacificaApi
             error = true;
         }
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
-        if (Helpers.isTrue(error) || Helpers.isTrue(nonEmptyMessage))
+        if (Helpers.isTrue(error) || Boolean.TRUE.equals(nonEmptyMessage))
         {
             String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback); // Try deeper catch first
@@ -4406,7 +4406,7 @@ public class Pacifica extends PacificaApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object isTestnet = this.isSandboxModeEnabled;
-        String urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
+        String urlKey = ((Boolean.TRUE.equals(isTestnet))) ? "test" : "api";
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         String url = ((Helpers.add((host + "/api/"), this.version) + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4469,7 +4469,7 @@ public class Pacifica extends PacificaApi
                 Helpers.addElementToObject(result, key, this.sortJsonKeys(Helpers.GetValue(value, key)));
             }
             return result;
-        } else if (Helpers.isTrue((value instanceof List)))
+        } else if ((value instanceof List))
         {
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)value).size(); i++)
@@ -4515,7 +4515,7 @@ public class Pacifica extends PacificaApi
         {
             throw new ArgumentsRequired((((this.id + " action: ") + operationType) + " postActionRequest() requires \"operationType\"")) ;
         }
-        if (!Helpers.isTrue(this.isSandboxModeEnabled))
+        if (!this.isSandboxModeEnabled)
         {
             Object useBuilder = this.handleOption("postActionRequest", "builderFee", true);
             Object builderCode = null;

@@ -271,7 +271,7 @@ public class Revolutx extends RevolutxApi
             {
                 bodyString = body;
             }
-            Object message = (((Helpers.add(timestamp, ((String)method).toUpperCase()) + requestPath) + queryString) + bodyString);
+            String message = (((Helpers.add(timestamp, ((String)method).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{
@@ -426,7 +426,7 @@ public class Revolutx extends RevolutxApi
             //     }
             //
             Object markets = this.safeDict(response, "data", response);
-            List<Object> keys = Helpers.objectKeys(markets);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)markets).keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -463,7 +463,7 @@ public class Revolutx extends RevolutxApi
         Boolean active = (java.util.Objects.equals(status, "active"));
         String assetType = this.safeString(currency, "asset_type");
         String type = (((java.util.Objects.equals(assetType, "crypto")))) ? "crypto" : "fiat";
-        Object precision = (((!java.util.Objects.equals(scale, null)))) ? Helpers.mathPow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.opNeg(scale)))) : null;
+        Object precision = (((!java.util.Objects.equals(scale, null)))) ? Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(Helpers.toString(Helpers.opNeg(scale)))) : null;
         return new HashMap<String, Object>() {{
             put( "info", currency );
             put( "id", id );
@@ -522,7 +522,7 @@ public class Revolutx extends RevolutxApi
             //     }
             //
             Object currencies = this.safeDict(response, "data", response);
-            List<Object> keys = Helpers.objectKeys(currencies);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)currencies).keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
@@ -654,7 +654,7 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816 }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> metadata = (Map<String, Object>) this.safeDict(response, "metadata", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(metadata, "timestamp");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -852,7 +852,7 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
@@ -969,7 +969,7 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1178,7 +1178,7 @@ public class Revolutx extends RevolutxApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
+            List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
             Map<String, Object> orderConfiguration = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(type, "limit"))
             {
@@ -1428,7 +1428,7 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1512,7 +1512,7 @@ public class Revolutx extends RevolutxApi
                 ((Map<String, Object>)request).put("order_types", String.join(",", (List<String>)orderTypes));
             }
             Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1544,7 +1544,7 @@ public class Revolutx extends RevolutxApi
             Object since = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
             Object limit = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
-            Object orderStates = this.safeList2(parameters, "orderStates", "order_states", new ArrayList<Object>(Arrays.asList("filled", "cancelled", "rejected", "replaced")));
+            List<Object> orderStates = (List<Object>) this.safeList2(parameters, "orderStates", "order_states", new ArrayList<Object>(Arrays.asList("filled", "cancelled", "rejected", "replaced")));
             Map<String, Object> requestParams = this.extend(this.omit(parameters, new ArrayList<Object>(Arrays.asList("orderStates", "order_states"))), new HashMap<String, Object>() {{
                 put( "order_states", orderStates );
             }});
@@ -1672,7 +1672,7 @@ public class Revolutx extends RevolutxApi
             //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
             //     }
             //
-            Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -1719,7 +1719,7 @@ public class Revolutx extends RevolutxApi
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
+            List<Object> executionInstructions = (List<Object>) this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "client_order_id", clientOrderId );
                 put( "venue_order_id", id );

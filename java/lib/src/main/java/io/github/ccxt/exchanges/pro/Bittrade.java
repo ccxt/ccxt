@@ -143,7 +143,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
@@ -238,7 +238,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
@@ -337,7 +337,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         {
             return;
         }
-        List<Object> parts = (List<Object>) Helpers.split(ch, ".");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)ch).split(java.util.regex.Pattern.quote("."))));
         String marketId = this.safeString(parts, 1);
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");

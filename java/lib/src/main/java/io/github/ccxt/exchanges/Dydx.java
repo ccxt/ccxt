@@ -657,7 +657,7 @@ public class Dydx extends DydxApi
         {
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
-        List<Object> parts = (List<Object>) Helpers.split(marketId, "-");
+        Object parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = this.safeCurrencyCode(baseId);
@@ -1952,7 +1952,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
             Object idString = String.valueOf(id);
-            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), -1))
+            if (!java.util.Objects.equals(id, null) && Helpers.isGreaterThan(((String)idString).indexOf("-"), -1))
             {
                 throw new NotSupported((this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
             }
@@ -2339,7 +2339,7 @@ public class Dydx extends DydxApi
             {
                 throw new ExchangeError((this.id + " estimateTxFee() missing feeAmount")) ;
             }
-            if (Helpers.getIndexOf(feeAmount, ".") >= 0)
+            if (((String)feeAmount).indexOf(".") >= 0)
             {
                 feeAmount = this.numberToString(Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(feeAmount)))));
             }

@@ -403,7 +403,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         Object date = this.safeString(ticker, "date", "");
         Object time = this.safeString(ticker, "time", "");
-        Object kstDatetime = (((((((((((date == null ? null : ((String)date).substring(0, Math.min(4, ((String)date).length()))) + "-") + (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())))) + "-") + (date == null ? null : ((String)date).substring(Math.min(6, ((String)date).length()), Math.min(8, ((String)date).length())))) + "T") + (time == null ? null : ((String)time).substring(0, Math.min(2, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(2, ((String)time).length()), Math.min(4, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(4, ((String)time).length()), Math.min(6, ((String)time).length()))));
+        String kstDatetime = (((((((((((date == null ? null : ((String)date).substring(0, Math.min(4, ((String)date).length()))) + "-") + (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())))) + "-") + (date == null ? null : ((String)date).substring(Math.min(6, ((String)date).length()), Math.min(8, ((String)date).length())))) + "T") + (time == null ? null : ((String)time).substring(0, Math.min(2, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(2, ((String)time).length()), Math.min(4, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(4, ((String)time).length()), Math.min(6, ((String)time).length()))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
         if (!java.util.Objects.equals(timestamp, null))
@@ -541,7 +541,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
         if (!java.util.Objects.equals(content, null))
         {
-            Object list = this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
+            List<Object> list = (List<Object>) this.safeList(content, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(list, 0, new HashMap<String, Object>() {{}});
             String legacyMarketId = this.safeString(first, "symbol");
             if (java.util.Objects.equals(legacyMarketId, null))
@@ -565,7 +565,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             this.handleDeltas(legacyOrderbook, list);
             Helpers.addElementToObject(legacyOrderbook, "timestamp", legacyTimestamp);
             Helpers.addElementToObject(legacyOrderbook, "datetime", this.iso8601(legacyTimestamp));
-            Object legacyMessageHash = (("orderbook" + ":") + legacySymbol);
+            String legacyMessageHash = (("orderbook" + ":") + legacySymbol);
             client.resolve(legacyOrderbook, legacyMessageHash);
             return;
         }
@@ -587,7 +587,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
-        Object units = this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
+        List<Object> units = (List<Object>) this.safeList(message, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)units).size(); i++)
         {
             Object entry = Helpers.GetValue(units, i);
@@ -749,7 +749,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //     }
         //
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content");
-        Object rawTrades = this.safeList(content, "list");
+        List<Object> rawTrades = (List<Object>) this.safeList(content, "list");
         if (java.util.Objects.equals(rawTrades, null))
         {
             rawTrades = new ArrayList<Object>(Arrays.asList(message));
@@ -961,7 +961,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         String messageHash = "myAsset";
-        Object assets = this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
+        List<Object> assets = (List<Object>) this.safeList(message, "assets", new ArrayList<Object>(Arrays.asList()));
         if (java.util.Objects.equals(this.balance, null))
         {
             this.balance = new HashMap<String, Object>() {{}};
@@ -972,8 +972,8 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             String currencyId = this.safeString(asset, "currency");
             String code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
-            Helpers.addElementToObject(account, "free", this.safeString(asset, "balance"));
-            Helpers.addElementToObject(account, "used", this.safeString(asset, "locked"));
+            ((Map<String, Object>)account).put("free", this.safeString(asset, "balance"));
+            ((Map<String, Object>)account).put("used", this.safeString(asset, "locked"));
             if (!java.util.Objects.equals(code, null))
             {
                 Helpers.addElementToObject(this.balance, code, account);
@@ -1003,13 +1003,13 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     {
         Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
         Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(wsOptions, "gen2Subscriptions", new HashMap<String, Object>() {{}});
-        Helpers.addElementToObject(subscriptions, subscriptionType, subscription);
+        ((Map<String, Object>)subscriptions).put((String)subscriptionType, subscription);
         ((Map<String, Object>)wsOptions).put("gen2Subscriptions", subscriptions);
         Helpers.addElementToObject(this.options, "ws", wsOptions);
         List<Object> request = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "ticket", "ccxt" );
 }}));
-        List<Object> keys = Helpers.objectKeys(subscriptions);
+        Object keys = new ArrayList<Object>(((Map<String, Object>)subscriptions).keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             ((List<Object>)request).add(Helpers.GetValue(subscriptions, Helpers.GetValue(keys, i)));
@@ -1086,7 +1086,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             (this.authenticate()).join();
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "privateGen2");
             Object messageHash = "myOrder";
-            Object codes = this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
+            List<Object> codes = (List<Object>) this.safeList(parameters, "codes", new ArrayList<Object>(Arrays.asList()));
             final Object finalMessageHash = messageHash;
             Object request = this.buildGen2SubscriptionRequest(messageHash, new HashMap<String, Object>() {{
                 put( "type", finalMessageHash );

@@ -574,11 +574,11 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "orders";
             client.resolve(orders, messageHash);
-            List<Object> keys = Helpers.objectKeys(symbols);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
-                Object symbolMessageHash = ((messageHash + "::") + hashSymbol);
+                String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.orders, symbolMessageHash);
             }
         }
@@ -707,11 +707,11 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "myTrades";
             client.resolve(trades, messageHash);
-            List<Object> keys = Helpers.objectKeys(symbols);
+            Object keys = new ArrayList<Object>(((Map<String, Object>)symbols).keySet());
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
-                Object symbolMessageHash = ((messageHash + "::") + hashSymbol);
+                String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.myTrades, symbolMessageHash);
             }
         }
@@ -906,9 +906,9 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            List<Object> parts = (List<Object>) Helpers.split(messageHash, "::");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            List<Object> symbols = (List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(symbolPositions))
             {
@@ -932,14 +932,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object feedback = ((this.id + " ") + this.json(data));
+        String feedback = ((this.id + " ") + this.json(data));
         try
         {
             String errorCode = this.safeString(data, "errorCode");
             String errorCodeName = this.safeString(data, "errorCodeName");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorCodeName, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {
             client.reject(e);

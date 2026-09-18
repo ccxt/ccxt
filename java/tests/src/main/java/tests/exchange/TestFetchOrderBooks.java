@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -26,7 +27,7 @@ public class TestFetchOrderBooks extends BaseTest {
         Object symbol = (symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0));
         Object orderBooks = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new ArrayList<Object>(Arrays.asList(symbol))})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
-        List<Object> orderBookKeys = Helpers.objectKeys(orderBooks);
+        Object orderBookKeys = new ArrayList<Object>(((Map<String, Object>)orderBooks).keySet());
         Assert(((List<?>)orderBookKeys).size() > 0, (((exchange.id + " ") + method) + " returned 0 length data"));
         for (var i = 0; i < ((List<?>)orderBookKeys).size(); i++)
         {

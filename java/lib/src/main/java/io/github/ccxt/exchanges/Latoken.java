@@ -1450,7 +1450,7 @@ public class Latoken extends LatokenApi
         Object side = null;
         if (!java.util.Objects.equals(orderSide, null))
         {
-            List<Object> parts = (List<Object>) Helpers.split(orderSide, "_");
+            Object parts = new ArrayList<Object>(Arrays.asList(((String)orderSide).split(java.util.regex.Pattern.quote("_"))));
             Object partsLength = ((List<?>)parts).size();
             side = this.safeStringLower(parts, Helpers.subtract(partsLength, 1));
         }
@@ -1463,10 +1463,10 @@ public class Latoken extends LatokenApi
         String message = this.safeString(order, "message");
         if (!java.util.Objects.equals(message, null))
         {
-            if (Helpers.getIndexOf(message, "cancel") >= 0)
+            if (((String)message).indexOf("cancel") >= 0)
             {
                 status = "canceled";
-            } else if (Helpers.getIndexOf(message, "accept") >= 0)
+            } else if (((String)message).indexOf("accept") >= 0)
             {
                 status = "open";
             }
@@ -2162,7 +2162,7 @@ public class Latoken extends LatokenApi
                 put( "value", Latoken.this.currencyToPrecision(code, amount) );
             }};
             Object response = null;
-            if (Helpers.getIndexOf(toAccount, "@") >= 0)
+            if (((String)toAccount).indexOf("@") >= 0)
             {
                 response = (this.privatePostAuthTransferEmail(this.extend(request, parameters))).join();
             } else if ((((String)toAccount).length() == 36))
@@ -2273,7 +2273,7 @@ public class Latoken extends LatokenApi
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();
-            Object auth = Helpers.add(Helpers.add(method, request), urlencodedQuery);
+            String auth = ((method + request) + urlencodedQuery);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
             headers = new HashMap<String, Object>() {{
                 put( "X-LA-APIKEY", Latoken.this.apiKey );

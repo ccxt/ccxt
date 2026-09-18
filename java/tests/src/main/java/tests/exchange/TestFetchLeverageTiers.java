@@ -7,6 +7,7 @@ import io.github.ccxt.errors.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -28,7 +29,7 @@ public class TestFetchLeverageTiers extends BaseTest {
         //     ],
         // };
         TestSharedMethods.AssertDictionaryResponse(exchange, method, tiers, symbol);
-        List<Object> tierKeys = Helpers.objectKeys(tiers);
+        Object tierKeys = new ArrayList<Object>(((Map<String, Object>)tiers).keySet());
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (var i = 0; i < ((List<?>)tierKeys).size(); i++)
         {
