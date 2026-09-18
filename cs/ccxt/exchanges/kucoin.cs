@@ -9931,9 +9931,9 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["toAccountTag"] = toId;
             toId = "isolated";
         }
-        object hfOrMining = this.isHfOrMining(fromId, toId);
+        bool hfOrMining = this.isHfOrMining(fromId, toId);
         Dictionary<string, object> response = null;
-        if (isTrue(hfOrMining))
+        if (hfOrMining)
         {
             // new endpoint does not support hf and mining transfers
             // use old endpoint for hf and mining transfers
