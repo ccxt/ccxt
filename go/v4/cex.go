@@ -1558,7 +1558,7 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 	var currency2 *string = this.SafeString(order, "currency2")
 	var marketId any = nil
 	if (currency1 != nil) && (currency2 != nil) {
-		marketId = Add(Add(currency1, "-"), currency2)
+		marketId = *currency1 + "-" + *currency2
 	}
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
@@ -2393,7 +2393,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 		var rejectReason *string = this.SafeString(data, "rejectReason")
 		if rejectReason != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], rejectReason, rejectReason)
-			panic(ExchangeError(Add(this.Id+" createOrder() ", rejectReason)))
+			panic(ExchangeError(this.Id + " createOrder() " + *rejectReason))
 		}
 	}
 	return nil

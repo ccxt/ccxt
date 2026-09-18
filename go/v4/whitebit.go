@@ -2724,7 +2724,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId")
 		if brokerId != nil {
-			request["clientOrderId"] = Add(brokerId, this.Uuid16())
+			request["clientOrderId"] = *brokerId + this.Uuid16()
 		}
 	} else {
 		request["clientOrderId"] = clientOrderId
@@ -2737,7 +2737,7 @@ func (this *Whitebit) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var isStopOrder bool = (triggerPrice != nil)
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	if (timeInForce != nil) && (timeInForce == nil || *timeInForce != "GTC") && (timeInForce == nil || *timeInForce != "IOC") && (timeInForce == nil || *timeInForce != "PO") {
-		panic(NotSupported(Add(Add(this.Id+" createOrder() does not support timeInForce ", timeInForce), ", only GTC, IOC and PO are allowed")))
+		panic(NotSupported(this.Id + " createOrder() does not support timeInForce " + *timeInForce + ", only GTC, IOC and PO are allowed"))
 	}
 	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")

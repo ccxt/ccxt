@@ -110,7 +110,7 @@ func (this *Poloniex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var accessPath string = "/ws"
-		var requestString any = ccxt.Add("GET\n"+accessPath+"\nsignTimestamp=", timestamp)
+		var requestString any = "GET\n" + accessPath + "\nsignTimestamp=" + *timestamp
 		var signature string = this.Hmac(this.Encode(requestString), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var request map[string]any = map[string]any{
 			"event":   "subscribe",

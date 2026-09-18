@@ -2625,7 +2625,7 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 			var key string = GetValue(paramKeys, i).(string)
 			var value *string = this.SafeString(params, key)
 			if value != nil {
-				signatureQuery = Add(signatureQuery, Add(key+"=", value))
+				signatureQuery = Add(signatureQuery, key+"="+*value)
 			}
 			if IsLessThan(i, Subtract(paramKeysLength, 1)) {
 				signatureQuery = Add(signatureQuery, "&")

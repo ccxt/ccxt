@@ -12081,7 +12081,7 @@ func (this *Bitget) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var indexPrice *float64 = this.SafeNumber(contract, "indexPrice")
 	var intervalString any = nil
 	if interval != nil {
-		intervalString = Add(interval, "h")
+		intervalString = *interval + "h"
 	}
 	return map[string]any{
 		"info":                     contract,

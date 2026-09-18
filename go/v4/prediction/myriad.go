@@ -1835,7 +1835,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 		var outcomeId *string = this.SafeString(inner, "outcomeId")
 		var composite any = nil
 		if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
-			composite = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId)
+			composite = *networkId + ":" + *marketId + "/" + *outcomeId
 		}
 		outcomeObj = this.SafeOutcome(composite, market)
 		outcome = ccxt.DerefScalar(this.SafeString(outcomeObj, "outcome"))
@@ -1890,7 +1890,7 @@ func (this *Myriad) ParseAmmEventToOrder(trade any, optionalArgs ...any) any {
 	var rawOutcomeId *string = this.SafeString(trade, "outcomeId")
 	var composite any = nil
 	if (networkId != nil) && (marketId != nil) && (rawOutcomeId != nil) {
-		composite = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), rawOutcomeId)
+		composite = *networkId + ":" + *marketId + "/" + *rawOutcomeId
 	}
 	var outcomeObj any = this.SafeOutcome(composite, market)
 	var marketSlug *string = this.SafeString(trade, "marketSlug", marketId)
@@ -2697,7 +2697,7 @@ func (this *Myriad) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var rpcUrl *string = this.SafeString2(params, "rpcUrl", "rpc", this.SafeString(chainConfig, "rpcUrl"))
 	var token *string = this.SafeString2(params, "token", "tokenAddress", this.SafeString(chainConfig, "collateralToken"))
 	if token == nil {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" fetchBalance() has no collateral token configured for network ", networkId)))
+		panic(ccxt.NotSupported(this.Id + " fetchBalance() has no collateral token configured for network " + *networkId))
 	}
 	var currency *string = this.SafeString(params, "currency", this.SafeString(chainConfig, "collateralCurrency", "USD1"))
 	var decimals *int64 = this.SafeInteger(params, "decimals", this.SafeInteger(chainConfig, "collateralDecimals", 18))
@@ -4843,7 +4843,7 @@ func (this *Myriad) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		networkId = this.SafeString(info, "networkId", networkId)
 		outcome = this.SafeOutcomeSymbol(outcome, outcomeObj)
 	}
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("orders:", networkId), ":"), trader)
+	var channel any = ccxt.Add("orders:"+*networkId+":", trader)
 	var messageHash string = "orders"
 
 	orders := (<-this.SubscribeMyriadChannelAsync(messageHash, channel, params))
@@ -4939,7 +4939,7 @@ func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var trader any = this.WalletAddressFromKeys()
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("positions:", networkId), ":"), trader)
+	var channel any = ccxt.Add("positions:"+*networkId+":", trader)
 	var messageHash string = "positions"
 	var url *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws")
 
@@ -5020,7 +5020,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	var contracts any = nil
 	var posId any = nil
 	if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
-		posId = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(networkId, ":"), marketId), "/"), outcomeId)
+		posId = *networkId + ":" + *marketId + "/" + *outcomeId
 		var balances any = this.SafeDict(this.Options, "positionBalances", map[string]any{})
 		var prior *string = this.SafeString(balances, posId, "0")
 		var updated *string = ccxt.Precise.StringAdd(prior, deltaShares)
@@ -5112,7 +5112,7 @@ func (this *Myriad) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "myriad"))
-	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if ccxt.IsEqual(method, "GET") {
 		var querystring string = this.Urlencode(query)

@@ -754,7 +754,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 		ch <- retRes62719
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchTradingFees() does not support ", method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
+		panic(NotSupported(this.Id + " fetchTradingFees() does not support " + *method + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported"))
 	}
 }
 func (this *Onetrading) FetchPublicTradingFeesAsync(optionalArgs ...any) <-chan any {
@@ -1264,7 +1264,7 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	if (period == nil) || (lowercaseUnit == nil) {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing period/unit"))
 	}
-	var timeframe any = Add(period, lowercaseUnit)
+	var timeframe any = *period + *lowercaseUnit
 	var durationInSeconds any = this.ParseTimeframe(timeframe)
 	var duration any = Multiply(durationInSeconds, 1000)
 	var timestamp *int64 = this.Parse8601(this.SafeString(ohlcv, "time"))

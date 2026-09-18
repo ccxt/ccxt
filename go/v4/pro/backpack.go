@@ -128,7 +128,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 		return "SUBSCRIBE"
 	}()
 	var recvWindow *string = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
-	var payload any = ccxt.Add("instruction="+instruction+"&"+"timestamp="+ts+"&window=", recvWindow)
+	var payload any = "instruction=" + instruction + "&" + "timestamp=" + ts + "&window=" + *recvWindow
 	var secretBytes []byte = this.Base64ToBinary(this.Secret)
 	var seed any = this.ArraySlice(secretBytes, 0, 32)
 	var signature string = ccxt.Eddsa(this.Encode(payload), seed, ccxt.Ed25519)
@@ -388,7 +388,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedTicker any = this.ParseWsTicker(ticker, market)
-	var messageHash any = ccxt.Add("ticker"+":", symbol)
+	var messageHash any = "ticker" + ":" + *symbol
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
@@ -544,7 +544,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedBidAsk any = this.ParseWsBidAsk(data, market)
-	var messageHash any = ccxt.Add("bidask"+":", symbol)
+	var messageHash any = "bidask" + ":" + *symbol
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedBidAsk)
 	client.(ccxt.ClientInterface).Resolve(parsedBidAsk, messageHash)
 }
@@ -1239,7 +1239,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	var storedOrderBook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
 	var deltaNonce *int64 = this.SafeInteger(data, "u")
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	if nonce == nil {
 		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		// the rest API is very delayed

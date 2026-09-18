@@ -2226,7 +2226,7 @@ func (this *Opinion) OpinionWsUrl() any {
 		panic(ccxt.AuthenticationError(this.Id + " websocket requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first"))
 	}
 	var wsUrl *string = this.SafeString(ccxt.GetValue(this.Urls, "api"), "ws", "")
-	return ccxt.Add(ccxt.Add(wsUrl, "?apikey="), apiKey)
+	return ccxt.Add(*wsUrl+"?apikey=", apiKey)
 }
 func (this *Opinion) Ping(client any) any {
 	// the venue keeps the socket open only while application-level heartbeats arrive
@@ -2435,7 +2435,7 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 	var now int64 = this.Milliseconds()
 	ccxt.AddElementToObject(orderbook, "timestamp", now)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(now))
-	client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("orderbook::", sym))
+	client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+*sym)
 }
 
 /**
@@ -2500,7 +2500,7 @@ func (this *Opinion) HandleTicker(client any, message any) {
 		"info":      message,
 	}, outcomeObj)
 	ccxt.AddElementToObject(this.Tickers, sym, ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker::", sym))
+	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
 }
 
 /**
@@ -2589,7 +2589,7 @@ func (this *Opinion) HandleTrades(client any, message any) {
 	}
 	var stored any = ccxt.GetValue(this.Trades, sym)
 	stored.(ccxt.Appender).Append(trade)
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trades::", sym))
+	client.(ccxt.ClientInterface).Resolve(stored, "trades::"+*sym)
 }
 
 /**
@@ -2890,7 +2890,7 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 	}()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "opinion"))
-	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), this.ImplodeParams(path, params))
+	var url any = ccxt.Add(*baseUrl+"/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var existingHeaders any = func() any {
 		if !ccxt.IsEqual(headers, nil) {

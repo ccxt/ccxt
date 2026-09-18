@@ -4572,7 +4572,7 @@ func (this *Woo) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
 	var intervalString *string = this.SafeString(fundingRate, "estFundingIntervalHours")
 	var interval any = nil
 	if intervalString != nil {
-		interval = Add(intervalString, "h")
+		interval = *intervalString + "h"
 	}
 	return map[string]any{
 		"info":                     fundingRate,

@@ -1549,7 +1549,7 @@ func (this *Bingx) ParseMarket(market any) any {
 	var swap bool = (IsEqual(typeVar, "swap"))
 	var symbol any = Add(Add(base, "/"), quote)
 	if settle != nil {
-		symbol = Add(symbol, Add(":", settle))
+		symbol = Add(symbol, ":"+*settle)
 	}
 	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
 	var contractSize any = nil
@@ -2459,7 +2459,7 @@ func (this *Bingx) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var interval *string = this.SafeString(contract, "fundingIntervalHours")
 	var intervalString any = nil
 	if interval != nil {
-		intervalString = Add(interval, "h")
+		intervalString = *interval + "h"
 	}
 	return map[string]any{
 		"info":                     contract,

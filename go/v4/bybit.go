@@ -9514,7 +9514,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	var intervals map[string]any = SafeMapTyped(this.Options, "intervals")
 	var interval *string = this.SafeString(intervals, timeframe) // 5min,15min,30min,1h,4h,1d
 	if interval == nil {
-		panic(BadRequest(Add(Add(this.Id+" fetchOpenInterest() cannot use the ", timeframe), " timeframe")))
+		panic(BadRequest(this.Id + " fetchOpenInterest() cannot use the " + *timeframe + " timeframe"))
 	}
 	var subType any = func() any {
 		if GetValue(market, "linear") == true {

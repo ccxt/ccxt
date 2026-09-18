@@ -540,7 +540,7 @@ func (this *Bybit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var topics any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		ccxt.AppendToArray(&topics, ccxt.Add(ccxt.Add(topic, "."), marketId))
+		ccxt.AppendToArray(&topics, ccxt.Add(*topic+".", marketId))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(symbols, i)))
 	}
 
@@ -595,7 +595,7 @@ func (this *Bybit) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var symbol any = ccxt.GetValue(symbols, i)
-		ccxt.AppendToArray(&topics, ccxt.Add(ccxt.Add(topic, "."), marketId))
+		ccxt.AppendToArray(&topics, ccxt.Add(*topic+".", marketId))
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add("ticker:", symbol))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", symbol))
 	}
@@ -943,7 +943,7 @@ func (this *Bybit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 		var symbolString any = ccxt.GetValue(market, "symbol")
 		var unfiedTimeframe any = ccxt.GetValue(data, 1)
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add("kline.", timeframeId), "."), ccxt.GetValue(market, "id")))
+		ccxt.AppendToArray(&rawHashes, ccxt.Add("kline."+*timeframeId+".", ccxt.GetValue(market, "id")))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unfiedTimeframe))
 	}
 	symboltimeframestoredVariable := (<-this.WatchTopicsAsync(url, messageHashes, rawHashes, params))
@@ -999,7 +999,7 @@ func (this *Bybit) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		var symbolString any = ccxt.GetValue(market, "symbol")
 		var unfiedTimeframe any = ccxt.GetValue(data, 1)
 		var timeframeId *string = this.SafeString(this.Timeframes, unfiedTimeframe, unfiedTimeframe)
-		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add("kline.", timeframeId), "."), ccxt.GetValue(market, "id")))
+		ccxt.AppendToArray(&rawHashes, ccxt.Add("kline."+*timeframeId+".", ccxt.GetValue(market, "id")))
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolString), "::"), unfiedTimeframe))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe))
 	}
@@ -3103,7 +3103,7 @@ func (this *Bybit) authenticateBody(ch chan any, url any, optionalArgs ...any) a
 		var expiresInt any = this.Milliseconds() + 10000
 		var expires *string = this.NumberToString(expiresInt)
 		var path string = "GET/realtime"
-		var auth any = ccxt.Add(path, expires)
+		var auth any = path + *expires
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "hex")
 		var request map[string]any = map[string]any{
 			"op":   "auth",

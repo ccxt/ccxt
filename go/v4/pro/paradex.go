@@ -512,7 +512,7 @@ func (this *Paradex) HandleOrder(client any, message any) {
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if symbol != nil {
-		var symbolMessageHash any = ccxt.Add(messageHash+":", symbol)
+		var symbolMessageHash any = messageHash + ":" + *symbol
 		client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 	}
 }

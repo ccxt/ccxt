@@ -1398,8 +1398,8 @@ func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccoun
 	if error != nil && *error == "error" {
 		var message *string = this.SafeString(response, 2, "")
 		// same message as in v1
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
-		panic(ExchangeError(Add(this.Id+" ", message)))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)
+		panic(ExchangeError(this.Id + " " + *message))
 	}
 
 	ch <- this.ParseTransfer(map[string]any{
@@ -3933,11 +3933,11 @@ func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, meth
 		// See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
 		var errorCode *string = this.SafeString(response, 1, "")
 		var errorText *string = this.SafeString(response, 2, "")
-		var feedback any = Add(this.Id+" ", errorText)
+		var feedback any = this.Id + " " + *errorText
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorText, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorText, feedback)
-		panic(ExchangeError(Add(Add(Add(Add(this.Id+" ", errorText), " (#"), errorCode), ")")))
+		panic(ExchangeError(this.Id + " " + *errorText + " (#" + *errorCode + ")"))
 	}
 	return response
 }

@@ -2681,7 +2681,7 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var symbol any = Add(Add(base, "/"), quote)
 		if settle != nil {
-			symbol = Add(symbol, Add(":", settle))
+			symbol = Add(symbol, ":"+*settle)
 		}
 		var contractType *string = this.SafeString(market, "contractType")
 		var expiry *int64 = this.SafeInteger(market, "expiryTime")
@@ -14662,7 +14662,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	params = this.Omit(params, "version")
-	var endpoint any = Add(Add(Add("/api/", version), "/"), this.ImplodeParams(path, params))
+	var endpoint any = Add("/api/"+*version+"/", this.ImplodeParams(path, params))
 	if IsEqual(api, "utaV2") {
 		endpoint = Add("/api/ua/v2/", this.ImplodeParams(path, params))
 	}
@@ -14742,7 +14742,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 		var partnerId *string = this.SafeString(partner, "id")
 		var partnerSecret *string = this.SafeString2(partner, "secret", "key")
 		if (partnerId != nil) && (partnerSecret != nil) {
-			var partnerPayload any = Add(Add(timestamp, partnerId), this.ApiKey)
+			var partnerPayload any = Add(timestamp+*partnerId, this.ApiKey)
 			var partnerSignature string = this.Hmac(this.Encode(partnerPayload), this.Encode(partnerSecret), sha256, "base64")
 			AddElementToObject(headers, "KC-API-PARTNER-SIGN", partnerSignature)
 			AddElementToObject(headers, "KC-API-PARTNER", partnerId)

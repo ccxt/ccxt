@@ -291,7 +291,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId string = ToLower(quote)
 		var id string = ToLower(baseCurr)
 		var res any = this.SafeDict(response1, marketId, map[string]any{})
-		var symbol any = Add(Add(baseCurr, "/"), quote)
+		var symbol any = *baseCurr + "/" + *quote
 		var fee any = func() any {
 			if id == "BTC" {
 				return this.ParseNumber("0.0005")

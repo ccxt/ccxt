@@ -1052,7 +1052,7 @@ func (this *Cryptocom) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candlestick"+".", interval), "."), ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add("candlestick"+"."+*interval+".", ccxt.GetValue(market, "id"))
 
 	ohlcv := (<-this.WatchPublicAsync(messageHash, params))
 	ccxt.PanicOnError(ohlcv)
@@ -1094,7 +1094,7 @@ func (this *Cryptocom) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candlestick"+".", interval), "."), ccxt.GetValue(market, "id"))
+	var subMessageHash any = ccxt.Add("candlestick"+"."+*interval+".", ccxt.GetValue(market, "id"))
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:ohlcv:", ccxt.GetValue(market, "symbol")), ":"), timeframe)
 	var subExtend map[string]any = map[string]any{
 		"symbolsAndTimeframes": []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}},

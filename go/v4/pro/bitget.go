@@ -1837,7 +1837,7 @@ func (this *Bitget) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(instType, ":positions::"))
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), *instType+":positions::")
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts []string = ccxt.Split(messageHash, "::")
@@ -1848,7 +1848,7 @@ func (this *Bitget) HandlePositions(client any, message any) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, ccxt.Add(instType, ":positions"))
+	client.(ccxt.ClientInterface).Resolve(newPositions, *instType+":positions")
 }
 func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) any {
 	//

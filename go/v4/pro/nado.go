@@ -505,7 +505,7 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market any = this.Market(marketSymbol)
 		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", timeframe), ":"), ccxt.GetValue(market, "symbol")))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add("ohlcv:"+*timeframe+":", ccxt.GetValue(market, "symbol")))
 		ccxt.AppendToArray(&subscriptionParams, this.Extend(map[string]any{
 			"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 		}, params))
@@ -590,7 +590,7 @@ func (this *Nado) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market any = this.Market(marketSymbol)
 		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", timeframe), ":"), ccxt.GetValue(market, "symbol")))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add("ohlcv:"+*timeframe+":", ccxt.GetValue(market, "symbol")))
 		ccxt.AppendToArray(&subscriptionParams, this.Extend(map[string]any{
 			"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 		}, params))
@@ -2304,8 +2304,8 @@ func (this *Nado) HandleBidAsk(client any, message any) {
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	var tickers map[string]any = map[string]any{}
 	ccxt.AddElementToObject(tickers, symbol, ticker)
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("bidask:", symbol))
-	client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker:", symbol))
+	client.(ccxt.ClientInterface).Resolve(ticker, "bidask:"+*symbol)
+	client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+*symbol)
 	client.(ccxt.ClientInterface).Resolve(tickers, "bidask")
 	client.(ccxt.ClientInterface).Resolve(tickers, "ticker")
 }
@@ -2432,7 +2432,7 @@ func (this *Nado) HandleExecuteResponse(client any, message any) {
 	if id == nil {
 		return
 	}
-	var messageHash any = ccxt.Add("execute:", id)
+	var messageHash any = "execute:" + *id
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if !ccxt.IsEqual(subscription, nil) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -2574,7 +2574,7 @@ func (this *Nado) HandleErrorMessage(client any, message any) any {
 	feedback := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message)))
 	var id *string = this.SafeString(message, "id")
 	if id != nil {
-		var executeHash any = ccxt.Add("execute:", id)
+		var executeHash any = "execute:" + *id
 		var executeSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), executeHash)
 		if !ccxt.IsEqual(executeSubscription, nil) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), executeHash)
@@ -2613,12 +2613,12 @@ func (this *Nado) HandleMessage(client any, message any) {
 		return
 	}
 	if (id != nil) && hasResult {
-		var authentication any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("authentication:", id))
+		var authentication any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authentication:"+*id)
 		if !ccxt.IsEqual(authentication, nil) {
 			this.HandleAuthentication(client, message)
 			return
 		}
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("subscription:", id))
+		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "subscription:"+*id)
 		if !ccxt.IsEqual(subscription, nil) {
 			this.HandleSubscription(client, message)
 			return

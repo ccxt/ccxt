@@ -1559,7 +1559,7 @@ func (this *Paradex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// zero hours is not an interval, and a caller annualising a rate divides by it
 	var interval any = nil
 	if (hours != nil) && Precise.StringGt(hours, "0") {
-		interval = Add(hours, "h")
+		interval = *hours + "h"
 	}
 	return map[string]any{
 		"info": contract,

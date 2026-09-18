@@ -1611,7 +1611,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	//
 	var balances any = this.SafeValue(response, accountName)
 	if IsEqual(balances, nil) {
-		panic(ExchangeError(Add(Add(this.Id+" fetchBalance() could not find the \"", accountName), "\" account")))
+		panic(ExchangeError(this.Id + " fetchBalance() could not find the \"" + *accountName + "\" account"))
 	}
 	var result map[string]any = map[string]any{
 		"info": response,

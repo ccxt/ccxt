@@ -2913,7 +2913,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if clientOrderId == nil {
 		var defaultId string = "x-167673045"
 		var brokerId *string = this.SafeString(this.Options, "brokerId", defaultId)
-		request["client_id"] = Add(Add(brokerId, "-"), this.Uuid16())
+		request["client_id"] = *brokerId + "-" + this.Uuid16()
 	} else {
 		request["client_id"] = clientOrderId
 	}
@@ -3484,7 +3484,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var code *string = this.SafeString(entry, "code")
 		var message *string = this.SafeString(entry, "message", "")
 		if (code == nil || *code != "0") || ((message == nil || *message != "Success") && (message == nil || *message != "Succeeded") && (ToLower(message) != "ok") && (IsEqual(data, nil))) {
-			var feedback any = Add(this.Id+" ", message)
+			var feedback any = this.Id + " " + *message
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			panic(ExchangeError(feedback))
@@ -6793,7 +6793,7 @@ func (this *Coinex) HandleErrors(httpCode any, reason any, url any, method any, 
 	var data any = this.SafeValue(response, "data")
 	var message *string = this.SafeString(response, "message", "")
 	if (code == nil || *code != "0") || ((message == nil || *message != "Success") && (message == nil || *message != "Succeeded") && (ToLower(message) != "ok") && (IsEqual(data, nil))) {
-		var feedback any = Add(this.Id+" ", message)
+		var feedback any = this.Id + " " + *message
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))

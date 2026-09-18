@@ -4808,7 +4808,7 @@ func (this *Okx) CreateOrderRequest(symbol any, typeVar any, side any, amount an
 	if clientOrderId == nil {
 		var brokerId *string = this.SafeString(this.Options, "brokerId")
 		if brokerId != nil {
-			AddElementToObject(request, "clOrdId", Add(brokerId, this.Uuid16()))
+			AddElementToObject(request, "clOrdId", *brokerId+this.Uuid16())
 			AddElementToObject(request, "tag", brokerId)
 		}
 	} else {
@@ -8664,7 +8664,7 @@ func (this *Okx) Sign(path any, optionalArgs ...any) any {
 					var entry any = GetValue(params, i)
 					var clientOrderId *string = this.SafeString(entry, "clOrdId")
 					if clientOrderId == nil {
-						AddElementToObject(entry, "clOrdId", Add(brokerId, this.Uuid16()))
+						AddElementToObject(entry, "clOrdId", *brokerId+this.Uuid16())
 						AddElementToObject(entry, "tag", brokerId)
 						AddElementToObject(params, i, entry)
 					}
@@ -8672,7 +8672,7 @@ func (this *Okx) Sign(path any, optionalArgs ...any) any {
 			} else {
 				var clientOrderId *string = this.SafeString(params, "clOrdId")
 				if clientOrderId == nil {
-					AddElementToObject(params, "clOrdId", Add(brokerId, this.Uuid16()))
+					AddElementToObject(params, "clOrdId", *brokerId+this.Uuid16())
 					AddElementToObject(params, "tag", brokerId)
 				}
 			}

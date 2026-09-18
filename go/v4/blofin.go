@@ -2603,7 +2603,7 @@ func (this *Blofin) NetworkCodeToChainId(networkCode any) any {
 	if prefix != nil {
 		var suffixes map[string]any = SafeMapTyped(this.Options, "networkSuffixes")
 		var suffix *string = this.SafeString(suffixes, networkCode, networkCode)
-		return Add(Add(Add(Add(prefix, " "), "("), suffix), ")")
+		return *prefix + " " + "(" + *suffix + ")"
 	}
 	return networkCode
 }

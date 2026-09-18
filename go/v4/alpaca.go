@@ -920,7 +920,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchTrades() does not support ", method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
+		panic(NotSupported(this.Id + " fetchTrades() does not support " + *method + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported"))
 	}
 	var symbolTradesList any = []any{}
 	if !IsEqual(symbolTrades, nil) {
@@ -1164,7 +1164,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		var bar any = this.SafeDict(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchOHLCV() does not support ", method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
+		panic(NotSupported(this.Id + " fetchOHLCV() does not support " + *method + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported"))
 	}
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)

@@ -825,7 +825,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
 		var entry any = ccxt.GetValue(data, i)
 		var marketId *string = this.SafeString(entry, "s")
 		var symbol *string = this.SafeSymbol(marketId)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderBook::", symbol), "::"), channel)
+		var messageHash any = ccxt.Add("orderBook::"+*symbol+"::", channel)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -1639,7 +1639,7 @@ func (this *Toobit) HandleErrorMessage(client any, message any) any {
 	var code *string = this.SafeString(message, "code")
 	if code != nil {
 		var desc *string = this.SafeString(message, "desc")
-		var msg any = ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" code: ", code), " message: "), desc)
+		var msg any = ccxt.Add(this.Id+" code: "+*code+" message: ", desc)
 		exception := ccxt.ExchangeError(msg) // c# fix
 		client.(ccxt.ClientInterface).Reject(exception)
 		return true

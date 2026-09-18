@@ -3024,7 +3024,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 			if GetLength(queryString) > 0 {
 				queryString = Add(queryString, "&")
 			}
-			payload = Add(Add(Add(Add(Add(Add(Add("instruction=", instruction), "&"), queryString), "timestamp="), ts), "&window="), recvWindow)
+			payload = Add(Add(Add(Add(Add("instruction="+*instruction+"&", queryString), "timestamp="), ts), "&window="), recvWindow)
 		}
 		var secretBytes []byte = this.Base64ToBinary(this.Secret)
 		var seed any = this.ArraySlice(secretBytes, 0, 32)

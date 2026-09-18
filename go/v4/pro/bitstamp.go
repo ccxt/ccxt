@@ -222,7 +222,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message any) {
 	if deltaNonce == nil {
 		return
 	}
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	if ccxt.IsEqual(nonce, nil) {
 		var cacheLength int = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		// the rest API is very delayed
@@ -1004,7 +1004,7 @@ func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message any) {
 	if channel == nil {
 		return
 	}
-	var unsubHash any = ccxt.Add("unsubscribe:", channel)
+	var unsubHash any = "unsubscribe:" + *channel
 	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), unsubHash)
 	if ccxt.IsEqual(subscription, nil) {
 		return

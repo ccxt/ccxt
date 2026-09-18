@@ -1240,7 +1240,7 @@ func (this *Weex) ParseMarket(market any) any {
 	var isLinear any = nil
 	var isInverse any = nil
 	if settle != nil {
-		symbol = Add(symbol, Add(":", settle))
+		symbol = Add(symbol, ":"+*settle)
 		isSpot = false
 		if settle == quote || (settle != nil && quote != nil && *settle == *quote) {
 			isLinear = true
@@ -2856,7 +2856,7 @@ func (this *Weex) CreateSpotOrderRequest(symbol any, typeVar any, side any, amou
 	params = this.Omit(params, "clientOrderId")
 	if IsEqual(clientOrderId, nil) {
 		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
-		clientOrderId = Add(Add(partner, "-"), this.Uuid22())
+		clientOrderId = *partner + "-" + this.Uuid22()
 	}
 	request["newClientOrderId"] = clientOrderId
 	// timeInForce is passed directly from params
@@ -3004,7 +3004,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	var clientOrderId any = DerefScalar(this.SafeString(params, "clientOrderId"))
 	if IsEqual(clientOrderId, nil) {
 		var partner *string = this.SafeString(params, "partner", "b-WEEX111125")
-		clientOrderId = Add(Add(partner, "-"), this.Uuid22())
+		clientOrderId = *partner + "-" + this.Uuid22()
 	}
 	var callerMethodName *string = this.SafeString(params, "callerMethodName")
 	if isTrigger {
@@ -5606,7 +5606,7 @@ func (this *Weex) ToSandboxMarketId(market any) any {
 	var baseId *string = this.SafeString(market, "baseId")
 	if (sandboxMode != nil && *sandboxMode == true) && (baseId != nil) {
 		// demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
-		return Add(baseId, "SUSDT")
+		return *baseId + "SUSDT"
 	}
 	return this.SafeString(market, "id")
 }

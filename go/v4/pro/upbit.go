@@ -400,7 +400,7 @@ func (this *Upbit) HandleOrderBook(client any, message any) {
 	var datetime *string = this.Iso8601(timestamp)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", datetime)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Upbit) HandleTrades(client any, message any) {
@@ -450,7 +450,7 @@ func (this *Upbit) HandleOHLCV(client any, message any) {
 	//   }
 	var marketId *string = this.SafeString(message, "code")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add("candle.1s:", symbol)
+	var messageHash any = "candle.1s:" + *symbol
 	var ohlcv any = this.ParseOHLCV(message)
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }

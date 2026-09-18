@@ -646,7 +646,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message any) any {
 		// but requires 'matches' upon subscribing
 		// therefore we resolve 'matches' here instead of 'match'
 		var typeVar string = "matches"
-		var messageHash any = ccxt.Add(typeVar+":", marketId)
+		var messageHash any = typeVar + ":" + *marketId
 		var tradesArray any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(tradesArray, nil) {
 			var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -665,7 +665,7 @@ func (this *Coinbaseexchange) HandleMyTrade(client any, message any) any {
 	if marketId != nil {
 		var trade any = this.ParseWsTrade(message)
 		var typeVar string = "myTrades"
-		var messageHash any = ccxt.Add(typeVar+":", marketId)
+		var messageHash any = typeVar + ":" + *marketId
 		var tradesArray any = this.MyTrades
 		if ccxt.IsEqual(tradesArray, nil) {
 			var limit *int64 = this.SafeInteger(this.Options, "myTradesLimit", 1000)
@@ -864,7 +864,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
-		var messageHash any = ccxt.Add("orders:", marketId)
+		var messageHash any = "orders:" + *marketId
 		var symbol *string = this.SafeSymbol(marketId)
 		var orderId *string = this.SafeString(message, "order_id")
 		var makerOrderId *string = this.SafeString(message, "maker_order_id")
@@ -1033,7 +1033,7 @@ func (this *Coinbaseexchange) HandleTicker(client any, message any) any {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
 		var messageHash any = ccxt.Add("ticker:", symbol)
-		var idMessageHash any = ccxt.Add("ticker:", marketId)
+		var idMessageHash any = "ticker:" + *marketId
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 		client.(ccxt.ClientInterface).Resolve(ticker, idMessageHash)
 	}

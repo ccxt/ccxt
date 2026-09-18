@@ -1348,7 +1348,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 	var cost any = nil
 	var feeCurrencyId *string = this.SafeStringLower(market, "quoteId")
 	if feeCurrencyId != nil {
-		var costField any = Add(feeCurrencyId, "_value")
+		var costField any = *feeCurrencyId + "_value"
 		cost = DerefScalar(this.SafeString(trade, costField))
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {

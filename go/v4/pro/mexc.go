@@ -538,7 +538,7 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 		return
 	}
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedTicker)
-	var messageHash any = ccxt.Add("bidask:", symbol)
+	var messageHash any = "bidask:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
 func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
@@ -1044,7 +1044,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	var data any = this.SafeDictN(message, []any{"d", "data", "publicAggreDepths"})
 	var marketId *string = this.SafeString2(message, "s", "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {

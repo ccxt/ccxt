@@ -231,7 +231,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message any) {
 	} else if event != nil && *event == "updated" {
 		var marketId *string = this.SafeString(message, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, "-")
-		var messageHash any = ccxt.Add("ohlcv:", symbol)
+		var messageHash any = "ohlcv:" + *symbol
 		var request any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe any = this.FindTimeframe(timeframeId)
@@ -453,7 +453,7 @@ func (this *Blockchaincom) HandleTrades(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
-	var messageHash any = ccxt.Add("trades:", symbol)
+	var messageHash any = "trades:" + *symbol
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -830,7 +830,7 @@ func (this *Blockchaincom) HandleOrderBook(client any, message any) {
 	var typeVar *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), typeVar)
+	var messageHash any = ccxt.Add("orderbook:"+*symbol+":", typeVar)
 	var datetime *string = this.SafeString(message, "timestamp")
 	var timestamp *int64 = this.Parse8601(datetime)
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {

@@ -272,7 +272,7 @@ func (this *Onetrading) HandleTicker(client any, message any) {
 		var timestamp *int64 = this.Parse8601(datetime)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Tickers, symbol), "timestamp", timestamp)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Tickers, symbol), "datetime", this.Iso8601(timestamp))
-		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), ccxt.Add("ticker.", symbol))
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), "ticker."+*symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Tickers, "tickers")
 }
@@ -470,7 +470,7 @@ func (this *Onetrading) HandleOrderBook(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
 	var timestamp *int64 = this.Parse8601(dateTime)
-	var channel any = ccxt.Add("book:", symbol)
+	var channel any = "book:" + *symbol
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
 		orderbook = this.OrderBook(map[string]any{})
@@ -845,13 +845,13 @@ func (this *Onetrading) HandleOrders(client any, message any) {
 		var order any = this.ParseOrder(ccxt.GetValue(rawOrders, i))
 		var symbol *string = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
-		client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("orders:", symbol))
+		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+*symbol)
 		var rawTrades any = this.SafeList(ccxt.GetValue(rawOrders, i), "trades", []any{})
 		for ii := 0; ii < ccxt.GetArrayLength(rawTrades); ii++ {
 			var trade any = this.ParseTrade(ccxt.GetValue(rawTrades, ii))
 			symbol = this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.(ccxt.Appender).Append(trade)
-			client.(ccxt.ClientInterface).Resolve(this.MyTrades, ccxt.Add("myTrades:", symbol))
+			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+*symbol)
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
@@ -1304,7 +1304,7 @@ func (this *Onetrading) HandleOHLCV(client any, message any) {
 	var timeframeId any = this.SafeValue(message, "granularity")
 	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
 	var timeframe any = this.FindTimeframe(timeframeId, timeframes)
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv.", symbol), "."), timeframe)
+	var channel any = ccxt.Add("ohlcv."+*symbol+".", timeframe)
 	var parsed []any = []any{this.Parse8601(dateTime), this.SafeNumber(message, "open"), this.SafeNumber(message, "high"), this.SafeNumber(message, "low"), this.SafeNumber(message, "close"), this.SafeNumber(message, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)

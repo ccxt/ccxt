@@ -569,7 +569,7 @@ func (this *Deribit) HandleTrades(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("trades|", symbol), "|"), interval)
+	var messageHash any = ccxt.Add("trades|"+*symbol+"|", interval)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
 
@@ -613,7 +613,7 @@ func (this *Deribit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var interval *string = this.SafeString(params, "interval", "raw")
 	params = this.Omit(params, "interval")
-	var channel any = ccxt.Add("user.trades.any.any.", interval)
+	var channel any = "user.trades.any.any." + *interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
@@ -847,7 +847,7 @@ func (this *Deribit) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(storedOrderBook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(storedOrderBook, "symbol", symbol)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, storedOrderBook)
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("book|", symbol), "|"), descriptor)
+	var messageHash any = ccxt.Add("book|"+*symbol+"|", descriptor)
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Deribit) CleanOrderBook(data any) any {
@@ -923,7 +923,7 @@ func (this *Deribit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var interval *string = this.SafeString(params, "interval", "raw")
 	var kind *string = this.SafeString(params, "kind", "any")
 	params = this.Omit(params, "interval", "currency", "kind")
-	var channel any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("user.orders.", kind), "."), currency), "."), interval)
+	var channel any = "user.orders." + *kind + "." + *currency + "." + *interval
 	var message map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "private/subscribe",
@@ -1349,7 +1349,7 @@ func (this *Deribit) authenticateBody(ch chan any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var requestId any = this.RequestId()
 		var lineBreak string = "\n" // eslint-disable-line quotes
-		var signature string = this.Hmac(this.Encode(ccxt.Add(ccxt.Add(ccxt.Add(timeString, lineBreak), nonce), lineBreak)), this.Encode(this.Secret), ccxt.Sha256)
+		var signature string = this.Hmac(this.Encode(*timeString+lineBreak+*nonce+lineBreak), this.Encode(this.Secret), ccxt.Sha256)
 		var request map[string]any = map[string]any{
 			"jsonrpc": "2.0",
 			"id":      requestId,

@@ -141,7 +141,7 @@ func (this *Hashkey) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var topic any = ccxt.Add("kline_", interval)
+	var topic any = "kline_" + *interval
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
 
 	ohlcv := (<-this.WathPublicAsync(market, topic, messageHash, params))
@@ -200,7 +200,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 		var parsed any = this.ParseWsOHLCV(candle, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", symbol), ":"), timeframe)
+	var messageHash any = ccxt.Add("ohlcv:"+*symbol+":", timeframe)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Hashkey) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -454,7 +454,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 	}

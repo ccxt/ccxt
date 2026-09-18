@@ -446,7 +446,7 @@ func (this *Xt) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) an
 	var options any = this.SafeDict(this.Options, "watchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var name any = ccxt.Add(ccxt.Add(method, "@"), ccxt.GetValue(market, "id"))
+	var name any = ccxt.Add(*method+"@", ccxt.GetValue(market, "id"))
 
 	retRes32115 := (<-this.SubscribeAsync(name, "public", "watchTicker", market, nil, params))
 	ccxt.PanicOnError(retRes32115)
@@ -484,7 +484,7 @@ func (this *Xt) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	var options any = this.SafeDict(this.Options, "unWatchTicker")
 	var defaultMethod *string = this.SafeString(options, "method", "ticker")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var name any = ccxt.Add(ccxt.Add(method, "@"), ccxt.GetValue(market, "id"))
+	var name any = ccxt.Add(*method+"@", ccxt.GetValue(market, "id"))
 	var messageHash any = ccxt.Add("unsubscribe::", name)
 
 	retRes34515 := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTicker", defaultMethod, market, nil, params))
@@ -575,7 +575,7 @@ func (this *Xt) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only"))
 	}
-	var messageHash any = ccxt.Add("unsubscribe::", name)
+	var messageHash any = "unsubscribe::" + *name
 
 	tickers := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTickers", "ticker", nil, symbols, params))
 	ccxt.PanicOnError(tickers)
@@ -1613,7 +1613,7 @@ func (this *Xt) HandleOrderBook(client any, message any) {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var obAsks any = this.SafeList(data, "a")
 		var obBids any = this.SafeList(data, "b")
-		var messageHash any = ccxt.Add(ccxt.Add(event, "::"), tradeType)
+		var messageHash any = *event + "::" + tradeType
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")

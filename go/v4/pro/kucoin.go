@@ -2236,7 +2236,7 @@ func (this *Kucoin) HandleOrderBook(client any, message any) {
 	var topicChannel *string = this.SafeString(topicParts, 0)
 	var marketId *string = this.SafeString(data, "symbol", topicSymbol)
 	var symbol *string = this.SafeSymbol(marketId, nil, "-")
-	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var messageHash any = "orderbook:" + *symbol
 	// let orderbook = this.safeDict (this.orderbooks, symbol)
 	if ccxt.GetIndexOf(topic, "Depth") >= 0 {
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -3310,10 +3310,10 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var awaitBalanceSnapshot *bool = this.SafeBool(options, "awaitBalanceSnapshot", true)
 	if (fetchBalanceSnapshot != nil && *fetchBalanceSnapshot == true) && (awaitBalanceSnapshot != nil && *awaitBalanceSnapshot == true) {
 
-		retRes261612 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(uniformType, ":fetchBalanceSnapshot")))
+		retRes261612 := (<-client.(ccxt.ClientInterface).Future(*uniformType + ":fetchBalanceSnapshot"))
 		ccxt.PanicOnError(retRes261612)
 	}
-	var messageHash any = ccxt.Add(uniformType, ":balance")
+	var messageHash any = *uniformType + ":balance"
 	if ccxt.EvalTruthy(uta) {
 		var extendedParams map[string]any = map[string]any{
 			"accountType": uniformType,
@@ -3488,7 +3488,7 @@ func (this *Kucoin) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, uniformType), code, account)
 	}
 	ccxt.AddElementToObject(this.Balance, uniformType, this.SafeBalance(ccxt.GetValue(this.Balance, uniformType)))
-	var messageHash any = ccxt.Add(uniformType, ":balance")
+	var messageHash any = *uniformType + ":balance"
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, uniformType), messageHash)
 }
 func (this *Kucoin) HandleUtaBalance(client any, message any) {
@@ -3861,7 +3861,7 @@ func (this *Kucoin) HandlePosition(client any, message any) {
 	var symbol *string = this.SafeSymbol(marketId, nil, "")
 	var cache any = this.Positions
 	var currentPosition any = this.GetCurrentPosition(symbol)
-	var messageHash any = ccxt.Add("position:", symbol)
+	var messageHash any = "position:" + *symbol
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var newPosition any = this.ParsePosition(data)
 	var keys []string = ccxt.ObjectKeys(newPosition)
@@ -3920,7 +3920,7 @@ func (this *Kucoin) HandleUtaPosition(client any, message any) {
 	var position map[string]any = this.Extend(currentPosition, newPosition)
 	cache.(ccxt.Appender).Append(position)
 	var messageHash string = "positions"
-	var symbolMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolMessageHash any = messageHash + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)
 	client.(ccxt.ClientInterface).Resolve(this.Positions, symbolMessageHash)
 }

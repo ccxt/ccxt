@@ -7747,7 +7747,7 @@ func (this *Binance) EditSpotOrderRequest(id any, symbol any, typeVar any, side 
 		if !IsEqual(broker, nil) {
 			var brokerId *string = this.SafeString(broker, "spot")
 			if brokerId != nil {
-				request["newClientOrderId"] = Add(brokerId, this.Uuid22())
+				request["newClientOrderId"] = *brokerId + this.Uuid22()
 			}
 		}
 	} else {
@@ -9312,7 +9312,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			}()
 		}
 		var brokerId *string = this.SafeString(broker, idMarketType, defaultId)
-		AddElementToObject(request, clientOrderIdRequest, Add(brokerId, this.Uuid22()))
+		AddElementToObject(request, clientOrderIdRequest, *brokerId+this.Uuid22())
 	} else {
 		AddElementToObject(request, clientOrderIdRequest, clientOrderId)
 	}
@@ -12573,7 +12573,7 @@ func (this *Binance) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 				var keys []string = ObjectKeys(accountsByType)
 				panic(ExchangeError(this.Id + " toAccount parameter must be one of " + Join(keys, ", ")))
 			}
-			typeVar = Add(Add(fromId, "_"), toId)
+			typeVar = *fromId + "_" + *toId
 		}
 		request["type"] = typeVar
 		limitKey = "size"
@@ -13591,7 +13591,7 @@ func (this *Binance) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 		response = (<-this.DapiPublicGetFundingRate(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchFundingRateHistory() is not supported for ", typeVar), " markets")))
+		panic(NotSupported(this.Id + " fetchFundingRateHistory() is not supported for " + *typeVar + " markets"))
 	}
 
 	//
@@ -13716,7 +13716,7 @@ func (this *Binance) ParseFundingRate(contract any, optionalArgs ...any) any {
 	var interval *string = this.SafeString(contract, "fundingIntervalHours")
 	var intervalString any = nil
 	if interval != nil {
-		intervalString = Add(interval, "h")
+		intervalString = *interval + "h"
 	}
 	return map[string]any{
 		"info":                     contract,
@@ -16152,7 +16152,7 @@ func (this *Binance) GetBaseDomainFromUrl(url any) any {
 	if domain == nil {
 		return nil
 	}
-	return Add(Add(Add(scheme, "//"), domain), "/")
+	return *scheme + "//" + *domain + "/"
 }
 func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -16218,7 +16218,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 				}()
 				var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
 				var brokerId *string = this.SafeString(broker, marketType, defaultId)
-				AddElementToObject(params, "newClientOrderId", Add(brokerId, this.Uuid22()))
+				AddElementToObject(params, "newClientOrderId", *brokerId+this.Uuid22())
 			}
 		}
 		var query any = nil
@@ -16236,7 +16236,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 						var defaultId string = "x-xcKtGhcu" // batchOrders can not be spot or margin
 						var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
 						var brokerId *string = this.SafeString(broker, "future", defaultId)
-						newClientOrderId = Add(brokerId, this.Uuid22())
+						newClientOrderId = *brokerId + this.Uuid22()
 						AddElementToObject(batchOrder, "newClientOrderId", newClientOrderId)
 					}
 					AppendToArray(&checkedBatchOrders, batchOrder)
@@ -16402,10 +16402,10 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 	}
 	var message *string = this.SafeString(response, "msg")
 	if message != nil {
-		this.ThrowExactlyMatchedException(this.GetExceptionsByUrl(url, "exact"), message, Add(this.Id+" ", message))
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
-		this.ThrowBroadlyMatchedException(this.GetExceptionsByUrl(url, "broad"), message, Add(this.Id+" ", message))
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, Add(this.Id+" ", message))
+		this.ThrowExactlyMatchedException(this.GetExceptionsByUrl(url, "exact"), message, this.Id+" "+*message)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, this.Id+" "+*message)
+		this.ThrowBroadlyMatchedException(this.GetExceptionsByUrl(url, "broad"), message, this.Id+" "+*message)
+		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, this.Id+" "+*message)
 	}
 	// checks against error codes
 	var error *string = this.SafeString(response, "code")
