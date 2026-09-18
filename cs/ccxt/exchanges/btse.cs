@@ -3655,7 +3655,7 @@ public partial class btse : Exchange
         return await this.FetchPositions(new List<object>() {symbol}, parameters);
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -4254,7 +4254,7 @@ public partial class btse : Exchange
         };
     }
 
-    public virtual string? futuresRequestId(object market)
+    public virtual string? futuresRequestId(IDictionary<string, object> market)
     {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read

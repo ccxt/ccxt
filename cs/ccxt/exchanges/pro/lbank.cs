@@ -62,7 +62,7 @@ public partial class lbank : ccxt.lbank
         return ((Int64)((object)(newValue))!);
     }
 
-    public virtual void checkContractMarket(object market, object methodName)
+    public virtual void checkContractMarket(IDictionary<string, object> market, object methodName)
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864

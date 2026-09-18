@@ -1440,7 +1440,7 @@ public partial class phemex : Exchange
         });
     }
 
-    public virtual List<object> customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object market = null)
+    public virtual List<object> customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, IDictionary<string, object> market = null)
     {
         priceKey ??= 0;
         amountKey ??= 1;
@@ -1456,7 +1456,7 @@ public partial class phemex : Exchange
         return new List<object> {this.parseNumber(this.fromEp(this.safeString(bidask, priceKey), market)), this.parseNumber(amount)};
     }
 
-    public virtual Dictionary<string, object> customParseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object market = null)
+    public virtual Dictionary<string, object> customParseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, IDictionary<string, object> market = null)
     {
         bidsKey ??= "bids";
         asksKey ??= "asks";
@@ -1568,7 +1568,7 @@ public partial class phemex : Exchange
         return this.parseToNumeric(preciseString);
     }
 
-    public virtual object toEv(object amount, object market = null)
+    public virtual object toEv(object amount, IDictionary<string, object> market = null)
     {
         if ((isEqual(amount, null)) || (isEqual(market, null)))
         {
@@ -1577,7 +1577,7 @@ public partial class phemex : Exchange
         return this.toEn(amount, this.safeInteger(market, "valueScale"));
     }
 
-    public virtual object toEp(object price, object market = null)
+    public virtual object toEp(object price, IDictionary<string, object> market = null)
     {
         if ((isEqual(price, null)) || (isEqual(market, null)))
         {
@@ -4580,7 +4580,7 @@ public partial class phemex : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolSinceLimit(positions, symbolVar, since, limit));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //    {

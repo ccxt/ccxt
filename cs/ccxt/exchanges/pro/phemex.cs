@@ -774,13 +774,13 @@ public partial class phemex : ccxt.phemex
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
 
-    public virtual void customHandleDelta(object bookside, object delta, object market = null)
+    public virtual void customHandleDelta(object bookside, object delta, IDictionary<string, object> market = null)
     {
         List<object> bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
-    public virtual void customHandleDeltas(object bookside, object deltas, object market = null)
+    public virtual void customHandleDeltas(object bookside, object deltas, IDictionary<string, object> market = null)
     {
         for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {

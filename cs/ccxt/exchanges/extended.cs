@@ -1306,7 +1306,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToFundingHistoryList(this.parseFundingHistories(result, market, since, limit));
     }
 
-    public virtual object parseFundingHistory(object history, object market = null)
+    public virtual object parseFundingHistory(object history, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1338,7 +1338,7 @@ public partial class extended : Exchange
         };
     }
 
-    public virtual object parseFundingHistories(object histories, object market = null, object since = null, object limit = null)
+    public virtual object parseFundingHistories(object histories, IDictionary<string, object> market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(histories)); postFixIncrement(ref i))
@@ -2731,7 +2731,7 @@ public partial class extended : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit, "timestamp"));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {

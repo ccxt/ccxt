@@ -1221,7 +1221,7 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public virtual IDictionary<string, object> findOutcomeInMarket(object market, object sideHint = null)
+    public virtual IDictionary<string, object> findOutcomeInMarket(IDictionary<string, object> market, object sideHint = null)
     {
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
         string? normalizedHint = (!isEqual(sideHint, null) && !isEqual(sideHint, "")) ? ((string)sideHint).ToUpper() : null;

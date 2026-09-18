@@ -1284,7 +1284,7 @@ public partial class BaseExchange
         throw new NotSupported (add(this.id, " fetchLeverageTiers() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parsePosition(object position, object market = null)
+    public virtual Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         throw new NotSupported (add(this.id, " parsePosition() is not supported yet")) ;
     }
@@ -2028,7 +2028,7 @@ public partial class BaseExchange
         }, currency);
     }
 
-    public virtual Dictionary<string, object> safeMarketStructure(object market = null)
+    public virtual Dictionary<string, object> safeMarketStructure(IDictionary<string, object> market = null)
     {
         Dictionary<string, object> cleanStructure = new Dictionary<string, object>() {
             { "id", null },
@@ -2818,7 +2818,7 @@ public partial class BaseExchange
         return this.calculateFeeWithRate(symbol, type, side, amount, price, takerOrMaker, null, parameters);
     }
 
-    public virtual object safeLiquidation(object liquidation, object market = null)
+    public virtual object safeLiquidation(object liquidation, IDictionary<string, object> market = null)
     {
         string? contracts = this.safeString(liquidation, "contracts");
         string? contractSize = this.safeString(market, "contractSize");
@@ -5090,7 +5090,7 @@ public partial class BaseExchange
         return new List<object>() {defaultType, parameters};
     }
 
-    public virtual List<object> handleSubTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
+    public virtual List<object> handleSubTypeAndParams(object methodName, IDictionary<string, object> market = null, object parameters = null, object defaultValue = null)
     {
         parameters ??= new Dictionary<string, object>();
         object subType = null;

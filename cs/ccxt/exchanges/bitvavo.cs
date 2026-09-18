@@ -1066,7 +1066,7 @@ public partial class bitvavo : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(response));
     }
 
-    public virtual Dictionary<string, object> parseTradingFees(object fees, object market = null)
+    public virtual Dictionary<string, object> parseTradingFees(object fees, IDictionary<string, object> market = null)
     {
         //
         //     {

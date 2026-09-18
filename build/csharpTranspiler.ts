@@ -1233,6 +1233,24 @@ const PARSE_MARKET_PARAM_DICTS: string[] = [
     'parseWsOrderTrade', 'parseWsOrderUpdate', 'parseWsPosition', 'parseWsTrades',
     'parseWsUpdatedTicker', 'parseWsUtaOrder', 'parseWsUtaPosition', 'parseWsUtaTicker',
     'parseWsUtaTrade',
+    // cs90 U51: the `object market` parameters S37 left. Same admission rule (every call site
+    // passes null / a Dictionary / IDictionary value / an admitted name's own `market` parameter
+    // -- fixed point over both lists -- and every body use is a dict use); the transitive closure
+    // is derived by campaigns/cs90/tools/U51/{market-census4,admission-verdict}.py.
+    'CreateSpotOrder', 'CreateSwapOrder', 'checkContractMarket', 'createOrderRequest',
+    'createPublicRequest', 'createSpotOrderRequest', 'customHandleDelta', 'customHandleDeltas',
+    'customParseBidAsk', 'customParseOrderBook', 'editOrderRequest', 'findOutcomeInMarket',
+    'futuresRequestId', 'getBybitType', 'getDexFromHip3Symbol', 'getGen2MarketId', 'getInstType',
+    'getMarketIdByType', 'getMarketType', 'getOrderChannelAndMessageHash',
+    'getProductGroupFromMarket', 'getTypeByMarket', 'getUrlByMarket',
+    'getV5LinearChannelAndMessageHash', 'handleOrderBookMessage', 'handleProductTypeAndParams',
+    'handleSubTypeAndParams', 'isNativeMarket', 'multiOrderSpotPrepareRequest', 'orderBookSuffix',
+    'orderMessage', 'orderToTrade', 'parseAmmEventToOrder', 'parseFundingHistories',
+    'parseFundingHistory', 'parseLeverageFromMarket', 'parsePosition', 'parseTradingFees',
+    'prepareRequest', 'resolveAuthType', 'safeLiquidation', 'safeMarketStructure',
+    'spotOrderPrepareRequest',
+    'subscribe', 'toEp', 'toEv', 'toSandboxMarketId', 'unSubscribe', 'unWatch', 'unWatchPublic',
+    'unsubscribePublic', 'watchPublic', 'wathPublic',
 ];
 
 // the emitted declaration line the pass rewrites, and the `market` parameter inside it (with and

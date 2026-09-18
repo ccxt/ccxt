@@ -1573,7 +1573,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook, object messageHash, object market = null)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook, object messageHash, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -1954,7 +1954,7 @@ public partial class okx : ccxt.okx
         callDynamically(client, "resolve", new object[] {this.balance, channel});
     }
 
-    public virtual Dictionary<string, object> orderToTrade(object order, object market = null)
+    public virtual Dictionary<string, object> orderToTrade(object order, IDictionary<string, object> market = null)
     {
         object info = this.safeValue(order, "info", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(info, "fillTime");

@@ -3421,7 +3421,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual string? getDexFromHip3Symbol(object market)
+    public virtual string? getDexFromHip3Symbol(IDictionary<string, object> market)
     {
         string? baseName = this.safeString(market, "baseName", "");
         List<object> part = baseName.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
@@ -4251,7 +4251,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbols, false));
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
