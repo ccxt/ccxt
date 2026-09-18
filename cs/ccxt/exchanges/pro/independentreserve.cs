@@ -83,7 +83,7 @@ public partial class independentreserve : ccxt.independentreserve
         //        "Event": "Trade"
         //    }
         //
-        object data = this.safeValue(message, "Data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "Data", new Dictionary<string, object>() {}));
         string? marketId = this.safeString(data, "Pair");
         string? symbol = this.safeSymbol(marketId, null, "-");
         string messageHash = ("trades:" + symbol);

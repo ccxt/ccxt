@@ -496,7 +496,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         object markets = this.safeValue(result, "pairs", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
@@ -675,7 +675,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object responseResult = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> responseResult = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         object currencies = this.safeValue(responseResult, "currencies", new List<object>() {});
         // using another endpoint to fetch statuses of deposits and withdrawals
         Dictionary<string, object> statusesResponse = await this.publicGetTradeApiCmcAssets();
@@ -855,7 +855,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         List<object> data = this.safeList(result, "data", new List<object>() {});
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market,((string)timeframeVar), since, limit));
     }
@@ -1045,7 +1045,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         List<object> orders = this.safeList(result, "orders", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
@@ -1322,7 +1322,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         List<object> orders = new List<object>() {result};
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
     }
@@ -1776,7 +1776,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         IDictionary<string, object> pair = this.safeDict(result, "pair", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTicker(this.parseTicker(pair, market));
     }
@@ -2122,7 +2122,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         List<object> trades = this.safeList(result, "trades", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -2308,7 +2308,7 @@ public partial class bitteam : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         object balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
         List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
         for (int i = 0; i < rawCurrencyIds.Count; postFixIncrement(ref i))
@@ -2449,7 +2449,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = ((IDictionary<string, object>)this.safeValue(response, "result", new Dictionary<string, object>() {}));
         List<object> transactions = this.safeList(result, "transactions", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
     }

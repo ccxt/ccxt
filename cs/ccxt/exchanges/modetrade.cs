@@ -2593,7 +2593,7 @@ public partial class modetrade : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", response);
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", response));
         List<object> orders = this.safeList(data, "rows", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }

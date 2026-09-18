@@ -2929,7 +2929,7 @@ public partial class woofipro : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", response);
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(response, "data", response));
         List<object> orders = this.safeList(data, "rows");
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }

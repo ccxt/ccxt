@@ -6524,7 +6524,7 @@ public partial class binance : ccxt.binance
             message = eventData;
         }
         string? status = this.safeString(message, "status");
-        object error = this.safeValue(message, "error");
+        IDictionary<string, object> error = ((IDictionary<string, object>)this.safeValue(message, "error"));
         if (((error != null)) || ((status != null) && (status != "200")))
         {
             this.handleWsError(client as WebSocketClient, message);

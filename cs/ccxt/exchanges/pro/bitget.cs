@@ -405,7 +405,7 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1753230479687
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
         object data = this.safeValue(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
@@ -515,7 +515,7 @@ public partial class bitget : ccxt.bitget
 
     public virtual object parseWsBidAsk(object message, object market = null)
     {
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
         object data = this.safeValue(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
@@ -718,7 +718,7 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1755594421877
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
@@ -1000,7 +1000,7 @@ public partial class bitget : ccxt.bitget
         //     "ts": 1755937421337
         // }
         //
-        object arg = this.safeValue(message, "arg");
+        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg"));
         string? channel = this.safeString2(arg, "channel", "topic", "");
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
@@ -1265,7 +1265,7 @@ public partial class bitget : ccxt.bitget
         //         "ts": 1701910980730
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
         string? instType = this.safeStringLower(arg, "instType");
         string marketType = ((bool) ((instType == "spot"))) ? "spot" : "contract";
         string? marketId = this.safeString2(arg, "instId", "symbol");
@@ -3083,7 +3083,7 @@ public partial class bitget : ccxt.bitget
             { "account-crossed", this.handleBalance },
             { "kline", this.handleOHLCV },
         };
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
         object topic = this.safeValue2(arg, "channel", "topic", "");
         object method = this.safeValue(methods, topic);
         if ((method != null))

@@ -1886,7 +1886,7 @@ public partial class BaseExchange
                 }
             }
         }
-        object fee = this.safeValue(entry, "fee");
+        IDictionary<string, object> fee = ((IDictionary<string, object>)this.safeValue(entry, "fee"));
         if ((fee != null))
         {
             ((IDictionary<string,object>)fee)["cost"] = this.safeNumber(fee, "cost");

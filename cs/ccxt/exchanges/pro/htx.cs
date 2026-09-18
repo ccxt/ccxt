@@ -238,7 +238,7 @@ public partial class htx : ccxt.htx
         //         }
         //     }
         //
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick", new Dictionary<string, object>() {}));
         string? ch = this.safeString(message, "ch");
         if ((ch == null))
         {
@@ -344,7 +344,7 @@ public partial class htx : ccxt.htx
         //         }
         //     }
         //
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick", new Dictionary<string, object>() {}));
         object data = this.safeValue(tick, "data", new Dictionary<string, object>() {});
         string? ch = this.safeString(message, "ch");
         if ((ch == null))
@@ -479,7 +479,7 @@ public partial class htx : ccxt.htx
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
         }
-        object tick = this.safeValue(message, "tick");
+        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick"));
         object parsed = this.parseOHLCV(tick, market);
         callDynamically(stored, "append", new object[] {parsed});
         (client as WebSocketClient).resolve(stored, ch);
@@ -815,7 +815,7 @@ public partial class htx : ccxt.htx
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
+        IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(message, "tick", new Dictionary<string, object>() {}));
         Int64? seqNum = this.safeInteger(tick, "seqNum");
         Int64? prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         string? eventVar = this.safeString(tick, "event");

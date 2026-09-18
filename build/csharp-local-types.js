@@ -2659,6 +2659,198 @@ function requestIdLocalInitializer (method, name) {
     return (conflict || initializer === undefined) ? undefined : initializer;
 }
 
+// ===== `this.safeValue (recv, 'key' [, {}])` with a same-file dict twin =====
+// `this.safeValue` is `object` by contract (Exchange.SafeMethods.cs), so the declaration can
+// only name the box when the SAME FILE proves the key's shape: another mention of the
+// (receiver identifier, literal key) pair is extracted with this.safeDict*, the pair carries
+// no this.safeList* mention and no `[]` literal default, and no use of the local (or of a
+// `const y = x;` copy) reads it as a list. The box is then the decoded JSON dictionary and
+// the declaration takes the exact `(IDictionary<string, object>)` cast back.
+// Only an IDENTIFIER receiver qualifies: a `this.<member>` receiver is module state whose
+// shape a caller's option override can change, so its pair is never evidence.
+const SAFE_VALUE_TWIN_PAIR_CACHE = new WeakMap ();
+
+const SAFE_VALUE_TWIN_DICT_CALLS = [ 'safeDict', 'safeDict2', 'safeDictN' ];
+const SAFE_VALUE_TWIN_LIST_CALLS = [ 'safeList', 'safeList2', 'safeListN' ];
+
+// the member names only a list has (x.push / x.length print list operations)
+const SAFE_VALUE_TWIN_LIST_MEMBERS = [ 'push', 'pop', 'shift', 'unshift', 'reverse', 'sort', 'splice',
+    'concat', 'slice', 'join', 'indexOf', 'lastIndexOf', 'includes', 'forEach', 'map', 'filter', 'every',
+    'some', 'reduce', 'find', 'findIndex', 'fill', 'length' ];
+// first-argument consumers whose first parameter is a LIST of rows
+const SAFE_VALUE_TWIN_LIST_CONSUMERS = [ 'parseWsTrades', 'parseTrades', 'parseOrders', 'parseMarkets',
+    'parseOHLCVs', 'parseTransactions', 'parseLedgerEntries', 'parsePositions', 'parseTickers',
+    'parseFundingRates', 'parseOpenInterests', 'parseIncomes', 'parseTransfers', 'parseDepositsWithdrawals',
+    'parseBidsAsks', 'filterBy', 'filterBySymbol', 'filterBySinceLimit', 'filterBySymbolSinceLimit',
+    'sortBy', 'sortBy2', 'indexBy', 'groupBy', 'arrayConcat', 'aggregate' ];
+
+// `this.<safe*> (<identifier>, '<key>' [, default])` — the only call shape a pair is proven from
+function safeValueTwinCallParts (node) {
+    if (node?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const args = node.arguments;
+    if (args.length < 2 || args.length > 3) {
+        return undefined;
+    }
+    const receiver = args[0];
+    const key = args[1];
+    if (receiver?.kind !== ts.SyntaxKind.Identifier || key?.kind !== ts.SyntaxKind.StringLiteral) {
+        return undefined;
+    }
+    return { method: callee.name?.escapedText, receiver: receiver.escapedText, key: key.text, default: args[2] };
+}
+
+// the shape a safeValue default argument declares: `{}` a dict, `[]` a list, anything else
+// (including none) carries no shape evidence
+function safeValueTwinDefaultShape (node) {
+    if (node === undefined) {
+        return 'none';
+    }
+    if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+        return 'dict';
+    }
+    if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return 'list';
+    }
+    return 'other';
+}
+
+// every (receiver identifier, literal key) pair of one source file, with the shape evidence
+// that file carries for it
+function safeValueTwinPairs (sourceFile) {
+    if (SAFE_VALUE_TWIN_PAIR_CACHE.has (sourceFile)) {
+        return SAFE_VALUE_TWIN_PAIR_CACHE.get (sourceFile);
+    }
+    const pairs = new Map ();
+    const bump = (parts, field) => {
+        const key = parts.receiver + ' :: ' + parts.key;
+        let evidence = pairs.get (key);
+        if (evidence === undefined) {
+            evidence = { dictTwin: 0, listTwin: 0, dictDefault: 0, listDefault: 0 };
+            pairs.set (key, evidence);
+        }
+        evidence[field] += 1;
+    };
+    const visit = (node) => {
+        const parts = safeValueTwinCallParts (node);
+        if (parts !== undefined) {
+            if (SAFE_VALUE_TWIN_DICT_CALLS.includes (parts.method)) {
+                bump (parts, 'dictTwin');
+            } else if (SAFE_VALUE_TWIN_LIST_CALLS.includes (parts.method)) {
+                bump (parts, 'listTwin');
+            } else if (parts.method === 'safeValue') {
+                const shape = safeValueTwinDefaultShape (parts.default);
+                if (shape === 'dict') {
+                    bump (parts, 'dictDefault');
+                } else if (shape === 'list') {
+                    bump (parts, 'listDefault');
+                }
+            }
+        }
+        ts.forEachChild (node, visit);
+    };
+    visit (sourceFile);
+    SAFE_VALUE_TWIN_PAIR_CACHE.set (sourceFile, pairs);
+    return pairs;
+}
+
+// the proven box of a `this.safeValue (recv, 'key')` initializer, or undefined. Every site of a
+// pair shares this verdict; a pair the file also reads as a list names nothing. The list twin's
+// own declaration is the safeList family's, not this one's.
+function safeValueTwinCastType (initializer) {
+    const parts = safeValueTwinCallParts (initializer);
+    if (parts === undefined || parts.method !== 'safeValue') {
+        return undefined;
+    }
+    const sourceFile = initializer.getSourceFile?.();
+    if (sourceFile === undefined) {
+        return undefined;
+    }
+    const evidence = safeValueTwinPairs (sourceFile).get (parts.receiver + ' :: ' + parts.key);
+    if (evidence === undefined) {
+        return undefined;
+    }
+    if (evidence.dictTwin > 0 && evidence.listTwin === 0 && evidence.listDefault === 0) {
+        return { type: 'IDictionary<string, object>', cast: 'IDictionary<string, object>', shape: 'dict' };
+    }
+    return undefined;
+}
+
+// does `use` treat the value as a list? (a dict candidate may not have one of these)
+function safeValueTwinListUse (use) {
+    const parent = use.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    if ((parent.kind === ts.SyntaxKind.ForOfStatement || parent.kind === ts.SyntaxKind.ForInStatement) && parent.expression === use) {
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.SpreadElement || parent.kind === ts.SyntaxKind.SpreadAssignment) {
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use
+        && SAFE_VALUE_TWIN_LIST_MEMBERS.includes (parent.name?.escapedText)) {
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use
+        && parent.argumentExpression?.kind !== ts.SyntaxKind.StringLiteral) {
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.CallExpression && parent.arguments.includes (use)) {
+        const callee = parent.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
+            && SAFE_VALUE_TWIN_LIST_CONSUMERS.includes (callee.name?.escapedText)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// the local a `const y = x;` copy binds, so y's uses can be read as x's (a copy must not hide
+// a list-shaped read)
+function safeValueTwinCopyName (use) {
+    const parent = use.parent;
+    if (parent?.kind !== ts.SyntaxKind.VariableDeclaration || parent.initializer !== use) {
+        return undefined;
+    }
+    return (parent.name?.kind === ts.SyntaxKind.Identifier) ? parent.name.escapedText : undefined;
+}
+
+// the runtime half of the proof: no use of the local (transitively through `const y = x;`
+// copies) reads the box as a list — `foreach (var v in dict)` over an IDictionary compiles and
+// walks KeyValuePairs, so the compiler alone cannot catch it
+function safeValueTwinUsesAreConsistent (csharp, scope, declaration) {
+    const index = indexScope (csharp, scope);
+    const seen = new Set ([ declaration.name.escapedText ]);
+    const scanName = (name) => {
+        for (const use of (index.identifiers.get (name) ?? [])) {
+            if (isNotAUse (use)) {
+                continue;
+            }
+            if (name === declaration.name.escapedText && useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+                continue;
+            }
+            if (safeValueTwinListUse (use)) {
+                return false;
+            }
+            const copy = safeValueTwinCopyName (use);
+            if (copy !== undefined && !seen.has (copy)) {
+                seen.add (copy);
+                if (!scanName (copy)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+    return scanName (declaration.name.escapedText);
+}
+
 function callReturnType (csharp, initializer) {
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
@@ -4838,6 +5030,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer, ctx);
     let cast;
     let joinedFallback;
+    // `this.safeValue (recv, 'key')` with a same-file dict twin: the box the file itself proves
+    // (see the family comment); the use-shape veto runs after the retype scan
+    let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
+    let safeValueTwinShape;
     if (csharpType === undefined) {
         // `this.sum (a, b)` / `a % b` over the operand families their hand-written helper
         // boxes as Int64: the declaration names that box behind an exact `((Int64))` cast
@@ -4877,6 +5073,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // (see omitZeroStringProducer), so the same cast names it
             csharpType = 'string?';
             cast = 'string';
+        } else if (safeValueTwin !== undefined) {
+            // `const x = this.safeValue (response, 'data')`: the same file extracts that
+            // (receiver, key) pair as a dict somewhere else, so the box is the decoded JSON
+            // object — named behind the exact cast back. The use-shape veto runs after the scan.
+            csharpType = safeValueTwin.type;
+            cast = safeValueTwin.cast;
+            safeValueTwinShape = safeValueTwin.shape;
         } else {
             // `const x = this.parseOrderBook (...)`: the method's only definition boxes a
             // fresh dictionary on its only return path, so the local takes the exact
@@ -4978,10 +5181,16 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         cast = 'string';
         safe = true;
     }
+    // the safeValue-twin box is only named when no use of the local reads it as a list either —
+    // the runtime half of the proof (see safeValueTwinUsesAreConsistent), applied after every
+    // retry so no fallback spelling can re-accept a contradictory site
+    if (safe && safeValueTwinShape !== undefined && !safeValueTwinUsesAreConsistent (csharp, scope, declaration)) {
+        return undefined;
+    }
     if (!safe) {
         return undefined;
     }
-    return { type: csharpType, cast };
+    return { type: csharpType, cast, safeValueTwinShape };
 }
 
 // the declared type only (kept for callers that do not rewrite the value)
@@ -5477,7 +5686,8 @@ export function installCsharpLocalTypes (transpiler) {
             // a call whose printed argument list spans lines (a dict-literal argument) would put
             // the cast's closing paren on a second line; the ws row-builder family keeps `object`
             // there, so every retyped declaration stays a single declaration-type-only line
-            if (info.cast === 'Dictionary<string, object>' && value.includes ('\n')) {
+            // (the safeValue-twin family needs the same one-line shape for its cast)
+            if (value.includes ('\n') && (info.cast === 'Dictionary<string, object>' || info.safeValueTwinShape !== undefined)) {
                 return printed;
             }
             // the printer prints a bare `getValue (recv, key)`; the named element type only

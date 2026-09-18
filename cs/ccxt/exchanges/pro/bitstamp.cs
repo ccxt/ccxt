@@ -173,7 +173,7 @@ public partial class bitstamp : ccxt.bitstamp
         string? symbol = this.safeSymbol(marketId);
         ccxt.pro.IOrderBook storedOrderBook = this.safeOrderBook(this.orderbooks, symbol);
         object nonce = this.safeValue(storedOrderBook, "nonce");
-        object delta = this.safeValue(message, "data");
+        IDictionary<string, object> delta = ((IDictionary<string, object>)this.safeValue(message, "data"));
         Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
         if (isEqual(deltaNonce, null))
         {
@@ -388,7 +388,7 @@ public partial class bitstamp : ccxt.bitstamp
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)getValue(market, "symbol"));
         string messageHash = ("trades:" + symbol);
-        object data = this.safeValue(message, "data");
+        IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "data"));
         Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data, market));
         object tradesArray = this.safeValue(this.trades, symbol);
         if ((tradesArray == null))
@@ -1024,7 +1024,7 @@ public partial class bitstamp : ccxt.bitstamp
         if ((eventVar == "bts:error"))
         {
             string feedback = ((this.id + " ") + this.json(message));
-            object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "data", new Dictionary<string, object>() {}));
             double? code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }

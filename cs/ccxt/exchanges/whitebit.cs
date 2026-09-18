@@ -3439,7 +3439,7 @@ public partial class whitebit : Exchange
         //     }
         //
         string? url = this.safeString(response, "url");
-        object account = this.safeValue(response, "account", new Dictionary<string, object>() {});
+        IDictionary<string, object> account = ((IDictionary<string, object>)this.safeValue(response, "account", new Dictionary<string, object>() {}));
         string? address = this.safeString(account, "address", url);
         string? tag = this.safeString(account, "memo");
         this.checkAddress(address);
@@ -4953,7 +4953,7 @@ public partial class whitebit : Exchange
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
             string? status = this.safeString(response, "status");
-            object errors = this.safeValue(response, "errors");
+            IDictionary<string, object> errors = ((IDictionary<string, object>)this.safeValue(response, "errors"));
             // {"code":10,"message":"Unauthorized request."}
             string? message = this.safeString(response, "message");
             // For these cases where we have a generic code variable error key
