@@ -94,8 +94,11 @@ after   locals: object=9304 typed=44132 typed%=82   params: object=11572  return
   `still object though tabled: 0`, `typed differently than tabled: 0`. (It never reads the pass.)
 * **Determinism**: `git diff -- cs/ | sha256sum` identical before/after re-running the scoped
   REST/ws/prediction regens on the ids carrying the family.
-* **Farm**: `ccxt-farm build --targets cs --wait` — job/exit in the commit message and in the
-  campaign log; `dotnet` was never run on this VM.
+* **Farm**: `ccxt-farm build --targets cs --wait` (dotnet is farm-only; never run locally). Code+REPORT
+  commit `1e6093d58396593c96f645ca058f3e89f72fbe38` → `job 891 exit=0 branch_update=unchanged
+  generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2` (`ccxt-farm status 891`). `branch_update=unchanged`
+  on a `transpile_force=0` build means the farm's own transpile reproduced this tree byte-for-byte
+  (fixed point), and the generator is the campaign pin.
 
 ## Rejected sub-cases (with the reason)
 
