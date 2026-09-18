@@ -1086,8 +1086,8 @@ func (this *Coinbaseinternational) createDepositAddressBody(ch chan any, code an
 		"portfolio": portfolio,
 	}
 	if IsEqual(method, "v1PrivatePostTransfersAddress") {
-		var currency any = this.Currency(code)
-		request["asset"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["asset"] = currency["id"]
 		var networkId any = nil
 		networkIdparamsVariable := (<-this.HandleNetworkIdAndParamsAsync(code, "createDepositAddress", params))
 		networkId = GetValue(networkIdparamsVariable, 0)
@@ -1150,7 +1150,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networks any = this.SafeDict(currency, "networks")
 	if !IsEqual(networks, nil) {
 
@@ -1158,7 +1158,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 		return nil
 	}
 	var request map[string]any = map[string]any{
-		"asset": GetValue(currency, "id"),
+		"asset": currency["id"],
 	}
 
 	rawNetworks := (<-this.V1PublicGetAssetsAssetNetworks(request))
@@ -1181,7 +1181,7 @@ func (this *Coinbaseinternational) loadCurrencyNetworksBody(ch chan any, code an
 	//        ....
 	//    ]
 	//
-	AddElementToObject(currency, "networks", this.ParseNetworks(rawNetworks))
+	currency["networks"] = this.ParseNetworks(rawNetworks)
 
 	ch <- true
 	return nil
@@ -2289,9 +2289,9 @@ func (this *Coinbaseinternational) transferBody(ch chan any, code any, amount an
 		retRes177012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes177012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"asset":  GetValue(currency, "id"),
+		"asset":  currency["id"],
 		"amount": amount,
 		"from":   fromAccount,
 		"to":     toAccount,
@@ -3065,7 +3065,7 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount an
 		retRes236312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes236312)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var portfolio any = nil
 	portfolioparamsVariable := (<-this.HandlePortfolioAndParamsAsync("withdraw", params))
 	portfolio = GetValue(portfolioparamsVariable, 0)
@@ -3081,10 +3081,10 @@ func (this *Coinbaseinternational) withdrawBody(ch chan any, code any, amount an
 	var request map[string]any = map[string]any{
 		"portfolio":      portfolio,
 		"type":           "send",
-		"asset":          GetValue(currency, "id"),
+		"asset":          currency["id"],
 		"address":        address,
 		"amount":         amount,
-		"currency":       GetValue(currency, "id"),
+		"currency":       currency["id"],
 		"network_arn_id": networkId,
 		"nonce":          this.Nonce(),
 	}

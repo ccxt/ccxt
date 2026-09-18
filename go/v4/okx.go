@@ -7152,9 +7152,9 @@ func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
 		retRes551112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes551112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 
 	response := (<-this.PrivateGetAssetDepositAddress(this.Extend(request, params)))
@@ -7182,7 +7182,7 @@ func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	var filtered []any = this.FilterBy(data, "selected", true)
-	var parsed any = this.ParseDepositAddresses(filtered, []any{GetValue(currency, "code")}, false)
+	var parsed any = this.ParseDepositAddresses(filtered, []any{currency["code"]}, false)
 
 	ch <- this.IndexBy(parsed, "network")
 	return nil
@@ -7277,12 +7277,12 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 		retRes559812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes559812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	if (tag != nil) && (GetLength(tag) > 0) {
 		address = Add(Add(address, ":"), tag)
 	}
 	var request map[string]any = map[string]any{
-		"ccy":    GetValue(currency, "id"),
+		"ccy":    currency["id"],
 		"toAddr": address,
 		"dest":   "4",
 		"amt":    this.NumberToString(amount),
@@ -7291,7 +7291,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 	if network != nil {
 		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
 		network = this.SafeString(networks, ToUpper(network), network) // handle ETH>ERC20 alias
-		request["chain"] = Add(Add(GetValue(currency, "id"), "-"), network)
+		request["chain"] = Add(Add(currency["id"], "-"), network)
 		params = this.Omit(params, "network")
 	}
 	var fee *string = this.SafeString(params, "fee")
@@ -7300,12 +7300,12 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 		currencies := (<-this.FetchCurrenciesAsync())
 		PanicOnError(currencies)
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
-		var networkCodeResolved any = this.NetworkIdToCode(network, GetValue(currency, "code"))
+		var networkCodeResolved any = this.NetworkIdToCode(network, currency["code"])
 		var targetNetwork any = func() any {
 			if networkCodeResolved == nil {
 				return map[string]any{}
 			}
-			return this.SafeDict(GetValue(currency, "networks"), networkCodeResolved, map[string]any{})
+			return this.SafeDict(currency["networks"], networkCodeResolved, map[string]any{})
 		}()
 		fee = this.SafeString(targetNetwork, "fee")
 		if fee == nil {
@@ -8343,12 +8343,12 @@ func (this *Okx) transferBody(ch chan any, code any, amount any, fromAccount any
 		retRes649012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes649012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"ccy":  GetValue(currency, "id"),
+		"ccy":  currency["id"],
 		"amt":  this.CurrencyToPrecision(code, amount),
 		"type": "0",
 		"from": fromId,
@@ -9381,9 +9381,9 @@ func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ..
 		retRes738112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes738112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 
 	response := (<-this.PrivateGetAccountInterestRate(this.Extend(request, params)))
@@ -9556,9 +9556,9 @@ func (this *Okx) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs 
 		retRes752112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes752112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["before"] = since
@@ -9961,8 +9961,8 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["ccy"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["ccy"] = currency["id"]
 	}
 	if !IsEqual(since, nil) {
 		request["before"] = Subtract(since, 1)
@@ -10048,9 +10048,9 @@ func (this *Okx) borrowCrossMarginBody(ch chan any, code any, amount any, option
 		retRes789712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes789712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy":  GetValue(currency, "id"),
+		"ccy":  currency["id"],
 		"amt":  this.CurrencyToPrecision(code, amount),
 		"side": "borrow",
 	}
@@ -10110,9 +10110,9 @@ func (this *Okx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 	if id == nil {
 		panic(ArgumentsRequired(this.Id + " repayCrossMargin() requires an id parameter"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy":   GetValue(currency, "id"),
+		"ccy":   currency["id"],
 		"amt":   this.CurrencyToPrecision(code, amount),
 		"side":  "repay",
 		"ordId": id,
@@ -10356,8 +10356,8 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		market = this.Market(symbol)
 		currencyId = GetValue(market, "baseId")
 	} else {
-		var currency any = this.Currency(symbol)
-		currencyId = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(symbol).(map[string]any)
+		currencyId = currency["id"]
 	}
 	var request map[string]any = map[string]any{
 		"ccy":    currencyId,
@@ -10624,7 +10624,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
 		var code string = GetValue(depositWithdrawCodes, i).(string)
-		var currency any = this.Currency(code)
+		var currency map[string]any = this.Currency(code).(map[string]any)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
 	return depositWithdrawFees
@@ -11098,8 +11098,8 @@ func (this *Okx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 		request["clOrdId"] = clientOrderId
 	}
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["ccy"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["ccy"] = currency["id"]
 	}
 
 	response := (<-this.PrivatePostTradeClosePosition(this.Extend(request, params)))
@@ -11217,9 +11217,9 @@ func (this *Okx) fetchOptionChainBody(ch chan any, code any, optionalArgs ...any
 		retRes884412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes884412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"uly":      Add(GetValue(currency, "code"), "-USD"),
+		"uly":      Add(currency["code"], "-USD"),
 		"instType": "OPTION",
 	}
 
@@ -11369,9 +11369,9 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	var data any = this.SafeList(response, "data", []any{})
 	var result any = this.SafeDict(data, 0, map[string]any{})
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(result, "quoteCcy", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
 	return nil
@@ -11442,9 +11442,9 @@ func (this *Okx) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 	var data any = this.SafeList(response, "data", []any{})
 	var result any = this.SafeDict(data, 0, map[string]any{})
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(result, "quoteCcy", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
 	return nil

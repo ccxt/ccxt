@@ -2500,7 +2500,7 @@ func (this *Phemex) ParseSwapBalance(response any) any {
 	var balance any = this.SafeValue(data, "account", map[string]any{})
 	var currencyId *string = this.SafeString(balance, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var valueScale *int64 = this.SafeInteger(currency, "valueScale", 8)
 	var account any = this.Account()
 	var accountBalanceEv *string = this.SafeString2(balance, "accountBalanceEv", "accountBalanceRv")
@@ -2572,9 +2572,9 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			} else {
 				coin = settle
 			}
-			var currency any = this.Currency(coin)
-			request["currency"] = GetValue(currency, "id")
-			if GetValue(currency, "id") == "USDT" {
+			var currency map[string]any = this.Currency(coin).(map[string]any)
+			request["currency"] = currency["id"]
+			if currency["id"] == "USDT" {
 
 				response = (<-this.PrivateGetGAccountsAccountPositions(this.Extend(request, params)))
 				PanicOnError(response)
@@ -4244,9 +4244,9 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes359412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes359412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks")
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, code)
@@ -4622,9 +4622,9 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			return "BTC"
 		}()
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var response any = nil
 	if isUSDTSettled {
@@ -5108,8 +5108,8 @@ func (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) a
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
 	var isStableSettled bool = IsEqual(GetValue(market, "settle"), "USDT") || IsEqual(GetValue(market, "settle"), "USDC")
 	if !isStableSettled {
-		var currency any = this.SafeCurrency(currencyCode)
-		var scale *string = this.SafeString(GetValue(currency, "info"), "valueScale")
+		var currency map[string]any = this.SafeCurrency(currencyCode).(map[string]any)
+		var scale *string = this.SafeString(currency["info"], "valueScale")
 		var tickPrecision any = this.ParsePrecision(scale)
 		value = Precise.StringMul(value, tickPrecision)
 	}
@@ -5782,7 +5782,7 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes484712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes484712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
@@ -5796,7 +5796,7 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
 	}
 	if !IsEqual(direction, nil) {
 		var request map[string]any = map[string]any{
-			"currency": GetValue(currency, "id"),
+			"currency": currency["id"],
 			"moveOp":   direction,
 			"amountEv": scaledAmmount,
 		}
@@ -5824,7 +5824,7 @@ func (this *Phemex) transferBody(ch chan any, code any, amount any, fromAccount 
 			"fromUserId": fromId,
 			"toUserId":   toId,
 			"amountEv":   scaledAmmount,
-			"currency":   GetValue(currency, "id"),
+			"currency":   currency["id"],
 			"bizType":    this.SafeString(params, "bizType", "SPOT"),
 		}
 
@@ -5895,9 +5895,9 @@ func (this *Phemex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchTransfers() requires a code argument"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["start"] = since
@@ -6152,7 +6152,7 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 		PanicOnError(retRes514312)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -6164,13 +6164,13 @@ func (this *Phemex) withdrawBody(ch chan any, code any, amount any, address any,
 	var stableCoins any = this.SafeValue(this.Options, "stableCoins")
 	if networkId == nil {
 		if !(this.InArray(code, stableCoins)) {
-			networkId = GetValue(currency, "id")
+			networkId = currency["id"]
 		} else {
 			panic(ArgumentsRequired(this.Id + " withdraw () requires an extra argument params[\"network\"]"))
 		}
 	}
 	var request map[string]any = map[string]any{
-		"currency":  GetValue(currency, "id"),
+		"currency":  currency["id"],
 		"address":   address,
 		"amount":    amount,
 		"chainName": ToUpper(networkId),
@@ -6336,8 +6336,8 @@ func (this *Phemex) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any,
 		retRes529312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes529312)
 	}
-	var fromCurrency any = this.Currency(fromCode)
-	var toCurrency any = this.Currency(toCode)
+	var fromCurrency map[string]any = this.Currency(fromCode).(map[string]any)
+	var toCurrency map[string]any = this.Currency(toCode).(map[string]any)
 	var valueScale *int64 = this.SafeInteger(fromCurrency, "valueScale")
 	var request map[string]any = map[string]any{
 		"fromCurrency": fromCode,
@@ -6400,8 +6400,8 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
 		retRes534012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes534012)
 	}
-	var fromCurrency any = this.Currency(fromCode)
-	var toCurrency any = this.Currency(toCode)
+	var fromCurrency map[string]any = this.Currency(fromCode).(map[string]any)
+	var toCurrency map[string]any = this.Currency(toCode).(map[string]any)
 	var valueScale *int64 = this.SafeInteger(fromCurrency, "valueScale")
 	var request map[string]any = map[string]any{
 		"code":         id,
@@ -6431,9 +6431,9 @@ func (this *Phemex) createConvertTradeBody(ch chan any, id any, fromCode any, to
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(data, "fromCurrency")
-	var fromResult any = this.SafeCurrency(fromCurrencyId, fromCurrency)
+	var fromResult map[string]any = this.SafeCurrency(fromCurrencyId, fromCurrency).(map[string]any)
 	var toCurrencyId *string = this.SafeString(data, "toCurrency")
-	var to any = this.SafeCurrency(toCurrencyId, toCurrency)
+	var to map[string]any = this.SafeCurrency(toCurrencyId, toCurrency).(map[string]any)
 
 	ch <- this.ParseConversion(data, fromResult, to)
 	return nil
@@ -6658,9 +6658,9 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 			return "BTC"
 		}()
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var response any = nil
 	if isUSDTSettled {

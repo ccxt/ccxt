@@ -3084,16 +3084,16 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
 		retRes248212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes248212)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		var _netIdTmp any = this.NetworkCodeToId(networkCode, currency["code"])
 		if _netIdTmp != nil {
 			request["chain"] = ToLower(_netIdTmp)
 		}
@@ -3138,16 +3138,16 @@ func (this *Kucoin) fetchDepositWithdrawFeeBody(ch chan any, code any, optionalA
 		retRes251912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes251912)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		var _netIdTmp any = this.NetworkCodeToId(networkCode, currency["code"])
 		if _netIdTmp != nil {
 			request["chain"] = ToLower(_netIdTmp)
 		}
@@ -4373,16 +4373,16 @@ func (this *Kucoin) createDepositAddressBody(ch chan any, code any, optionalArgs
 		retRes358012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes358012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		request["chain"] = this.NetworkCodeToId(networkCode, GetValue(currency, "code")) // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+		request["chain"] = this.NetworkCodeToId(networkCode, currency["code"]) // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
 	}
 
 	response := (<-this.PrivatePostDepositAddressCreate(this.Extend(request, params)))
@@ -4463,16 +4463,16 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		ch <- retRes363719
 		return nil
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		var _netIdTmp any = this.NetworkCodeToId(networkCode, currency["code"])
 		if _netIdTmp != nil {
 			request["chain"] = ToLower(_netIdTmp)
 		}
@@ -4518,8 +4518,8 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 		retRes367812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes367812)
 	}
-	var currency any = this.Currency(code)
-	var currencyId any = GetValue(currency, "id")
+	var currency map[string]any = this.Currency(code).(map[string]any)
+	var currencyId any = currency["id"]
 	var request map[string]any = map[string]any{
 		"currency": currencyId,
 	}
@@ -4603,9 +4603,9 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		retRes374712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes374712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	uta := (<-this.IsUTAEnabledAsync())
@@ -4670,8 +4670,8 @@ func (this *Kucoin) fetchDepositAddressesByNetworkBody(ch chan any, code any, op
 		AddElementToObject(GetValue(GetValue(GetValue(this.Options, "versions"), "private"), "GET"), "deposit-addresses", version)
 	}
 	var chains any = this.SafeList(response, "data", []any{})
-	var parsed any = this.ParseDepositAddresses(chains, []any{GetValue(currency, "code")}, false, map[string]any{
-		"currency": GetValue(currency, "code"),
+	var parsed any = this.ParseDepositAddresses(chains, []any{currency["code"]}, false, map[string]any{
+		"currency": currency["code"],
 	})
 
 	ch <- this.IndexBy(parsed, "network")
@@ -9577,9 +9577,9 @@ func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any,
 		PanicOnError(retRes764812)
 	}
 	this.CheckAddress(address)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency":     GetValue(currency, "id"),
+		"currency":     currency["id"],
 		"toAddress":    address,
 		"withdrawType": "ADDRESS",
 	}
@@ -9591,7 +9591,7 @@ func (this *Kucoin) withdrawBody(ch chan any, code any, amount any, address any,
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
 	if networkCode != nil {
-		var _netIdTmp any = this.NetworkCodeToId(networkCode, GetValue(currency, "code"))
+		var _netIdTmp any = this.NetworkCodeToId(networkCode, currency["code"])
 		if _netIdTmp != nil {
 			request["chain"] = ToLower(_netIdTmp)
 		}
@@ -10471,9 +10471,9 @@ func (this *Kucoin) fetchContractBalanceBody(ch chan any, optionalArgs ...any) a
 	if code == nil {
 		panic(ArgumentsRequired(this.Id + " fetchContractBalance() requires a code parameter"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.FuturesPrivateGetAccountOverview(this.Extend(request, params)))
@@ -10748,10 +10748,10 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
 		retRes857612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes857612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var requestedAmount any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   requestedAmount,
 	}
 	var transferType any = "INTERNAL"
@@ -10864,10 +10864,10 @@ func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromA
 		retRes866412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes866412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var requestedAmount any = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"amount":   requestedAmount,
 	}
 	var transferType any = "INTERNAL"
@@ -11902,10 +11902,10 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 	var marginResult any = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
 	var marginMode *string = this.SafeString(marginResult, 0, "cross")
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated") // true-isolated, false-cross
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request any = map[string]any{
 		"isIsolated": isIsolated,
-		"currency":   GetValue(currency, "id"),
+		"currency":   currency["id"],
 	}
 	if !IsEqual(since, nil) {
 		AddElementToObject(request, "startTime", since)
@@ -12001,9 +12001,9 @@ func (this *Kucoin) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		retRes963112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes963112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 	}
 
 	response := (<-this.UtaPrivateGetAccountInterestLimits(this.Extend(request, params)))
@@ -12053,9 +12053,9 @@ func (this *Kucoin) borrowCrossMarginBody(ch chan any, code any, amount any, opt
 		retRes966812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes966812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"size":        this.CurrencyToPrecision(code, amount),
 		"timeInForce": "FOK",
 	}
@@ -12108,9 +12108,9 @@ func (this *Kucoin) borrowIsolatedMarginBody(ch chan any, symbol any, code any, 
 		PanicOnError(retRes970712)
 	}
 	var market any = this.Market(symbol)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency":    GetValue(currency, "id"),
+		"currency":    currency["id"],
 		"size":        this.CurrencyToPrecision(code, amount),
 		"symbol":      GetValue(market, "id"),
 		"timeInForce": "FOK",
@@ -12162,9 +12162,9 @@ func (this *Kucoin) repayCrossMarginBody(ch chan any, code any, amount any, opti
 		retRes974712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes974712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency": GetValue(currency, "id"),
+		"currency": currency["id"],
 		"size":     this.CurrencyToPrecision(code, amount),
 	}
 
@@ -12215,9 +12215,9 @@ func (this *Kucoin) repayIsolatedMarginBody(ch chan any, symbol any, code any, a
 		PanicOnError(retRes978412)
 	}
 	var market any = this.Market(symbol)
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"currency":   GetValue(currency, "id"),
+		"currency":   currency["id"],
 		"size":       this.CurrencyToPrecision(code, amount),
 		"symbol":     GetValue(market, "id"),
 		"isIsolated": true,
