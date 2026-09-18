@@ -403,7 +403,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         Object date = this.safeString(ticker, "date", "");
         Object time = this.safeString(ticker, "time", "");
-        Object kstDatetime = ((((((((((Helpers.slice(date, 0, 4) + "-") + Helpers.slice(date, 4, 6)) + "-") + Helpers.slice(date, 6, 8)) + "T") + Helpers.slice(time, 0, 2)) + ":") + Helpers.slice(time, 2, 4)) + ":") + Helpers.slice(time, 4, 6));
+        Object kstDatetime = (((((((((((date == null ? null : ((String)date).substring(0, Math.min(4, ((String)date).length()))) + "-") + (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())))) + "-") + (date == null ? null : ((String)date).substring(Math.min(6, ((String)date).length()), Math.min(8, ((String)date).length())))) + "T") + (time == null ? null : ((String)time).substring(0, Math.min(2, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(2, ((String)time).length()), Math.min(4, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(4, ((String)time).length()), Math.min(6, ((String)time).length()))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
         if (!java.util.Objects.equals(timestamp, null))
@@ -554,7 +554,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 return;
             }
-            Long legacyTimestamp = this.parseToInt(Helpers.slice(timestampStr, 0, 13));
+            Long legacyTimestamp = this.parseToInt((timestampStr == null ? null : ((String)timestampStr).substring(0, Math.min(13, ((String)timestampStr).length()))));
             if (!(((Map<?, ?>)this.orderbooks).containsKey(legacySymbol)))
             {
                 io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
@@ -608,7 +608,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         Object timestamp = null;
         if (!java.util.Objects.equals(gen2TimestampStr, null))
         {
-            timestamp = this.parseToInt(Helpers.slice(gen2TimestampStr, 0, 13));
+            timestamp = this.parseToInt((gen2TimestampStr == null ? null : ((String)gen2TimestampStr).substring(0, Math.min(13, ((String)gen2TimestampStr).length()))));
         }
         if (java.util.Objects.equals(timestamp, null))
         {

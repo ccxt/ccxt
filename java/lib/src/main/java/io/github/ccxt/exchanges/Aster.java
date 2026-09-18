@@ -5445,7 +5445,7 @@ public class Aster extends AsterApi
             Object encoded = this.encodeURIComponent(valueJsonified);
             encodedString = (encodedString + (((key + "=") + encoded) + "&"));
         }
-        return Helpers.slice(encodedString, 0, Helpers.opNeg(1));
+        return (encodedString == null ? null : ((String)encodedString).substring(0, Math.max(((String)encodedString).length() - 1, 0)));
     }
 
     public Object capitalizeKeys(Object dict)

@@ -1549,7 +1549,7 @@ public class Hibachi extends HibachiApi
 
             Object tag = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-            Object withdrawAddress = Helpers.slice(address, Helpers.opNeg(40), null);
+            Object withdrawAddress = (address == null ? null : ((String)address).substring(Math.max(((String)address).length() - 40, 0)));
             // Get the withdraw fees
             Map<String, Object> exchangeInfo = (this.publicGetMarketExchangeInfo(parameters)).join();
             // {

@@ -11193,7 +11193,7 @@ public class Kucoin extends KucoinApi
         Long timestamp = this.milliseconds();
         if (!java.util.Objects.equals(timestampId, null))
         {
-            timestamp = this.parseToInt(Helpers.slice(timestampId, 0, 13));
+            timestamp = this.parseToInt((timestampId == null ? null : ((String)timestampId).substring(0, Math.min(13, ((String)timestampId).length()))));
         }
         String currencyId = this.safeString(info, "currency");
         final Object finalTimestamp = timestamp;

@@ -3973,9 +3973,9 @@ public class Bitget extends BitgetApi
                         List<Object> expiryParts = (List<Object>) Helpers.split(expiryDatetime, "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
-                        Object year = Helpers.slice(yearPart, 2, 4);
+                        Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
-                        Object day = Helpers.slice(dayPart, 0, 2);
+                        Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
                         Object expiryString = Helpers.add(Helpers.add(year, month), day);
                         type = "future";
                         future = true;
@@ -4277,9 +4277,9 @@ public class Bitget extends BitgetApi
                         List<Object> expiryParts = (List<Object>) Helpers.split(expiryDatetime, "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
-                        Object year = Helpers.slice(yearPart, 2, 4);
+                        Object year = (yearPart == null ? null : ((String)yearPart).substring(Math.min(2, ((String)yearPart).length()), Math.min(4, ((String)yearPart).length())));
                         String month = this.safeString(expiryParts, 1);
-                        Object day = Helpers.slice(dayPart, 0, 2);
+                        Object day = (dayPart == null ? null : ((String)dayPart).substring(0, Math.min(2, ((String)dayPart).length())));
                         Object expiryString = Helpers.add(Helpers.add(year, month), day);
                         type = "future";
                         future = true;

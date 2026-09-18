@@ -2259,7 +2259,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             String clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
             Object clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
-            clientOrderId = Helpers.slice(clientOrderId, 0, 17);
+            clientOrderId = (clientOrderId == null ? null : ((String)clientOrderId).substring(0, Math.min(17, ((String)clientOrderId).length())));
             if (java.util.Objects.equals(side, null))
             {
                 throw new ArgumentsRequired((this.id + " createOrder() requires a side argument")) ;

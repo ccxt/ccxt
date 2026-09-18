@@ -3716,7 +3716,7 @@ public class Nado extends NadoApi
         {
             throw new ArgumentsRequired((this.id + " signHash() requires privateKey")) ;
         }
-        Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
+        Object signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
         Object v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
@@ -3731,7 +3731,7 @@ public class Nado extends NadoApi
         }
         if (Helpers.isTrue(((String)marketId).endsWith("-PERP")))
         {
-            return Helpers.slice(marketId, 0, Helpers.opNeg(5));
+            return (marketId == null ? null : ((String)marketId).substring(0, Math.max(((String)marketId).length() - 5, 0)));
         }
         return marketId;
     }
