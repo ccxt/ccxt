@@ -3410,6 +3410,226 @@ export function patchJavaCollectionLocalTypes (transpiler) {
     printer._javaCollectionLocalTypesPatched = true;
 }
 
+// ===== boolean locals from the hand-written boolean-returning methods =====
+//
+// `let isLinearType = this.isLinear (type, subType)` prints `Object isLinearType =
+// this.isLinear (type, subType);` and every later condition read re-tests the box through
+// Helpers.isTrue. The four callees are declared `boolean` in TS — isLinear/isInverse in the
+// venue sources, inArray/checkRequiredCredentials in ts/src/base/Exchange.ts — so the checker
+// proves the local is a boolean (D1).
+//
+// The printed Java declaration of the call decides whether the declaration needs the helper:
+//   * inArray is `public boolean inArray (Object elem, Object list2)` in the hand-written
+//     BaseExchange (every generated venue extends it, tree census: no override), so
+//     `boolean x = this.inArray (...)` assigns the primitive directly;
+//   * the generated `public Object isLinear (Object type, Object... optionalArgs)`,
+//     `public Object isInverse (...)` and the hand-written `public Object
+//     checkRequiredCredentials (...)` hand back a BOX, so the declaration keeps the one
+//     Helpers.isTrue(${call}) that held exactly this value before.
+// Either way the local becomes a Java boolean and every later condition read prints the
+// primitive, so the wrapper disappears from the reads. A site without any condition read
+// keeps its box: a wrapper-family declaration would otherwise ADD a helper for no drop.
+const JAVA_BOOLEAN_CALL_LOCAL_CALLEES = new Set ([
+    'isLinear', 'isInverse', 'inArray', 'checkRequiredCredentials',
+]);
+const JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES = new Set ([ 'inArray' ]);
+
+function booleanCallLocalDeclaration (printer, declaration) {
+    const initializer = unwrapParens (declaration.initializer);
+    if (initializer === undefined || !ts.isCallExpression (initializer)) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const callName = callee.name?.escapedText;
+    if (!JAVA_BOOLEAN_CALL_LOCAL_CALLEES.has (callName)) {
+        return undefined;
+    }
+    // TS models `boolean` as the true|false union and sets the Boolean bit on it; a
+    // `boolean | undefined` union does not carry the bit and keeps the box
+    const type = printer.getChecker ()?.getTypeAtLocation (initializer);
+    if (type === undefined || (type.flags & ts.TypeFlags.Boolean) === 0) {
+        return undefined;
+    }
+    const name = declaration.name?.escapedText;
+    if (name === undefined) {
+        return undefined;
+    }
+    const scan = booleanCallLocalUseScan (declaration, name);
+    if (scan === undefined) {
+        return undefined;
+    }
+    const wrap = !JAVA_PRIMITIVE_BOOLEAN_CALL_CALLEES.has (callName);
+    if (wrap && scan.conditionReads === 0) {
+        return undefined; // no read would lose its Helpers.isTrue
+    }
+    return { name, wrap };
+}
+
+// D2: a later WRITE prints with its own Java type (`x = this.safeBool (...) -> Object`) and
+// a primitive local cannot take it. The other rejected shapes are the uses that would print
+// a construct javac cannot apply to a primitive (`x instanceof T`, `typeof x`, `x as T`,
+// member/element access on the box). Two further cases are handled rather than rejected: an
+// occurrence inside an object literal (whose Java value position autoboxes) and an in-place
+// finalVar rename (the read hook sees the renamed text and keeps its helper).
+function booleanCallLocalUseScan (declaration, name) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const uses = identifierIndex (scope).get (name) ?? [];
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if (parent !== undefined && parent.name === n
+            && (parent.kind === ts.SyntaxKind.VariableDeclaration || parent.kind === ts.SyntaxKind.Parameter)) {
+            bindings++;
+        }
+    }
+    if (bindings !== 1) {
+        return undefined; // a shadowing binding makes the name ambiguous
+    }
+    let conditionReads = 0;
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (booleanLocalUseIsUnsafe (n)) {
+            return undefined;
+        }
+        if (booleanUseIsConditionRead (n)) {
+            conditionReads++;
+        }
+    }
+    return { conditionReads };
+}
+
+// the reads the printer wraps in Helpers.isTrue today: an if condition, a `!` operand, an
+// `&&`/`||` operand and a ternary condition all print through printCondition (while/for
+// conditions print the bare node, so they neither gained nor lost a helper either way)
+function booleanUseIsConditionRead (identifier) {
+    let node = identifier;
+    for (;;) {
+        const parent = node.parent;
+        if (parent === undefined) {
+            return false;
+        }
+        if (ts.isParenthesizedExpression (parent) && parent.expression === node) {
+            node = parent;
+            continue;
+        }
+        if (ts.isPrefixUnaryExpression (parent) && parent.operator === ts.SyntaxKind.ExclamationToken) {
+            return true;
+        }
+        if (ts.isBinaryExpression (parent)) {
+            return parent.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken
+                || parent.operatorToken.kind === ts.SyntaxKind.BarBarToken;
+        }
+        if (ts.isConditionalExpression (parent)) {
+            return parent.condition === node;
+        }
+        if (ts.isIfStatement (parent)) {
+            return parent.expression === node;
+        }
+        return false;
+    }
+}
+
+function booleanLocalUseIsUnsafe (identifier) {
+    const parent = identifier.parent;
+    if (parent === undefined) {
+        return true; // unknown shape — fail closed
+    }
+    if (ts.isBinaryExpression (parent)) {
+        if (parent.left === identifier) {
+            return ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
+        }
+        return parent.operatorToken.kind === ts.SyntaxKind.InstanceOfKeyword
+            || parent.operatorToken.kind === ts.SyntaxKind.InKeyword;
+    }
+    if ((ts.isPrefixUnaryExpression (parent) || ts.isPostfixUnaryExpression (parent))
+        && (parent.operator === ts.SyntaxKind.PlusPlusToken || parent.operator === ts.SyntaxKind.MinusMinusToken)) {
+        return true;
+    }
+    if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
+        && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        return true; // `[x, y] = f()` destructures into `x = Helpers.GetValue (...)`
+    }
+    if (ts.isTypeOfExpression (parent)) {
+        return true; // `typeof x` prints `x instanceof Boolean` — not valid on a primitive
+    }
+    if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
+        return true; // a TS cast prints a Java cast of the asserted type
+    }
+    if (ts.isSpreadElement (parent)) {
+        return true;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === identifier) {
+        return true; // `x.member` / `x.method(...)` reads the box
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === identifier) {
+        return true;
+    }
+    return false;
+}
+
+export function patchJavaBooleanLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBooleanLocalTypesPatched) {
+        return;
+    }
+    // declaration node -> 'boolean', filled as declarations are printed. Java statements print
+    // in source order, so a later read always finds its declaration classified.
+    const narrowed = new WeakMap ();
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        if (node.declarations?.length !== 1) {
+            return printed;
+        }
+        const declaration = node.declarations[0];
+        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const info = booleanCallLocalDeclaration (printer, declaration);
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed; // another slice's patcher already retyped it
+        }
+        const value = printed.slice (at + marker.length);
+        if (!value.startsWith ('this.')) {
+            return printed; // unexpected shape — leave it as the printer emitted it
+        }
+        narrowed.set (declaration, 'boolean');
+        const assigned = info.wrap ? `Helpers.isTrue(${value})` : value;
+        return printed.slice (0, at) + `${iden}boolean ${printedName} = ${assigned}`;
+    };
+    // the reads: the local already holds a Java primitive, so the falsy wrapper the printer
+    // puts around a condition would only re-test a proven boolean. A read renamed in place by
+    // the object-literal finalVar pass prints a hoisted Object and keeps its helper.
+    const originalCondition = printer.printCondition.bind (printer);
+    printer.printCondition = function (node, identation) {
+        if (node?.kind === ts.SyntaxKind.Identifier) {
+            const symbol = printer.getChecker ()?.getSymbolAtLocation (node);
+            const declaration = symbol?.valueDeclaration;
+            if (declaration !== undefined && narrowed.get (declaration) === 'boolean'
+                && declaration.name?.escapedText === node.escapedText) {
+                return printer.getIden (identation) + printer.printNode (node, 0);
+            }
+        }
+        return originalCondition (node, identation);
+    };
+    printer._javaBooleanLocalTypesPatched = true;
+}
+
 // ===== install =====
 
 export function installJavaLocalTypes (transpiler) {
@@ -3573,6 +3793,11 @@ export function installJavaLocalTypes (transpiler) {
     // gone). Installed here so both the main-thread Transpiler and the piscina worker
     // (which both call installJavaLocalTypes) get it.
     patchJavaCollectionLocalTypes (transpiler);
+    // (7) boolean locals from the hand-written boolean-returning methods (java-04):
+    // `Object x = this.isLinear(...)` -> `boolean x = Helpers.isTrue(...)` with the falsy
+    // wrapper dropped from every later condition reading x. Additive slice like (5) — its
+    // marker lookup no-ops on every declaration the hooks above already retyped.
+    patchJavaBooleanLocalTypes (transpiler);
     // (6) test-tier receiver accessors (section 9): the `<recv>.safeString*` locals and
     // the redundant `x as string` checkcasts on their call sites / narrowed locals
     patchJavaReceiverAccessorTypes (printer, narrowed);

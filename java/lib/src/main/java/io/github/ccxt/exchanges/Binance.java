@@ -5462,8 +5462,8 @@ public class Binance extends BinanceApi
         Object marginModes = null;
         if (Helpers.isTrue(spot))
         {
-            Object hasCrossMargin = this.inArray(id, ((Map<String, Object>)this.options).get("crossMarginPairsData"));
-            Object hasIsolatedMargin = this.inArray(id, ((Map<String, Object>)this.options).get("isolatedMarginPairsData"));
+            boolean hasCrossMargin = this.inArray(id, ((Map<String, Object>)this.options).get("crossMarginPairsData"));
+            boolean hasIsolatedMargin = this.inArray(id, ((Map<String, Object>)this.options).get("isolatedMarginPairsData"));
             marginModes = new HashMap<String, Object>() {{
                 put( "cross", hasCrossMargin );
                 put( "isolated", hasIsolatedMargin );
@@ -9846,9 +9846,9 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object isConditional = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
-            Object isLinearType = this.isLinear(type, subType);
-            Object isInverseType = this.isInverse(type, subType);
-            Boolean isLinearSwapConditional = Helpers.isTrue(isLinearType) && (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (java.util.Objects.equals(isConditional, true)) && (!java.util.Objects.equals(isPortfolioMargin, true));
+            boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
+            boolean isInverseType = Helpers.isTrue(this.isInverse(type, subType));
+            Boolean isLinearSwapConditional = isLinearType && (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (java.util.Objects.equals(isConditional, true)) && (!java.util.Objects.equals(isPortfolioMargin, true));
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId", "clientAlgoId")));
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -9874,7 +9874,7 @@ public class Binance extends BinanceApi
             if (Helpers.isTrue(isOptionType))
             {
                 response = (this.eapiPrivateGetOrder(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isLinearType))
+            } else if (isLinearType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -9889,7 +9889,7 @@ public class Binance extends BinanceApi
                         response = (this.fapiPrivateGetOrder(this.extend(request, parameters))).join();
                     }
                 }
-            } else if (Helpers.isTrue(isInverseType))
+            } else if (isInverseType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -10008,8 +10008,8 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object isConditional = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
-            Object isLinearType = this.isLinear(type, subType);
-            Object isInverseType = this.isInverse(type, subType);
+            boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
+            boolean isInverseType = Helpers.isTrue(this.isInverse(type, subType));
             Long until = this.safeIntegerN(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "endTime")));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional", "until", "till", "endTime")));
             if (!java.util.Objects.equals(since, null))
@@ -10048,7 +10048,7 @@ public class Binance extends BinanceApi
             if (Helpers.isTrue(isOptionType))
             {
                 response = (this.eapiPrivateGetHistoryOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isLinearType))
+            } else if (isLinearType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -10069,7 +10069,7 @@ public class Binance extends BinanceApi
                         response = (this.fapiPrivateGetAllOrders(this.extend(request, parameters))).join();
                     }
                 }
-            } else if (Helpers.isTrue(isInverseType))
+            } else if (isInverseType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -10974,8 +10974,8 @@ public class Binance extends BinanceApi
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object isConditional = this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Boolean isOptionType = java.util.Objects.equals(type, "option");
-            Object isLinearType = this.isLinear(type, subType);
-            Object isInverseType = this.isInverse(type, subType);
+            boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
+            boolean isInverseType = Helpers.isTrue(this.isInverse(type, subType));
             Boolean isSwapConditional = (!java.util.Objects.equals(market, null)) && (java.util.Objects.equals(((Map<String, Object>)market).get("swap"), true)) && (java.util.Objects.equals(isConditional, true)) && (!java.util.Objects.equals(isPortfolioMargin, true));
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("origClientOrderId", "clientOrderId", "newClientStrategyId", "clientAlgoId")));
             if (!java.util.Objects.equals(clientOrderId, null))
@@ -11014,7 +11014,7 @@ public class Binance extends BinanceApi
             if (Helpers.isTrue(isOptionType))
             {
                 response = (this.eapiPrivateDeleteOrder(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isLinearType))
+            } else if (isLinearType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -11035,7 +11035,7 @@ public class Binance extends BinanceApi
                         response = (this.fapiPrivateDeleteOrder(this.extend(request, parameters))).join();
                     }
                 }
-            } else if (Helpers.isTrue(isInverseType))
+            } else if (isInverseType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -11152,8 +11152,8 @@ public class Binance extends BinanceApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isOptionType = java.util.Objects.equals(type, "option");
-            Object isLinearType = this.isLinear(type, subType);
-            Object isInverseType = this.isInverse(type, subType);
+            boolean isLinearType = Helpers.isTrue(this.isLinear(type, subType));
+            boolean isInverseType = Helpers.isTrue(this.isInverse(type, subType));
             parameters = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
             Object marginMode = null;
             List<Object> marginModeparametersVariable = (List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
@@ -11163,7 +11163,7 @@ public class Binance extends BinanceApi
             if (Helpers.isTrue(isOptionType))
             {
                 response = (this.eapiPrivateDeleteAllOpenOrders(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(isLinearType))
+            } else if (isLinearType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -11184,7 +11184,7 @@ public class Binance extends BinanceApi
                         response = (this.fapiPrivateDeleteAllOpenOrders(this.extend(request, parameters))).join();
                     }
                 }
-            } else if (Helpers.isTrue(isInverseType))
+            } else if (isInverseType)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -13146,13 +13146,13 @@ public class Binance extends BinanceApi
             List<Object> isPortfolioMarginparametersVariable = (List<Object>) this.handleOptionAndParams2(parameters, "fetchTradingFee", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object isLinear = this.isLinear(type, subType);
-            Object isInverse = this.isInverse(type, subType);
+            boolean isLinear = Helpers.isTrue(this.isLinear(type, subType));
+            boolean isInverse = Helpers.isTrue(this.isInverse(type, subType));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", ((Map<String, Object>)market).get("id") );
             }};
             Object response = null;
-            if (Helpers.isTrue(isLinear))
+            if (isLinear)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -13161,7 +13161,7 @@ public class Binance extends BinanceApi
                 {
                     response = (this.fapiPrivateGetCommissionRate(this.extend(request, parameters))).join();
                 }
-            } else if (Helpers.isTrue(isInverse))
+            } else if (isInverse)
             {
                 if (Helpers.isTrue(isPortfolioMargin))
                 {
@@ -13238,16 +13238,16 @@ public class Binance extends BinanceApi
             subType = ((List<Object>) subTypeparametersVariable).get(0);
             parameters = ((List<Object>) subTypeparametersVariable).get(1);
             Boolean isSpotOrMargin = (java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(type, "margin"));
-            Object isLinear = this.isLinear(type, subType);
-            Object isInverse = this.isInverse(type, subType);
+            boolean isLinear = Helpers.isTrue(this.isLinear(type, subType));
+            boolean isInverse = Helpers.isTrue(this.isInverse(type, subType));
             Object response = null;
             if (Helpers.isTrue(isSpotOrMargin))
             {
                 response = (this.sapiGetAssetTradeFee(parameters)).join();
-            } else if (Helpers.isTrue(isLinear))
+            } else if (isLinear)
             {
                 response = (this.fapiPrivateGetAccountConfig(parameters)).join();
-            } else if (Helpers.isTrue(isInverse))
+            } else if (isInverse)
             {
                 response = (this.dapiPrivateGetAccount(parameters)).join();
             }
@@ -13331,7 +13331,7 @@ public class Binance extends BinanceApi
                     }
                 }
                 return result;
-            } else if (Helpers.isTrue(isLinear))
+            } else if (isLinear)
             {
                 //
                 //     {
@@ -13383,7 +13383,7 @@ public class Binance extends BinanceApi
                     }
                 }
                 return result;
-            } else if (Helpers.isTrue(isInverse))
+            } else if (isInverse)
             {
                 //
                 //     {
