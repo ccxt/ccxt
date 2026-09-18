@@ -1916,8 +1916,8 @@ impl BingxCore {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
-            let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
-            if (symbol == Value::Null) {
+            let mut symbol: Option<String> = self.safe_string_k(position.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            if (symbol.is_none()) {
                 continue;
             }
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
@@ -2399,29 +2399,29 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_order(client.clone(), message.clone());
             return;
         }
-        let mut e: Value = self.safe_string_k(message.clone(), "e", &[]);
-        if (e.as_str() == Some("ACCOUNT_UPDATE")) {
+        let mut e: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
+        if (e.as_deref() == Some("ACCOUNT_UPDATE")) {
             self.handle_balance(client.clone(), message.clone());
             self.handle_positions(client.clone(), message.clone());
         }
-        if (e.as_str() == Some("ORDER_TRADE_UPDATE")) {
+        if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) {
             self.handle_order(client.clone(), message.clone());
             let mut data: Value = self.safe_value_k(message.clone(), "o", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             let mut type_var: Value = self.safe_string_k(data.clone(), "x", &[]);
-            let mut status: Value = self.safe_string_k(data.clone(), "X", &[]);
-            if is_true(&(Value::Bool(type_var.as_str() == Some("TRADE")))) && is_true(&(Value::Bool(status.as_str() == Some("FILLED")))) {
+            let mut status: Option<String> = self.safe_string_k(data.clone(), "X", &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(type_var.as_str() == Some("TRADE")))) && is_true(&(Value::Bool(status.as_deref() == Some("FILLED")))) {
                 self.handle_my_trades(client.clone(), message.clone());
             }
         }
         let mut msgData: Value = self.safe_value_k(message.clone(), "data", &[]);
-        let mut msgEvent: Value = self.safe_string_k(msgData.clone(), "e", &[]);
-        if (msgEvent.as_str() == Some("24hTicker")) {
+        let mut msgEvent: Option<String> = self.safe_string_k(msgData.clone(), "e", &[]).as_str().map(str::to_owned);
+        if (msgEvent.as_deref() == Some("24hTicker")) {
             self.handle_ticker(client.clone(), message.clone());
         }
-        if (dataType.as_str() == Some("")) && (msgEvent == Value::Null) && (e == Value::Null) {
+        if (dataType.as_str() == Some("")) && (msgEvent.is_none()) && (e.is_none()) {
             self.handle_subscription_status(client.clone(), message.clone());
         }
 }

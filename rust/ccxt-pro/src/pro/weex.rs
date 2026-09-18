@@ -1504,9 +1504,9 @@ impl WeexCore {
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "E", &[]);
-        let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
         let mut nonce: Value = self.safe_integer_k(message.clone(), "u", &[]);
-        if (event.as_str() == Some("depthSnapshot")) {
+        if (event.as_deref() == Some("depthSnapshot")) {
             let mut parsed: Value = self.parse_order_book(message.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("b".to_string()), Value::Str("a".to_string())]);
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), nonce.clone());
             orderbook.reset(parsed.clone());
@@ -1881,8 +1881,8 @@ impl WeexCore {
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "createdTime", &[]);
         let mut marketId: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         let mut marketType: Value = Value::Str("spot".to_string());
-        let mut positionSide: Value = self.safe_string_k(trade.clone(), "positionSide", &[]);
-        if (positionSide != Value::Null) {
+        let mut positionSide: Option<String> = self.safe_string_k(trade.clone(), "positionSide", &[]).as_str().map(str::to_owned);
+        if (positionSide.is_some()) {
             marketType = Value::Str("swap".to_string());
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -2197,8 +2197,8 @@ impl WeexCore {
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "createdTime", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut marketType: Value = Value::Str("spot".to_string());
-        let mut positionSide: Value = self.safe_string_k(order.clone(), "positionSide", &[]);
-        if (positionSide != Value::Null) {
+        let mut positionSide: Option<String> = self.safe_string_k(order.clone(), "positionSide", &[]).as_str().map(str::to_owned);
+        if (positionSide.is_some()) {
             marketType = Value::Str("swap".to_string());
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
@@ -2754,31 +2754,31 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         if is_true(&self.handle_error_message(client.clone(), message.clone())) {
             return;
         }
-        let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
-        if (id != Value::Null) {
+        let mut id: Option<String> = self.safe_string_k(message.clone(), "id", &[]).as_str().map(str::to_owned);
+        if (id.is_some()) {
             self.handle_subscription_status(client.clone(), message.clone());
             return;
         }
-        let mut event: Value = self.safe_string_n(message.clone(), Value::List(vec![Value::Str("e".to_string()), Value::Str("event".to_string()), Value::Str("type".to_string())]), &[]);
-        if (event.as_str() == Some("ping")) {
+        let mut event: Option<String> = self.safe_string_n(message.clone(), Value::List(vec![Value::Str("e".to_string()), Value::Str("event".to_string()), Value::Str("type".to_string())]), &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("ping")) {
             self.handle_ping(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("ticker")) {
+        }  else if (event.as_deref() == Some("ticker")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(event.as_str() == Some("trade")))) || is_true(&(Value::Bool(event.as_str() == Some("tradeSnapshot")))) {
+        }  else if is_true(&(Value::Bool(event.as_deref() == Some("trade")))) || is_true(&(Value::Bool(event.as_deref() == Some("tradeSnapshot")))) {
             self.handle_trade(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(event.as_str() == Some("kline")))) || is_true(&(Value::Bool(event.as_str() == Some("klineSnapshot")))) {
+        }  else if is_true(&(Value::Bool(event.as_deref() == Some("kline")))) || is_true(&(Value::Bool(event.as_deref() == Some("klineSnapshot")))) {
             self.handle_ohlcv(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(event.as_str() == Some("depth")))) || is_true(&(Value::Bool(event.as_str() == Some("depthSnapshot")))) {
+        }  else if is_true(&(Value::Bool(event.as_deref() == Some("depth")))) || is_true(&(Value::Bool(event.as_deref() == Some("depthSnapshot")))) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("bookTicker")) {
+        }  else if (event.as_deref() == Some("bookTicker")) {
             self.handle_bid_ask(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("fill")) {
+        }  else if (event.as_deref() == Some("fill")) {
             self.handle_my_trades(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("orders")) {
+        }  else if (event.as_deref() == Some("orders")) {
             self.handle_orders(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("account")) {
+        }  else if (event.as_deref() == Some("account")) {
             self.handle_balance(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("positions")) {
+        }  else if (event.as_deref() == Some("positions")) {
             self.handle_positions(client.clone(), message.clone());
         }
 }

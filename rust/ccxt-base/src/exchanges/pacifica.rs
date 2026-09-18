@@ -1312,8 +1312,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     },
         let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset", &[id.clone()]);
-        let mut instrumentType: Value = self.safe_string_k(market.clone(), "instrument_type", &[]);
-        let mut isSpot: Value = (Value::Bool(instrumentType.as_str() == Some("spot")));
+        let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
+        let mut isSpot: Value = (Value::Bool(instrumentType.as_deref() == Some("spot")));
         let mut isSwap: Value = Value::Bool(!is_true(&isSpot));
         let mut quoteId: Value = Value::Str("USDC".to_string());
         let mut settleId: Value = Value::Null;
@@ -2216,7 +2216,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //       "created_at": 1765006315306
         //     }
         //
-        let mut eventType: Value = self.safe_string_k(trade.clone(), "event_type", &[]);
+        let mut eventType: Option<String> = self.safe_string_k(trade.clone(), "event_type", &[]).as_str().map(str::to_owned);
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "created_at", &[]);
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(trade.clone(), "amount", &[]);
@@ -2237,8 +2237,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut fee: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if (eventType != Value::Null) {
-            takerOrMaker = (if is_true(&(Value::Bool(eventType.as_str() == Some("fulfill_maker")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+        if (eventType.is_some()) {
+            takerOrMaker = (if is_true(&(Value::Bool(eventType.as_deref() == Some("fulfill_maker")))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         // public trades have no orderId
         if (orderId == Value::Null) {
@@ -2627,10 +2627,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1034 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1034 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(results.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
-            let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
+            let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut status: Value = Value::Null;
-            if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
+            if is_true(&(Value::Bool(error.is_some()))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
                 status = Value::Str("rejected".to_string());
             }  else {
                 status = Value::Str("open".to_string());
@@ -2710,10 +2710,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_1035 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1035 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(results.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut order: Value = get_value(&results, &i);
             let mut order: Value = get_value(&results, &i);
-            let mut error: Value = self.safe_string_k(order.clone(), "error", &[]);
+            let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: Value = self.safe_bool_k(order.clone(), "success", &[Value::Bool(false)]);
             let mut status: Value = Value::Null;
-            if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
+            if is_true(&(Value::Bool(error.is_some()))) || is_true(&(Value::Bool(success.as_bool() != Some(true)))) {
                 status = Value::Str("closed".to_string());
             }  else {
                 status = Value::Str("canceled".to_string());

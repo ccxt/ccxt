@@ -571,8 +571,8 @@ impl WooCore {
         if (topic == Value::Null) {
             return;
         }
-        let mut method: Value = self.safe_string(split(&topic, &Value::Str("@".to_string())), Value::Int(1), &[]);
-        if (method.as_str() == Some("orderbookupdate")) {
+        let mut method: Option<String> = self.safe_string(split(&topic, &Value::Str("@".to_string())), Value::Int(1), &[]).as_str().map(str::to_owned);
+        if (method.as_deref() == Some("orderbookupdate")) {
             if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
                 return;
             }

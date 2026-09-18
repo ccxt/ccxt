@@ -787,13 +787,13 @@ impl BithumbCore {
         if (symbol == Value::Null) {
             return;
         }
-        let mut streamType: Value = self.safe_string_k(message.clone(), "stream_type", &[]);
+        let mut streamType: Option<String> = self.safe_string_k(message.clone(), "stream_type", &[]).as_str().map(str::to_owned);
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchOrderBook", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut obLimit: Value = self.safe_integer_k(options.clone(), "limit", &[Value::Int(1000)]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) || is_true(&(Value::Bool(streamType.as_str() == Some("SNAPSHOT")))) {
+        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) || is_true(&(Value::Bool(streamType.as_deref() == Some("SNAPSHOT")))) {
             { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -850,8 +850,8 @@ impl BithumbCore {
         //        total: "0",
         //    }
         //
-        let mut sideId: Value = self.safe_string_k(delta.clone(), "orderType", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideId.as_str() == Some("bid")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+        let mut sideId: Option<String> = self.safe_string_k(delta.clone(), "orderType", &[]).as_str().map(str::to_owned);
+        let mut side: Value = (if is_true(&(Value::Bool(sideId.as_deref() == Some("bid")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
         let mut bidAsk: Value = self.parse_order_book_bid_ask(delta.clone(), &[Value::Str("price".to_string()), Value::Str("quantity".to_string())]);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
         let mut orderbookSide: Value = get_value(&orderbook, &side);
@@ -983,8 +983,8 @@ impl BithumbCore {
             if (marketId == Value::Null) {
                 continue;
             }
-            let mut code: Value = self.safe_string_k(rawTrade.clone(), "code", &[]);
-            let mut isGenerationTwo: bool = code != Value::Null;
+            let mut code: Option<String> = self.safe_string_k(rawTrade.clone(), "code", &[]).as_str().map(str::to_owned);
+            let mut isGenerationTwo: bool = code.is_some();
             let mut fallbackSymbol: Value = Value::Null;
             if isGenerationTwo {
                 fallbackSymbol = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
@@ -1055,7 +1055,7 @@ impl BithumbCore {
         let mut datetime: Value = self.safe_string_k(trade.clone(), "contDtm", &[]);
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
         let mut timestamp: Value = (match (&(self.parse_to_int(self.parse8601(datetime.clone()))), &(Value::Int(32400000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        let mut sideId: Value = self.safe_string_k(trade.clone(), "buySellGb", &[]);
+        let mut sideId: Option<String> = self.safe_string_k(trade.clone(), "buySellGb", &[]).as_str().map(str::to_owned);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Null);
@@ -1065,7 +1065,7 @@ impl BithumbCore {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]));
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), (if is_true(&(Value::Bool(sideId.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(Value::Bool(sideId.as_deref() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "contPrice", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "contQty", &[]));
@@ -1100,12 +1100,12 @@ impl BithumbCore {
         if !is_true(&(Value::Bool(in_op(&message, &Value::Str("status".to_string()))))) {
             return Value::Bool(true);
         }
-        let mut errorCode: Value = self.safe_string_k(message.clone(), "status", &[]);
+        let mut errorCode: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if is_true(&(Value::Bool(errorCode.as_str() == Some("UP")))) || is_true(&(Value::Bool(errorCode.as_str() == Some("0000")))) {
+            if is_true(&(Value::Bool(errorCode.as_deref() == Some("UP")))) || is_true(&(Value::Bool(errorCode.as_deref() == Some("0000")))) {
                 return Value::Bool(true);
             }
-            if (errorCode.as_str() != Some("0000")) {
+            if (errorCode.as_deref() != Some("0000")) {
                 let mut msg: Value = self.safe_string_k(message.clone(), "resmsg", &[]);
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg))));
             }
@@ -1255,8 +1255,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut authenticated: Value = self.safe_string_k(wsOptions.clone(), "token", &[]);
-        if (authenticated == Value::Null) {
+        let mut authenticated: Option<String> = self.safe_string_k(wsOptions.clone(), "token", &[]).as_str().map(str::to_owned);
+        if (authenticated.is_none()) {
             let mut payload: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("access_key".to_string(), self.apiKey.clone());
@@ -1406,29 +1406,29 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut marketId: Value = self.safe_string_k(order.clone(), "code", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("-".to_string())]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "order_timestamp", &[]);
-        let mut sideId: Value = self.safe_string_k(order.clone(), "ask_bid", &[]);
+        let mut sideId: Option<String> = self.safe_string_k(order.clone(), "ask_bid", &[]).as_str().map(str::to_owned);
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
-        if (sideId != Value::Null) {
-            side = (if is_true(&(Value::Bool(sideId.as_str() == Some("BID")))) { (Value::Str("buy".to_string())) } else { (Value::Str("sell".to_string())) });
+        if (sideId.is_some()) {
+            side = (if is_true(&(Value::Bool(sideId.as_deref() == Some("BID")))) { (Value::Str("buy".to_string())) } else { (Value::Str("sell".to_string())) });
         }
-        let mut typeId: Value = self.safe_string_k(order.clone(), "order_type", &[]);
+        let mut typeId: Option<String> = self.safe_string_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
-        if (typeId.as_str() == Some("limit")) {
+        if (typeId.as_deref() == Some("limit")) {
             type_var = Value::Str("limit".to_string());
-        }  else if (typeId.as_str() == Some("price")) {
+        }  else if (typeId.as_deref() == Some("price")) {
             type_var = Value::Str("market".to_string());
-        }  else if (typeId.as_str() == Some("market")) {
+        }  else if (typeId.as_deref() == Some("market")) {
             type_var = Value::Str("market".to_string());
         }
-        let mut stateId: Value = self.safe_string_k(order.clone(), "state", &[]);
+        let mut stateId: Option<String> = self.safe_string_k(order.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut status: Value = Value::Null;
-        if (stateId.as_str() == Some("wait")) {
+        if (stateId.as_deref() == Some("wait")) {
             status = Value::Str("open".to_string());
-        }  else if (stateId.as_str() == Some("trade")) {
+        }  else if (stateId.as_deref() == Some("trade")) {
             status = Value::Str("open".to_string());
-        }  else if (stateId.as_str() == Some("done")) {
+        }  else if (stateId.as_deref() == Some("done")) {
             status = Value::Str("closed".to_string());
-        }  else if (stateId.as_str() == Some("cancel")) {
+        }  else if (stateId.as_deref() == Some("cancel")) {
             status = Value::Str("canceled".to_string());
         }
         let mut price: Value = self.safe_string2(order.clone(), Value::Str("price".to_string()), Value::Str("order_price".to_string()), &[]);
@@ -1491,8 +1491,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             return;
         }
-        let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
-        if (status.as_str() == Some("UP")) {
+        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("UP")) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }

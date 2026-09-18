@@ -2631,7 +2631,7 @@ impl BitsoCore {
         let mut receivingAddress: Value = self.safe_string_k(details.clone(), "receiving_address", &[]);
         let mut networkId: Value = self.safe_string2(transaction.clone(), Value::Str("network".to_string()), Value::Str("method".to_string()), &[]);
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
-        let mut withdrawId: Value = self.safe_string_k(transaction.clone(), "wid", &[]);
+        let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "wid", &[]).as_str().map(str::to_owned);
         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null)]);
         let mut networkCodeUpper: Value = (if is_true(&(Value::Bool(networkCode != Value::Null))) { to_upper(&networkCode) } else { Value::Null });
         return Value::Map({
@@ -2645,7 +2645,7 @@ impl BitsoCore {
         m.insert("address".to_string(), (if is_true(&(Value::Bool(withdrawalAddress != Value::Null))) { withdrawalAddress.clone() } else { receivingAddress.clone() }));
         m.insert("addressTo".to_string(), withdrawalAddress.clone());
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(withdrawId == Value::Null))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(withdrawId.is_none()))) { Value::Str("deposit".to_string()) } else { Value::Str("withdrawal".to_string()) }));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
         m.insert("updated".to_string(), Value::Null);

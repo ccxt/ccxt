@@ -882,8 +882,8 @@ impl AlpacaCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut event: Value = self.safe_string_k(data.clone(), "event", &[]);
-        if (event.as_str() != Some("fill")) && (event.as_str() != Some("partial_fill")) {
+        let mut event: Option<String> = self.safe_string_k(data.clone(), "event", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() != Some("fill")) && (event.as_deref() != Some("partial_fill")) {
             return;
         }
         let mut rawOrder: Value = self.safe_value_k(data, "order", &[Value::Map({
@@ -1047,16 +1047,16 @@ impl AlpacaCore {
             let mut data: Value = get_value(&message, &i);
             let mut data: Value = get_value(&message, &i);
             let mut T: Value = self.safe_string_k(data.clone(), "T", &[]);
-            let mut msg: Value = self.safe_string_k(data.clone(), "msg", &[]);
+            let mut msg: Option<String> = self.safe_string_k(data.clone(), "msg", &[]).as_str().map(str::to_owned);
             if (T.as_str() == Some("subscription")) {
                 self.handle_subscription(client.clone(), data.clone());
                 return;
             }
-            if (T.as_str() == Some("success")) && (msg.as_str() == Some("connected")) {
+            if (T.as_str() == Some("success")) && (msg.as_deref() == Some("connected")) {
                 self.handle_connected(client.clone(), data.clone());
                 return;
             }
-            if (T.as_str() == Some("success")) && (msg.as_str() == Some("authenticated")) {
+            if (T.as_str() == Some("success")) && (msg.as_deref() == Some("authenticated")) {
                 self.handle_authenticate(client.clone(), data.clone());
                 return;
             }
@@ -1126,13 +1126,13 @@ impl AlpacaCore {
         //        }
         //    }
         //
-        let mut T: Value = self.safe_string_k(message.clone(), "T", &[]);
+        let mut T: Option<String> = self.safe_string_k(message.clone(), "T", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut status: Value = self.safe_string_k(data.clone(), "status", &[]);
-        if (T.as_str() == Some("success")) || (status.as_str() == Some("authorized")) {
+        let mut status: Option<String> = self.safe_string_k(data.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (T.as_deref() == Some("success")) || (status.as_deref() == Some("authorized")) {
             let mut promise: Value = get_value(&client, &Value::Str("futures".to_string())).as_map().and_then(|__m| __m.get("authenticated")).cloned().unwrap_or(Value::Null);
             promise.resolve(&[message.clone()]);
             return;

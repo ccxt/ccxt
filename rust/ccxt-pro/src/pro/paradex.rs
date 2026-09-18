@@ -531,10 +531,10 @@ impl ParadexCore {
             let mut __for_first_584: bool = true;
             while { if !__for_first_584 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_584 = false; i.as_f64().unwrap_or(f64::NAN) < ((inserts.len() as i64) as f64) } {
             let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
-            let mut side: Value = self.safe_string_k(insert.clone(), "side", &[]);
+            let mut side: Option<String> = self.safe_string_k(insert.clone(), "side", &[]).as_str().map(str::to_owned);
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
             let mut size: Value = self.safe_string_k(insert.clone(), "size", &[]);
-            if (side.as_str() == Some("BUY")) {
+            if (side.as_deref() == Some("BUY")) {
                 crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("bids".to_string()), Value::List(vec![price.clone(), size.clone()]));
             }  else {
                 crate::runtime::append_to_object_array(&mut orderbookData, &Value::Str("asks".to_string()), Value::List(vec![price.clone(), size.clone()]));
@@ -1000,8 +1000,8 @@ impl ParadexCore {
         if (error == Value::Null) {
             return Value::Bool(true);
         }  else {
-            let mut errorCode: Value = self.safe_string_k(error.clone(), "code", &[]);
-            if (errorCode != Value::Null) {
+            let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+            if (errorCode.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(error.clone())));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), Value::Str("-32600".to_string()), feedback.clone());
                 let mut messageString: Value = self.safe_value_k(error, "message", &[]);

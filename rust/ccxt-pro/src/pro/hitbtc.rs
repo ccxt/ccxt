@@ -1546,9 +1546,9 @@ impl HitbtcCore {
         let mut timestamp: Value = self.safe_string_k(order.clone(), "created_at", &[]);
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut tradeId: Value = self.safe_string_k(order.clone(), "trade_id", &[]);
+        let mut tradeId: Option<String> = self.safe_string_k(order.clone(), "trade_id", &[]).as_str().map(str::to_owned);
         let mut trades: Value = Value::Null;
-        if (tradeId != Value::Null) {
+        if (tradeId.is_some()) {
             let mut trade: Value = self.parse_ws_order_trade(order.clone(), &[market.clone()]);
             trades = Value::List(vec![trade.clone()]);
         }
@@ -1913,8 +1913,8 @@ impl HitbtcCore {
             let mut splitChannel: Value = split(&channel, &Value::Str("/".to_string()));
             channel = self.safe_string(splitChannel.clone(), Value::Int(0), &[]);
             if (channel.as_str() == Some("orderbook")) {
-                let mut channel2: Value = self.safe_string(splitChannel.clone(), Value::Int(1), &[]);
-                if (channel2 != Value::Null) && (channel2.as_str() == Some("top")) {
+                let mut channel2: Option<String> = self.safe_string(splitChannel.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+                if (channel2.is_some()) && (channel2.as_deref() == Some("top")) {
                     channel = Value::Str("orderbook/top".to_string());
                 }
             }
@@ -1941,8 +1941,8 @@ impl HitbtcCore {
             }
         }  else {
             let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
-            let mut clientOrderId: Value = self.safe_string_k(result.clone(), "client_order_id", &[]);
-            if (clientOrderId != Value::Null) {
+            let mut clientOrderId: Option<String> = self.safe_string_k(result.clone(), "client_order_id", &[]).as_str().map(str::to_owned);
+            if (clientOrderId.is_some()) {
                 self.handle_order_request(client.clone(), message.clone());
             }
             if (is_equal(&result, &Value::Bool(true))) && !is_true(&(Value::Bool(in_op(&message, &Value::Str("id".to_string()))))) {

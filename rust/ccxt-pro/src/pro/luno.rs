@@ -601,10 +601,10 @@ impl LunoCore {
         let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
         if (createUpdate != Value::Null) {
             let mut bidAskArray: Value = self.custom_parse_bid_ask(createUpdate.clone(), &[Value::Str("price".to_string()), Value::Str("volume".to_string()), Value::Str("order_id".to_string())]);
-            let mut type_var: Value = self.safe_string_k(createUpdate.clone(), "type", &[]);
-            if (type_var.as_str() == Some("ASK")) {
+            let mut type_var: Option<String> = self.safe_string_k(createUpdate.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (type_var.as_deref() == Some("ASK")) {
                 asksOrderSide.store_array(bidAskArray.clone());
-            }  else if (type_var.as_str() == Some("BID")) {
+            }  else if (type_var.as_deref() == Some("BID")) {
                 bidsOrderSide.store_array(bidAskArray.clone());
             }
         }

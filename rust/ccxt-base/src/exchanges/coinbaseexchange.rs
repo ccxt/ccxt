@@ -1261,7 +1261,7 @@ impl CoinbaseexchangeCore {
             // const quoteId = this.safeString (market, 'quote_currency');
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+            let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
             let __ws_arg_4 = crate::value::get_value_k(&self.fees, "trading");
             let __ws_arg_0 = self.safe_value_k(market.clone(), "margin_enabled", &[]);
             let __ws_arg_1 = self.safe_number_k(market.clone(), "base_increment", &[]);
@@ -1283,7 +1283,7 @@ impl CoinbaseexchangeCore {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), (Value::Bool(status.as_str() == Some("online"))));
+                    m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("online"))));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1685,9 +1685,9 @@ impl CoinbaseexchangeCore {
             m
         });
         // publicGetProductsIdTicker or publicGetProductsIdStats
-        let mut method: Value = self.safe_string_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("publicGetProductsIdTicker".to_string())]);
+        let mut method: Option<String> = self.safe_string_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("publicGetProductsIdTicker".to_string())]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if (method.as_str() == Some("publicGetProductsIdStats")) {
+        if (method.as_deref() == Some("publicGetProductsIdStats")) {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_products_id_stats(&[__ws_arg_7]).await;
         }  else {
@@ -1733,9 +1733,9 @@ impl CoinbaseexchangeCore {
         if (feeCurrencyId != Value::Null) {
             let mut costField: Value = Value::Str(format!("{}{}", feeCurrencyId, Value::Str("_value".to_string())));
             cost = self.safe_string(trade.clone(), costField.clone(), &[]);
-            let mut liquidity: Value = self.safe_string_k(trade.clone(), "liquidity", &[]);
-            if (liquidity != Value::Null) {
-                takerOrMaker = (if is_true(&(Value::Bool(liquidity.as_str() == Some("T")))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+            let mut liquidity: Option<String> = self.safe_string_k(trade.clone(), "liquidity", &[]).as_str().map(str::to_owned);
+            if (liquidity.is_some()) {
+                takerOrMaker = (if is_true(&(Value::Bool(liquidity.as_deref() == Some("T")))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
                 feeRate = self.safe_string(market.clone(), takerOrMaker.clone(), &[]);
             }
         }
@@ -1751,9 +1751,9 @@ impl CoinbaseexchangeCore {
         let mut side: Value = (if is_true(&(Value::Bool(trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut orderId: Value = self.safe_string_k(trade.clone(), "order_id", &[]);
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
-        let mut makerOrderId: Value = self.safe_string_k(trade.clone(), "maker_order_id", &[]);
-        let mut takerOrderId: Value = self.safe_string_k(trade.clone(), "taker_order_id", &[]);
-        if is_true(&(Value::Bool(orderId != Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(makerOrderId != Value::Null))) && is_true(&(Value::Bool(takerOrderId != Value::Null)))))) {
+        let mut makerOrderId: Option<String> = self.safe_string_k(trade.clone(), "maker_order_id", &[]).as_str().map(str::to_owned);
+        let mut takerOrderId: Option<String> = self.safe_string_k(trade.clone(), "taker_order_id", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(orderId != Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(makerOrderId.is_some()))) && is_true(&(Value::Bool(takerOrderId.is_some())))))) {
             side = (if is_true(&(Value::Bool(trade.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() == Some("buy")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         }
         let mut price: Value = self.safe_string_k(trade.clone(), "price", &[]);
@@ -2063,8 +2063,8 @@ impl CoinbaseexchangeCore {
         let mut marketId: Value = self.safe_string_k(order.clone(), "product_id", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone(), Value::Str("-".to_string())]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
-        let mut doneReason: Value = self.safe_string_k(order.clone(), "done_reason", &[]);
-        if is_true(&(Value::Bool(status.as_str() == Some("closed")))) && is_true(&(Value::Bool(doneReason.as_str() == Some("canceled")))) {
+        let mut doneReason: Option<String> = self.safe_string_k(order.clone(), "done_reason", &[]).as_str().map(str::to_owned);
+        if is_true(&(Value::Bool(status.as_str() == Some("closed")))) && is_true(&(Value::Bool(doneReason.as_deref() == Some("canceled")))) {
             status = Value::Str("canceled".to_string());
         }
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);

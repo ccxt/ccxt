@@ -1469,27 +1469,27 @@ impl BitmexCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
-        let mut typ: Value = self.safe_string_k(market.clone(), "typ", &[]); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+        let mut typ: Option<String> = self.safe_string_k(market.clone(), "typ", &[]).as_str().map(str::to_owned); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
         let mut type_var: Value = Value::Null;
         let mut swap: Value = Value::Bool(false);
         let mut spot: Value = Value::Bool(false);
         let mut future: Value = Value::Bool(false);
-        if (typ.as_str() == Some("FFWCSX")) {
+        if (typ.as_deref() == Some("FFWCSX")) {
             type_var = Value::Str("swap".to_string());
             swap = Value::Bool(true);
-        }  else if (typ.as_str() == Some("IFXXXP")) {
+        }  else if (typ.as_deref() == Some("IFXXXP")) {
             type_var = Value::Str("spot".to_string());
             spot = Value::Bool(true);
-        }  else if (typ.as_str() == Some("FFCCSX")) || (typ.as_str() == Some("FFMCSX")) {
+        }  else if (typ.as_deref() == Some("FFCCSX")) || (typ.as_deref() == Some("FFMCSX")) {
             type_var = Value::Str("future".to_string());
             future = Value::Bool(true);
-        }  else if (typ.as_str() == Some("FFICSX")) {
+        }  else if (typ.as_deref() == Some("FFICSX")) {
             // prediction markets (without any volume)
             quoteId = baseId.clone();
             baseId = self.safe_string_k(market.clone(), "rootSymbol", &[]);
             type_var = Value::Str("future".to_string());
             future = Value::Bool(true);
-        }  else if (typ.as_str() == Some("FFSCSX")) {
+        }  else if (typ.as_deref() == Some("FFSCSX")) {
             type_var = Value::Str("swap".to_string());
             swap = Value::Bool(true);
         }
@@ -1500,8 +1500,8 @@ impl BitmexCore {
         let mut isInverse: Value = self.safe_value_k(market.clone(), "isInverse", &[]); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         let mut isQuanto: Value = self.safe_value_k(market.clone(), "isQuanto", &[]); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         let mut linear: Value = (if is_true(&contract) { Value::Bool(((!is_equal(&isInverse, &Value::Bool(true))) && (!is_equal(&isQuanto, &Value::Bool(true))))) } else { Value::Null });
-        let mut status: Value = self.safe_string_k(market.clone(), "state", &[]);
-        let mut active: Value = Value::Bool(status.as_str() == Some("Open")); // Open, Settled, Unlisted
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
+        let mut active: Value = Value::Bool(status.as_deref() == Some("Open")); // Open, Settled, Unlisted
         let mut expiry: Value = Value::Null;
         let mut expiryDatetime: Value = Value::Null;
         let mut symbol: Value = Value::Null;
@@ -2633,9 +2633,9 @@ impl BitmexCore {
             });
         }
         // Trade or Funding
-        let mut execType: Value = self.safe_string_k(trade.clone(), "execType", &[]);
+        let mut execType: Option<String> = self.safe_string_k(trade.clone(), "execType", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
-        if (feeCostString != Value::Null) && (execType.as_str() == Some("Trade")) {
+        if (feeCostString != Value::Null) && (execType.as_deref() == Some("Trade")) {
             takerOrMaker = (if is_true(&crate::precise::Precise::stringLt(&feeCostString, &Value::Str("0".to_string()))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
         }
         let mut type_var: Value = self.safe_string_lower(trade.clone(), Value::Str("ordType".to_string()), &[]);
@@ -2743,8 +2743,8 @@ impl BitmexCore {
         let mut amount: Value = Value::Null;
         let mut isInverse: Value = Value::Bool(false);
         if (marketId == Value::Null) {
-            let mut defaultSubType: Value = self.safe_string_k(self.options.clone(), "defaultSubType", &[Value::Str("linear".to_string())]);
-            isInverse = (Value::Bool(defaultSubType.as_str() == Some("inverse")));
+            let mut defaultSubType: Option<String> = self.safe_string_k(self.options.clone(), "defaultSubType", &[Value::Str("linear".to_string())]).as_str().map(str::to_owned);
+            isInverse = (Value::Bool(defaultSubType.as_deref() == Some("inverse")));
         }  else {
             isInverse = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
         }
@@ -4360,8 +4360,8 @@ impl BitmexCore {
         if (limit != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("count".to_string()), limit.clone());
         }
-        let mut until: Value = self.safe_string_k(params.clone(), "until", &[]);
-        if (until != Value::Null) {
+        let mut until: Option<String> = self.safe_string_k(params.clone(), "until", &[]).as_str().map(str::to_owned);
+        if (until.is_some()) {
             add_element_to_object(&mut request, &Value::Str("endTime".to_string()), self.iso8601(since.clone()));
             params = self.omit(params.clone(), Value::Str("until".to_string()), &[]);
         }

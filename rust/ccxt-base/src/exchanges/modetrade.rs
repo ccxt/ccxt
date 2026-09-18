@@ -2091,8 +2091,8 @@ impl ModetradeCore {
         let mut code: Value = self.safe_currency_code(Value::Str("USDC".to_string()), &[]);
         let mut timestamp: Value = self.safe_integer_k(income.clone(), "updated_time", &[]);
         let mut rate: Value = self.safe_number_k(income.clone(), "funding_rate", &[]);
-        let mut paymentType: Value = self.safe_string_k(income.clone(), "payment_type", &[]);
-        amount = (if is_true(&(Value::Bool(paymentType.as_str() == Some("Pay")))) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
+        let mut paymentType: Option<String> = self.safe_string_k(income.clone(), "payment_type", &[]).as_str().map(str::to_owned);
+        amount = (if is_true(&(Value::Bool(paymentType.as_deref() == Some("Pay")))) { crate::precise::Precise::stringNeg(&amount) } else { amount.clone() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), income.clone());
@@ -2625,10 +2625,10 @@ impl ModetradeCore {
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut hasStopLoss: bool = stopLoss != Value::Null;
         let mut hasTakeProfit: bool = takeProfit != Value::Null;
-        let mut algoType: Value = self.safe_string_k(params.clone(), "algoType", &[]);
+        let mut algoType: Option<String> = self.safe_string_k(params.clone(), "algoType", &[]).as_str().map(str::to_owned);
         let mut isConditional: bool = (triggerPrice != Value::Null) || hasStopLoss || hasTakeProfit || is_true(&(Value::Bool(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null)));
         let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
-        let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         let mut orderQtyKey: Value = (if isConditional { Value::Str("quantity".to_string()) } else { Value::Str("order_quantity".to_string()) });
         let mut priceKey: Value = (if isConditional { Value::Str("price".to_string()) } else { Value::Str("order_price".to_string()) });
@@ -2637,9 +2637,9 @@ impl ModetradeCore {
         if !isConditional {
             if is_true(&postOnly) {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str("POST_ONLY".to_string()));
-            }  else if (timeInForce.as_str() == Some("fok")) {
+            }  else if (timeInForce.as_deref() == Some("fok")) {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str("FOK".to_string()));
-            }  else if (timeInForce.as_str() == Some("ioc")) {
+            }  else if (timeInForce.as_deref() == Some("ioc")) {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str("IOC".to_string()));
             }
         }
@@ -2651,7 +2651,7 @@ impl ModetradeCore {
         }
         if is_true(&isMarket) && !isConditional {
             add_element_to_object(&mut request, &orderQtyKey, self.amount_to_precision(symbol.clone(), amount.clone()));
-        }  else if (algoType.as_str() != Some("POSITIONAL_TP_SL")) {
+        }  else if (algoType.as_deref() != Some("POSITIONAL_TP_SL")) {
             add_element_to_object(&mut request, &orderQtyKey, self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         let mut clientOrderId: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("clOrdID".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_order_id".to_string())]), &[]);
@@ -2743,10 +2743,10 @@ impl ModetradeCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]).as_str().map(str::to_owned);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut isConditional: bool = (triggerPrice != Value::Null) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(Value::Bool(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null)));
+        let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(Value::Bool(self.safe_value_k(params.clone(), "childOrders", &[]) != Value::Null)));
         let mut response: Value = Value::Null;
         if isConditional {
             response = self.v1_private_post_algo_order(&[request.clone()]).await;
@@ -2801,10 +2801,10 @@ impl ModetradeCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut triggerPrice: Value = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
+            let mut triggerPrice: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]).as_str().map(str::to_owned);
             let mut stopLoss: Value = self.safe_value_k(orderParams.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
-            let mut isConditional: bool = (triggerPrice != Value::Null) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(Value::Bool(self.safe_value_k(orderParams.clone(), "childOrders", &[]) != Value::Null)));
+            let mut isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || is_true(&(Value::Bool(self.safe_value_k(orderParams.clone(), "childOrders", &[]) != Value::Null)));
             if isConditional {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrders() only support non-stop order".to_string()))));
             }
@@ -2904,14 +2904,14 @@ impl ModetradeCore {
                 add_element_to_object(&mut request, &Value::Str("side".to_string()), to_upper(&side));
             }
             let mut orderType: Value = to_upper(&type_var);
-            let mut timeInForce: Value = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+            let mut timeInForce: Option<String> = self.safe_string_lower(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
             let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
             let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
             if is_true(&postOnly) {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str("POST_ONLY".to_string()));
-            }  else if (timeInForce.as_str() == Some("fok")) {
+            }  else if (timeInForce.as_deref() == Some("fok")) {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str("FOK".to_string()));
-            }  else if (timeInForce.as_str() == Some("ioc")) {
+            }  else if (timeInForce.as_deref() == Some("ioc")) {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), Value::Str("IOC".to_string()));
             }  else {
                 add_element_to_object(&mut request, &Value::Str("order_type".to_string()), orderType.clone());
@@ -3702,8 +3702,8 @@ impl ModetradeCore {
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         currency = self.safe_currency(currencyId.clone(), &[currency.clone()]);
         let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
-        let mut side: Value = self.safe_string_k(item.clone(), "token_side", &[]);
-        let mut direction: Value = (if is_true(&(Value::Bool(side.as_str() == Some("DEPOSIT")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
+        let mut side: Option<String> = self.safe_string_k(item.clone(), "token_side", &[]).as_str().map(str::to_owned);
+        let mut direction: Value = (if is_true(&(Value::Bool(side.as_deref() == Some("DEPOSIT")))) { Value::Str("in".to_string()) } else { Value::Str("out".to_string()) });
         let mut timestamp: Value = self.safe_integer_k(item.clone(), "created_time", &[]);
         let mut fee: Value = self.parse_token_and_fee_temp(item.clone(), Value::Str("fee_token".to_string()), Value::Str("fee_amount".to_string()));
         return self.safe_ledger_entry(Value::Map({

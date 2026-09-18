@@ -658,8 +658,8 @@ impl CoinoneCore {
         //         "message": "Invalid Topic"
         //     }
         //
-        let mut type_var: Value = self.safe_string_k(message.clone(), "response_type", &[Value::Str("".to_string())]);
-        if (type_var.as_str() == Some("ERROR")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "response_type", &[Value::Str("".to_string())]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("ERROR")) {
             return Value::Bool(true);
         }
         return Value::Bool(false);
@@ -671,12 +671,12 @@ impl CoinoneCore {
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() == Some(true)) {
             return;
         }
-        let mut type_var: Value = self.safe_string_k(message.clone(), "response_type", &[]);
-        if (type_var.as_str() == Some("PONG")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "response_type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("PONG")) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
-        if (type_var.as_str() == Some("DATA")) {
+        if (type_var.as_deref() == Some("DATA")) {
             let mut topic: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

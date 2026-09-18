@@ -794,8 +794,8 @@ impl BinanceCore {
                 let mut rawTopic: Value = get_value(&response, &i);
                 let mut topicId: Value = self.safe_string_k(rawTopic.clone(), "marketTopicId", &[]);
                 if (topicId != Value::Null) {
-                    let mut already: Value = self.safe_string(seen.clone(), topicId.clone(), &[]);
-                    if (already == Value::Null) {
+                    let mut already: Option<String> = self.safe_string(seen.clone(), topicId.clone(), &[]).as_str().map(str::to_owned);
+                    if (already.is_none()) {
                         add_element_to_object(&mut seen, &topicId, topicId.clone());
                         append_to_array(&mut collected, rawTopic.clone());
                     }
@@ -896,14 +896,14 @@ impl BinanceCore {
         let mut title: Value = self.safe_string_k(rawTopic.clone(), "title", &[]);
         let mut endDate: Value = self.safe_integer_k(rawTopic.clone(), "endDate", &[]);
         let mut created: Value = self.safe_integer2(rawTopic.clone(), Value::Str("publishedAt".to_string()), Value::Str("startDate".to_string()), &[]);
-        let mut status: Value = self.safe_string_k(rawTopic.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(rawTopic.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut active: Value = anyActive.clone();
         if (rawMarketsLength.as_f64() == Some(0.0)) {
-            active = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("REGISTERED")))) || is_true(&(Value::Bool(status.as_str() == Some("OPEN")))));
+            active = Value::Bool(is_true(&(Value::Bool(status.as_deref() == Some("REGISTERED")))) || is_true(&(Value::Bool(status.as_deref() == Some("OPEN")))));
         }
         let mut resolved: Value = Value::Null;
-        if (status != Value::Null) {
-            resolved = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("RESOLVED")))) || is_true(&(Value::Bool(status.as_str() == Some("SETTLED")))));
+        if (status.is_some()) {
+            resolved = Value::Bool(is_true(&(Value::Bool(status.as_deref() == Some("RESOLVED")))) || is_true(&(Value::Bool(status.as_deref() == Some("SETTLED")))));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -966,13 +966,13 @@ impl BinanceCore {
         let mut collateral: Value = self.safe_string_k(rawTopic.clone(), "collateral", &[Value::Str("USDT".to_string())]);
         let mut title: Value = self.safe_string_k(rawMarket.clone(), "title", &[marketId.clone()]);
         let mut marketSymbol: Value = self.slug_to_market_symbol(topicSlug.clone(), title.clone());
-        let mut tradingStatus: Value = self.safe_string_k(rawMarket.clone(), "tradingStatus", &[]);
-        let mut status: Value = self.safe_string_k(rawMarket.clone(), "status", &[]);
-        let mut active: Value = (Value::Bool(tradingStatus.as_str() == Some("OPEN")));
-        if (tradingStatus == Value::Null) {
-            active = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("REGISTERED")))) || is_true(&(Value::Bool(status.as_str() == Some("OPEN")))));
+        let mut tradingStatus: Option<String> = self.safe_string_k(rawMarket.clone(), "tradingStatus", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k(rawMarket.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(tradingStatus.as_deref() == Some("OPEN")));
+        if (tradingStatus.is_none()) {
+            active = Value::Bool(is_true(&(Value::Bool(status.as_deref() == Some("REGISTERED")))) || is_true(&(Value::Bool(status.as_deref() == Some("OPEN")))));
         }
-        let mut resolved: Value = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("RESOLVED")))) || is_true(&(Value::Bool(status.as_str() == Some("SETTLED")))));
+        let mut resolved: Value = Value::Bool(is_true(&(Value::Bool(status.as_deref() == Some("RESOLVED")))) || is_true(&(Value::Bool(status.as_deref() == Some("SETTLED")))));
         let mut endDate: Value = self.safe_integer_k(rawTopic.clone(), "endDate", &[]);
         let mut feeRateBps: Value = self.safe_string_k(rawTopic.clone(), "feeRateBps", &[Value::Str("200".to_string())]);
         let mut feeRate: Value = self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".to_string())), &[]);
@@ -1184,13 +1184,13 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut outcomeIndex: Value = self.safe_string_k(outcomeInfo.clone(), "index", &[]);
+        let mut outcomeIndex: Option<String> = self.safe_string_k(outcomeInfo.clone(), "index", &[]).as_str().map(str::to_owned);
         let mut isMirrored: bool = false;
-        if (outcomeIndex != Value::Null) {
-            isMirrored = outcomeIndex.as_str() != Some("0");
+        if (outcomeIndex.is_some()) {
+            isMirrored = outcomeIndex.as_deref() != Some("0");
         }  else {
-            let mut label: Value = self.safe_string_upper(outcomeObj.clone(), Value::Str("label".to_string()), &[Value::Str("YES".to_string())]);
-            isMirrored = is_true(&(Value::Bool(label.as_str() == Some("NO")))) || is_true(&(Value::Bool(label.as_str() == Some("DOWN"))));
+            let mut label: Option<String> = self.safe_string_upper(outcomeObj.clone(), Value::Str("label".to_string()), &[Value::Str("YES".to_string())]).as_str().map(str::to_owned);
+            isMirrored = is_true(&(Value::Bool(label.as_deref() == Some("NO")))) || is_true(&(Value::Bool(label.as_deref() == Some("DOWN"))));
         }
         let mut lastString: Value = self.safe_string_k(raw.clone(), "lastTradePrice", &[]);
         let mut last: Value = Value::Null;

@@ -1134,18 +1134,18 @@ impl PolymarketCore {
         let mut optionPageSize: Value = self.safe_integer_k(self.options.clone(), "searchPageSize", &[Value::Int(100)]);
         let mut pageSize: Value = self.safe_integer_k(params.clone(), "searchPageSize", &[optionPageSize.clone()]);
         // map the unified sort/status onto the gamma search params
-        let mut sort: Value = self.safe_string_k(params.clone(), "sort", &[]);
+        let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
         let mut sortParam: Value = Value::Str("volume".to_string());
-        if (sort.as_str() == Some("liquidity")) {
+        if (sort.as_deref() == Some("liquidity")) {
             sortParam = Value::Str("liquidity".to_string());
-        }  else if (sort.as_str() == Some("newest")) {
+        }  else if (sort.as_deref() == Some("newest")) {
             sortParam = Value::Str("startDate".to_string());
         }
-        let mut status: Value = self.safe_string_k(params.clone(), "status", &[Value::Str("active".to_string())]);
+        let mut status: Option<String> = self.safe_string_k(params.clone(), "status", &[Value::Str("active".to_string())]).as_str().map(str::to_owned);
         let mut eventsStatus: Value = Value::Str("active".to_string());
-        if is_true(&(Value::Bool(status.as_str() == Some("closed")))) || is_true(&(Value::Bool(status.as_str() == Some("inactive")))) {
+        if is_true(&(Value::Bool(status.as_deref() == Some("closed")))) || is_true(&(Value::Bool(status.as_deref() == Some("inactive")))) {
             eventsStatus = Value::Str("closed".to_string());
-        }  else if (status.as_str() == Some("all")) {
+        }  else if (status.as_deref() == Some("all")) {
             eventsStatus = Value::Null;
         }
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("limit".to_string()), Value::Str("sort".to_string()), Value::Str("status".to_string()), Value::Str("searchIn".to_string()), Value::Str("eventId".to_string()), Value::Str("slug".to_string()), Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("searchPageSize".to_string()), Value::Str("maxSearchPages".to_string())]), &[]);
@@ -1329,13 +1329,13 @@ impl PolymarketCore {
         // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
         let mut limit: Value = self.safe_integer_k(params.clone(), "limit", &[self.safe_integer(self.options.clone(), Value::Str("fetchMarketsLimit".to_string()), &[Value::Int(200)])]);
         let mut maxPages: Value = math_ceil(&(match ((limit).as_f64(), (pageSize).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-        let mut status: Value = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".to_string()), &[Value::Str("active".to_string())])]);
+        let mut status: Option<String> = self.safe_string_k(params.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".to_string()), &[Value::Str("active".to_string())])]).as_str().map(str::to_owned);
         // sort maps to the gamma `order` field; 'volume' is the default ranking
-        let mut sort: Value = self.safe_string_k(params.clone(), "sort", &[]);
+        let mut sort: Option<String> = self.safe_string_k(params.clone(), "sort", &[]).as_str().map(str::to_owned);
         let mut order: Value = Value::Str("volume".to_string());
-        if (sort.as_str() == Some("liquidity")) {
+        if (sort.as_deref() == Some("liquidity")) {
             order = Value::Str("liquidity".to_string());
-        }  else if (sort.as_str() == Some("newest")) {
+        }  else if (sort.as_deref() == Some("newest")) {
             order = Value::Str("startDate".to_string());
         }
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("status".to_string()), Value::Str("limit".to_string()), Value::Str("sort".to_string()), Value::Str("searchIn".to_string()), Value::Str("eventId".to_string()), Value::Str("slug".to_string()), Value::Str("query".to_string()), Value::Str("queries".to_string()), Value::Str("tags".to_string())]), &[]);
@@ -1390,10 +1390,10 @@ impl PolymarketCore {
             // so human-readable labels ("Fed Rates") must be slugified first
             add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".to_string()), self.tag_to_slug(self.safe_string(requestedTags.clone(), Value::Int(0), &[])));
         }
-        if (status.as_str() == Some("active")) {
+        if (status.as_deref() == Some("active")) {
             add_element_to_object(&mut baseRequest, &Value::Str("active".to_string()), Value::Bool(true));
             add_element_to_object(&mut baseRequest, &Value::Str("closed".to_string()), Value::Bool(false));
-        }  else if is_true(&(Value::Bool(status.as_str() == Some("closed")))) || is_true(&(Value::Bool(status.as_str() == Some("inactive")))) {
+        }  else if is_true(&(Value::Bool(status.as_deref() == Some("closed")))) || is_true(&(Value::Bool(status.as_deref() == Some("inactive")))) {
             add_element_to_object(&mut baseRequest, &Value::Str("active".to_string()), Value::Bool(false));
             add_element_to_object(&mut baseRequest, &Value::Str("closed".to_string()), Value::Bool(true));
         }
@@ -3228,14 +3228,14 @@ impl PolymarketCore {
         let mut orderTypeStr: Value = self.safe_string_upper(params.clone(), Value::Str("orderType".to_string()), &[]);
         if (orderTypeStr == Value::Null) {
             // otherwise map the unified `timeInForce` onto polymarket's orderType vocabulary
-            let mut unifiedTif: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
-            if (unifiedTif.as_str() == Some("GTC")) {
+            let mut unifiedTif: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
+            if (unifiedTif.as_deref() == Some("GTC")) {
                 orderTypeStr = Value::Str("GTC".to_string());
-            }  else if (unifiedTif.as_str() == Some("FOK")) {
+            }  else if (unifiedTif.as_deref() == Some("FOK")) {
                 orderTypeStr = Value::Str("FOK".to_string());
-            }  else if (unifiedTif.as_str() == Some("IOC")) {
+            }  else if (unifiedTif.as_deref() == Some("IOC")) {
                 orderTypeStr = Value::Str("FAK".to_string()); // fill-and-kill == immediate-or-cancel
-            }  else if (unifiedTif.as_str() == Some("GTD")) {
+            }  else if (unifiedTif.as_deref() == Some("GTD")) {
                 orderTypeStr = Value::Str("GTD".to_string());
             }
         }
@@ -3674,8 +3674,8 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut failureReason: Value = self.safe_string(notCanceled.clone(), id.clone(), &[]);
-        let mut status: Value = (if is_true(&(Value::Bool(failureReason == Value::Null))) { Value::Str("canceled".to_string()) } else { Value::Str("open".to_string()) });
+        let mut failureReason: Option<String> = self.safe_string(notCanceled.clone(), id.clone(), &[]).as_str().map(str::to_owned);
+        let mut status: Value = (if is_true(&(Value::Bool(failureReason.is_none()))) { Value::Str("canceled".to_string()) } else { Value::Str("open".to_string()) });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -4492,8 +4492,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
         // creds that may have been issued to a different wallet
         if (self.privateKey.clone() != Value::Null) {
-            let mut alreadyDerived: Value = self.safe_string_k(self.options.clone(), "l2ApiKey", &[]);
-            if (alreadyDerived == Value::Null) {
+            let mut alreadyDerived: Option<String> = self.safe_string_k(self.options.clone(), "l2ApiKey", &[]).as_str().map(str::to_owned);
+            if (alreadyDerived.is_none()) {
                 self.create_or_derive_api_key(&[]).await;
             }
             return Value::Null;
@@ -4534,16 +4534,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&(Value::Bool(event == Value::Null))) || is_true(&(Value::Bool(event == Value::Null))) || (!is_object(&event)) {
                 continue;
             }
-            let mut eventType: Value = self.safe_string_k(event.clone(), "event_type", &[]);
-            if (eventType.as_str() == Some("book")) {
+            let mut eventType: Option<String> = self.safe_string_k(event.clone(), "event_type", &[]).as_str().map(str::to_owned);
+            if (eventType.as_deref() == Some("book")) {
                 self.handle_order_book_snapshot(client.clone(), event.clone());
-            }  else if (eventType.as_str() == Some("price_change")) {
+            }  else if (eventType.as_deref() == Some("price_change")) {
                 self.handle_order_book_delta(client.clone(), event.clone());
-            }  else if (eventType.as_str() == Some("last_trade_price")) {
+            }  else if (eventType.as_deref() == Some("last_trade_price")) {
                 self.handle_trade(client.clone(), event.clone());
-            }  else if (eventType.as_str() == Some("order")) {
+            }  else if (eventType.as_deref() == Some("order")) {
                 self.handle_order(client.clone(), event.clone());
-            }  else if (eventType.as_str() == Some("trade")) {
+            }  else if (eventType.as_deref() == Some("trade")) {
                 self.handle_my_trade(client.clone(), event.clone());
             }
         }

@@ -1582,8 +1582,8 @@ impl BitbankCore {
             // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
-            let mut authMethod: Value = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".to_string())]);
-            let mut isTimeWindow: bool = authMethod.as_str() == Some("timeWindow");
+            let mut authMethod: Option<String> = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".to_string())]).as_str().map(str::to_owned);
+            let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
             let mut requestTime: Value = to_string_val(&self.milliseconds());
             let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".to_string())]);
             let mut nonce: Value = to_string_val(&self.nonce());

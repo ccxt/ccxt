@@ -846,9 +846,9 @@ impl OnetradingCore {
         let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut state: Value = self.safe_string_k(market.clone(), "state", &[]);
-        let mut type_var: Value = self.safe_string_k(market.clone(), "type", &[]);
-        let mut isPerp: Value = Value::Bool(type_var.as_str() == Some("PERP"));
+        let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut isPerp: Value = Value::Bool(type_var.as_deref() == Some("PERP"));
         let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
         if is_true(&isPerp) {
             symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &quote);
@@ -869,7 +869,7 @@ impl OnetradingCore {
         m.insert("swap".to_string(), isPerp.clone());
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), (Value::Bool(state.as_str() == Some("ACTIVE"))));
+        m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("ACTIVE"))));
         m.insert("contract".to_string(), isPerp.clone());
         m.insert("linear".to_string(), (if is_true(&isPerp) { Value::Bool(true) } else { Value::Null }));
         m.insert("inverse".to_string(), (if is_true(&isPerp) { Value::Bool(false) } else { Value::Null }));

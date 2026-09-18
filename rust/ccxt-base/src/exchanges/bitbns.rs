@@ -997,9 +997,9 @@ impl BitbnsCore {
         }  else if (side.as_str() == Some("1")) {
             side = Value::Str("sell".to_string());
         }
-        let mut data: Value = self.safe_string_k(order.clone(), "data", &[]);
+        let mut data: Option<String> = self.safe_string_k(order.clone(), "data", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-        if (data.as_str() == Some("Successfully cancelled the order")) {
+        if (data.as_deref() == Some("Successfully cancelled the order")) {
             status = Value::Str("cancelled".to_string());
         }  else {
             status = self.parse_status(status.clone());

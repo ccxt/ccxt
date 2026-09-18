@@ -1557,8 +1557,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.handle_error_message(client.clone(), message.clone()).as_bool() != Some(true)) {
             return;
         }
-        let mut result: Value = self.safe_string_k(message.clone(), "result", &[]);
-        if (result.as_str() == Some("pong")) {
+        let mut result: Option<String> = self.safe_string_k(message.clone(), "result", &[]).as_str().map(str::to_owned);
+        if (result.as_deref() == Some("pong")) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }

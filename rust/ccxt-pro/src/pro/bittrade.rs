@@ -922,8 +922,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let mut ch: Value = self.safe_value_k(message.clone(), "ch", &[]);
         let mut parts: Value = split(&ch, &Value::Str(".".to_string()));
-        let mut type_var: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-        if (type_var.as_str() == Some("market")) {
+        let mut type_var: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("market")) {
             let mut methodName: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -967,8 +967,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "id": "2"
         //     }
         //
-        let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
-        if (status.as_str() == Some("error")) {
+        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("error")) {
             let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
             if (id == Value::Null) {
                 return Value::Bool(false);

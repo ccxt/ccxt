@@ -499,9 +499,9 @@ impl OpinionCore {
             effectiveEventSlug = Value::Null;
         }
         let mut marketSymbol: Value = self.slug_to_market_symbol(effectiveEventSlug.clone(), slug.clone());
-        let mut statusEnum: Value = self.safe_string_k(raw.clone(), "statusEnum", &[]);
-        let mut active: Value = (Value::Bool(statusEnum.as_str() == Some("Activated")));
-        let mut resolved: Value = (Value::Bool(statusEnum.as_str() == Some("Resolved")));
+        let mut statusEnum: Option<String> = self.safe_string_k(raw.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
+        let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
         let mut resultTokenId: Value = self.safe_string_k(raw.clone(), "resultTokenId", &[]);
         let mut hasResult: bool = is_true(&resolved) && is_true(&(Value::Bool(resultTokenId != Value::Null))) && is_true(&(Value::Bool(resultTokenId.as_str() != Some(""))));
         let mut outcomeLabels: Value = Value::List(vec![self.safe_string_k(raw.clone(), "yesLabel", &[Value::Str("YES".to_string())]), self.safe_string_k(raw.clone(), "noLabel", &[Value::Str("NO".to_string())])]);
@@ -916,9 +916,9 @@ impl OpinionCore {
             append_to_array(&mut marketsList, self.parse_opinion_market(get_value(&rawChildren, &i), &[slug.clone()]));
         }
         }
-        let mut statusEnum: Value = self.safe_string_k(rawEvent.clone(), "statusEnum", &[]);
-        let mut active: Value = (Value::Bool(statusEnum.as_str() == Some("Activated")));
-        let mut resolved: Value = (Value::Bool(statusEnum.as_str() == Some("Resolved")));
+        let mut statusEnum: Option<String> = self.safe_string_k(rawEvent.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
+        let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
+        let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
         let mut end: Value = Value::Null;
         if (self.safe_integer_k(rawEvent.clone(), "cutoffAt", &[Value::Int(0)]).as_f64() != Some(0.0)) {
             end = self.safe_timestamp(rawEvent.clone(), Value::Str("cutoffAt".to_string()), &[]);
@@ -1969,9 +1969,9 @@ impl OpinionCore {
             while { if !__for_first_1356 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1356 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
-            let mut tokenId: Value = self.safe_string_k(trade.clone(), "tokenId", &[]);
+            let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
             let mut marketId: Value = self.safe_integer_k(trade.clone(), "marketId", &[]);
-            if is_true(&(Value::Bool(tokenId == Value::Null))) && is_true(&(Value::Bool(marketId != Value::Null))) {
+            if is_true(&(Value::Bool(tokenId.is_none()))) && is_true(&(Value::Bool(marketId != Value::Null))) {
                 let mut tradeMarket: Value = self.load_trade_market(marketId.clone()).await;
                 let mut info: Value = self.safe_dict_k(tradeMarket, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2530,19 +2530,19 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         // every data payload carries its channel name in msgType; frames without one -
         // subscribe acks and heartbeat echoes - carry nothing to route
-        let mut msgType: Value = self.safe_string_k(message.clone(), "msgType", &[]);
-        if (msgType == Value::Null) {
+        let mut msgType: Option<String> = self.safe_string_k(message.clone(), "msgType", &[]).as_str().map(str::to_owned);
+        if (msgType.is_none()) {
             return;
         }
-        if (msgType.as_str() == Some("market.depth.diff")) {
+        if (msgType.as_deref() == Some("market.depth.diff")) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if (msgType.as_str() == Some("market.last.price")) {
+        }  else if (msgType.as_deref() == Some("market.last.price")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if (msgType.as_str() == Some("market.last.trade")) {
+        }  else if (msgType.as_deref() == Some("market.last.trade")) {
             self.handle_trades(client.clone(), message.clone());
-        }  else if (msgType.as_str() == Some("trade.order.update")) {
+        }  else if (msgType.as_deref() == Some("trade.order.update")) {
             self.handle_order(client.clone(), message.clone());
-        }  else if (msgType.as_str() == Some("trade.record.new")) {
+        }  else if (msgType.as_deref() == Some("trade.record.new")) {
             self.handle_my_trade(client.clone(), message.clone());
         }
 }
@@ -2670,8 +2670,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &sym);
-        let mut sideStr: Value = self.safe_string_k(message.clone(), "side", &[]);
-        let mut bookSide: Value = (if is_true(&(Value::Bool(sideStr.as_str() == Some("bids")))) { get_value(&orderbook, &Value::Str("bids".to_string())) } else { get_value(&orderbook, &Value::Str("asks".to_string())) });
+        let mut sideStr: Option<String> = self.safe_string_k(message.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut bookSide: Value = (if is_true(&(Value::Bool(sideStr.as_deref() == Some("bids")))) { get_value(&orderbook, &Value::Str("bids".to_string())) } else { get_value(&orderbook, &Value::Str("asks".to_string())) });
         let mut price: Value = self.safe_number_k(message.clone(), "price", &[]);
         let mut size: Value = self.safe_number_k(message, "size", &[]);
         bookSide.store_array(Value::List(vec![price.clone(), size.clone()]));

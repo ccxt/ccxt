@@ -1265,10 +1265,10 @@ impl ParadexCore {
         //         "status": "ok"
         //     }
         //
-        let mut status: Value = self.safe_string_k(response.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_str() == Some("ok")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
+        m.insert("status".to_string(), (if is_true(&(Value::Bool(status.as_deref() == Some("ok")))) { Value::Str("ok".to_string()) } else { Value::Str("maintenance".to_string()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
@@ -1409,9 +1409,9 @@ impl ParadexCore {
         //     ]
         //  }
         //
-        let mut assetKind: Value = self.safe_string_k(market.clone(), "asset_kind", &[]);
-        let mut isOptionPerpetual: bool = assetKind.as_str() == Some("PERP_OPTION");
-        let mut isOptionDelivery: bool = assetKind.as_str() == Some("OPTION");
+        let mut assetKind: Option<String> = self.safe_string_k(market.clone(), "asset_kind", &[]).as_str().map(str::to_owned);
+        let mut isOptionPerpetual: bool = assetKind.as_deref() == Some("PERP_OPTION");
+        let mut isOptionDelivery: bool = assetKind.as_deref() == Some("OPTION");
         let mut isOption: Value = Value::Bool(isOptionPerpetual || isOptionDelivery);
         let mut type_var: Value = (if is_true(&(isOption)) { Value::Str("option".to_string()) } else { Value::Str("swap".to_string()) });
         let mut isSwap: Value = (Value::Bool(type_var.as_str() == Some("swap")));
@@ -1424,12 +1424,12 @@ impl ParadexCore {
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settle));
         let mut expiry: Value = self.safe_integer_k(market.clone(), "expiry_at", &[]);
-        let mut optionType: Value = self.safe_string_k(market.clone(), "option_type", &[]);
+        let mut optionType: Option<String> = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
         let mut strikePrice: Value = self.safe_string_k(market.clone(), "strike_price", &[]);
         let mut takerFee: Value = self.parse_number(Value::Str("0.0003".to_string()), &[]);
         let mut makerFee: Value = self.parse_number(Value::Str("-0.00005".to_string()), &[]);
         if is_true(&isOption) {
-            let mut optionTypeSuffix: Value = (if is_true(&(Value::Bool(optionType.as_str() == Some("CALL")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
+            let mut optionTypeSuffix: Value = (if is_true(&(Value::Bool(optionType.as_deref() == Some("CALL")))) { Value::Str("C".to_string()) } else { Value::Str("P".to_string()) });
             let mut deliveryValue: Value = (if is_true(&(Value::Bool(expiry.as_f64() == Some(0.0)))) { Value::Str("".to_string()) } else { Value::Str(format!("{}{}", self.yymmdd(expiry.clone(), &[]), Value::Str("-".to_string()))) });
             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".to_string()))), deliveryValue)), strikePrice)), Value::Str("-".to_string()))), optionTypeSuffix));
             makerFee = self.parse_number(Value::Str("0.0003".to_string()), &[]);
@@ -2016,8 +2016,8 @@ impl ParadexCore {
         // the summary answers for every product, and only a perpetual funds: an
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
-        let mut rate: Value = self.safe_string_k(contract.clone(), "funding_rate", &[]);
-        let mut funds: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(rate != Value::Null))) && is_true(&(Value::Bool(rate.as_str() != Some(""))));
+        let mut rate: Option<String> = self.safe_string_k(contract.clone(), "funding_rate", &[]).as_str().map(str::to_owned);
+        let mut funds: bool = is_true(&(Value::Bool(market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)))) && is_true(&(Value::Bool(rate.is_some()))) && is_true(&(Value::Bool(rate.as_deref() != Some(""))));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
@@ -2226,8 +2226,8 @@ impl ParadexCore {
         let mut priceString: Value = self.safe_string_k(trade.clone(), "price", &[]);
         let mut amountString: Value = self.safe_string_k(trade.clone(), "size", &[]);
         let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
-        let mut liability: Value = self.safe_string_lower(trade.clone(), Value::Str("liquidity".to_string()), &[Value::Str("taker".to_string())]);
-        let mut isTaker: bool = liability.as_str() == Some("taker");
+        let mut liability: Option<String> = self.safe_string_lower(trade.clone(), Value::Str("liquidity".to_string()), &[Value::Str("taker".to_string())]).as_str().map(str::to_owned);
+        let mut isTaker: bool = liability.as_deref() == Some("taker");
         let mut takerOrMaker: Value = (if (isTaker) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         let mut currencyId: Value = self.safe_string_k(trade.clone(), "fee_currency", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -2627,10 +2627,10 @@ impl ParadexCore {
         let mut price: Value = self.safe_string_k(order.clone(), "price", &[]);
         let mut amount: Value = self.safe_string_k(order.clone(), "size", &[]);
         let mut orderType: Value = self.safe_string_k(order.clone(), "type", &[]);
-        let mut cancelReason: Value = self.safe_string_k(order.clone(), "cancel_reason", &[]);
+        let mut cancelReason: Option<String> = self.safe_string_k(order.clone(), "cancel_reason", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-        if (cancelReason != Value::Null) {
-            if (cancelReason.as_str() == Some("NOT_ENOUGH_MARGIN")) || (cancelReason.as_str() == Some("ORDER_EXCEEDS_POSITION_LIMIT")) {
+        if (cancelReason.is_some()) {
+            if (cancelReason.as_deref() == Some("NOT_ENOUGH_MARGIN")) || (cancelReason.as_deref() == Some("ORDER_EXCEEDS_POSITION_LIMIT")) {
                 status = Value::Str("rejected".to_string());
             }  else {
                 status = Value::Str("canceled".to_string());
@@ -2765,12 +2765,12 @@ impl ParadexCore {
         let mut isTakeProfitOrder: bool = takeProfitPrice != Value::Null;
         let mut isStopLossOrder: bool = stopLossPrice != Value::Null;
         let mut isStopOrder: bool = is_true(&(Value::Bool(triggerPrice != Value::Null))) || isTakeProfitOrder || isStopLossOrder;
-        let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
+        let mut timeInForce: Option<String> = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
         if !is_true(&isMarket) {
             if is_true(&postOnly) {
                 add_element_to_object(&mut request, &Value::Str("instruction".to_string()), Value::Str("POST_ONLY".to_string()));
-            }  else if (timeInForce.as_str() == Some("IOC")) {
+            }  else if (timeInForce.as_deref() == Some("IOC")) {
                 add_element_to_object(&mut request, &Value::Str("instruction".to_string()), Value::Str("IOC".to_string()));
             }
         }
@@ -3228,13 +3228,13 @@ impl ParadexCore {
             let mut result: Value = get_value(&results, &i);
             let mut marketId: Value = self.safe_string_k(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut status: Value = self.safe_string_k(result.clone(), "status", &[]);
+            let mut status: Option<String> = self.safe_string_k(result.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut orderStatus: Value = Value::Null;
-            if (status.as_str() == Some("QUEUED_FOR_CANCELLATION")) {
+            if (status.as_deref() == Some("QUEUED_FOR_CANCELLATION")) {
                 orderStatus = Value::Str("canceled".to_string());
-            }  else if (status.as_str() == Some("ALREADY_CLOSED")) {
+            }  else if (status.as_deref() == Some("ALREADY_CLOSED")) {
                 orderStatus = Value::Str("closed".to_string());
-            }  else if (status.as_str() == Some("NOT_FOUND")) {
+            }  else if (status.as_deref() == Some("NOT_FOUND")) {
                 orderStatus = Value::Str("rejected".to_string());
             }
             append_to_array(&mut orders, self.safe_order(Value::Map({
@@ -4135,13 +4135,13 @@ impl ParadexCore {
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "token", &[]);
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut timestamp: Value = self.safe_integer_k(transfer.clone(), "created_at", &[]);
-        let mut kind: Value = self.safe_string_k(transfer.clone(), "kind", &[]);
+        let mut kind: Option<String> = self.safe_string_k(transfer.clone(), "kind", &[]).as_str().map(str::to_owned);
         let mut fromAccount: Value = Value::Null;
         let mut toAccount: Value = Value::Null;
-        if (kind.as_str() == Some("DEPOSIT")) {
+        if (kind.as_deref() == Some("DEPOSIT")) {
             fromAccount = Value::Str("external".to_string());
             toAccount = Value::Str("account".to_string());
-        }  else if (kind.as_str() == Some("WITHDRAWAL")) {
+        }  else if (kind.as_deref() == Some("WITHDRAWAL")) {
             fromAccount = Value::Str("account".to_string());
             toAccount = Value::Str("external".to_string());
         }

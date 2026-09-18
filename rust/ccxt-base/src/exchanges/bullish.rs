@@ -1595,9 +1595,9 @@ impl BullishCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut response: Value = Value::Null;
-        if (clientOrderId != Value::Null) {
+        if (clientOrderId.is_some()) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_v1_trades_client_order_id_client_order_id(&[__ws_arg_2]).await;
         }  else {
@@ -1663,8 +1663,8 @@ impl BullishCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             params = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderId".to_string(), id.clone());
@@ -2519,8 +2519,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("tradingAccountId".to_string(), tradingAccountId.clone());
             m
         });
-        let mut clientOrderId: Value = self.safe_string_k(params.clone(), "clientOrderId", &[]);
-        if (clientOrderId == Value::Null) {
+        let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        if (clientOrderId.is_none()) {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
         if (type_var != Value::Null) {
@@ -2693,8 +2693,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut filled: Value = self.safe_string_k(order.clone(), "quantityFilled", &[]);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[]));
         if (status.as_str() == Some("closed")) {
-            let mut statusReason: Value = self.safe_string_k(order.clone(), "statusReason", &[]);
-            if (statusReason.as_str() == Some("User cancelled")) {
+            let mut statusReason: Option<String> = self.safe_string_k(order.clone(), "statusReason", &[]).as_str().map(str::to_owned);
+            if (statusReason.as_deref() == Some("User cancelled")) {
                 status = Value::Str("canceled".to_string());
             }
         }
@@ -3023,8 +3023,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 while { if !__for_first_476 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_476 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
                 let mut account: Value = get_value(&accounts, &i);
                 let mut account: Value = get_value(&accounts, &i);
-                let mut name: Value = self.safe_string_k(account.clone(), "tradingAccountName", &[]);
-                if (name.as_str() == Some("Primary Account")) {
+                let mut name: Option<String> = self.safe_string_k(account.clone(), "tradingAccountName", &[]).as_str().map(str::to_owned);
+                if (name.as_deref() == Some("Primary Account")) {
                     tradingAccountId = self.safe_string_k(account.clone(), "tradingAccountId", &[]);
                     break;
                 }

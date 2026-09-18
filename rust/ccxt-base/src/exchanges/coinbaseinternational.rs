@@ -2068,8 +2068,8 @@ impl CoinbaseinternationalCore {
         let mut marketId: Value = self.safe_string_k(market.clone(), "symbol", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "base_asset_name", &[]);
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quote_asset_name", &[]);
-        let mut typeId: Value = self.safe_string_k(market.clone(), "type", &[]); // 'SPOT', 'PERP'
-        let mut isSpot: Value = (Value::Bool(typeId.as_str() == Some("SPOT")));
+        let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned); // 'SPOT', 'PERP'
+        let mut isSpot: Value = (Value::Bool(typeId.as_deref() == Some("SPOT")));
         let mut fees: Value = self.fees.clone();
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".to_string()))), quoteId));
         let mut settleId: Value = Value::Null;
@@ -2185,7 +2185,7 @@ impl CoinbaseinternationalCore {
         //
         let mut id: Value = self.safe_string_k(currency.clone(), "asset_name", &[]);
         let mut code: Value = self.safe_currency_code(id.clone(), &[]);
-        let mut statusId: Value = self.safe_string_k(currency.clone(), "status", &[]);
+        let mut statusId: Option<String> = self.safe_string_k(currency.clone(), "status", &[]).as_str().map(str::to_owned);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -2193,7 +2193,7 @@ impl CoinbaseinternationalCore {
         m.insert("code".to_string(), code.clone());
         m.insert("precision".to_string(), Value::Null);
         m.insert("info".to_string(), currency.clone());
-        m.insert("active".to_string(), (Value::Bool(statusId.as_str() == Some("ACTIVE"))));
+        m.insert("active".to_string(), (Value::Bool(statusId.as_deref() == Some("ACTIVE"))));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("networks".to_string(), Value::Null);

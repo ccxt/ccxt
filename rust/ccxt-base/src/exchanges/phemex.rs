@@ -1507,7 +1507,7 @@ impl PhemexCore {
         let mut maxPriceEp: Value = self.safe_string_k(market.clone(), "maxPriceEp", &[]);
         let mut makerFeeRateEr: Value = self.safe_string_k(market.clone(), "makerFeeRateEr", &[]);
         let mut takerFeeRateEr: Value = self.safe_string_k(market.clone(), "takerFeeRateEr", &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut contractSizeString: Value = self.safe_string_k(market.clone(), "contractSize", &[Value::Str(" ".to_string())]);
         let mut contractSize: Value = Value::Null;
         if (settle.as_str() == Some("USDT")) {
@@ -1538,7 +1538,7 @@ impl PhemexCore {
         m.insert("swap".to_string(), Value::Bool(true));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(status.as_str() == Some("Listed")));
+        m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("Listed")));
         m.insert("contract".to_string(), Value::Bool(true));
         m.insert("linear".to_string(), isLinear.clone());
         m.insert("inverse".to_string(), inverse.clone());
@@ -1637,7 +1637,7 @@ impl PhemexCore {
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseCurrency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut status: Value = self.safe_string_k(market.clone(), "status", &[]);
+        let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         let mut precisionAmount: Value = self.parse_safe_number(&[self.safe_string_k(market.clone(), "baseTickSize", &[])]);
         let mut precisionPrice: Value = self.parse_safe_number(&[self.safe_string_k(market.clone(), "quoteTickSize", &[])]);
         return self.safe_market_structure(&[Value::Map({
@@ -1656,7 +1656,7 @@ impl PhemexCore {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), Value::Bool(status.as_str() == Some("Listed")));
+        m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("Listed")));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1936,8 +1936,8 @@ impl PhemexCore {
             while { if !__for_first_1054 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(products.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&products, &i);
             let mut market: Value = get_value(&products, &i);
-            let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("type".to_string()), &[]);
-            if is_true(&(Value::Bool(type_var.as_str() == Some("perpetual")))) || is_true(&(Value::Bool(type_var.as_str() == Some("perpetualv2")))) || is_true(&(Value::Bool(type_var.as_str() == Some("perpetualpilot")))) {
+            let mut type_var: Option<String> = self.safe_string_lower(market.clone(), Value::Str("type".to_string()), &[]).as_str().map(str::to_owned);
+            if is_true(&(Value::Bool(type_var.as_deref() == Some("perpetual")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("perpetualv2")))) || is_true(&(Value::Bool(type_var.as_deref() == Some("perpetualpilot")))) {
                 let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
                 let mut riskLimitValues: Value = self.safe_dict(riskLimitsById.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2924,10 +2924,10 @@ impl PhemexCore {
                 }  else if (sideId != Value::Null) {
                     side = (if is_true(&(Value::Bool(sideId.as_str() == Some("1")))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
                 }
-                let mut ordType: Value = self.safe_string_k(trade.clone(), "ordType", &[]);
-                if (ordType.as_str() == Some("1")) {
+                let mut ordType: Option<String> = self.safe_string_k(trade.clone(), "ordType", &[]).as_str().map(str::to_owned);
+                if (ordType.as_deref() == Some("1")) {
                     type_var = Value::Str("market".to_string());
-                }  else if (ordType.as_str() == Some("2")) {
+                }  else if (ordType.as_deref() == Some("2")) {
                     type_var = Value::Str("limit".to_string());
                 }
                 priceString = self.safe_string_k(trade.clone(), "execPriceRp", &[]);
@@ -2948,8 +2948,8 @@ impl PhemexCore {
             }  else {
                 side = self.safe_string_lower(trade.clone(), Value::Str("side".to_string()), &[]);
                 type_var = self.parse_order_type(self.safe_string_k(trade.clone(), "ordType", &[]));
-                let mut execStatus: Value = self.safe_string_k(trade.clone(), "execStatus", &[]);
-                if (execStatus.as_str() == Some("MakerFill")) {
+                let mut execStatus: Option<String> = self.safe_string_k(trade.clone(), "execStatus", &[]).as_str().map(str::to_owned);
+                if (execStatus.as_deref() == Some("MakerFill")) {
                     takerOrMaker = Value::Str("maker".to_string());
                 }
                 priceString = self.from_ep(self.safe_string_k(trade.clone(), "execPriceEp", &[]), &[market.clone()]);
@@ -3647,8 +3647,8 @@ impl PhemexCore {
         let mut triggerPrice: Value = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".to_string()), Value::Str("stopPxRp".to_string()), &[]));
         let mut postOnly: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
         let mut reduceOnly: Value = self.safe_value_k(order.clone(), "reduceOnly", &[]);
-        let mut execInst: Value = self.safe_string_k(order.clone(), "execInst", &[]);
-        if (execInst.as_str() == Some("ReduceOnly")) {
+        let mut execInst: Option<String> = self.safe_string_k(order.clone(), "execInst", &[]).as_str().map(str::to_owned);
+        if (execInst.as_deref() == Some("ReduceOnly")) {
             reduceOnly = Value::Bool(true);
         }
         let mut takeProfit: Value = self.safe_string_k(order.clone(), "takeProfitRp", &[]);
@@ -4094,8 +4094,8 @@ impl PhemexCore {
         params = self.omit(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPx".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         let mut response: Value = Value::Null;
         if isStableSettled {
-            let mut posSide: Value = self.safe_string_k(params.clone(), "posSide", &[]);
-            if (posSide == Value::Null) {
+            let mut posSide: Option<String> = self.safe_string_k(params.clone(), "posSide", &[]).as_str().map(str::to_owned);
+            if (posSide.is_none()) {
                 add_element_to_object(&mut request, &Value::Str("posSide".to_string()), Value::Str("Merged".to_string()));
             }
             let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
@@ -4154,8 +4154,8 @@ impl PhemexCore {
         }
         let mut response: Value = Value::Null;
         if (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT")) || (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDC")) {
-            let mut posSide: Value = self.safe_string_k(params.clone(), "posSide", &[]);
-            if (posSide == Value::Null) {
+            let mut posSide: Option<String> = self.safe_string_k(params.clone(), "posSide", &[]).as_str().map(str::to_owned);
+            if (posSide.is_none()) {
                 add_element_to_object(&mut request, &Value::Str("posSide".to_string()), Value::Str("Merged".to_string()));
             }
             let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
@@ -5398,10 +5398,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut contractSizeString: Value = self.number_to_string(contractSize.clone());
         let mut leverage: Value = self.parse_number(crate::precise::Precise::stringAbs(&(self.safe_string2(position.clone(), Value::Str("leverage".to_string()), Value::Str("leverageRr".to_string()), &[]))), &[]);
         let mut entryPriceString: Value = self.safe_string_n(position.clone(), Value::List(vec![Value::Str("avgEntryPrice".to_string()), Value::Str("avgEntryPriceRp".to_string()), Value::Str("openPrice".to_string())]), &[]);
-        let mut rawSide: Value = self.safe_string_k(position.clone(), "side", &[]);
+        let mut rawSide: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
-        if (rawSide != Value::Null) {
-            let mut isLong: bool = (rawSide.as_str() == Some("Buy")) || (rawSide.as_str() == Some("1"));
+        if (rawSide.is_some()) {
+            let mut isLong: bool = (rawSide.as_deref() == Some("Buy")) || (rawSide.as_deref() == Some("1"));
             side = (if isLong { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice

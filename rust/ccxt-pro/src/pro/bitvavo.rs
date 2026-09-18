@@ -2717,8 +2717,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "authenticated": true
         //     }
         //
-        let mut error: Value = self.safe_string_k(message.clone(), "error", &[]);
-        if (error != Value::Null) {
+        let mut error: Option<String> = self.safe_string_k(message.clone(), "error", &[]).as_str().map(str::to_owned);
+        if (error.is_some()) {
             self.handle_error_message(client.clone(), message.clone());
         }
         let mut methods: Value = Value::Map({

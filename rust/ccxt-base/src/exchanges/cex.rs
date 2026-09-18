@@ -2269,8 +2269,8 @@ impl CexCore {
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut currencyId: Value = self.safe_string_k(transaction.clone(), "currency", &[]);
-        let mut direction: Value = self.safe_string_k(transaction.clone(), "direction", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(direction.as_str() == Some("withdraw")))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
+        let mut direction: Option<String> = self.safe_string_k(transaction.clone(), "direction", &[]).as_str().map(str::to_owned);
+        let mut type_var: Value = (if is_true(&(Value::Bool(direction.as_deref() == Some("withdraw")))) { Value::Str("withdrawal".to_string()) } else { Value::Str("deposit".to_string()) });
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[currency.clone()]);
         let mut updatedAt: Value = self.safe_string_k(transaction.clone(), "updatedAt", &[]);
         let mut timestamp: Value = self.parse8601(updatedAt.clone());

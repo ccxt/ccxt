@@ -863,10 +863,10 @@ impl LbankCore {
         let mut rawSide: Value = self.safe_string2(trade.clone(), Value::Str("direction".to_string()), Value::Int(3), &[]);
         let mut parts: Value = split(&rawSide, &Value::Str("_".to_string()));
         let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
-        let mut secondPart: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
+        let mut secondPart: Option<String> = self.safe_string(parts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut side: Value = firstPart.clone();
         // reverse if it was 'maker'
-        if (secondPart != Value::Null) && (secondPart.as_str() == Some("maker")) {
+        if (secondPart.is_some()) && (secondPart.as_deref() == Some("maker")) {
             side = (if is_true(&(Value::Bool(side.as_str() == Some("buy")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         }
         return self.safe_trade(Value::Map({
@@ -1026,10 +1026,10 @@ impl LbankCore {
         let mut rawType: Value = self.safe_string_k(orderUpdate.clone(), "type", &[Value::Str("".to_string())]);
         let mut typeParts: Value = split(&rawType, &Value::Str("_".to_string()));
         let mut side: Value = self.safe_string(typeParts.clone(), Value::Int(0), &[]);
-        let mut exchangeType: Value = self.safe_string(typeParts.clone(), Value::Int(1), &[]);
+        let mut exchangeType: Option<String> = self.safe_string(typeParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
         let mut type_var: Value = Value::Null;
         if (rawType.as_str() != Some("buy")) && (rawType.as_str() != Some("sell")) {
-            type_var = (if is_true(&(Value::Bool(exchangeType.as_str() == Some("market")))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
+            type_var = (if is_true(&(Value::Bool(exchangeType.as_deref() == Some("market")))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "pair", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("_".to_string())]);
@@ -1352,8 +1352,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        let mut status: Value = self.safe_string_k(message.clone(), "status", &[]);
-        if (status.as_str() == Some("error")) {
+        let mut status: Option<String> = self.safe_string_k(message.clone(), "status", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("error")) {
             self.handle_error_message(client.clone(), message.clone());
             return;
         }

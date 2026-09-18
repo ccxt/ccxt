@@ -1962,20 +1962,20 @@ impl BackpackCore {
             return;
         }
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-        let mut event: Value = self.safe_string_k(data.clone(), "e", &[]);
-        if (event.as_str() == Some("ticker")) {
+        let mut event: Option<String> = self.safe_string_k(data.clone(), "e", &[]).as_str().map(str::to_owned);
+        if (event.as_deref() == Some("ticker")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("bookTicker")) {
+        }  else if (event.as_deref() == Some("bookTicker")) {
             self.handle_bid_ask(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("kline")) {
+        }  else if (event.as_deref() == Some("kline")) {
             self.handle_ohlcv(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("trade")) {
+        }  else if (event.as_deref() == Some("trade")) {
             self.handle_trades(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("depth")) {
+        }  else if (event.as_deref() == Some("depth")) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("orderAccepted")) || (event.as_str() == Some("orderUpdate")) || (event.as_str() == Some("orderFill")) || (event.as_str() == Some("orderCancelled")) || (event.as_str() == Some("orderExpired")) || (event.as_str() == Some("orderModified")) || (event.as_str() == Some("triggerPlaced")) || (event.as_str() == Some("triggerFailed")) {
+        }  else if (event.as_deref() == Some("orderAccepted")) || (event.as_deref() == Some("orderUpdate")) || (event.as_deref() == Some("orderFill")) || (event.as_deref() == Some("orderCancelled")) || (event.as_deref() == Some("orderExpired")) || (event.as_deref() == Some("orderModified")) || (event.as_deref() == Some("triggerPlaced")) || (event.as_deref() == Some("triggerFailed")) {
             self.handle_order(client.clone(), message.clone());
-        }  else if (event.as_str() == Some("positionAdjusted")) || (event.as_str() == Some("positionOpened")) || (event.as_str() == Some("positionClosed")) || (event.as_str() == Some("positionUpdated")) {
+        }  else if (event.as_deref() == Some("positionAdjusted")) || (event.as_deref() == Some("positionOpened")) || (event.as_deref() == Some("positionClosed")) || (event.as_deref() == Some("positionUpdated")) {
             self.handle_positions(client.clone(), message.clone());
         }
 }

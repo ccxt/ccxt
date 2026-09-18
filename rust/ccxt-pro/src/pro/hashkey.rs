@@ -1175,10 +1175,10 @@ impl HashkeyCore {
         //         ]
         //     }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "e", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "e", &[]).as_str().map(str::to_owned);
         let mut data: Value = self.safe_list_k(message.clone(), "B", &[Value::List(vec![])]);
         let mut balanceUpdate: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
-        let mut isSpot: bool = event.as_str() == Some("outboundAccountInfo");
+        let mut isSpot: bool = event.as_deref() == Some("outboundAccountInfo");
         let mut type_var: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         if !is_true(&(Value::Bool(in_op(&self.balance, &type_var)))) {
             add_element_to_object(&mut self.balance, &type_var, Value::Map({
@@ -1297,22 +1297,22 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m
             })]);
         }
-        let mut topic: Value = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("e".to_string()), &[]);
-        if (topic.as_str() == Some("kline")) {
+        let mut topic: Option<String> = self.safe_string2(message.clone(), Value::Str("topic".to_string()), Value::Str("e".to_string()), &[]).as_str().map(str::to_owned);
+        if (topic.as_deref() == Some("kline")) {
             self.handle_ohlcv(client.clone(), message.clone());
-        }  else if (topic.as_str() == Some("realtimes")) {
+        }  else if (topic.as_deref() == Some("realtimes")) {
             self.handle_ticker(client.clone(), message.clone());
-        }  else if (topic.as_str() == Some("trade")) {
+        }  else if (topic.as_deref() == Some("trade")) {
             self.handle_trades(client.clone(), message.clone());
-        }  else if (topic.as_str() == Some("depth")) {
+        }  else if (topic.as_deref() == Some("depth")) {
             self.handle_order_book(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("contractExecutionReport")))) || is_true(&(Value::Bool(topic.as_str() == Some("executionReport")))) {
+        }  else if is_true(&(Value::Bool(topic.as_deref() == Some("contractExecutionReport")))) || is_true(&(Value::Bool(topic.as_deref() == Some("executionReport")))) {
             self.handle_order(client.clone(), message.clone());
-        }  else if (topic.as_str() == Some("ticketInfo")) {
+        }  else if (topic.as_deref() == Some("ticketInfo")) {
             self.handle_my_trade(client.clone(), message.clone(), &[]);
-        }  else if (topic.as_str() == Some("outboundContractPositionInfo")) {
+        }  else if (topic.as_deref() == Some("outboundContractPositionInfo")) {
             self.handle_position(client.clone(), message.clone());
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("outboundAccountInfo")))) || is_true(&(Value::Bool(topic.as_str() == Some("outboundContractAccountInfo")))) {
+        }  else if is_true(&(Value::Bool(topic.as_deref() == Some("outboundAccountInfo")))) || is_true(&(Value::Bool(topic.as_deref() == Some("outboundContractAccountInfo")))) {
             self.handle_balance(client.clone(), message.clone());
         }
 }

@@ -1841,7 +1841,7 @@ impl IndodaxCore {
         //     },
         let mut status: Value = self.safe_string_k(transaction.clone(), "status", &[]);
         let mut timestamp: Value = self.safe_timestamp2(transaction.clone(), Value::Str("success_time".to_string()), Value::Str("submit_time".to_string()), &[]);
-        let mut depositId: Value = self.safe_string_k(transaction.clone(), "deposit_id", &[]);
+        let mut depositId: Option<String> = self.safe_string_k(transaction.clone(), "deposit_id", &[]).as_str().map(str::to_owned);
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         if (feeCost != Value::Null) {
@@ -1864,7 +1864,7 @@ impl IndodaxCore {
         m.insert("address".to_string(), self.safe_string_k(transaction.clone(), "withdraw_address", &[]));
         m.insert("addressTo".to_string(), Value::Null);
         m.insert("amount".to_string(), self.safe_number_n(transaction.clone(), Value::List(vec![Value::Str("amount".to_string()), Value::Str("withdraw_amount".to_string()), Value::Str("deposit_amount".to_string())]), &[]));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(depositId == Value::Null))) { Value::Str("withdraw".to_string()) } else { Value::Str("deposit".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(depositId.is_none()))) { Value::Str("withdraw".to_string()) } else { Value::Str("deposit".to_string()) }));
         m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
         m.insert("updated".to_string(), Value::Null);
@@ -2085,8 +2085,8 @@ impl IndodaxCore {
         if !is_true(&(Value::Bool(in_op(&response, &Value::Str("success".to_string()))))) && (error.as_str() == Some("")) {
             return Value::Null;
         }
-        let mut status: Value = self.safe_string_k(response.clone(), "success", &[]);
-        if (status.as_str() == Some("approved")) {
+        let mut status: Option<String> = self.safe_string_k(response.clone(), "success", &[]).as_str().map(str::to_owned);
+        if (status.as_deref() == Some("approved")) {
             return Value::Null;
         }
         if (self.safe_integer_k(response.clone(), "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {

@@ -579,10 +579,10 @@ impl CoinbaseCore {
             if is_true(&Value::Bool(starts_with(&self.apiKey, &Value::Str("-----BEGIN".to_string())))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" apiKey should contain the name (eg: organizations/3b910e93....) and not the public key".to_string()))));
             }
-            let mut currentToken: Value = self.safe_string_k(self.options.clone(), "wsToken", &[]);
+            let mut currentToken: Option<String> = self.safe_string_k(self.options.clone(), "wsToken", &[]).as_str().map(str::to_owned);
             let mut tokenTimestamp: Value = self.safe_integer_k(self.options.clone(), "wsTokenTimestamp", &[Value::Int(0)]);
             let mut seconds: Value = self.seconds();
-            if (currentToken == Value::Null) || (match (&(tokenTimestamp), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
+            if (currentToken.is_none()) || (match (&(tokenTimestamp), &(Value::Int(120))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < seconds.as_f64().unwrap_or(f64::NAN) {
                 // we should generate new token
                 let mut token: Value = self.parent.create_auth_token(seconds.clone(), &[]);
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsToken".to_string(), token.clone()); }
@@ -812,8 +812,8 @@ impl CoinbaseCore {
                 while { if !__for_first_255 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_255 = false; j.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
                 let mut ticker: Value = get_value(&tickers, &j);
                 let mut ticker: Value = get_value(&tickers, &j);
-                let mut wsMarketId: Value = self.safe_string_k(ticker.clone(), "product_id", &[]);
-                if (wsMarketId == Value::Null) {
+                let mut wsMarketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
+                if (wsMarketId.is_none()) {
                     continue;
                 }
                 let mut result: Value = self.parse_ws_ticker(ticker.clone(), &[]);
@@ -1403,8 +1403,8 @@ impl CoinbaseCore {
                 m
             })]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-            let mut type_var: Value = self.safe_string_k(event.clone(), "type", &[]);
-            if (type_var.as_str() == Some("snapshot")) {
+            let mut type_var: Option<String> = self.safe_string_k(event.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (type_var.as_deref() == Some("snapshot")) {
                 { let __be_tmp = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1504,8 +1504,8 @@ impl CoinbaseCore {
                 m.insert("heartbeats".to_string(), Value::Str("handle_heartbeats".to_string()).clone());
             m
         });
-        let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        if (type_var.as_str() == Some("error")) {
+        let mut type_var: Option<String> = self.safe_string_k(message.clone(), "type", &[]).as_str().map(str::to_owned);
+        if (type_var.as_deref() == Some("error")) {
             let mut errorMessage: Value = self.safe_string_k(message.clone(), "message", &[]);
             // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
             let mut errorMessageValue: Value = (if is_true(&(Value::Bool(errorMessage != Value::Null))) { errorMessage.clone() } else { Value::Str("unknown error".to_string()) });

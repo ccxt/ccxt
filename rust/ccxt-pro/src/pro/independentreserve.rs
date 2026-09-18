@@ -433,7 +433,7 @@ impl IndependentreserveCore {
         //        "Event": "OrderBookSnapshot",
         //    }
         //
-        let mut event: Value = self.safe_string_k(message.clone(), "Event", &[]);
+        let mut event: Option<String> = self.safe_string_k(message.clone(), "Event", &[]).as_str().map(str::to_owned);
         let mut channel: Value = self.safe_string_k(message.clone(), "Channel", &[]);
         if (channel == Value::Null) {
             return;
@@ -464,7 +464,7 @@ impl IndependentreserveCore {
 })]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        if (event.as_str() == Some("OrderBookSnapshot")) {
+        if (event.as_deref() == Some("OrderBookSnapshot")) {
             let mut snapshot: Value = self.parse_order_book(orderBook.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("Bids".to_string()), Value::Str("Offers".to_string()), Value::Str("Price".to_string()), Value::Str("Volume".to_string())]);
             orderbook.reset(snapshot.clone());
             // write through the parent index: php copies arrays by value, so
