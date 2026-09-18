@@ -2412,8 +2412,8 @@ impl BitfinexCore {
             let mut marketId: Value = tradeList.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             symbol = self.safe_symbol(marketId.clone(), &[]);
             orderId = self.safe_string(tradeList.clone(), Value::Int(3), &[]);
-            let mut maker: Value = self.safe_integer(tradeList.clone(), Value::Int(8), &[]);
-            takerOrMaker = (if is_true(&(Value::Bool(maker.as_f64() == Some(1.0)))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
+            let mut maker: Option<i64> = self.safe_integer(tradeList.clone(), Value::Int(8), &[]).as_i64();
+            takerOrMaker = (if is_true(&(Value::Bool(maker == Some(1)))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
             let mut feeCostString: Value = self.safe_string(tradeList.clone(), Value::Int(9), &[]);
             feeCostString = crate::precise::Precise::stringNeg(&feeCostString);
             let mut feeCurrencyId: Value = self.safe_string(tradeList.clone(), Value::Int(10), &[]);
@@ -5111,8 +5111,8 @@ impl BitfinexCore {
         let mut contractSize: Value = self.safe_string_k(market.clone(), "contractSize", &[]);
         let mut baseValue: Value = crate::precise::Precise::stringMul(&contracts, &contractSize);
         let mut price: Value = self.safe_string(entry.clone(), Value::Int(11), &[]);
-        let mut sideFlag: Value = self.safe_integer(entry.clone(), Value::Int(8), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideFlag.as_f64() == Some(1.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut sideFlag: Option<i64> = self.safe_integer(entry.clone(), Value::Int(8), &[]).as_i64();
+        let mut side: Value = (if is_true(&(Value::Bool(sideFlag == Some(1)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         return self.safe_liquidation(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.clone());

@@ -1994,9 +1994,9 @@ impl BackpackCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut code: Value = self.safe_integer_k(error.clone(), "code", &[]);
+        let mut code: Option<i64> = self.safe_integer_k(error.clone(), "code", &[]).as_i64();
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if (code != Value::Null) {
+            if (code.is_some()) {
                 let mut msg: Value = self.safe_string_k(error.clone(), "message", &[]);
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg))));
             }

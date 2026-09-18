@@ -877,18 +877,18 @@ impl WhitebitCore {
                 m
             });
         }
-        let mut rawSide: Value = self.safe_integer(trade.clone(), Value::Int(8), &[]);
+        let mut rawSide: Option<i64> = self.safe_integer(trade.clone(), Value::Int(8), &[]).as_i64();
         let mut side: Value = Value::Null;
-        if (rawSide.as_f64() == Some(1.0)) {
+        if (rawSide == Some(1)) {
             side = Value::Str("sell".to_string());
-        }  else if (rawSide.as_f64() == Some(2.0)) {
+        }  else if (rawSide == Some(2)) {
             side = Value::Str("buy".to_string());
         }
-        let mut role: Value = self.safe_integer(trade.clone(), Value::Int(9), &[]);
+        let mut role: Option<i64> = self.safe_integer(trade.clone(), Value::Int(9), &[]).as_i64();
         let mut takerOrMaker: Value = Value::Null;
-        if (role.as_f64() == Some(1.0)) {
+        if (role == Some(1)) {
             takerOrMaker = Value::Str("maker".to_string());
-        }  else if (role.as_f64() == Some(2.0)) {
+        }  else if (role == Some(2)) {
             takerOrMaker = Value::Str("taker".to_string());
         }
         return self.safe_trade(Value::Map({
@@ -1023,7 +1023,7 @@ impl WhitebitCore {
         //         "status": 1, // 1 = new, 2 = update 3 = cancel or execute
         //    }
         //
-        let mut status: Value = self.safe_integer_k(order.clone(), "status", &[]);
+        let mut status: Option<i64> = self.safe_integer_k(order.clone(), "status", &[]).as_i64();
         let mut marketId: Value = self.safe_string_k(order.clone(), "market", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
@@ -1046,8 +1046,8 @@ impl WhitebitCore {
         let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("ctime".to_string()), &[]);
         let mut lastTradeTimestamp: Value = self.safe_timestamp(order.clone(), Value::Str("mtime".to_string()), &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut rawSide: Value = self.safe_integer_k(order.clone(), "side", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(rawSide.as_f64() == Some(1.0)))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut rawSide: Option<i64> = self.safe_integer_k(order.clone(), "side", &[]).as_i64();
+        let mut side: Value = (if is_true(&(Value::Bool(rawSide == Some(1)))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut dealFee: Value = self.safe_string_k(order.clone(), "deal_fee", &[]);
         let mut fee: Value = Value::Null;
         if (dealFee != Value::Null) {
@@ -1059,7 +1059,7 @@ impl WhitebitCore {
             });
         }
         let mut unifiedStatus: Value = Value::Null;
-        if is_true(&(Value::Bool(status.as_f64() == Some(1.0)))) || is_true(&(Value::Bool(status.as_f64() == Some(2.0)))) {
+        if is_true(&(Value::Bool(status == Some(1)))) || is_true(&(Value::Bool(status == Some(2)))) {
             unifiedStatus = Value::Str("open".to_string());
         }  else {
             if is_true(&crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".to_string()))) {

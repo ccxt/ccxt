@@ -5287,10 +5287,10 @@ impl WeexCore {
         if (marginMode != Value::Null) {
             add_element_to_object(&mut request, &Value::Str("marginType".to_string()), self.encode_margin_mode(marginMode.clone()));
         }
-        let mut isolatedLongLeverage: Value = self.safe_number_k(params.clone(), "isolatedLongLeverage", &[]);
-        let mut isolatedShortLeverage: Value = self.safe_number_k(params.clone(), "isolatedShortLeverage", &[]);
-        let mut crossLeverage: Value = self.safe_number_k(params.clone(), "crossLeverage", &[]);
-        if is_true(&(Value::Bool(isolatedLongLeverage == Value::Null))) && is_true(&(Value::Bool(isolatedShortLeverage == Value::Null))) && is_true(&(Value::Bool(crossLeverage == Value::Null))) {
+        let mut isolatedLongLeverage: Option<f64> = self.safe_number_k(params.clone(), "isolatedLongLeverage", &[]).as_f64();
+        let mut isolatedShortLeverage: Option<f64> = self.safe_number_k(params.clone(), "isolatedShortLeverage", &[]).as_f64();
+        let mut crossLeverage: Option<f64> = self.safe_number_k(params.clone(), "crossLeverage", &[]).as_f64();
+        if is_true(&(Value::Bool(isolatedLongLeverage.is_none()))) && is_true(&(Value::Bool(isolatedShortLeverage.is_none()))) && is_true(&(Value::Bool(crossLeverage.is_none()))) {
             if (marginMode.as_str() == Some("isolated")) {
                 add_element_to_object(&mut request, &Value::Str("isolatedLongLeverage".to_string()), leverage.clone());
                 add_element_to_object(&mut request, &Value::Str("isolatedShortLeverage".to_string()), leverage.clone());

@@ -646,8 +646,8 @@ impl IndodaxCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "base_currency", &[]);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut isMaintenance: Value = self.safe_integer_k(market.clone(), "is_maintenance", &[]);
-            let mut inMaintenance: bool = is_true(&(Value::Bool(isMaintenance != Value::Null))) && is_true(&(Value::Bool(isMaintenance.as_f64() != Some(0.0))));
+            let mut isMaintenance: Option<i64> = self.safe_integer_k(market.clone(), "is_maintenance", &[]).as_i64();
+            let mut inMaintenance: bool = is_true(&(Value::Bool(isMaintenance.is_some()))) && is_true(&(Value::Bool(isMaintenance != Some(0))));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());

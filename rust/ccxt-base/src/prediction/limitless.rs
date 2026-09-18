@@ -3580,8 +3580,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })]);
         let mut slug: Value = self.safe_string_k(rawMarket.clone(), "slug", &[]);
-        let mut outcomeIndex: Value = self.safe_integer_k(trade.clone(), "outcomeIndex", &[]);
-        let mut label: Value = (if is_true(&(Value::Bool(outcomeIndex.as_f64() == Some(0.0)))) { Value::Str("yes".to_string()) } else { Value::Str("no".to_string()) });
+        let mut outcomeIndex: Option<i64> = self.safe_integer_k(trade.clone(), "outcomeIndex", &[]).as_i64();
+        let mut label: Value = (if is_true(&(Value::Bool(outcomeIndex == Some(0)))) { Value::Str("yes".to_string()) } else { Value::Str("no".to_string()) });
         let mut outcome: Value = self.get_outcome_by_slug_and_label(slug.clone(), label.clone(), &[market.clone()]);
         let mut tradeOutcome: Value = self.safe_string_k(outcome.clone(), "outcome", &[]);
         return self.safe_prediction_trade(Value::Map({

@@ -7983,8 +7983,8 @@ impl BinanceCore {
                 let mut balance: Value = get_value(&balances, &i);
                 let mut balance: Value = get_value(&balances, &i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
-                let mut updateTime: Value = self.safe_integer_k(balance.clone(), "updateTime", &[]);
-                if (updateTime.as_f64() == Some(0.0)) {
+                let mut updateTime: Option<i64> = self.safe_integer_k(balance.clone(), "updateTime", &[]).as_i64();
+                if (updateTime == Some(0)) {
                     continue;
                 }
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -13716,10 +13716,10 @@ impl BinanceCore {
                 m
             });
         }
-        let mut internalInteger: Value = self.safe_integer_k(transaction.clone(), "transferType", &[]);
+        let mut internalInteger: Option<i64> = self.safe_integer_k(transaction.clone(), "transferType", &[]).as_i64();
         let mut internal: Value = Value::Null;
-        if (internalInteger != Value::Null) {
-            internal = (if is_true(&(Value::Bool(internalInteger.as_f64() != Some(0.0)))) { Value::Bool(true) } else { Value::Bool(false) });
+        if (internalInteger.is_some()) {
+            internal = (if is_true(&(Value::Bool(internalInteger != Some(0)))) { Value::Bool(true) } else { Value::Bool(false) });
         }
         let mut networkId: Value = self.safe_string_k(transaction.clone(), "network", &[]);
         let mut network: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -13848,8 +13848,8 @@ impl BinanceCore {
             fromAccount = self.safe_string(accountsById.clone(), fromAccount.clone(), &[fromAccount.clone()]);
             toAccount = self.safe_string(accountsById.clone(), toAccount.clone(), &[toAccount.clone()]);
         }
-        let mut walletType: Value = self.safe_integer_k(transfer.clone(), "walletType", &[]);
-        if (walletType != Value::Null) {
+        let mut walletType: Option<i64> = self.safe_integer_k(transfer.clone(), "walletType", &[]).as_i64();
+        if (walletType.is_some()) {
             let mut payer: Value = self.safe_dict_k(transfer.clone(), "payerInfo", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -17728,7 +17728,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        clientTranId: ""
         //    }
         //
-        let mut rawType: Value = self.safe_integer_k(data.clone(), "type", &[]);
+        let mut rawType: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
         let mut errorCode: Value = self.safe_string_k(data.clone(), "code", &[]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "time", &[]);
@@ -17739,7 +17739,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType.as_f64() == Some(1.0)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
+        m.insert("type".to_string(), (if is_true(&(Value::Bool(rawType == Some(1)))) { Value::Str("add".to_string()) } else { Value::Str("reduce".to_string()) }));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.safe_number_k(data.clone(), "amount", &[]));
         m.insert("code".to_string(), self.safe_string_k(data.clone(), "asset", &[]));

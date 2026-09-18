@@ -850,9 +850,9 @@ impl MercadoCore {
         if (since != Value::Null) {
             if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("from".to_string(), self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))); }
         }
-        let mut to: Value = self.safe_integer_k(params.clone(), "to", &[]);
+        let mut to: Option<i64> = self.safe_integer_k(params.clone(), "to", &[]).as_i64();
         let mut response: Value = Value::Null;
-        if is_true(&(Value::Bool(since != Value::Null))) && is_true(&(Value::Bool(to != Value::Null))) {
+        if is_true(&(Value::Bool(since != Value::Null))) && is_true(&(Value::Bool(to.is_some()))) {
             let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
         }  else if (since != Value::Null) {

@@ -1098,10 +1098,10 @@ impl Bit2cCore {
         // 5 = Completed
         let mut status: Value = Value::Null;
         if isNewOrder {
-            let mut tempStatus: Value = self.safe_integer_k(orderUnified.clone(), "status_type", &[]);
-            if (tempStatus.as_f64() == Some(0.0)) || (tempStatus.as_f64() == Some(1.0)) {
+            let mut tempStatus: Option<i64> = self.safe_integer_k(orderUnified.clone(), "status_type", &[]).as_i64();
+            if (tempStatus == Some(0)) || (tempStatus == Some(1)) {
                 status = Value::Str("open".to_string());
-            }  else if (tempStatus.as_f64() == Some(5.0)) {
+            }  else if (tempStatus == Some(5)) {
                 status = Value::Str("closed".to_string());
             }
         }  else {
@@ -1326,8 +1326,8 @@ impl Bit2cCore {
             let mut isMaker: Value = self.safe_value_k(trade.clone(), "isMaker", &[]);
             makerOrTaker = (if (is_equal(&isMaker, &Value::Bool(true))) { Value::Str("maker".to_string()) } else { Value::Str("taker".to_string()) });
             orderId = (if (is_equal(&isMaker, &Value::Bool(true))) { reference_parts.as_array().and_then(|__arr| __arr.get(2)).cloned().unwrap_or(Value::Null) } else { reference_parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null) });
-            let mut action: Value = self.safe_integer_k(trade.clone(), "action", &[]);
-            if (action.as_f64() == Some(0.0)) {
+            let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();
+            if (action == Some(0)) {
                 side = Value::Str("buy".to_string());
             }  else {
                 side = Value::Str("sell".to_string());

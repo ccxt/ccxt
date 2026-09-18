@@ -396,8 +396,8 @@ impl OpinionCore {
                 while { if !__for_first_1345 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1345 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut raw: Value = get_value(&rawMarkets, &i);
                 let mut raw: Value = get_value(&rawMarkets, &i);
-                let mut marketType: Value = self.safe_integer_k(raw.clone(), "marketType", &[]);
-                if (marketType.as_f64() == Some(1.0)) {
+                let mut marketType: Option<i64> = self.safe_integer_k(raw.clone(), "marketType", &[]).as_i64();
+                if (marketType == Some(1)) {
                     let mut event: Value = self.parse_event(raw.clone());
                     let mut childMarkets: Value = crate::value::get_value_k(&event, "markets");
                     let mut childMarketsLength: Value = get_array_length(&childMarkets);
@@ -2922,10 +2922,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.safe_timestamp(message.clone(), Value::Str("createdAt".to_string()), &[]);
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
-        let mut sideInt: Value = self.safe_integer_k(message.clone(), "side", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideInt.as_f64() == Some(1.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
-        let mut tradingMethod: Value = self.safe_integer_k(message.clone(), "tradingMethod", &[]);
-        let mut type_var: Value = (if is_true(&(Value::Bool(tradingMethod.as_f64() == Some(1.0)))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
+        let mut sideInt: Option<i64> = self.safe_integer_k(message.clone(), "side", &[]).as_i64();
+        let mut side: Value = (if is_true(&(Value::Bool(sideInt == Some(1)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut tradingMethod: Option<i64> = self.safe_integer_k(message.clone(), "tradingMethod", &[]).as_i64();
+        let mut type_var: Value = (if is_true(&(Value::Bool(tradingMethod == Some(1)))) { Value::Str("market".to_string()) } else { Value::Str("limit".to_string()) });
         let mut order: Value = self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(message.clone(), "orderId", &[]));

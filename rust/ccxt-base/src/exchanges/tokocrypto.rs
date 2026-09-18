@@ -3140,9 +3140,9 @@ impl TokocryptoCore {
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("currency".to_string(), code.clone()); }
             if let Value::Dict(__d) = &mut fee { std::sync::Arc::make_mut(__d).insert("cost".to_string(), feeCost.clone()); }
         }
-        let mut internalRaw: Value = self.safe_integer_k(transaction.clone(), "transferType", &[]);
+        let mut internalRaw: Option<i64> = self.safe_integer_k(transaction.clone(), "transferType", &[]).as_i64();
         let mut internal: Value = Value::Bool(false);
-        if (internalRaw != Value::Null) {
+        if (internalRaw.is_some()) {
             internal = Value::Bool(true);
         }
         let mut id: Value = self.safe_string_k(transaction.clone(), "id", &[]);

@@ -1932,8 +1932,8 @@ impl BackpackCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(1000))); // api maximum 1000
         }
         let mut response: Value = Value::Null;
-        let mut offset: Value = self.safe_integer_k(params.clone(), "offset", &[]);
-        if (offset != Value::Null) {
+        let mut offset: Option<i64> = self.safe_integer_k(params.clone(), "offset", &[]).as_i64();
+        if (offset.is_some()) {
             let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_api_v1_trades_history(&[__ws_arg_7]).await;
         }  else {

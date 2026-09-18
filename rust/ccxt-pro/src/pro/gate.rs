@@ -2357,8 +2357,8 @@ impl GateCore {
             }  else if (event.as_str() == Some("finish")) {
                 let mut status: Value = self.safe_string_k(parsed.clone(), "status", &[]);
                 if (status == Value::Null) {
-                    let mut left: Value = self.safe_integer_k(info.clone(), "left", &[]);
-                    add_element_to_object(&mut parsed, &Value::Str("status".to_string()), (if is_true(&(Value::Bool(left.as_f64() == Some(0.0)))) { Value::Str("closed".to_string()) } else { Value::Str("canceled".to_string()) }));
+                    let mut left: Option<i64> = self.safe_integer_k(info.clone(), "left", &[]).as_i64();
+                    add_element_to_object(&mut parsed, &Value::Str("status".to_string()), (if is_true(&(Value::Bool(left == Some(0)))) { Value::Str("closed".to_string()) } else { Value::Str("canceled".to_string()) }));
                 }
             }
             stored.append(parsed.clone());

@@ -2773,15 +2773,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "market_id", &[]);
         market = self.safe_market(&[marketId.clone(), market.clone()]);
-        let mut sign: Value = self.safe_integer_k(position.clone(), "sign", &[]);
+        let mut sign: Option<i64> = self.safe_integer_k(position.clone(), "sign", &[]).as_i64();
         let mut side: Value = Value::Null;
-        if (sign != Value::Null) {
-            side = (if is_true(&(Value::Bool(sign.as_f64() == Some(1.0)))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
+        if (sign.is_some()) {
+            side = (if is_true(&(Value::Bool(sign == Some(1)))) { Value::Str("long".to_string()) } else { Value::Str("short".to_string()) });
         }
-        let mut marginModeId: Value = self.safe_integer_k(position.clone(), "margin_mode", &[]);
+        let mut marginModeId: Option<i64> = self.safe_integer_k(position.clone(), "margin_mode", &[]).as_i64();
         let mut marginMode: Value = Value::Null;
-        if (marginModeId != Value::Null) {
-            marginMode = (if is_true(&(Value::Bool(marginModeId.as_f64() == Some(0.0)))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
+        if (marginModeId.is_some()) {
+            marginMode = (if is_true(&(Value::Bool(marginModeId == Some(0)))) { Value::Str("cross".to_string()) } else { Value::Str("isolated".to_string()) });
         }
         let mut imfStr: Value = self.safe_string_k(position.clone(), "initial_margin_fraction", &[]);
         let mut leverage: Value = Value::Null;
@@ -3154,9 +3154,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut timestamp: Value = self.safe_timestamp(order.clone(), Value::Str("timestamp".to_string()), &[]);
         let mut isAsk: Value = self.safe_bool_k(order.clone(), "is_ask", &[]);
         if (isAsk == Value::Null) {
-            let mut isAskAsInteger: Value = self.safe_integer_k(order.clone(), "is_ask", &[]);
-            if (isAskAsInteger != Value::Null) {
-                isAsk = Value::Bool(isAskAsInteger.as_f64() == Some(1.0));
+            let mut isAskAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "is_ask", &[]).as_i64();
+            if (isAskAsInteger.is_some()) {
+                isAsk = Value::Bool(isAskAsInteger == Some(1));
             }
         }
         let mut side: Value = Value::Null;
@@ -3189,9 +3189,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut reduceOnly: Value = self.safe_bool_k(order.clone(), "reduce_only", &[]);
         if (reduceOnly == Value::Null) {
-            let mut reduceOnlyAsInteger: Value = self.safe_integer_k(order.clone(), "reduce_only", &[]);
-            if (reduceOnlyAsInteger != Value::Null) {
-                reduceOnly = Value::Bool(reduceOnlyAsInteger.as_f64() == Some(1.0));
+            let mut reduceOnlyAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
+            if (reduceOnlyAsInteger.is_some()) {
+                reduceOnly = Value::Bool(reduceOnlyAsInteger == Some(1));
             }
         }
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);

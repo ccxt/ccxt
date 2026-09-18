@@ -3569,12 +3569,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut makerPercent: Value = self.safe_string_k(market.clone(), "maker_fee_rate", &[takerPercent.clone()]);
             let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "amount_precision", &[])]), &[]);
             let mut tradeStatus: Value = self.safe_string_k(market.clone(), "trade_status", &[]);
-            let mut marginStatus: Value = self.safe_integer_k(market.clone(), "status", &[Value::Int(1)]); // 0 disabled, 1 enabled
-            let mut leverage: Value = self.safe_number_k(market.clone(), "leverage", &[]);
-            let mut margin: Value = Value::Bool(leverage != Value::Null);
+            let mut marginStatus: Option<i64> = self.safe_integer_k(market.clone(), "status", &[Value::Int(1)]).as_i64(); // 0 disabled, 1 enabled
+            let mut leverage: Option<f64> = self.safe_number_k(market.clone(), "leverage", &[]).as_f64();
+            let mut margin: Value = Value::Bool(leverage.is_some());
             let mut buyStart: Value = self.safe_integer_product(spotMarket.clone(), Value::Str("buy_start".to_string()), Value::Int(1000), &[]); // buy_start is the trading start time, while sell_start is offline orders start time
             let mut createdTs: Value = (if is_true(&(Value::Bool(buyStart.as_f64() != Some(0.0)))) { buyStart.clone() } else { Value::Null });
-            let mut active: Value = Value::Bool(is_true(&(Value::Bool(tradeStatus.as_str() == Some("tradable")))) || is_true(&(Value::Bool(is_true(&margin) && is_true(&(Value::Bool(marginStatus.as_f64() == Some(1.0))))))));
+            let mut active: Value = Value::Bool(is_true(&(Value::Bool(tradeStatus.as_str() == Some("tradable")))) || is_true(&(Value::Bool(is_true(&margin) && is_true(&(Value::Bool(marginStatus == Some(1))))))));
             append_to_array(&mut result, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.clone());
@@ -4556,8 +4556,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //        "obtain_failed": "0"
             //    }
             //
-            let mut obtainFailed: Value = self.safe_integer_k(entry.clone(), "obtain_failed", &[]);
-            if is_true(&(Value::Bool(obtainFailed != Value::Null))) && is_true(&(Value::Bool(obtainFailed.as_f64() != Some(0.0)))) {
+            let mut obtainFailed: Option<i64> = self.safe_integer_k(entry.clone(), "obtain_failed", &[]).as_i64();
+            if is_true(&(Value::Bool(obtainFailed.is_some()))) && is_true(&(Value::Bool(obtainFailed != Some(0)))) {
                 continue;
             }
             let mut network: Value = self.safe_string_k(entry.clone(), "chain", &[]);

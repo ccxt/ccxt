@@ -3908,11 +3908,11 @@ impl CoinexCore {
             }
             reduceOnly = self.safe_value_k(orderParams.clone(), "reduceOnly", &[]);
             let mut triggerPrice: Value = self.safe_number2(orderParams.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
-            let mut stopLossTriggerPrice: Value = self.safe_number_k(orderParams.clone(), "stopLossPrice", &[]);
-            let mut takeProfitTriggerPrice: Value = self.safe_number_k(orderParams.clone(), "takeProfitPrice", &[]);
+            let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(orderParams.clone(), "stopLossPrice", &[]).as_f64();
+            let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(orderParams.clone(), "takeProfitPrice", &[]).as_f64();
             isTriggerOrder = triggerPrice != Value::Null;
-            let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice != Value::Null;
-            let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice != Value::Null;
+            let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
+            let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
             isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
             let mut orderRequest: Value = self.create_order_request(marketId.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             append_to_array(&mut ordersRequests, orderRequest.clone());
@@ -3954,9 +3954,9 @@ impl CoinexCore {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut status: Value = Value::Null;
-            let mut code: Value = self.safe_integer_k(entry.clone(), "code", &[]);
-            if (code != Value::Null) {
-                if (code.as_f64() != Some(0.0)) {
+            let mut code: Option<i64> = self.safe_integer_k(entry.clone(), "code", &[]).as_i64();
+            if (code.is_some()) {
+                if (code != Some(0)) {
                     status = Value::Str("rejected".to_string());
                 }  else {
                     status = Value::Str("open".to_string());

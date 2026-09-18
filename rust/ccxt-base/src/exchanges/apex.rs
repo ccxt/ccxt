@@ -2821,8 +2821,8 @@ impl ApexCore {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut errorCode: Value = self.safe_integer_k(response.clone(), "code", &[]);
-        if (errorCode != Value::Null) && (errorCode.as_f64() != Some(0.0)) {
+        let mut errorCode: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
+        if (errorCode.is_some()) && (errorCode != Some(0)) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), body));
             let mut message: Value = self.safe_string2(response.clone(), Value::Str("key".to_string()), Value::Str("msg".to_string()), &[]);
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());

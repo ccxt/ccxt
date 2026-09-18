@@ -6662,8 +6662,8 @@ impl KucoinCore {
                 if (marginMode != Value::Null) {
                     add_element_to_object(&mut request, &Value::Str("marginMode".to_string()), to_upper(&marginMode));
                     if (marginMode.as_str() == Some("isolated")) {
-                        let mut leverage: Value = self.safe_integer_k(params.clone(), "leverage", &[]);
-                        if (leverage == Value::Null) {
+                        let mut leverage: Option<i64> = self.safe_integer_k(params.clone(), "leverage", &[]).as_i64();
+                        if (leverage.is_none()) {
                             add_element_to_object(&mut request, &Value::Str("leverage".to_string()), Value::Int(1));
                         }
                     }
@@ -14565,11 +14565,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut positionMode: Value = self.safe_integer_k(data.clone(), "positionMode", &[]);
+        let mut positionMode: Option<i64> = self.safe_integer_k(data.clone(), "positionMode", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data.clone());
-        m.insert("hedged".to_string(), Value::Bool(positionMode.as_f64() == Some(1.0)));
+        m.insert("hedged".to_string(), Value::Bool(positionMode == Some(1)));
     m
 });
 

@@ -3453,8 +3453,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         // spot pong
-        let mut pong: Value = self.safe_integer_k(message.clone(), "pong", &[]);
-        if (pong != Value::Null) {
+        let mut pong: Option<i64> = self.safe_integer_k(message.clone(), "pong", &[]).as_i64();
+        if (pong.is_some()) {
             self.handle_pong(client.clone(), message.clone());
             return;
         }
@@ -3587,9 +3587,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let mut success: Value = self.safe_value_k(message.clone(), "success", &[]);
-        let mut code: Value = self.safe_integer_k(message.clone(), "retCode", &[]);
+        let mut code: Option<i64> = self.safe_integer_k(message.clone(), "retCode", &[]).as_i64();
         let mut messageHash: Value = Value::Str("authenticated".to_string());
-        if (is_equal(&success, &Value::Bool(true))) || is_true(&(Value::Bool(code.as_f64() == Some(0.0)))) {
+        if (is_equal(&success, &Value::Bool(true))) || is_true(&(Value::Bool(code == Some(0)))) {
             let mut future: Value = self.safe_value(get_value(&client, &Value::Str("futures".to_string())), messageHash.clone(), &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {

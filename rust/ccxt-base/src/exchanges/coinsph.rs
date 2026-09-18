@@ -3042,8 +3042,8 @@ impl CoinsphCore {
         if (api.as_str() == Some("private")) {
             self.check_required_credentials(&[]);
             add_element_to_object(&mut query, &Value::Str("timestamp".to_string()), self.milliseconds());
-            let mut recvWindow: Value = self.safe_integer_k(query.clone(), "recvWindow", &[]);
-            if (recvWindow == Value::Null) {
+            let mut recvWindow: Option<i64> = self.safe_integer_k(query.clone(), "recvWindow", &[]).as_i64();
+            if (recvWindow.is_none()) {
                 let mut defaultRecvWindow: Value = self.safe_integer_k(self.options.clone(), "recvWindow", &[]);
                 if (defaultRecvWindow != Value::Null) {
                     add_element_to_object(&mut query, &Value::Str("recvWindow".to_string()), defaultRecvWindow.clone());
