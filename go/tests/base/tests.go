@@ -23,11 +23,11 @@ type testMainClass struct {
 	LoadKeys                   bool   `default:"false"`
 	Sandbox                    bool   `default:"false"`
 	OnlySpecificTests          any    `default:"[]any{}"`
-	SkippedSettingsForExchange any    `default:"map[string]any {}"`
-	SkippedMethods             any    `default:"map[string]any {}"`
-	CheckedPublicTests         any    `default:"map[string]any {}"`
-	TestFiles                  any    `default:"map[string]any {}"`
-	PublicTests                any    `default:"map[string]any {}"`
+	SkippedSettingsForExchange any    `default:"map[string]any{}"`
+	SkippedMethods             any    `default:"map[string]any{}"`
+	CheckedPublicTests         any    `default:"map[string]any{}"`
+	TestFiles                  any    `default:"map[string]any{}"`
+	PublicTests                any    `default:"map[string]any{}"`
 	Ext                        string `default:""`
 	Lang                       string `default:""`
 	ProxyTestFileName          any    `default:"proxies"`
@@ -4390,22 +4390,23 @@ func (this *testMainClass) testBlofinBody(ch chan any) any {
 	return nil
 }
 
-//	async testHyperliquid () {
-//	    const exchange = this.initOfflineExchange ('hyperliquid');
-//	    const id = '1';
-//	    let request: NullableDict = undefined;
-//	    try {
-//	        await exchange.GetcreateOrder() ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
-//	    } catch (e) {
-//	        request = jsonParse (exchange.Getlast_request_body());
-//	    }
-//	    const brokerId = (request['action']['brokerCode']).toString ();
-//	    assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-//	    if (!isSync ()) {
-//	        await close (exchange);
-//	    }
-//	    return true;
-//	}
+// async testHyperliquid () {
+//     const exchange = this.initOfflineExchange ('hyperliquid');
+//     const id = '1';
+//     let request: NullableDict = undefined;
+//     try {
+//         await exchange.GetcreateOrder() ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
+//     } catch (e) {
+//         request = jsonParse (exchange.Getlast_request_body());
+//     }
+//     const brokerId = (request['action']['brokerCode']).toString ();
+//     assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
+//     if (!isSync ()) {
+//         await close (exchange);
+//     }
+//     return true;
+// }
+
 func (this *testMainClass) TestCoinbaseinternationalAsync() <-chan any {
 	ch := make(chan any, 1)
 	go this.testCoinbaseinternationalBody(ch)

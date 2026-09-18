@@ -2071,6 +2071,7 @@ func (this *Kraken) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kraken#createOrderWs

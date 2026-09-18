@@ -272,6 +272,7 @@ func (this *Coincheck) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coincheck#watchOrderBook

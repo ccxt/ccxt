@@ -4439,6 +4439,7 @@ func (this *Polymarket) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name polymarket#fetchMarkets

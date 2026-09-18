@@ -4281,6 +4281,7 @@ func (this *Grvt) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name grvt#fetchMarkets

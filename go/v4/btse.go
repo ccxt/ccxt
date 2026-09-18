@@ -4715,6 +4715,7 @@ func (this *Btse) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name btse#fetchTime

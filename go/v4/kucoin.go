@@ -14794,6 +14794,7 @@ func (this *Kucoin) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kucoin#fetchTime

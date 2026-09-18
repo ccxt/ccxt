@@ -4933,6 +4933,7 @@ func (this *Delta) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name delta#fetchTime

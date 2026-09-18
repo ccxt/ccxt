@@ -1925,6 +1925,7 @@ func (this *Lighter) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name lighter#watchOrderBook

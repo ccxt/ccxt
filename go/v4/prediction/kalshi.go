@@ -2591,7 +2591,7 @@ func (this *Kalshi) createOrderBody(ch chan any, outcome any, typeVar any, side 
 	}
 	if ccxt.IsEqual(ccxt.GetValue(order, "status"), nil) {
 		var resolvedStatus string = "open"
-		if (remainingCount != nil) && (*remainingCount == 0) {
+		if remainingCount != nil && *remainingCount == 0 {
 			resolvedStatus = "closed"
 		}
 		ccxt.AddElementToObject(order, "status", resolvedStatus)
@@ -3412,6 +3412,7 @@ func (this *Kalshi) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name kalshi#fetchMarkets
