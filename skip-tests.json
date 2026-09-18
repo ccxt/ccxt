@@ -1227,7 +1227,7 @@
             },
             "fetchTickers": "requires custom param",
             "fetchTrades": {
-                "cost": "precision needs rewrite for deribit, like it's for bitmex"
+                "cost": "precision needs rewrite for deribit, like it's for bitmex",
                 "side": "todo fix"
             }
         }
