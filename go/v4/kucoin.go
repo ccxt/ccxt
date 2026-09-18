@@ -3615,7 +3615,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(utaparamsVariable, 1)
 	var tradeType *string = this.SafeString(params, "tradeType")
 	var firstMarket any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
 			firstMarket = this.Market(firstSymbol)
@@ -4574,7 +4574,7 @@ func (this *Kucoin) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 		address = Replace(address, "bitcoincash:", "")
 	}
 	var code any = nil
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		code = DerefScalar(this.SafeCurrencyCode(GetValue(currency, "id")))
 		if !IsEqual(code, "NIM") {
 			// contains spaces
@@ -7971,7 +7971,7 @@ func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	if (!IsEqual(market, nil)) && (GetValue(market, "contract") == true) {
+	if (market != nil) && (GetValue(market, "contract") == true) {
 		return this.ParseContractOrder(order, market)
 	} else {
 		return this.ParseSpotOrder(order, market)
@@ -9103,7 +9103,7 @@ func (this *Kucoin) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
-	if (IsEqual(market, nil)) || (GetValue(market, "spot") == true) {
+	if (market == nil) || (GetValue(market, "spot") == true) {
 		return this.ParseSpotOrUtaTrade(trade, market)
 	} else {
 		return this.ParseContractTrade(trade, market)
@@ -13323,7 +13323,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	var response any = nil
 	var request any = map[string]any{}
 	symbols = this.MarketSymbols(symbols)
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -13558,12 +13558,12 @@ func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) any {
 				side = "short"
 			}
 		} else if typeVar != nil {
-			if IsGreaterThan(func() int {
+			if func() int {
 				if typeVar == nil {
 					return -1
 				}
 				return strings.Index(*typeVar, "long")
-			}(), -1) {
+			}() > -1 {
 				side = "long"
 			} else {
 				side = "short"
@@ -14399,7 +14399,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 		retRes1149412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes1149412)
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLeverageTiers() requires a symbols argument"))
 	}
 	symbols = this.MarketSymbols(symbols, "swap", false, true)
@@ -14505,7 +14505,7 @@ func (this *Kucoin) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length < 11 {
 			// the endpoint does not accept more than 10 symbols at a time
@@ -14719,7 +14719,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var endpart any = ""
 	headers = func() any {
-		if !IsEqual(headers, nil) {
+		if headers != nil {
 			return headers
 		}
 		return map[string]any{}
@@ -14752,7 +14752,7 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 			"KC-API-TIMESTAMP":   timestamp,
 		}, headers)
 		headers = func() any {
-			if IsEqual(headers, nil) {
+			if headers == nil {
 				return map[string]any{}
 			}
 			return headers

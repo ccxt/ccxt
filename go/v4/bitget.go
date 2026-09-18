@@ -3577,7 +3577,7 @@ func (this *Bitget) HandleProductTypeAndParams(optionalArgs ...any) any {
 		// if (sandboxMode) {
 		//     defaultProductType = (subType === 'linear') ? 'SUSDT-FUTURES' : 'SCOIN-FUTURES';
 		// } else {
-		defaultProductType = func() any {
+		defaultProductType = func() string {
 			if IsEqual(subType, "linear") {
 				return "USDT-FUTURES"
 			}
@@ -4453,7 +4453,7 @@ func (this *Bitget) ParseCurrency(rawCurrency any) any {
 		"id":       id,
 		"code":     code,
 		"networks": networks,
-		"type": func() any {
+		"type": func() string {
 			if isFiat {
 				return "fiat"
 			}
@@ -5420,13 +5420,13 @@ func (this *Bitget) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var bidsKey any = func() any {
+	var bidsKey string = func() string {
 		if uta == true {
 			return "b"
 		}
 		return "bids"
 	}()
-	var asksKey any = func() any {
+	var asksKey string = func() string {
 		if uta == true {
 			return "a"
 		}
@@ -6147,13 +6147,13 @@ func (this *Bitget) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": currencyCode,
 		}
 		var feeCostString *string = this.SafeString2(feeStructure, "totalFee", "fee")
-		var deduction any = func() any {
+		var deduction bool = func() bool {
 			if IsEqual(this.SafeString(feeStructure, "deduction"), "yes") {
 				return true
 			}
 			return false
 		}()
-		if EvalTruthy(deduction) {
+		if deduction {
 			AddElementToObject(fee, "cost", feeCostString)
 		} else {
 			AddElementToObject(fee, "cost", Precise.StringNeg(feeCostString))
@@ -6690,7 +6690,7 @@ func (this *Bitget) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var inverse *bool = this.SafeBool(market, "inverse")
-	var volumeIndex any = func() any {
+	var volumeIndex int = func() int {
 		if inverse != nil && *inverse == true {
 			return 6
 		}
@@ -6754,7 +6754,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
-		var limitForPagination any = func() any {
+		var limitForPagination int = func() int {
 			if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination == true {
 				return maxLimitForHistoryEndpoint
 			}
@@ -6770,7 +6770,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var marketType any = nil
+	var marketType string
 	var timeframes any = nil
 	var timeframesOption any = this.HandleOption("fetchOHLCV", "timeframes")
 	var uta any = nil
@@ -6781,7 +6781,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		timeframes = GetValue(timeframesOption, "uta")
 		request["interval"] = this.SafeString(timeframes, timeframe, timeframe)
 	} else {
-		marketType = func() any {
+		marketType = func() string {
 			if GetValue(market, "spot") == true {
 				return "spot"
 			}
@@ -6801,7 +6801,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	// retrievable periods listed here:
 	// - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
 	// - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-	var key any = func() any {
+	var key string = func() string {
 		if GetValue(market, "spot") == true {
 			return "spot"
 		}
@@ -7515,7 +7515,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var posSide *string = this.SafeString(order, "posSide")
 	var isContractOrder bool = (posSide != nil)
-	var marketType any = func() any {
+	var marketType any = func() string {
 		if isContractOrder {
 			return "contract"
 		}
@@ -7574,7 +7574,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 	var reduceOnly any = nil
 	var reduceOnlyRaw *string = this.SafeString(order, "reduceOnly")
 	if reduceOnlyRaw != nil {
-		reduceOnly = func() any {
+		reduceOnly = func() bool {
 			if reduceOnlyRaw != nil && *reduceOnlyRaw == "NO" {
 				return false
 			}
@@ -7606,7 +7606,7 @@ func (this *Bitget) ParseOrder(order any, optionalArgs ...any) any {
 	var side any = DerefScalar(this.SafeString(order, "side"))
 	var posMode *string = this.SafeString(order, "posMode")
 	if (posMode != nil && *posMode == "hedge_mode") && (reduceOnly == true) {
-		side = func() any {
+		side = func() string {
 			if IsEqual(side, "buy") {
 				return "sell"
 			}
@@ -7956,7 +7956,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 	params = GetValue(hedgedparamsVariable, 1)
 	if reduceOnly != nil && *reduceOnly == true {
 		if (hedged == true) || isStopLossOrTakeProfitTrigger {
-			var reduceOnlyPosSide any = func() any {
+			var reduceOnlyPosSide string = func() string {
 				if IsEqual(side, "sell") {
 					return "long"
 				}
@@ -7968,7 +7968,7 @@ func (this *Bitget) CreateUtaOrderRequest(symbol any, typeVar any, side any, amo
 		}
 	} else {
 		if hedged == true {
-			var posSide any = func() any {
+			var posSide string = func() string {
 				if IsEqual(side, "buy") {
 					return "long"
 				}
@@ -8124,14 +8124,14 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 				}
 			}
 			if hedged == true {
-				request["holdSide"] = func() any {
+				request["holdSide"] = func() string {
 					if IsEqual(side, "sell") {
 						return "long"
 					}
 					return "short"
 				}()
 			} else {
-				request["holdSide"] = func() any {
+				request["holdSide"] = func() string {
 					if IsEqual(side, "sell") {
 						return "buy"
 					}
@@ -8175,7 +8175,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 			if marginMode == nil {
 				marginMode = "cross"
 			}
-			var marginModeRequest any = func() any {
+			var marginModeRequest string = func() string {
 				if IsEqual(marginMode, "cross") {
 					return "crossed"
 				}
@@ -8188,7 +8188,7 @@ func (this *Bitget) CreateOrderRequest(symbol any, typeVar any, side any, amount
 					request["reduceOnly"] = "YES"
 				} else {
 					// on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
-					requestSide = func() any {
+					requestSide = func() string {
 						if IsEqual(side, "buy") {
 							return "sell"
 						}
@@ -8416,7 +8416,7 @@ func (this *Bitget) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		if marginMode == nil {
 			marginMode = "cross"
 		}
-		var marginModeRequest any = func() any {
+		var marginModeRequest string = func() string {
 			if IsEqual(marginMode, "cross") {
 				return "crossed"
 			}
@@ -12363,7 +12363,7 @@ func (this *Bitget) ParseMarginModification(data any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var errorCode *string = this.SafeString(data, "code")
-	var status any = func() any {
+	var status string = func() string {
 		if errorCode != nil && *errorCode == "00000" {
 			return "ok"
 		}
@@ -12522,13 +12522,13 @@ func (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var isCrossMarginMode bool = IsEqual(this.SafeString(leverage, "marginMode"), "crossed")
-	var longLevKey any = func() any {
+	var longLevKey string = func() string {
 		if isCrossMarginMode {
 			return "crossedMarginLeverage"
 		}
 		return "isolatedLongLever"
 	}()
-	var shortLevKey any = func() any {
+	var shortLevKey string = func() string {
 		if isCrossMarginMode {
 			return "crossedMarginLeverage"
 		}
@@ -12537,7 +12537,7 @@ func (this *Bitget) ParseLeverage(leverage any, optionalArgs ...any) any {
 	return map[string]any{
 		"info":   leverage,
 		"symbol": this.SafeString(market, "symbol"),
-		"marginMode": func() any {
+		"marginMode": func() string {
 			if isCrossMarginMode {
 				return "cross"
 			}
@@ -12723,7 +12723,7 @@ func (this *Bitget) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 		retRes977112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes977112)
 	}
-	var posMode any = func() any {
+	var posMode string = func() string {
 		if EvalTruthy(hedged) {
 			return "hedge_mode"
 		}
@@ -14121,7 +14121,7 @@ func (this *Bitget) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if marketId != nil {
 			return "isolated"
 		}

@@ -572,7 +572,7 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var status *string = this.SafeString(market, "status")
 			result = append(result, map[string]any{
 				"id":             id,
-				"symbol":         Add(Add(base, "/"), quote),
+				"symbol":         *base + "/" + *quote,
 				"base":           base,
 				"quote":          quote,
 				"settle":         nil,
@@ -1481,7 +1481,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
-		symbol = Add(Add(base, "/"), quote)
+		symbol = *base + "/" + *quote
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
 			market = this.Market(symbol)
 		}

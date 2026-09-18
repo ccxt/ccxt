@@ -2591,8 +2591,23 @@ func (this *Bitmex) ParseOrder(order any, optionalArgs ...any) any {
 	var postOnly any = nil
 	var reduceOnly any = nil
 	if GetLength(execInst) > 0 {
-		postOnly = (GetIndexOf(execInst, "ParticipateDoNotInitiate") >= 0)
-		reduceOnly = ((GetIndexOf(execInst, "ReduceOnly") >= 0) || (GetIndexOf(execInst, "Close") >= 0))
+		postOnly = (func() int {
+			if execInst == nil {
+				return -1
+			}
+			return strings.Index(*execInst, "ParticipateDoNotInitiate")
+		}() >= 0)
+		reduceOnly = ((func() int {
+			if execInst == nil {
+				return -1
+			}
+			return strings.Index(*execInst, "ReduceOnly")
+		}() >= 0) || (func() int {
+			if execInst == nil {
+				return -1
+			}
+			return strings.Index(*execInst, "Close")
+		}() >= 0))
 	}
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "timestamp"))
 	var triggerPrice *float64 = this.SafeNumber(order, "stopPx")
@@ -2999,7 +3014,12 @@ func (this *Bitmex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	var order any = this.SafeValue(response, 0, map[string]any{})
 	var error *string = this.SafeString(order, "error")
 	if error != nil {
-		if GetIndexOf(error, "Unable to cancel order due to existing state") >= 0 {
+		if func() int {
+			if error == nil {
+				return -1
+			}
+			return strings.Index(*error, "Unable to cancel order due to existing state")
+		}() >= 0 {
 			panic(OrderNotFound(this.Id + " cancelOrder() failed: " + *error))
 		}
 	}

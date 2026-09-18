@@ -234,12 +234,12 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
-	var messageHashes any = []any{}
-	var args any = []any{}
+	var messageHashes []any = []any{}
+	var args []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&args, ccxt.GetValue(market, "id"))
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol")))
+		args = append(args, ccxt.GetValue(market, "id"))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request map[string]any = map[string]any{
@@ -318,10 +318,10 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 		ccxt.PanicOnError(retRes20912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbols, i)))
 		}
 	}
 	var marketIds any = this.MarketIds(symbols)

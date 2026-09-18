@@ -284,7 +284,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result2Data map[string]any = SafeMapTyped(response2, "data")
 	var marketIds []string = ObjectKeys(response1)
-	var markets any = []any{}
+	var markets []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var symbolParts []string = strings.Split(marketId, "_")
@@ -302,7 +302,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}()
 		var details map[string]any = SafeMapTyped(result2Data, id)
 		var tradeDetails map[string]any = SafeMapTyped(details, "trade")
-		AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
+		markets = append(markets, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"uppercaseId":    nil,
 			"symbol":         symbol,

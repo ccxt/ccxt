@@ -327,7 +327,7 @@ func (this *Htx) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 
 	trades := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -462,7 +462,7 @@ func (this *Htx) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 
 	ohlcv := (<-this.SubscribePublicAsync(url, symbol, messageHash, nil, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1085,7 +1085,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		typeVar = ccxt.GetValue(market, "type")
-		subType = func() any {
+		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
 			}
@@ -1134,7 +1134,7 @@ func (this *Htx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsEqual(trades, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() trades is required"))
 	}
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1263,7 +1263,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 		typeVar = ccxt.GetValue(market, "type")
 		suffix = ccxt.GetValue(market, "lowercaseId")
-		subType = func() any {
+		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
 			}
@@ -1301,7 +1301,7 @@ func (this *Htx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1832,7 +1832,7 @@ func (this *Htx) ParseOrderTrade(trade any, optionalArgs ...any) any {
 	var aggressor any = this.SafeValue(trade, "aggressor")
 	var takerOrMaker any = nil
 	if !ccxt.IsEqual(aggressor, nil) {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if aggressor == true {
 				return "taker"
 			}
@@ -1892,7 +1892,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var messageHash any = ""
-	if (!ccxt.EvalTruthy(this.IsEmpty(symbols))) && (symbols != nil) {
+	if (!this.IsEmpty(symbols)) && (symbols != nil) {
 		market = this.GetMarketFromSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
@@ -1900,7 +1900,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var subType any = nil
 	if !ccxt.IsEqual(market, nil) {
 		typeVar = ccxt.GetValue(market, "type")
-		subType = func() any {
+		subType = func() string {
 			if ccxt.GetValue(market, "linear") == true {
 				return "linear"
 			}
@@ -1929,7 +1929,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var isLinear bool = (ccxt.IsEqual(subType, "linear"))
 	var url any = this.GetUrlByMarketType(typeVar, isLinear, true, false, isV5Linear)
 	messageHash = ccxt.Add(ccxt.Add(marginMode, ":positions"), messageHash)
-	var channel any = func() any {
+	var channel any = func() string {
 		if ccxt.IsEqual(marginMode, "cross") {
 			return "positions_cross.*"
 		}
@@ -1951,7 +1951,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.SubscribePrivateAsync(channel, messageHash, typeVar, subType, params, subscriptionParams))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -2042,7 +2042,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 	//
 	var url any = client.(ccxt.ClientInterface).GetUrl()
 	var topic *string = this.SafeString(message, "topic", "")
-	var defaultMarginMode any = func() any {
+	var defaultMarginMode string = func() string {
 		if topic != nil && *topic == "positions_cross" {
 			return "cross"
 		}
@@ -2056,7 +2056,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
 	var rawPositions any = this.SafeList(message, "data", []any{})
-	if ccxt.EvalTruthy(this.IsEmpty(rawPositions)) {
+	if this.IsEmpty(rawPositions) {
 		var prefixes []any = []any{"cross:positions", "isolated:positions"}
 		for i := 0; i < len(prefixes); i++ {
 			var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.GetValue(prefixes, i))
@@ -2091,20 +2091,20 @@ func (this *Htx) HandlePositions(client any, message any) {
 	}
 	var marginModes []string = ccxt.ObjectKeys(positionsByMarginMode)
 	for i := 0; i < len(marginModes); i++ {
-		var marginMode any = ccxt.GetValue(marginModes, i)
+		var marginMode string = ccxt.GetValue(marginModes, i).(string)
 		var marginModePositions any = this.SafeValue(positionsByMarginMode, marginMode, []any{})
-		var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(marginMode, ":positions::"))
+		var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), marginMode+":positions::")
 		for j := 0; j < ccxt.GetArrayLength(messageHashes); j++ {
 			var messageHash any = ccxt.GetValue(messageHashes, j)
 			var parts []string = ccxt.Split(messageHash, "::")
 			var symbolsString any = ccxt.GetValue(parts, 1)
 			var symbols []string = ccxt.Split(symbolsString, ",")
 			var positions any = this.FilterByArray(marginModePositions, "symbol", symbols, false)
-			if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+			if !this.IsEmpty(positions) {
 				client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 			}
 		}
-		client.(ccxt.ClientInterface).Resolve(marginModePositions, ccxt.Add(marginMode, ":positions"))
+		client.(ccxt.ClientInterface).Resolve(marginModePositions, marginMode+":positions")
 	}
 }
 
@@ -3235,7 +3235,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var aggressor any = this.SafeValue(trade, "aggressor")
 	var takerOrMaker any = nil
 	if !ccxt.IsEqual(aggressor, nil) {
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if aggressor == true {
 				return "taker"
 			}

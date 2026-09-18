@@ -289,7 +289,7 @@ func (this *Deepcoin) authenticateBody(ch chan any, optionalArgs ...any) any {
 					ccxt.PanicOnError(response)
 				}
 			}
-			if !ccxt.IsEqual(response, nil) {
+			if response != nil {
 				var data map[string]any = ccxt.SafeMapTyped(response, "data")
 				listenKey = ccxt.DerefScalar(this.SafeString(data, "listenkey"))
 				if ccxt.IsEqual(listenKey, nil) {
@@ -1375,15 +1375,15 @@ func (this *Deepcoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(listenKey)
 	symbols = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
-			ccxt.AppendToArray(&messageHashes, symbolMessageHash)
+			messageHashes = append(messageHashes, symbolMessageHash)
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		messageHashes = append(messageHashes, messageHash)
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey)
 

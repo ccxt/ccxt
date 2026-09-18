@@ -1377,7 +1377,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes11638)
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var requestedSymbol *string = this.SafeString(symbols, 0)
@@ -1418,7 +1418,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
-		if IsEqual(symbols, nil) || this.InArray(symbol, symbols) {
+		if (symbols == nil) || this.InArray(symbol, symbols) {
 			var levels any = this.SafeList(entry, "riskLimits", []any{})
 			var tiers []any = []any{}
 			for j := 0; j < GetArrayLength(levels); j++ {
@@ -1450,7 +1450,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 			if j == 0 {
 				AddElementToObject(GetValue(tiersList, j), "minNotional", 0)
 			} else {
-				AddElementToObject(GetValue(tiersList, j), "minNotional", GetValue(GetValue(tiersList, Subtract(j, 1)), "maxNotional"))
+				AddElementToObject(GetValue(tiersList, j), "minNotional", GetValue(GetValue(tiersList, j-1), "maxNotional"))
 			}
 		}
 		// php copies arrays by value, so the mutated list must be written back explicitly
@@ -1613,7 +1613,7 @@ func (this *Btse) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var baseVolume *string = this.SafeString(ticker, "amount")
-	if (baseVolume != nil) && (!IsEqual(market, nil)) && (GetValue(market, "contract") == true) {
+	if (baseVolume != nil) && (market != nil) && (GetValue(market, "contract") == true) {
 		// for contract markets the amount field is denominated in contracts, verified live -
 		// scaling by contractSize converts it into base currency units
 		var contractSizeString *string = this.NumberToString(GetValue(market, "contractSize"))
@@ -3555,7 +3555,13 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 	for i := 0; i < GetArrayLength(rawRows); i++ {
 		var entry any = GetValue(rawRows, i)
 		var typeVar *string = this.SafeString(entry, "type", "")
-		if InOp(allowed, typeVar) {
+		if func() bool {
+			if typeVar == nil {
+				return false
+			}
+			_, ok := allowed[*typeVar]
+			return ok
+		}() {
 			rows = append(rows, entry)
 		}
 	}

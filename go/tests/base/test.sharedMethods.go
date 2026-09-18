@@ -385,7 +385,7 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 	_ = ascending
 	for i := 0; i < GetArrayLength(items); i++ {
 		if i > 0 {
-			var currentTs any = GetValue(GetValue(items, Subtract(i, 1)), "timestamp")
+			var currentTs any = GetValue(GetValue(items, i-1), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
 			if !IsEqual(currentTs, nil) && !IsEqual(nextTs, nil) {
 				var ascendingOrDescending string = func() string {

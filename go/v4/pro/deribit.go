@@ -296,7 +296,7 @@ func (this *Deribit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
@@ -392,7 +392,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.WatchMultiple(url, channels, request, channels, request))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
@@ -519,7 +519,7 @@ func (this *Deribit) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 
 	trades := (<-this.WatchMultipleWrapperAsync("trades", interval, symbols, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -936,7 +936,7 @@ func (this *Deribit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, channel, request, channel, request))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1074,7 +1074,7 @@ func (this *Deribit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)

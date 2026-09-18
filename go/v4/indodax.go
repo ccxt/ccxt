@@ -771,7 +771,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
 		var rawTicker any = tickers[key]
-		var marketId string = Replace(key, "_", "")
+		var marketId string = strings.Replace(key, "_", "", 1)
 		var market any = this.SafeMarket(marketId)
 		var parsed any = this.ParseTicker(rawTicker, market)
 		parsedTickers[marketId] = parsed

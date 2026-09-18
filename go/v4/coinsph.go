@@ -999,7 +999,7 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var markets any = this.SafeList(response, "symbols", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "symbol")
@@ -1011,7 +1011,7 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var amountLimits any = this.SafeValue(limits, "LOT_SIZE", map[string]any{})
 		var priceLimits any = this.SafeValue(limits, "PRICE_FILTER", map[string]any{})
 		var costLimits any = this.SafeValue(limits, "NOTIONAL", map[string]any{})
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -1099,11 +1099,11 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var ids any = []any{}
+		var ids []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
 			var id any = GetValue(market, "id")
-			AppendToArray(&ids, id)
+			ids = append(ids, id)
 		}
 		request["symbols"] = ids
 	}

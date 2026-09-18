@@ -512,7 +512,7 @@ func (this *Modetrade) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 
 	ohlcv := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(ccxt.GetValue(market, "symbol"), limit)
 	}
 
@@ -602,7 +602,7 @@ func (this *Modetrade) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 
 	trades := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
 	}
 
@@ -895,7 +895,7 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync(messageHash, message))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -959,7 +959,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync(messageHash, message))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1266,7 +1266,7 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var messageHashes []any = []any{}
 	symbols = this.MarketSymbols(symbols)
-	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !this.IsEmpty(symbols) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			messageHashes = append(messageHashes, ccxt.Add("positions::", symbol))
@@ -1294,7 +1294,7 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 
 	newPositions := (<-this.WatchPrivateMultipleAsync(messageHashes, request, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil

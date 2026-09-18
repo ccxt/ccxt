@@ -303,7 +303,7 @@ func (this *Krakenfutures) watchTickersBody(ch chan any, optionalArgs ...any) an
 
 	ticker := (<-this.WatchMultiHelperAsync("ticker", "ticker", symbols, nil, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -339,7 +339,7 @@ func (this *Krakenfutures) watchBidsAsksBody(ch chan any, optionalArgs ...any) a
 
 	ticker := (<-this.WatchMultiHelperAsync("bidask", "ticker_lite", symbols, nil, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -411,7 +411,7 @@ func (this *Krakenfutures) watchTradesForSymbolsBody(ch chan any, symbols any, o
 
 	trades := (<-this.WatchMultiHelperAsync("trade", "trade", symbols, nil, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeList(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -484,14 +484,14 @@ func (this *Krakenfutures) watchPositionsBody(ch chan any, optionalArgs ...any) 
 	}
 	var messageHash any = ""
 	symbols = this.MarketSymbols(symbols)
-	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !this.IsEmpty(symbols) {
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
 	messageHash = ccxt.Add("positions", messageHash)
 
 	newPositions := (<-this.SubscribePrivateAsync("open_positions", messageHash, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -558,7 +558,7 @@ func (this *Krakenfutures) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
@@ -680,7 +680,7 @@ func (this *Krakenfutures) watchOrdersBody(ch chan any, optionalArgs ...any) any
 
 	orders := (<-this.SubscribePrivateAsync(name, messageHash, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -729,7 +729,7 @@ func (this *Krakenfutures) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 
 	trades := (<-this.SubscribePrivateAsync(name, messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 

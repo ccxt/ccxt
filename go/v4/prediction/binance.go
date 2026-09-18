@@ -1603,7 +1603,13 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < positionsLength; i++ {
 		var position any = ccxt.GetValue(positions, i)
 		var positionOutcome *string = this.SafeString(position, "outcome")
-		if (positionOutcome != nil) && (ccxt.InOp(requestedOutcomeSymbols, positionOutcome)) {
+		if (positionOutcome != nil) && (func() bool {
+			if positionOutcome == nil {
+				return false
+			}
+			_, ok := requestedOutcomeSymbols[*positionOutcome]
+			return ok
+		}()) {
 			filtered = append(filtered, position)
 		}
 	}

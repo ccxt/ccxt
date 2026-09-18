@@ -2992,12 +2992,12 @@ func (this *Toobit) transferBody(ch chan any, code any, amount any, fromAccount 
 		retRes255612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes255612)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"asset":           GetValue(currency, "id"),
+		"asset":           currency["id"],
 		"quantity":        this.CurrencyToPrecision(code, amount),
 		"fromAccountType": fromId,
 		"toAccountType":   toId,
@@ -3477,9 +3477,9 @@ func (this *Toobit) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 		retRes296512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes296512)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin": GetValue(currency, "id"),
+		"coin": currency["id"],
 	}
 	networkCodeparamsOmittedVariable := this.HandleNetworkCodeAndParams(this.Extend(request, params))
 	networkCode := GetValue(networkCodeparamsOmittedVariable, 0)
@@ -3558,11 +3558,11 @@ func (this *Toobit) withdrawBody(ch chan any, code any, amount any, address any,
 		retRes302412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes302412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"coin":          GetValue(currency, "id"),
+		"coin":          currency["id"],
 		"address":       address,
-		"quantity":      this.CurrencyToPrecision(GetValue(currency, "code"), amount),
+		"quantity":      this.CurrencyToPrecision(currency["code"], amount),
 		"chainType":     this.NetworkCodeToId(networkCode, code),
 		"clientOrderId": this.Milliseconds(),
 	}

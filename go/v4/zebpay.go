@@ -464,16 +464,16 @@ func (this *Zebpay) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promisesUnresolved any = []any{}
+	var promisesUnresolved []any = []any{}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
 	for i := 0; i < GetArrayLength(types); i++ {
 		var typeVar any = GetValue(types, i)
 		if IsEqual(typeVar, "spot") {
-			AppendToArray(&promisesUnresolved, this.FetchSpotMarketsAsync(params))
+			promisesUnresolved = append(promisesUnresolved, this.FetchSpotMarketsAsync(params))
 		} else if IsEqual(typeVar, "swap") {
-			AppendToArray(&promisesUnresolved, this.FetchSwapMarketsAsync(params))
+			promisesUnresolved = append(promisesUnresolved, this.FetchSwapMarketsAsync(params))
 		} else {
 			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", typeVar), "\" is not a supported market type")))
 		}
@@ -2230,7 +2230,7 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 	for i := 0; i < GetArrayLength(markets); i++ {
@@ -2241,7 +2241,7 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":         id,
 			"symbol":     symbol,
 			"base":       base,
@@ -2321,7 +2321,7 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 	for i := 0; i < GetArrayLength(markets); i++ {
@@ -2334,7 +2334,7 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var settle *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
 		var symbol any = Add(Add(base, "/"), quote)
-		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
+		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":         id,
 			"symbol":     Add(Add(symbol, ":"), settle),
 			"base":       base,
@@ -2556,7 +2556,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	params = this.Omit(params, "defaultType")
 	var isV1 bool = (GetIndexOf(path, "v1/") > -1)
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if isV1 {
 			return "swap"
 		}
@@ -2584,7 +2584,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var isSpot bool = (IsEqual(marketType, "spot"))
+		var isSpot bool = (marketType == "spot")
 		AddElementToObject(params, "timestamp", timestamp)
 		if (IsEqual(method, "GET")) || ((IsEqual(method, "DELETE")) && isSpot) {
 			// For GET/DELETE: Append params to URL and sign the query string

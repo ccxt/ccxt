@@ -982,7 +982,7 @@ func (this *Lighter) changeApiKeyBody(ch chan any, optionalArgs ...any) any {
 func (this *Lighter) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
 	this.Options.Store("sandboxMode", enable)
-	this.Options.Store("chainId", func() any {
+	this.Options.Store("chainId", func() int {
 		if EvalTruthy(enable) {
 			return 300
 		}
@@ -1119,7 +1119,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	request["order_expiry"] = orderExpiry
 	request["order_type"] = orderTypeNum
 	request["time_in_force"] = timeInForceNum
-	request["reduce_only"] = func() any {
+	request["reduce_only"] = func() int {
 		if reduceOnly != nil && *reduceOnly == true {
 			return 1
 		}
@@ -1470,7 +1470,7 @@ func (this *Lighter) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "status")
 
 	ch <- map[string]any{
-		"status": func() any {
+		"status": func() string {
 			if status != nil && *status == "200" {
 				return "ok"
 			}
@@ -2606,7 +2606,7 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) any {
 	var sign *int64 = this.SafeInteger(position, "sign")
 	var side any = nil
 	if sign != nil {
-		side = func() any {
+		side = func() string {
 			if sign != nil && *sign == 1 {
 				return "long"
 			}
@@ -2616,7 +2616,7 @@ func (this *Lighter) ParsePosition(position any, optionalArgs ...any) any {
 	var marginModeId *int64 = this.SafeInteger(position, "margin_mode")
 	var marginMode any = nil
 	if marginModeId != nil {
-		marginMode = func() any {
+		marginMode = func() string {
 			if marginModeId != nil && *marginModeId == 0 {
 				return "cross"
 			}
@@ -2759,7 +2759,7 @@ func (this *Lighter) ParseAccount(account any) any {
 	var accountType *string = this.SafeString(account, "account_type")
 	return map[string]any{
 		"id": this.SafeString(account, "account_index"),
-		"type": func() any {
+		"type": func() string {
 			if accountType != nil && *accountType == "0" {
 				return "main"
 			}
@@ -3035,7 +3035,7 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var side any = nil
 	if !IsEqual(isAsk, nil) {
-		side = func() any {
+		side = func() string {
 			if EvalTruthy(isAsk) {
 				return "sell"
 			}
@@ -3227,13 +3227,13 @@ func (this *Lighter) transferBody(ch chan any, code any, amount any, fromAccount
 	} else {
 		panic(ExchangeError(this.Id + " transfer() only supports USDC and ETH transfers"))
 	}
-	var fromRouteType any = func() any {
+	var fromRouteType int = func() int {
 		if IsEqual(fromAccount, "perp") {
 			return 0
 		}
 		return 1
 	}() // 0: perp, 1: spot
-	var toRouteType any = func() any {
+	var toRouteType int = func() int {
 		if IsEqual(toAccount, "perp") {
 			return 0
 		}
@@ -3937,7 +3937,7 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) any {
 			}
 			return !(isMakerAsk != nil && *isMakerAsk)
 		}()
-		takerOrMaker = func() any {
+		takerOrMaker = func() string {
 			if EvalTruthy(isMaker) {
 				return "maker"
 			}
@@ -4085,7 +4085,7 @@ func (this *Lighter) modifyLeverageAndMarginModeBody(ch chan any, leverage any, 
 	var signRaw map[string]any = map[string]any{
 		"market_index":            this.ParseToInt(GetValue(market, "id")),
 		"initial_margin_fraction": this.ParseToInt(Divide(10000, leverage)),
-		"margin_mode": func() any {
+		"margin_mode": func() int {
 			if IsEqual(marginMode, "cross") {
 				return 0
 			}

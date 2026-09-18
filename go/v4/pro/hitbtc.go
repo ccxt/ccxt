@@ -165,13 +165,13 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	symbols = this.MarketSymbols(symbols)
 	var isBatch bool = (ccxt.GetIndexOf(name, "batch") >= 0)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if (symbols != nil) && !isBatch {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(messageHashPrefix, "::"), ccxt.GetValue(symbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(messageHashPrefix, "::"), ccxt.GetValue(symbols, i)))
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, messageHashPrefix)
+		messageHashes = append(messageHashes, messageHashPrefix)
 	}
 	var subscribe map[string]any = map[string]any{
 		"method": "subscribe",
@@ -464,14 +464,14 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		"speed": speed,
 	})
 	params = this.Omit(params, []any{"method", "speed"})
-	var marketIds any = []any{}
+	var marketIds []any = []any{}
 	if symbols == nil {
-		ccxt.AppendToArray(&marketIds, "*")
+		marketIds = append(marketIds, "*")
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
 			if marketId != nil {
-				ccxt.AppendToArray(&marketIds, marketId)
+				marketIds = append(marketIds, marketId)
 			}
 		}
 	}
@@ -537,7 +537,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketIds []string = ccxt.ObjectKeys(data)
-	var result any = []any{}
+	var result []any = []any{}
 	var topic string = "tickers"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
@@ -545,7 +545,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var ticker any = this.ParseWsTicker(data[marketId], market)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 		var messageHash any = ccxt.Add(topic+"::", symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -685,7 +685,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message any) {
 	//
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketIds []string = ccxt.ObjectKeys(data)
-	var result any = []any{}
+	var result []any = []any{}
 	var topic string = "bidask"
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
@@ -693,7 +693,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message any) {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var ticker any = this.ParseWsBidAsk(data[marketId], market)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
-		ccxt.AppendToArray(&result, ticker)
+		result = append(result, ticker)
 		var messageHash any = ccxt.Add(topic+"::", symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
@@ -842,10 +842,10 @@ func (this *Hitbtc) ParseWsTrades(trades any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var tradesArray []any = this.ToArray(trades)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
 		var trade map[string]any = this.Extend(this.ParseWsTrade(ccxt.GetValue(tradesArray, i), market), params)
-		ccxt.AppendToArray(&result, trade)
+		result = append(result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
 	var symbol *string = this.SafeString(market, "symbol")
@@ -1657,10 +1657,10 @@ func (this *Hitbtc) HandleOrderRequest(client any, message any) any {
 	var messageHash *string = this.SafeString(message, "id")
 	var result any = this.SafeValue(message, "result", map[string]any{})
 	if ccxt.IsArray(result) {
-		var parsedOrders any = []any{}
+		var parsedOrders []any = []any{}
 		for i := 0; i < ccxt.GetArrayLength(result); i++ {
 			var parsedOrder any = this.ParseWsOrder(ccxt.GetValue(result, i))
-			ccxt.AppendToArray(&parsedOrders, parsedOrder)
+			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 		client.(ccxt.ClientInterface).Resolve(parsedOrders, messageHash)
 	} else {

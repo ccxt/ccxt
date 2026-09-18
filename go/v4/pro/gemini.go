@@ -392,7 +392,13 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "type", "")
-	var timeframeId string = ccxt.Slice(typeVar, 8, nil)
+	var timeframeId string = func() string {
+		if typeVar == nil {
+			return ""
+		}
+		str := *typeVar
+		return str[8:]
+	}()
 	var timeframeEndIndex int = strings.Index(timeframeId, "_")
 	timeframeId = ccxt.Slice(timeframeId, 0, timeframeEndIndex)
 	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))

@@ -417,13 +417,13 @@ func TestWsCache() {
 	timestampCache2 := NewArrayCacheByTimestamp()
 	initialLength = 5
 	for i := 0; i < initialLength; i++ {
-		timestampCache2.Append([]any{Multiply(i, 10), Multiply(i, 10), Multiply(i, 10), Multiply(i, 10)})
+		timestampCache2.Append([]any{i * 10, i * 10, i * 10, i * 10})
 	}
 	limited = timestampCache2.GetLimit(nil, nil)
 	Assert(IsEqual(initialLength, limited))
 	appendItemsLength = 3
 	for i := 0; i < appendItemsLength; i++ {
-		timestampCache2.Append([]any{Multiply(i, 4), Multiply(i, 4), Multiply(i, 4), Multiply(i, 4)})
+		timestampCache2.Append([]any{i * 4, i * 4, i * 4, i * 4})
 	}
 	outsideLimit = 5
 	limited = timestampCache2.GetLimit(nil, outsideLimit)
@@ -834,7 +834,7 @@ func TestWsCache() {
 
 	cacheTimestampLimited := NewArrayCacheByTimestamp(3)
 	for i := 1; i < 7; i++ {
-		cacheTimestampLimited.Append([]any{Multiply(i, 100), i, i, i})
+		cacheTimestampLimited.Append([]any{i * 100, i, i, i})
 	}
 	Assert(Equals(cacheTimestampLimited, []any{[]any{400, 4, 4, 4}, []any{500, 5, 5, 5}, []any{600, 6, 6, 6}}))
 	cacheTimestampLimited.Append([]any{100, 9, 9, 9})

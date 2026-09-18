@@ -469,11 +469,11 @@ func (this *Poloniex) HandleOrderRequest(client any, message any) {
 	//
 	var messageHash *string = this.SafeString(message, "id")
 	var data any = this.SafeList(message, "data", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var order any = ccxt.GetValue(data, i)
 		var parsedOrder any = this.ParseWsOrder(order)
-		ccxt.AppendToArray(&orders, parsedOrder)
+		orders = append(orders, parsedOrder)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
@@ -673,10 +673,10 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 		"symbols": marketIds,
 	}
 	var request map[string]any = this.Extend(subscribe, params)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbols, i)))
 		}
 	}
 
@@ -1171,7 +1171,7 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 		orders = ccxt.NewArrayCacheBySymbolById(limit)
 		this.Orders = orders
 	}
-	var marketIds any = []any{}
+	var marketIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var order any = this.SafeValue(data, i)
 		var marketId *string = this.SafeString(order, "symbol")
@@ -1192,7 +1192,7 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 					// fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
 					var parsedOrder any = this.ParseWsOrder(order)
 					orders.(ccxt.Appender).Append(parsedOrder)
-					ccxt.AppendToArray(&marketIds, marketId)
+					marketIds = append(marketIds, marketId)
 					continue
 				}
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
@@ -1243,10 +1243,10 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 				// update the newUpdates count
 				orders.(ccxt.Appender).Append(previousOrder)
 			}
-			ccxt.AppendToArray(&marketIds, marketId)
+			marketIds = append(marketIds, marketId)
 		}
 	}
-	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
+	for i := 0; i < len(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var market any = this.Market(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")

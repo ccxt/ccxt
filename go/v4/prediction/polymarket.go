@@ -742,7 +742,13 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 		for ei := 0; ei < len(allEvents); ei++ {
 			var rawEvent any = ccxt.GetValue(allEvents, ei)
 			var eventId *string = this.SafeString(rawEvent, "id")
-			if ((eventId != nil) && (eventId == nil || *eventId != "")) && !(ccxt.InOp(seen, eventId)) {
+			if ((eventId != nil) && (eventId == nil || *eventId != "")) && !(func() bool {
+				if eventId == nil {
+					return false
+				}
+				_, ok := seen[*eventId]
+				return ok
+			}()) {
 				ccxt.AddElementToObject(seen, eventId, true)
 				rawEvents = append(rawEvents, rawEvent)
 			}
@@ -847,7 +853,13 @@ func (this *Polymarket) fetchRawEventsListBody(ch chan any, optionalArgs ...any)
 			for ei := 0; ei < ccxt.GetArrayLength(tagEvents); ei++ {
 				var rawEvent any = ccxt.GetValue(tagEvents, ei)
 				var eventId *string = this.SafeString(rawEvent, "id")
-				if (eventId != nil) && !(ccxt.InOp(seen, eventId)) {
+				if (eventId != nil) && !(func() bool {
+					if eventId == nil {
+						return false
+					}
+					_, ok := seen[*eventId]
+					return ok
+				}()) {
 					ccxt.AddElementToObject(seen, eventId, true)
 					unioned = append(unioned, rawEvent)
 				}
@@ -1474,7 +1486,13 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(targets); i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(targets, i))
 		var tokenId *string = this.SafeString(outcomeObj, "outcomeId")
-		if (tokenId != nil) && !(ccxt.InOp(outcomesByTokenId, tokenId)) {
+		if (tokenId != nil) && !(func() bool {
+			if tokenId == nil {
+				return false
+			}
+			_, ok := outcomesByTokenId[*tokenId]
+			return ok
+		}()) {
 			ccxt.AddElementToObject(outcomesByTokenId, tokenId, outcomeObj)
 			tokenIds = append(tokenIds, tokenId)
 		}
@@ -1528,7 +1546,13 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < booksLength; i++ {
 			var book any = ccxt.GetValue(books, i)
 			var tokenId *string = this.SafeString(book, "asset_id")
-			if (tokenId == nil) || !(ccxt.InOp(outcomesByTokenId, tokenId)) {
+			if (tokenId == nil) || !(func() bool {
+				if tokenId == nil {
+					return false
+				}
+				_, ok := outcomesByTokenId[*tokenId]
+				return ok
+			}()) {
 				continue
 			}
 			var outcomeObj any = func() any {
@@ -2436,7 +2460,13 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		var position any = ccxt.GetValue(parsed, i)
 		var info map[string]any = ccxt.SafeMapTyped(position, "info")
 		var assetId *string = this.SafeString(info, "asset")
-		if (assetId != nil) && (ccxt.InOp(wantedIds, assetId)) {
+		if (assetId != nil) && (func() bool {
+			if assetId == nil {
+				return false
+			}
+			_, ok := wantedIds[*assetId]
+			return ok
+		}()) {
 			result = append(result, position)
 		}
 	}

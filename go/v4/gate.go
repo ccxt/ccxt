@@ -1936,7 +1936,7 @@ func (this *Gate) Describe() any {
 }
 func (this *Gate) SetSandboxMode(enable any) {
 	this.Exchange.SetSandboxMode(enable)
-	AddElementToObject(this.Options, "sandboxMode", enable)
+	this.Options.Store("sandboxMode", enable)
 }
 
 /**
@@ -1970,7 +1970,7 @@ func (this *Gate) loadUnifiedStatusBody(ch chan any, optionalArgs ...any) any {
 						ret_ = func(this *Gate) any {
 							// catch block:
 							// if the request fails, the unifiedAccount is disabled
-							AddElementToObject(this.Options, "unifiedAccount", false)
+							this.Options.Store("unifiedAccount", false)
 							return nil
 						}(this)
 					}
@@ -1993,7 +1993,7 @@ func (this *Gate) loadUnifiedStatusBody(ch chan any, optionalArgs ...any) any {
 				response := (<-this.PrivateAccountGetDetail(params))
 				PanicOnError(response)
 				var result map[string]any = SafeMapTyped(response, "key")
-				AddElementToObject(this.Options, "unifiedAccount", IsEqual(this.SafeInteger(result, "mode"), 2))
+				this.Options.Store("unifiedAccount", IsEqual(this.SafeInteger(result, "mode"), 2))
 				return nil
 			}(this)
 
@@ -2059,7 +2059,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 	var marketIdBase []string = Split(symbol, "_")
 	var base any = nil
 	var expiry any = DerefScalar(this.SafeString(optionParts, 1))
-	if IsGreaterThan(GetIndexOf(symbol, "/"), -1) {
+	if GetIndexOf(symbol, "/") > -1 {
 		base = DerefScalar(this.SafeString(symbolBase, 0))
 	} else {
 		base = DerefScalar(this.SafeString(marketIdBase, 0))
@@ -2091,7 +2091,7 @@ func (this *Gate) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() any {
+		"optionType": func() string {
 			if optionType != nil && *optionType == "C" {
 				return "call"
 			}
@@ -2128,7 +2128,7 @@ func (this *Gate) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = (marketId != nil) && ((IsGreaterThan(GetIndexOf(marketId, "-C"), -1)) || (IsGreaterThan(GetIndexOf(marketId, "-P"), -1)))
+	var isOption bool = (marketId != nil) && ((GetIndexOf(marketId, "-C") > -1) || (GetIndexOf(marketId, "-P") > -1))
 	if isOption && ((this.Markets_by_id == nil) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -2168,7 +2168,7 @@ func (this *Gate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		retRes138312 := (<-this.LoadUnifiedStatusAsync())
 		PanicOnError(retRes138312)
 	}
-	var rawPromises any = []any{}
+	var rawPromises []any = []any{}
 	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var types any = this.SafeList(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
 	for i := 0; i < GetArrayLength(types); i++ {
@@ -2176,13 +2176,13 @@ func (this *Gate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if IsEqual(marketType, "spot") {
 			// if (!sandboxMode) {
 			// gate doesn't have a sandbox for spot markets
-			AppendToArray(&rawPromises, this.FetchSpotMarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchSpotMarketsAsync(params))
 		} else if IsEqual(marketType, "swap") {
-			AppendToArray(&rawPromises, this.FetchSwapMarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchSwapMarketsAsync(params))
 		} else if IsEqual(marketType, "future") {
-			AppendToArray(&rawPromises, this.FetchFutureMarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchFutureMarketsAsync(params))
 		} else if IsEqual(marketType, "option") {
-			AppendToArray(&rawPromises, this.FetchOptionMarketsAsync(params))
+			rawPromises = append(rawPromises, this.FetchOptionMarketsAsync(params))
 		}
 	}
 
@@ -2246,7 +2246,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(spotMarketsResponse); i++ {
 		var spotMarket any = this.SafeDict(spotMarketsResponse, i, map[string]any{})
 		var id *string = this.SafeString(spotMarket, "id")
@@ -2272,7 +2272,7 @@ func (this *Gate) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 			return nil
 		}()
 		var active bool = (tradeStatus != nil && *tradeStatus == "tradable") || (margin && (marginStatus != nil && *marginStatus == 1))
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -2343,7 +2343,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result any = []any{}
+	var result []any = []any{}
 	var swapSettlementCurrencies any = this.GetSettlementCurrencies("swap", "fetchMarkets")
 	if IsEqual(GetValue(this.Options, "sandboxMode"), true) {
 		swapSettlementCurrencies = []any{"usdt"} // gate sandbox only has usdt-margined swaps
@@ -2359,7 +2359,7 @@ func (this *Gate) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var contract any = this.SafeDict(response, i, map[string]any{})
 			var parsedMarket any = this.ParseContractMarket(contract, settleId)
-			AppendToArray(&result, parsedMarket)
+			result = append(result, parsedMarket)
 		}
 	}
 
@@ -2381,7 +2381,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- []any{} // right now sandbox does not have inverse swaps
 		return nil
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	var futureSettlementCurrencies any = this.GetSettlementCurrencies("future", "fetchMarkets")
 	for c := 0; c < GetArrayLength(futureSettlementCurrencies); c++ {
 		var settleId any = GetValue(futureSettlementCurrencies, c)
@@ -2394,7 +2394,7 @@ func (this *Gate) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var contract any = this.SafeDict(response, i, map[string]any{})
 			var parsedMarket any = this.ParseContractMarket(contract, settleId)
-			AppendToArray(&result, parsedMarket)
+			result = append(result, parsedMarket)
 		}
 	}
 
@@ -2597,7 +2597,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result any = []any{}
+	var result []any = []any{}
 
 	underlyings := (<-this.FetchOptionUnderlyingsAsync())
 	PanicOnError(underlyings)
@@ -2658,13 +2658,13 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 			var expiry *int64 = this.SafeTimestamp(market, "expiration_time")
 			var strike *string = this.SafeString(market, "strike_price")
 			var isCall any = this.SafeValue(market, "is_call")
-			var optionLetter any = func() any {
+			var optionLetter string = func() string {
 				if isCall == true {
 					return "C"
 				}
 				return "P"
 			}()
-			var optionType any = func() any {
+			var optionType string = func() string {
 				if isCall == true {
 					return "call"
 				}
@@ -2681,7 +2681,7 @@ func (this *Gate) fetchOptionMarketsBody(ch chan any, optionalArgs ...any) any {
 			if IsEqual(createdTs, 0) {
 				createdTs = nil
 			}
-			AppendToArray(&result, map[string]any{
+			result = append(result, map[string]any{
 				"id":             id,
 				"symbol":         symbol,
 				"base":           base,
@@ -2758,12 +2758,12 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan any) any {
 	//        }
 	//    ]
 	//
-	var underlyings any = []any{}
+	var underlyings []any = []any{}
 	for i := 0; i < GetArrayLength(underlyingsResponse); i++ {
 		var underlying map[string]any = SafeMapTyped(underlyingsResponse, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
-			AppendToArray(&underlyings, name)
+			underlyings = append(underlyings, name)
 		}
 	}
 
@@ -2789,7 +2789,7 @@ func (this *Gate) PrepareRequest(optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		if GetValue(market, "contract") == true {
 			request["contract"] = GetValue(market, "id")
 			if GetValue(market, "option") != true {
@@ -2802,7 +2802,7 @@ func (this *Gate) PrepareRequest(optionalArgs ...any) any {
 		var swap bool = (IsEqual(typeVar, "swap"))
 		var future bool = (IsEqual(typeVar, "future"))
 		if swap || future {
-			var defaultSettle any = func() any {
+			var defaultSettle string = func() string {
 				if swap {
 					return "usdt"
 				}
@@ -2837,7 +2837,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) any {
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if !EvalTruthy(trigger) {
-		if IsEqual(market, nil) {
+		if market == nil {
 			panic(ArgumentsRequired(this.Id + " spotOrderPrepareRequest() requires a market argument for non-trigger orders"))
 		}
 		request["account"] = marginMode
@@ -2868,7 +2868,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"account": marginMode,
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		if EvalTruthy(trigger) {
 			// gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
 			request["market"] = GetValue(market, "id")
@@ -3002,7 +3002,7 @@ func (this *Gate) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	// check leveraged tokens (e.g. BTC3S, ETH5L)
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if EvalTruthy(this.IsLeveragedCurrency(currencyId)) {
 			return "leveraged"
 		}
@@ -3163,7 +3163,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		market = this.Market(firstSymbol)
 	}
@@ -3587,26 +3587,26 @@ func (this *Gate) ParseTradingFee(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var gtDiscount any = this.SafeValue(info, "gt_discount")
-	var taker any = func() any {
+	var taker string = func() string {
 		if gtDiscount == true {
 			return "gt_taker_fee"
 		}
 		return "taker_fee"
 	}()
-	var maker any = func() any {
+	var maker string = func() string {
 		if gtDiscount == true {
 			return "gt_maker_fee"
 		}
 		return "maker_fee"
 	}()
 	var contract any = this.SafeValue(market, "contract")
-	var takerKey any = func() any {
+	var takerKey string = func() string {
 		if contract == true {
 			return "futures_taker_fee"
 		}
 		return taker
 	}()
-	var makerKey any = func() any {
+	var makerKey string = func() string {
 		if contract == true {
 			return "futures_maker_fee"
 		}
@@ -3676,7 +3676,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		var entry any = this.SafeDict(response, i, map[string]any{})
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (!IsEqual(codes, nil)) && !this.InArray(code, codes) {
+		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
 		var withdrawFixOnChains any = this.SafeValue(entry, "withdraw_fix_on_chains")
@@ -3894,11 +3894,11 @@ func (this *Gate) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *Gate) ParseFundingHistories(response any, symbol any, since any, limit any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 		var funding any = this.ParseFundingHistory(entry)
-		AppendToArray(&result, funding)
+		result = append(result, funding)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
@@ -4236,7 +4236,7 @@ func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeStringN(ticker, []any{"currency_pair", "contract", "name"})
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(ticker, "mark_price") {
 			return "contract"
 		}
@@ -4664,7 +4664,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isolated bool = IsEqual(marginMode, "margin") && (typeVar == "spot")
 	var data any = response
 	if InOp(data, "balances") {
-		var flatBalances any = []any{}
+		var flatBalances []any = []any{}
 		var balances any = this.SafeValue(data, "balances", []any{})
 		// inject currency and create an artificial balance object
 		// so it can follow the existent flow
@@ -4673,7 +4673,7 @@ func (this *Gate) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			var currencyId string = GetValue(keys, i).(string)
 			var content any = GetValue(balances, currencyId)
 			AddElementToObject(content, "currency", currencyId)
-			AppendToArray(&flatBalances, content)
+			flatBalances = append(flatBalances, content)
 		}
 		data = flatBalances
 	}
@@ -4760,7 +4760,7 @@ func (this *Gate) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	AddElementToObject(request, "interval", this.SafeString(this.Timeframes, timeframe, timeframe))
-	var maxLimit any = func() any {
+	var maxLimit int = func() int {
 		if GetValue(market, "contract") == true {
 			return 1999
 		}
@@ -4933,11 +4933,11 @@ func (this *Gate) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//         "t": "1621267200000",
 	//     }
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = this.SafeDict(response, i, map[string]any{})
 		var timestamp *int64 = this.SafeTimestamp(entry, "t")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbol,
 			"fundingRate": this.SafeNumber(entry, "r"),
@@ -5503,7 +5503,7 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.SafeTimestamp2(trade, "time", "create_time")
 	}
 	var marketId *string = this.SafeString2(trade, "currency_pair", "contract")
-	var marketType any = func() any {
+	var marketType string = func() string {
 		if InOp(trade, "contract") {
 			return "contract"
 		}
@@ -5512,7 +5512,7 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, "_", marketType)
 	var amountString *string = this.SafeString2(trade, "amount", "size")
 	var priceString *string = this.SafeString(trade, "price")
-	var contractSide any = func() any {
+	var contractSide string = func() string {
 		if Precise.StringLt(amountString, "0") {
 			return "sell"
 		}
@@ -5524,26 +5524,26 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeAmount *string = this.SafeString(trade, "fee")
 	var gtFee any = this.OmitZero(this.SafeString(trade, "gt_fee"))
 	var pointFee any = this.OmitZero(this.SafeString(trade, "point_fee"))
-	var fees any = []any{}
+	var fees []any = []any{}
 	if feeAmount != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		if feeCurrencyCode == nil {
 			feeCurrencyCode = this.SafeString(market, "settle")
 		}
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"cost":     feeAmount,
 			"currency": feeCurrencyCode,
 		})
 	}
 	if gtFee != nil {
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"cost":     gtFee,
 			"currency": "GT",
 		})
 	}
 	if pointFee != nil {
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"cost":     pointFee,
 			"currency": "GATEPOINT",
 		})
@@ -5866,7 +5866,7 @@ func (this *Gate) ParseTransaction(transaction any, optionalArgs ...any) any {
 	if id != nil {
 		if GetValue(id, 0) == "b" {
 			// GateCode handling
-			typeVar = func() any {
+			typeVar = func() string {
 				if Precise.StringGt(amountString, "0") {
 					return "deposit"
 				}
@@ -6090,8 +6090,8 @@ func (this *Gate) createOrderBody(ch chan any, symbol any, typeVar any, side any
 func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var ordersRequests any = []any{}
-	var orderSymbols any = []any{}
+	var ordersRequests []any = []any{}
+	var orderSymbols []any = []any{}
 	var ordersLength int = GetArrayLength(orders)
 	if ordersLength == 0 {
 		panic(BadRequest(this.Id + " createOrders() requires at least one order"))
@@ -6102,7 +6102,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
-		AppendToArray(&orderSymbols, marketId)
+		orderSymbols = append(orderSymbols, marketId)
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
@@ -6115,7 +6115,7 @@ func (this *Gate) CreateOrdersRequest(orders any, optionalArgs ...any) any {
 		}
 		extendedParams["textIsRequired"] = true // the exchange requires a text parameter for each order here
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	var symbols any = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(symbols, 0))
@@ -6363,7 +6363,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				if isStopLossOrder {
 					// we let trigger orders be aliases for stopLoss orders because
 					// gateio doesn't accept conventional trigger orders for spot markets
-					rule = func() any {
+					rule = func() int {
 						if IsEqual(side, "buy") {
 							return 1
 						}
@@ -6371,7 +6371,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					}()
 					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				} else if isTakeProfitOrder {
-					rule = func() any {
+					rule = func() int {
 						if IsEqual(side, "buy") {
 							return 2
 						}
@@ -6380,7 +6380,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					triggerOrderPrice = this.PriceToPrecision(symbol, takeProfitPrice)
 				}
 				var priceType *int64 = this.SafeInteger(params, "price_type", 0)
-				if IsLessThan(priceType, 0) || IsGreaterThan(priceType, 2) {
+				if (priceType == nil || *priceType < 0) || (priceType != nil && *priceType > 2) {
 					panic(BadRequest(this.Id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price"))
 				}
 				params = this.Omit(params, []any{"price_type"})
@@ -6428,7 +6428,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				if isStopLossOrder {
 					// we let trigger orders be aliases for stopLoss orders because
 					// gateio doesn't accept conventional trigger orders for spot markets
-					rule = func() any {
+					rule = func() string {
 						if IsEqual(side, "buy") {
 							return ">="
 						}
@@ -6436,7 +6436,7 @@ func (this *Gate) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 					}()
 					triggerOrderPrice = this.PriceToPrecision(symbol, stopLossPrice)
 				} else if isTakeProfitOrder {
-					rule = func() any {
+					rule = func() string {
 						if IsEqual(side, "buy") {
 							return "<="
 						}
@@ -6890,13 +6890,13 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	if (contract != nil) && (contract == nil || *contract != "") {
 		var isMarketOrder bool = Precise.StringEquals(price, "0") && (IsEqual(timeInForce, "IOC"))
-		typeVar = func() any {
+		typeVar = func() string {
 			if isMarketOrder {
 				return "market"
 			}
 			return "limit"
 		}()
-		side = func() any {
+		side = func() string {
 			if Precise.StringGt(amount, "0") {
 				return "buy"
 			}
@@ -6946,29 +6946,29 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var exchangeSymbol *string = this.SafeString2(order, "currency_pair", "market", contract)
 	var symbol *string = this.SafeSymbol(exchangeSymbol, market, "_", marketType)
-	var fees any = []any{}
+	var fees []any = []any{}
 	var gtFee *string = this.SafeString(order, "gt_fee")
 	if gtFee != nil {
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"currency": "GT",
 			"cost":     gtFee,
 		})
 	}
 	var fee *string = this.SafeString(order, "fee")
 	if fee != nil {
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"currency": this.SafeCurrencyCode(this.SafeString(order, "fee_currency")),
 			"cost":     fee,
 		})
 	}
 	var rebate *string = this.SafeString(order, "rebated_fee")
 	if rebate != nil {
-		AppendToArray(&fees, map[string]any{
+		fees = append(fees, map[string]any{
 			"currency": this.SafeCurrencyCode(this.SafeString(order, "rebated_fee_currency")),
 			"cost":     Precise.StringNeg(rebate),
 		})
 	}
-	var numFeeCurrencies int = GetArrayLength(fees)
+	var numFeeCurrencies int = len(fees)
 	var multipleFeeCurrencies bool = (numFeeCurrencies > 1)
 	var status *string = this.ParseOrderStatus(rawStatus)
 	var remaining *string = Precise.StringAbs(remainingString)
@@ -7851,14 +7851,14 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		panic(ArgumentsRequired(this.Id + " cancelOrders requires a symbol argument for spot markets"))
 	}
 	if isSpot {
-		var ordersRequests any = []any{}
+		var ordersRequests []any = []any{}
 		for i := 0; i < GetArrayLength(ids); i++ {
 			var id any = GetValue(ids, i)
 			var orderItem map[string]any = map[string]any{
 				"id":     id,
 				"symbol": symbol,
 			}
-			AppendToArray(&ordersRequests, orderItem)
+			ordersRequests = append(ordersRequests, orderItem)
 		}
 
 		retRes594419 := (<-this.CancelOrdersForSymbolsAsync(ordersRequests, params))
@@ -7869,9 +7869,9 @@ func (this *Gate) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 	var request map[string]any = map[string]any{
 		"settle": settle,
 	}
-	var finalList any = []any{request} // hacky but needs to be done here
+	var finalList []any = []any{request} // hacky but needs to be done here
 	for i := 0; i < GetArrayLength(ids); i++ {
-		AppendToArray(&finalList, GetValue(ids, i))
+		finalList = append(finalList, GetValue(ids, i))
 	}
 
 	response := (<-this.PrivateFuturesPostSettleBatchCancelOrders(finalList))
@@ -7910,7 +7910,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalAr
 
 	retRes59728 := (<-this.LoadUnifiedStatusAsync())
 	PanicOnError(retRes59728)
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var order any = GetValue(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
@@ -7923,7 +7923,7 @@ func (this *Gate) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalAr
 			"id":            id,
 			"currency_pair": GetValue(market, "id"),
 		}
-		AppendToArray(&ordersRequests, orderItem)
+		ordersRequests = append(ordersRequests, orderItem)
 	}
 
 	response := (<-this.PrivateSpotPostCancelBatchOrders(ordersRequests))
@@ -8559,7 +8559,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
@@ -8574,7 +8574,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		typeVar = "swap" // default to swap
 	}
 	if IsEqual(typeVar, "option") {
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			var marketId *string = this.SafeString(market, "id")
 			var optionParts []string = Split(marketId, "-")
 			AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
@@ -8884,10 +8884,10 @@ func (this *Gate) ParseEmulatedLeverageTiers(info any, optionalArgs ...any) any 
 	var maintenanceMarginRate *string = maintenanceMarginUnit
 	var initialMarginRatio *string = initialMarginUnit
 	var floor any = "0"
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for Precise.StringLt(floor, riskLimitMax) {
 		var cap *string = Precise.StringAdd(floor, riskLimitStep)
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.ParseNumber(Precise.StringDiv(cap, riskLimitStep)),
 			"symbol":                this.SafeSymbol(marketId, market, nil, "contract"),
 			"currency":              this.SafeString(market, "settle"),
@@ -8921,11 +8921,11 @@ func (this *Gate) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 		return this.ParseEmulatedLeverageTiers(info, market)
 	}
 	var minNotional any = 0
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var item any = GetValue(info, i)
 		var maxNotional *float64 = this.SafeNumber(item, "risk_limit")
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
 			"symbol":                this.SafeString(market, "symbol"),
 			"currency":              this.SafeString(market, "base"),
@@ -9315,7 +9315,7 @@ func (this *Gate) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "currency_pair")
 	market = this.SafeMarket(marketId, market)
-	var marginMode any = func() any {
+	var marginMode string = func() string {
 		if marketId != nil {
 			return "isolated"
 		}
@@ -9351,17 +9351,17 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 	var authentication any = GetValue(api, 0) // public, private
 	var typeVar any = GetValue(api, 1)        // spot, margin, future, delivery
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var containsSettle bool = IsGreaterThan(GetIndexOf(path, "settle"), -1)
+	var containsSettle bool = (GetIndexOf(path, "settle") > -1)
 	if containsSettle && (IsEqual(EndsWith(path, "batch_cancel_orders"), true)) {
 		// special case where we need to extract the settle from the path
 		// but the body is an array of strings
 		var settle any = this.SafeDict(params, 0)
 		path = this.ImplodeParams(path, settle)
 		// remove the first element from params
-		var newParams any = []any{}
+		var newParams []any = []any{}
 		var anyParams []any = this.ToArray(params)
 		for i := 1; i < len(anyParams); i++ {
-			AppendToArray(&newParams, GetValue(params, i))
+			newParams = append(newParams, GetValue(params, i))
 		}
 		params = newParams
 		query = newParams
@@ -9420,7 +9420,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 				queryString = this.Urlencode(query)
 				// https://github.com/ccxt/ccxt/issues/25570
 				if (strings.Index(queryString, "currencies=") >= 0) && (strings.Index(queryString, "%2C") >= 0) {
-					queryString = Replace(queryString, "%2C", ",")
+					queryString = strings.ReplaceAll(queryString, "%2C", ",")
 				}
 				url = Add(url, "?"+queryString)
 			}
@@ -9995,9 +9995,9 @@ func (this *Gate) ParseSettlements(settlements any, market any) any {
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
-		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
 	return result
 }
@@ -10065,7 +10065,7 @@ func (this *Gate) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	if (IsEqual(typeVar, "swap")) || (IsEqual(typeVar, "future")) {
-		var defaultSettle any = func() any {
+		var defaultSettle string = func() string {
 			if IsEqual(typeVar, "swap") {
 				return "usdt"
 			}
@@ -10377,12 +10377,12 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) an
 	//        }
 	//    ]
 	//
-	var underlyings any = []any{}
+	var underlyings []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var underlying map[string]any = SafeMapTyped(response, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
-			AppendToArray(&underlyings, name)
+			underlyings = append(underlyings, name)
 		}
 	}
 
@@ -10738,7 +10738,7 @@ func (this *Gate) ParseGreeks(greeks any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(greeks, "name")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if IsEqual(market, nil) {
+	if market == nil {
 		panic(ExchangeError(this.Id + " parseGreeks() could not resolve market"))
 	}
 	return map[string]any{
@@ -11184,7 +11184,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes867112)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))

@@ -825,7 +825,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	if numMarkets < 1 {
 		panic(NetworkError(Add(this.Id+" fetchMarkets() returned empty response: ", this.Json(markets))))
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var baseId *string = this.SafeString(market, "base-currency")
@@ -848,7 +848,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if quoteId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing quoteId"))
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":             *baseId + *quoteId,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -1414,12 +1414,12 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var trades any = this.SafeList(GetValue(data, i), "data", []any{})
 		for j := 0; j < GetArrayLength(trades); j++ {
 			var trade any = this.ParseTrade(GetValue(trades, j), market)
-			AppendToArray(&result, trade)
+			result = append(result, trade)
 		}
 	}
 	result = this.SortBy(result, "timestamp")
@@ -1653,7 +1653,13 @@ func (this *Bittrade) ParseBalance(response any) any {
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = nil
-		if (code != nil) && (InOp(result, code)) {
+		if (code != nil) && (func() bool {
+			if code == nil {
+				return false
+			}
+			_, ok := result[*code]
+			return ok
+		}()) {
 			account = func() any {
 				if code == nil {
 					return nil
@@ -2433,10 +2439,10 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 		success = this.SafeList(orders, "success", []any{})
 	}
 	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
 		var order any = GetValue(success, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":   order,
 			"id":     order,
 			"status": "canceled",
@@ -2444,7 +2450,7 @@ func (this *Bittrade) ParseCancelOrders(orders any) any {
 	}
 	for i := 0; i < GetArrayLength(failed); i++ {
 		var order any = GetValue(failed, i)
-		AppendToArray(&result, this.SafeOrder(map[string]any{
+		result = append(result, this.SafeOrder(map[string]any{
 			"info":          order,
 			"id":            this.SafeString2(order, "order-id", "order_id"),
 			"status":        "failed",

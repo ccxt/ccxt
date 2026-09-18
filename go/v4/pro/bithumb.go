@@ -182,13 +182,13 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(generationparamsVariable, 1)
 	var isGenerationTwo bool = (ccxt.IsEqual(generation, 2))
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var symbolsLength any = func() any {
+	var symbolsLength int = func() int {
 		if symbols == nil {
 			return 0
 		}
 		return ccxt.GetArrayLength(symbols)
 	}()
-	if isGenerationTwo && (ccxt.IsEqual(symbolsLength, 0)) {
+	if isGenerationTwo && (symbolsLength == 0) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires symbols for the generation 2 API"))
 	}
 	if symbols == nil {
@@ -201,8 +201,8 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	}()
-	var streamMarketIds any = []any{}
-	var messageHashes any = []any{}
+	var streamMarketIds []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < symbolsLengthDefined; i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
@@ -212,8 +212,8 @@ func (this *Bithumb) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			streamMarketId = (ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote")))
 		}
-		ccxt.AppendToArray(&streamMarketIds, streamMarketId)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+		streamMarketIds = append(streamMarketIds, streamMarketId)
+		messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
 	var tickTypes *string = this.SafeString(params, "tickTypes", "24H")
 	params = this.Omit(params, "tickTypes")
@@ -404,7 +404,7 @@ func (this *Bithumb) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	}
 	var date *string = this.SafeString(ticker, "date", "")
 	var time *string = this.SafeString(ticker, "time", "")
-	var kstDatetime any = func() string {
+	var kstDatetime string = func() string {
 		if date == nil {
 			return ""
 		}
@@ -675,7 +675,7 @@ func (this *Bithumb) HandleDelta(orderbook any, delta any) {
 	//    }
 	//
 	var sideId *string = this.SafeString(delta, "orderType")
-	var side any = func() any {
+	var side string = func() string {
 		if sideId != nil && *sideId == "bid" {
 			return "bids"
 		}
@@ -891,7 +891,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"symbol":    this.SafeSymbol(marketId, market, "_"),
 		"order":     nil,
 		"type":      nil,
-		"side": func() any {
+		"side": func() string {
 			if sideId != nil && *sideId == "1" {
 				return "buy"
 			}
@@ -1066,12 +1066,12 @@ func (this *Bithumb) BuildGen2SubscriptionRequest(subscriptionType any, subscrip
 	ccxt.AddElementToObject(subscriptions, subscriptionType, subscription)
 	ccxt.AddElementToObject(wsOptions, "gen2Subscriptions", subscriptions)
 	this.Options.Store("ws", wsOptions)
-	var request any = []any{map[string]any{
+	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
 	}}
 	var keys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(keys); i++ {
-		ccxt.AppendToArray(&request, ccxt.GetValue(subscriptions, ccxt.GetValue(keys, i)))
+		request = append(request, ccxt.GetValue(subscriptions, ccxt.GetValue(keys, i)))
 	}
 	return request
 }
@@ -1248,7 +1248,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) any {
 	var sideId *string = this.SafeString(order, "ask_bid")
 	var side any = this.SafeStringLower(order, "side")
 	if sideId != nil {
-		side = func() any {
+		side = func() string {
 			if sideId != nil && *sideId == "BID" {
 				return ("buy")
 			}

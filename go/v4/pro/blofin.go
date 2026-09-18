@@ -148,7 +148,7 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 	trades := (<-this.WatchMultipleWrapperAsync(true, "trades", "watchTradesForSymbols", symbols, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var firstMarket map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var firstSymbol *string = this.SafeString(firstMarket, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(firstSymbol, limit)
@@ -378,7 +378,7 @@ func (this *Blofin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultipleWrapperAsync(true, "tickers", "watchTickers", symbols, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -470,7 +470,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -584,7 +584,7 @@ func (this *Blofin) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)
@@ -786,7 +786,7 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan any, symbols any, optional
 
 	orders := (<-this.WatchMultipleWrapperAsync(false, channel, "watchOrdersForSymbols", symbols, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(orders, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(orders).GetLimit(tradeSymbol, limit)
@@ -866,7 +866,7 @@ func (this *Blofin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.WatchMultipleWrapperAsync(false, "positions", "watchPositions", symbols, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil

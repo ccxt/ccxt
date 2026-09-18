@@ -488,11 +488,11 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes4388 := (<-this.AuthenticateAsync(typeVar))
 	ccxt.PanicOnError(retRes4388)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-	var subscribedSymbols any = []any{}
+	var subscribedSymbols []any = []any{}
 	var messageHash any = "myTrades"
 	if !ccxt.IsEqual(market, nil) {
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		ccxt.AppendToArray(&subscribedSymbols, ccxt.GetValue(market, "id"))
+		subscribedSymbols = append(subscribedSymbols, ccxt.GetValue(market, "id"))
 	} else {
 		if ccxt.IsEqual(typeVar, "spot") {
 			messageHash = ccxt.Add(messageHash, ":spot")
@@ -541,7 +541,7 @@ func (this *Coinex) HandleMyTrades(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -607,7 +607,7 @@ func (this *Coinex) HandleTrades(client any, message any) {
 	var trades any = this.SafeList(data, "deal_list", []any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -672,7 +672,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var isSpot bool = (ccxt.InOp(trade, "margin_market"))
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -769,17 +769,17 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketIds any = this.MarketIds(symbols)
 	var market any = nil
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			market = this.Market(symbol)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("tickers::", ccxt.GetValue(market, "symbol")))
+			messageHashes = append(messageHashes, ccxt.Add("tickers::", ccxt.GetValue(market, "symbol")))
 		}
 	} else {
 		marketIds = []any{}
-		ccxt.AppendToArray(&messageHashes, "tickers")
+		messageHashes = append(messageHashes, "tickers")
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
@@ -872,8 +872,8 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		retRes73212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes73212)
 	}
-	var subscribedSymbols any = []any{}
-	var messageHashes any = []any{}
+	var subscribedSymbols []any = []any{}
+	var messageHashes []any = []any{}
 	var market any = nil
 	var callerMethodName any = nil
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
@@ -884,11 +884,11 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			market = this.Market(symbol)
-			ccxt.AppendToArray(&subscribedSymbols, ccxt.GetValue(market, "id"))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("trades:", ccxt.GetValue(market, "symbol")))
+			subscribedSymbols = append(subscribedSymbols, ccxt.GetValue(market, "id"))
+			messageHashes = append(messageHashes, ccxt.Add("trades:", ccxt.GetValue(market, "symbol")))
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, "trades")
+		messageHashes = append(messageHashes, "trades")
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(callerMethodName, market, params)
@@ -945,7 +945,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError(retRes77912)
 	}
 	var watchOrderBookSubscriptions map[string]any = map[string]any{}
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var market any = nil
 	var typeVar any = nil
 	var callerMethodName any = nil
@@ -974,7 +974,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		market = this.Market(symbol)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
+		messageHashes = append(messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
 		ccxt.AddElementToObject(watchOrderBookSubscriptions, symbol, []any{ccxt.GetValue(market, "id"), limit, aggregation, true})
 	}
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(callerMethodName, market, params)
@@ -1071,7 +1071,7 @@ func (this *Coinex) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var isSpot bool = (ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot") > -1)
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1426,7 +1426,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "market")
 	var status *string = this.SafeString(order, "status")
 	var isSpot bool = (ccxt.InOp(order, "margin_market"))
-	var defaultType any = func() any {
+	var defaultType string = func() string {
 		if isSpot {
 			return "spot"
 		}
@@ -1508,17 +1508,17 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes126712)
 	}
 	var marketIds any = this.MarketIds(symbols)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var market any = nil
 	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			market = this.Market(symbol)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("bidsasks:", ccxt.GetValue(market, "symbol")))
+			messageHashes = append(messageHashes, ccxt.Add("bidsasks:", ccxt.GetValue(market, "symbol")))
 		}
 	} else {
-		ccxt.AppendToArray(&messageHashes, "bidsasks")
+		messageHashes = append(messageHashes, "bidsasks")
 	}
 	var typeVar any = nil
 	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", market, params)

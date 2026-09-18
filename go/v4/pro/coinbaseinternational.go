@@ -115,13 +115,13 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 		symbols = this.GetActiveSymbols()
 	}
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	if symbolsLength > 1 {
 		var parsedSymbols any = this.MarketSymbols(symbols)
 		var marketIds any = this.MarketIds(parsedSymbols)
 		productIds = marketIds
 		for i := 0; i < ccxt.GetArrayLength(parsedSymbols); i++ {
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(parsedSymbols, i)))
+			messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(parsedSymbols, i)))
 		}
 	} else if symbolsLength == 1 {
 		market = this.Market(ccxt.GetValue(symbols, 0))
@@ -188,18 +188,18 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 		ccxt.PanicOnError(retRes14412)
 	}
 	this.CheckRequiredCredentials()
-	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 		symbols = this.Symbols
 	} else {
 		symbols = this.MarketSymbols(symbols)
 	}
-	var messageHashes any = []any{}
-	var productIds any = []any{}
+	var messageHashes []any = []any{}
+	var productIds []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
 		var symbol any = this.Symbol(marketId)
-		ccxt.AppendToArray(&productIds, marketId)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
+		productIds = append(productIds, marketId)
+		messageHashes = append(messageHashes, ccxt.Add(ccxt.Add(name, "::"), symbol))
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if ccxt.IsEqual(url, nil) {
@@ -283,7 +283,7 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan any, optionalAr
 	fundingRate := (<-this.SubscribeMultipleAsync("RISK", symbols, params))
 	ccxt.PanicOnError(fundingRate)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, symbol, fundingRate)
 
@@ -332,12 +332,12 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, opti
 }
 func (this *Coinbaseinternational) GetActiveSymbols() any {
 	var symbols any = this.Symbols
-	var output any = []any{}
+	var output []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		if ccxt.GetValue(market, "active") == true {
-			ccxt.AppendToArray(&output, symbol)
+			output = append(output, symbol)
 		}
 	}
 	return output
@@ -377,7 +377,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 
 	ticker := (<-this.SubscribeAsync(channel, symbols, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -612,7 +612,7 @@ func (this *Coinbaseinternational) watchOHLCVBody(ch chan any, symbol any, optio
 
 	ohlcv := (<-this.SubscribeAsync(interval, []any{symbol}, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -723,7 +723,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbol
 
 	trades := (<-this.SubscribeMultipleAsync("MATCH", symbols, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -1045,12 +1045,12 @@ func (this *Coinbaseinternational) HandleMessage(client any, message any) {
 		var errorMessage *string = this.SafeString(message, "message")
 		panic(ccxt.ExchangeError(errorMessage))
 	}
-	if ccxt.IsGreaterThan(func() int {
+	if func() int {
 		if channel == nil {
 			return -1
 		}
 		return strings.Index(*channel, "CANDLES")
-	}(), -1) {
+	}() > -1 {
 		this.HandleOHLCV(client, message)
 	}
 	var method any = this.SafeValue(methods, channel)

@@ -2670,12 +2670,12 @@ func (this *Okx) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var account any = GetValue(data, i)
 		var accountId *string = this.SafeString(account, "uid")
 		var typeVar *string = this.SafeString(account, "acctLv")
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"id":       accountId,
 			"type":     typeVar,
 			"currency": nil,
@@ -2956,11 +2956,11 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 	}
 	if IsEqual(typeVar, "option") {
 		var optionsUnderlying any = this.SafeList(this.Options, "defaultUnderlying", []any{"BTC-USD", "ETH-USD"})
-		var promises any = []any{}
+		var promises []any = []any{}
 		for i := 0; i < GetArrayLength(optionsUnderlying); i++ {
 			var underlying any = GetValue(optionsUnderlying, i)
 			request["uly"] = underlying
-			AppendToArray(&promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
+			promises = append(promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
 		}
 
 		promisesResult := (<-promiseAll(promises))
@@ -3012,7 +3012,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 	//     }
 	//
 	var dataResponse any = this.SafeList(response, "data", []any{})
-	var marketsWithoutTest any = []any{}
+	var marketsWithoutTest []any = []any{}
 	for i := 0; i < GetArrayLength(dataResponse); i++ {
 		var data any = GetValue(dataResponse, i)
 		var instId *string = this.SafeString(data, "instId", "")
@@ -3025,7 +3025,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 				continue
 			}
 		}
-		AppendToArray(&marketsWithoutTest, data)
+		marketsWithoutTest = append(marketsWithoutTest, data)
 	}
 
 	ch <- this.ParseMarkets(marketsWithoutTest)
@@ -4097,12 +4097,12 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var rates any = []any{}
+	var rates []any = []any{}
 	var data any = this.SafeList(response, "data", []any{})
 	for i := 0; i < GetArrayLength(data); i++ {
 		var rate any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(rate, "fundingTime")
-		AppendToArray(&rates, map[string]any{
+		rates = append(rates, map[string]any{
 			"info":        rate,
 			"symbol":      this.SafeSymbol(this.SafeString(rate, "instId")),
 			"fundingRate": this.SafeNumber(rate, "realizedRate"),
@@ -4931,7 +4931,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		retRes358312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes358312)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId *string = this.SafeString(rawOrder, "symbol")
@@ -4945,7 +4945,7 @@ func (this *Okx) createOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 
 	response := (<-this.PrivatePostTradeBatchOrders(ordersRequests))
@@ -5318,7 +5318,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		PanicOnError(retRes387312)
 	}
 	var market any = this.Market(symbol)
-	var request any = []any{}
+	var request []any = []any{}
 	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
 	var method any = this.SafeString(params, "method", defaultMethod)
@@ -5334,7 +5334,7 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		ids = this.ParseIds(ids)
 		if !IsEqual(algoIds, nil) {
 			for i := 0; i < GetArrayLength(algoIds); i++ {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"algoId": GetValue(algoIds, i),
 					"instId": GetValue(market, "id"),
 				})
@@ -5342,12 +5342,12 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		}
 		for i := 0; i < GetArrayLength(ids); i++ {
 			if (trailing != nil && *trailing == true) || (!IsEqual(trigger, nil)) {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"algoId": GetValue(ids, i),
 					"instId": GetValue(market, "id"),
 				})
 			} else {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"ordId":  GetValue(ids, i),
 					"instId": GetValue(market, "id"),
 				})
@@ -5356,12 +5356,12 @@ func (this *Okx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 	} else {
 		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
 			if (trailing != nil && *trailing == true) || (!IsEqual(trigger, nil)) {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"instId":      GetValue(market, "id"),
 					"algoClOrdId": GetValue(clientOrderIds, i),
 				})
 			} else {
-				AppendToArray(&request, map[string]any{
+				request = append(request, map[string]any{
 					"instId":  GetValue(market, "id"),
 					"clOrdId": GetValue(clientOrderIds, i),
 				})
@@ -5443,7 +5443,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 		retRes398212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes398212)
 	}
-	var request any = []any{}
+	var request []any = []any{}
 	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
 	var method any = this.SafeString(params, "method", defaultMethod)
@@ -5477,7 +5477,7 @@ func (this *Okx) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArg
 			}
 			return id
 		}()
-		AppendToArray(&request, requestItem)
+		request = append(request, requestItem)
 	}
 	var response any = nil
 	if IsEqual(method, "privatePostTradeCancelAlgos") {
@@ -6116,7 +6116,13 @@ func (this *Okx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	var trigger any = this.SafeValue2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (!IsEqual(trigger, nil)) && (trigger != false)
-	if (trailing != nil && *trailing == true) || isTrigger || ((ordType != nil) && (InOp(algoOrderTypes, ordType))) {
+	if (trailing != nil && *trailing == true) || isTrigger || ((ordType != nil) && (func() bool {
+		if ordType == nil {
+			return false
+		}
+		_, ok := algoOrderTypes[*ordType]
+		return ok
+	}())) {
 		method = "privateGetTradeOrdersAlgoPending"
 	}
 	if trailing != nil && *trailing == true {
@@ -6301,7 +6307,13 @@ func (this *Okx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 	if trailing != nil && *trailing == true {
 		method = "privateGetTradeOrdersAlgoHistory"
 		request["ordType"] = "move_order_stop"
-	} else if isTrigger || ((ordType != nil) && (InOp(algoOrderTypes, ordType))) {
+	} else if isTrigger || ((ordType != nil) && (func() bool {
+		if ordType == nil {
+			return false
+		}
+		_, ok := algoOrderTypes[*ordType]
+		return ok
+	}())) {
 		method = "privateGetTradeOrdersAlgoHistory"
 		var algoId *string = this.SafeString(params, "algoId")
 		if algoId != nil {
@@ -6514,7 +6526,13 @@ func (this *Okx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	var ordType *string = this.SafeString(params, "ordType")
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	if (trailing != nil && *trailing == true) || (trigger != nil && *trigger == true) || ((ordType != nil) && (InOp(algoOrderTypes, ordType))) {
+	if (trailing != nil && *trailing == true) || (trigger != nil && *trigger == true) || ((ordType != nil) && (func() bool {
+		if ordType == nil {
+			return false
+		}
+		_, ok := algoOrderTypes[*ordType]
+		return ok
+	}())) {
 		method = "privateGetTradeOrdersAlgoHistory"
 		request["state"] = "effective"
 	}
@@ -7152,9 +7170,9 @@ func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
 		retRes551112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes551112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 
 	response := (<-this.PrivateGetAssetDepositAddress(this.Extend(request, params)))
@@ -7182,7 +7200,7 @@ func (this *Okx) fetchDepositAddressesByNetworkBody(ch chan any, code any, optio
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	var filtered []any = this.FilterBy(data, "selected", true)
-	var parsed any = this.ParseDepositAddresses(filtered, []any{GetValue(currency, "code")}, false)
+	var parsed any = this.ParseDepositAddresses(filtered, []any{currency["code"]}, false)
 
 	ch <- this.IndexBy(parsed, "network")
 	return nil
@@ -7277,12 +7295,12 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 		retRes559812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes559812)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	if (tag != nil) && (GetLength(tag) > 0) {
 		address = Add(Add(address, ":"), tag)
 	}
 	var request map[string]any = map[string]any{
-		"ccy":    GetValue(currency, "id"),
+		"ccy":    currency["id"],
 		"toAddr": address,
 		"dest":   "4",
 		"amt":    this.NumberToString(amount),
@@ -7291,7 +7309,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 	if network != nil {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		network = this.SafeString(networks, ToUpper(network), network) // handle ETH>ERC20 alias
-		request["chain"] = Add(Add(GetValue(currency, "id"), "-"), network)
+		request["chain"] = Add(Add(currency["id"], "-"), network)
 		params = this.Omit(params, "network")
 	}
 	var fee *string = this.SafeString(params, "fee")
@@ -7300,12 +7318,12 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 		currencies := (<-this.FetchCurrenciesAsync())
 		PanicOnError(currencies)
 		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
-		var networkCodeResolved any = this.NetworkIdToCode(network, GetValue(currency, "code"))
+		var networkCodeResolved any = this.NetworkIdToCode(network, currency["code"])
 		var targetNetwork any = func() any {
 			if networkCodeResolved == nil {
 				return map[string]any{}
 			}
-			return this.SafeDict(GetValue(currency, "networks"), networkCodeResolved, map[string]any{})
+			return this.SafeDict(currency["networks"], networkCodeResolved, map[string]any{})
 		}()
 		fee = this.SafeString(targetNetwork, "fee")
 		if fee == nil {
@@ -8030,13 +8048,13 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	if symbols != nil {
-		var marketIds any = []any{}
+		var marketIds []any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var entry any = GetValue(symbols, i)
 			var market any = this.Market(entry)
-			AppendToArray(&marketIds, GetValue(market, "id"))
+			marketIds = append(marketIds, GetValue(market, "id"))
 		}
-		var marketIdsLength int = GetArrayLength(marketIds)
+		var marketIdsLength int = len(marketIds)
 		if marketIdsLength > 0 {
 			request["instId"] = Join(marketIds, ",")
 		}
@@ -8100,9 +8118,9 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var positions any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
-		AppendToArray(&result, this.ParsePosition(GetValue(positions, i)))
+		result = append(result, this.ParsePosition(GetValue(positions, i)))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols), false)
@@ -8343,12 +8361,12 @@ func (this *Okx) transferBody(ch chan any, code any, amount any, fromAccount any
 		retRes649012 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes649012)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
-		"ccy":  GetValue(currency, "id"),
+		"ccy":  currency["id"],
 		"amt":  this.CurrencyToPrecision(code, amount),
 		"type": "0",
 		"from": fromId,
@@ -9020,7 +9038,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
@@ -9036,7 +9054,7 @@ func (this *Okx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			amount = positionBalanceChange
 		}
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"info":      entry,
 			"symbol":    GetValue(marketInner, "symbol"),
 			"code":      code,
@@ -9381,9 +9399,9 @@ func (this *Okx) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ..
 		retRes738112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes738112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 
 	response := (<-this.PrivateGetAccountInterestRate(this.Extend(request, params)))
@@ -9567,9 +9585,9 @@ func (this *Okx) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs 
 		retRes752112 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes752112)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy": GetValue(currency, "id"),
+		"ccy": currency["id"],
 	}
 	if !IsEqual(since, nil) {
 		request["before"] = since
@@ -9905,11 +9923,11 @@ func (this *Okx) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier any = GetValue(info, i)
 		var marketId *string = this.SafeString(tier, "instId")
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger(tier, "tier"),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              this.SafeString(market, "quote"),
@@ -9972,8 +9990,8 @@ func (this *Okx) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["ccy"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["ccy"] = currency["id"]
 	}
 	if !IsEqual(since, nil) {
 		request["before"] = Subtract(since, 1)
@@ -10059,9 +10077,9 @@ func (this *Okx) borrowCrossMarginBody(ch chan any, code any, amount any, option
 		retRes789712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes789712)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy":  GetValue(currency, "id"),
+		"ccy":  currency["id"],
 		"amt":  this.CurrencyToPrecision(code, amount),
 		"side": "borrow",
 	}
@@ -10121,9 +10139,9 @@ func (this *Okx) repayCrossMarginBody(ch chan any, code any, amount any, optiona
 	if id == nil {
 		panic(ArgumentsRequired(this.Id + " repayCrossMargin() requires an id parameter"))
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"ccy":   GetValue(currency, "id"),
+		"ccy":   currency["id"],
 		"amt":   this.CurrencyToPrecision(code, amount),
 		"side":  "repay",
 		"ordId": id,
@@ -10367,8 +10385,8 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 		market = this.Market(symbol)
 		currencyId = GetValue(market, "baseId")
 	} else {
-		var currency any = this.Currency(symbol)
-		currencyId = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(symbol).(map[string]any)
+		currencyId = currency["id"]
 	}
 	var request map[string]any = map[string]any{
 		"ccy":    currencyId,
@@ -10635,7 +10653,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
 		var code string = GetValue(depositWithdrawCodes, i).(string)
-		var currency any = this.Currency(code)
+		var currency map[string]any = this.Currency(code).(map[string]any)
 		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
 	return depositWithdrawFees
@@ -10752,14 +10770,14 @@ func (this *Okx) ParseSettlements(settlements any, market any) any {
 	//         "ts":"1684656000000"
 	//     }
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
 		var entry any = GetValue(settlements, i)
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var details any = this.SafeList(entry, "details", []any{})
 		for j := 0; j < GetArrayLength(details); j++ {
 			var settlement any = this.ParseSettlement(GetValue(details, j), market)
-			AppendToArray(&result, this.Extend(settlement, map[string]any{
+			result = append(result, this.Extend(settlement, map[string]any{
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),
 			}))
@@ -11109,8 +11127,8 @@ func (this *Okx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 		request["clOrdId"] = clientOrderId
 	}
 	if code != nil {
-		var currency any = this.Currency(code)
-		request["ccy"] = GetValue(currency, "id")
+		var currency map[string]any = this.Currency(code).(map[string]any)
+		request["ccy"] = currency["id"]
 	}
 
 	response := (<-this.PrivatePostTradeClosePosition(this.Extend(request, params)))
@@ -11228,9 +11246,9 @@ func (this *Okx) fetchOptionChainBody(ch chan any, code any, optionalArgs ...any
 		retRes884412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes884412)
 	}
-	var currency any = this.Currency(code)
+	var currency map[string]any = this.Currency(code).(map[string]any)
 	var request map[string]any = map[string]any{
-		"uly":      Add(GetValue(currency, "code"), "-USD"),
+		"uly":      Add(currency["code"], "-USD"),
 		"instType": "OPTION",
 	}
 
@@ -11380,9 +11398,9 @@ func (this *Okx) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, op
 	var data any = this.SafeList(response, "data", []any{})
 	var result any = this.SafeDict(data, 0, map[string]any{})
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(result, "quoteCcy", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
 	return nil
@@ -11453,9 +11471,9 @@ func (this *Okx) createConvertTradeBody(ch chan any, id any, fromCode any, toCod
 	var data any = this.SafeList(response, "data", []any{})
 	var result any = this.SafeDict(data, 0, map[string]any{})
 	var fromCurrencyId *string = this.SafeString(result, "baseCcy", fromCode)
-	var fromCurrency any = this.Currency(fromCurrencyId)
+	var fromCurrency map[string]any = this.Currency(fromCurrencyId).(map[string]any)
 	var toCurrencyId *string = this.SafeString(result, "quoteCcy", toCode)
-	var toCurrency any = this.Currency(toCurrencyId)
+	var toCurrency map[string]any = this.Currency(toCurrencyId).(map[string]any)
 
 	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
 	return nil
@@ -12112,10 +12130,10 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
-		AppendToArray(&result, map[string]any{
+		result = append(result, map[string]any{
 			"timestamp":      this.SafeString(entry, 0),
 			"longShortRatio": this.SafeString(entry, 1),
 		})

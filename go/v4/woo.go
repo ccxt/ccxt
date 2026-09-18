@@ -1253,12 +1253,12 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestampString *string = this.SafeString2(trade, "executed_timestamp", "executedTimestamp")
 	var timestamp *int64 = nil
 	if timestampString != nil {
-		if IsGreaterThan(func() int {
+		if func() int {
 			if timestampString == nil {
 				return -1
 			}
 			return strings.Index(*timestampString, ".")
-		}(), -1) {
+		}() > -1 {
 			timestamp = this.SafeTimestamp2(trade, "executed_timestamp", "executedTimestamp")
 		} else {
 			timestamp = this.SafeInteger(trade, "executedTimestamp")
@@ -4351,7 +4351,7 @@ func (this *Woo) Sign(path any, optionalArgs ...any) any {
 			if isSandboxMode == nil || *isSandboxMode != true {
 				var applicationId string = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
 				var brokerId *string = this.SafeString(this.Options, "brokerId", applicationId)
-				var isTrigger bool = IsGreaterThan(GetIndexOf(path, "algo"), -1)
+				var isTrigger bool = (GetIndexOf(path, "algo") > -1)
 				if isTrigger {
 					AddElementToObject(params, "brokerId", brokerId)
 				} else {
@@ -5347,12 +5347,12 @@ func (this *Woo) ParsePosition(position any, optionalArgs ...any) any {
 	var timestampString *string = this.SafeString(position, "timestamp")
 	var timestamp *int64 = nil
 	if timestampString != nil {
-		if IsGreaterThan(func() int {
+		if func() int {
 			if timestampString == nil {
 				return -1
 			}
 			return strings.Index(*timestampString, ".")
-		}(), -1) {
+		}() > -1 {
 			timestamp = this.SafeTimestamp(position, "timestamp")
 		} else {
 			timestamp = this.SafeInteger(position, "timestamp")

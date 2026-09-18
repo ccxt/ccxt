@@ -582,7 +582,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result any = []any{}
+	var result []any = []any{}
 	var request map[string]any = map[string]any{}
 	var generation any = nil
 	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "generation", 2)
@@ -621,7 +621,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if (base == nil) || (quote == nil) {
 				continue
 			}
-			AppendToArray(&result, map[string]any{
+			result = append(result, map[string]any{
 				"id":             marketId,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -674,10 +674,10 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var quoteCurrencies map[string]any = SafeMapTyped(this.Options, "quoteCurrencies")
 		var quotes []string = ObjectKeys(quoteCurrencies)
-		var promises any = []any{}
+		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = GetValue(quotes, i)
-			AppendToArray(&promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
+			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
 		}
 
 		results := (<-promiseAll(promises))
@@ -749,7 +749,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					"created": nil,
 					"info":    market,
 				}, extension)
-				AppendToArray(&result, entry)
+				result = append(result, entry)
 			}
 		}
 	}
@@ -927,15 +927,15 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		var result map[string]any = SafeMapTyped(response, 0)
 		timestamp = this.SafeInteger(result, "timestamp")
 		var orderBookUnits any = this.SafeList(result, "orderbook_units", []any{})
-		var bids any = []any{}
-		var asks any = []any{}
+		var bids []any = []any{}
+		var asks []any = []any{}
 		for i := 0; i < GetArrayLength(orderBookUnits); i++ {
 			var entry any = GetValue(orderBookUnits, i)
-			AppendToArray(&bids, map[string]any{
+			bids = append(bids, map[string]any{
 				"price":    this.SafeString(entry, "bid_price"),
 				"quantity": this.SafeString(entry, "bid_size"),
 			})
-			AppendToArray(&asks, map[string]any{
+			asks = append(asks, map[string]any{
 				"price":    this.SafeString(entry, "ask_price"),
 				"quantity": this.SafeString(entry, "ask_size"),
 			})
@@ -1156,7 +1156,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if IsEqual(generation, 2) {
 		// Bithumb v2 ticker payloads are inconsistent for all-market calls,
 		// so we aggregate 300 markets per request only when symbols are not provided.
-		var marketIds any = []any{}
+		var marketIds []any = []any{}
 		var symbolsForMarketIds any = func() any {
 			if symbols == nil {
 				return this.Symbols
@@ -1166,34 +1166,34 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var symbolsForMarketIdsLength int = GetArrayLength(symbolsForMarketIds)
 		for i := 0; i < symbolsForMarketIdsLength; i++ {
 			var market any = this.Market(GetValue(symbolsForMarketIds, i))
-			AppendToArray(&marketIds, this.GetGen2MarketId(market))
+			marketIds = append(marketIds, this.GetGen2MarketId(market))
 		}
-		var marketIdsLength int = GetArrayLength(marketIds)
+		var marketIdsLength int = len(marketIds)
 		if marketIdsLength == 0 {
 
 			ch <- result
 			return nil
 		}
-		var marketIdsChunks any = []any{}
-		var promises any = []any{}
+		var marketIdsChunks []any = []any{}
+		var promises []any = []any{}
 		if symbols != nil {
 			request["markets"] = Join(marketIds, ",")
-			AppendToArray(&marketIdsChunks, marketIds)
-			AppendToArray(&promises, this.PublicGetV1Ticker(this.Extend(request, params)))
+			marketIdsChunks = append(marketIdsChunks, marketIds)
+			promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, params)))
 		} else {
 			var maxMarketIdsPerRequest any = this.SafeInteger(this.Options, "fetchTickersGeneration2MaxMarketIdsPerRequest", 300)
 			if (IsEqual(maxMarketIdsPerRequest, nil)) || (IsLessThan(maxMarketIdsPerRequest, 1)) {
 				maxMarketIdsPerRequest = 300
 			}
-			var marketIdsChunk any = []any{}
+			var marketIdsChunk []any = []any{}
 			for i := 0; i < marketIdsLength; i++ {
-				AppendToArray(&marketIdsChunk, GetValue(marketIds, i))
-				var marketIdsChunkLength int = GetArrayLength(marketIdsChunk)
+				marketIdsChunk = append(marketIdsChunk, GetValue(marketIds, i))
+				var marketIdsChunkLength int = len(marketIdsChunk)
 				var isLastMarketId bool = (i == (marketIdsLength - 1))
 				if (IsGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId {
-					AppendToArray(&marketIdsChunks, marketIdsChunk)
+					marketIdsChunks = append(marketIdsChunks, marketIdsChunk)
 					request["markets"] = Join(marketIdsChunk, ",")
-					AppendToArray(&promises, this.PublicGetV1Ticker(this.Extend(request, params)))
+					promises = append(promises, this.PublicGetV1Ticker(this.Extend(request, params)))
 					marketIdsChunk = []any{}
 				}
 			}
@@ -1286,7 +1286,13 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				var symbol any = GetValue(symbols, i)
 				var market any = this.Market(symbol)
 				var quoteId *string = this.SafeString(market, "quoteId")
-				if (quoteId != nil) && (InOp(quoteCurrencies, quoteId)) {
+				if (quoteId != nil) && (func() bool {
+					if quoteId == nil {
+						return false
+					}
+					_, ok := quoteCurrencies[*quoteId]
+					return ok
+				}()) {
 					AddElementToObject(requiredQuotes, quoteId, true)
 				}
 			}
@@ -1296,10 +1302,10 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 				quotes = requiredQuoteIds
 			}
 		}
-		var promises any = []any{}
+		var promises []any = []any{}
 		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = GetValue(quotes, i)
-			AppendToArray(&promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
+			promises = append(promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
 		}
 
 		responses := (<-promiseAll(promises))
@@ -1866,7 +1872,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	if ordersCount == 0 {
 		panic(ArgumentsRequired(this.Id + " createOrders() requires a non-empty orders array"))
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -1887,7 +1893,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(orderSymbols, 0))
@@ -2515,12 +2521,12 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString(order, "created_at")
 	var timestamp any = nil
 	if datetime != nil {
-		if IsGreaterThan(func() int {
+		if func() int {
 			if datetime == nil {
 				return -1
 			}
 			return strings.Index(*datetime, "+09:00")
-		}(), -1) {
+		}() > -1 {
 			var normalized string = Replace(datetime, "+09:00", "Z")
 			var normalizedTimestamp *int64 = this.Parse8601(normalized)
 			if normalizedTimestamp != nil {
@@ -3254,12 +3260,12 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 	currency = this.SafeCurrency(currencyId, currency)
 	var datetime *string = this.SafeString(transaction, "created_at")
 	var timestamp any = DerefScalar(this.Parse8601(datetime))
-	if (datetime != nil) && (IsGreaterThan(func() int {
+	if (datetime != nil) && (func() int {
 		if datetime == nil {
 			return -1
 		}
 		return strings.Index(*datetime, "+09:00")
-	}(), -1)) {
+	}() > -1) {
 		var normalized string = Replace(datetime, "+09:00", "Z")
 		var normalizedTimestamp *int64 = this.Parse8601(normalized)
 		if normalizedTimestamp != nil {
@@ -3891,7 +3897,7 @@ func (this *Bithumb) FixCommaNumber(numberStr any) any {
 		return nil
 	}
 	var finalNumberStr any = numberStr
-	for IsGreaterThan(GetIndexOf(finalNumberStr, ","), -1) {
+	for GetIndexOf(finalNumberStr, ",") > -1 {
 		finalNumberStr = Replace(finalNumberStr, ",", "")
 	}
 	return finalNumberStr

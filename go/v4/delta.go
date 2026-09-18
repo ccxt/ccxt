@@ -2311,7 +2311,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
 	market = this.SafeValue(marketsByNumericId, marketId, market)
 	var symbol any = func() any {
-		if IsEqual(market, nil) {
+		if market == nil {
 			return marketId
 		}
 		return GetValue(market, "symbol")
@@ -2330,7 +2330,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(order, "paid_commission")
 	if feeCostString != nil {
 		var feeCurrencyCode any = nil
-		if !IsEqual(market, nil) {
+		if market != nil {
 			var settlingAsset map[string]any = SafeMapTyped(GetValue(market, "info"), "settling_asset")
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
@@ -3076,7 +3076,7 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	currency = this.SafeValue(currenciesByNumericId, currencyId, currency)
 	var code any = func() any {
-		if IsEqual(currency, nil) {
+		if currency == nil {
 			return nil
 		}
 		return GetValue(currency, "code")
@@ -4326,7 +4326,7 @@ func (this *Delta) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = nil
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 	}
 	return map[string]any{

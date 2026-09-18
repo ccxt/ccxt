@@ -535,7 +535,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 									// wait and retry again
 									// (increase wait time on every retry)
 
-									retRes45824 := (<-exchange.Sleep(Multiply((i + 1), 1000)))
+									retRes45824 := (<-exchange.Sleep((i + 1) * 1000))
 									PanicOnError(retRes45824)
 								}
 							} else {
@@ -1703,7 +1703,7 @@ func (this *testMainClass) testProxiesBody(ch chan any, exchange ccxt.ICoreExcha
 							// catch block:
 							exceptionMessageString = ExceptionMessage(e)
 
-							retRes138116 := (<-exchange.Sleep(Multiply(j, 1000)))
+							retRes138116 := (<-exchange.Sleep(j * 1000))
 							PanicOnError(retRes138116)
 							return nil
 						}(this)
@@ -1953,7 +1953,7 @@ func (this *testMainClass) RemoveHostnamefromUrl(url any) any {
 	for i := 0; i < len(urlParts); i++ {
 		if i > 2 {
 			var current string = GetValue(urlParts, i).(string)
-			if IsGreaterThan(strings.Index(current, "?"), -1) {
+			if strings.Index(current, "?") > -1 {
 				// handle urls like this: /v1/account/accounts?AccessK
 				var currentParts []string = strings.Split(current, "?")
 				res = Add(res, "/")

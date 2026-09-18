@@ -137,12 +137,12 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes9112)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var messageHashes any = []any{}
-	var assets any = []any{}
+	var messageHashes []any = []any{}
+	var assets []any = []any{}
 	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var market any = this.Market(ccxt.GetValue(symbols, i))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
+			messageHashes = append(messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 			var baseIdString any = func() any {
 				if !ccxt.IsEqual(ccxt.GetValue(market, "baseId"), nil) {
 					return ccxt.GetValue(market, "baseId")
@@ -155,7 +155,7 @@ func (this *Mudrex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 				}
 				return ""
 			}()
-			ccxt.AppendToArray(&assets, ccxt.ToLower(baseIdString)+ccxt.ToLower(quoteIdString))
+			assets = append(assets, ccxt.ToLower(baseIdString)+ccxt.ToLower(quoteIdString))
 		}
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")

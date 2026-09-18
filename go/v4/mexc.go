@@ -2209,7 +2209,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 				"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
 			}
 			var isTaker bool = (IsEqual(this.SafeBool(trade, "taker"), true))
-			takerOrMaker = func() any {
+			takerOrMaker = func() string {
 				if isTaker {
 					return "taker"
 				}
@@ -2223,7 +2223,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 			var isMaker any = this.SafeValue(trade, "isMaker")
 			var buyerMaker any = this.SafeValue2(trade, "isBuyerMaker", "m")
 			if !IsEqual(isMaker, nil) {
-				takerOrMaker = func() any {
+				takerOrMaker = func() string {
 					if isMaker == true {
 						return "maker"
 					}
@@ -2231,7 +2231,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 				}()
 			}
 			if !IsEqual(isBuyer, nil) {
-				side = func() any {
+				side = func() string {
 					if isBuyer == true {
 						return "buy"
 					}
@@ -2239,7 +2239,7 @@ func (this *Mexc) ParseTrade(trade any, optionalArgs ...any) any {
 				}()
 			}
 			if !IsEqual(buyerMaker, nil) {
-				side = func() any {
+				side = func() string {
 					if buyerMaker == true {
 						return "sell"
 					}
@@ -2315,7 +2315,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError(retRes185112)
 	}
 	var market any = this.Market(symbol)
-	var maxLimit any = func() any {
+	var maxLimit int = func() int {
 		if GetValue(market, "spot") == true {
 			return 500
 		}
@@ -3165,14 +3165,14 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	if hedged != nil && *hedged == true {
 		if reduceOnly != nil && *reduceOnly == true {
 			params = this.Omit(params, "reduceOnly") // hedged mode does not accept this parameter
-			sideInteger = func() any {
+			sideInteger = func() int {
 				if IsEqual(side, "buy") {
 					return 4
 				}
 				return 2
 			}() // close short, close long
 		} else {
-			sideInteger = func() any {
+			sideInteger = func() int {
 				if IsEqual(side, "buy") {
 					return 1
 				}
@@ -3182,7 +3182,7 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 		request["positionMode"] = 1
 	} else {
 		if reduceOnly != nil && *reduceOnly == true {
-			sideInteger = func() any {
+			sideInteger = func() int {
 				if IsEqual(side, "buy") {
 					return 2
 				}
@@ -3190,7 +3190,7 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 			}()
 			params = this.Omit(params, "reduceOnly")
 		} else {
-			sideInteger = func() any {
+			sideInteger = func() int {
 				if IsEqual(side, "buy") {
 					return 1
 				}
@@ -6216,7 +6216,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString2(transaction, "id", "tranId")
-	var typeVar any = func() any {
+	var typeVar string = func() string {
 		if id == nil {
 			return "deposit"
 		}
@@ -6247,7 +6247,7 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) any {
 			"currency": code,
 		}
 	}
-	if IsEqual(typeVar, "withdrawal") {
+	if typeVar == "withdrawal" {
 		// mexc withdrawal amount includes the fee
 		amountString = Precise.StringSub(amountString, feeCostString)
 	}
@@ -6512,14 +6512,14 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) any {
 	var entryPrice *float64 = this.SafeNumber(position, "openAvgPrice")
 	var initialMargin *string = this.SafeString(position, "im")
 	var rawSide *string = this.SafeString(position, "positionType")
-	var side any = func() any {
+	var side string = func() string {
 		if rawSide != nil && *rawSide == "1" {
 			return "long"
 		}
 		return "short"
 	}()
 	var openType *string = this.SafeString(position, "margin_mode")
-	var marginType any = func() any {
+	var marginType string = func() string {
 		if openType != nil && *openType == "1" {
 			return "isolated"
 		}
@@ -6875,13 +6875,13 @@ func (this *Mexc) ParseTransfer(transfer any, optionalArgs ...any) any {
 		accountFrom = fromAccountType
 		accountTo = toAccountType
 	} else if direction != nil {
-		accountFrom = func() any {
+		accountFrom = func() string {
 			if direction != nil && *direction == "IN" {
 				return "MAIN"
 			}
 			return "CONTRACT"
 		}()
-		accountTo = func() any {
+		accountTo = func() string {
 			if direction != nil && *direction == "IN" {
 				return "CONTRACT"
 			}
@@ -7034,7 +7034,7 @@ func (this *Mexc) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
-		"positionMode": func() any {
+		"positionMode": func() int {
 			if EvalTruthy(hedged) {
 				return 1
 			}
@@ -7411,7 +7411,7 @@ func (this *Mexc) ParseLeverage(leverage any, optionalArgs ...any) any {
 		} else if positionType != nil && *positionType == 2 {
 			shortLeverage = this.SafeInteger(entry, "leverage")
 		}
-		marginMode = func() any {
+		marginMode = func() string {
 			if openType != nil && *openType == 1 {
 				return "isolated"
 			}
@@ -7592,7 +7592,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 	var direction *string = this.SafeStringLower2(params, "direction", "positionId")
 	var request map[string]any = map[string]any{
 		"leverage": leverage,
-		"openType": func() any {
+		"openType": func() int {
 			if marginModeLower == "isolated" {
 				return 1
 			}
@@ -7603,7 +7603,7 @@ func (this *Mexc) setMarginModeBody(ch chan any, marginMode any, optionalArgs ..
 		request["symbol"] = GetValue(market, "id")
 	}
 	if direction != nil {
-		request["positionType"] = func() any {
+		request["positionType"] = func() int {
 			if direction != nil && *direction == "short" {
 				return 2
 			}

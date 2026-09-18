@@ -155,7 +155,7 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 	if ccxt.EvalTruthy(this.SafeBool(this.Options, "unSubscriptionPending", false)) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", true)
+	this.Options.Store("unSubscriptionPending", true)
 	var market any = nil
 	var watchMessageHash any = name
 	var unWatchMessageHash any = ccxt.Add("unsubscribe:", name)
@@ -193,12 +193,12 @@ func (this *Coinbase) unSubscribeBody(ch chan any, topic any, name any, isPrivat
 	if ccxt.EvalTruthy(isPrivate) {
 		message = this.Extend(message, this.CreateWSAuth(name, productIds))
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscription", subscription)
+	this.Options.Store("unSubscription", subscription)
 
 	res := (<-this.Watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription))
 	ccxt.PanicOnError(res)
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", false)
-	ccxt.AddElementToObject(this.Options, "unSubscription", nil)
+	this.Options.Store("unSubscriptionPending", false)
+	this.Options.Store("unSubscription", nil)
 
 	ch <- res
 	return nil
@@ -285,7 +285,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 	if ccxt.EvalTruthy(this.SafeBool(this.Options, "unSubscriptionPending", false)) {
 		panic(ccxt.ExchangeError(this.Id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions"))
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", true)
+	this.Options.Store("unSubscriptionPending", true)
 	if this.Markets == nil {
 
 		retRes22312 := (<-this.LoadMarketsAsync())
@@ -319,12 +319,12 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 		"unsubscribe":      true,
 		"symbols":          symbols,
 	}
-	ccxt.AddElementToObject(this.Options, "unSubscription", subscription)
+	this.Options.Store("unSubscription", subscription)
 
 	res := (<-this.WatchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription))
 	ccxt.PanicOnError(res)
-	ccxt.AddElementToObject(this.Options, "unSubscriptionPending", false)
-	ccxt.AddElementToObject(this.Options, "unSubscription", nil)
+	this.Options.Store("unSubscriptionPending", false)
+	this.Options.Store("unSubscription", nil)
 
 	ch <- res
 	return nil
@@ -349,8 +349,8 @@ func (this *Coinbase) CreateWSAuth(name any, productIds any) any {
 		if (currentToken == nil) || ccxt.IsLessThan(ccxt.Add(tokenTimestamp, 120), seconds) {
 			// we should generate new token
 			var token any = this.CreateAuthToken(seconds)
-			ccxt.AddElementToObject(this.Options, "wsToken", token)
-			ccxt.AddElementToObject(this.Options, "wsTokenTimestamp", seconds)
+			this.Options.Store("wsToken", token)
+			this.Options.Store("wsTokenTimestamp", seconds)
 		}
 		subscribe["jwt"] = this.SafeString(this.Options, "wsToken")
 	}
@@ -454,7 +454,7 @@ func (this *Coinbase) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.SubscribeMultipleAsync(name, false, symbols, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		var symbol any = ccxt.GetValue(ticker, "symbol")
 		ccxt.AddElementToObject(tickers, symbol, ticker)
@@ -703,7 +703,7 @@ func (this *Coinbase) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.SubscribeAsync(name, false, symbol, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -777,7 +777,7 @@ func (this *Coinbase) watchTradesForSymbolsBody(ch chan any, symbols any, option
 
 	trades := (<-this.SubscribeMultipleAsync(name, false, symbols, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -855,7 +855,7 @@ func (this *Coinbase) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribeAsync(name, true, symbol, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1052,7 +1052,7 @@ func (this *Coinbase) HandleTrade(client any, message any) {
 		// coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
 		var tradesLength int = ccxt.GetArrayLength(currentTrades)
 		for j := 0; j < tradesLength; j++ {
-			var item any = ccxt.GetValue(currentTrades, ccxt.Subtract(ccxt.Subtract(tradesLength, j), 1))
+			var item any = ccxt.GetValue(currentTrades, (tradesLength-j)-1)
 			tradesArray.(ccxt.Appender).Append(this.ParseTrade(item))
 		}
 	}

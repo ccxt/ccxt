@@ -91,7 +91,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	this.CheckRequiredCredentials()
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if ccxt.EvalTruthy(isContract) {
 			return "contract"
 		}
@@ -107,7 +107,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
 		// concurrent callers each minted their own token, last write won, and the losers
 		// carried an orphaned token into name + '@' + listenKey so their streams went dead
-		var messageHash any = ccxt.Add("authenticate:", tradeType)
+		var messageHash any = "authenticate:" + tradeType
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in the bucket
@@ -262,7 +262,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var subscribe map[string]any = map[string]any{
-		"method": func() any {
+		"method": func() string {
 			if isContract {
 				return "SUBSCRIBE"
 			}
@@ -284,7 +284,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	} else {
 		subscribe["params"] = []any{name}
 	}
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if isContract {
 			return "contract"
 		}
@@ -297,7 +297,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	var request map[string]any = this.Extend(subscribe, params)
 	var tail any = access
 	if isContract {
-		tail = func() any {
+		tail = func() string {
 			if privateAccess {
 				return "user"
 			}
@@ -356,7 +356,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
 	var id any = ccxt.Add(this.NumberToString(this.Milliseconds()), name) // call back ID
 	var unsubscribe map[string]any = map[string]any{
-		"method": func() any {
+		"method": func() string {
 			if isContract {
 				return "UNSUBSCRIBE"
 			}
@@ -378,7 +378,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	} else {
 		unsubscribe["params"] = []any{name}
 	}
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if isContract {
 			return "contract"
 		}
@@ -388,7 +388,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	var request map[string]any = this.Extend(unsubscribe, params)
 	var tail any = access
 	if isContract {
-		tail = func() any {
+		tail = func() string {
 			if privateAccess {
 				return "user"
 			}
@@ -1302,7 +1302,7 @@ func (this *Xt) HandleTicker(client any, message any) any {
 			ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		}
 		var event *string = this.SafeString(message, "event")
-		var messageHashTail any = func() any {
+		var messageHashTail string = func() string {
 			if isSpot {
 				return "spot"
 			}
@@ -1384,7 +1384,7 @@ func (this *Xt) HandleTickers(client any, message any) any {
 	var data any = this.SafeList(message, "data", []any{})
 	var firstTicker map[string]any = ccxt.SafeMapTyped(data, 0)
 	var spotTest *string = this.SafeString2(firstTicker, "cv", "aq")
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if spotTest != nil {
 			return "spot"
 		}
@@ -1459,7 +1459,7 @@ func (this *Xt) HandleOHLCV(client any, message any) any {
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var timeframe *string = this.SafeString(data, "i", "")
-		var tradeType any = func() any {
+		var tradeType string = func() string {
 			if ccxt.InOp(data, "q") {
 				return "spot"
 			}
@@ -1518,7 +1518,7 @@ func (this *Xt) HandleTrade(client any, message any) any {
 	if marketId != nil {
 		var trade any = this.ParseTrade(data)
 		var i *string = this.SafeString(data, "i")
-		var tradeType any = func() any {
+		var tradeType string = func() string {
 			if i != nil {
 				return "spot"
 			}
@@ -1692,7 +1692,7 @@ func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "s")
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if ccxt.InOp(trade, "symbol") {
 			return "contract"
 		}
@@ -1766,7 +1766,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(order, "s", "symbol")
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if ccxt.InOp(order, "symbol") {
 			return "contract"
 		}
@@ -1855,7 +1855,7 @@ func (this *Xt) HandleOrder(client any, message any) any {
 	var order any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString2(order, "s", "symbol")
 	if marketId != nil {
-		var tradeType any = func() any {
+		var tradeType string = func() string {
 			if ccxt.InOp(order, "symbol") {
 				return "contract"
 			}
@@ -1864,7 +1864,7 @@ func (this *Xt) HandleOrder(client any, message any) any {
 		var market any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var parsed any = this.ParseWsOrder(order, market)
 		orders.(ccxt.Appender).Append(parsed)
-		client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("order::", tradeType))
+		client.(ccxt.ClientInterface).Resolve(orders, "order::"+tradeType)
 	}
 	return message
 }
@@ -1914,13 +1914,13 @@ func (this *Xt) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(this.Balance, code, account)
 	}
 	this.Balance = this.SafeBalance(this.Balance)
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if func() bool { _, ok := data["coin"]; return ok }() {
 			return "contract"
 		}
 		return "spot"
 	}()
-	client.(ccxt.ClientInterface).Resolve(this.Balance, ccxt.Add("balance::", tradeType))
+	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance::"+tradeType)
 }
 func (this *Xt) HandleMyTrades(client any, message any) {
 	//
@@ -1971,13 +1971,13 @@ func (this *Xt) HandleMyTrades(client any, message any) {
 	}
 	var market any = this.Market(tradeSymbol)
 	stored.(ccxt.Appender).Append(parsedTrade)
-	var tradeType any = func() any {
+	var tradeType string = func() string {
 		if ccxt.GetValue(market, "contract") == true {
 			return "contract"
 		}
 		return "spot"
 	}()
-	client.(ccxt.ClientInterface).Resolve(stored, ccxt.Add("trade::", tradeType))
+	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)
 }
 func (this *Xt) HandleMessage(client any, message any) {
 	var event *string = this.SafeString(message, "event")

@@ -606,7 +606,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	var markets any = this.SafeList(response, "payload", []any{})
 	var currencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "book")
@@ -630,15 +630,15 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"percentage": true,
 			"tierBased":  true,
 		}
-		var takerFees any = []any{}
-		var makerFees any = []any{}
+		var takerFees []any = []any{}
+		var makerFees []any = []any{}
 		for j := 0; j < GetArrayLength(feeTiers); j++ {
 			var tier any = GetValue(feeTiers, j)
 			var volume *float64 = this.SafeNumber(tier, "volume")
 			var takerFee *float64 = this.SafeNumber(tier, "taker")
 			var makerFee *float64 = this.SafeNumber(tier, "maker")
-			AppendToArray(&takerFees, []any{volume, takerFee})
-			AppendToArray(&makerFees, []any{volume, makerFee})
+			takerFees = append(takerFees, []any{volume, takerFee})
+			makerFees = append(makerFees, []any{volume, makerFee})
 			if j == 0 {
 				fee["taker"] = takerFee
 				fee["maker"] = makerFee
@@ -650,7 +650,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		fee["tiers"] = tiers
 		var baseCurrency map[string]any = SafeMapTyped(currencies, base)
-		AppendToArray(&result, this.SafeMarketStructure(this.Extend(map[string]any{
+		result = append(result, this.SafeMarketStructure(this.Extend(map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
 			"base":           base,
@@ -1551,10 +1551,10 @@ func (this *Bitso) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	//     }
 	//
 	var payload any = this.SafeList(response, "payload", []any{})
-	var orders any = []any{}
+	var orders []any = []any{}
 	for i := 0; i < GetArrayLength(payload); i++ {
 		var id any = GetValue(payload, i)
-		AppendToArray(&orders, this.ParseOrder(id, market))
+		orders = append(orders, this.ParseOrder(id, market))
 	}
 
 	ch <- orders
@@ -1595,10 +1595,10 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var payload any = this.SafeList(response, "payload", []any{})
-	var canceledOrders any = []any{}
+	var canceledOrders []any = []any{}
 	for i := 0; i < GetArrayLength(payload); i++ {
 		var order any = this.ParseOrder(GetValue(payload, i))
-		AppendToArray(&canceledOrders, order)
+		canceledOrders = append(canceledOrders, order)
 	}
 
 	ch <- canceledOrders

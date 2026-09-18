@@ -511,7 +511,7 @@ func (this *Woofipro) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(ccxt.GetValue(market, "symbol"), limit)
 	}
 
@@ -599,7 +599,7 @@ func (this *Woofipro) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.WatchPublicAsync(topic, message))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
 	}
 
@@ -892,7 +892,7 @@ func (this *Woofipro) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync(messageHash, message))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -956,7 +956,7 @@ func (this *Woofipro) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync(messageHash, message))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1246,7 +1246,7 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHashes []any = []any{}
 	symbols = this.MarketSymbols(symbols)
-	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if !this.IsEmpty(symbols) {
 		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
@@ -1280,7 +1280,7 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.WatchPrivateMultipleAsync(messageHashes, request, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil

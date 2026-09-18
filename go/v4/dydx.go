@@ -1988,7 +1988,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported."))
 	}
 	var idString string = ToString(id)
-	if (id != nil) && IsGreaterThan(strings.Index(idString, "-"), -1) {
+	if (id != nil) && (strings.Index(idString, "-") > -1) {
 		panic(NotSupported(this.Id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter."))
 	}
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
@@ -2012,7 +2012,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	if (orderFlags == nil || *orderFlags != 0) && (orderFlags == nil || *orderFlags != 64) && (orderFlags == nil || *orderFlags != 32) {
 		panic(InvalidOrder(this.Id + " invalid orderFlags, allowed values are (0, 64, 32)."))
 	}
-	if IsGreaterThan(orderFlags, 0) {
+	if orderFlags != nil && *orderFlags > 0 {
 		if IsEqual(goodTillBlockTimeInSeconds, nil) {
 			panic(ArgumentsRequired(this.Id + " goodTillBlockTimeInSeconds is required in params for long term or conditional order."))
 		}

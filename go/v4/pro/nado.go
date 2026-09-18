@@ -121,7 +121,7 @@ func (this *Nado) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	trades := (<-this.WatchPublicAsync("trade", market, messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(ccxt.GetValue(market, "symbol"), limit)
 	}
 
@@ -191,17 +191,17 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var markets any = []any{}
-	var messageHashes any = []any{}
+	var markets []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("trade:", ccxt.GetValue(market, "symbol")))
+		markets = append(markets, market)
+		messageHashes = append(messageHashes, ccxt.Add("trade:", ccxt.GetValue(market, "symbol")))
 	}
 
 	trades := (<-this.WatchPublicMultipleAsync("trade", markets, messageHashes, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -238,12 +238,12 @@ func (this *Nado) unWatchTradesForSymbolsBody(ch chan any, symbols any, optional
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchTradesForSymbols() requires a non-empty array of symbols"))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var markets any = []any{}
-	var messageHashes any = []any{}
+	var markets []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("trade:", ccxt.GetValue(market, "symbol")))
+		markets = append(markets, market)
+		messageHashes = append(messageHashes, ccxt.Add("trade:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes17615 := (<-this.UnWatchPublicMultipleAsync("trade", markets, messageHashes, params))
@@ -352,14 +352,14 @@ func (this *Nado) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var markets any = []any{}
-	var messageHashes any = []any{}
+	var markets []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, messageHash)
+		markets = append(markets, market)
+		messageHashes = append(messageHashes, messageHash)
 		if !(ccxt.InOp(this.Orderbooks, ccxt.GetValue(market, "symbol"))) {
 
 			snapshot := (<-this.FetchOrderBookAsync(symbol, limit))
@@ -402,12 +402,12 @@ func (this *Nado) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var markets any = []any{}
-	var messageHashes any = []any{}
+	var markets []any = []any{}
+	var messageHashes []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
-		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
+		markets = append(markets, market)
+		messageHashes = append(messageHashes, ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol")))
 	}
 
 	retRes27215 := (<-this.UnWatchPublicMultipleAsync("book_depth", markets, messageHashes, params))
@@ -456,7 +456,7 @@ func (this *Nado) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	result := (<-this.WatchPublicAsync("latest_candlestick", market, messageHash, this.Extend(request, params)))
 	ccxt.PanicOnError(result)
 	var stored any = ccxt.GetValue(result, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(stored).GetLimit(ccxt.GetValue(market, "symbol"), limit)
 	}
 
@@ -496,17 +496,17 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 
 	retRes3188 := (<-this.LoadMarketsAsync())
 	ccxt.PanicOnError(retRes3188)
-	var markets any = []any{}
-	var messageHashes any = []any{}
-	var subscriptionParams any = []any{}
+	var markets []any = []any{}
+	var messageHashes []any = []any{}
+	var subscriptionParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market any = this.Market(marketSymbol)
-		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ohlcv:"+*timeframe+":", ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&subscriptionParams, this.Extend(map[string]any{
+		markets = append(markets, market)
+		messageHashes = append(messageHashes, ccxt.Add("ohlcv:"+*timeframe+":", ccxt.GetValue(market, "symbol")))
+		subscriptionParams = append(subscriptionParams, this.Extend(map[string]any{
 			"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 		}, params))
 	}
@@ -514,7 +514,7 @@ func (this *Nado) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	resultSymbol := ccxt.GetValue(resultSymbolresultTimeframestoredVariable, 0)
 	resultTimeframe := ccxt.GetValue(resultSymbolresultTimeframestoredVariable, 1)
 	stored := ccxt.GetValue(resultSymbolresultTimeframestoredVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(stored).GetLimit(resultSymbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(stored, since, limit, 0, true)
@@ -581,17 +581,17 @@ func (this *Nado) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 
 	retRes3708 := (<-this.LoadMarketsAsync())
 	ccxt.PanicOnError(retRes3708)
-	var markets any = []any{}
-	var messageHashes any = []any{}
-	var subscriptionParams any = []any{}
+	var markets []any = []any{}
+	var messageHashes []any = []any{}
+	var subscriptionParams []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
 		var symbolAndTimeframe any = ccxt.GetValue(symbolsAndTimeframes, i)
 		var marketSymbol *string = this.SafeString(symbolAndTimeframe, 0)
 		var timeframe *string = this.SafeString(symbolAndTimeframe, 1, "1m")
 		var market any = this.Market(marketSymbol)
-		ccxt.AppendToArray(&markets, market)
-		ccxt.AppendToArray(&messageHashes, ccxt.Add("ohlcv:"+*timeframe+":", ccxt.GetValue(market, "symbol")))
-		ccxt.AppendToArray(&subscriptionParams, this.Extend(map[string]any{
+		markets = append(markets, market)
+		messageHashes = append(messageHashes, ccxt.Add("ohlcv:"+*timeframe+":", ccxt.GetValue(market, "symbol")))
+		subscriptionParams = append(subscriptionParams, this.Extend(map[string]any{
 			"granularity": this.SafeInteger(this.Timeframes, timeframe, this.ParseTimeframe(timeframe)),
 		}, params))
 	}
@@ -701,7 +701,7 @@ func (this *Nado) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchPublicAsync(streamType, market, messageHash, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		if ccxt.IsEqual(messageHash, "ticker") {
 
 			ch <- this.FilterByArray(ticker, "symbol", symbols)
@@ -800,7 +800,7 @@ func (this *Nado) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchPublicAsync(streamType, market, messageHash, params))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		if ccxt.IsEqual(messageHash, "bidask") {
 
 			ch <- this.FilterByArray(ticker, "symbol", symbols)
@@ -918,7 +918,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync("order_update", stream, messageHash, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1039,7 +1039,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchPrivateAsync("fill", stream, messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1162,7 +1162,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	positions := (<-this.WatchPrivateAsync("position_change", stream, messageHash, params))
 	ccxt.PanicOnError(positions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- positions
 		return nil
@@ -1479,9 +1479,9 @@ func (this *Nado) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) 
 	//
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(cancelledOrders); i++ {
-		ccxt.AppendToArray(&result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, ccxt.GetValue(cancelledOrders, i)), market))
 	}
@@ -1541,9 +1541,9 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(response)
 	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(cancelledOrders); i++ {
-		ccxt.AppendToArray(&result, this.ParseOrder(this.Extend(map[string]any{
+		result = append(result, this.ParseOrder(this.Extend(map[string]any{
 			"status": "canceled",
 		}, ccxt.GetValue(cancelledOrders, i)), market))
 	}
@@ -1882,7 +1882,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 	_ = subscriptionParams
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
 	var client ccxt.ClientInterface = this.Client(url)
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var id any = this.RequestId()
@@ -1902,7 +1902,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 			"messageHash":     messageHash,
 			"unsubscribeHash": unsubscribeHash,
 		})
-		ccxt.AppendToArray(&results, (<-this.WatchMultiple(url, []any{unsubscribeHash}, request, []any{unsubscribeHash}, subscription)))
+		results = append(results, (<-this.WatchMultiple(url, []any{unsubscribeHash}, request, []any{unsubscribeHash}, subscription)))
 	}
 
 	ch <- results

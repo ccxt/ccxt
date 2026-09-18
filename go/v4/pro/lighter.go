@@ -507,17 +507,17 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"channel": "market_stats/all",
 	}
-	var messageHashes any = []any{}
+	var messageHashes []any = []any{}
 	var symbolsLength int = 0
 	if symbols != nil {
 		symbolsLength = ccxt.GetArrayLength(symbols)
 	}
 	if (symbols == nil) || (symbolsLength == 0) {
-		ccxt.AppendToArray(&messageHashes, this.GetMessageHash("ticker"))
+		messageHashes = append(messageHashes, this.GetMessageHash("ticker"))
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, this.GetMessageHash("ticker", symbol))
+			messageHashes = append(messageHashes, this.GetMessageHash("ticker", symbol))
 		}
 	}
 
@@ -2008,7 +2008,7 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = ccxt.GetValue(subscriptionHashes, i).(string)
-			if ccxt.StartsWith(subscriptionHash, "ticker") {
+			if strings.HasPrefix(subscriptionHash, "ticker") {
 				var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")

@@ -3644,7 +3644,7 @@ func (this *Bullish) fetchBorrowRateHistoryBody(ch chan any, code any, optionalA
 	var until any = DerefScalar(this.SafeInteger(request, "createdAtDatetime[lte]"))
 	// current endpoint requires both since and until parameters
 	if IsEqual(startTimestamp, nil) {
-		startTimestamp = Subtract(now, Multiply(Multiply(Multiply(Multiply(1000, 60), 60), 24), 90)) // Only the last 90 days of data is available for querying
+		startTimestamp = Subtract(now, (1000*60)*60*24*90) // Only the last 90 days of data is available for querying
 	}
 	if IsEqual(until, nil) {
 		until = now
@@ -3935,7 +3935,7 @@ func (this *Bullish) signInBody(ch chan any, optionalArgs ...any) any {
 	var authorizer *string = this.SafeString(response, "authorizer")
 	this.Options.Store("authorizer", authorizer)
 	this.Token = token
-	this.Options.Store("tokenExpires", this.Sum(this.Milliseconds(), Multiply(Multiply(Multiply(1000, 60), 60), 24))) // token expires in 24 hours
+	this.Options.Store("tokenExpires", this.Sum(this.Milliseconds(), (1000*60)*60*24)) // token expires in 24 hours
 
 	ch <- token
 	return nil
