@@ -281,7 +281,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Long deltaNonce = this.safeInteger(delta, "microtimestamp");
             if (Helpers.isEqual(deltaNonce, nonce))
             {
-                return Helpers.add(i, 1);
+                return (((long) i) + 1L);
             }
         }
         return Helpers.getArrayLength(deltas);
