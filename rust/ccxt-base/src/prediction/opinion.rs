@@ -404,7 +404,7 @@ impl OpinionCore {
                     {
                                                 let mut ci: Value = Value::Int(0);
                         let mut __for_first_1344: bool = true;
-                        while { if !__for_first_1344 { ci = (match (&(ci), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1344 = false; is_less_than(&ci, &childMarketsLength) } {
+                        while { if !__for_first_1344 { ci = (match (&(ci), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1344 = false; ci.as_f64().unwrap_or(f64::NAN) < childMarketsLength.as_f64().unwrap_or(f64::NAN) } {
                         append_to_array(&mut flatMarkets, get_value(&childMarkets, &ci));
                     }
                     }

@@ -468,7 +468,7 @@ pub fn testCacheSafeCalls() {
     arrayCacheByTimestamp.append(Value::List(vec![Value::Int(1000), Value::Int(50000), Value::Int(1), Value::Int(2), Value::Int(3)]));
     let mut arrayCacheByTimestampData: Value = exchange.safe_value(arrayCacheByTimestamp.clone(), Value::Str("Data".to_string()), &[]);
     let mut cacheByTimestampData: Value = (if (arrayCacheByTimestampData != Value::Null) { arrayCacheByTimestampData.clone() } else { arrayCacheByTimestamp.clone() });
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&cacheByTimestampData), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheByTimestampData).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test cache types - ArrayCacheBySymbolById
     let mut arrayCacheBySymbolById = ArrayCacheBySymbolById::new(Value::Int(100));
     arrayCacheBySymbolById.append(Value::Map({
@@ -484,7 +484,7 @@ pub fn testCacheSafeCalls() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&arrayCacheBySymbolByIdHashmap.as_map().and_then(|__m| __m.get("ETH/USDT")).cloned().unwrap_or(Value::Null), &Value::Str("order2".to_string())) != Value::Null))));
     let mut arrayCacheBySymbolByIdData: Value = exchange.safe_value(arrayCacheBySymbolById.clone(), Value::Str("Data".to_string()), &[]);
     let mut cacheBySymbolByIdData: Value = (if (arrayCacheBySymbolByIdData != Value::Null) { arrayCacheBySymbolByIdData.clone() } else { arrayCacheBySymbolById.clone() });
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&cacheBySymbolByIdData), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheBySymbolByIdData).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test cache types - ArrayCacheBySymbolBySide
     let mut arrayCacheBySymbolBySide = ArrayCacheBySymbolBySide::new(Value::Null);
     arrayCacheBySymbolBySide.append(Value::Map({
@@ -499,7 +499,7 @@ pub fn testCacheSafeCalls() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(arrayCacheBySymbolBySideHashmap.as_map().and_then(|__m| __m.get("BNB/USDT")).cloned().unwrap_or(Value::Null) != Value::Null))));
     let mut arrayCacheBySymbolBySideData: Value = exchange.safe_value(arrayCacheBySymbolBySide.clone(), Value::Str("Data".to_string()), &[]);
     let mut cacheBySymbolBySideData: Value = (if (arrayCacheBySymbolBySideData != Value::Null) { arrayCacheBySymbolBySideData.clone() } else { arrayCacheBySymbolBySide.clone() });
-    assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&cacheBySymbolBySideData), &Value::Int(0))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&cacheBySymbolBySideData).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // Test map[string]map[string]interface{} (ArrayCache.hashmap)
     // Use direct property access for object attributes
     let mut arrayCacheHashmapDirect: Value = get_value(&arrayCache, &Value::Str("hashmap".to_string()));

@@ -866,7 +866,7 @@ impl BitfinexCore {
         //    ]
         //
         let mut numFields: Value = get_array_length(&trade);
-        let mut isPublic: bool = is_less_than_or_equal(&numFields, &Value::Int(8));
+        let mut isPublic: bool = numFields.as_f64().unwrap_or(f64::NAN) <= Value::Int(8).as_f64().unwrap_or(f64::NAN);
         let mut marketId: Value = (if (!isPublic) { self.safe_string(trade.clone(), Value::Int(1), &[]) } else { Value::Null });
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });
@@ -1103,12 +1103,12 @@ impl BitfinexCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_102: bool = true;
-                    while { if !__for_first_102 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_102 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+                    while { if !__for_first_102 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_102 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta2: Value = get_value(&delta, &Value::Int(2));
-                    let mut size: Value = (if (is_less_than(&delta2, &Value::Int(0))) { negate(&delta2) } else { delta2.clone() });
-                    let mut side: Value = (if (is_less_than(&delta2, &Value::Int(0))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
+                    let mut size: Value = (if is_true(&(delta2.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) { negate(&delta2) } else { delta2.clone() });
+                    let mut side: Value = (if is_true(&(delta2.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
                     let mut bookside: Value = get_value(&orderbook, &side);
                     let mut bookside: Value = get_value(&orderbook, &side);
                     let mut idString: Value = self.safe_string(delta.clone(), Value::Int(0), &[]);
@@ -1121,7 +1121,7 @@ impl BitfinexCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_103: bool = true;
-                    while { if !__for_first_103 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_103 = false; is_less_than(&i, &get_array_length(&deltas)) } {
+                    while { if !__for_first_103 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_103 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&deltas).as_f64().unwrap_or(f64::NAN) } {
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut delta: Value = get_value(&deltas, &i);
                     let mut amount: Value = self.safe_number(delta.clone(), Value::Int(2), &[]);
@@ -1147,8 +1147,8 @@ impl BitfinexCore {
             if isRaw {
                 let mut price: Value = self.safe_string(deltas.clone(), Value::Int(1), &[]);
                 let mut deltas2: Value = get_value(&deltas, &Value::Int(2));
-                let mut size: Value = (if (is_less_than(&deltas2, &Value::Int(0))) { negate(&deltas2) } else { deltas2.clone() });
-                let mut side: Value = (if (is_less_than(&deltas2, &Value::Int(0))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
+                let mut size: Value = (if is_true(&(deltas2.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) { negate(&deltas2) } else { deltas2.clone() });
+                let mut side: Value = (if is_true(&(deltas2.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) { Value::Str("asks".to_string()) } else { Value::Str("bids".to_string()) });
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 let mut bookside: Value = get_value(&orderbookItem, &side);
                 // price = 0 means that you have to remove the order from your book

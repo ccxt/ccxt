@@ -3861,7 +3861,7 @@ impl BitrueCore {
         let mut version: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
         let mut access: Value = self.safe_string(api.clone(), Value::Int(2), &[]);
         let mut url: Value = Value::Null;
-        if is_true(&(Value::Bool((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))))) || is_true(&(Value::Bool((type_var.as_str() == Some("open")) && is_greater_than_or_equal(&get_index_of(&path, &Value::Str("listenKey".to_string())), &Value::Int(0))))) {
+        if is_true(&(Value::Bool((type_var.as_str() == Some("api")) && (version.as_str() == Some("kline"))))) || is_true(&(Value::Bool((type_var.as_str() == Some("open")) && get_index_of(&path, &Value::Str("listenKey".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN)))) {
             url = get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var);
         }  else {
             url = Value::Str(format!("{}{}", add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &type_var), &Value::Str("/".to_string())), version));

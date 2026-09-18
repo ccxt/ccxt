@@ -4229,7 +4229,7 @@ impl WooCore {
             let mut partsLength: Value = get_array_length(&parts);
             let mut firstPart: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut currencyId: Value = self.safe_string(parts.clone(), Value::Int(1), &[firstPart.clone()]);
-            if is_greater_than(&partsLength, &Value::Int(2)) {
+            if partsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
                 currencyId = add(&currencyId, &add(&Value::Str("_".to_string()), &self.safe_string(parts.clone(), Value::Int(2), &[])));
             }
             currency = self.safe_currency(currencyId.clone(), &[]);
@@ -4809,7 +4809,7 @@ impl WooCore {
                 if (isSandboxMode.as_bool() != Some(true)) {
                     let mut applicationId: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string());
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[applicationId.clone()]);
-                    let mut isTrigger: bool = is_greater_than(&get_index_of(&path, &Value::Str("algo".to_string())), &Value::Int(-1));
+                    let mut isTrigger: bool = get_index_of(&path, &Value::Str("algo".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
                     if isTrigger {
                         add_element_to_object(&mut params, &Value::Str("brokerId".to_string()), brokerId.clone());
                     }  else {
