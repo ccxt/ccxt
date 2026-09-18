@@ -74,7 +74,7 @@ const RUST_BOOL_RUNTIME_FNS = new Set([
     'is_instance', 'in_op', 'starts_with', 'ends_with', 'is_true',
 ]);
 
-class RustTranspilerBuilder {
+export class RustTranspilerBuilder {
 
     transpiler!: Transpiler;
 
@@ -3785,13 +3785,21 @@ class RustTranspilerBuilder {
      *   allowed sink       reason
      *   ------------------ ----------------------------------------------
      *   `is_true(&x)`      generic `IsTruthy`, `bool` impl exists
+     *   `is_true(&(x))`    same call, condition-position parens
      *   `x = Value::Bool(e)` re-assignment of the same concrete type;
      *                      rewritten to `x = e`
+     *   `x.as_bool() == Some(true)`  the `x === true` sink; rewritten to
+     *                      `x` (`!=` / `Some(false)` to `!x`). Only the
+     *                      bare condition form and the `Value::Bool(…)`
+     *                      box that is the whole argument of
+     *                      `is_true(&(…))` — any other box is a `Value`
+     *                      slot and stays.
      *
      * Rejected (kept as `Value`):
      *   - any other use — `x.clone()` into a `Value` slot (`m.insert`,
      *     `self.<method>(x.clone())`), `is_equal(&x, …)` (takes `&Value`),
      *     `&x`, `return x`, `x = Value::Null` / any non-bool RHS.
+     *   - an `x.as_bool() == Some(true)` box in a `Value` slot.
      *   - a use whose surrounding text we cannot classify.
      *
      * The scan is scoped to the enclosing `fn` by brace depth and skips
@@ -3849,8 +3857,9 @@ class RustTranspilerBuilder {
             return src.length;
         };
 
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
+        const rewrites: Array<{ start: number, end: number, text: string, group: number }> = [];
         let m: RegExpExecArray | null;
+        let group = 0;
         while ((m = declRe.exec(content)) !== null) {
             const declStart = m.index;
             const name = m[2];
@@ -3870,6 +3879,7 @@ class RustTranspilerBuilder {
             const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
             let ok = true;
             const assigns: Array<{ start: number, end: number, expr: string }> = [];
+            const boolCmp: Array<{ start: number, end: number, text: string }> = [];
             let inStr = false; let esc = false; let inLineComment = false;
             // Mask strings + line comments so the identifier scan cannot see
             // them (map keys like `"swap"`, `// swap` doc lines).
@@ -3891,9 +3901,12 @@ class RustTranspilerBuilder {
             let u: RegExpExecArray | null;
             while ((u = useRe.exec(masked)) !== null) {
                 const s = u.index; const e = s + name.length;
-                const before = masked.slice(Math.max(0, s - 9), s);
+                const before = masked.slice(Math.max(0, s - 16), s);
                 const after = masked.slice(e);
-                if (before.endsWith('is_true(&')) continue;
+                // `is_true(&x)` / `is_true(&(x))` — the helper is generic over
+                // `IsTruthy`, whose `bool` impl is the identity.
+                if (before.endsWith('is_true(&') && after.startsWith(')')) continue;
+                if (before.endsWith('is_true(&(') && after.startsWith('))')) continue;
                 // `x = Value::Bool(<expr>);` — same-type reassignment (the
                 // source's parens around the box, if any, are consumed too).
                 const asg = /^\s*=\s*\(?\s*Value::Bool\(/.exec(after);
@@ -3910,19 +3923,60 @@ class RustTranspilerBuilder {
                         continue;
                     }
                 }
+                // `x.as_bool() == Some(true)` — the printed `x === true`. With
+                // `x` a bool the comparison is `x` (`!=`/`Some(false)`: `!x`).
+                // Bare (condition position) or the `Value::Bool(…)` box that
+                // is the whole argument of `is_true(&(…))`; a box anywhere else
+                // is a `Value` slot.
+                const cmp = /^\.as_bool\(\)\s*(==|!=)\s*Some\((true|false)\)/.exec(after);
+                if (cmp !== null) {
+                    const truthy = (cmp[1] === '==') === (cmp[2] === 'true');
+                    const text = truthy ? name : `!${name}`;
+                    if (before.endsWith('Value::Bool(') && !/[A-Za-z0-9_:]/.test(before[before.length - 'Value::Bool('.length - 1] ?? '')) {
+                        const boxStart = s - 'Value::Bool('.length;
+                        const boxParen = s - 1;
+                        const pre = masked.slice(Math.max(0, boxStart - 16), boxStart);
+                        if (!(pre.endsWith('is_true(&(') || pre.endsWith('is_true(&'))) { ok = false; break; }
+                        const boxClose = closeOf(masked, boxParen);
+                        if (boxClose < 0) { ok = false; break; }
+                        boolCmp.push({ start: stmtEnd + boxStart, end: stmtEnd + boxClose, text });
+                    } else {
+                        boolCmp.push({ start: stmtEnd + s, end: stmtEnd + e + cmp[0].length, text });
+                    }
+                    continue;
+                }
                 ok = false;
                 break;
             }
             if (!ok) continue;
-            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let mut ${name}: bool = ${inner};` });
+            group += 1;
+            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let mut ${name}: bool = ${inner};`, group });
             for (const a of assigns) {
-                rewrites.push({ start: a.start, end: a.end, text: ` = ${a.expr}` });
+                rewrites.push({ start: a.start, end: a.end, text: ` = ${a.expr}`, group });
+            }
+            for (const b of boolCmp) {
+                rewrites.push({ start: b.start, end: b.end, text: b.text, group });
             }
         }
         if (rewrites.length === 0) return content;
-        rewrites.sort((a, b) => a.start - b.start);
+        // A `Value::Bool` initializer can contain another narrowed local's
+        // comparison, and the splices are position-based: drop every group
+        // that overlaps another one rather than emit a half-rewritten local.
+        const dropped = new Set<number>();
+        for (let a = 0; a < rewrites.length; a++) {
+            for (let b = a + 1; b < rewrites.length; b++) {
+                if (rewrites[a].group !== rewrites[b].group
+                    && rewrites[a].start < rewrites[b].end && rewrites[b].start < rewrites[a].end) {
+                    dropped.add(rewrites[a].group);
+                    dropped.add(rewrites[b].group);
+                }
+            }
+        }
+        const kept = rewrites.filter(r => !dropped.has(r.group));
+        if (kept.length === 0) return content;
+        kept.sort((a, b) => a.start - b.start);
         let out = ''; let last = 0;
-        for (const r of rewrites) {
+        for (const r of kept) {
             if (r.start < last) continue; // overlapping — should not happen; keep the first
             out += content.slice(last, r.start) + r.text;
             last = r.end;
