@@ -7569,9 +7569,9 @@ public partial class BaseExchange
             return null;
         }
         // parse YYMMDD to datetime string
-        string? year = slice(date, 0, 2);
-        string? month = slice(date, 2, 4);
-        string? day = slice(date, 4, 6);
+        string? year = (date == null) ? null : ((string)date).Substring(0, Math.Min(2, ((string)date).Length));
+        string? month = (date == null) ? null : ((string)date).Substring(Math.Min(2, ((string)date).Length), Math.Min(4, ((string)date).Length) - Math.Min(2, ((string)date).Length));
+        string? day = (date == null) ? null : ((string)date).Substring(Math.Min(4, ((string)date).Length), Math.Min(6, ((string)date).Length) - Math.Min(4, ((string)date).Length));
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
         string reconstructedDate = (((((("20" + year) + "-") + month) + "-") + day) + "T00:00:00.000Z");
@@ -7585,10 +7585,10 @@ public partial class BaseExchange
             return null;
         }
         // parse 240119 to 19JAN24
-        string? year = slice(date, 0, 2);
-        string? monthRaw = slice(date, 2, 4);
+        string? year = (date == null) ? null : ((string)date).Substring(0, Math.Min(2, ((string)date).Length));
+        string? monthRaw = (date == null) ? null : ((string)date).Substring(Math.Min(2, ((string)date).Length), Math.Min(4, ((string)date).Length) - Math.Min(2, ((string)date).Length));
         string? month = null;
-        object day = slice(date, 4, 6);
+        object day = (date == null) ? null : ((string)date).Substring(Math.Min(4, ((string)date).Length), Math.Min(6, ((string)date).Length) - Math.Min(4, ((string)date).Length));
         if (isEqual(monthRaw, "01"))
         {
             month = "JAN";
@@ -7656,10 +7656,10 @@ public partial class BaseExchange
         {
             date = add("0", date);
         }
-        string? year = slice(date, 0, 2);
-        string? monthName = slice(date, 2, 5);
+        string? year = (date == null) ? null : ((string)date).Substring(0, Math.Min(2, ((string)date).Length));
+        string? monthName = (date == null) ? null : ((string)date).Substring(Math.Min(2, ((string)date).Length), Math.Min(5, ((string)date).Length) - Math.Min(2, ((string)date).Length));
         string? month = this.safeString(monthMappping, monthName);
-        object day = slice(date, 5, 7);
+        object day = (date == null) ? null : ((string)date).Substring(Math.Min(5, ((string)date).Length), Math.Min(7, ((string)date).Length) - Math.Min(5, ((string)date).Length));
         object reconstructedDate = add(add(day, month), year);
         return ((string?)((object)(reconstructedDate)));
     }

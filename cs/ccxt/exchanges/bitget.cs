@@ -3900,9 +3900,9 @@ public partial class bitget : Exchange
                     List<object> expiryParts = ((string)((string)expiryDatetime)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
-                    object year = slice(yearPart, 2, 4);
+                    object year = (yearPart == null) ? null : ((string)yearPart).Substring(Math.Min(2, ((string)yearPart).Length), Math.Min(4, ((string)yearPart).Length) - Math.Min(2, ((string)yearPart).Length));
                     string? month = this.safeString(expiryParts, 1);
-                    string? day = slice(dayPart, 0, 2);
+                    string? day = (dayPart == null) ? null : ((string)dayPart).Substring(0, Math.Min(2, ((string)dayPart).Length));
                     object expiryString = add(add(year, month), day);
                     type = "future";
                     future = true;
@@ -4179,9 +4179,9 @@ public partial class bitget : Exchange
                     List<object> expiryParts = ((string)((string)expiryDatetime)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
-                    object year = slice(yearPart, 2, 4);
+                    object year = (yearPart == null) ? null : ((string)yearPart).Substring(Math.Min(2, ((string)yearPart).Length), Math.Min(4, ((string)yearPart).Length) - Math.Min(2, ((string)yearPart).Length));
                     string? month = this.safeString(expiryParts, 1);
-                    string? day = slice(dayPart, 0, 2);
+                    string? day = (dayPart == null) ? null : ((string)dayPart).Substring(0, Math.Min(2, ((string)dayPart).Length));
                     object expiryString = add(add(year, month), day);
                     type = "future";
                     future = true;
