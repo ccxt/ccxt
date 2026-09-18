@@ -1128,8 +1128,8 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
                 Object storedBids = Helpers.GetValue(storedOrderBook, "bids");
-                Object asksLength = Helpers.getArrayLength(storedAsks);
-                Object bidsLength = Helpers.getArrayLength(storedBids);
+                Object asksLength = ((List<?>)storedAsks).size();
+                Object bidsLength = ((List<?>)storedBids).size();
                 Object payloadArray = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < 25; i++)
                 {

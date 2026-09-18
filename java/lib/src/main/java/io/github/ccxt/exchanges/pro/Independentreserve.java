@@ -270,8 +270,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         {
             Object storedAsks = Helpers.GetValue(orderbook, "asks");
             Object storedBids = Helpers.GetValue(orderbook, "bids");
-            Object asksLength = Helpers.getArrayLength(storedAsks);
-            Object bidsLength = Helpers.getArrayLength(storedBids);
+            Object asksLength = ((List<?>)storedAsks).size();
+            Object bidsLength = ((List<?>)storedBids).size();
             Object payload = "";
             for (var i = 0; i < 10; i++)
             {

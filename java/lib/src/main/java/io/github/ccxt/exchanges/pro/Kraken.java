@@ -1652,7 +1652,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                     Map<String, Object> newRawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), ((Map<String, Object>)newOrder).get("info"));
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
-                Object length = Helpers.getArrayLength(stored);
+                Object length = ((List<?>)stored).size();
                 if (Helpers.isEqual(length, limit) && (java.util.Objects.equals(previousOrder, null)))
                 {
                     Object first = Helpers.GetValue(stored, 0);
