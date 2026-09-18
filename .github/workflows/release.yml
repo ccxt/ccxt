@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   manual-job:
-    runs-on: [ self-hosted, linux, x64, rust ]
+    runs-on: [ self-hosted, linux, x64, javascript ]
     environment: Prod
     if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei"]'), github.actor)
 
