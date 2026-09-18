@@ -2407,6 +2407,218 @@
                     }
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "the cash row: USD total is equity minus position_market_value, not equity. the mock serves one body to every call the method makes, so the positions call receives this account dict too - safeList rejects a non-list and the crypto loop is skipped, which is what pins the defensive default",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                    "account_number": "744863727",
+                    "status": "ACTIVE",
+                    "crypto_status": "ACTIVE",
+                    "currency": "USD",
+                    "buying_power": "5.92",
+                    "cash": "5.92",
+                    "accrued_fees": "0",
+                    "portfolio_value": "48.61",
+                    "equity": "48.61",
+                    "last_equity": "48.8014266",
+                    "long_market_value": "42.69",
+                    "short_market_value": "0",
+                    "position_market_value": "42.69",
+                    "crypto_tier": "1"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                            "account_number": "744863727",
+                            "status": "ACTIVE",
+                            "crypto_status": "ACTIVE",
+                            "currency": "USD",
+                            "buying_power": "5.92",
+                            "cash": "5.92",
+                            "accrued_fees": "0",
+                            "portfolio_value": "48.61",
+                            "equity": "48.61",
+                            "last_equity": "48.8014266",
+                            "long_market_value": "42.69",
+                            "short_market_value": "0",
+                            "position_market_value": "42.69",
+                            "crypto_tier": "1"
+                        },
+                        "positions": {
+                            "id": "43a01bee-67e3-4eb1-b2f1-65d1dc26ade5",
+                            "account_number": "744863727",
+                            "status": "ACTIVE",
+                            "crypto_status": "ACTIVE",
+                            "currency": "USD",
+                            "buying_power": "5.92",
+                            "cash": "5.92",
+                            "accrued_fees": "0",
+                            "portfolio_value": "48.61",
+                            "equity": "48.61",
+                            "last_equity": "48.8014266",
+                            "long_market_value": "42.69",
+                            "short_market_value": "0",
+                            "position_market_value": "42.69",
+                            "crypto_tier": "1"
+                        }
+                    },
+                    "USD": {
+                        "free": 5.92,
+                        "used": 0,
+                        "total": 5.92
+                    },
+                    "free": {
+                        "USD": 5.92
+                    },
+                    "used": {
+                        "USD": 0
+                    },
+                    "total": {
+                        "USD": 5.92
+                    }
+                }
+            },
+            {
+                "description": "crypto position rows: the compressed BTCUSD tail and the slashed ETH/USD form both resolve, the us_equity AAPL row has neither shape and is skipped, and ETH pins a non-zero used so free and total cannot be swapped. the mock serves one body to every call, so the account call receives this list too - safeDict rejects a non-dict and no cash row is emitted",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+                        "symbol": "BTCUSD",
+                        "exchange": "CRYPTO",
+                        "asset_class": "crypto",
+                        "qty": "0.000207296",
+                        "side": "long",
+                        "market_value": "16.592345",
+                        "current_price": "80041.8",
+                        "qty_available": "0.000207296"
+                    },
+                    {
+                        "asset_id": "8ccae427-5dd0-45b3-b5fe-7ba5e422c766",
+                        "symbol": "ETH/USD",
+                        "exchange": "CRYPTO",
+                        "asset_class": "crypto",
+                        "qty": "1.5",
+                        "side": "long",
+                        "market_value": "26.1",
+                        "current_price": "17.4",
+                        "qty_available": "1"
+                    },
+                    {
+                        "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                        "symbol": "AAPL",
+                        "exchange": "NASDAQ",
+                        "asset_class": "us_equity",
+                        "qty": "3",
+                        "side": "long",
+                        "market_value": "600",
+                        "current_price": "200",
+                        "qty_available": "3"
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "account": [
+                            {
+                                "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+                                "symbol": "BTCUSD",
+                                "exchange": "CRYPTO",
+                                "asset_class": "crypto",
+                                "qty": "0.000207296",
+                                "side": "long",
+                                "market_value": "16.592345",
+                                "current_price": "80041.8",
+                                "qty_available": "0.000207296"
+                            },
+                            {
+                                "asset_id": "8ccae427-5dd0-45b3-b5fe-7ba5e422c766",
+                                "symbol": "ETH/USD",
+                                "exchange": "CRYPTO",
+                                "asset_class": "crypto",
+                                "qty": "1.5",
+                                "side": "long",
+                                "market_value": "26.1",
+                                "current_price": "17.4",
+                                "qty_available": "1"
+                            },
+                            {
+                                "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                                "symbol": "AAPL",
+                                "exchange": "NASDAQ",
+                                "asset_class": "us_equity",
+                                "qty": "3",
+                                "side": "long",
+                                "market_value": "600",
+                                "current_price": "200",
+                                "qty_available": "3"
+                            }
+                        ],
+                        "positions": [
+                            {
+                                "asset_id": "64bbff51-59d6-4b3c-9351-13ad85e3c752",
+                                "symbol": "BTCUSD",
+                                "exchange": "CRYPTO",
+                                "asset_class": "crypto",
+                                "qty": "0.000207296",
+                                "side": "long",
+                                "market_value": "16.592345",
+                                "current_price": "80041.8",
+                                "qty_available": "0.000207296"
+                            },
+                            {
+                                "asset_id": "8ccae427-5dd0-45b3-b5fe-7ba5e422c766",
+                                "symbol": "ETH/USD",
+                                "exchange": "CRYPTO",
+                                "asset_class": "crypto",
+                                "qty": "1.5",
+                                "side": "long",
+                                "market_value": "26.1",
+                                "current_price": "17.4",
+                                "qty_available": "1"
+                            },
+                            {
+                                "asset_id": "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+                                "symbol": "AAPL",
+                                "exchange": "NASDAQ",
+                                "asset_class": "us_equity",
+                                "qty": "3",
+                                "side": "long",
+                                "market_value": "600",
+                                "current_price": "200",
+                                "qty_available": "3"
+                            }
+                        ]
+                    },
+                    "BTC": {
+                        "free": 0.000207296,
+                        "used": 0,
+                        "total": 0.000207296
+                    },
+                    "ETH": {
+                        "free": 1,
+                        "used": 0.5,
+                        "total": 1.5
+                    },
+                    "free": {
+                        "BTC": 0.000207296,
+                        "ETH": 1
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "ETH": 0.5
+                    },
+                    "total": {
+                        "BTC": 0.000207296,
+                        "ETH": 1.5
+                    }
+                }
+            }
         ]
     }
 }
