@@ -85,14 +85,15 @@ pairs: decl=78 A(getValue->GetValue)=15 B(identity cast drop)=1 unclassified=0
 Farm (compile gate, `dotnet` never run locally):
 
 ```
-job 664  sha 8a70d5f6659c152451da7f2d150db40d79b698f3  targets=cs  exit_code=0
-state=succeeded  branch_update=unchanged  generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+job 694  sha 7a6fe86e8f16a5b393d43198597ca6abe7545171  targets=cs  exit_code=0
+state=succeeded  branch_update=unchanged  skipped_exchanges=0
+generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
 ```
 
-`branch_update=unchanged` on the farm's own `--force` regeneration is the fixed-point proof: the
-committed tree is byte-for-byte what the classifier emits. Job 659 (the previous sha) was red with
-`CS0103: The name 'GetValue' does not exist in the current context` — that is the tests-tree
-sub-case below; both trees are green after the gate.
+`branch_update=unchanged` on the farm's own regeneration is the fixed-point proof: the committed
+tree is byte-for-byte what the classifier emits (job 664, the same tree before REPORT.md was added,
+also exit 0; job 659 was red with `CS0103: The name 'GetValue' does not exist in the current
+context` — that is the tests-tree sub-case below, both trees are green after the gate).
 
 ## Rejected sub-cases (with reason)
 
