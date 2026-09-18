@@ -29,25 +29,25 @@ public partial class testMainClass : BaseTest
         int codesLength = codesTotal.Count;
         int freeLength = codesFree.Count;
         int usedLength = codesUsed.Count;
-        assert(((codesLength == freeLength)) || ((codesLength == usedLength)), ("free and total and used codes have different lengths" + logText));
-        for (int i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
+        assert(((codesLength == freeLength)) || ((codesLength == usedLength)), add("free and total and used codes have different lengths", logText));
+        for (int i = 0; isLessThan(i, (allCodes?.Count ?? 0)); postFixIncrement(ref i))
         {
             object code = getValue(allCodes, i);
             // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
-            assert(inOp(getValue(entry, "total"), code), ((("code " + code) + " not in total") + logText));
-            assert(inOp(getValue(entry, "free"), code), ((("code " + code) + " not in free") + logText));
-            assert(inOp(getValue(entry, "used"), code), ((("code " + code) + " not in used") + logText));
+            assert(inOp(getValue(entry, "total"), code), add(add(add("code ", code), " not in total"), logText));
+            assert(inOp(getValue(entry, "free"), code), add(add(add("code ", code), " not in free"), logText));
+            assert(inOp(getValue(entry, "used"), code), add(add(add("code ", code), " not in used"), logText));
             string? total = exchange.safeString(getValue(entry, "total"), code);
             string? free = exchange.safeString(getValue(entry, "free"), code);
             string? used = exchange.safeString(getValue(entry, "used"), code);
-            assert((total != null), ("total is undefined" + logText));
-            assert((free != null), ("free is undefined" + logText));
-            assert((used != null), ("used is undefined" + logText));
-            assert(Precise.stringGe(total, "0"), ("total is not positive" + logText));
-            assert(Precise.stringGe(free, "0"), ("free is not positive" + logText));
-            assert(Precise.stringGe(used, "0"), ("used is not positive" + logText));
+            assert((total != null), add("total is undefined", logText));
+            assert((free != null), add("free is undefined", logText));
+            assert((used != null), add("used is undefined", logText));
+            assert(Precise.stringGe(total, "0"), add("total is not positive", logText));
+            assert(Precise.stringGe(free, "0"), add("free is not positive", logText));
+            assert(Precise.stringGe(used, "0"), add("used is not positive", logText));
             string? sumFreeUsed = Precise.stringAdd(free, used);
-            assert(Precise.stringEq(total, sumFreeUsed), ("free and used do not sum to total" + logText));
+            assert(Precise.stringEq(total, sumFreeUsed), add("free and used do not sum to total", logText));
         }
     }
 

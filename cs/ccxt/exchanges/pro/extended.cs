@@ -554,7 +554,7 @@ public partial class extended : ccxt.extended
         {
             return;
         }
-        for (int i = 0; isLessThan(i, getArrayLength((IList<object>)(rawOrders))); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, (((IList<object>)(rawOrders))?.Count ?? 0)); postFixIncrement(ref i))
         {
             Dictionary<string, object> order = this.parseOrder(getValue((IList<object>)(rawOrders), i));
             string? symbol = this.safeString(order, "symbol");
