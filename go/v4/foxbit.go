@@ -438,7 +438,7 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 	var precision *int64 = this.SafeInteger(rawCurrency, "precision")
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
 	var name *string = this.SafeString(rawCurrency, "name")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var depositInfo any = this.SafeDict(rawCurrency, "deposit_info")
 	var withdrawInfo any = this.SafeDict(rawCurrency, "withdraw_info")
 	var networks any = this.SafeList(rawCurrency, "networks", []any{})
@@ -1046,7 +1046,7 @@ func (this *Foxbit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(accounts); i++ {
 		var account any = GetValue(accounts, i)
 		var currencyId *string = this.SafeString(account, "currency_symbol")
-		var currencyCode any = this.SafeCurrencyCode(currencyId)
+		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var total *string = this.SafeString(account, "balance")
 		var used *string = this.SafeString(account, "balance_locked")
 		var free *string = this.SafeString(account, "balance_available")
@@ -1241,7 +1241,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
-	var triggerPrice any = DerefScalar(this.SafeNumber(params, "triggerPrice"))
+	var triggerPrice *float64 = this.SafeNumber(params, "triggerPrice")
 	if side == nil {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
@@ -1251,7 +1251,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		"type":          typeVar,
 	}
 	if (IsEqual(typeVar, "STOP_MARKET")) || (IsEqual(typeVar, "STOP_LIMIT")) {
-		if IsEqual(triggerPrice, nil) {
+		if triggerPrice == nil {
 			panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must have triggerPrice.")))
 		}
 	}
@@ -1265,7 +1265,7 @@ func (this *Foxbit) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if postOnly != nil && *postOnly == true {
 		request["post_only"] = true
 	}
-	if !IsEqual(triggerPrice, nil) {
+	if triggerPrice != nil {
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	if IsEqual(typeVar, "INSTANT") {
@@ -1330,14 +1330,14 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		}
 		var timeInForce *string = this.SafeStringUpper(orderParams, "timeInForce")
 		var postOnly *bool = this.SafeBool(orderParams, "postOnly", false)
-		var triggerPrice any = DerefScalar(this.SafeNumber(orderParams, "triggerPrice"))
+		var triggerPrice *float64 = this.SafeNumber(orderParams, "triggerPrice")
 		var request map[string]any = map[string]any{
 			"market_symbol": GetValue(market, "id"),
 			"side":          this.SafeStringUpper(order, "side"),
 			"type":          typeVar,
 		}
 		if (typeVar != nil && *typeVar == "STOP_MARKET") || (typeVar != nil && *typeVar == "STOP_LIMIT") {
-			if IsEqual(triggerPrice, nil) {
+			if triggerPrice == nil {
 				panic(InvalidOrder(Add(Add("Invalid order type: ", typeVar), ". Must have triggerPrice.")))
 			}
 		}
@@ -1353,7 +1353,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 			request["post_only"] = true
 			Remove(orderParams, "postOnly")
 		}
-		if !IsEqual(triggerPrice, nil) {
+		if triggerPrice != nil {
 			request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 			Remove(orderParams, "triggerPrice")
 		}
@@ -1948,7 +1948,7 @@ func (this *Foxbit) fetchTransactionsBody(ch chan any, optionalArgs ...any) any 
 
 	deposits := (<-this.FetchDepositsAsync(code, since, limit, params))
 	PanicOnError(deposits)
-	var allTransactions any = this.ArrayConcat(withdrawals, deposits)
+	var allTransactions []any = this.ArrayConcat(withdrawals, deposits)
 	var result []any = this.SortBy(allTransactions, "timestamp")
 
 	ch <- result
@@ -2219,8 +2219,8 @@ func (this *Foxbit) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(baseAssets, "symbol")
 	var quoteAssets any = this.SafeDict(market, "quote")
 	var quoteId *string = this.SafeString(quoteAssets, "symbol")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	var fees any = this.SafeDict(market, "default_fees")
 	return this.SafeMarketStructure(map[string]any{
@@ -2294,7 +2294,7 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_symbol")
-	var symbol any = this.SafeSymbol(marketId, market, nil, "spot")
+	var symbol *string = this.SafeSymbol(marketId, market, nil, "spot")
 	var rolling_24h any = GetValue(ticker, "rolling_24h")
 	var best any = this.SafeDict(ticker, "best")
 	var bestAsk any = this.SafeDict(best, "ask")
@@ -2359,7 +2359,7 @@ func (this *Foxbit) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Foxbit) ParseOrderStatus(status any) any {
+func (this *Foxbit) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PARTIALLY_CANCELED": "open",
 		"ACTIVE":             "open",
@@ -2435,7 +2435,7 @@ func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	_ = currency
 	var network any = this.SafeDict(depositAddress, "network")
 	var networkId *string = this.SafeString(network, "code")
-	var currencyCode any = this.SafeCurrencyCode(nil, currency)
+	var currencyCode *string = this.SafeCurrencyCode(nil, currency)
 	var unifiedNetwork any = this.NetworkIdToCode(networkId, currencyCode)
 	return map[string]any{
 		"address":  this.SafeString(depositAddress, "address"),
@@ -2445,7 +2445,7 @@ func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 		"info":     depositAddress,
 	}
 }
-func (this *Foxbit) ParseTransactionStatus(status any) any {
+func (this *Foxbit) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"SUBMITTING": "pending",
 		"SUBMITTED":  "pending",
@@ -2479,12 +2479,12 @@ func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var fee *string = this.SafeString(transaction, "fee", "0")
 	var amount *string = this.SafeString(transaction, "amount")
 	var currencySymbol *string = this.SafeString(transaction, "currency_symbol")
-	var actualAmount any = amount
-	var currencyCode any = this.SafeCurrencyCode(currencySymbol)
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
+	var actualAmount *string = amount
+	var currencyCode *string = this.SafeCurrencyCode(currencySymbol)
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
 	var created_at *string = this.SafeString(transaction, "created_at")
 	var timestamp any = this.ParseDate(created_at)
-	var datetime any = this.Iso8601(timestamp)
+	var datetime *string = this.Iso8601(timestamp)
 	if (fee != nil) && (amount != nil) {
 		// actualAmount = amount - fee;
 		actualAmount = Precise.StringSub(amount, fee)
@@ -2518,7 +2518,7 @@ func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal":    nil,
 	}
 }
-func (this *Foxbit) ParseLedgerEntryType(typeVar any) any {
+func (this *Foxbit) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSITING":           "transaction",
 		"WITHDRAWING":          "transaction",
@@ -2544,33 +2544,33 @@ func (this *Foxbit) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	_ = currency
 	var id *string = this.SafeString(item, "uuid")
 	var createdAt *string = this.SafeString(item, "created_at")
-	var timestamp any = this.Parse8601(createdAt)
+	var timestamp *int64 = this.Parse8601(createdAt)
 	var reasonType *string = this.SafeString(item, "reason_type")
-	var typeVar any = this.ParseLedgerEntryType(reasonType)
+	var typeVar *string = this.ParseLedgerEntryType(reasonType)
 	var exchangeSymbol *string = this.SafeString(item, "currency_symbol")
-	var currencySymbol any = this.SafeCurrencyCode(exchangeSymbol)
+	var currencySymbol *string = this.SafeCurrencyCode(exchangeSymbol)
 	var direction string = "in"
-	var amount any = DerefScalar(this.SafeNumber(item, "amount"))
+	var amount *float64 = this.SafeNumber(item, "amount")
 	var realAmount any = amount
-	var balance any = DerefScalar(this.SafeNumber(item, "balance"))
+	var balance *float64 = this.SafeNumber(item, "balance")
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeNumber(item, "fee"),
 		"currency": currencySymbol,
 	}
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " parseLedgerEntry() requires a amount argument"))
 	}
 	if IsLessThan(amount, 0) {
 		direction = "out"
-		if IsEqual(amount, nil) {
+		if amount == nil {
 			panic(ArgumentsRequired(this.Id + " parseLedgerEntry() requires a amount argument"))
 		}
 		realAmount = Multiply(amount, OpNeg(1))
 	}
-	if IsEqual(balance, nil) {
+	if balance == nil {
 		panic(ExchangeError(this.Id + " parseLedgerEntry() missing balance"))
 	}
-	if IsEqual(amount, nil) {
+	if amount == nil {
 		panic(ArgumentsRequired(this.Id + " parseLedgerEntry() requires a amount argument"))
 	}
 	return map[string]any{
@@ -2622,10 +2622,10 @@ func (this *Foxbit) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, "?"+query)
 		}
 		for i := 0; i < len(paramKeys); i++ {
-			var key any = GetValue(paramKeys, i)
+			var key string = GetValue(paramKeys, i).(string)
 			var value *string = this.SafeString(params, key)
 			if value != nil {
-				signatureQuery = Add(signatureQuery, Add(Add(key, "="), value))
+				signatureQuery = Add(signatureQuery, Add(key+"=", value))
 			}
 			if IsLessThan(i, Subtract(paramKeysLength, 1)) {
 				signatureQuery = Add(signatureQuery, "&")

@@ -21,7 +21,7 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	//
 	// test structure
 	//
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var isPublicTrade bool = true
 	for i := 0; i < GetArrayLength(trades); i++ {
 		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now, isPublicTrade)
@@ -35,10 +35,10 @@ func testFetchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 		//  Check whether both "buy" and "sell" are returned from trades, when there are enough trades
 		//  for a one-sided result to be an implausible coincidence (see minTradesForBothSidesCheck)
 		//
-		var grouped any = exchange.GroupBy(trades, "side")
+		var grouped map[string]any = exchange.GroupBy(trades, "side")
 		var msg any = Add("Both sides of trades are not being returned, instead only one side is being returned. If this error happens consistently, then it might be an implementation issue", LogTemplate(exchange, method, trades))
-		Assert((InOp(grouped, "buy")), msg)
-		Assert((InOp(grouped, "sell")), msg)
+		Assert((func() bool { _, ok := grouped["buy"]; return ok }()), msg)
+		Assert((func() bool { _, ok := grouped["sell"]; return ok }()), msg)
 	}
 	if !(InOp(skippedProperties, "timestampSort")) {
 		AssertTimestampOrder(exchange, method, symbol, trades)

@@ -372,23 +372,23 @@ func (this *Btcturk) ParseMarket(entry any) any {
 	var id *string = this.SafeString(entry, "name")
 	var baseId *string = this.SafeString(entry, "numerator")
 	var quoteId *string = this.SafeString(entry, "denominator")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var filters any = this.SafeList(entry, "filters", []any{})
-	var minPrice any = nil
-	var maxPrice any = nil
-	var minAmount any = nil
-	var maxAmount any = nil
-	var minCost any = nil
+	var minPrice *float64 = nil
+	var maxPrice *float64 = nil
+	var minAmount *float64 = nil
+	var maxAmount *float64 = nil
+	var minCost *float64 = nil
 	for j := 0; j < GetArrayLength(filters); j++ {
 		var filter any = GetValue(filters, j)
 		var filterType *string = this.SafeString(filter, "filterType")
 		if filterType != nil && *filterType == "PRICE_FILTER" {
-			minPrice = DerefScalar(this.SafeNumber(filter, "minPrice"))
-			maxPrice = DerefScalar(this.SafeNumber(filter, "maxPrice"))
-			minAmount = DerefScalar(this.SafeNumber(filter, "minAmount"))
-			maxAmount = DerefScalar(this.SafeNumber(filter, "maxAmount"))
-			minCost = DerefScalar(this.SafeNumber(filter, "minExchangeValue"))
+			minPrice = this.SafeNumber(filter, "minPrice")
+			maxPrice = this.SafeNumber(filter, "maxPrice")
+			minAmount = this.SafeNumber(filter, "minAmount")
+			maxAmount = this.SafeNumber(filter, "maxAmount")
+			minCost = this.SafeNumber(filter, "minExchangeValue")
 		}
 	}
 	var status *string = this.SafeString(entry, "status")
@@ -452,7 +452,7 @@ func (this *Btcturk) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(data); i++ {
 		var entry any = GetValue(data, i)
 		var currencyId *string = this.SafeString(entry, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 		AddElementToObject(account, "free", this.SafeString(entry, "free"))
@@ -717,7 +717,7 @@ func (this *Btcturk) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = Precise.StringAbs(this.SafeString(trade, "amount"))
 	var marketId *string = this.SafeString(trade, "pair")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var side *string = this.SafeString2(trade, "side", "orderType")
 	var fee any = nil
 	var feeAmountString *string = this.SafeString(trade, "fee")
@@ -1179,7 +1179,7 @@ func (this *Btcturk) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Btcturk) ParseOrderStatus(status any) any {
+func (this *Btcturk) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Untouched": "open",
 		"Partial":   "open",
@@ -1230,13 +1230,13 @@ func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = Precise.StringAbs(amountString)
 	var remaining *string = this.SafeString(order, "leftAmount")
 	var marketId *string = this.SafeString(order, "pairSymbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var side *string = this.SafeString(order, "type")
 	var typeVar *string = this.SafeString(order, "method")
 	var clientOrderId *string = this.SafeString(order, "orderClientId")
 	var timestamp *int64 = this.SafeInteger2(order, "updateTime", "datetime")
 	var rawStatus *string = this.SafeString(order, "status")
-	var status any = this.ParseOrderStatus(rawStatus)
+	var status *string = this.ParseOrderStatus(rawStatus)
 	return this.SafeOrder(map[string]any{
 		"info":          order,
 		"id":            id,

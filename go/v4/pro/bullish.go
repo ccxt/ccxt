@@ -227,7 +227,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.Market(symbol)
 	var rawTrades any = this.SafeList(data, "trades", []any{})
 	var trades any = this.ParseTrades(rawTrades, market)
@@ -407,7 +407,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	// current channel is 'l2Orderbook' which returns only snapshots
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("orderbook::", symbol)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -423,7 +423,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	var parsed any = this.ParseOrderBook(snapshot, symbol, timestamp)
 	var sequenceNumberRange any = this.SafeList(data, "sequenceNumberRange", []any{})
 	if ccxt.GetArrayLength(sequenceNumberRange) > 0 {
-		var lastIndex any = ccxt.Subtract(ccxt.GetArrayLength(sequenceNumberRange), 1)
+		var lastIndex int64 = ccxt.Subtract(ccxt.GetArrayLength(sequenceNumberRange), 1).(int64)
 		ccxt.AddElementToObject(parsed, "nonce", this.SafeInteger(sequenceNumberRange, lastIndex))
 	}
 	orderbook.(ccxt.OrderBookInterface).Reset(parsed)
@@ -577,8 +577,8 @@ func (this *Bullish) HandleOrders(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var hashSymbol any = ccxt.GetValue(keys, i)
-			var symbolMessageHash any = ccxt.Add(messageHash+"::", hashSymbol)
+			var hashSymbol string = ccxt.GetValue(keys, i).(string)
+			var symbolMessageHash any = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
 	}
@@ -708,8 +708,8 @@ func (this *Bullish) HandleMyTrades(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
-			var hashSymbol any = ccxt.GetValue(keys, i)
-			var symbolMessageHash any = ccxt.Add(messageHash+"::", hashSymbol)
+			var hashSymbol string = ccxt.GetValue(keys, i).(string)
+			var symbolMessageHash any = messageHash + "::" + hashSymbol
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 		}
 	}
@@ -814,7 +814,7 @@ func (this *Bullish) HandleBalance(client any, message any) {
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "total", this.SafeString(data, "availableQuantity"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(data, "lockedQuantity"))
-		var code any = this.SafeCurrencyCode(assetId)
+		var code *string = this.SafeCurrencyCode(assetId)
 		if (tradingAccountId != nil) && (code != nil) {
 			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
 		}

@@ -828,7 +828,7 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 	var strike *string = this.SafeString(optionParts, 2)
 	var optionType *string = this.SafeString(optionParts, 3)
 	var datetime any = this.ConvertExpireDate(expiry)
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	var id any = Add(Add(Add(Add(Add(Add(base, "-"), this.ConvertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType)
 	var symbolExpired any = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType)
 	return map[string]any{
@@ -986,7 +986,7 @@ func (this *Deribit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Deribit) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"code":      code,
@@ -1187,7 +1187,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	var parsedMarkets map[string]any = map[string]any{}
 	var fetchAllMarkets any = nil
-	fetchAllMarketsparamsVariable := this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
+	var fetchAllMarketsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "fetchAllMarkets", true)
 	fetchAllMarkets = GetValue(fetchAllMarketsparamsVariable, 0)
 	params = GetValue(fetchAllMarketsparamsVariable, 1)
 	if EvalTruthy(fetchAllMarkets) {
@@ -1318,9 +1318,9 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var baseId *string = this.SafeString(market, "base_currency")
 			var quoteId *string = this.SafeString(market, "counter_currency")
 			var settleId *string = this.SafeString(market, "settlement_currency")
-			var base any = this.SafeCurrencyCode(baseId)
-			var quote any = this.SafeCurrencyCode(quoteId)
-			var settle any = this.SafeCurrencyCode(settleId)
+			var base *string = this.SafeCurrencyCode(baseId)
+			var quote *string = this.SafeCurrencyCode(quoteId)
+			var settle *string = this.SafeCurrencyCode(settleId)
 			var settlementPeriod any = this.SafeValue(market, "settlement_period")
 			var swap bool = (IsEqual(settlementPeriod, "perpetual"))
 			if kind == nil {
@@ -1336,7 +1336,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			var isComboMarket bool = (GetIndexOf(kind, "combo") >= 0)
 			var expiry *int64 = this.SafeInteger(market, "expiration_timestamp")
-			var strike any = nil
+			var strike *float64 = nil
 			var optionType any = nil
 			var symbol any = id
 			var typeVar string = "swap"
@@ -1356,7 +1356,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				if option || future {
 					symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry, ""))
 					if option {
-						strike = DerefScalar(this.SafeNumber(market, "strike"))
+						strike = this.SafeNumber(market, "strike")
 						optionType = DerefScalar(this.SafeString(market, "option_type"))
 						var letter any = func() any {
 							if IsEqual(optionType, "call") {
@@ -1367,8 +1367,8 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 						symbol = Add(Add(Add(Add(symbol, "-"), this.NumberToString(strike)), "-"), letter)
 					}
 				}
-				inverse = (!IsEqual(quote, settle))
-				linear = (IsEqual(settle, quote))
+				inverse = (quote != settle && (quote == nil || settle == nil || *quote != *settle))
+				linear = (settle == quote || (settle != nil && quote != nil && *settle == *quote))
 			}
 			var parsedMarketValue any = this.SafeValue(parsedMarkets, symbol)
 			if !IsEqual(parsedMarketValue, nil) {
@@ -1377,8 +1377,8 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			if symbol != nil {
 				AddElementToObject(parsedMarkets, symbol, true)
 			}
-			var minTradeAmount any = DerefScalar(this.SafeNumber(market, "min_trade_amount"))
-			var tickSize any = DerefScalar(this.SafeNumber(market, "tick_size"))
+			var minTradeAmount *float64 = this.SafeNumber(market, "min_trade_amount")
+			var tickSize *float64 = this.SafeNumber(market, "tick_size")
 			AppendToArray(&result, map[string]any{
 				"id":             id,
 				"symbol":         symbol,
@@ -1449,7 +1449,7 @@ func (this *Deribit) ParseBalance(balance any) any {
 	for i := 0; i < GetArrayLength(summaries); i++ {
 		var data any = GetValue(summaries, i)
 		var currencyId *string = this.SafeString(data, "currency")
-		var currencyCode any = this.SafeCurrencyCode(currencyId)
+		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(data, "available_funds"))
 		AddElementToObject(account, "used", this.SafeString(data, "maintenance_margin"))
@@ -1719,7 +1719,7 @@ func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(ticker, "timestamp", "creation_timestamp")
 	var marketId *string = this.SafeString(ticker, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString2(ticker, "last_price", "last")
 	var stats any = this.SafeValue(ticker, "stats", ticker)
 	return this.SafeTicker(map[string]any{
@@ -1959,7 +1959,7 @@ func (this *Deribit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(retRes149712)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2071,7 +2071,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(trade, "trade_id")
 	var marketId *string = this.SafeString(trade, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var side *string = this.SafeString(trade, "direction")
 	var priceString *string = this.SafeString(trade, "price")
@@ -2098,7 +2098,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -2432,7 +2432,7 @@ func (this *Deribit) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	ch <- orderbook
 	return nil
 }
-func (this *Deribit) ParseOrderStatus(status any) any {
+func (this *Deribit) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"open":        "open",
 		"cancelled":   "canceled",
@@ -2442,7 +2442,7 @@ func (this *Deribit) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Deribit) ParseTimeInForce(timeInForce any) any {
+func (this *Deribit) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"good_til_cancelled":  "GTC",
 		"fill_or_kill":        "FOK",
@@ -2450,7 +2450,7 @@ func (this *Deribit) ParseTimeInForce(timeInForce any) any {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Deribit) ParseOrderType(orderType any) any {
+func (this *Deribit) ParseOrderType(orderType any) *string {
 	var orderTypes map[string]any = map[string]any{
 		"stop_limit":  "limit",
 		"take_limit":  "limit",
@@ -2509,14 +2509,14 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 			cost = Precise.StringDiv(amount, averageString)
 		}
 	}
-	var lastTradeTimestamp any = nil
+	var lastTradeTimestamp *int64 = nil
 	if filledString != nil {
 		var isFilledPositive bool = Precise.StringGt(filledString, "0")
 		if isFilledPositive {
 			lastTradeTimestamp = lastUpdate
 		}
 	}
-	var status any = this.ParseOrderStatus(this.SafeString(order, "order_state"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "order_state"))
 	var side *string = this.SafeStringLower(order, "direction")
 	var feeCostString *string = this.SafeString(order, "commission")
 	var fee any = nil
@@ -2528,10 +2528,10 @@ func (this *Deribit) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var rawType *string = this.SafeString(order, "order_type")
-	var typeVar any = this.ParseOrderType(rawType)
+	var typeVar *string = this.ParseOrderType(rawType)
 	// injected in createOrder
 	var trades any = this.SafeValue(order, "trades")
-	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "time_in_force"))
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "time_in_force"))
 	var postOnly any = this.SafeValue(order, "post_only")
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -2690,7 +2690,7 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || isStopLimit || isTakeLimit
 	var isMarketOrder bool = (IsEqual(typeVar, "market")) || isStopMarket || isTakeMarket
 	var exchangeSpecificPostOnly any = this.SafeValue(params, "post_only")
-	var postOnly any = this.IsPostOnly(isMarketOrder, exchangeSpecificPostOnly, params)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, exchangeSpecificPostOnly, params)
 	if isLimitOrder {
 		request["type"] = "limit"
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2731,7 +2731,7 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	if reduceOnly == true {
 		request["reduce_only"] = true
 	}
-	if EvalTruthy(postOnly) {
+	if postOnly {
 		request["post_only"] = true
 		request["reject_post_only"] = true
 	}
@@ -3429,7 +3429,7 @@ func (this *Deribit) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseTransactions(data, currency, since, limit, params)
 	return nil
 }
-func (this *Deribit) ParseTransactionStatus(status any) any {
+func (this *Deribit) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"completed":   "ok",
 		"unconfirmed": "pending",
@@ -3469,15 +3469,15 @@ func (this *Deribit) ParseTransaction(transaction any, optionalArgs ...any) any 
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger2(transaction, "created_timestamp", "received_timestamp")
 	var updated *int64 = this.SafeInteger(transaction, "updated_timestamp")
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
 	var address *string = this.SafeString(transaction, "address")
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var typeVar string = "deposit"
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		typeVar = "withdrawal"
 		fee = map[string]any{
 			"cost":     feeCost,
@@ -3787,7 +3787,7 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) any {
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(volatilityResult); i++ {
 		var timestamp *int64 = this.SafeInteger(GetValue(volatilityResult, i), 0)
-		var volatilityObj any = DerefScalar(this.SafeNumber(GetValue(volatilityResult, i), 1))
+		var volatilityObj *float64 = this.SafeNumber(GetValue(volatilityResult, i), 1)
 		AppendToArray(&result, map[string]any{
 			"info":       volatilityObj,
 			"timestamp":  timestamp,
@@ -3998,7 +3998,7 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Deribit) ParseTransferStatus(status any) any {
+func (this *Deribit) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"prepared":          "pending",
 		"confirmed":         "ok",
@@ -4230,7 +4230,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
@@ -4248,7 +4248,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	}
 	var duration any = Multiply(this.ParseTimeframe(eachItemDuration), 1000)
 	var time any = this.Milliseconds()
-	var month any = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000)
+	var month int64 = Multiply(Multiply(Multiply(Multiply(30, 24), 60), 60), 1000).(int64)
 	if IsEqual(since, nil) {
 		since = Subtract(time, month)
 	} else {
@@ -4324,8 +4324,8 @@ func (this *Deribit) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "timestamp")
-	var datetime any = this.Iso8601(timestamp)
-	var result any = DerefScalar(this.SafeNumber2(contract, "result", "interest_8h"))
+	var datetime *string = this.Iso8601(timestamp)
+	var result *float64 = this.SafeNumber2(contract, "result", "interest_8h")
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(nil, market),
@@ -4380,7 +4380,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes344112)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -4691,7 +4691,7 @@ func (this *Deribit) ParseGreeks(greeks any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(greeks, "timestamp")
 	var marketId *string = this.SafeString(greeks, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var stats any = this.SafeValue(greeks, "greeks", map[string]any{})
 	return map[string]any{
 		"symbol":                symbol,
@@ -4886,7 +4886,7 @@ func (this *Deribit) ParseOption(chain any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(chain, "instrument_name")
 	market = this.SafeMarket(marketId, market)
 	var currencyId *string = this.SafeString(chain, "base_currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(chain, "timestamp")
 	return map[string]any{
 		"info":              chain,
@@ -5010,9 +5010,9 @@ func (this *Deribit) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(interest, "creation_timestamp")
 	var marketId *string = this.SafeString(interest, "instrument_name")
 	market = this.SafeMarket(marketId, market)
-	var openInterest any = DerefScalar(this.SafeNumber(interest, "open_interest"))
-	var openInterestAmount any = nil
-	var openInterestValue any = nil
+	var openInterest *float64 = this.SafeNumber(interest, "open_interest")
+	var openInterestAmount *float64 = nil
+	var openInterestValue *float64 = nil
 	if (IsEqual(GetValue(market, "option"), true)) || ((IsEqual(GetValue(market, "future"), true)) && (IsEqual(GetValue(market, "linear"), true))) {
 		openInterestAmount = openInterest
 	} else {

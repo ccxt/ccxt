@@ -351,7 +351,7 @@ func (this *Zebpay) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
@@ -411,7 +411,7 @@ func (this *Zebpay) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTime", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
@@ -547,7 +547,7 @@ func (this *Zebpay) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
 	var chains any = this.SafeList(rawCurrency, "chains", []any{})
@@ -748,7 +748,7 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
@@ -921,7 +921,7 @@ func (this *Zebpay) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
@@ -1175,7 +1175,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
@@ -1222,7 +1222,7 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOrderTrades", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
@@ -1348,7 +1348,7 @@ func (this *Zebpay) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes98912)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
@@ -1597,7 +1597,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
@@ -1816,8 +1816,8 @@ func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var typeVar *string = this.SafeString(order, "type")
-	var timestamp any = DerefScalar(this.SafeNumber(order, "timestamp"))
-	var datetime any = this.Iso8601(timestamp)
+	var timestamp *float64 = this.SafeNumber(order, "timestamp")
+	var datetime *string = this.Iso8601(timestamp)
 	var price *string = this.SafeString(order, "price")
 	var side *string = this.SafeString(order, "side")
 	var amount *string = this.SafeString(order, "amount")
@@ -2238,8 +2238,8 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
 		AppendToArray(&result, map[string]any{
 			"id":         id,
@@ -2329,9 +2329,9 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
-		var settle any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
+		var settle *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
 		var symbol any = Add(Add(base, "/"), quote)
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
@@ -2384,7 +2384,7 @@ func (this *Zebpay) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString(entry, "free"))
 		AddElementToObject(account, "used", this.SafeString(entry, "used"))
 		var currencyId *string = this.SafeString(entry, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
 			AddElementToObject(result, code, account)
 		}
@@ -2405,7 +2405,7 @@ func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var leverage any = DerefScalar(this.SafeNumber(position, "leverage"))
+	var leverage *float64 = this.SafeNumber(position, "leverage")
 	var datetime *string = this.SafeString(position, "datetime")
 	var marketId *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
@@ -2453,7 +2453,7 @@ func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,

@@ -149,7 +149,7 @@ func (this *Bydfi) watchPrivateBody(ch chan any, messageHashes any, optionalArgs
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subHash string = "private"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var privateSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subHash)
 	var subscription map[string]any = map[string]any{}
 	if ccxt.IsEqual(privateSubscription, nil) {
@@ -357,12 +357,12 @@ func (this *Bydfi) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Bydfi) GetMessageHashesForTickersUnsubscription() any {
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
 	var messageHashes any = []any{}
 	var keys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.GetIndexOf(key, "ticker::") == 0 {
 			ccxt.AppendToArray(&messageHashes, key)
 		}
@@ -682,11 +682,11 @@ func (this *Bydfi) watchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var depth any = "100"
-	depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
+	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
 	var frequency any = "100ms"
-	frequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
+	var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
 	params = ccxt.GetValue(frequencyparamsVariable, 1)
 	var channelSuffix string = ""
@@ -736,11 +736,11 @@ func (this *Bydfi) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var depth any = "100"
-	depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
+	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
 	var frequency any = "100ms"
-	frequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
+	var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "frequency", frequency)
 	frequency = ccxt.GetValue(frequencyparamsVariable, 0)
 	params = ccxt.GetValue(frequencyparamsVariable, 1)
 	var channelSuffix string = ""
@@ -779,7 +779,7 @@ func (this *Bydfi) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "s")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -1168,7 +1168,7 @@ func (this *Bydfi) ParseWsPosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Bydfi) ParseWsPositionSide(rawPositionSide any) any {
+func (this *Bydfi) ParseWsPositionSide(rawPositionSide any) *string {
 	var sides map[string]any = map[string]any{
 		"1": "long",
 		"2": "short",
@@ -1200,7 +1200,7 @@ func (this *Bydfi) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes89712)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.FetchBalanceSnapshot(client)
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
@@ -1303,7 +1303,7 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 		for i := 0; i < ccxt.GetArrayLength(balances); i++ {
 			var balance any = ccxt.GetValue(balances, i)
 			var currencyId *string = this.SafeString(balance, "a")
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "total", this.SafeString(balance, "wb"))
 			ccxt.AddElementToObject(account, "used", this.SafeString(balance, "tfm"))

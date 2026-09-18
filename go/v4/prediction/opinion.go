@@ -362,7 +362,7 @@ func (this *Opinion) ParseOpinionMarket(raw any, optionalArgs ...any) any {
 	var marketResolvedOutcome any = resolvedOutcome
 	// the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
 	// undefined instead of the epoch, same for the event-level end date
-	var expiryTimestamp any = nil
+	var expiryTimestamp *int64 = nil
 	if !ccxt.IsEqual(this.SafeInteger(raw, "cutoffAt", 0), 0) {
 		expiryTimestamp = this.SafeTimestamp(raw, "cutoffAt")
 	}
@@ -483,7 +483,7 @@ func (this *Opinion) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	// bound how many events are actually FETCHED: the user limit when given, otherwise
 	// options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
 	// label can still hold more than one page
-	var fetchCap any = ccxt.DerefScalar(this.SafeInteger(this.Options, "maxFetchEventsResults", 100))
+	var fetchCap *int64 = this.SafeInteger(this.Options, "maxFetchEventsResults", 100)
 	if userLimit != nil {
 		fetchCap = userLimit
 	}
@@ -701,7 +701,7 @@ func (this *Opinion) ParseEvent(rawEvent any) any {
 	var statusEnum *string = this.SafeString(rawEvent, "statusEnum")
 	var active bool = (statusEnum != nil && *statusEnum == "Activated")
 	var resolved bool = (statusEnum != nil && *statusEnum == "Resolved")
-	var end any = nil
+	var end *int64 = nil
 	if !ccxt.IsEqual(this.SafeInteger(rawEvent, "cutoffAt", 0), 0) {
 		end = this.SafeTimestamp(rawEvent, "cutoffAt")
 	}
@@ -803,7 +803,7 @@ func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) any 
 	var asks any = this.SafeList(bookResult, "asks", []any{})
 	var bestBid any = this.SafeDict(bids, 0, map[string]any{})
 	var bestAsk any = this.SafeDict(asks, 0, map[string]any{})
-	var last any = ccxt.DerefScalar(this.SafeNumber(priceResult, "price"))
+	var last *float64 = this.SafeNumber(priceResult, "price")
 	var timestamp *int64 = this.SafeInteger(priceResult, "timestamp", this.Milliseconds())
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":     this.SafeString(marketAny, "outcome"),
@@ -1008,9 +1008,9 @@ func (this *Opinion) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...an
 	var historyLength int = ccxt.GetArrayLength(history)
 	for i := 0; i < historyLength; i++ {
 		var point any = ccxt.GetValue(history, i)
-		var price any = ccxt.DerefScalar(this.SafeNumber(point, "p"))
+		var price *float64 = this.SafeNumber(point, "p")
 		var timestamp *int64 = this.SafeTimestamp(point, "t")
-		if (!ccxt.IsEqual(price, nil)) && (timestamp != nil) {
+		if (price != nil) && (timestamp != nil) {
 			ccxt.AppendToArray(&candles, []any{timestamp, price, price, price, price, nil})
 		}
 	}
@@ -1035,7 +1035,7 @@ func (this *Opinion) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var price any = ccxt.DerefScalar(this.SafeNumber(ohlcv, "p"))
+	var price *float64 = this.SafeNumber(ohlcv, "p")
 	return []any{this.SafeTimestamp(ohlcv, "t"), price, price, price, price, nil}
 }
 
@@ -1177,28 +1177,28 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket any, side any, amount any, 
 	for i := 0; ccxt.IsLessThan(i, decimals); i++ {
 		decimalsStr = ccxt.Add(decimalsStr, "0")
 	}
-	var amountStr any = this.NumberToString(amount)
+	var amountStr *string = this.NumberToString(amount)
 	if ccxt.EvalTruthy(isMarket) && (ccxt.IsEqual(side, "BUY")) {
-		var marketMakerAmountWei any = this.DecimalToPrecision(ccxt.Precise.StringMul(amountStr, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
+		var marketMakerAmountWei string = this.DecimalToPrecision(ccxt.Precise.StringMul(amountStr, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
 		return map[string]any{
 			"makerAmount": marketMakerAmountWei,
 			"takerAmount": "0",
 		}
 	}
-	var priceStr any = this.DecimalToPrecision(this.NumberToString(price), ccxt.ROUND, 6, ccxt.DECIMAL_PLACES)
+	var priceStr string = this.DecimalToPrecision(this.NumberToString(price), ccxt.ROUND, 6, ccxt.DECIMAL_PLACES)
 	var priceParts []string = ccxt.Split(priceStr, ".")
 	var priceInt *string = this.SafeString(priceParts, 0, "0")
 	var priceFrac *string = this.SafeString(priceParts, 1, "")
 	var priceDenom string = "1000000"
 	var priceNum *string = ccxt.Precise.StringAdd(ccxt.Precise.StringMul(priceInt, priceDenom), ccxt.PadEnd(priceFrac, 6, "0"))
 	if priceNum != nil && *priceNum == "0" {
-		panic(ccxt.InvalidOrder(ccxt.Add(this.Id+" createOrder() invalid price ", priceStr)))
+		panic(ccxt.InvalidOrder(this.Id + " createOrder() invalid price " + priceStr))
 	}
-	var makerRaw any = amountStr
+	var makerRaw *string = amountStr
 	if ccxt.IsEqual(side, "BUY") {
 		makerRaw = ccxt.Precise.StringMul(amountStr, priceStr)
 	}
-	var makerAmountWei any = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
+	var makerAmountWei string = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, decimalsStr), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
 	var makerAmount any = nil
 	var takerAmount any = nil
 	if ccxt.IsEqual(side, "BUY") {
@@ -1262,7 +1262,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 	}
 	var marketOrderPrice any = "0"
 	if isMarket && (sideStr == "SELL") {
-		marketOrderPrice = this.NumberToString(price)
+		marketOrderPrice = ccxt.DerefScalar(this.NumberToString(price))
 	}
 	var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
 	var topicId *int64 = this.SafeInteger(info, "marketId")
@@ -1281,7 +1281,7 @@ func (this *Opinion) createOrderBody(ch chan any, outcome any, typeVar any, side
 		}
 		return 1
 	}()
-	var salt any = this.NumberToString(this.Milliseconds())
+	var salt *string = this.NumberToString(this.Milliseconds())
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var rest any = this.Omit(params, []any{"postOnly"})
 
@@ -1418,7 +1418,7 @@ func (this *Opinion) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @param {string} status the raw opinion order statusEnum
  * @returns {string} a unified order status
  */
-func (this *Opinion) ParseOrderStatus(status any) any {
+func (this *Opinion) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Pending":  "open",
 		"Finished": "closed",
@@ -1464,7 +1464,7 @@ func (this *Opinion) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "orderId")
 	var marketAny any = market
 	var statusEnum *string = this.SafeString(order, "statusEnum")
-	var status any = this.ParseOrderStatus(statusEnum)
+	var status *string = this.ParseOrderStatus(statusEnum)
 	var sideEnum *string = this.SafeStringLower(order, "sideEnum")
 	var tradingMethodEnum *string = this.SafeStringLower(order, "tradingMethodEnum")
 	var timestamp *int64 = this.SafeTimestamp(order, "createdAt")
@@ -2429,8 +2429,8 @@ func (this *Opinion) HandleOrderBook(client any, message any) {
 		}
 		return ccxt.GetValue(orderbook, "asks")
 	}()
-	var price any = ccxt.DerefScalar(this.SafeNumber(message, "price"))
-	var size any = ccxt.DerefScalar(this.SafeNumber(message, "size"))
+	var price *float64 = this.SafeNumber(message, "price")
+	var size *float64 = this.SafeNumber(message, "size")
 	bookSide.(ccxt.IOrderBookSide).StoreArray([]any{price, size})
 	var now int64 = this.Milliseconds()
 	ccxt.AddElementToObject(orderbook, "timestamp", now)
@@ -2487,7 +2487,7 @@ func (this *Opinion) HandleTicker(client any, message any) {
 		return
 	}
 	var now int64 = this.Milliseconds()
-	var last any = ccxt.DerefScalar(this.SafeNumber(message, "price"))
+	var last *float64 = this.SafeNumber(message, "price")
 	var ticker any = this.SafePredictionTicker(map[string]any{
 		"outcome":   sym,
 		"outcomeId": tokenId,
@@ -2914,7 +2914,7 @@ func (this *Opinion) Sign(path any, optionalArgs ...any) any {
 				"DELETE": "delete",
 			}
 			var action *string = this.SafeString(actionByMethod, method, "get")
-			var timestamp any = this.NumberToString(this.Seconds())
+			var timestamp *string = this.NumberToString(this.Seconds())
 			ccxt.AddElementToObject(headers, "OPINION_ADDRESS", this.WalletAddress)
 			ccxt.AddElementToObject(headers, "OPINION_SIGNATURE", this.SignApiKeyAuth(this.WalletAddress, action, timestamp))
 			ccxt.AddElementToObject(headers, "OPINION_TIMESTAMP", timestamp)

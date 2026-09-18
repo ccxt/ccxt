@@ -850,7 +850,7 @@ func (this *Derive) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Derive) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"name":      nil,
@@ -945,7 +945,7 @@ func (this *Derive) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
 	// }
 	//
-	var result any = this.ArrayConcat(spotMarkets, swapMarkets)
+	var result []any = this.ArrayConcat(spotMarkets, swapMarkets)
 	result = this.ArrayConcat(result, optionMarkets)
 
 	ch <- result
@@ -1031,14 +1031,14 @@ func (this *Derive) ParseMarket(market any) any {
 	var inverse any = nil
 	var baseId *string = this.SafeString(market, "base_currency")
 	var quoteId *string = this.SafeString(market, "quote_currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var marketId *string = this.SafeString(market, "instrument_name")
 	var symbol any = Add(Add(base, "/"), quote)
 	var settleId any = nil
 	var settle any = nil
 	var expiry any = nil
-	var strike any = nil
+	var strike *int64 = nil
 	var optionType any = nil
 	var optionLetter any = nil
 	if typeVar != nil && *typeVar == "erc20" {
@@ -1047,7 +1047,7 @@ func (this *Derive) ParseMarket(market any) any {
 	} else if typeVar != nil && *typeVar == "perp" {
 		margin = false
 		settleId = "USDC"
-		settle = this.SafeCurrencyCode(settleId)
+		settle = DerefScalar(this.SafeCurrencyCode(settleId))
 		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 		swap = true
 		linear = true
@@ -1055,13 +1055,13 @@ func (this *Derive) ParseMarket(market any) any {
 		marketType = "swap"
 	} else if typeVar != nil && *typeVar == "option" {
 		settleId = "USDC"
-		settle = this.SafeCurrencyCode(settleId)
+		settle = DerefScalar(this.SafeCurrencyCode(settleId))
 		margin = false
 		option = true
 		marketType = "option"
 		var optionDetails any = this.SafeDict(market, "option_details")
 		expiry = this.SafeTimestamp(optionDetails, "expiry")
-		strike = DerefScalar(this.SafeInteger(optionDetails, "strike"))
+		strike = this.SafeInteger(optionDetails, "strike")
 		optionLetter = DerefScalar(this.SafeString(optionDetails, "option_type"))
 		symbol = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), this.Yymmdd(expiry)), "-"), this.NumberToString(strike)), "-"), optionLetter)
 		if IsEqual(optionLetter, "P") {
@@ -1288,7 +1288,7 @@ func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "timestamp")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var stats any = this.SafeDict(ticker, "stats")
 	var change *string = this.SafeString(stats, "percent_change")
 	return this.SafeTicker(map[string]any{
@@ -1469,7 +1469,7 @@ func (this *Derive) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(trade, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var fee map[string]any = map[string]any{
 		"currency": "USDC",
@@ -1744,16 +1744,16 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		return "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"
 	}()
-	var priceString any = this.NumberToString(price)
+	var priceString *string = this.NumberToString(price)
 	var maxFee any = nil
-	maxFeeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "max_fee")
+	var maxFeeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "max_fee")
 	maxFee = GetValue(maxFeeparamsVariable, 0)
 	params = GetValue(maxFeeparamsVariable, 1)
 	if IsEqual(maxFee, nil) {
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a max_fee argument in params"))
 	}
-	var maxFeeString any = this.NumberToString(maxFee)
-	var amountString any = this.NumberToString(amount)
+	var maxFeeString *string = this.NumberToString(maxFee)
+	var amountString *string = this.NumberToString(amount)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("createOrder", params)
@@ -1939,7 +1939,7 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce int64 = this.Milliseconds()
-	var signatureExpiry any = DerefScalar(this.SafeNumber(params, "signature_expiry_sec", this.Seconds()+7776000))
+	var signatureExpiry *float64 = this.SafeNumber(params, "signature_expiry_sec", this.Seconds()+7776000)
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -1949,9 +1949,9 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		}
 		return "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"
 	}()
-	var priceString any = this.NumberToString(price)
+	var priceString *string = this.NumberToString(price)
 	var maxFeeString *string = this.SafeString(params, "max_fee", "0")
-	var amountString any = this.NumberToString(amount)
+	var amountString *string = this.NumberToString(amount)
 	var tradeModuleDataHash any = this.Hash(this.EthAbiEncode([]any{"address", "uint", "int", "int", "uint", "uint", "bool"}, []any{GetValue(GetValue(market, "info"), "base_asset_address"), this.ParseToNumeric(GetValue(GetValue(market, "info"), "base_asset_sub_id")), this.ConvertToBigInt(this.ParseUnits(priceString)), this.ConvertToBigInt(this.ParseUnits(this.AmountToPrecision(symbol, amountString))), this.ConvertToBigInt(this.ParseUnits(maxFeeString)), subaccountId, orderSideIsBuy}), keccak, "binary")
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("editOrder", params)
@@ -2299,7 +2299,7 @@ func (this *Derive) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes177512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2524,7 +2524,7 @@ func (this *Derive) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes191815
 	return nil
 }
-func (this *Derive) ParseTimeInForce(timeInForce any) any {
+func (this *Derive) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2533,7 +2533,7 @@ func (this *Derive) ParseTimeInForce(timeInForce any) any {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Derive) ParseOrderStatus(status any) any {
+func (this *Derive) ParseOrderStatus(status any) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"open":        "open",
@@ -2807,7 +2807,7 @@ func (this *Derive) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes216112)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3009,7 +3009,7 @@ func (this *Derive) ParsePosition(position any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(position, "instrument_name")
 	market = this.SafeMarket(contract, market)
 	var size *string = this.SafeString(position, "amount")
-	var side any = nil
+	var side string
 	if Precise.StringGt(size, "0") {
 		side = "long"
 	} else {
@@ -3086,7 +3086,7 @@ func (this *Derive) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes238912)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3176,9 +3176,9 @@ func (this *Derive) ParseIncome(income any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var rate *string = this.SafeString(income, "funding")
-	var code any = this.SafeCurrencyCode("USDC")
+	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "timestamp")
 	return map[string]any{
 		"info":      income,
@@ -3287,7 +3287,7 @@ func (this *Derive) ParseBalance(response any) any {
 		var collaterals any = this.SafeList(subaccount, "collaterals", []any{})
 		for j := 0; j < GetArrayLength(collaterals); j++ {
 			var balance any = GetValue(collaterals, j)
-			var code any = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
+			var code *string = this.SafeCurrencyCode(this.SafeString(balance, "currency"))
 			var account any = this.SafeDict(result, code)
 			if IsEqual(account, nil) {
 				account = this.Account()
@@ -3490,7 +3490,7 @@ func (this *Derive) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"network":     nil,
 	}
 }
-func (this *Derive) ParseTransactionStatus(status any) any {
+func (this *Derive) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"settled":  "ok",
 		"reverted": "failed",
@@ -3499,7 +3499,7 @@ func (this *Derive) ParseTransactionStatus(status any) any {
 }
 func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
 	var derivesubAccountId any = nil
-	derivesubAccountIdparamsVariable := this.HandleOptionAndParams(params, methodName, "subaccount_id")
+	var derivesubAccountIdparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subaccount_id")
 	derivesubAccountId = GetValue(derivesubAccountIdparamsVariable, 0)
 	params = GetValue(derivesubAccountIdparamsVariable, 1)
 	if (derivesubAccountId != nil) && (!IsEqual(derivesubAccountId, "")) {
@@ -3514,7 +3514,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
 }
 func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
 	var deriveWalletAddress any = nil
-	deriveWalletAddressparamsVariable := this.HandleOptionAndParams(params, methodName, "deriveWalletAddress")
+	var deriveWalletAddressparamsVariable []any = this.HandleOptionAndParams(params, methodName, "deriveWalletAddress")
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
 	if (deriveWalletAddress != nil) && (!IsEqual(deriveWalletAddress, "")) {

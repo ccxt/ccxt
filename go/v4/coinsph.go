@@ -700,7 +700,7 @@ func (this *Coinsph) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !EvalTruthy(this.CheckRequiredCredentials(false)) {
+	if !this.CheckRequiredCredentials(false) {
 
 		ch <- map[string]any{}
 		return nil
@@ -775,7 +775,7 @@ func (this *Coinsph) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Coinsph) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "coin")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var isFiat *bool = this.SafeBool(rawCurrency, "isLegalMoney")
 	var networkList any = this.SafeList(rawCurrency, "networkList", []any{})
 	var networks map[string]any = map[string]any{}
@@ -1005,8 +1005,8 @@ func (this *Coinsph) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseAsset")
 		var quoteId *string = this.SafeString(market, "quoteAsset")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
 		var amountLimits any = this.SafeValue(limits, "LOT_SIZE", map[string]any{})
 		var priceLimits any = this.SafeValue(limits, "PRICE_FILTER", map[string]any{})
@@ -1729,7 +1729,7 @@ func (this *Coinsph) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "free"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
@@ -1805,19 +1805,19 @@ func (this *Coinsph) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		} else if IsEqual(orderSide, "BUY") {
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice any = true
-			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = DerefScalar(this.SafeNumber2(params, "cost", "quoteOrderQty"))
+			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
 			params = this.Omit(params, "cost")
-			if !IsEqual(cost, nil) {
+			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 				if IsEqual(price, nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
-					var amountString any = this.NumberToString(amount)
-					var priceString any = this.NumberToString(price)
+					var amountString *string = this.NumberToString(amount)
+					var priceString *string = this.NumberToString(price)
 					var costRequest *string = Precise.StringMul(amountString, priceString)
 					quoteAmount = this.CostToPrecision(symbol, costRequest)
 				}
@@ -2210,7 +2210,7 @@ func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Coinsph) ParseOrderSide(status any) any {
+func (this *Coinsph) ParseOrderSide(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",
@@ -2230,7 +2230,7 @@ func (this *Coinsph) EncodeOrderSide(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderType(status any) any {
+func (this *Coinsph) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"MARKET":            "market",
 		"LIMIT":             "limit",
@@ -2260,7 +2260,7 @@ func (this *Coinsph) EncodeOrderType(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderStatus(status any) any {
+func (this *Coinsph) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"FILLED":             "closed",
@@ -2274,7 +2274,7 @@ func (this *Coinsph) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinsph) ParseOrderTimeInForce(status any) any {
+func (this *Coinsph) ParseOrderTimeInForce(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"GTC": "GTC",
 		"FOK": "FOK",
@@ -2687,9 +2687,9 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	}
 	var txid *string = this.SafeString(transaction, "txId")
 	var currencyId *string = this.SafeString(transaction, "coin")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = nil
-	timestamp = DerefScalar(this.SafeInteger2(transaction, "insertTime", "applyTime"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = nil
+	timestamp = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var updated any = nil
 	var typeVar any = nil
 	var withdrawOrderId *string = this.SafeString(transaction, "withdrawOrderId")
@@ -2699,11 +2699,11 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 	} else if depositOrderId != nil {
 		typeVar = "deposit"
 	}
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "transactionFee"))
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
+	var feeCost *float64 = this.SafeNumber(transaction, "transactionFee")
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -2734,7 +2734,7 @@ func (this *Coinsph) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Coinsph) ParseTransactionStatus(status any) any {
+func (this *Coinsph) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "ok",
@@ -2813,7 +2813,7 @@ func (this *Coinsph) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(depositAddress, "coin")
-	var parsedCurrency any = this.SafeCurrencyCode(currencyId, currency)
+	var parsedCurrency *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": parsedCurrency,
@@ -2828,7 +2828,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	var encodedArrayParams any = ""
 	var keys []string = ObjectKeys(query)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		if IsArray(GetValue(query, key)) {
 			if i != 0 {
 				encodedArrayParams = Add(encodedArrayParams, "&")

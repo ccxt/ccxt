@@ -318,7 +318,7 @@ func (this *Extended) HandleBalance(client any, message any) {
 	var balance any = this.SafeDict(data, "balance")
 	if !ccxt.IsEqual(balance, nil) {
 		var currencyId *string = this.SafeString(balance, "collateralName")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "free", this.SafeString(balance, "availableForWithdrawal"))
@@ -330,7 +330,7 @@ func (this *Extended) HandleBalance(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(spotBalances); i++ {
 		var spotBalance any = this.SafeDict(spotBalances, i, map[string]any{})
 		var currencyId *string = this.SafeString(spotBalance, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		if code != nil {
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "free", this.SafeString(spotBalance, "availableToWithdraw"))
@@ -449,7 +449,7 @@ func (this *Extended) HandleMyTrades(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var messageHash any = ccxt.GetValue(subscriptions, i)
+		var messageHash string = ccxt.GetValue(subscriptions, i).(string)
 		if ccxt.GetIndexOf(messageHash, "myTrades:") == 0 {
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
@@ -623,7 +623,7 @@ func (this *Extended) HandleOrders(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var messageHash any = ccxt.GetValue(subscriptions, i)
+		var messageHash string = ccxt.GetValue(subscriptions, i).(string)
 		if ccxt.GetIndexOf(messageHash, "orders:") == 0 {
 			client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 		}
@@ -1022,7 +1022,7 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 func (this *Extended) FindSubscription(client any, name any) any {
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), key)
 		var subscriptionName *string = this.SafeString(subscription, "name")
 		if ccxt.IsEqual(subscriptionName, name) {

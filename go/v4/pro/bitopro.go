@@ -315,8 +315,8 @@ func (this *Bitopro) HandleMyTrade(client any, message any) {
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var baseId *string = this.SafeString(data, "base")
 	var quoteId *string = this.SafeString(data, "quote")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
 	var messageHash *string = this.SafeString(message, "event")
 	if ccxt.IsEqual(this.MyTrades, nil) {
@@ -355,8 +355,8 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(trade, "transactionTimestamp")
 	var baseId *string = this.SafeString(trade, "base")
 	var quoteId *string = this.SafeString(trade, "quote")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
 	market = this.SafeMarket(symbol, market)
 	var price *string = this.SafeString(trade, "price")
@@ -372,7 +372,7 @@ func (this *Bitopro) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(trade, "volume")
 	var fee any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
-	var feeSymbol any = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
+	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
 	if feeAmount != nil {
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -573,7 +573,7 @@ func (this *Bitopro) HandleBalance(client any, message any) {
 		var currency *string = this.SafeString(currencies, i)
 		var balance any = this.SafeValue(data, currency)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "amount"))

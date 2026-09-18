@@ -243,7 +243,7 @@ func (this *Alpaca) HandleOHLCV(client any, message any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "S")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var stored any = this.SafeValue(this.Ohlcvs, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -324,9 +324,9 @@ func (this *Alpaca) HandleOrderBook(client any, message any) {
 	//    }
 	//
 	var marketId *string = this.SafeString(message, "S")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var datetime *string = this.SafeString(message, "t")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	var isSnapshot *bool = this.SafeBool(message, "r", false)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
@@ -421,7 +421,7 @@ func (this *Alpaca) HandleTrades(client any, message any) {
 	//     ]
 	//
 	var marketId *string = this.SafeString(message, "S")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -764,7 +764,7 @@ func (this *Alpaca) authenticateBody(ch chan any, url any, optionalArgs ...any) 
 	_ = params
 	this.CheckRequiredCredentials()
 	var messageHash string = "authenticated"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {

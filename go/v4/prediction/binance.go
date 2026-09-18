@@ -455,7 +455,7 @@ func (this *Binance) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var allQueriesLength int = ccxt.GetArrayLength(allQueries)
 	params = this.Omit(params, []any{"query", "queries"})
 	var userLimit *int64 = this.SafeInteger(params, "limit")
-	var fetchCap any = ccxt.DerefScalar(this.SafeInteger(this.Options, "maxFetchEventsResults", 100))
+	var fetchCap *int64 = this.SafeInteger(this.Options, "maxFetchEventsResults", 100)
 	if userLimit != nil {
 		fetchCap = userLimit
 	}
@@ -690,7 +690,7 @@ func (this *Binance) ParseEvent(rawTopic any) any {
 	var endDate *int64 = this.SafeInteger(rawTopic, "endDate")
 	var created *int64 = this.SafeInteger2(rawTopic, "publishedAt", "startDate")
 	var status *string = this.SafeString(rawTopic, "status")
-	var active any = anyActive
+	var active bool = anyActive
 	if rawMarketsLength == 0 {
 		active = (status != nil && *status == "REGISTERED") || (status != nil && *status == "OPEN")
 	}
@@ -776,8 +776,8 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 		"amount": 0.01,
 		"price":  pricePrecision,
 	}
-	var volume any = ccxt.DerefScalar(this.SafeNumber(rawMarket, "tradeVolume"))
-	var liquidity any = ccxt.DerefScalar(this.SafeNumber(rawMarket, "liquidity"))
+	var volume *float64 = this.SafeNumber(rawMarket, "tradeVolume")
+	var liquidity *float64 = this.SafeNumber(rawMarket, "liquidity")
 	var rawOutcomes any = this.SafeList(rawMarket, "outcomes", []any{})
 	var outcomes any = []any{}
 	var resolvedOutcomeRaw any = nil
@@ -1132,7 +1132,7 @@ func (this *Binance) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "type", "SPOT")
+	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "type", "SPOT")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 
@@ -1297,11 +1297,11 @@ func (this *Binance) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
-	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", 100)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
@@ -1411,11 +1411,11 @@ func (this *Binance) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
-	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "maxEntriesPerRequest", 100)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
@@ -1747,11 +1747,11 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	var maxEntriesPerRequest any = nil
-	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", 100)
+	var maxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", 100)
 	maxEntriesPerRequest = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = ccxt.GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var pageKey string = "ccxtPageKey"
@@ -1950,7 +1950,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 		return nil
 	}
 	var walletAddress any = nil
-	walletAddressparamsVariable := this.HandleOptionAndParams(params, methodName, "walletAddress", this.WalletAddress)
+	var walletAddressparamsVariable []any = this.HandleOptionAndParams(params, methodName, "walletAddress", this.WalletAddress)
 	walletAddress = ccxt.GetValue(walletAddressparamsVariable, 0)
 	params = ccxt.GetValue(walletAddressparamsVariable, 1)
 
@@ -2053,18 +2053,18 @@ func (this *Binance) fetchQuoteBody(ch chan any, request any, optionalArgs ...an
 }
 func (this *Binance) PriceToPrecision(outcome any, price any) any {
 	var market any = this.Market(outcome)
-	var prec any = ccxt.DerefScalar(this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001))
+	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "price", 0.0001)
 	var decimals int = 4
-	if (!ccxt.IsEqual(prec, nil)) && (ccxt.IsGreaterThan(prec, 0)) {
+	if (prec != nil) && (ccxt.IsGreaterThan(prec, 0)) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	return this.DecimalToPrecision(price, ccxt.ROUND, decimals, ccxt.DECIMAL_PLACES, this.PaddingMode)
 }
 func (this *Binance) AmountToPrecision(outcome any, amount any) any {
 	var market any = this.Market(outcome)
-	var prec any = ccxt.DerefScalar(this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01))
+	var prec *float64 = this.SafeNumber(this.SafeDict(market, "precision", map[string]any{}), "amount", 0.01)
 	var decimals int = 2
-	if (!ccxt.IsEqual(prec, nil)) && (ccxt.IsGreaterThan(prec, 0)) {
+	if (prec != nil) && (ccxt.IsGreaterThan(prec, 0)) {
 		decimals = this.PrecisionFromString(this.NumberToString(prec))
 	}
 	// amounts truncate so a rounded-up value can never exceed the caller's balance
@@ -2119,14 +2119,14 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 	var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage", "0.05")
 	var slippage *string = this.SafeString(params, "slippage", defaultSlippage)
 	var cost *string = this.SafeString(params, "cost")
-	var slippageBps any = this.ParseToInt(ccxt.Precise.StringMul(slippage, "10000"))
+	var slippageBps int64 = this.ParseToInt(ccxt.Precise.StringMul(slippage, "10000"))
 	var commonRequest map[string]any = map[string]any{
 		"walletAddress": ccxt.GetValue(wallet, "walletAddress"),
 		"orderType":     typeUpper,
 		"slippageBps":   slippageBps,
 	}
-	var amountStr any = this.NumberToString(amount)
-	var priceStr any = this.NumberToString(price)
+	var amountStr *string = this.NumberToString(amount)
+	var priceStr *string = this.NumberToString(price)
 	var defaultTif string = "FOK"
 	if typeUpper == "LIMIT" {
 		if ccxt.IsEqual(price, nil) {

@@ -357,7 +357,7 @@ func (this *Coincheck) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
-		var code any = GetValue(codes, i)
+		var code string = GetValue(codes, i).(string)
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		if InOp(response, currencyId) {
@@ -365,7 +365,7 @@ func (this *Coincheck) ParseBalance(response any) any {
 			var reserved any = Add(currencyId, "_reserved")
 			AddElementToObject(account, "free", this.SafeString(response, currencyId))
 			AddElementToObject(account, "used", this.SafeString(response, reserved))
-			AddElementToObject(result, code, account)
+			result[code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -410,7 +410,7 @@ func (this *Coincheck) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var exchangeStatuses any = this.SafeList(response, "exchange_status", []any{})
 	var status string = "ok"
-	var updated any = nil
+	var updated *int64 = nil
 	for i := 0; i < GetArrayLength(exchangeStatuses); i++ {
 		var exchangeStatus any = GetValue(exchangeStatuses, i)
 		var rawStatus *string = this.SafeString(exchangeStatus, "status")
@@ -534,13 +534,13 @@ func (this *Coincheck) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id")
 	var side *string = this.SafeString(order, "order_type")
-	var timestamp any = this.Parse8601(this.SafeString(order, "created_at"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var amount *string = this.SafeString(order, "pending_amount")
 	var remaining *string = this.SafeString(order, "pending_amount")
 	var price *string = this.SafeString(order, "rate")
 	var status any = nil
 	var marketId *string = this.SafeString(order, "pair")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -618,7 +618,7 @@ func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
@@ -727,7 +727,7 @@ func (this *Coincheck) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(this.SafeString(trade, "created_at"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	var id *string = this.SafeString(trade, "id")
 	var priceString *string = this.SafeString(trade, "rate")
 	var marketId *string = this.SafeString(trade, "pair")
@@ -1011,9 +1011,9 @@ func (this *Coincheck) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		if IsEqual(side, "sell") {
 			request["amount"] = amount
 		} else {
-			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
+			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
-			if !IsEqual(cost, nil) {
+			if cost != nil {
 				panic(ArgumentsRequired(this.Id + " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders"))
 			}
 			request["market_buy_amount"] = cost
@@ -1220,7 +1220,7 @@ func (this *Coincheck) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	})
 	return nil
 }
-func (this *Coincheck) ParseTransactionStatus(status any) any {
+func (this *Coincheck) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":    "pending",
 		"processing": "pending",
@@ -1261,16 +1261,16 @@ func (this *Coincheck) ParseTransaction(transaction any, optionalArgs ...any) an
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_at"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at"))
 	var address *string = this.SafeString(transaction, "address")
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var updated any = this.Parse8601(this.SafeString(transaction, "confirmed_at"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var updated *int64 = this.Parse8601(this.SafeString(transaction, "confirmed_at"))
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": code,

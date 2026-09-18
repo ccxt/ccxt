@@ -103,10 +103,10 @@ func (this *Poloniex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var timestamp any = this.NumberToString(this.Milliseconds())
+	var timestamp *string = this.NumberToString(this.Milliseconds())
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 	var messageHash string = "authenticated"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {
 		var accessPath string = "/ws"
@@ -295,8 +295,8 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrderWs() side is required"))
 	}
 	var uppercaseSide string = ccxt.ToUpper(side)
-	var isPostOnly any = this.IsPostOnly((uppercaseType == "MARKET"), (uppercaseType == "LIMIT_MAKER"), params)
-	if ccxt.EvalTruthy(isPostOnly) {
+	var isPostOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), (uppercaseType == "LIMIT_MAKER"), params)
+	if isPostOnly {
 		uppercaseType = "LIMIT_MAKER"
 	}
 	var request map[string]any = map[string]any{
@@ -307,19 +307,19 @@ func (this *Poloniex) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	if (uppercaseType == "MARKET") && (uppercaseSide == "BUY") {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice any = true
-		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		var cost any = ccxt.DerefScalar(this.SafeNumber(params, "cost"))
+		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
-		if !ccxt.IsEqual(cost, nil) {
+		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
 			if ccxt.IsEqual(price, nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 			} else {
-				var amountString any = this.NumberToString(amount)
-				var priceString any = this.NumberToString(price)
+				var amountString *string = this.NumberToString(amount)
+				var priceString *string = this.NumberToString(price)
 				var costRequest *string = ccxt.Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
@@ -721,7 +721,7 @@ func (this *Poloniex) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var watchOrderBookOptions any = this.SafeValue(this.Options, "watchOrderBook")
 	var name any = ccxt.DerefScalar(this.SafeString(watchOrderBookOptions, "name", "book_lv2"))
-	nameparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
+	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
 
@@ -923,7 +923,7 @@ func (this *Poloniex) HandleOHLCV(client any, message any) any {
 	data = this.SafeValue(data, 0)
 	var channel *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(data, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(symbol)
 	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
 	var timeframe any = this.FindTimeframe(channel, timeframes)
@@ -1064,7 +1064,7 @@ func (this *Poloniex) ParseWsTrade(trade any, optionalArgs ...any) any {
 		},
 	}, market)
 }
-func (this *Poloniex) ParseStatus(status any) any {
+func (this *Poloniex) ParseStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                "open",
 		"PARTIALLY_FILLED":   "open",
@@ -1177,7 +1177,7 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 		var marketId *string = this.SafeString(order, "symbol")
 		var eventType *string = this.SafeString(order, "eventType")
 		if marketId != nil {
-			var symbol any = this.SafeSymbol(marketId)
+			var symbol *string = this.SafeSymbol(marketId)
 			var orderId *string = this.SafeString(order, "orderId", "")
 			var clientOrderId *string = this.SafeString(order, "clientOrderId", "")
 			if (eventType != nil && *eventType == "place") || (eventType != nil && *eventType == "canceled") {
@@ -1206,8 +1206,8 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 				var previousOrderTrades any = ccxt.GetValue(previousOrder, "trades")
 				for j := 0; j < ccxt.GetArrayLength(previousOrderTrades); j++ {
 					var previousOrderTrade any = ccxt.GetValue(previousOrderTrades, j)
-					var cost any = this.NumberToString(ccxt.GetValue(previousOrderTrade, "cost"))
-					var amount any = this.NumberToString(ccxt.GetValue(previousOrderTrade, "amount"))
+					var cost *string = this.NumberToString(ccxt.GetValue(previousOrderTrade, "cost"))
+					var amount *string = this.NumberToString(ccxt.GetValue(previousOrderTrade, "amount"))
 					totalCost = ccxt.Precise.StringAdd(totalCost, cost)
 					totalAmount = ccxt.Precise.StringAdd(totalAmount, amount)
 				}
@@ -1216,12 +1216,12 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 				}
 				ccxt.AddElementToObject(previousOrder, "cost", this.ParseNumber(totalCost))
 				if !ccxt.IsEqual(ccxt.GetValue(previousOrder, "filled"), nil) {
-					var tradeAmount any = this.NumberToString(ccxt.GetValue(trade, "amount"))
-					var previousOrderFilled any = this.NumberToString(ccxt.GetValue(previousOrder, "filled"))
+					var tradeAmount *string = this.NumberToString(ccxt.GetValue(trade, "amount"))
+					var previousOrderFilled *string = this.NumberToString(ccxt.GetValue(previousOrder, "filled"))
 					previousOrderFilled = ccxt.Precise.StringAdd(previousOrderFilled, tradeAmount)
 					ccxt.AddElementToObject(previousOrder, "filled", previousOrderFilled)
 					if !ccxt.IsEqual(ccxt.GetValue(previousOrder, "amount"), nil) {
-						var previousOrderAmount any = this.NumberToString(ccxt.GetValue(previousOrder, "amount"))
+						var previousOrderAmount *string = this.NumberToString(ccxt.GetValue(previousOrder, "amount"))
 						ccxt.AddElementToObject(previousOrder, "remaining", this.ParseNumber(ccxt.Precise.StringSub(previousOrderAmount, previousOrderFilled)))
 					}
 				}
@@ -1232,13 +1232,13 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 						"currency": this.SafeString(ccxt.GetValue(trade, "fee"), "currency"),
 					})
 				}
-				if (!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil)) && (!ccxt.IsEqual(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"), nil)) {
-					var stringOrderCost any = this.NumberToString(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"))
-					var stringTradeCost any = this.NumberToString(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"))
+				if (!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil)) && (this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost") != nil) {
+					var stringOrderCost *string = this.NumberToString(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"))
+					var stringTradeCost *string = this.NumberToString(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"))
 					ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", ccxt.Precise.StringAdd(stringOrderCost, stringTradeCost))
 				}
 				var rawState *string = this.SafeString(order, "state")
-				var state any = this.ParseStatus(rawState)
+				var state *string = this.ParseStatus(rawState)
 				ccxt.AddElementToObject(previousOrder, "status", state)
 				// update the newUpdates count
 				orders.(ccxt.Appender).Append(previousOrder)
@@ -1453,8 +1453,8 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 			if !ccxt.IsEqual(bids, nil) {
 				for j := 0; j < ccxt.GetArrayLength(bids); j++ {
 					var bid any = this.SafeValue(bids, j)
-					var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
-					var amount any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
+					var price *float64 = this.SafeNumber(bid, 0)
+					var amount *float64 = this.SafeNumber(bid, 1)
 					var bidsSide any = ccxt.GetValue(orderbook, "bids")
 					bidsSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
@@ -1462,8 +1462,8 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 			if !ccxt.IsEqual(asks, nil) {
 				for j := 0; j < ccxt.GetArrayLength(asks); j++ {
 					var ask any = this.SafeValue(asks, j)
-					var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
-					var amount any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
+					var price *float64 = this.SafeNumber(ask, 0)
+					var amount *float64 = this.SafeNumber(ask, 1)
 					var asksSide any = ccxt.GetValue(orderbook, "asks")
 					asksSide.(ccxt.IOrderBookSide).Store(price, amount)
 				}
@@ -1527,7 +1527,7 @@ func (this *Poloniex) ParseWsBalance(response any) any {
 	for i := 0; i < ccxt.GetArrayLength(response); i++ {
 		var balance any = this.SafeValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var newAccount any = this.Account()
 		ccxt.AddElementToObject(newAccount, "free", this.SafeString(balance, "available"))
 		ccxt.AddElementToObject(newAccount, "used", this.SafeString(balance, "hold"))
@@ -1676,7 +1676,6 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 
 			}(this)
-
 			if ret__ != nil {
 				return ret__
 			}

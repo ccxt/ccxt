@@ -640,10 +640,10 @@ func (this *Dydx) ParseMarket(market any) any {
 	var parts []string = Split(marketId, "-")
 	var baseName *string = this.SafeString(parts, 0)
 	var baseId *string = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId string = "USDC"
-	var settle any = this.SafeCurrencyCode(settleId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 	var contract bool = true
 	var swap bool = true
@@ -780,7 +780,7 @@ func (this *Dydx) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(this.SafeString(trade, "createdAt"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "createdAt"))
 	var symbol *string = this.SafeString(market, "symbol")
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
@@ -1033,7 +1033,7 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	var rows any = this.SafeList(response, "historicalFunding", []any{})
 	for i := 0; i < GetArrayLength(rows); i++ {
 		var entry any = GetValue(rows, i)
-		var timestamp any = this.Parse8601(this.SafeString(entry, "effectiveAt"))
+		var timestamp *int64 = this.Parse8601(this.SafeString(entry, "effectiveAt"))
 		var marketId *string = this.SafeString(entry, "ticker")
 		AppendToArray(&rates, map[string]any{
 			"info":        entry,
@@ -1050,11 +1050,11 @@ func (this *Dydx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 }
 func (this *Dydx) HandlePublicAddress(methodName any, params any) any {
 	var userAux any = nil
-	userAuxparamsVariable := this.HandleOptionAndParams(params, methodName, "user")
+	var userAuxparamsVariable []any = this.HandleOptionAndParams(params, methodName, "user")
 	userAux = GetValue(userAuxparamsVariable, 0)
 	params = GetValue(userAuxparamsVariable, 1)
 	var user any = userAux
-	userparamsVariable := this.HandleOptionAndParams(params, methodName, "address", userAux)
+	var userparamsVariable []any = this.HandleOptionAndParams(params, methodName, "address", userAux)
 	user = GetValue(userparamsVariable, 0)
 	params = GetValue(userparamsVariable, 1)
 	if (user != nil) && (!IsEqual(user, "")) {
@@ -1093,14 +1093,14 @@ func (this *Dydx) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var status any = this.ParseOrderStatus(this.SafeStringUpper(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeStringUpper(order, "status"))
 	var marketId *string = this.SafeString(order, "ticker")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var filled *string = this.SafeString(order, "totalFilled")
-	var timestamp any = this.Parse8601(this.SafeString(order, "updatedAt"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "updatedAt"))
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
-	var typeVar any = this.ParseOrderType(this.SafeStringUpper(order, "type"))
+	var typeVar *string = this.ParseOrderType(this.SafeStringUpper(order, "type"))
 	var side *string = this.SafeStringLower(order, "side")
 	var timeInForce *string = this.SafeStringUpper(order, "timeInForce")
 	return this.SafeOrder(map[string]any{
@@ -1129,7 +1129,7 @@ func (this *Dydx) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Dydx) ParseOrderStatus(status any) any {
+func (this *Dydx) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"UNTRIGGERED":          "open",
 		"OPEN":                 "open",
@@ -1139,7 +1139,7 @@ func (this *Dydx) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Dydx) ParseOrderType(typeVar any) any {
+func (this *Dydx) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "LIMIT",
 		"STOP_LIMIT":         "LIMIT",
@@ -1224,7 +1224,7 @@ func (this *Dydx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandlePublicAddress("fetchOrders", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
+	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
 	if IsEqual(this.Markets, nil) {
@@ -1387,7 +1387,7 @@ func (this *Dydx) ParsePosition(position any, optionalArgs ...any) any {
 	if side == nil || *side != "long" {
 		quantity = Precise.StringMul("-1", quantity)
 	}
-	var timestamp any = this.Parse8601(this.SafeString(position, "createdAt"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(position, "createdAt"))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -1472,7 +1472,7 @@ func (this *Dydx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandlePublicAddress("fetchPositions", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
+	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
 	if IsEqual(this.Markets, nil) {
@@ -1634,7 +1634,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan any) any {
 }
 func (this *Dydx) Pow(n any, m any) any {
 	var r *string = Precise.StringMul(n, "1")
-	var c any = this.ParseToInt(m)
+	var c int64 = this.ParseToInt(m)
 	// TODO: cap
 	for i := 1; IsLessThan(i, c); i++ {
 		r = Precise.StringMul(r, n)
@@ -1660,7 +1660,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	}
 	var orderSide string = ToUpper(side)
 	var subaccountId any = 0
-	subaccountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
+	var subaccountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
@@ -1669,7 +1669,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLossPrice, nil) || !IsEqual(takeProfitPrice, nil)
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce", "GTT")
-	var postOnly any = this.IsPostOnly(isMarket, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
 	var priceStr any = this.PriceToPrecision(symbol, price)
 	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
@@ -1699,7 +1699,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		if timeInForce != nil && *timeInForce == "GTT" {
 			// long-term
 			orderFlag = 64
-			if EvalTruthy(postOnly) {
+			if postOnly {
 				timeInForceNumber = 2
 			} else {
 				timeInForceNumber = 0
@@ -1729,7 +1729,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
 	var goodTillBlockTime any = nil
 	var goodTillBlockTimeInSeconds any = 2592000
-	goodTillBlockTimeInSecondsparamsVariable := this.HandleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
+	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	if IsEqual(orderFlag, 0) {
@@ -1991,7 +1991,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
 	var goodTillBlockTimeInSeconds any = 2592000
-	goodTillBlockTimeInSecondsparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
+	var goodTillBlockTimeInSecondsparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
@@ -2003,7 +2003,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	}()
 	var orderFlags *int64 = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
 	var subAccountId any = 0
-	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
+	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = GetValue(subAccountIdparamsVariable, 1)
 	params = this.Omit(params, []any{"clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"})
@@ -2111,7 +2111,7 @@ func (this *Dydx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		panic(NotSupported(this.Id + " cancelOrders only support clientOrderIds."))
 	}
 	var subAccountId any = 0
-	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrders", "subAccountId", subAccountId)
+	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = GetValue(subAccountIdparamsVariable, 1)
 	var goodTillBlock any = DerefScalar(this.SafeInteger(params, "goodTillBlock"))
@@ -2249,7 +2249,7 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
 	var typeVar *string = this.SafeStringUpper(item, "type")
 	var direction any = nil
@@ -2261,7 +2261,7 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		}
 	}
 	var amount *string = this.SafeString(item, "size")
-	var timestamp any = this.Parse8601(this.SafeString(item, "createdAt"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(item, "createdAt"))
 	var sender any = this.SafeDict(item, "sender")
 	var recipient any = this.SafeDict(item, "recipient")
 	return this.SafeLedgerEntry(map[string]any{
@@ -2282,7 +2282,7 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Dydx) ParseLedgerEntryType(typeVar any) any {
+func (this *Dydx) ParseLedgerEntryType(typeVar any) *string {
 	var ledgerType map[string]any = map[string]any{
 		"TRANSFER_IN":  "transfer",
 		"TRANSFER_OUT": "transfer",
@@ -2383,7 +2383,7 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 		denom = GetValue(feeDenom, "CHAINTOKEN_DENOM")
 	}
 	var gasLimit float64 = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
-	var feeAmount any = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
+	var feeAmount *string = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
 	if feeAmount == nil {
 		panic(ExchangeError(this.Id + " estimateTxFee() missing feeAmount"))
 	}
@@ -2448,9 +2448,9 @@ func (this *Dydx) transferBody(ch chan any, code any, amount any, fromAccount an
 
 	account := (<-this.FetchDydxAccountAsync())
 	PanicOnError(account)
-	var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
-	var payload any = nil
-	var signingPayload any = nil
+	var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
+	var payload map[string]any = nil
+	var signingPayload map[string]any = nil
 	if IsEqual(fromAccount, "main") {
 		// deposit to subaccount
 		if toSubaccountId == nil {
@@ -2542,13 +2542,13 @@ func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	_ = currency
 	var id *string = this.SafeString(transfer, "id")
 	var currencyId *string = this.SafeString(transfer, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var amount any = DerefScalar(this.SafeNumber(transfer, "size"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var amount *float64 = this.SafeNumber(transfer, "size")
 	var sender any = this.SafeDict(transfer, "sender")
 	var recipient any = this.SafeDict(transfer, "recipient")
 	var fromAccount *string = this.SafeString(sender, "address")
 	var toAccount *string = this.SafeString(recipient, "address")
-	var timestamp any = this.Parse8601(this.SafeString(transfer, "createdAt"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(transfer, "createdAt"))
 	return map[string]any{
 		"info":        transfer,
 		"id":          id,
@@ -2607,7 +2607,7 @@ func (this *Dydx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	var transferIn []any = this.FilterBy(response, "type", "TRANSFER_IN")
 	var transferOut []any = this.FilterBy(response, "type", "TRANSFER_OUT")
-	var rows any = this.ArrayConcat(transferIn, transferOut)
+	var rows []any = this.ArrayConcat(transferIn, transferOut)
 
 	ch <- this.ParseTransfers(rows, currency, since, limit)
 	return nil
@@ -2641,9 +2641,9 @@ func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var addressFrom *string = this.SafeString(sender, "address")
 	var txid *string = this.SafeString(transaction, "transactionHash")
 	var currencyId *string = this.SafeString(transaction, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "createdAt"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "size"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "createdAt"))
+	var amount *float64 = this.SafeNumber(transaction, "size")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2710,7 +2710,7 @@ func (this *Dydx) withdrawBody(ch chan any, code any, amount any, address any, o
 
 	account := (<-this.FetchDydxAccountAsync())
 	PanicOnError(account)
-	var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
+	var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
 	var payload map[string]any = map[string]any{
 		"sender": map[string]any{
 			"owner":  this.GetWalletAddress(),
@@ -2898,7 +2898,7 @@ func (this *Dydx) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any)
 	PanicOnError(response)
 	var withdrawals []any = this.FilterBy(response, "type", "WITHDRAWAL")
 	var deposits []any = this.FilterBy(response, "type", "DEPOSIT")
-	var rows any = this.ArrayConcat(withdrawals, deposits)
+	var rows []any = this.ArrayConcat(withdrawals, deposits)
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)
 	return nil
@@ -2926,7 +2926,7 @@ func (this *Dydx) fetchTransactionsHelperBody(ch chan any, optionalArgs ...any) 
 	userAddressparamsVariable := this.HandlePublicAddress(methodName, params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	subAccountNumberparamsVariable := this.HandleOptionAndParams(params, methodName, "subAccountNumber", "0")
+	var subAccountNumberparamsVariable []any = this.HandleOptionAndParams(params, methodName, "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3083,7 +3083,7 @@ func (this *Dydx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var subaccountNumber any = nil
-	subaccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
+	var subaccountNumberparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
 	subaccountNumber = GetValue(subaccountNumberparamsVariable, 0)
 	params = GetValue(subaccountNumberparamsVariable, 1)
 	var request map[string]any = map[string]any{

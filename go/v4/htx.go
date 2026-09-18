@@ -2164,11 +2164,11 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var status any = nil
-	var eta any = nil
+	var eta *int64 = nil
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 
@@ -2193,7 +2193,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 			}
 			return "maintenance"
 		}()
-		eta = DerefScalar(this.SafeInteger(data, "haltEndTime"))
+		eta = this.SafeInteger(data, "haltEndTime")
 	} else {
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchStatus", nil, params)
@@ -2235,7 +2235,7 @@ func (this *Htx) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 			}
 			return "maintenance"
 		}()
-		eta = DerefScalar(this.SafeInteger(data, etaKey))
+		eta = this.SafeInteger(data, etaKey)
 	}
 
 	ch <- map[string]any{
@@ -2511,20 +2511,20 @@ func (this *Htx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes154712)
 	}
 	var types any = nil
-	typesparamsVariable := this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
+	var typesparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
 	types = GetValue(typesparamsVariable, 0)
 	params = GetValue(typesparamsVariable, 1)
-	var allMarkets any = []any{}
+	var allMarkets []any = []any{}
 	var promises any = []any{}
 	var keys []string = ObjectKeys(types)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		if IsEqual(this.SafeBool(types, key), true) {
-			if IsEqual(key, "spot") {
+			if key == "spot" {
 				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("spot", nil, params))
-			} else if IsEqual(key, "linear") {
+			} else if key == "linear" {
 				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync(nil, "linear", params))
-			} else if IsEqual(key, "inverse") {
+			} else if key == "inverse" {
 				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("swap", "inverse", params))
 				AppendToArray(&promises, this.FetchMarketsByTypeAndSubTypeAsync("future", "inverse", params))
 			}
@@ -2688,7 +2688,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		var quoteId any = nil
 		var settleId any = nil
 		var id any = nil
-		var lowercaseId any = nil
+		var lowercaseId string
 		var contract bool = (InOp(market, "contract_code"))
 		var spot bool = !contract
 		var swap bool = false
@@ -2751,9 +2751,9 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 			id = Add(baseId, quoteId)
 			lowercaseId = ToLower(id)
 		}
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
-		var settle any = this.SafeCurrencyCode(settleId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
+		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(base, "/"), quote)
 		var expiry any = nil
 		if contract {
@@ -2767,10 +2767,10 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 				symbol = Add(symbol, "-"+this.Yymmdd(expiry))
 			}
 		}
-		var contractSize any = DerefScalar(this.SafeNumber(market, "contract_size"))
-		var minCost any = DerefScalar(this.SafeNumber(market, "min-order-value"))
-		var maxAmount any = DerefScalar(this.SafeNumber(market, "max-order-amt"))
-		var minAmount any = DerefScalar(this.SafeNumber(market, "min-order-amt"))
+		var contractSize *float64 = this.SafeNumber(market, "contract_size")
+		var minCost *float64 = this.SafeNumber(market, "min-order-value")
+		var maxAmount *float64 = this.SafeNumber(market, "max-order-amt")
+		var minAmount *float64 = this.SafeNumber(market, "min-order-amt")
 		if contract {
 			if linear == true {
 				minAmount = contractSize
@@ -2813,7 +2813,7 @@ func (this *Htx) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, subT
 		// 7 Settlement Completed
 		// 8 Delivered
 		// 9 Suspending of Trade
-		var created any = nil
+		var created *int64 = nil
 		var createdDate any = DerefScalar(this.SafeString(market, "create_date")) // i.e 20230101
 		if createdDate != nil {
 			var createdArray []string = this.StringToCharsArray(createdDate)
@@ -2972,7 +2972,7 @@ func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(ticker, "symbol", "contract_code")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol any = DerefScalar(this.SafeSymbol(marketId, market))
 	symbol = this.TryGetSymbolFromFutureMarkets(symbol)
 	var timestamp *int64 = this.SafeInteger2(ticker, "ts", "quoteTime")
 	var bid any = nil
@@ -3169,7 +3169,7 @@ func (this *Htx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var isSubTypeRequested bool = (InOp(params, "subType")) || (InOp(params, "business_type"))
 	var typeVar any = nil
 	var subType any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTickers", market, params)
@@ -3307,7 +3307,7 @@ func (this *Htx) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLastPrices", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
@@ -3338,7 +3338,7 @@ func (this *Htx) ParseLastPrice(entry any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(entry, "symbol", "contract_code")
 	market = this.SafeMarket(marketId, market)
-	var price any = DerefScalar(this.SafeNumber(entry, "price"))
+	var price *float64 = this.SafeNumber(entry, "price")
 	var direction *string = this.SafeString(entry, "direction") // "buy" or "sell"
 	// group timestamp should not be assigned to the individual trades' times
 	return map[string]any{
@@ -3589,12 +3589,12 @@ func (this *Htx) ParseTrade(trade any, optionalArgs ...any) any {
 	amountString = this.SafeString(trade, "trade_volume", amountString)
 	var costString *string = this.SafeString(trade, "trade_turnover")
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeString(trade, "filled-fees"))
+	var feeCost *string = this.SafeString(trade, "filled-fees")
 	if feeCost == nil {
 		feeCost = Precise.StringNeg(this.SafeString(trade, "trade_fee"))
 	}
 	var feeCurrencyId *string = this.SafeStringN(trade, []any{"fee-currency", "fee_asset", "fee_currency"})
-	var feeCurrency any = this.SafeCurrencyCode(feeCurrencyId)
+	var feeCurrency *string = this.SafeCurrencyCode(feeCurrencyId)
 	var filledPoints *string = this.SafeString(trade, "filled-points")
 	if filledPoints != nil {
 		if (feeCost == nil) || Precise.StringEquals(feeCost, "0") {
@@ -3671,7 +3671,7 @@ func (this *Htx) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) 
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrderTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if !IsEqual(marketType, "spot") {
@@ -3766,7 +3766,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes268712)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3781,7 +3781,7 @@ func (this *Htx) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request any = map[string]any{}
@@ -4112,7 +4112,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 		PanicOnError(retRes299512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -4152,7 +4152,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 				request["from"] = Subtract(now, Multiply(duration, (Subtract(limit, 1))))
 				calcualtedEnd = now
 			} else {
-				var start any = this.ParseToInt(Divide(since, 1000))
+				var start int64 = this.ParseToInt(Divide(since, 1000))
 				request["from"] = start
 				calcualtedEnd = this.Sum(start, Multiply(duration, (Subtract(limit, 1))))
 			}
@@ -4239,7 +4239,7 @@ func (this *Htx) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	} else {
 		request["symbol"] = GetValue(market, "id")
 		var useHistorical any = nil
-		useHistoricalparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
+		var useHistoricalparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "useHistoricalEndpointForSpot", true)
 		useHistorical = GetValue(useHistoricalparamsVariable, 0)
 		params = GetValue(useHistoricalparamsVariable, 1)
 		if !EvalTruthy(useHistorical) {
@@ -4483,7 +4483,7 @@ func (this *Htx) ParseCurrency(rawCurrency any) any {
 		AddElementToObject(this.Options, "networkChainIdsByNames", map[string]any{})
 	}
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var assetType *string = this.SafeString(rawCurrency, "assetType")
 	var typeVar any = func() any {
 		if assetType != nil && *assetType == "1" {
@@ -4626,25 +4626,25 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes339612)
 	}
 	var isUnifiedAccount any = nil
-	isUnifiedAccountparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
+	var isUnifiedAccountparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
 	isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
 	params = GetValue(isUnifiedAccountparamsVariable, 1)
 	if EvalTruthy(isUnifiedAccount) {
 		panic(NotSupported(this.Id + " fetchBalance() unified account has been deprecated on htx"))
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
 	var isMultiAssetMode any = nil
-	subTypeparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType")
+	var subTypeparamsVariable []any = this.HandleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType")
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if subType == nil {
 		subType = "linear"
 	}
-	isMultiAssetModeparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "multiAssetMode", false)
+	var isMultiAssetModeparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "multiAssetMode", false)
 	isMultiAssetMode = GetValue(isMultiAssetModeparamsVariable, 0)
 	params = GetValue(isMultiAssetModeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -4850,7 +4850,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < GetArrayLength(details); i++ {
 			var balance any = GetValue(details, i)
 			var currencyId *string = this.SafeString(balance, "currency")
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "available_margin"))
 			AddElementToObject(account, "total", this.SafeString(balance, "equity"))
@@ -4868,15 +4868,15 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				for j := 0; j < GetArrayLength(balances); j++ {
 					var balance any = GetValue(balances, j)
 					var currencyId *string = this.SafeString(balance, "currency")
-					var code any = this.SafeCurrencyCode(currencyId)
+					var code *string = this.SafeCurrencyCode(currencyId)
 					if code != nil {
 						AddElementToObject(subResult, code, this.ParseMarginBalanceHelper(balance, code, subResult))
 					}
 				}
 				var subCodes []string = ObjectKeys(subResult)
 				for j := 0; j < len(subCodes); j++ {
-					var subCode any = GetValue(subCodes, j)
-					result = this.MergeBalanceAccount(result, subCode, GetValue(subResult, subCode))
+					var subCode string = GetValue(subCodes, j).(string)
+					result = this.MergeBalanceAccount(result, subCode, subResult[subCode])
 				}
 			}
 			result = this.SafeBalance(result)
@@ -4885,7 +4885,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			for i := 0; i < GetArrayLength(balances); i++ {
 				var balance any = GetValue(balances, i)
 				var currencyId *string = this.SafeString(balance, "currency")
-				var code any = this.SafeCurrencyCode(currencyId)
+				var code *string = this.SafeCurrencyCode(currencyId)
 				if code != nil {
 					AddElementToObject(result, code, this.ParseMarginBalanceHelper(balance, code, result))
 				}
@@ -4896,7 +4896,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < GetArrayLength(data); i++ {
 			var balance any = GetValue(data, i)
 			var currencyId *string = this.SafeString(balance, "symbol")
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "margin_available"))
 			AddElementToObject(account, "used", this.SafeString(balance, "margin_frozen"))
@@ -4952,7 +4952,7 @@ func (this *Htx) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -5529,7 +5529,7 @@ func (this *Htx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var contract bool = (IsEqual(marketType, "swap")) || (IsEqual(marketType, "future"))
@@ -5591,7 +5591,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes422512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -5606,7 +5606,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
@@ -5683,7 +5683,7 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes428412)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -5698,7 +5698,7 @@ func (this *Htx) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
@@ -5761,7 +5761,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var subType any = nil
@@ -6147,7 +6147,7 @@ func (this *Htx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(orders, market, since, limit)
 	return nil
 }
-func (this *Htx) ParseOrderStatus(status any) any {
+func (this *Htx) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"partial-filled":     "open",
 		"partial-canceled":   "canceled",
@@ -6428,7 +6428,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 		var feeCurrency any = nil
 		var feeCurrencyId *string = this.SafeString2(order, "fee_asset", "fee_currency")
 		if feeCurrencyId != nil {
-			feeCurrency = this.SafeCurrencyCode(feeCurrencyId)
+			feeCurrency = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
 		} else {
 			feeCurrency = func() any {
 				if IsEqual(side, "sell") {
@@ -6678,12 +6678,12 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	if (IsEqual(orderType, "market")) && (IsEqual(side, "buy")) {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice any = true
-		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		var cost any = DerefScalar(this.SafeNumber(params, "cost"))
+		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
-		if !IsEqual(cost, nil) {
+		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 			if IsEqual(price, nil) {
@@ -6695,8 +6695,8 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 				// https://github.com/ccxt/ccxt/pull/4395
 				// https://github.com/ccxt/ccxt/issues/7611
 				// we use amountToPrecision here because the exchange requires cost in base precision
-				var amountString any = this.NumberToString(amount)
-				var priceString any = this.NumberToString(price)
+				var amountString *string = this.NumberToString(amount)
+				var priceString *string = this.NumberToString(price)
 				quoteAmount = this.AmountToPrecision(symbol, Precise.StringMul(amountString, priceString))
 			}
 		} else {
@@ -6782,18 +6782,18 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		}
 		var stopLoss any = this.SafeDict(params, "stopLoss")
 		var takeProfit any = this.SafeDict(params, "takeProfit")
-		var stopLossTriggerPriceAttached any = DerefScalar(this.SafeNumber(stopLoss, "triggerPrice"))
-		var stopLossOrderPrice any = DerefScalar(this.SafeNumber(stopLoss, "price"))
+		var stopLossTriggerPriceAttached *float64 = this.SafeNumber(stopLoss, "triggerPrice")
+		var stopLossOrderPrice *float64 = this.SafeNumber(stopLoss, "price")
 		var stopLossType *string = this.SafeString(stopLoss, "type")
-		var takeProfitTriggerPriceAttached any = DerefScalar(this.SafeNumber(takeProfit, "triggerPrice"))
-		var takeProfitOrderPrice any = DerefScalar(this.SafeNumber(takeProfit, "price"))
+		var takeProfitTriggerPriceAttached *float64 = this.SafeNumber(takeProfit, "triggerPrice")
+		var takeProfitOrderPrice *float64 = this.SafeNumber(takeProfit, "price")
 		var takeProfitType *string = this.SafeString(takeProfit, "type")
 		// on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
 		if !IsEqual(stopLoss, nil) {
-			if !IsEqual(stopLossTriggerPriceAttached, nil) {
+			if stopLossTriggerPriceAttached != nil {
 				request["sl_trigger_price"] = this.PriceToPrecision(symbol, stopLossTriggerPriceAttached)
 			}
-			if !IsEqual(stopLossOrderPrice, nil) {
+			if stopLossOrderPrice != nil {
 				request["sl_order_price"] = this.PriceToPrecision(symbol, stopLossOrderPrice)
 			}
 			if stopLossType != nil {
@@ -6802,10 +6802,10 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 			params = this.Omit(params, "stopLoss")
 		}
 		if !IsEqual(takeProfit, nil) {
-			if !IsEqual(takeProfitTriggerPriceAttached, nil) {
+			if takeProfitTriggerPriceAttached != nil {
 				request["tp_trigger_price"] = this.PriceToPrecision(symbol, takeProfitTriggerPriceAttached)
 			}
-			if !IsEqual(takeProfitOrderPrice, nil) {
+			if takeProfitOrderPrice != nil {
 				request["tp_order_price"] = this.PriceToPrecision(symbol, takeProfitOrderPrice)
 			}
 			if takeProfitType != nil {
@@ -6828,15 +6828,15 @@ func (this *Htx) CreateContractOrderRequest(symbol any, typeVar any, side any, a
 		}
 		request["direction"] = side
 	}
-	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"}))
-	var stopLossTriggerPrice any = DerefScalar(this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price"))
-	var takeProfitTriggerPrice any = DerefScalar(this.SafeNumber2(params, "takeProfitPrice", "tp_trigger_price"))
+	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
+	var stopLossTriggerPrice *float64 = this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price")
+	var takeProfitTriggerPrice *float64 = this.SafeNumber2(params, "takeProfitPrice", "tp_trigger_price")
 	var trailingPercent *string = this.SafeString2(params, "trailingPercent", "callback_rate")
-	var trailingTriggerPrice any = DerefScalar(this.SafeNumber(params, "trailingTriggerPrice", price))
+	var trailingTriggerPrice *float64 = this.SafeNumber(params, "trailingTriggerPrice", price)
 	var isTrailingPercentOrder bool = (trailingPercent != nil)
-	var isTrigger bool = !IsEqual(triggerPrice, nil)
-	var isStopLossTriggerOrder bool = !IsEqual(stopLossTriggerPrice, nil)
-	var isTakeProfitTriggerOrder bool = !IsEqual(takeProfitTriggerPrice, nil)
+	var isTrigger bool = (triggerPrice != nil)
+	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
+	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var clientOrderId *int64 = this.SafeIntegerN(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 	if isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
 		if clientOrderId != nil {
@@ -6983,14 +6983,14 @@ func (this *Htx) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		PanicOnError(retRes543612)
 	}
 	var market any = this.Market(symbol)
-	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"}))
-	var stopLossTriggerPrice any = DerefScalar(this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price"))
-	var takeProfitTriggerPrice any = DerefScalar(this.SafeNumber2(params, "takeProfitPrice", "tp_trigger_price"))
-	var trailingPercent any = DerefScalar(this.SafeNumber(params, "trailingPercent"))
-	var isTrailingPercentOrder bool = !IsEqual(trailingPercent, nil)
-	var isTrigger bool = !IsEqual(triggerPrice, nil)
-	var isStopLossTriggerOrder bool = !IsEqual(stopLossTriggerPrice, nil)
-	var isTakeProfitTriggerOrder bool = !IsEqual(takeProfitTriggerPrice, nil)
+	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
+	var stopLossTriggerPrice *float64 = this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price")
+	var takeProfitTriggerPrice *float64 = this.SafeNumber2(params, "takeProfitPrice", "tp_trigger_price")
+	var trailingPercent *float64 = this.SafeNumber(params, "trailingPercent")
+	var isTrailingPercentOrder bool = (trailingPercent != nil)
+	var isTrigger bool = (triggerPrice != nil)
+	var isStopLossTriggerOrder bool = (stopLossTriggerPrice != nil)
+	var isTakeProfitTriggerOrder bool = (takeProfitTriggerPrice != nil)
 	var response any = nil
 	if IsEqual(GetValue(market, "spot"), true) {
 		if isTrailingPercentOrder {
@@ -7388,7 +7388,7 @@ func (this *Htx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var subType any = nil
@@ -7600,7 +7600,7 @@ func (this *Htx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -7901,7 +7901,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -8075,7 +8075,7 @@ func (this *Htx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	var tag *string = this.SafeString(depositAddress, "addressTag")
 	var currencyId *string = this.SafeString(depositAddress, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var note *string = this.SafeString(depositAddress, "note")
 	var networkId *string = this.SafeString(depositAddress, "chain")
 	this.CheckAddress(address)
@@ -8453,7 +8453,7 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "created-at")
-	var code any = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
+	var code *string = this.SafeCurrencyCode(this.SafeString(transaction, "currency"))
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
@@ -8499,7 +8499,7 @@ func (this *Htx) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Htx) ParseTransactionStatus(status any) any {
+func (this *Htx) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"unknown":         "failed",
 		"confirming":      "pending",
@@ -8576,22 +8576,22 @@ func (this *Htx) withdrawBody(ch chan any, code any, amount any, address any, op
 	amount = ParseFloat(amountPrecision)
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
 	if EvalTruthy(this.SafeBool(withdrawOptions, "includeFee", false)) {
-		var fee any = DerefScalar(this.SafeNumber(params, "fee"))
-		if IsEqual(fee, nil) {
+		var fee *float64 = this.SafeNumber(params, "fee")
+		if fee == nil {
 
 			currencies := (<-this.FetchCurrenciesAsync())
 			PanicOnError(currencies)
 			this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
 			var targetNetwork any = this.SafeValue(GetValue(currency, "networks"), networkCode, map[string]any{})
-			fee = DerefScalar(this.SafeNumber(targetNetwork, "fee"))
-			if IsEqual(fee, nil) {
+			fee = this.SafeNumber(targetNetwork, "fee")
+			if fee == nil {
 				panic(ArgumentsRequired(this.Id + " withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with \"exchange.loadMarkets(true)\", or provide the \"fee\" parameter"))
 			}
 		}
 		// fee needs to be deducted from whole amount
 		var feeString any = this.CurrencyToPrecision(code, fee, networkCode)
 		params = this.Omit(params, "fee")
-		var amountString any = this.NumberToString(amount)
+		var amountString *string = this.NumberToString(amount)
 		var amountSubtractedString *string = Precise.StringSub(amountString, feeString)
 		var amountSubtractedParsed any = amountSubtractedString
 		if amountSubtractedParsed == nil {
@@ -8652,8 +8652,8 @@ func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
 	var id *string = this.SafeString2(transfer, "transfer_id", "data")
 	var currencyId *string = this.SafeString(transfer, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var amount any = DerefScalar(this.SafeNumber(transfer, "amount"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var amount *float64 = this.SafeNumber(transfer, "amount")
 	var timestamp *int64 = this.SafeInteger(transfer, "transfer_time")
 	var fromAccountRaw *string = this.SafeString(transfer, "from_account_type")
 	var toAccountRaw *string = this.SafeString(transfer, "to_account_type")
@@ -8986,7 +8986,7 @@ func (this *Htx) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var currencies any = this.SafeValue(info, "currencies", []any{})
 	var baseData any = this.SafeValue(currencies, 0)
 	var quoteData any = this.SafeValue(currencies, 1)
@@ -9039,7 +9039,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		panic(ArgumentsRequired(this.Id + " fetchFundingRateHistory() requires a symbol argument"))
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -9090,7 +9090,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		for i := 0; i < GetArrayLength(data); i++ {
 			var entry any = GetValue(data, i)
 			var marketId *string = this.SafeString(entry, "contract_code")
-			var symbolInner any = this.SafeSymbol(marketId, market)
+			var symbolInner *string = this.SafeSymbol(marketId, market)
 			var timestamp *int64 = this.SafeInteger(entry, "funding_time")
 			AppendToArray(&rates, map[string]any{
 				"info":        entry,
@@ -9107,7 +9107,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 			var entry any = GetValue(result, i)
 			AddElementToObject(entry, "current_page", cursor)
 			var marketId *string = this.SafeString(entry, "contract_code")
-			var symbolInner any = this.SafeSymbol(marketId)
+			var symbolInner *string = this.SafeSymbol(marketId)
 			var timestamp *int64 = this.SafeInteger(entry, "funding_time")
 			AppendToArray(&rates, map[string]any{
 				"info":        entry,
@@ -9150,14 +9150,14 @@ func (this *Htx) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var nextFundingRate any = DerefScalar(this.SafeNumber(contract, "estimated_rate"))
+	var nextFundingRate *float64 = this.SafeNumber(contract, "estimated_rate")
 	var fundingTimestamp *int64 = this.SafeInteger(contract, "funding_time")
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "next_funding_time")
 	var fundingTimeString *string = this.SafeString(contract, "funding_time")
 	var nextFundingTimeString *string = this.SafeString(contract, "next_funding_time")
 	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	var marketId *string = this.SafeString(contract, "contract_code")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   symbol,
@@ -9272,7 +9272,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var defaultSubType string = "linear"
 	var subType any = nil
-	subTypeparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType)
+	var subTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	if !IsEqual(symbols, nil) {
@@ -9540,7 +9540,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				"Signature": signature,
 			}))
 			url = Add(url, Add("?", auth))
-			if method == "POST" {
+			if IsEqual(method, "POST") {
 				var bodyRequest any = nil
 				if isArrayParams {
 					bodyRequest = params
@@ -9587,7 +9587,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 		} else if access != nil && *access == "private" {
 			this.CheckRequiredCredentials()
-			if method == "POST" {
+			if IsEqual(method, "POST") {
 				var options any = this.SafeValue(this.Options, "broker", map[string]any{})
 				var id *string = this.SafeString(options, "id", "AA03022abc")
 				if !isArrayParams {
@@ -9615,7 +9615,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 			}
 			// sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
 			request = this.Keysort(request)
-			if method != "POST" {
+			if !IsEqual(method, "POST") {
 				var sortedQuery map[string]any = this.Keysort(query)
 				request = this.Extend(request, sortedQuery)
 			}
@@ -9628,7 +9628,7 @@ func (this *Htx) Sign(path any, optionalArgs ...any) any {
 				"Signature": signature,
 			}))
 			url = Add(url, Add("?", auth))
-			if method == "POST" {
+			if IsEqual(method, "POST") {
 				var bodyRequest any = nil
 				if isArrayParams {
 					bodyRequest = params
@@ -9736,7 +9736,7 @@ func (this *Htx) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = this.Market(symbol)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request any = map[string]any{
@@ -9845,7 +9845,7 @@ func (this *Htx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 		PanicOnError(retRes788512)
 	}
 	var market any = this.Market(symbol)
-	marketTypequeryVariable := this.HandleMarketTypeAndParams("setLeverage", market, params)
+	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("setLeverage", market, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
 	query := GetValue(marketTypequeryVariable, 1)
 	var request map[string]any = map[string]any{
@@ -9918,12 +9918,12 @@ func (this *Htx) ParseIncome(income any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "contract_code")
-	var symbol any = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeNumber(income, "amount"))
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var amount *float64 = this.SafeNumber(income, "amount")
 	var timestamp *int64 = this.SafeInteger2(income, "ts", "created_time")
 	var id *string = this.SafeString(income, "id")
 	var currencyId *string = this.SafeStringN(income, []any{"symbol", "asset", "currency"})
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -9999,8 +9999,8 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	var symbol any = GetValue(market, "symbol")
 	var contracts *string = this.SafeString(position, "volume")
 	var contractSize any = this.SafeValue(market, "contractSize")
-	var contractSizeString any = this.NumberToString(contractSize)
-	var entryPrice any = DerefScalar(this.SafeNumber2(position, "cost_open", "open_avg_price"))
+	var contractSizeString *string = this.NumberToString(contractSize)
+	var entryPrice *float64 = this.SafeNumber2(position, "cost_open", "open_avg_price")
 	var initialMargin *string = this.SafeString2(position, "position_margin", "initial_margin")
 	var rawSide *string = this.SafeString(position, "direction")
 	var directionSide any = func() any {
@@ -10016,7 +10016,7 @@ func (this *Htx) ParsePosition(position any, optionalArgs ...any) any {
 	if isHedgedPositionSide {
 		side = rawPositionSide
 	}
-	var unrealizedProfit any = DerefScalar(this.SafeNumber(position, "profit_unreal"))
+	var unrealizedProfit *float64 = this.SafeNumber(position, "profit_unreal")
 	var marginMode any = DerefScalar(this.SafeString(position, "margin_mode"))
 	var leverage *string = this.SafeString(position, "lever_rate")
 	var percentage *string = Precise.StringMul(this.SafeString(position, "profit_rate"), "100")
@@ -10127,7 +10127,7 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPositions", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
@@ -10204,7 +10204,7 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		return marginMode
 	}()
-	marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
+	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
 	query := GetValue(marketTypequeryVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -10269,7 +10269,7 @@ func (this *Htx) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	ch <- parsed
 	return nil
 }
-func (this *Htx) ParseLedgerEntryType(typeVar any) any {
+func (this *Htx) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"trade":         "trade",
 		"etf":           "trade",
@@ -10305,7 +10305,7 @@ func (this *Htx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
 	var id *string = this.SafeString(item, "transactId")
 	var transferType *string = this.SafeString(item, "transferType")
@@ -10365,7 +10365,7 @@ func (this *Htx) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes852212)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -10714,7 +10714,7 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenInterests", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenInterests", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
@@ -10914,8 +10914,8 @@ func (this *Htx) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(interest, "ts")
-	var amount any = DerefScalar(this.SafeNumber(interest, "volume"))
-	var value any = DerefScalar(this.SafeNumber(interest, "value"))
+	var amount *float64 = this.SafeNumber(interest, "volume")
+	var value *float64 = this.SafeNumber(interest, "value")
 	var marketId *string = this.SafeString(interest, "contract_code")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeSymbol(marketId, market),
@@ -11452,16 +11452,16 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		var networkId *string = this.SafeString(chainEntry, "chain")
 		var withdrawFeeType *string = this.SafeString(chainEntry, "withdrawFeeType")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var withdrawFee any = nil
-		var withdrawResult any = nil
+		var withdrawFee *float64 = nil
+		var withdrawResult map[string]any = nil
 		if withdrawFeeType != nil && *withdrawFeeType == "fixed" {
-			withdrawFee = DerefScalar(this.SafeNumber(chainEntry, "transactFeeWithdraw"))
+			withdrawFee = this.SafeNumber(chainEntry, "transactFeeWithdraw")
 			withdrawResult = map[string]any{
 				"fee":        withdrawFee,
 				"percentage": false,
 			}
 		} else {
-			withdrawFee = DerefScalar(this.SafeNumber(chainEntry, "transactFeeRateWithdraw"))
+			withdrawFee = this.SafeNumber(chainEntry, "transactFeeRateWithdraw")
 			withdrawResult = map[string]any{
 				"fee":        withdrawFee,
 				"percentage": true,
@@ -11941,7 +11941,7 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPositionsADLRank", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositionsADLRank", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {

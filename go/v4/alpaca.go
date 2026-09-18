@@ -663,11 +663,11 @@ func (this *Alpaca) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
-	var jetlagStrStart any = Subtract(GetLength(timestamp), 6)
+	var jetlagStrStart int64 = Subtract(GetLength(timestamp), 6).(int64)
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
-	var jetlagStrEnd any = Subtract(GetLength(timestamp), 3)
+	var jetlagStrEnd int64 = Subtract(GetLength(timestamp), 3).(int64)
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
 	}
@@ -758,8 +758,8 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	var assetClass *string = this.SafeString(asset, "class")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote any = DerefScalar(this.SafeCurrencyCode(quoteId))
 	// Us equity markets do not include quote in symbol.
 	// We can safely coerce us_equity quote to USD
 	if (quote == nil) && (assetClass != nil && *assetClass == "us_equity") {
@@ -768,14 +768,14 @@ func (this *Alpaca) ParseMarket(asset any) any {
 	var symbol any = Add(Add(base, "/"), quote)
 	var status *string = this.SafeString(asset, "status")
 	var active bool = (status != nil && *status == "active")
-	var minAmount any = DerefScalar(this.SafeNumber(asset, "min_order_size"))
-	var amount any = DerefScalar(this.SafeNumber(asset, "min_trade_increment"))
-	var price any = DerefScalar(this.SafeNumber(asset, "price_increment"))
-	var minCost any = nil
+	var minAmount *float64 = this.SafeNumber(asset, "min_order_size")
+	var amount *float64 = this.SafeNumber(asset, "min_trade_increment")
+	var price *float64 = this.SafeNumber(asset, "price_increment")
+	var minCost *float64 = nil
 	if (assetClass != nil && *assetClass == "crypto") && (IsEqual(quote, "USD")) {
 		// alpaca rejects USD-quoted crypto buy orders below 10 USD notional: {"code":40310000,"message":"cost basis must be >= minimal amount of order 10"}
 		// USDT-, USDC- and BTC-quoted pairs accept smaller orders, and sell orders are not floored — verified live 2026-08-25
-		minCost = DerefScalar(this.SafeNumber(this.Options, "minCostUSD", this.ParseNumber("10")))
+		minCost = this.SafeNumber(this.Options, "minCostUSD", this.ParseNumber("10"))
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -1008,7 +1008,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//
 	var orderbooks any = this.SafeDict(response, "orderbooks", map[string]any{})
 	var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
-	var timestamp any = this.Parse8601(this.SafeString(rawOrderbook, "t"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
 	ch <- this.ParseOrderBook(rawOrderbook, GetValue(market, "symbol"), timestamp, "b", "a", "p", "s")
 	return nil
@@ -1058,11 +1058,11 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	var loc *string = this.SafeString(params, "loc", "us")
 	var method *string = this.SafeString(params, "method", "marketPublicGetV1beta3CryptoLocBars")
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var paginationCalls any = 10
-	paginationCallsparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
+	var paginationCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginationCalls", 10)
 	paginationCalls = GetValue(paginationCallsparamsVariable, 0)
 	params = GetValue(paginationCallsparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -1186,7 +1186,7 @@ func (this *Alpaca) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var datetime *string = this.SafeString(ohlcv, "t")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	return []any{timestamp, this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "v")}
 }
 
@@ -1323,7 +1323,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
 	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = GetValue(marketIds, i)
+		var marketId string = GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var entry any = this.SafeDict(snapshots, marketId)
 		var dailyBar any = this.SafeDict(entry, "dailyBar", map[string]any{})
@@ -1519,7 +1519,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	}
 	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stop_price")
 	if triggerPrice != nil {
-		var newType any = nil
+		var newType string
 		if GetIndexOf(typeVar, "limit") >= 0 {
 			newType = "stop_limit"
 		} else {
@@ -1539,7 +1539,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		request["qty"] = this.AmountToPrecision(symbol, amount)
 	}
 	var defaultTIF any = nil
-	defaultTIFparamsVariable := this.HandleOptionAndParams(params, "createOrder", "timeInForce")
+	var defaultTIFparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce")
 	defaultTIF = GetValue(defaultTIFparamsVariable, 0)
 	params = GetValue(defaultTIFparamsVariable, 1)
 	if defaultTIF != nil {
@@ -1954,7 +1954,7 @@ func (this *Alpaca) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 		request["limit_price"] = this.PriceToPrecision(symbol, price)
 	}
 	var timeInForce any = nil
-	timeInForceparamsVariable := this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
+	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "timeInForce", "gtc")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
 	params = GetValue(timeInForceparamsVariable, 1)
 	if timeInForce != nil {
@@ -2015,7 +2015,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var alpacaStatus *string = this.SafeString(order, "status")
-	var status any = this.ParseOrderStatus(alpacaStatus)
+	var status *string = this.ParseOrderStatus(alpacaStatus)
 	var feeValue *string = this.SafeString(order, "commission")
 	var fee any = nil
 	if feeValue != nil {
@@ -2032,7 +2032,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var datetime *string = this.SafeString(order, "submitted_at")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	return this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "id"),
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -2057,7 +2057,7 @@ func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Alpaca) ParseOrderStatus(status any) any {
+func (this *Alpaca) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"pending_new":          "open",
 		"accepted":             "open",
@@ -2080,7 +2080,7 @@ func (this *Alpaca) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Alpaca) ParseTimeInForce(timeInForce any) any {
+func (this *Alpaca) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"day": "Day",
 		"gtc": "GTC",
@@ -2205,9 +2205,9 @@ func (this *Alpaca) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString2(trade, "S", "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var datetime *string = this.SafeString2(trade, "t", "transaction_time")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	var alpacaSide *string = this.SafeString(trade, "tks")
 	var side any = DerefScalar(this.SafeString(trade, "side"))
 	if alpacaSide != nil && *alpacaSide == "B" {
@@ -2606,7 +2606,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var activityType *string = this.SafeString(transaction, "activity_type")
 	var txid any = nil
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var datetime any = nil
 	var network any = nil
 	var address any = nil
@@ -2623,7 +2623,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var netAmount *string = this.SafeString(transaction, "net_amount")
 		var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(netAmount, "0"))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
-		datetime = this.Iso8601(timestamp)
+		datetime = DerefScalar(this.Iso8601(timestamp))
 		typeVar = func() any {
 			if isIncoming {
 				return "deposit"
@@ -2636,11 +2636,11 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		// currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
 		var activityCurrencyId *string = this.SafeString2(transaction, "symbol", "asset")
 		if activityCurrencyId != nil {
-			code = this.SafeCurrencyCode(activityCurrencyId)
+			code = DerefScalar(this.SafeCurrencyCode(activityCurrencyId))
 		} else if (activityType != nil && *activityType == "CSD") || (activityType != nil && *activityType == "CSW") {
 			code = "USD"
 		} else {
-			code = this.SafeCurrencyCode(nil, currency)
+			code = DerefScalar(this.SafeCurrencyCode(nil, currency))
 		}
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		comment = activityType
@@ -2656,7 +2656,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		typeVar = this.ParseTransactionType(this.SafeString(transaction, "direction"))
 		amount = DerefScalar(this.SafeNumber(transaction, "amount"))
 		var currencyId *string = this.SafeString(transaction, "asset")
-		code = this.SafeCurrencyCode(currencyId, currency)
+		code = DerefScalar(this.SafeCurrencyCode(currencyId, currency))
 		status = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 		var fees *string = this.SafeString(transaction, "fees")
 		var networkFee *string = this.SafeString(transaction, "network_fee")
@@ -2689,7 +2689,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Alpaca) ParseTransactionStatus(status any) any {
+func (this *Alpaca) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
 		"FAILED":     "failed",
@@ -2700,7 +2700,7 @@ func (this *Alpaca) ParseTransactionStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Alpaca) ParseTransactionType(typeVar any) any {
+func (this *Alpaca) ParseTransactionType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"INCOMING": "deposit",
 		"OUTGOING": "withdrawal",
@@ -2792,7 +2792,7 @@ func (this *Alpaca) ParseBalance(response any) any {
 	}
 	var account any = this.Account()
 	var currencyId *string = this.SafeString(response, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	AddElementToObject(account, "free", this.SafeString(response, "cash"))
 	AddElementToObject(account, "total", this.SafeString(response, "equity"))
 	if code != nil {

@@ -905,7 +905,7 @@ func (this *Weex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTime", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTime", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
@@ -1065,7 +1065,7 @@ func (this *Weex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Weex) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "coin")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
 	var chains any = this.SafeList(rawCurrency, "networkList", []any{})
@@ -1165,7 +1165,7 @@ func (this *Weex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
 	var spotArray any = this.SafeList(spotResponse, "symbols", []any{})
 	var contractArray any = this.SafeList(contractResponse, "symbols", []any{})
-	var result any = this.ArrayConcat(spotArray, contractArray)
+	var result []any = this.ArrayConcat(spotArray, contractArray)
 
 	ch <- this.ParseMarkets(result)
 	return nil
@@ -1231,9 +1231,9 @@ func (this *Weex) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseAsset")
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var settleId *string = this.SafeString(market, "marginAsset")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
-	var settle any = this.SafeCurrencyCode(settleId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var active any = true
 	var symbol any = Add(Add(base, "/"), quote)
 	var isSpot bool = true
@@ -1242,10 +1242,10 @@ func (this *Weex) ParseMarket(market any) any {
 	if settle != nil {
 		symbol = Add(symbol, Add(":", settle))
 		isSpot = false
-		if IsEqual(settle, quote) {
+		if settle == quote || (settle != nil && quote != nil && *settle == *quote) {
 			isLinear = true
 			isInverse = false
-		} else if IsEqual(settle, base) {
+		} else if settle == base || (settle != nil && base != nil && *settle == *base) {
 			isLinear = false
 			isInverse = true
 		}
@@ -1364,7 +1364,7 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var symbolsLength int = 0
@@ -1465,7 +1465,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
@@ -1620,7 +1620,7 @@ func (this *Weex) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchLastPrices", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
@@ -1692,7 +1692,7 @@ func (this *Weex) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...an
 		panic(NotSupported(this.Id + " fetchMarkPrice() supports contract markets only"))
 	}
 	var priceType any = nil
-	priceTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarkPrice", "priceType", "MARK")
+	var priceTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkPrice", "priceType", "MARK")
 	priceType = GetValue(priceTypeparamsVariable, 0)
 	params = GetValue(priceTypeparamsVariable, 1) // the endpoint defaults to INDEX
 	var request map[string]any = map[string]any{
@@ -1983,7 +1983,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	}
 	var maxHistoricalLimit int = 100
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1998,7 +1998,7 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	}
 	var until *int64 = this.SafeInteger(params, "until")
 	var historical any = false
-	historicalparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "historical")
+	var historicalparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "historical")
 	historical = GetValue(historicalparamsVariable, 0)
 	params = GetValue(historicalparamsVariable, 1)
 	var timeframeOption any = this.SafeDict(this.Options, "timeframes", map[string]any{})
@@ -2228,7 +2228,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 	var commission *string = this.SafeString(trade, "commission")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(trade, "commissionAsset")
-		var feeCurrency any = this.SafeCurrencyCode(commissionAsset)
+		var feeCurrency any = DerefScalar(this.SafeCurrencyCode(commissionAsset))
 		if isSpot == true {
 			if IsEqual(side, "buy") {
 				feeCurrency = GetValue(market, "base")
@@ -2316,7 +2316,7 @@ func (this *Weex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(interest, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market, nil, "swap")
+	var symbol *string = this.SafeSymbol(marketId, market, nil, "swap")
 	var timestamp *int64 = this.SafeInteger(interest, "time")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
@@ -2391,7 +2391,7 @@ func (this *Weex) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market, nil, "swap")
+	var symbol *string = this.SafeSymbol(marketId, market, nil, "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "time")
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "nextFundingTime")
 	var interval any = nil
@@ -2490,7 +2490,7 @@ func (this *Weex) ParseFundingRateHistory(contract any, optionalArgs ...any) any
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market, nil, "swap")
+	var symbol *string = this.SafeSymbol(marketId, market, nil, "swap")
 	var timestamp *int64 = this.SafeInteger(contract, "fundingTime")
 	return map[string]any{
 		"info":        contract,
@@ -2524,7 +2524,7 @@ func (this *Weex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var requestedType *string = this.SafeString(params, "type")
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
@@ -2603,7 +2603,7 @@ func (this *Weex) ParseBalance(response any) any {
 		if (sandboxMode != nil && *sandboxMode == true) && (IsEqual(currencyId, "SUSDT")) {
 			currencyId = "USDT" // demo trading balances are denominated in the demo asset SUSDT
 		}
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString2(entry, "availableBalance", "free"))
 		AddElementToObject(account, "used", this.SafeString2(entry, "frozen", "locked"))
@@ -2655,7 +2655,7 @@ func (this *Weex) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var maxLimit int = 100
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2700,7 +2700,7 @@ func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transfer, "tradeTime")
 	var currencyId *string = this.SafeString(transfer, "coinName")
-	var currencyCode any = this.SafeCurrencyCode(currencyId, currency)
+	var currencyCode *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.SafeString(transfer, "status")
 	return map[string]any{
 		"info":        transfer,
@@ -2714,7 +2714,7 @@ func (this *Weex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Weex) ParseTransferStatus(status any) any {
+func (this *Weex) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Successful": "ok",
 	}
@@ -2994,10 +2994,10 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 	var stopLoss any = this.SafeDict(params, "stopLoss")
 	var hasStopLoss bool = (!IsEqual(stopLoss, nil))
 	// the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
-	if hasTakeProfit && (!IsEqual(this.SafeNumber(takeProfit, "price"), nil)) {
+	if hasTakeProfit && (this.SafeNumber(takeProfit, "price") != nil) {
 		panic(NotSupported(this.Id + " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price"))
 	}
-	if hasStopLoss && (!IsEqual(this.SafeNumber(stopLoss, "price"), nil)) {
+	if hasStopLoss && (this.SafeNumber(stopLoss, "price") != nil) {
 		panic(NotSupported(this.Id + " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price"))
 	}
 	var timeInForce *string = this.SafeString(params, "timeInForce")
@@ -3024,7 +3024,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 		}
 		// conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
 		if hasStopLoss {
-			var stopLossTriggerPrice any = DerefScalar(this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice"))
+			var stopLossTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 			request["presetStopLossPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
 			var stopLossPriceType *string = this.SafeString(stopLoss, "triggerPriceType")
 			if stopLossPriceType != nil {
@@ -3032,7 +3032,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 			}
 		}
 		if hasTakeProfit {
-			var takeProfitTriggerPrice any = DerefScalar(this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice"))
+			var takeProfitTriggerPrice *float64 = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 			request["presetTakeProfitPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
 			var takeProfitPriceType *string = this.SafeString(takeProfit, "triggerPriceType")
 			if takeProfitPriceType != nil {
@@ -3084,7 +3084,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 		}
 		request["newClientOrderId"] = clientOrderId
 		if hasStopLoss {
-			var stopLossTriggerPrice any = DerefScalar(this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice"))
+			var stopLossTriggerPrice *float64 = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 			request["slTriggerPrice"] = this.PriceToPrecision(symbol, stopLossTriggerPrice)
 			var stopLossPriceType *string = this.SafeString(stopLoss, "triggerPriceType")
 			if stopLossPriceType != nil {
@@ -3092,7 +3092,7 @@ func (this *Weex) CreateContractOrderRequest(symbol any, typeVar any, side any, 
 			}
 		}
 		if hasTakeProfit {
-			var takeProfitTriggerPrice any = DerefScalar(this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice"))
+			var takeProfitTriggerPrice *float64 = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 			request["tpTriggerPrice"] = this.PriceToPrecision(symbol, takeProfitTriggerPrice)
 			var takeProfitPriceType *string = this.SafeString(takeProfit, "triggerPriceType")
 			if takeProfitPriceType != nil {
@@ -3147,7 +3147,7 @@ func (this *Weex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var trigger *bool = this.SafeBool(params, "trigger", false)
@@ -3237,7 +3237,7 @@ func (this *Weex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["symbol"] = GetValue(market, "id")
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var trigger *bool = this.SafeBool(params, "trigger", false)
@@ -3303,7 +3303,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (IsEqual(marketType, "spot"))
@@ -3378,7 +3378,7 @@ func (this *Weex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (IsEqual(marketType, "spot"))
@@ -3472,12 +3472,12 @@ func (this *Weex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (IsEqual(marketType, "spot"))
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 100
@@ -3646,7 +3646,7 @@ func (this *Weex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var orders any = nil
@@ -3708,7 +3708,7 @@ func (this *Weex) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var orders any = nil
@@ -3772,7 +3772,7 @@ func (this *Weex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var maxLimit int = 1000
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3863,14 +3863,14 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
 		panic(NotSupported(this.Id + " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\""))
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 1000
@@ -4103,7 +4103,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Weex) ParseOrderStatus(status any) any {
+func (this *Weex) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"new":          "open",
 		"partial_fill": "closed",
@@ -4116,7 +4116,7 @@ func (this *Weex) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Weex) ParseOrderType(typeVar any) any {
+func (this *Weex) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "limit",
 		"MARKET":             "market",
@@ -4231,7 +4231,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (IsEqual(marketType, "spot"))
@@ -4239,7 +4239,7 @@ func (this *Weex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " fetchMyTrades() requires a symbol argument for spot markets"))
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 100
@@ -4355,7 +4355,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes343112)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var maxLimit int = 100
@@ -4367,7 +4367,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var accountType any = nil
-	accountTypeparamsVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
+	var accountTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = GetValue(accountTypeparamsVariable, 1)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -4474,7 +4474,7 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString2(item, "coinName", "asset")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger2(item, "cTime", "time")
 	var amountRaw *string = this.SafeString2(item, "deltaAmount", "income")
@@ -4517,7 +4517,7 @@ func (this *Weex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		},
 	}, currency)
 }
-func (this *Weex) ParseLedgerType(typeVar any) any {
+func (this *Weex) ParseLedgerType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"transfer_in":          "transfer",
 		"transfer_out":         "transfer",
@@ -4568,7 +4568,7 @@ func (this *Weex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes360512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -5142,7 +5142,7 @@ func (this *Weex) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 		"marginMode": this.ParseMarginType(marginType),
 	}
 }
-func (this *Weex) ParseMarginType(marginType any) any {
+func (this *Weex) ParseMarginType(marginType any) *string {
 	var marginTypes map[string]any = map[string]any{
 		"CROSSED":  "cross",
 		"ISOLATED": "isolated",
@@ -5279,11 +5279,11 @@ func (this *Weex) ParseLeverage(leverage any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(leverage, "symbol")
 	var marginType *string = this.SafeString(leverage, "marginType")
-	var marginMode any = this.ParseMarginType(marginType)
-	var crossLeverage any = DerefScalar(this.SafeNumber(leverage, "crossLeverage"))
-	var longLeverage any = DerefScalar(this.SafeNumber(leverage, "isolatedLongLeverage"))
-	var shortLeverage any = DerefScalar(this.SafeNumber(leverage, "isolatedShortLeverage"))
-	if IsEqual(marginMode, "cross") {
+	var marginMode *string = this.ParseMarginType(marginType)
+	var crossLeverage *float64 = this.SafeNumber(leverage, "crossLeverage")
+	var longLeverage *float64 = this.SafeNumber(leverage, "isolatedLongLeverage")
+	var shortLeverage *float64 = this.SafeNumber(leverage, "isolatedShortLeverage")
+	if marginMode != nil && *marginMode == "cross" {
 		longLeverage = crossLeverage
 		shortLeverage = crossLeverage
 	}
@@ -5346,10 +5346,10 @@ func (this *Weex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 	if marginMode != nil {
 		request["marginType"] = this.EncodeMarginMode(marginMode)
 	}
-	var isolatedLongLeverage any = DerefScalar(this.SafeNumber(params, "isolatedLongLeverage"))
-	var isolatedShortLeverage any = DerefScalar(this.SafeNumber(params, "isolatedShortLeverage"))
-	var crossLeverage any = DerefScalar(this.SafeNumber(params, "crossLeverage"))
-	if (IsEqual(isolatedLongLeverage, nil)) && (IsEqual(isolatedShortLeverage, nil)) && (IsEqual(crossLeverage, nil)) {
+	var isolatedLongLeverage *float64 = this.SafeNumber(params, "isolatedLongLeverage")
+	var isolatedShortLeverage *float64 = this.SafeNumber(params, "isolatedShortLeverage")
+	var crossLeverage *float64 = this.SafeNumber(params, "crossLeverage")
+	if (isolatedLongLeverage == nil) && (isolatedShortLeverage == nil) && (crossLeverage == nil) {
 		if IsEqual(marginMode, "isolated") {
 			request["isolatedLongLeverage"] = leverage
 			request["isolatedShortLeverage"] = leverage
@@ -5628,7 +5628,7 @@ func (this *Weex) FromSandboxMarketId(marketId any) any {
 		return marketId // a live market id, not a demo one
 	}
 	if EndsWith(marketId, "SUSDT") {
-		var baseLength any = Subtract(GetLength(marketId), 5)
+		var baseLength int64 = Subtract(GetLength(marketId), 5).(int64)
 		return Slice(marketId, 0, baseLength) + "USDT"
 	}
 	return marketId
@@ -5662,7 +5662,7 @@ func (this *Weex) Sign(path any, optionalArgs ...any) any {
 			panic(NotSupported(Add(Add(this.Id+" ", path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")))
 		}
 		this.CheckRequiredCredentials()
-		var timestamp any = this.NumberToString(this.Nonce())
+		var timestamp *string = this.NumberToString(this.Nonce())
 		var payload any = Add(Add(Add(timestamp, method), "/"), endpoint)
 		if (IsEqual(method, "POST")) || isBatch {
 			body = this.Json(query)

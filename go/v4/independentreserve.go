@@ -451,11 +451,11 @@ func (this *Independentreserve) fetchMarketsBody(ch chan any, optionalArgs ...an
 	var quoteCurrencyIds []any = this.ToArray(quoteCurrencies)
 	for i := 0; i < len(baseCurrencyIds); i++ {
 		var baseId any = GetValue(baseCurrencyIds, i)
-		var base any = this.SafeCurrencyCode(baseId)
-		var minAmount any = DerefScalar(this.SafeNumber(limits, baseId))
+		var base *string = this.SafeCurrencyCode(baseId)
+		var minAmount *float64 = this.SafeNumber(limits, baseId)
 		for j := 0; j < len(quoteCurrencyIds); j++ {
 			var quoteId any = GetValue(quoteCurrencyIds, j)
-			var quote any = this.SafeCurrencyCode(quoteId)
+			var quote *string = this.SafeCurrencyCode(quoteId)
 			var id any = Add(Add(baseId, "/"), quoteId)
 			AppendToArray(&result, map[string]any{
 				"id":             id,
@@ -519,7 +519,7 @@ func (this *Independentreserve) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "CurrencyCode")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "AvailableBalance"))
 		AddElementToObject(account, "total", this.SafeString(balance, "TotalBalance"))
@@ -594,7 +594,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan any, symbol any, opti
 
 	response := (<-this.PublicGetGetOrderBook(this.Extend(request, params)))
 	PanicOnError(response)
-	var timestamp any = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(response, "CreatedTimestampUtc"))
 
 	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume")
 	return nil
@@ -615,7 +615,7 @@ func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) any
 	// }
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(this.SafeString(ticker, "CreatedTimestampUtc"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "CreatedTimestampUtc"))
 	var baseId *string = this.SafeString(ticker, "PrimaryCurrencyCode")
 	var quoteId *string = this.SafeString(ticker, "SecondaryCurrencyCode")
 	var defaultMarketId any = nil
@@ -755,8 +755,8 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 	var base any = nil
 	var quote any = nil
 	if (baseId != nil) && (quoteId != nil) {
-		base = this.SafeCurrencyCode(baseId)
-		quote = this.SafeCurrencyCode(quoteId)
+		base = DerefScalar(this.SafeCurrencyCode(baseId))
+		quote = DerefScalar(this.SafeCurrencyCode(quoteId))
 		symbol = Add(Add(base, "/"), quote)
 	} else if !IsEqual(market, nil) {
 		symbol = GetValue(market, "symbol")
@@ -777,7 +777,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 			orderType = "limit"
 		}
 	}
-	var timestamp any = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "CreatedTimestampUtc"))
 	var filled *string = this.SafeString(order, "VolumeFilled")
 	var feeRate *string = this.SafeString(order, "FeePercent")
 	var feeCost any = nil
@@ -812,7 +812,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 		"trades": nil,
 	}, market)
 }
-func (this *Independentreserve) ParseOrderStatus(status any) any {
+func (this *Independentreserve) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Open":                        "open",
 		"PartiallyFilled":             "open",
@@ -825,7 +825,7 @@ func (this *Independentreserve) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Independentreserve) ParseTimeInForce(timeInForce any) any {
+func (this *Independentreserve) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"Gtc": "GTC",
 		"Moc": "PO",
@@ -1033,7 +1033,7 @@ func (this *Independentreserve) fetchMyTradesBody(ch chan any, optionalArgs ...a
 func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(GetValue(trade, "TradeTimestampUtc"))
+	var timestamp *int64 = this.Parse8601(GetValue(trade, "TradeTimestampUtc"))
 	var id *string = this.SafeString(trade, "TradeGuid")
 	var orderId *string = this.SafeString(trade, "OrderGuid")
 	var priceString *string = this.SafeString2(trade, "Price", "SecondaryCurrencyTradePrice")
@@ -1047,7 +1047,7 @@ func (this *Independentreserve) ParseTrade(trade any, optionalArgs ...any) any {
 	if (baseId != nil) && (quoteId != nil) {
 		marketId = Add(Add(baseId, "/"), quoteId)
 	}
-	var symbol any = this.SafeSymbol(marketId, market, "/")
+	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var side any = DerefScalar(this.SafeString(trade, "OrderType"))
 	if side != nil {
 		if GetIndexOf(side, "Bid") >= 0 {
@@ -1156,8 +1156,8 @@ func (this *Independentreserve) fetchTradingFeesBody(ch chan any, optionalArgs .
 	for i := 0; i < len(rows); i++ {
 		var fee any = GetValue(rows, i)
 		var currencyId *string = this.SafeString(fee, "CurrencyCode")
-		var code any = this.SafeCurrencyCode(currencyId)
-		var tradingFee any = DerefScalar(this.SafeNumber(fee, "Fee"))
+		var code *string = this.SafeCurrencyCode(currencyId)
+		var tradingFee *float64 = this.SafeNumber(fee, "Fee")
 		if code != nil {
 			AddElementToObject(fees, code, map[string]any{
 				"info": fee,
@@ -1466,7 +1466,7 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 	var datetime *string = this.SafeString(transaction, "CreatedTimestampUtc")
 	var address *string = this.SafeString(destination, "Address")
 	var tag *string = this.SafeString(destination, "Tag")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "TransactionGuid"),
@@ -1516,9 +1516,9 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 		var auth any = []any{url, Add("apiKey=", this.ApiKey), "nonce=" + ToString(nonce)}
 		var keys []string = ObjectKeys(params)
 		for i := 0; i < len(keys); i++ {
-			var key any = GetValue(keys, i)
+			var key string = GetValue(keys, i).(string)
 			var value string = ToString(GetValue(params, key))
-			AppendToArray(&auth, Add(Add(key, "="), value))
+			AppendToArray(&auth, key+"="+value)
 		}
 		var message string = Join(auth, ",")
 		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
@@ -1527,8 +1527,8 @@ func (this *Independentreserve) Sign(path any, optionalArgs ...any) any {
 		query["nonce"] = nonce
 		query["signature"] = ToUpper(signature)
 		for i := 0; i < len(keys); i++ {
-			var key any = GetValue(keys, i)
-			AddElementToObject(query, key, GetValue(params, key))
+			var key string = GetValue(keys, i).(string)
+			query[key] = GetValue(params, key)
 		}
 		body = this.Json(query)
 		headers = map[string]any{

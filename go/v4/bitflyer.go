@@ -387,10 +387,10 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         { "product_code": "BTC_JPY", "market_type": "Spot" },
 	//     ];
 	//
-	var markets any = this.ArrayConcat(this.ToArray(jp_markets), this.ToArray(us_markets))
+	var markets []any = this.ArrayConcat(this.ToArray(jp_markets), this.ToArray(us_markets))
 	markets = this.ArrayConcat(markets, this.ToArray(eu_markets))
 	var result any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
+	for i := 0; i < len(markets); i++ {
 		var market any = GetValue(markets, i)
 		var id *string = this.SafeString(market, "product_code")
 		var currencies []string = Split(id, "_")
@@ -432,8 +432,8 @@ func (this *Bitflyer) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 			typeVar = "future"
 		}
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
 		var taker any = GetValue(this.Fees["trading"], "taker")
 		var maker any = GetValue(this.Fees["trading"], "maker")
@@ -520,7 +520,7 @@ func (this *Bitflyer) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency_code")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
@@ -622,8 +622,8 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
-	var timestamp any = this.Parse8601(this.SafeString(ticker, "timestamp"))
+	var symbol *string = this.SafeSymbol(nil, market)
+	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "timestamp"))
 	var last *string = this.SafeString(ticker, "ltp")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -729,7 +729,7 @@ func (this *Bitflyer) ParseTrade(trade any, optionalArgs ...any) any {
 	if order == nil {
 		order = DerefScalar(this.SafeString(trade, "child_order_acceptance_id"))
 	}
-	var timestamp any = this.Parse8601(this.SafeString(trade, "exec_date"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "exec_date"))
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var id *string = this.SafeString(trade, "id")
@@ -845,7 +845,7 @@ func (this *Bitflyer) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	//       commission_rate: '0.0020'
 	//   }
 	//
-	var fee any = DerefScalar(this.SafeNumber(response, "commission_rate"))
+	var fee *float64 = this.SafeNumber(response, "commission_rate")
 
 	ch <- map[string]any{
 		"info":       response,
@@ -954,7 +954,7 @@ func (this *Bitflyer) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	})
 	return nil
 }
-func (this *Bitflyer) ParseOrderStatus(status any) any {
+func (this *Bitflyer) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"ACTIVE":    "open",
 		"COMPLETED": "closed",
@@ -967,19 +967,19 @@ func (this *Bitflyer) ParseOrderStatus(status any) any {
 func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(this.SafeString(order, "child_order_date"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "child_order_date"))
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "size")
 	var filled *string = this.SafeString(order, "executed_size")
 	var remaining *string = this.SafeString(order, "outstanding_size")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "child_order_state"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "child_order_state"))
 	var typeVar *string = this.SafeStringLower(order, "child_order_type")
 	var side *string = this.SafeStringLower(order, "side")
 	var marketId *string = this.SafeString(order, "product_code")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeNumber(order, "total_commission"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(order, "total_commission")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": nil,
@@ -1473,14 +1473,14 @@ func (this *Bitflyer) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
 }
-func (this *Bitflyer) ParseDepositStatus(status any) any {
+func (this *Bitflyer) ParseDepositStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"COMPLETED": "ok",
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseWithdrawalStatus(status any) any {
+func (this *Bitflyer) ParseWithdrawalStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"COMPLETED": "ok",
@@ -1528,12 +1528,12 @@ func (this *Bitflyer) ParseTransaction(transaction any, optionalArgs ...any) any
 	var id *string = this.SafeString2(transaction, "id", "message_id")
 	var address *string = this.SafeString(transaction, "address")
 	var currencyId *string = this.SafeString(transaction, "currency_code")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "event_date"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "event_date"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var txId *string = this.SafeString(transaction, "tx_hash")
 	var rawStatus *string = this.SafeString(transaction, "status")
-	var typeVar any = nil
+	var typeVar string
 	var status any = nil
 	var fee any = nil
 	if InOp(transaction, "fee") {
@@ -1624,7 +1624,7 @@ func (this *Bitflyer) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var nextFundingDatetime *string = this.SafeString(contract, "next_funding_rate_settledate")
-	var nextFundingTimestamp any = this.Parse8601(nextFundingDatetime)
+	var nextFundingTimestamp *int64 = this.Parse8601(nextFundingDatetime)
 	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeString(market, "symbol"),

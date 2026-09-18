@@ -905,10 +905,10 @@ func (this *Woofipro) ParseMarket(market any) any {
 	var marketType string = "swap"
 	var baseId *string = this.SafeString(parts, 1)
 	var quoteId *string = this.SafeString(parts, 2)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var settleId *string = this.SafeString(parts, 2)
-	var settle any = this.SafeCurrencyCode(settleId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -1095,7 +1095,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 	var token any = this.SafeDict(rawCurrency, "_token", map[string]any{})
 	var currencyId *string = this.SafeString(token, "token")
 	var networks any = this.SafeList(token, "chain_details", []any{})
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var indexedChains any = this.SafeDict(rawCurrency, "_indexedChains", map[string]any{})
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < GetArrayLength(networks); j++ {
@@ -1158,7 +1158,7 @@ func (this *Woofipro) ParseTokenAndFeeTemp(item any, feeTokenKey any, feeAmountK
 	var fee any = nil
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(item, feeTokenKey)
-		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
@@ -1688,7 +1688,7 @@ func (this *Woofipro) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(interest, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(interest, "timestamp")
-	var amount any = DerefScalar(this.SafeNumber2(interest, "open_interest", "openInterest"))
+	var amount *float64 = this.SafeNumber2(interest, "open_interest", "openInterest")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             GetValue(market, "symbol"),
 		"openInterestAmount": amount,
@@ -1852,7 +1852,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes135312)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1932,11 +1932,11 @@ func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var amount any = DerefScalar(this.SafeString(income, "funding_fee"))
-	var code any = this.SafeCurrencyCode("USDC")
+	var code *string = this.SafeCurrencyCode("USDC")
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
-	var rate any = DerefScalar(this.SafeNumber(income, "funding_rate"))
+	var rate *float64 = this.SafeNumber(income, "funding_rate")
 	var paymentType *string = this.SafeString(income, "payment_type")
 	amount = func() any {
 		if paymentType != nil && *paymentType == "Pay" {
@@ -1990,7 +1990,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes145612)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2336,9 +2336,9 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions any = this.SafeValue(order, "Transactions")
-	var triggerPrice any = DerefScalar(this.SafeNumber(order, "triggerPrice"))
-	var takeProfitPrice any = nil
-	var stopLossPrice any = nil
+	var triggerPrice *float64 = this.SafeNumber(order, "triggerPrice")
+	var takeProfitPrice *float64 = nil
+	var stopLossPrice *float64 = nil
 	var childOrders any = this.SafeValue(order, "childOrders")
 	if !IsEqual(childOrders, nil) {
 		var first any = this.SafeValue(childOrders, 0)
@@ -2347,8 +2347,8 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 		if innerChildOrdersLength > 0 {
 			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
 			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
-			takeProfitPrice = DerefScalar(this.SafeNumber(takeProfitOrder, "triggerPrice"))
-			stopLossPrice = DerefScalar(this.SafeNumber(stopLossOrder, "triggerPrice"))
+			takeProfitPrice = this.SafeNumber(takeProfitOrder, "triggerPrice")
+			stopLossPrice = this.SafeNumber(stopLossOrder, "triggerPrice")
 		}
 	}
 	var lastUpdateTimestamp *int64 = this.SafeInteger2(order, "updatedTime", "updated_time")
@@ -2383,7 +2383,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Woofipro) ParseTimeInForce(timeInForce any) any {
+func (this *Woofipro) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
@@ -2391,7 +2391,7 @@ func (this *Woofipro) ParseTimeInForce(timeInForce any) any {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Woofipro) ParseOrderStatus(status any) any {
+func (this *Woofipro) ParseOrderStatus(status any) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
@@ -2408,7 +2408,7 @@ func (this *Woofipro) ParseOrderStatus(status any) any {
 	}
 	return nil
 }
-func (this *Woofipro) ParseOrderType(typeVar any) any {
+func (this *Woofipro) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":     "limit",
 		"MARKET":    "market",
@@ -2460,7 +2460,7 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var isConditional bool = (triggerPrice != nil) || hasStopLoss || hasTakeProfit || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
-	var postOnly any = this.IsPostOnly(isMarket, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
 	var orderQtyKey any = func() any {
 		if isConditional {
 			return "quantity"
@@ -2481,7 +2481,7 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}()
 	AddElementToObject(request, typeKey, orderType) // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !isConditional {
-		if EvalTruthy(postOnly) {
+		if postOnly {
 			request["order_type"] = "POST_ONLY"
 		} else if timeInForce != nil && *timeInForce == "fok" {
 			request["order_type"] = "FOK"
@@ -2766,8 +2766,8 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		var orderType string = ToUpper(typeVar)
 		var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 		var isMarket bool = (orderType == "MARKET")
-		var postOnly any = this.IsPostOnly(isMarket, nil, params)
-		if EvalTruthy(postOnly) {
+		var postOnly bool = this.IsPostOnly(isMarket, nil, params)
+		if postOnly {
 			request["order_type"] = "POST_ONLY"
 		} else if timeInForce != nil && *timeInForce == "fok" {
 			request["order_type"] = "FOK"
@@ -3196,7 +3196,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		}
 		return 500
 	}()
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3480,7 +3480,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes260912)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3549,7 +3549,7 @@ func (this *Woofipro) ParseBalance(response any) any {
 	var balances any = this.SafeList(response, "holding", []any{})
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
-		var code any = this.SafeCurrencyCode(this.SafeString(balance, "token"))
+		var code *string = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
 		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
@@ -3681,9 +3681,9 @@ func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(item, "token")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var amount any = DerefScalar(this.SafeNumber(item, "amount"))
+	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "token_side")
 	var direction any = func() any {
 		if side != nil && *side == "DEPOSIT" {
@@ -3711,7 +3711,7 @@ func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"info":             item,
 	}, currency)
 }
-func (this *Woofipro) ParseLedgerEntryType(typeVar any) any {
+func (this *Woofipro) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
@@ -3791,7 +3791,7 @@ func (this *Woofipro) ParseTransaction(transaction any, optionalArgs ...any) any
 		"network":     nil,
 	}
 }
-func (this *Woofipro) ParseTransactionStatus(status any) any {
+func (this *Woofipro) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
@@ -4010,8 +4010,8 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 	var chainId *string = this.SafeString(params, "chainId")
 	var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
 	var coinNetwork any = this.SafeDict(currencyNetworks, chainId, map[string]any{})
-	var coinNetworkId any = DerefScalar(this.SafeNumber(coinNetwork, "id"))
-	if IsEqual(coinNetworkId, nil) {
+	var coinNetworkId *float64 = this.SafeNumber(coinNetwork, "id")
+	if coinNetworkId == nil {
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))
 	}
 
@@ -4517,7 +4517,7 @@ func (this *Woofipro) ParsePosition(position any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(position, "symbol")
 	market = this.SafeMarket(contract, market)
 	var size *string = this.SafeString(position, "position_qty")
-	var side any = nil
+	var side string
 	if Precise.StringGt(size, "0") {
 		side = "long"
 	} else {

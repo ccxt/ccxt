@@ -15,7 +15,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 	defer ReturnPanicError(ch)
 	var method string = "watchOHLCVForSymbols"
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = now + 15000
 	var timeframeKeys []string = ObjectKeys(exchange.GetTimeframes())
 	Assert((len(timeframeKeys) > 0), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
@@ -74,7 +74,7 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 			for i := 0; i < GetArrayLength(ohlcvs); i++ {
 				TestOHLCV(exchange, skippedProperties, method, GetValue(ohlcvs, i), symbol, now)
 			}
-			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
+			if IsGreaterThan((now - startTime), maxIdleTime) {
 				idle = true
 			}
 		}

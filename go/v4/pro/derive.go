@@ -484,7 +484,7 @@ func (this *Derive) HandleUnSubscribe(client any, message any) any {
 	if !ccxt.IsEqual(status, nil) {
 		var topics []string = ccxt.ObjectKeys(status)
 		for i := 0; i < len(topics); i++ {
-			var topic any = ccxt.GetValue(topics, i)
+			var topic string = ccxt.GetValue(topics, i).(string)
 			if ccxt.GetIndexOf(topic, "orderbook") >= 0 {
 				this.HandleOrderBookUnSubscription(client, topic)
 			} else if ccxt.GetIndexOf(topic, "trades") >= 0 {
@@ -582,7 +582,7 @@ func (this *Derive) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -919,7 +919,6 @@ func (this *Derive) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}

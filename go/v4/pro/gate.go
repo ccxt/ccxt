@@ -297,12 +297,12 @@ func (this *Gate) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var messageType any = this.GetTypeByMarket(market)
 	var channel any = ccxt.Add(messageType, ".order_cancel_cp")
-	channelparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersWs", "channel", channel)
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "channel", channel)
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var url any = this.GetUrlByMarket(market)
 	params = this.Omit(params, []any{"stop", "trigger"})
-	typeVarqueryVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
+	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 	typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
 	query := ccxt.GetValue(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := func() any {
@@ -361,7 +361,7 @@ func (this *Gate) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) an
 	}()
 	var trigger any = this.SafeValueN(params, []any{"is_stop_order", "stop", "trigger"}, false)
 	params = this.Omit(params, []any{"is_stop_order", "stop", "trigger"})
-	typeVarqueryVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
+	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	typeVar := ccxt.GetValue(typeVarqueryVariable, 0)
 	query := ccxt.GetValue(typeVarqueryVariable, 1)
 	requestrequestParamsVariable := func() any {
@@ -666,7 +666,7 @@ func (this *Gate) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 		}
 		return "100ms"
 	}()
-	intervalqueryVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", intervalDefault)
+	var intervalqueryVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", intervalDefault)
 	interval := ccxt.GetValue(intervalqueryVariable, 0)
 	query := ccxt.GetValue(intervalqueryVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
@@ -748,7 +748,7 @@ func (this *Gate) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		return "100ms"
 	}()
 	var interval any = intervalDefault
-	intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	var messageType any = this.GetTypeByMarket(market)
@@ -830,7 +830,7 @@ func (this *Gate) HandleNewSpotOrderBook(client any, message any) {
 	}
 	var marketIdParts []string = ccxt.Split(marketIdWithPrefix, ".")
 	var marketId *string = this.SafeString(marketIdParts, 1)
-	var symbol any = this.SafeSymbol(marketId, nil, "_", "spot")
+	var symbol *string = this.SafeSymbol(marketId, nil, "_", "spot")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, 1000))
@@ -923,7 +923,7 @@ func (this *Gate) HandleOrderBook(client any, message any) {
 	var deltaStart *int64 = this.SafeInteger(delta, "U")
 	var deltaEnd *int64 = this.SafeInteger(delta, "u")
 	var marketId *string = this.SafeString(delta, "s")
-	var symbol any = this.SafeSymbol(marketId, nil, "_", marketType)
+	var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 	var nonce *int64 = this.SafeInteger(storedOrderBook, "nonce")
@@ -1164,7 +1164,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 		retRes82312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes82312)
 	}
-	callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", callerMethodName)
+	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols, nil, false)
@@ -1172,7 +1172,7 @@ func (this *Gate) subscribeWatchTickersAndBidsAsksBody(ch chan any, optionalArgs
 	var messageType any = this.GetTypeByMarket(market)
 	var marketIds any = this.MarketIds(symbols)
 	var channelName any = nil
-	channelNameparamsVariable := this.HandleOptionAndParams(params, callerMethodName, "method")
+	var channelNameparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "method")
 	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
 	params = ccxt.GetValue(channelNameparamsVariable, 1)
 	var url any = this.GetUrlByMarket(market)
@@ -1543,7 +1543,7 @@ func (this *Gate) HandleOHLCV(client any, message any) {
 		var timeframe any = this.FindTimeframe(timeframeId)
 		var prefix any = ccxt.Add(timeframe, "_")
 		var marketId string = ccxt.Replace(subscription, prefix, "")
-		var symbol any = this.SafeSymbol(marketId, nil, "_", marketType)
+		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
 		var parsed any = this.ParseOHLCV(ohlcv)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
@@ -1559,8 +1559,8 @@ func (this *Gate) HandleOHLCV(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var symbol any = ccxt.GetValue(keys, i)
-		var timeframe any = ccxt.GetValue(marketIds, symbol)
+		var symbol string = ccxt.GetValue(keys, i).(string)
+		var timeframe any = marketIds[symbol]
 		var interval any = this.FindTimeframe(timeframe)
 		var hash any = ccxt.Add(ccxt.Add(ccxt.Add("candles"+":", interval), ":"), symbol)
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), interval)
@@ -1611,7 +1611,7 @@ func (this *Gate) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		marketId = ccxt.GetValue(market, "id")
 	}
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	subTypeparamsVariable := this.HandleSubTypeAndParams("watchMyTrades", market, params)
@@ -1688,8 +1688,8 @@ func (this *Gate) HandleMyTrades(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var market any = ccxt.GetValue(keys, i)
-		var hash any = ccxt.Add("myTrades:", market)
+		var market string = ccxt.GetValue(keys, i).(string)
+		var hash any = "myTrades:" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	client.(ccxt.ClientInterface).Resolve(cachedTrades, "myTrades")
@@ -1723,7 +1723,7 @@ func (this *Gate) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	var subType any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	subTypeparamsVariable := this.HandleSubTypeAndParams("watchBalance", nil, params)
@@ -1819,7 +1819,7 @@ func (this *Gate) HandleBalance(client any, message any) {
 		var rawBalance any = ccxt.GetValue(result, i)
 		var account any = this.Account()
 		var currencyId *string = this.SafeString(rawBalance, "currency", "USDT") // when not present it is USDT
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var timestamp *int64 = this.SafeInteger2(rawBalance, "time_ms", "timestamp_ms")
 		ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 		ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
@@ -1885,7 +1885,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	var query any = nil
-	typeVarqueryVariable := this.HandleMarketTypeAndParams("watchPositions", market, params)
+	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("watchPositions", market, params)
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
 	query = ccxt.GetValue(typeVarqueryVariable, 1)
 	if ccxt.IsEqual(typeVar, "spot") {
@@ -1910,7 +1910,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	query = ccxt.GetValue(subTypequeryVariable, 1)
 	var isInverse bool = (ccxt.IsEqual(subType, "inverse"))
 	var url any = this.GetUrlByMarketType(typeVar, isInverse)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
@@ -1971,8 +1971,8 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan any, client any, messageHash
 	var cache any = ccxt.GetValue(this.Positions, typeVar)
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
-		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
+		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
+		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
@@ -2110,7 +2110,7 @@ func (this *Gate) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var typeVar any = nil
 	var query any = nil
-	typeVarqueryVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
 	query = ccxt.GetValue(typeVarqueryVariable, 1)
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
@@ -2340,7 +2340,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	var market any = this.GetMarketFromSymbols(symbols)
 	var typeVar any = nil
 	var query any = nil
-	typeVarqueryVariable := this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
+	var typeVarqueryVariable []any = this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarqueryVariable, 0)
 	query = ccxt.GetValue(typeVarqueryVariable, 1)
 	var typeId any = this.GetSupportedMapping(typeVar, map[string]any{
@@ -2578,7 +2578,7 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 										}
 										return ccxt.GetValue(parsedChannel, 0)
 									}()
-									var symbol any = this.SafeSymbol(ccxt.GetValue(payload, i), nil, "_", marketType)
+									var symbol *string = this.SafeSymbol(ccxt.GetValue(payload, i), nil, "_", marketType)
 									var messageHashSymbol any = ccxt.Add(ccxt.Add(ccxt.GetValue(parsedChannel, 1), ":"), symbol)
 									if (messageHashSymbol != nil) && (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashSymbol)) {
 										ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHashSymbol)
@@ -2657,7 +2657,7 @@ func (this *Gate) HandleUnSubscribe(client any, message any) {
 	var id *string = this.SafeString(message, "id")
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var messageHash any = ccxt.GetValue(keys, i)
+		var messageHash string = ccxt.GetValue(keys, i).(string)
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}
@@ -2870,8 +2870,8 @@ func (this *Gate) GetMarketTypeByUrl(url any) any {
 	}
 	var keys []string = ccxt.ObjectKeys(findBy)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
-		var value any = ccxt.GetValue(findBy, key)
+		var key string = ccxt.GetValue(keys, i).(string)
+		var value any = findBy[key]
 		if ccxt.GetIndexOf(url, key) >= 0 {
 			return value
 		}
@@ -2908,7 +2908,7 @@ func (this *Gate) subscribePublicBody(ch chan any, url any, messageHash any, pay
 		"payload": payload,
 	}
 	if !ccxt.IsEqual(subscription, nil) {
-		var client any = this.Client(url)
+		var client ccxt.ClientInterface = this.Client(url)
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			var tempSubscriptionHash string = ccxt.ToString(requestId)
 			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), tempSubscriptionHash, messageHash)
@@ -2990,7 +2990,7 @@ func (this *Gate) authenticateBody(ch chan any, url any, messageType any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var channel any = ccxt.Add(messageType, ".login")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -3100,7 +3100,7 @@ func (this *Gate) subscribePrivateBody(ch chan any, url any, messageHash any, pa
 	if !ccxt.IsEqual(payload, nil) {
 		request["payload"] = payload
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 		var tempSubscriptionHash string = ccxt.ToString(requestId)
 		// in case of authenticationError we will throw

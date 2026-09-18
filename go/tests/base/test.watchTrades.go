@@ -15,7 +15,7 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer ReturnPanicError(ch)
 	var method string = "watchTrades"
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
 	for (IsLessThan(now, ends)) && !idle {
@@ -54,7 +54,7 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 			for i := 0; i < GetArrayLength(response); i++ {
 				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now, true)
 			}
-			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
+			if IsGreaterThan((now - startTime), maxIdleTime) {
 				idle = true
 			}
 		}

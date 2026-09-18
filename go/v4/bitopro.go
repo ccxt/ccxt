@@ -419,7 +419,7 @@ func (this *Bitopro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Bitopro) ParseCurrency(rawCurrency any) any {
 	var fiatCurrencies any = this.HandleOption("fetchCurrencies", "fiatCurrencies", []any{})
 	var currencyId *string = this.SafeString(rawCurrency, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var deposit *bool = this.SafeBool(rawCurrency, "deposit")
 	var withdraw *bool = this.SafeBool(rawCurrency, "withdraw")
 	var isFiat bool = this.InArray(code, fiatCurrencies)
@@ -508,8 +508,8 @@ func (this *Bitopro) ParseMarket(market any) any {
 	var uppercaseId string = ToUpper(id)
 	var baseId *string = this.SafeString(market, "base")
 	var quoteId *string = this.SafeString(market, "quote")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	var limits map[string]any = map[string]any{
 		"amount": map[string]any{
@@ -794,11 +794,11 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(trade, "tradeId")
 	var orderId *string = this.SafeString(trade, "orderId")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if id == nil {
 		timestamp = this.SafeTimestamp(trade, "timestamp")
 	} else {
-		timestamp = DerefScalar(this.SafeInteger(trade, "timestamp"))
+		timestamp = this.SafeInteger(trade, "timestamp")
 	}
 	var marketId *string = this.SafeString(trade, "pair")
 	market = this.SafeMarket(marketId, market)
@@ -820,7 +820,7 @@ func (this *Bitopro) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var fee any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
-	var feeSymbol any = this.SafeCurrencyCode(this.SafeString(trade, "feeSymbol"))
+	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeSymbol"))
 	if feeAmount != nil {
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -999,8 +999,8 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var maker any = DerefScalar(this.SafeNumber(first, "makerFee"))
-	var taker any = DerefScalar(this.SafeNumber(first, "takerFee"))
+	var maker *float64 = this.SafeNumber(first, "makerFee")
+	var taker *float64 = this.SafeNumber(first, "takerFee")
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
@@ -1126,7 +1126,7 @@ func (this *Bitopro) InsertMissingCandles(candles any, distance any, since any, 
 			AppendToArray(&result, candle)
 			i = this.Sum(i, 1)
 		} else {
-			var copy any = this.ArrayConcat([]any{}, copyFrom)
+			var copy []any = this.ArrayConcat([]any{}, copyFrom)
 			AddElementToObject(copy, 0, timestamp)
 			// set open, high, low to close
 			AddElementToObject(copy, 1, GetValue(copy, 4))
@@ -1157,7 +1157,7 @@ func (this *Bitopro) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var amount *string = this.SafeString(balance, "amount")
 		var available *string = this.SafeString(balance, "available")
 		var account map[string]any = map[string]any{
@@ -1294,7 +1294,7 @@ func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var fee any = nil
 	var feeAmount *string = this.SafeString(order, "fee")
-	var feeSymbol any = this.SafeCurrencyCode(this.SafeString(order, "feeSymbol"))
+	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(order, "feeSymbol"))
 	if Precise.StringGt(feeAmount, "0") {
 		fee = map[string]any{
 			"currency": feeSymbol,
@@ -1385,8 +1385,8 @@ func (this *Bitopro) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			request["condition"] = condition
 		}
 	}
-	var postOnly any = this.IsPostOnly((orderType == "MARKET"), nil, params)
-	if EvalTruthy(postOnly) {
+	var postOnly bool = this.IsPostOnly((orderType == "MARKET"), nil, params)
+	if postOnly {
 		request["timeInForce"] = "POST_ONLY"
 	}
 
@@ -1462,7 +1462,7 @@ func (this *Bitopro) ParseCancelOrders(data any) any {
 	var dataKeys []string = ObjectKeys(data)
 	var orders any = []any{}
 	for i := 0; i < len(dataKeys); i++ {
-		var marketId any = GetValue(dataKeys, i)
+		var marketId string = GetValue(dataKeys, i).(string)
 		var orderIds any = GetValue(data, marketId)
 		for j := 0; j < GetArrayLength(orderIds); j++ {
 			AppendToArray(&orders, this.SafeOrder(map[string]any{
@@ -1882,7 +1882,7 @@ func (this *Bitopro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
 }
-func (this *Bitopro) ParseTransactionStatus(status any) any {
+func (this *Bitopro) ParseTransactionStatus(status any) *string {
 	var states map[string]any = map[string]any{
 		"COMPLETE":           "ok",
 		"INVALID":            "failed",
@@ -1944,13 +1944,13 @@ func (this *Bitopro) ParseTransaction(transaction any, optionalArgs ...any) any 
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "coin")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var address *string = this.SafeString(transaction, "address")
 	var tag *string = this.SafeString(transaction, "message")
 	var status *string = this.SafeString(transaction, "status")
-	var networkId any = DerefScalar(this.SafeString(transaction, "protocol"))
-	if IsEqual(networkId, "MAIN") {
+	var networkId *string = this.SafeString(transaction, "protocol")
+	if networkId != nil && *networkId == "MAIN" {
 		networkId = code
 	}
 	return map[string]any{

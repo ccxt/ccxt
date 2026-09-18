@@ -948,7 +948,7 @@ func (this *Pacifica) ParseMarket(market any) any {
 	var inverse any = nil
 	var contractSize any = nil
 	var minLeverage any = nil
-	var maxLeverage any = nil
+	var maxLeverage *int64 = nil
 	var crossMargin any = nil
 	var isolatedMargin any = nil
 	if id == nil {
@@ -966,22 +966,22 @@ func (this *Pacifica) ParseMarket(market any) any {
 		inverse = false
 		contractSize = this.ParseNumber("1")
 		minLeverage = 1
-		maxLeverage = DerefScalar(this.SafeInteger(market, "max_leverage"))
+		maxLeverage = this.SafeInteger(market, "max_leverage")
 		crossMargin = (isolatedOnly == nil || *isolatedOnly != true)
 		isolatedMargin = true
 	}
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
-	var settle any = this.SafeCurrencyCode(settleId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(base, "/"), quote)
 	if isSwap {
 		symbol = Add(Add(symbol, ":"), settle)
 	}
 	var fees any = this.SafeDict(this.Fees, typeVar, map[string]any{})
-	var taker any = DerefScalar(this.SafeNumber(fees, "taker"))
-	var maker any = DerefScalar(this.SafeNumber(fees, "maker"))
-	var amountPrecision any = DerefScalar(this.SafeNumber(market, "lot_size"))
-	var pricePrecision any = DerefScalar(this.SafeNumber(market, "tick_size"))
+	var taker *float64 = this.SafeNumber(fees, "taker")
+	var maker *float64 = this.SafeNumber(fees, "maker")
+	var amountPrecision *float64 = this.SafeNumber(market, "lot_size")
+	var pricePrecision *float64 = this.SafeNumber(market, "tick_size")
 	var active bool = true // there is no non-active markets comes from endpoint market info
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -1117,7 +1117,7 @@ func (this *Pacifica) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(spotBalances); i++ {
 		var balance any = GetValue(spotBalances, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available_to_withdraw"))
@@ -1431,7 +1431,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var aggLevel any = nil
-	aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
 	aggLevel = GetValue(aggLevelparamsVariable, 0)
 	params = GetValue(aggLevelparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -1558,10 +1558,10 @@ func (this *Pacifica) ParseFundingRate(info any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var funding any = DerefScalar(this.SafeNumber(info, "funding"))
-	var markPx any = DerefScalar(this.SafeNumber(info, "mark"))
-	var oraclePx any = DerefScalar(this.SafeNumber(info, "oracle"))
-	var nextFundingRate any = DerefScalar(this.SafeNumber(info, "next_funding"))
+	var funding *float64 = this.SafeNumber(info, "funding")
+	var markPx *float64 = this.SafeNumber(info, "mark")
+	var oraclePx *float64 = this.SafeNumber(info, "oracle")
+	var nextFundingRate *float64 = this.SafeNumber(info, "next_funding")
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
 	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
 	return map[string]any{
@@ -1630,7 +1630,7 @@ func (this *Pacifica) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1814,7 +1814,7 @@ func (this *Pacifica) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var userAddress any = nil
@@ -2034,7 +2034,7 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	// }
 	//
 	var success *bool = this.SafeBool(response, "success", false)
-	var status any = nil
+	var status string
 	if success == nil || *success != true {
 		status = "rejected"
 	} else {
@@ -2091,7 +2091,7 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		"symbol": GetValue(market, "id"),
 		"side":   this.MapSide(side),
 	}
-	var operationType any = nil
+	var operationType string
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var orderType string = ToUpper(typeVar)
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
@@ -2154,10 +2154,10 @@ func (this *Pacifica) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		}
 		sigPayload["stop_loss"] = slPayload
 	}
-	if !IsEqual(price, nil) && (IsEqual(operationType, "create_order")) {
+	if !IsEqual(price, nil) && (operationType == "create_order") {
 		sigPayload["price"] = this.PriceToPrecision(symbol, price)
 	}
-	if !IsEqual(amount, nil) && ((!IsEqual(operationType, "create_stop_order")) && (!IsEqual(operationType, "set_position_tpsl"))) {
+	if !IsEqual(amount, nil) && ((operationType != "create_stop_order") && (operationType != "set_position_tpsl")) {
 		sigPayload["amount"] = this.AmountToPrecision(symbol, amount)
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -2298,7 +2298,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var order any = GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
-		var status any = nil
+		var status string
 		if (error != nil) || (success == nil || *success != true) {
 			status = "rejected"
 		} else {
@@ -2382,7 +2382,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		var order any = GetValue(results, i)
 		var error *string = this.SafeString(order, "error")
 		var success *bool = this.SafeBool(order, "success", false)
-		var status any = nil
+		var status string
 		if (error != nil) || (success == nil || *success != true) {
 			status = "closed"
 		} else {
@@ -2580,7 +2580,7 @@ func (this *Pacifica) CancelOrderRequest(id any, optionalArgs ...any) any {
 	_ = params
 	var market any = this.Market(symbol)
 	var isStopOrder *bool = this.SafeBool2(params, "trigger", "stop", false)
-	var operationType any = nil
+	var operationType string
 	if isStopOrder != nil && *isStopOrder == true {
 		operationType = "cancel_stop_order"
 	} else {
@@ -2732,7 +2732,7 @@ func (this *Pacifica) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var defaultLimit int = 100 // Default max limit
@@ -3129,7 +3129,7 @@ func (this *Pacifica) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes237012)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var defaultLimit int = 100 // max default 100
@@ -3301,7 +3301,7 @@ func (this *Pacifica) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	ch <- this.ParseOrder(lastInfo, market)
 	return nil
 }
-func (this *Pacifica) ParseOrderStatus(status any) any {
+func (this *Pacifica) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"open":             "open",
 		"partially_filled": "open",
@@ -3334,7 +3334,7 @@ func (this *Pacifica) MapSide(sideRaw any) any {
 	}
 	return this.SafeString(sideMap, sideRaw, sideRaw)
 }
-func (this *Pacifica) ParseOrderType(status any) any {
+func (this *Pacifica) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"stop_limit":         "limit",
 		"stop_market":        "market",
@@ -3870,7 +3870,7 @@ func (this *Pacifica) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -4024,7 +4024,7 @@ func (this *Pacifica) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes307112)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var userAddress any = nil
@@ -4102,7 +4102,7 @@ func (this *Pacifica) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Pacifica) ParseLedgerEntryType(typeVar any) any {
+func (this *Pacifica) ParseLedgerEntryType(typeVar any) *string {
 	var ledgerType map[string]any = map[string]any{
 		"subaccount_transfer":  "transfer",
 		"deposit":              "transaction",
@@ -4163,7 +4163,7 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		market = this.Market(symbol)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	var userAddress any = nil
@@ -4229,8 +4229,8 @@ func (this *Pacifica) ParseIncome(income any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var amount *string = this.SafeString(income, "amount")
-	var code any = this.SafeCurrencyCode("USDC")
-	var rate any = DerefScalar(this.SafeNumber(income, "rate"))
+	var code *string = this.SafeCurrencyCode("USDC")
+	var rate *float64 = this.SafeNumber(income, "rate")
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -4363,7 +4363,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	_ = params
 	var finalHeaders map[string]any = map[string]any{}
 	var agentAddress any = nil
-	agentAddressparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "agentAddress")
+	var agentAddressparamsVariable []any = this.HandleOptionAndParams(params, "createSubAccount", "agentAddress")
 	agentAddress = GetValue(agentAddressparamsVariable, 0)
 	params = GetValue(agentAddressparamsVariable, 1)
 	var originAddress any = nil
@@ -4377,11 +4377,11 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 		finalHeaders["agent_wallet"] = agentAddress
 	}
 	var subAccountAddress any = nil
-	subAccountAddressparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "subAccountAddress")
+	var subAccountAddressparamsVariable []any = this.HandleOptionAndParams(params, "createSubAccount", "subAccountAddress")
 	subAccountAddress = GetValue(subAccountAddressparamsVariable, 0)
 	params = GetValue(subAccountAddressparamsVariable, 1)
 	var subAccountPrivateKey any = nil
-	subAccountPrivateKeyparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "subAccountPrivateKey")
+	var subAccountPrivateKeyparamsVariable []any = this.HandleOptionAndParams(params, "createSubAccount", "subAccountPrivateKey")
 	subAccountPrivateKey = GetValue(subAccountPrivateKeyparamsVariable, 0)
 	params = GetValue(subAccountPrivateKeyparamsVariable, 1)
 	if subAccountAddress == nil {
@@ -4395,7 +4395,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	timestamp = GetValue(timestampparamsVariable, 0)
 	params = GetValue(timestampparamsVariable, 1)
 	var expiryWindow any = nil
-	expiryWindowparamsVariable := this.HandleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
+	var expiryWindowparamsVariable []any = this.HandleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
 	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
 	params = GetValue(expiryWindowparamsVariable, 1)
 	var subaccountSignatureHeader map[string]any = map[string]any{
@@ -4422,7 +4422,7 @@ func (this *Pacifica) createSubAccountBody(ch chan any, name any, optionalArgs .
 	finalHeaders["main_signature"] = main_signature
 	finalHeaders["timestamp"] = timestamp
 	finalHeaders["expiry_window"] = expiryWindow
-	var request any = finalHeaders
+	var request map[string]any = finalHeaders
 
 	response := (<-this.PrivatePostAccountSubaccountCreate(this.Extend(request, params)))
 	PanicOnError(response)
@@ -4580,7 +4580,7 @@ func (this *Pacifica) revokeBuilderCodeBody(ch chan any, builderCode any, option
 }
 func (this *Pacifica) HandleOriginAndSingleAddress(methodName any, params any) any {
 	var address any = nil
-	addressparamsVariable := this.HandleParamString2(params, "account", "address", nil)
+	var addressparamsVariable []any = this.HandleParamString2(params, "account", "address", nil)
 	address = GetValue(addressparamsVariable, 0)
 	params = GetValue(addressparamsVariable, 1) // this is for get endpoints that accept account or address
 	if address != nil {
@@ -4676,7 +4676,7 @@ func (this *Pacifica) CalculateRateLimiterCost(api any, method any, path any, pa
 	return costNumber
 }
 func (this *Pacifica) SortJsonKeys(value any) any {
-	if EvalTruthy(this.IsDictionary(value)) {
+	if this.IsDictionary(value) {
 		var result any = map[string]any{}
 		var keys []string = ObjectKeys(value)
 		var sortedKeys []any = this.Sort(keys)
@@ -4734,7 +4734,7 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 		}
 	}
 	var expiryWindow any = nil
-	expiryWindowparamsVariable := this.HandleOptionAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
+	var expiryWindowparamsVariable []any = this.HandleOptionAndParams2(params, "postActionRequest", "expiryWindow", "expiry_window", 5000)
 	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
 	params = GetValue(expiryWindowparamsVariable, 1)
 	var timestamp *int64 = this.SafeInteger(params, "timestamp", this.Milliseconds())
@@ -4746,7 +4746,7 @@ func (this *Pacifica) PostActionRequest(operationType any, sigPayload any, param
 	var signature any = this.SignMessage(signatureHeader, sigPayload, this.PrivateKey)
 	var finalHeaders map[string]any = map[string]any{}
 	var agentAddress any = nil
-	agentAddressparamsVariable := this.HandleOptionAndParams(params, "postActionRequest", "agentAddress")
+	var agentAddressparamsVariable []any = this.HandleOptionAndParams(params, "postActionRequest", "agentAddress")
 	agentAddress = GetValue(agentAddressparamsVariable, 0)
 	params = GetValue(agentAddressparamsVariable, 1)
 	var originAddress any = nil

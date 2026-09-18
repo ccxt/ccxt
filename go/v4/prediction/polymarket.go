@@ -766,7 +766,7 @@ func (this *Polymarket) TagToSlug(tag any) any {
 	var slug any = ""
 	var pendingSep bool = false
 	for i := 0; i < len(chars); i++ {
-		var ch any = ccxt.GetValue(chars, i)
+		var ch string = ccxt.GetValue(chars, i).(string)
 		if ccxt.GetIndexOf(allowed, ch) >= 0 {
 			if pendingSep && (!ccxt.IsEqual(slug, "")) {
 				slug = ccxt.Add(slug, "-")
@@ -1028,9 +1028,9 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		var marketResolved bool = (closed != nil && *closed == true) || (ccxt.IsEqual(this.SafeStringLower(market, "umaResolutionStatus"), "resolved"))
 		var resolvedOutcome any = nil
 		// gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
-		var tickSize any = ccxt.DerefScalar(this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01))
+		var tickSize *float64 = this.SafeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01)
 		// real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
-		var orderMinSize any = ccxt.DerefScalar(this.SafeNumber(market, "orderMinSize", 1))
+		var orderMinSize *float64 = this.SafeNumber(market, "orderMinSize", 1)
 		var priceMax any = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(tickSize)))
 		var negRisk *bool = this.SafeBool(market, "negRisk", false)
 		var endDate *string = this.SafeString(market, "endDate", this.SafeString(market, "end_date_iso"))
@@ -1074,14 +1074,14 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 		for oi := 0; oi < ccxt.GetArrayLength(outcomeLabels); oi++ {
 			var outcomeLabel any = ccxt.GetValue(outcomeLabels, oi)
 			var clobTokenId any = ccxt.GetValue(clobTokenIds, oi)
-			var outcomePrice any = ccxt.DerefScalar(this.SafeNumber(outcomePrices, oi))
+			var outcomePrice *float64 = this.SafeNumber(outcomePrices, oi)
 			if (ccxt.IsEqual(clobTokenId, nil)) || (ccxt.IsEqual(clobTokenId, "")) {
 				continue
 			}
 			var outcomeHandle any = this.SlugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel)
 			var winnerRaw any = nil
 			var settleFractionRaw any = nil
-			if marketResolved && (!ccxt.IsEqual(outcomePrice, nil)) {
+			if marketResolved && (outcomePrice != nil) {
 				// a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
 				// that is only closed-for-trading (not yet UMA-resolved) still has fractional
 				// prices — don't report a fractional mid as a final settleFraction; leave the
@@ -1596,7 +1596,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	_ = market
 	var midpointData any = this.SafeDict(ticker, "midpoint", map[string]any{})
 	var bookData any = this.SafeDict(ticker, "book", map[string]any{})
-	var mid any = ccxt.DerefScalar(this.SafeNumber(midpointData, "mid"))
+	var mid *float64 = this.SafeNumber(midpointData, "mid")
 	var bids any = this.SafeList(bookData, "bids", []any{})
 	var asks any = this.SafeList(bookData, "asks", []any{})
 	var bidsLength int = ccxt.GetArrayLength(bids)
@@ -1619,15 +1619,15 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	// last-trade-price endpoint value is usable here; that endpoint reports "0" for a
 	// never-traded token, which also falls back to the mid
 	var lastTradeData any = this.SafeDict(ticker, "lastTrade", map[string]any{})
-	var last any = ccxt.DerefScalar(this.SafeNumber(lastTradeData, "price"))
-	if (ccxt.IsEqual(last, nil)) || (ccxt.IsEqual(last, 0)) {
+	var last *float64 = this.SafeNumber(lastTradeData, "price")
+	if (last == nil) || (last != nil && *last == 0) {
 		last = mid
 	}
 	var outcome any = this.SafeOutcomeSymbol(nil, market)
 	var timestamp *int64 = this.SafeInteger(bookData, "timestamp", this.Milliseconds())
-	var quoteVolume any = nil
+	var quoteVolume *float64 = nil
 	if !ccxt.IsEqual(market, nil) {
-		quoteVolume = ccxt.DerefScalar(this.SafeNumber2(ccxt.GetValue(market, "info"), "volume24hr", "volume"))
+		quoteVolume = this.SafeNumber2(ccxt.GetValue(market, "info"), "volume24hr", "volume")
 	}
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,
@@ -1812,17 +1812,17 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 	for i := 0; i < ccxt.GetArrayLength(history); i++ {
 		var item any = ccxt.GetValue(history, i)
 		var t *int64 = this.SafeInteger(item, "t")
-		var price any = ccxt.DerefScalar(this.SafeNumber(item, "p"))
-		if (t == nil) || (ccxt.IsEqual(price, nil)) {
+		var price *float64 = this.SafeNumber(item, "p")
+		if (t == nil) || (price == nil) {
 			continue
 		}
 		var rawMs any = ccxt.Multiply(t, 1000)
 		var snappedMs any = ccxt.Multiply(ccxt.MathFloor(ccxt.Divide(rawMs, resolutionMs)), resolutionMs)
 		// the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
 		// rather than fabricating a 0, probing s/v in case the field ever appears
-		var vol any = ccxt.DerefScalar(this.SafeNumber(item, "s"))
-		if ccxt.IsEqual(vol, nil) {
-			vol = ccxt.DerefScalar(this.SafeNumber(item, "v"))
+		var vol *float64 = this.SafeNumber(item, "s")
+		if vol == nil {
+			vol = this.SafeNumber(item, "v")
 		}
 		var bucketKey string = ccxt.ToString(snappedMs)
 		if !(func() bool { _, ok := buckets[bucketKey]; return ok }()) {
@@ -1832,7 +1832,7 @@ func (this *Polymarket) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 			ccxt.AddElementToObject(candle, 2, ccxt.MathMax(ccxt.GetValue(candle, 2), price)) // high
 			ccxt.AddElementToObject(candle, 3, ccxt.MathMin(ccxt.GetValue(candle, 3), price)) // low
 			ccxt.AddElementToObject(candle, 4, price)                                         // close (last tick wins)
-			if !ccxt.IsEqual(vol, nil) {
+			if vol != nil {
 				var prevVol any = ccxt.GetValue(candle, 5)
 				ccxt.AddElementToObject(candle, 5, func() any {
 					if ccxt.IsEqual(prevVol, nil) {
@@ -1870,7 +1870,7 @@ func (this *Polymarket) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var price any = ccxt.DerefScalar(this.SafeNumber(ohlcv, "p"))
+	var price *float64 = this.SafeNumber(ohlcv, "p")
 	return []any{this.SafeTimestamp(ohlcv, "t"), price, price, price, price, nil}
 }
 
@@ -1899,7 +1899,7 @@ func (this *Polymarket) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//
 	//     1781273248
 	//
-	ch <- ccxt.Multiply(this.ParseToInt(response), 1000)
+	ch <- this.ParseToInt(response) * 1000
 	return nil
 }
 
@@ -2253,8 +2253,8 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	if timestamp == nil {
 		timestamp = this.SafeIntegerProduct(trade, "match_time", 1000)
 	}
-	var price any = ccxt.DerefScalar(this.SafeNumber(trade, "price"))
-	var amount any = ccxt.DerefScalar(this.SafeNumber(trade, "size"))
+	var price *float64 = this.SafeNumber(trade, "price")
+	var amount *float64 = this.SafeNumber(trade, "size")
 	var rawSide *string = this.SafeStringLower(trade, "side")
 	var side any = func() any {
 		if (rawSide != nil && *rawSide == "buy") || (rawSide != nil && *rawSide == "sell") {
@@ -2479,11 +2479,11 @@ func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...an
 	_ = market
 	var tokenId *string = this.SafeString(position, "asset")
 	var marketData any = this.SafeOutcome(tokenId, market)
-	var size any = ccxt.DerefScalar(this.SafeNumber(position, "size"))
-	var entryPrice any = ccxt.DerefScalar(this.SafeNumber(position, "avgPrice"))
-	var curPrice any = ccxt.DerefScalar(this.SafeNumber(position, "currentPrice"))
+	var size *float64 = this.SafeNumber(position, "size")
+	var entryPrice *float64 = this.SafeNumber(position, "avgPrice")
+	var curPrice *float64 = this.SafeNumber(position, "currentPrice")
 	var notional any = nil
-	if (!ccxt.IsEqual(size, nil)) && (!ccxt.IsEqual(curPrice, nil)) {
+	if (size != nil) && (curPrice != nil) {
 		notional = ccxt.Multiply(size, curPrice)
 	}
 	return this.SafePredictionPosition(map[string]any{
@@ -2630,11 +2630,11 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any
 	var tokenId *string = this.SafeString(order, "asset_id")
 	var mkt any = this.SafeOutcome(tokenId, market)
 	// REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
-	var status any = this.ParseOrderStatus(this.SafeString2(order, "status", "type"))
+	var status *string = this.ParseOrderStatus(this.SafeString2(order, "status", "type"))
 	var side *string = this.SafeStringLower(order, "side")
-	var price any = ccxt.DerefScalar(this.SafeNumber(order, "price"))
-	var amount any = ccxt.DerefScalar(this.SafeNumber(order, "original_size"))
-	var filled any = ccxt.DerefScalar(this.SafeNumber(order, "size_matched", 0))
+	var price *float64 = this.SafeNumber(order, "price")
+	var amount *float64 = this.SafeNumber(order, "original_size")
+	var filled *float64 = this.SafeNumber(order, "size_matched", 0)
 	var ts *int64 = this.SafeIntegerProduct(order, "created_at", 1000)
 	return this.SafePredictionOrder(map[string]any{
 		"id":                 id,
@@ -2673,7 +2673,7 @@ func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) any
  * @param {string} status the raw polymarket order status
  * @returns {string} a unified order status
  */
-func (this *Polymarket) ParseOrderStatus(status any) any {
+func (this *Polymarket) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"live":         "open",
 		"matched":      "closed",
@@ -2889,7 +2889,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	// GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
 	var expiration *string = this.SafeString(params, "expiration", "0")
 	// a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
-	var cost any = ccxt.DerefScalar(this.SafeNumber(params, "cost"))
+	var cost *float64 = this.SafeNumber(params, "cost")
 	var rest any = this.Omit(params, []any{"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"})
 	var amounts any = this.PolymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost)
 	var makerAmount *string = this.SafeString(amounts, "makerAmount")
@@ -2991,7 +2991,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 		"time_in_force": orderTypeStr,
 		"postOnly":      postOnly,
 	}
-	if ccxt.IsEqual(cost, nil) {
+	if cost == nil {
 		// a cost-sized market buy specifies spend, not shares — leave size to the fill
 		requestEcho["original_size"] = amount
 	}
@@ -3060,29 +3060,29 @@ func (this *Polymarket) PolymarketOrderRawAmounts(side any, size any, price any,
 	var priceDecimals *int64 = this.SafeInteger(cfg, "price")
 	var sizeDecimals *int64 = this.SafeInteger(cfg, "size")
 	var amountDecimals *int64 = this.SafeInteger(cfg, "amount")
-	var priceStr any = this.NumberToString(price)
-	var rawPrice any = this.DecimalToPrecision(priceStr, ccxt.ROUND, priceDecimals, ccxt.DECIMAL_PLACES)
-	var makerRaw any = nil
-	var takerRaw any = nil
+	var priceStr *string = this.NumberToString(price)
+	var rawPrice string = this.DecimalToPrecision(priceStr, ccxt.ROUND, priceDecimals, ccxt.DECIMAL_PLACES)
+	var makerRaw string
+	var takerRaw string
 	if (!ccxt.IsEqual(cost, nil)) && (ccxt.IsEqual(side, "BUY")) {
 		// cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
 		// truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
 		// a marketable FOK would round just under the ask and fail to cross
-		var costStr any = this.NumberToString(cost)
+		var costStr *string = this.NumberToString(cost)
 		makerRaw = this.DecimalToPrecision(costStr, ccxt.TRUNCATE, sizeDecimals, ccxt.DECIMAL_PLACES)
 		takerRaw = this.DecimalToPrecision(ccxt.Precise.StringDiv(makerRaw, rawPrice), ccxt.TRUNCATE, amountDecimals, ccxt.DECIMAL_PLACES)
 	} else if ccxt.IsEqual(side, "BUY") {
-		var sizeStr any = this.NumberToString(size)
+		var sizeStr *string = this.NumberToString(size)
 		takerRaw = this.DecimalToPrecision(sizeStr, ccxt.TRUNCATE, sizeDecimals, ccxt.DECIMAL_PLACES)
 		makerRaw = this.DecimalToPrecision(ccxt.Precise.StringMul(takerRaw, rawPrice), ccxt.ROUND, amountDecimals, ccxt.DECIMAL_PLACES)
 	} else {
-		var sizeStr any = this.NumberToString(size)
+		var sizeStr *string = this.NumberToString(size)
 		makerRaw = this.DecimalToPrecision(sizeStr, ccxt.TRUNCATE, sizeDecimals, ccxt.DECIMAL_PLACES)
 		takerRaw = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, rawPrice), ccxt.ROUND, amountDecimals, ccxt.DECIMAL_PLACES)
 	}
 	// scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
-	var makerAmount any = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, "1000000"), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
-	var takerAmount any = this.DecimalToPrecision(ccxt.Precise.StringMul(takerRaw, "1000000"), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
+	var makerAmount string = this.DecimalToPrecision(ccxt.Precise.StringMul(makerRaw, "1000000"), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
+	var takerAmount string = this.DecimalToPrecision(ccxt.Precise.StringMul(takerRaw, "1000000"), ccxt.TRUNCATE, 0, ccxt.DECIMAL_PLACES)
 	return map[string]any{
 		"makerAmount": makerAmount,
 		"takerAmount": takerAmount,
@@ -3859,7 +3859,7 @@ func (this *Polymarket) EthChecksumAddress(address any) any {
 	var upperNibbles string = "89abcdef"
 	var result any = ""
 	for i := 0; i < len(addrChars); i++ {
-		var ch any = ccxt.GetValue(addrChars, i)
+		var ch string = ccxt.GetValue(addrChars, i).(string)
 		if ccxt.GetIndexOf(upperNibbles, ccxt.GetValue(hashChars, i)) >= 0 {
 			result = ccxt.Add(result, ccxt.ToUpper(ch))
 		} else {
@@ -4178,8 +4178,8 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 			continue
 		}
 		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
-		var price any = ccxt.DerefScalar(this.SafeNumber(change, "price"))
-		var size any = ccxt.DerefScalar(this.SafeNumber(change, "size"))
+		var price *float64 = this.SafeNumber(change, "price")
+		var size *float64 = this.SafeNumber(change, "size")
 		var isBuy bool = ccxt.IsEqual(this.SafeStringUpper(change, "side", ""), "BUY")
 		var side any = func() any {
 			if isBuy {
@@ -4196,10 +4196,10 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 	}
 	var updatedSymbols []string = ccxt.ObjectKeys(updated)
 	for k := 0; k < len(updatedSymbols); k++ {
-		var outcome any = ccxt.GetValue(updatedSymbols, k)
+		var outcome string = ccxt.GetValue(updatedSymbols, k).(string)
 		var orderbook any = ccxt.GetValue(this.Orderbooks, outcome)
-		client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("orderbook::", outcome))
-		client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("ticker::", outcome))
+		client.(ccxt.ClientInterface).Resolve(orderbook, "orderbook::"+outcome)
+		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
 	}
 }
 func (this *Polymarket) HandleTrade(client any, event any) {
@@ -4209,8 +4209,8 @@ func (this *Polymarket) HandleTrade(client any, event any) {
 		return
 	}
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
-	var price any = ccxt.DerefScalar(this.SafeNumber(event, "price"))
-	var amount any = ccxt.DerefScalar(this.SafeNumber(event, "size"))
+	var price *float64 = this.SafeNumber(event, "price")
+	var amount *float64 = this.SafeNumber(event, "size")
 	var market any = this.SafeOutcome(tokenId)
 	var trade any = this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(event, "transaction_hash"),
@@ -4623,7 +4623,7 @@ func (this *Polymarket) ParsePolyTimestamp(raw any) any {
 	if raw == nil {
 		return this.Milliseconds()
 	}
-	var n any = this.ParseToInt(raw)
+	var n int64 = this.ParseToInt(raw)
 	if ccxt.IsEqual(n, nil) {
 		return this.Milliseconds()
 	}

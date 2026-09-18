@@ -32,7 +32,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 	_ = argParams
 	var method string = "watchBidsAsks"
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
 	for (IsLessThan(now, ends)) && !idle {
@@ -91,7 +91,7 @@ func testWatchBidsAsksHelperBody(ch chan any, exchange ccxt.ICoreExchange, skipp
 				var ticker any = GetValue(values, i)
 				TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
 			}
-			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
+			if IsGreaterThan((now - startTime), maxIdleTime) {
 				idle = true
 			}
 		}

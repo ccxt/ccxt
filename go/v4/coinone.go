@@ -477,11 +477,11 @@ func (this *Coinone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Coinone) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var isWithdrawEnabled bool = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
 	var isDepositEnabled bool = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
 	var typeVar any = func() any {
-		if !IsEqual(code, "KRW") {
+		if code == nil || *code != "KRW" {
 			return "crypto"
 		}
 		return "fiat"
@@ -575,8 +575,8 @@ func (this *Coinone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(entry, "id")
 		var baseId *string = this.SafeStringUpper(entry, "target_currency")
 		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -639,9 +639,9 @@ func (this *Coinone) ParseBalance(response any) any {
 	var balances any = this.Omit(response, []any{"errorCode", "result", "normalWallets"})
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId any = GetValue(currencyIds, i)
+		var currencyId string = GetValue(currencyIds, i).(string)
 		var balance any = GetValue(balances, currencyId)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "avail"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
@@ -941,8 +941,8 @@ func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) any {
 	var bids any = this.SafeList(ticker, "best_bids", []any{})
 	var baseId *string = this.SafeString(ticker, "target_currency")
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	return this.SafeTicker(map[string]any{
 		"symbol":        Add(Add(base, "/"), quote),
 		"timestamp":     timestamp,
@@ -1234,7 +1234,7 @@ func (this *Coinone) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Coinone) ParseOrderStatus(status any) any {
+func (this *Coinone) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"live":               "open",
 		"partially_filled":   "open",
@@ -1296,10 +1296,10 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) any {
 	var base any = nil
 	var quote any = nil
 	if baseId != nil {
-		base = this.SafeCurrencyCode(baseId)
+		base = DerefScalar(this.SafeCurrencyCode(baseId))
 	}
 	if quoteId != nil {
-		quote = this.SafeCurrencyCode(quoteId)
+		quote = DerefScalar(this.SafeCurrencyCode(quoteId))
 	}
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
@@ -1530,10 +1530,10 @@ func (this *Coinone) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if symbol == nil {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder."))
 	}
-	var price any = DerefScalar(this.SafeNumber(params, "price"))
-	var qty any = DerefScalar(this.SafeNumber(params, "qty"))
+	var price *float64 = this.SafeNumber(params, "price")
+	var qty *float64 = this.SafeNumber(params, "qty")
 	var isAsk *int64 = this.SafeInteger(params, "is_ask")
-	if (IsEqual(price, nil)) || (IsEqual(qty, nil)) || (isAsk == nil) {
+	if (price == nil) || (qty == nil) || (isAsk == nil) {
 		panic(ArgumentsRequired(this.Id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument."))
 	}
 	if IsEqual(this.Markets, nil) {
@@ -1608,7 +1608,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	var keys []string = ObjectKeys(walletAddress)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(walletAddress, key)
 		if (IsEqual(value, nil)) || (IsEqual(value, nil)) || (IsEqual(value, "")) || (IsEqual(value, "-1")) {
 			continue
@@ -1616,7 +1616,7 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		var parts []string = Split(key, "_")
 		var currencyId any = this.SafeValue(parts, 0)
 		var secondPart any = this.SafeValue(parts, 1)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var depositAddress any = this.SafeValue(result, code)
 		if IsEqual(depositAddress, nil) {
 			depositAddress = map[string]any{

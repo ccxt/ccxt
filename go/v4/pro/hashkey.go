@@ -182,7 +182,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	//
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -453,7 +453,7 @@ func (this *Hashkey) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
@@ -929,19 +929,19 @@ func (this *Hashkey) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes73712)
 	}
 	var typeVar any = "spot"
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var messageHash any = ccxt.Add("balance:", typeVar)
 	var url any = this.GetPrivateUrl(listenKey)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, messageHash)
 	var fetchBalanceSnapshot any = nil
 	var awaitBalanceSnapshot any = nil
-	fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
-	awaitBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
+	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(this.Options, "watchBalance", "awaitBalanceSnapshot", false)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
 	if ccxt.EvalTruthy(fetchBalanceSnapshot) && ccxt.EvalTruthy(awaitBalanceSnapshot) {
@@ -1026,7 +1026,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	}
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "info", message)
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString(balanceUpdate, "f"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(balanceUpdate, "l"))
@@ -1063,7 +1063,7 @@ func (this *Hashkey) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// client.reject (), so every mutation of the futures map goes through
 	// the client's own accessors
 	var messageHash string = "authenticateFlight"
-	var client any = this.Client("authenticationFlights")
+	var client ccxt.ClientInterface = this.Client("authenticationFlights")
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
@@ -1154,7 +1154,7 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan any, listenKey any, optional
 					ret_ = func(this *Hashkey) any {
 						// catch block:
 						var url any = this.GetPrivateUrl(listenKey)
-						var client any = this.Client(url)
+						var client ccxt.ClientInterface = this.Client(url)
 						ccxt.AddElementToObject(this.Options, "listenKey", nil)
 						client.(ccxt.ClientInterface).Reject(error)
 						ccxt.Remove(this.Clients, url)

@@ -69,7 +69,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 	var url any = this.ImplodeParams(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), map[string]any{
 		"hostname": this.Hostname,
 	})
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var subscriptionsKey string = "upbitPublicSubscriptions"
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)) {
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
@@ -93,7 +93,7 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 	}}
 	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(channelKeys); i++ {
-		var key any = ccxt.GetValue(channelKeys, i)
+		var key string = ccxt.GetValue(channelKeys, i).(string)
 		ccxt.AppendToArray(&finalMessage, ccxt.GetValue(subscriptions, key))
 	}
 
@@ -370,7 +370,7 @@ func (this *Upbit) HandleOrderBook(client any, message any) {
 	//        "bid_size": 5 }, ... ],
 	//   "stream_type": "SNAPSHOT" }
 	var marketId *string = this.SafeString(message, "code")
-	var symbol any = this.SafeSymbol(marketId, nil, "-")
+	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var typeVar *string = this.SafeString(message, "stream_type")
 	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
 	var limit *int64 = this.SafeInteger(options, "limit", 15)
@@ -397,7 +397,7 @@ func (this *Upbit) HandleOrderBook(client any, message any) {
 		bids.(ccxt.IOrderBookSide).Store(bid_price, bid_size)
 	}
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
-	var datetime any = this.Iso8601(timestamp)
+	var datetime *string = this.Iso8601(timestamp)
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", datetime)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -449,7 +449,7 @@ func (this *Upbit) HandleOHLCV(client any, message any) {
 	//     stream_type: 'REALTIME'
 	//   }
 	var marketId *string = this.SafeString(message, "code")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("candle.1s:", symbol)
 	var ohlcv any = this.ParseOHLCV(message)
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
@@ -482,7 +482,7 @@ func (this *Upbit) authenticateBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AddElementToObject(this.Options, "ws", wsOptions)
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/private")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 
 	ch <- client
 	return nil
@@ -518,7 +518,7 @@ func (this *Upbit) watchPrivateBody(ch chan any, symbol any, channel any, messag
 		"hostname": this.Hostname,
 	})
 	url = ccxt.Add(url, "/private")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	// Track private channel subscriptions to support multiple concurrent watches
 	var subscriptionsKey string = "upbitPrivateSubscriptions"
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey)) {
@@ -642,7 +642,7 @@ func (this *Upbit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
 	return nil
 }
-func (this *Upbit) ParseWsOrderStatus(status any) any {
+func (this *Upbit) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"wait":   "open",
 		"done":   "closed",
@@ -689,8 +689,8 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) any {
 	} else {
 		side = "sell"
 	}
-	var timestamp any = this.Parse8601(this.SafeString(order, "order_timestamp"))
-	var status any = this.ParseWsOrderStatus(this.SafeString(order, "state"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "order_timestamp"))
+	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "state"))
 	var marketId *string = this.SafeString(order, "code")
 	market = this.SafeMarket(marketId, market)
 	var fee any = nil
@@ -736,7 +736,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) any {
 	} else {
 		side = "sell"
 	}
-	var timestamp any = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
 	var marketId *string = this.SafeString(trade, "code")
 	market = this.SafeMarket(marketId, market)
 	var fee any = nil
@@ -881,7 +881,7 @@ func (this *Upbit) HandleBalance(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var available *string = this.SafeString(balance, "balance")
 		var frozen *string = this.SafeString(balance, "locked")
 		var account any = this.Account()

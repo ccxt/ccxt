@@ -817,12 +817,12 @@ func (this *Bitfinex) AmountToPrecision(symbol any, amount any) any {
 	// https://docs.bitfinex.com/docs/introduction#amount-precision
 	// The amount field allows up to 8 decimals.
 	// Anything exceeding this will be rounded to the 8th decimal.
-	symbol = this.SafeSymbol(symbol)
+	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market any = this.Market(symbol)
 	return this.DecimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), DECIMAL_PLACES)
 }
 func (this *Bitfinex) PriceToPrecision(symbol any, price any) any {
-	symbol = this.SafeSymbol(symbol)
+	symbol = DerefScalar(this.SafeSymbol(symbol))
 	var market any = this.Market(symbol)
 	price = this.DecimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode)
 	// https://docs.bitfinex.com/docs/introduction#price-precision
@@ -902,21 +902,21 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var futuresMarketsInfo any = this.SafeList(response, 1, []any{})
 	var securitiesMarketsIds any = this.SafeList(response, 2, []any{})
 	var marginIds any = this.SafeList(response, 3, []any{})
-	var markets any = this.ArrayConcat(spotMarketsInfo, futuresMarketsInfo)
+	var markets []any = this.ArrayConcat(spotMarketsInfo, futuresMarketsInfo)
 	var result any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
+	for i := 0; i < len(markets); i++ {
 		var pairObj any = GetValue(markets, i)
 		var id *string = this.SafeStringUpper(pairObj, 0)
 		var market any = this.SafeValue(pairObj, 1, map[string]any{})
 		var spot bool = true
-		var typeVar any = nil
+		var typeVar string
 		if GetIndexOf(id, "F0") >= 0 {
 			spot = false
 			typeVar = "swap"
 		} else {
 			typeVar = "spot"
 		}
-		var swap bool = (IsEqual(typeVar, "swap"))
+		var swap bool = (typeVar == "swap")
 		var baseId any = nil
 		var quoteId any = nil
 		if GetIndexOf(id, ":") >= 0 {
@@ -927,12 +927,12 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			baseId = Slice(id, 0, 3)
 			quoteId = Slice(id, 3, 6)
 		}
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var splitBase []string = Split(base, "F0")
 		var splitQuote []string = Split(quote, "F0")
-		base = DerefScalar(this.SafeString(splitBase, 0))
-		quote = DerefScalar(this.SafeString(splitQuote, 0))
+		base = this.SafeString(splitBase, 0)
+		quote = this.SafeString(splitQuote, 0)
 		var symbol any = Add(Add(base, "/"), quote)
 		// baseId = 'f' + baseId;
 		// quoteId = 'f' + quoteId;
@@ -1172,7 +1172,7 @@ func (this *Bitfinex) ParseCurrenciesCustom(ids any, indexed any, indexedNetwork
 	return result
 }
 func (this *Bitfinex) ParseCurrencyCustom(id any, indexed any, indexedNetworks any) any {
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var label any = this.SafeList(GetValue(indexed, "label"), id, []any{})
 	var name *string = this.SafeString(label, 1)
 	var pool any = this.SafeList(GetValue(indexed, "pool"), id, []any{})
@@ -1186,13 +1186,13 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed any, indexedNetworks a
 	}()
 	var feeValues any = this.SafeList(GetValue(indexed, "fees"), id, []any{})
 	var fees any = this.SafeList(feeValues, 1, []any{})
-	var fee any = DerefScalar(this.SafeNumber(fees, 1))
+	var fee *float64 = this.SafeNumber(fees, 1)
 	var undl any = this.SafeList(GetValue(indexed, "undl"), id, []any{})
 	var defaultCurrencyPrecision *string = this.SafeString(this.Options, "defaultCurrencyPrecision", "8") // kept here for backward-compatibility
 	// numberToString instead of an `as string` cast: the describe() default for this option is the
 	// NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
 	// InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
-	var precision any = this.NumberToString(this.HandleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision))
+	var precision *string = this.NumberToString(this.HandleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision))
 	var networks map[string]any = map[string]any{}
 	var networkIds any = this.SafeList(indexedNetworks, id, []any{})
 	for j := 0; j < GetArrayLength(networkIds); j++ {
@@ -1300,12 +1300,12 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		}
 		var typeVar *string = this.SafeString(balance, 0)
 		var currencyId *string = this.SafeStringLower(balance, 1, "")
-		var start any = Subtract(GetLength(currencyId), 2)
+		var start int64 = Subtract(GetLength(currencyId), 2).(int64)
 		var isDerivativeCode bool = (Slice(currencyId, start, nil) == "f0")
 		// this will only filter the derivative codes if the requestedType is 'derivatives'
 		var derivativeCondition bool = (!isDerivative || isDerivativeCode)
 		if (accountType == typeVar || (accountType != nil && typeVar != nil && *accountType == *typeVar)) && derivativeCondition {
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			AddElementToObject(account, "total", this.SafeString(balance, 2))
 			AddElementToObject(account, "free", this.SafeString(balance, 4))
 			if code != nil {
@@ -1452,7 +1452,7 @@ func (this *Bitfinex) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"info":        result,
 	}
 }
-func (this *Bitfinex) ParseTransferStatus(status any) any {
+func (this *Bitfinex) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS": "ok",
 		"ERROR":   "failed",
@@ -1472,7 +1472,7 @@ func (this *Bitfinex) ConvertDerivativesId(currency any, typeVar any) any {
 	var currencyId any = nil
 	if IsEqual(typeVar, "derivatives") {
 		currencyId = DerefScalar(this.SafeString(underlying, 0, transferId))
-		var start any = Subtract(GetLength(currencyId), 2)
+		var start int64 = Subtract(GetLength(currencyId), 2).(int64)
 		var isDerivativeCode bool = (Slice(currencyId, start, nil) == "F0")
 		if !isDerivativeCode {
 			currencyId = Add(currencyId, "F0")
@@ -1543,7 +1543,7 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var orders []any = this.ToArray(orderbook)
 	for i := 0; i < len(orders); i++ {
 		var order any = GetValue(orders, i)
-		var price any = DerefScalar(this.SafeNumber(order, priceIndex))
+		var price *float64 = this.SafeNumber(order, priceIndex)
 		var signedAmount *string = this.SafeString(order, 2)
 		var amount *string = Precise.StringAbs(signedAmount)
 		var side any = func() any {
@@ -1621,7 +1621,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 	}
 	var isFundingCurrency bool = (length >= 17)
-	symbol = this.SafeSymbol(nil, market)
+	symbol = DerefScalar(this.SafeSymbol(nil, market))
 	var last any = nil
 	var bid any = nil
 	var ask any = nil
@@ -1834,7 +1834,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		return 2
 	}()
-	var side any = nil
+	var side string
 	var amountString *string = this.SafeString(tradeList, amountIndex)
 	var priceIndex any = func() any {
 		if isPrivate {
@@ -1853,7 +1853,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var typeVar any = nil
 	var fee any = nil
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestampIndex any = func() any {
 		if isPrivate {
 			return 2
@@ -1875,7 +1875,7 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 		var feeCostString *string = this.SafeString(tradeList, 9)
 		feeCostString = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(tradeList, 10)
-		var feeCurrency any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrency *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrency,
@@ -1933,7 +1933,7 @@ func (this *Bitfinex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes152512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2021,7 +2021,7 @@ func (this *Bitfinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes158212)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2078,7 +2078,7 @@ func (this *Bitfinex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 5)}
 }
-func (this *Bitfinex) ParseOrderStatus(status any) any {
+func (this *Bitfinex) ParseOrderStatus(status any) *string {
 	if status == nil {
 		return nil
 	}
@@ -2107,7 +2107,7 @@ func (this *Bitfinex) ParseOrderFlags(flags any) any {
 	}
 	return this.SafeValue(flagValues, flags, nil)
 }
-func (this *Bitfinex) ParseTimeInForce(orderType any) any {
+func (this *Bitfinex) ParseTimeInForce(orderType any) *string {
 	var orderTypes map[string]any = map[string]any{
 		"EXCHANGE IOC": "IOC",
 		"EXCHANGE FOK": "FOK",
@@ -2122,7 +2122,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	var orderList any = this.SafeList(order, "result")
 	var id *string = this.SafeString(orderList, 0)
 	var marketId *string = this.SafeString(orderList, 3)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	// https://github.com/ccxt/ccxt/issues/6686
 	// const timestamp = this.safeTimestamp (orderObject, 5);
 	var timestamp *int64 = this.SafeInteger(orderList, 5)
@@ -2137,7 +2137,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	}()
 	var orderType *string = this.SafeString(orderList, 8)
 	var typeVar *string = this.SafeString(this.SafeValue(this.Options, "exchangeTypes"), orderType)
-	var timeInForce any = this.ParseTimeInForce(orderType)
+	var timeInForce *string = this.ParseTimeInForce(orderType)
 	var rawFlags *string = this.SafeString(orderList, 12)
 	var flags any = this.ParseOrderFlags(rawFlags)
 	var postOnly bool = false
@@ -2435,8 +2435,8 @@ func (this *Bitfinex) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = DerefScalar(this.SafeNumber(rawOrder, "amount"))
-		var price any = DerefScalar(this.SafeNumber(rawOrder, "price"))
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		AppendToArray(&ordersRequests, []any{"on", orderRequest})
@@ -2558,7 +2558,7 @@ func (this *Bitfinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		PanicOnError(retRes203612)
 	}
 	var cid any = this.SafeValue2(params, "cid", "clientOrderId") // client order id
-	var request any = nil
+	var request map[string]any = nil
 	var market any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
@@ -2903,7 +2903,7 @@ func (this *Bitfinex) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes228412)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3230,7 +3230,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	}
 	return nil
 }
-func (this *Bitfinex) ParseTransactionStatus(status any) any {
+func (this *Bitfinex) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"SUCCESS":              "ok",
 		"COMPLETED":            "ok",
@@ -3301,8 +3301,8 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var transactionLength int = GetArrayLength(transaction)
-	var timestamp any = nil
-	var updated any = nil
+	var timestamp *int64 = nil
+	var updated *int64 = nil
 	var code any = nil
 	var amount any = nil
 	var id any = nil
@@ -3316,7 +3316,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	var comment any = nil
 	if transactionLength == 8 {
 		var data any = this.SafeValue(transaction, 4, []any{})
-		timestamp = DerefScalar(this.SafeInteger(transaction, 0))
+		timestamp = this.SafeInteger(transaction, 0)
 		if !IsEqual(currency, nil) {
 			code = GetValue(currency, "code")
 		}
@@ -3338,11 +3338,11 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	} else if transactionLength == 22 {
 		id = DerefScalar(this.SafeString(transaction, 0))
 		var currencyId *string = this.SafeString(transaction, 1)
-		code = this.SafeCurrencyCode(currencyId, currency)
+		code = DerefScalar(this.SafeCurrencyCode(currencyId, currency))
 		var networkId *string = this.SafeString(transaction, 2)
 		network = this.NetworkIdToCode(networkId, code)
-		timestamp = DerefScalar(this.SafeInteger(transaction, 5))
-		updated = DerefScalar(this.SafeInteger(transaction, 6))
+		timestamp = this.SafeInteger(transaction, 5)
+		updated = this.SafeInteger(transaction, 6)
 		status = this.ParseTransactionStatus(this.SafeString(transaction, 9))
 		var signedAmount *string = this.SafeString(transaction, 12)
 		amount = Precise.StringAbs(signedAmount)
@@ -3487,12 +3487,12 @@ func (this *Bitfinex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	var feeData any = this.SafeValue(response, 4, []any{})
 	var makerData any = this.SafeValue(feeData, 0, []any{})
 	var takerData any = this.SafeValue(feeData, 1, []any{})
-	var makerFee any = DerefScalar(this.SafeNumber(makerData, 0))
-	var makerFeeFiat any = DerefScalar(this.SafeNumber(makerData, 2))
-	var makerFeeDeriv any = DerefScalar(this.SafeNumber(makerData, 5))
-	var takerFee any = DerefScalar(this.SafeNumber(takerData, 0))
-	var takerFeeFiat any = DerefScalar(this.SafeNumber(takerData, 2))
-	var takerFeeDeriv any = DerefScalar(this.SafeNumber(takerData, 5))
+	var makerFee *float64 = this.SafeNumber(makerData, 0)
+	var makerFeeFiat *float64 = this.SafeNumber(makerData, 2)
+	var makerFeeDeriv *float64 = this.SafeNumber(makerData, 5)
+	var takerFee *float64 = this.SafeNumber(takerData, 0)
+	var takerFeeFiat *float64 = this.SafeNumber(takerData, 2)
+	var takerFeeDeriv *float64 = this.SafeNumber(takerData, 5)
 	for i := 0; i < GetArrayLength(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		var market any = this.Market(symbol)
@@ -3560,7 +3560,7 @@ func (this *Bitfinex) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	if !IsEqual(limit, nil) {
 		request["limit"] = limit // max 1000
 	}
-	var response any = nil
+	var response []any = nil
 	if code != nil {
 		currency = this.Currency(code)
 		request["currency"] = GetValue(currency, "id")
@@ -3982,11 +3982,11 @@ func (this *Bitfinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var id *string = this.SafeString(itemList, 0)
 	var currencyId *string = this.SafeString(itemList, 1)
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(itemList, 3)
-	var amount any = DerefScalar(this.SafeNumber(itemList, 5))
-	var after any = DerefScalar(this.SafeNumber(itemList, 6))
+	var amount *float64 = this.SafeNumber(itemList, 5)
+	var after *float64 = this.SafeNumber(itemList, 6)
 	var description *string = this.SafeString(itemList, 8)
 	if description != nil {
 		var parts []string = Split(description, " @ ")
@@ -4047,7 +4047,7 @@ func (this *Bitfinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes321512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -4216,7 +4216,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes333412)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -4571,7 +4571,7 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan any, symbol any, opti
 		PanicOnError(retRes362612)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -4743,7 +4743,7 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes376512)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {

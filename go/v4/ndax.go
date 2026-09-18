@@ -773,7 +773,7 @@ func (this *Ndax) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Ndax) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "ProductId")
-	var code any = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
+	var code *string = this.SafeCurrencyCode(this.SafeString(rawCurrency, "Product"))
 	var ProductType *string = this.SafeString(rawCurrency, "ProductType")
 	var typeVar any = func() any {
 		if ProductType != nil && *ProductType == "NationalCurrency" {
@@ -891,8 +891,8 @@ func (this *Ndax) ParseMarket(market any) any {
 	// const lowercaseId = this.safeStringLower (market, 'symbol');
 	var baseId *string = this.SafeString(market, "Product1")
 	var quoteId *string = this.SafeString(market, "Product2")
-	var base any = this.SafeCurrencyCode(this.SafeString(market, "Product1Symbol"))
-	var quote any = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
+	var base *string = this.SafeCurrencyCode(this.SafeString(market, "Product1Symbol"))
+	var quote *string = this.SafeCurrencyCode(this.SafeString(market, "Product2Symbol"))
 	var sessionStatus *string = this.SafeString(market, "SessionStatus")
 	var isDisable any = this.SafeValue(market, "IsDisable")
 	var sessionRunning bool = (sessionStatus != nil && *sessionStatus == "Running")
@@ -1129,7 +1129,7 @@ func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) any {
 		marketId = this.SafeString(ticker, "trading_pairs")
 	}
 	market = this.SafeMarket(marketId, market, "_")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString2(ticker, "LastTradedPx", "last_price")
 	var percentage *string = this.SafeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h")
 	var change *string = this.SafeString(ticker, "Rolling24HrPxChange")
@@ -1484,7 +1484,7 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString any = nil
 	var amountString any = nil
 	var costString any = nil
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var id any = nil
 	var marketId any = nil
 	var side any = nil
@@ -1495,7 +1495,7 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsArray(trade) {
 		priceString = DerefScalar(this.SafeString(trade, 3))
 		amountString = DerefScalar(this.SafeString(trade, 2))
-		timestamp = DerefScalar(this.SafeInteger(trade, 6))
+		timestamp = this.SafeInteger(trade, 6)
 		id = DerefScalar(this.SafeString(trade, 0))
 		marketId = DerefScalar(this.SafeString(trade, 1))
 		var takerSide *int64 = this.SafeInteger(trade, 8)
@@ -1506,7 +1506,7 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 		orderId = DerefScalar(this.SafeString(trade, 4))
 	} else {
-		timestamp = DerefScalar(this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime"))
+		timestamp = this.SafeInteger2(trade, "TradeTimeMS", "ReceiveTime")
 		id = DerefScalar(this.SafeString(trade, "TradeId"))
 		orderId = DerefScalar(this.SafeString2(trade, "OrderId", "OrigOrderId"))
 		marketId = DerefScalar(this.SafeString2(trade, "InstrumentId", "Instrument"))
@@ -1519,14 +1519,14 @@ func (this *Ndax) ParseTrade(trade any, optionalArgs ...any) any {
 		var feeCostString *string = this.SafeString(trade, "Fee")
 		if feeCostString != nil {
 			var feeCurrencyId *string = this.SafeString(trade, "FeeProductId")
-			var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+			var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 			fee = map[string]any{
 				"cost":     feeCostString,
 				"currency": feeCurrencyCode,
 			}
 		}
 	}
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           id,
@@ -1655,7 +1655,7 @@ func (this *Ndax) ParseBalance(response any) any {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "ProductId")
 		if (currencyId != nil) && (!IsEqual(this.Currencies_by_id, nil)) && (InOp(this.Currencies_by_id, currencyId)) {
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balance, "Amount"))
 			AddElementToObject(account, "used", this.SafeString(balance, "Hold"))
@@ -1742,7 +1742,7 @@ func (this *Ndax) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Ndax) ParseLedgerEntryType(typeVar any) any {
+func (this *Ndax) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"Trade":             "trade",
 		"Deposit":           "transaction",
@@ -1894,7 +1894,7 @@ func (this *Ndax) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(response, currency, since, limit)
 	return nil
 }
-func (this *Ndax) ParseOrderStatus(status any) any {
+func (this *Ndax) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Accepted":      "open",
 		"Rejected":      "rejected",
@@ -3133,7 +3133,7 @@ func (this *Ndax) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(response, currency, since, limit)
 	return nil
 }
-func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) any {
+func (this *Ndax) ParseTransactionStatusByType(optionalArgs ...any) *string {
 	status := GetArg(optionalArgs, 0, nil)
 	_ = status
 	typeVar := GetArg(optionalArgs, 1, nil)
@@ -3248,7 +3248,7 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var id any = nil
 	var currencyId *string = this.SafeString(transaction, "ProductId")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var typeVar any = nil
 	if InOp(transaction, "DepositId") {
 		id = DerefScalar(this.SafeString(transaction, "DepositId"))
@@ -3264,10 +3264,10 @@ func (this *Ndax) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 	var address *string = this.SafeString2(templateForm, "ExternalAddress", "ToAddress")
 	var timestamp *int64 = this.SafeInteger(templateForm, "TimeSubmitted")
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "FeeAmount"))
+	var feeCost *float64 = this.SafeNumber(transaction, "FeeAmount")
 	var transactionStatus *string = this.SafeString(transaction, "TicketStatus")
 	var fee map[string]any = map[string]any{}
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,

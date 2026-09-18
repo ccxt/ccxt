@@ -832,7 +832,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
 	var priceType any = "LAST_PRICE"
 	if isContract == true {
-		priceTypeparamsVariable := this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
+		var priceTypeparamsVariable []any = this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
 		priceType = ccxt.GetValue(priceTypeparamsVariable, 0)
 		params = ccxt.GetValue(priceTypeparamsVariable, 1)
 	}
@@ -931,7 +931,7 @@ func (this *Weex) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	var isContract any = ccxt.GetValue(firstMarket, "contract")
 	var priceType any = "LAST_PRICE"
 	if isContract == true {
-		priceTypeparamsVariable := this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
+		var priceTypeparamsVariable []any = this.HandleOptionAndParams2(params, callerMethodName, "price", "priceType", priceType)
 		priceType = ccxt.GetValue(priceTypeparamsVariable, 0)
 		params = ccxt.GetValue(priceTypeparamsVariable, 1)
 	}
@@ -1110,7 +1110,7 @@ func (this *Weex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "watchOrderBookForSymbols")
 	params = this.Omit(params, "callerMethodName")
 	var depth any = "200"
-	depthparamsVariable := this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
+	var depthparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
 	var messageHashes any = []any{}
@@ -1195,7 +1195,7 @@ func (this *Weex) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	var callerMethodName *string = this.SafeString(params, "callerMethodName", "unWatchOrderBookForSymbols")
 	params = this.Omit(params, "callerMethodName")
 	var depth any = "200"
-	depthparamsVariable := this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
+	var depthparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "depth", depth)
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
 	var subHashes any = []any{}
@@ -1477,7 +1477,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 	}
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
@@ -1530,7 +1530,7 @@ func (this *Weex) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.NotSupported(this.Id + " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols."))
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("unWatchMyTrades", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("unWatchMyTrades", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
@@ -1625,8 +1625,8 @@ func (this *Weex) HandleMyTrades(client any, message any) {
 		messageHash = "myContractTrades"
 	}
 	for j := 0; j < len(symbolKeys); j++ {
-		var symbol any = ccxt.GetValue(symbolKeys, j)
-		var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+		var symbol string = ccxt.GetValue(symbolKeys, j).(string)
+		var symbolMessageHash any = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
@@ -1665,7 +1665,7 @@ func (this *Weex) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var commission *string = this.SafeString(trade, "fillFee")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(trade, "coin")
-		var feeCurrency any = this.SafeCurrencyCode(commissionAsset)
+		var feeCurrency any = ccxt.DerefScalar(this.SafeCurrencyCode(commissionAsset))
 		if marketType == "spot" {
 			if side != nil && *side == "buy" {
 				feeCurrency = ccxt.GetValue(marketResolved, "base")
@@ -1735,7 +1735,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
@@ -1787,7 +1787,7 @@ func (this *Weex) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.NotSupported(this.Id + " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols."))
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("unWatchOrders", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("unWatchOrders", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(marketType, "spot"))
@@ -1883,8 +1883,8 @@ func (this *Weex) HandleOrders(client any, message any) {
 		messageHash = "contractOrders"
 	}
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbol any = ccxt.GetValue(symbolKeys, i)
-		var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+		var symbol string = ccxt.GetValue(symbolKeys, i).(string)
+		var symbolMessageHash any = messageHash + "::" + symbol
 		client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
@@ -1991,7 +1991,7 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var commission *string = this.SafeString(order, "cumFillFee")
 	if commission != nil {
 		var commissionAsset *string = this.SafeString(order, "coin")
-		var feeCurrency any = this.SafeCurrencyCode(commissionAsset)
+		var feeCurrency any = ccxt.DerefScalar(this.SafeCurrencyCode(commissionAsset))
 		if marketType == "spot" {
 			if side != nil && *side == "buy" {
 				feeCurrency = ccxt.GetValue(marketResolved, "base")
@@ -2069,7 +2069,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes159312)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
@@ -2081,7 +2081,7 @@ func (this *Weex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), urlType), "/private")
 	this.Authenticate(url)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar)
 	var options any = this.SafeDict(this.Options, "watchBalance")
 	var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", false)
@@ -2209,7 +2209,7 @@ func (this *Weex) HandleBalance(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(balanceUpdates); i++ {
 		var entry any = this.SafeDict(balanceUpdates, i)
 		var currencyId *string = this.SafeString(entry, "coin")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString2(entry, "available", "amount"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(entry, "frozen"))
@@ -2260,7 +2260,7 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/private")
 	this.Authenticate(url)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	symbols = this.MarketSymbols(symbols, "swap", true)
 	var messageHash any = "positions"
 	var subscriptionHash any = messageHash
@@ -2529,7 +2529,6 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 
 			}(this)
-
 			if ret__ != nil {
 				return ret__
 			}

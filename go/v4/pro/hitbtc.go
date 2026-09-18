@@ -106,12 +106,12 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
 	var messageHash string = "authenticated"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		var timestamp int64 = this.Milliseconds()
-		var timestampString any = this.NumberToString(timestamp)
+		var timestampString *string = this.NumberToString(timestamp)
 		var timestampEncoded any = func() any {
 			if timestampString == nil {
 				return ""
@@ -355,7 +355,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 	}()
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var item any = ccxt.GetValue(data, marketId)
@@ -386,8 +386,8 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 	}
 }
 func (this *Hitbtc) HandleDelta(bookside any, delta any) {
-	var price any = ccxt.DerefScalar(this.SafeNumber(delta, 0))
-	var amount any = ccxt.DerefScalar(this.SafeNumber(delta, 1))
+	var price *float64 = this.SafeNumber(delta, 0)
+	var amount *float64 = this.SafeNumber(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
 func (this *Hitbtc) HandleDeltas(bookside any, deltas any) {
@@ -540,7 +540,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 	var result any = []any{}
 	var topic string = "tickers"
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var ticker any = this.ParseWsTicker(ccxt.GetValue(data, marketId), market)
@@ -583,7 +583,7 @@ func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString(ticker, "c")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -688,7 +688,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message any) {
 	var result any = []any{}
 	var topic string = "bidask"
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var ticker any = this.ParseWsBidAsk(ccxt.GetValue(data, marketId), market)
@@ -814,7 +814,7 @@ func (this *Hitbtc) HandleTrades(client any, message any) any {
 	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		var symbol any = ccxt.GetValue(market, "symbol")
@@ -974,7 +974,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message any) any {
 		return message
 	}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
@@ -1049,7 +1049,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var name any = this.GetSupportedMapping(marketType, map[string]any{
@@ -1154,7 +1154,7 @@ func (this *Hitbtc) HandleOrderHelper(client any, message any, order any) {
 	var method *string = this.SafeString(message, "method", "")
 	var splitMethod []string = ccxt.Split(method, "_order")
 	var messageHash *string = this.SafeString(splitMethod, 0)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var parsed any = this.ParseOrder(order)
 	orders.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
@@ -1311,7 +1311,7 @@ func (this *Hitbtc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes110312)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var name any = this.GetSupportedMapping(typeVar, map[string]any{
@@ -1371,7 +1371,7 @@ func (this *Hitbtc) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("createOrder", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrder", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var marginMode any = nil
@@ -1442,7 +1442,7 @@ func (this *Hitbtc) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("cancelOrderWs", params)
@@ -1504,7 +1504,7 @@ func (this *Hitbtc) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var marginMode any = nil
@@ -1571,7 +1571,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any 
 		request["symbol"] = ccxt.GetValue(market, "id")
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var marginMode any = nil
@@ -1796,7 +1796,6 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 				panic(ccxt.ExchangeError(feedback))
 
 			}(this)
-
 			if ret__ != nil {
 				return ret__
 			}

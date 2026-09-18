@@ -574,7 +574,7 @@ func (this *Mudrex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var ms *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(ms, market)
 	var symbol any = GetValue(market, "symbol")
-	var pct any = DerefScalar(this.SafeNumber(ticker, "change_perc"))
+	var pct *float64 = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -758,7 +758,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes57612)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var requested *string = this.SafeStringN(params, []any{"trade_currency", "tradeCurrency", "currency"})
@@ -1081,7 +1081,7 @@ func (this *Mudrex) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	ch <- this.ParseOrder(data, market)
 	return nil
 }
-func (this *Mudrex) ParseOrderStatus(status any) any {
+func (this *Mudrex) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"open":             "open",
 		"created":          "open",
@@ -1133,8 +1133,8 @@ func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) any {
 	} else if trig != nil && *trig == "LIMIT" {
 		typ = "limit"
 	}
-	var ts any = this.Parse8601(this.SafeString(order, "created_at"))
-	var status any = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
+	var ts *int64 = this.Parse8601(this.SafeString(order, "created_at"))
+	var status *string = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
 	var sym any = GetValue(market, "symbol")
 	return this.SafeOrder(map[string]any{
 		"info":                order,
@@ -1541,7 +1541,7 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	market = this.SafeMarket(nil, market)
 	var ms *string = this.SafeString(position, "symbol")
-	var symbol any = this.SafeSymbol(ms, market)
+	var symbol *string = this.SafeSymbol(ms, market)
 	// open positions use "order_type", closed positions (history) use "position_type"
 	var rawSide *string = this.SafeStringUpper2(position, "order_type", "position_type")
 	var side any = nil
@@ -1550,8 +1550,8 @@ func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) any {
 	} else if rawSide != nil && *rawSide == "SHORT" {
 		side = "short"
 	}
-	var ts any = this.Parse8601(this.SafeString(position, "updated_at"))
-	if IsEqual(ts, nil) {
+	var ts *int64 = this.Parse8601(this.SafeString(position, "updated_at"))
+	if ts == nil {
 		ts = this.Parse8601(this.SafeString(position, "created_at"))
 	}
 	var quantityString *string = this.SafeString(position, "quantity")
@@ -1790,7 +1790,7 @@ func (this *Mudrex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var maxCalls any = nil
-	maxCallsparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
+	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var pageSize any = 0
@@ -1894,7 +1894,7 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) any {
 	var ms *string = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(ms, market)
 	var symbol any = GetValue(market, "symbol")
-	var ts any = this.Parse8601(this.SafeString(trade, "created_at"))
+	var ts *int64 = this.Parse8601(this.SafeString(trade, "created_at"))
 	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
 	var side *string = this.SafeStringLower(trade, "order_type")
 	var tradeSide any = nil

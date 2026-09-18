@@ -150,7 +150,7 @@ func (this *Backpack) watchPrivateBody(ch chan any, topics any, messageHashes an
 	return nil
 }
 func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message any) {
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, messageHashes, message, messageHashes)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
@@ -191,7 +191,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 				if !ccxt.IsEqual(cache, nil) {
 					var keys []string = ccxt.ObjectKeys(cache)
 					for j := 0; j < len(keys); j++ {
-						var symbol any = ccxt.GetValue(keys, j)
+						var symbol string = ccxt.GetValue(keys, j).(string)
 						ccxt.Remove(cache, symbol)
 					}
 				}
@@ -207,7 +207,7 @@ func (this *Backpack) HandleUnsubscriptions(url any, messageHashes any, message 
 				var cache any = this.Positions
 				var keys []string = ccxt.ObjectKeys(cache)
 				for j := 0; j < len(keys); j++ {
-					var symbol any = ccxt.GetValue(keys, j)
+					var symbol string = ccxt.GetValue(keys, j).(string)
 					ccxt.Remove(this.Positions, symbol)
 				}
 			} else {
@@ -386,7 +386,7 @@ func (this *Backpack) HandleTicker(client any, message any) {
 	var ticker any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(ticker, "s")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedTicker any = this.ParseWsTicker(ticker, market)
 	var messageHash any = ccxt.Add("ticker"+":", symbol)
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
@@ -410,10 +410,10 @@ func (this *Backpack) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var microseconds *int64 = this.SafeInteger(ticker, "E", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microseconds, 1000))
 	var marketId *string = this.SafeString(ticker, "s")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "c")
 	var open *string = this.SafeString(ticker, "o")
 	return this.SafeTicker(map[string]any{
@@ -542,7 +542,7 @@ func (this *Backpack) HandleBidAsk(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var parsedBidAsk any = this.ParseWsBidAsk(data, market)
 	var messageHash any = ccxt.Add("bidask"+":", symbol)
 	ccxt.AddElementToObject(this.Bidsasks, symbol, parsedBidAsk)
@@ -568,7 +568,7 @@ func (this *Backpack) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
 	var microseconds *int64 = this.SafeInteger(ticker, "E", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microseconds, 1000))
 	var ask *string = this.SafeString(ticker, "a")
 	var askVolume *string = this.SafeString(ticker, "A")
 	var bid *string = this.SafeString(ticker, "b")
@@ -998,7 +998,7 @@ func (this *Backpack) HandleTrades(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var stored any = ccxt.NewArrayCache(limit)
+		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var cache any = ccxt.GetValue(this.Trades, symbol)
@@ -1026,7 +1026,7 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var microseconds *int64 = this.SafeInteger(trade, "E", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microseconds, 1000))
 	var id *string = this.SafeString(trade, "t")
 	var marketId *string = this.SafeString(trade, "s")
 	market = this.SafeMarket(marketId, market)
@@ -1232,7 +1232,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "s")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
@@ -1257,7 +1257,7 @@ func (this *Backpack) HandleOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(storedOrderBook, messageHash)
 }
 func (this *Backpack) HandleDelta(orderbook any, delta any) {
-	var timestamp any = this.ParseToInt(ccxt.Divide(this.SafeInteger(delta, "T", 0), 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(this.SafeInteger(delta, "T", 0), 1000))
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(delta, "u"))
@@ -1474,16 +1474,16 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "c")
 	var microseconds *int64 = this.SafeInteger(order, "E", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microseconds, 1000))
-	var status any = this.ParseWsOrderStatus(this.SafeString(order, "X"), market)
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microseconds, 1000))
+	var status *string = this.ParseWsOrderStatus(this.SafeString(order, "X"), market)
 	var marketId *string = this.SafeString(order, "s")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var typeVar *string = this.SafeStringLower(order, "o")
 	var timeInForce *string = this.SafeString(order, "f")
-	var side any = this.ParseWsOrderSide(this.SafeString(order, "S"))
+	var side *string = this.ParseWsOrderSide(this.SafeString(order, "S"))
 	var price *string = this.SafeString(order, "p")
-	var triggerPrice any = ccxt.DerefScalar(this.SafeNumber(order, "P"))
+	var triggerPrice *float64 = this.SafeNumber(order, "P")
 	var amount *string = this.SafeString(order, "q")
 	var cost *string = this.SafeString(order, "Z")
 	var filled *string = this.SafeString(order, "l")
@@ -1519,7 +1519,7 @@ func (this *Backpack) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Backpack) ParseWsOrderStatus(status any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsOrderStatus(status any, optionalArgs ...any) *string {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var statuses map[string]any = map[string]any{
@@ -1533,7 +1533,7 @@ func (this *Backpack) ParseWsOrderStatus(status any, optionalArgs ...any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Backpack) ParseWsOrderSide(side any) any {
+func (this *Backpack) ParseWsOrderSide(side any) *string {
 	var sides map[string]any = map[string]any{
 		"Bid": "buy",
 		"Ask": "sell",
@@ -1676,7 +1676,7 @@ func (this *Backpack) HandlePositions(client any, message any) {
 	var cache any = this.Positions
 	var parsedPosition any = this.ParseWsPosition(data)
 	var microseconds *int64 = this.SafeInteger(data, "E", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microseconds, 1000))
 	ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
 	ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
 	cache.(ccxt.Appender).Append(parsedPosition)
@@ -1719,10 +1719,10 @@ func (this *Backpack) ParseWsPosition(position any, optionalArgs ...any) any {
 	var unrealisedPnl *string = this.SafeString(position, "P")
 	var contracts *string = this.SafeString(position, "Q")
 	var markPrice *string = this.SafeString(position, "M")
-	var netQuantity any = ccxt.DerefScalar(this.SafeNumber(position, "q"))
+	var netQuantity *float64 = this.SafeNumber(position, "q")
 	var hedged any = false
 	var side any = "long"
-	if !ccxt.IsEqual(netQuantity, nil) {
+	if netQuantity != nil {
 		if ccxt.IsLessThan(netQuantity, 0) {
 			side = "short"
 		}
@@ -1731,9 +1731,9 @@ func (this *Backpack) ParseWsPosition(position any, optionalArgs ...any) any {
 		side = nil
 	}
 	var microseconds *int64 = this.SafeInteger(position, "E", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microseconds, 1000))
-	var maintenanceMarginPercentage any = ccxt.DerefScalar(this.SafeNumber(position, "m"))
-	var initialMarginPercentage any = ccxt.DerefScalar(this.SafeNumber(position, "f"))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microseconds, 1000))
+	var maintenanceMarginPercentage *float64 = this.SafeNumber(position, "m")
+	var initialMarginPercentage *float64 = this.SafeNumber(position, "f")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          id,

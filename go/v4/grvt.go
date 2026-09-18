@@ -723,7 +723,7 @@ func (this *Grvt) EipDefinitions() any {
 		},
 	}
 }
-func (this *Grvt) UsesPrivateKey() any {
+func (this *Grvt) UsesPrivateKey() bool {
 	var privateKeyDefined bool = !IsEqual(this.PrivateKey, nil) && (this.PrivateKey != "")
 	var apiKeyDefined bool = !IsEqual(this.ApiKey, nil) && (this.ApiKey != "")
 	if privateKeyDefined && apiKeyDefined {
@@ -1035,10 +1035,10 @@ func (this *Grvt) ParseMarket(market any) any {
 	var marketId *string = this.SafeString(market, "instrument")
 	var baseId *string = this.SafeString(market, "base")
 	var quoteId *string = this.SafeString(market, "quote")
-	var settleId any = quoteId
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
-	var settle any = this.SafeCurrencyCode(settleId)
+	var settleId *string = quoteId
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 	var typeVar any = nil
 	var typeRaw *string = this.SafeString(market, "kind")
@@ -1162,7 +1162,7 @@ func (this *Grvt) ParseCurrency(rawCurrency any) any {
 	//            },
 	//
 	var id *string = this.SafeString(rawCurrency, "symbol")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
 		"id":        id,
@@ -1378,7 +1378,7 @@ func (this *Grvt) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	//    }
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
-	var timestamp any = this.Parse8601(this.SafeString(result, "event_time"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(result, "event_time"))
 	var marketId *string = this.SafeString(result, "instrument")
 
 	ch <- this.ParseOrderBook(result, this.SafeSymbol(marketId), timestamp, "bids", "asks", "price", "size")
@@ -1596,7 +1596,7 @@ func (this *Grvt) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		PanicOnError(retRes116712)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1712,7 +1712,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes126112)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1787,7 +1787,7 @@ func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any 
 }
 func (this *Grvt) GetSubAccountId(params any) any {
 	var subAccountId any = nil
-	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "getSubAccountId", "accountId")
+	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "getSubAccountId", "accountId")
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = GetValue(subAccountIdparamsVariable, 1)
 	if subAccountId == nil {
@@ -1894,7 +1894,7 @@ func (this *Grvt) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(spotBalances); i++ {
 		var balance any = GetValue(spotBalances, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "free", availableBalance) // todo: revise after API team clarification
@@ -2208,7 +2208,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var addressFrom *string = this.SafeString(transaction, "from_account_id")
 	var addressTo *string = this.SafeString(transaction, "to_account_id")
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	if InOp(transaction, "transfer_metadata") {
 		var metaData any = this.OmitZero(this.SafeString(transaction, "transfer_metadata"))
 		if metaData != nil {
@@ -2285,7 +2285,7 @@ func (this *Grvt) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	var currency any = this.Currency(code)
 	var maxLimit int = 1000
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2393,11 +2393,11 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 	var defaultFromAccountId *string = this.SafeString(this.Options, "userMainAccountId")
 	if this.InArray(fromAccount, []any{"trading", "funding"}) && this.InArray(toAccount, []any{"trading", "funding"}) {
 		var tradingAccountId any = nil
-		tradingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
+		var tradingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "tradingAccountId")
 		tradingAccountId = GetValue(tradingAccountIdparamsVariable, 0)
 		params = GetValue(tradingAccountIdparamsVariable, 1)
 		var fundingAccountId any = nil
-		fundingAccountIdparamsVariable := this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
+		var fundingAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "transfer", "fundingAccountId")
 		fundingAccountId = GetValue(fundingAccountIdparamsVariable, 0)
 		params = GetValue(fundingAccountIdparamsVariable, 1)
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {
@@ -2439,10 +2439,10 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 					}
 					ret_ = func(this *Grvt) any {
 						// catch block:
-						var msg any = this.ExceptionMessage(error)
+						var msg string = this.ExceptionMessage(error)
 						var isFromFundingAccount bool = (IsEqual(fromAccount, "funding"))
 						if isFromFundingAccount && (GetIndexOf(msg, "You are not authorized") >= 0) {
-							panic(PermissionDenied(Add(this.Id+" transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ", msg)))
+							panic(PermissionDenied(this.Id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: " + msg))
 						}
 						panic(error)
 
@@ -2506,7 +2506,7 @@ func (this *Grvt) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeIntegerProduct(transfer, "event_time", 0.000001)
 	return map[string]any{
 		"info":        transfer,
@@ -2727,8 +2727,8 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"reduce_only": isReduceOnly,
 	}
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GOOD_TILL_TIME")
-	var postOnly any = this.IsPostOnly(isMarketOrder, nil, params)
-	if EvalTruthy(postOnly) {
+	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, params)
+	if postOnly {
 		orderRequest["post_only"] = true
 	}
 	if timeInForce == nil {
@@ -2743,7 +2743,7 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	}
 	orderRequest["time_in_force"] = timeInForce
 	if !isMarketOrder {
-		if EvalTruthy(postOnly) {
+		if postOnly {
 			timeInForce = "POST_ONLY"
 		} else if IsEqual(timeInForce, "ioc") {
 			timeInForce = "IMMEDIATE_OR_CANCEL"
@@ -2996,7 +2996,7 @@ func (this *Grvt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes22818 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes22818)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3323,7 +3323,7 @@ func (this *Grvt) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(leverage, "instrument")
-	var leverageValue any = DerefScalar(this.SafeNumber(leverage, "leverage"))
+	var leverageValue *float64 = this.SafeNumber(leverage, "leverage")
 	var marginType *string = this.SafeStringLower(leverage, "margin_type")
 	return map[string]any{
 		"info":          leverage,
@@ -3435,7 +3435,7 @@ func (this *Grvt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	retRes26118 := (<-this.LoadMarketsAndSignInAsync())
 	PanicOnError(retRes26118)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3996,7 +3996,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		"info":                order,
 	}, market)
 }
-func (this *Grvt) ParseTimeInForce(typeVar any) any {
+func (this *Grvt) ParseTimeInForce(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"GOOD_TILL_TIME":           "GTC",
 		"IMMEDIATE_OR_CANCEL":      "IOC",
@@ -4016,7 +4016,7 @@ func (this *Grvt) TimeInForceToInt(timeInForce any) any {
 	}
 	return this.SafeInteger(timeInForces, timeInForce, 0)
 }
-func (this *Grvt) ParseOrderStatus(status any) any {
+func (this *Grvt) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "pending",
 		"OPEN":      "open",
@@ -4208,9 +4208,9 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 	var definitions any = this.EipDefinitions()
 	var ethEncodedMessage any = this.EthEncodeStructuredData(domainData, GetValue(definitions, structureType), messageData)
 	var ethEncodedMessageHashed any = Add("0x", this.Hash(ethEncodedMessage, keccak, "hex"))
-	var usesPrivKey any = this.UsesPrivateKey() // py transpiler needs this line separated
+	var usesPrivKey bool = this.UsesPrivateKey() // py transpiler needs this line separated
 	var secretOrPrivkey any = func() any {
-		if EvalTruthy(usesPrivKey) {
+		if usesPrivKey {
 			return this.PrivateKey
 		}
 		return this.Secret

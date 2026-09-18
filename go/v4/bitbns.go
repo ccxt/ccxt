@@ -399,8 +399,8 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var marketPrecision any = this.SafeDict(market, "precision", map[string]any{})
 		var marketLimits any = this.SafeDict(market, "limits", map[string]any{})
 		var amountLimits any = this.SafeDict(marketLimits, "amount", map[string]any{})
@@ -563,7 +563,7 @@ func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -663,7 +663,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var keys []string = ObjectKeys(data)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var parts []string = Split(key, "availableorder")
 		var numParts int = len(parts)
 		if numParts > 1 {
@@ -675,7 +675,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 			if IsEqual(currencyId, "Money") {
 				currencyId = "INR"
 			}
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			if code != nil {
 				AddElementToObject(result, code, account)
 			}
@@ -730,7 +730,7 @@ func (this *Bitbns) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bitbns) ParseStatus(status any) any {
+func (this *Bitbns) ParseStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"-1": "cancelled",
 		"0":  "open",
@@ -1174,8 +1174,8 @@ func (this *Bitbns) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	market = this.SafeMarket(nil, market)
 	var orderId *string = this.SafeString2(trade, "id", "tradeId")
-	var timestamp any = this.Parse8601(this.SafeString(trade, "date"))
-	timestamp = DerefScalar(this.SafeInteger(trade, "timestamp", timestamp))
+	var timestamp *int64 = this.Parse8601(this.SafeString(trade, "date"))
+	timestamp = this.SafeInteger(trade, "timestamp", timestamp)
 	var priceString *string = this.SafeString2(trade, "rate", "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var side any = this.SafeStringLower(trade, "type")
@@ -1486,7 +1486,7 @@ func (this *Bitbns) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(data, currency, since, limit)
 	return nil
 }
-func (this *Bitbns) ParseTransactionStatusByType(status any, optionalArgs ...any) any {
+func (this *Bitbns) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{
@@ -1533,8 +1533,8 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "unit")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = this.Parse8601(this.SafeString2(transaction, "date", "timestamp"))
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	var expTime *string = this.SafeString(transaction, "expTime", "")
 	var status any = nil
@@ -1547,10 +1547,10 @@ func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 	}
 	// const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,

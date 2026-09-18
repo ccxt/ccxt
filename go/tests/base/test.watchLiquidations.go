@@ -15,6 +15,7 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// log (symbol.green, 'watching trades...')
+
 	var method string = "watchLiquidations"
 	// we have to skip some exchanges here due to the frequency of trading
 	var skippedExchanges []any = []any{}
@@ -64,6 +65,7 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 				var m3 any = (Add(Add(Add(Add(Add(exchange.GetId(), " "), method), "() returned "), GetArrayLength(response)), " liquidations"))
 				fmt.Println(m3)
 				// log.noLocate (asTable (response))
+
 				for i := 0; i < GetArrayLength(response); i++ {
 					TestLiquidation(exchange, skippedProperties, method, GetValue(response, i), symbol)
 				}

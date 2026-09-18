@@ -86,22 +86,22 @@ func TestExtend() {
 		"other3": "z",
 	}
 	var extended2 map[string]any = exchange.Extend(extended, obj3)
-	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "a"), 3), "step2: a")
-	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2, "b"), 0), 5), "step2: b[0]")
-	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2, "b"), 1), 6), "step2: b[1]")
-	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(extended2, "c"), 0), "test1"), 3), "step2: c[0].test1")
-	assert(!(ccxt.InOp(ccxt.GetValue(ccxt.GetValue(extended2, "c"), 0), "test2")), "step2: c[0] should not have test2")
-	assert(!(ccxt.InOp(ccxt.GetValue(ccxt.GetValue(extended2, "c"), 0), "test3")), "step2: c[0] should not have test3")
-	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(extended2, "c"), 0), "test4"), 4), "step2: c[0].test4")
-	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "d"), "step3"), "step2: d")
-	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "e"), "back_to_string"), "step2: e")
-	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "other1"), "x"), "step2: extended2['other1'] preserved")
-	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "other2"), "y"), "step2: extended2['other2'] preserved")
-	assert(ccxt.IsEqual(ccxt.GetValue(extended2, "other3"), "z"), "step2: extended2['other3'] added")
+	assert(ccxt.IsEqual(extended2["a"], 3), "step2: a")
+	assert(ccxt.IsEqual(ccxt.GetValue(extended2["b"], 0), 5), "step2: b[0]")
+	assert(ccxt.IsEqual(ccxt.GetValue(extended2["b"], 1), 6), "step2: b[1]")
+	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2["c"], 0), "test1"), 3), "step2: c[0].test1")
+	assert(!(ccxt.InOp(ccxt.GetValue(extended2["c"], 0), "test2")), "step2: c[0] should not have test2")
+	assert(!(ccxt.InOp(ccxt.GetValue(extended2["c"], 0), "test3")), "step2: c[0] should not have test3")
+	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended2["c"], 0), "test4"), 4), "step2: c[0].test4")
+	assert(ccxt.IsEqual(extended2["d"], "step3"), "step2: d")
+	assert(ccxt.IsEqual(extended2["e"], "back_to_string"), "step2: e")
+	assert(ccxt.IsEqual(extended2["other1"], "x"), "step2: extended2['other1'] preserved")
+	assert(ccxt.IsEqual(extended2["other2"], "y"), "step2: extended2['other2'] preserved")
+	assert(ccxt.IsEqual(extended2["other3"], "z"), "step2: extended2['other3'] added")
 	// --- mutation check: first result must NOT be mutated by second extend ---
-	assert(ccxt.IsEqual(ccxt.GetValue(extended, "a"), 2), "extended['a'] was mutated by second extend")
-	assert(ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(extended, "b"), 0), 3), "extended['b'][0] was mutated by second extend")
-	assert(!(ccxt.InOp(extended, "other3")), "extended['other3'] should not exist after second extend")
+	assert(ccxt.IsEqual(extended["a"], 2), "extended['a'] was mutated by second extend")
+	assert(ccxt.IsEqual(ccxt.GetValue(extended["b"], 0), 3), "extended['b'][0] was mutated by second extend")
+	assert(!(func() bool { _, ok := extended["other3"]; return ok }()), "extended['other3'] should not exist after second extend")
 	// --- test 3: four-step chained extend on same base object ---
 	var base map[string]any = map[string]any{
 		"x":    0,
@@ -122,16 +122,16 @@ func TestExtend() {
 	var r1 map[string]any = exchange.Extend(base, patch1)
 	var r2 map[string]any = exchange.Extend(r1, patch2)
 	var r3 map[string]any = exchange.Extend(r2, patch3)
-	assert(ccxt.IsEqual(ccxt.GetValue(r3, "x"), 3), "chain: r3['x'] should be 3 after 3 patches")
-	assert(ccxt.IsEqual(ccxt.GetValue(r3, "keep"), "yes"), "chain: r3['keep'] should be preserved")
-	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p1"), true), "chain: r3['p1'] should be present")
-	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p2"), true), "chain: r3['p2'] should be present")
-	assert(ccxt.IsEqual(ccxt.GetValue(r3, "p3"), true), "chain: r3['p3'] should be present")
+	assert(ccxt.IsEqual(r3["x"], 3), "chain: r3['x'] should be 3 after 3 patches")
+	assert(ccxt.IsEqual(r3["keep"], "yes"), "chain: r3['keep'] should be preserved")
+	assert(ccxt.IsEqual(r3["p1"], true), "chain: r3['p1'] should be present")
+	assert(ccxt.IsEqual(r3["p2"], true), "chain: r3['p2'] should be present")
+	assert(ccxt.IsEqual(r3["p3"], true), "chain: r3['p3'] should be present")
 	// --- mutation check: each intermediate must be unaffected ---
 	assert((base["x"] == 0), "base['x'] was mutated during chain")
-	assert(ccxt.IsEqual(ccxt.GetValue(r1, "x"), 1), "r1['x'] was mutated during chain")
-	assert(ccxt.IsEqual(ccxt.GetValue(r2, "x"), 2), "r2['x'] was mutated during chain")
-	assert(!(ccxt.InOp(r1, "p3")), "r1['p3'] leaked into r1")
+	assert(ccxt.IsEqual(r1["x"], 1), "r1['x'] was mutated during chain")
+	assert(ccxt.IsEqual(r2["x"], 2), "r2['x'] was mutated during chain")
+	assert(!(func() bool { _, ok := r1["p3"]; return ok }()), "r1['p3'] leaked into r1")
 	assert(!(func() bool { _, ok := base["p2"]; return ok }()), "base['p2'] leaked into base")
 	// --- test 4: extend with undefined values does NOT overwrite existing keys ---
 	var withValues map[string]any = map[string]any{
@@ -145,9 +145,9 @@ func TestExtend() {
 	}
 	var extUndef map[string]any = exchange.Extend(withValues, withUndefs)
 	// extend() merges ALL keys (including undefined ones), so undefined wins over previous value
-	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep1"), nil), "extend: extUndef['keep1'] should be undefined")
-	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "keep2"), nil), "extend: extUndef['keep2'] should be undefined")
-	assert(ccxt.IsEqual(ccxt.GetValue(extUndef, "newKey"), "C"), "extend: extUndef['newKey'] should be added")
+	assert(ccxt.IsEqual(extUndef["keep1"], nil), "extend: extUndef['keep1'] should be undefined")
+	assert(ccxt.IsEqual(extUndef["keep2"], nil), "extend: extUndef['keep2'] should be undefined")
+	assert(ccxt.IsEqual(extUndef["newKey"], "C"), "extend: extUndef['newKey'] should be added")
 	// original must not be touched
 	assert((withValues["keep1"] == "A"), "withValues['keep1'] was mutated")
 	assert((withValues["keep2"] == "B"), "withValues['keep2'] was mutated")

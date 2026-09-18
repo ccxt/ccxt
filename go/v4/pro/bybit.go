@@ -218,7 +218,7 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan any, optionalArgs ...any) any 
 		isUsdcSettled = ccxt.IsEqual(ccxt.GetValue(market, "settle"), "USDC")
 		typeVar = ccxt.GetValue(market, "type")
 	} else {
-		typeVarparamsVariable := this.HandleMarketTypeAndParams(method, nil, params)
+		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(method, nil, params)
 		typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 		params = ccxt.GetValue(typeVarparamsVariable, 1)
 		var defaultSettle *string = this.SafeString(this.Options, "defaultSettle")
@@ -1764,7 +1764,7 @@ func (this *Bybit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var topic any = this.SafeValue(topicByMarket, this.GetPrivateType(url))
 	var executionFast any = false
-	executionFastparamsVariable := this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
+	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValue(executionFastparamsVariable, 0)
 	params = ccxt.GetValue(executionFastparamsVariable, 1)
 	if ccxt.EvalTruthy(executionFast) {
@@ -1829,7 +1829,7 @@ func (this *Bybit) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var topic any = this.SafeValue(topicByMarket, this.GetPrivateType(url))
 	var executionFast any = false
-	executionFastparamsVariable := this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
+	var executionFastparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "executionFast", false)
 	executionFast = ccxt.GetValue(executionFastparamsVariable, 0)
 	params = ccxt.GetValue(executionFastparamsVariable, 1)
 	if ccxt.EvalTruthy(executionFast) {
@@ -2031,7 +2031,7 @@ func (this *Bybit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	url := (<-this.GetUrlByMarketTypeAsync(firstSymbol, true, method, params))
 	ccxt.PanicOnError(url)
 	messageHash = ccxt.Add("positions", messageHash)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 
 	retRes15608 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes15608)
@@ -2277,7 +2277,7 @@ func (this *Bybit) watchLiquidationsBody(ch chan any, symbol any, optionalArgs .
 	ccxt.PanicOnError(url)
 	params = this.CleanParams(params)
 	var method any = nil
-	methodparamsVariable := this.HandleOptionAndParams(params, "watchLiquidations", "method", "allLiquidation")
+	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchLiquidations", "method", "allLiquidation")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var messageHash any = ccxt.Add("liquidations::", symbol)
@@ -2678,7 +2678,7 @@ func (this *Bybit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var method string = "watchBalance"
 	var messageHash any = "balances"
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
@@ -2884,7 +2884,7 @@ func (this *Bybit) HandleBalance(client any, message any) {
 	var messageHash any = "balance"
 	var topic any = this.SafeValue(message, "topic")
 	var info any = nil
-	var rawBalances any = []any{}
+	var rawBalances []any = []any{}
 	var account any = nil
 	if ccxt.IsEqual(topic, "outboundAccountInfo") {
 		account = "spot"
@@ -2904,7 +2904,7 @@ func (this *Bybit) HandleBalance(client any, message any) {
 		}
 		info = data
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawBalances); i++ {
+	for i := 0; i < len(rawBalances); i++ {
 		this.ParseWsBalance(ccxt.GetValue(rawBalances, i), account)
 	}
 	if account != nil {
@@ -2958,7 +2958,7 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	_ = accountType
 	var account any = this.Account()
 	var currencyId *string = this.SafeString2(balance, "a", "coin")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	ccxt.AddElementToObject(account, "free", this.SafeStringN(balance, []any{"availableToWithdraw", "f", "free"}))
 	var used *string = this.SafeString2(balance, "l", "locked")
 	if used != nil {
@@ -2998,7 +2998,7 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var newTopics any = []any{}
 	var topicsLength int = ccxt.GetArrayLength(topics)
 	var messageHashesLength int = ccxt.GetArrayLength(messageHashes)
@@ -3096,12 +3096,12 @@ func (this *Bybit) authenticateBody(ch chan any, url any, optionalArgs ...any) a
 	_ = params
 	this.CheckRequiredCredentials()
 	var messageHash string = "authenticated"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
 		var expiresInt any = this.Milliseconds() + 10000
-		var expires any = this.NumberToString(expiresInt)
+		var expires *string = this.NumberToString(expiresInt)
 		var path string = "GET/realtime"
 		var auth any = ccxt.Add(path, expires)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "hex")
@@ -3178,7 +3178,7 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 						if reqId != nil {
 							var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 							for i := 0; i < len(keys); i++ {
-								var messageHash any = ccxt.GetValue(keys, i)
+								var messageHash string = ccxt.GetValue(keys, i).(string)
 								if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 									continue
 								}
@@ -3242,7 +3242,6 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -3312,9 +3311,9 @@ func (this *Bybit) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.GetIndexOf(topic, key) >= 0 {
-			var method any = ccxt.GetValue(methods, key)
+			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return
 		}
@@ -3424,7 +3423,7 @@ func (this *Bybit) HandleUnSubscribe(client any, message any) any {
 	var reqId *string = this.SafeString(message, "req_id")
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var messageHash any = ccxt.GetValue(keys, i)
+		var messageHash string = ccxt.GetValue(keys, i).(string)
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}

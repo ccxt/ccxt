@@ -560,8 +560,8 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var baseCurrencyInfo any = this.SafeDict(baseCurrency, "info")
 		var quoteCurrencyInfo any = this.SafeDict(quoteCurrency, "info")
 		if !IsEqual(baseCurrencyInfo, nil) && !IsEqual(quoteCurrencyInfo, nil) {
-			var base any = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
-			var quote any = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
+			var base *string = this.SafeCurrencyCode(this.SafeString(baseCurrencyInfo, "tag"))
+			var quote *string = this.SafeCurrencyCode(this.SafeString(quoteCurrencyInfo, "tag"))
 			if (base == nil) || (quote == nil) {
 				continue
 			}
@@ -683,7 +683,7 @@ func (this *Latoken) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Latoken) ParseCurrency(currency any) any {
 	var id *string = this.SafeString(currency, "id")
 	var tag *string = this.SafeString(currency, "tag")
-	var code any = this.SafeCurrencyCode(tag)
+	var code *string = this.SafeCurrencyCode(tag)
 	var currencyType *string = this.SafeString(currency, "type")
 	var isCrypto bool = ((currencyType != nil && *currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType != nil && *currencyType == "CURRENCY_TYPE_IEO"))
 	return this.SafeCurrencyStructure(map[string]any{
@@ -787,7 +787,7 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 				maxTimestamp = mathMax(maxTimestamp, timestamp)
 			}
 		}
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "blocked"))
@@ -1118,8 +1118,8 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	}()
 	var baseId *string = this.SafeString(trade, "baseCurrency")
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	if (!IsEqual(this.Markets, nil)) && (InOp(this.Markets, symbol)) {
 		market = this.Market(symbol)
@@ -1402,7 +1402,7 @@ func (this *Latoken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
 }
-func (this *Latoken) ParseOrderStatus(status any) any {
+func (this *Latoken) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"ORDER_STATUS_PLACED":    "open",
 		"ORDER_STATUS_CLOSED":    "closed",
@@ -1410,14 +1410,14 @@ func (this *Latoken) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) ParseOrderType(status any) any {
+func (this *Latoken) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"ORDER_TYPE_MARKET": "market",
 		"ORDER_TYPE_LIMIT":  "limit",
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) ParseTimeInForce(timeInForce any) any {
+func (this *Latoken) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"ORDER_CONDITION_GOOD_TILL_CANCELLED": "GTC",
 		"ORDER_CONDITION_IMMEDIATE_OR_CANCEL": "IOC",
@@ -1475,8 +1475,8 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var baseId *string = this.SafeString(order, "baseCurrency")
 	var quoteId *string = this.SafeString(order, "quoteCurrency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
 		symbol = Add(Add(base, "/"), quote)
@@ -1491,7 +1491,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 		var partsLength int = len(parts)
 		side = this.SafeStringLower(parts, Subtract(partsLength, 1))
 	}
-	var typeVar any = this.ParseOrderType(this.SafeString(order, "type"))
+	var typeVar *string = this.ParseOrderType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "filled")
@@ -1506,7 +1506,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
-	var timeInForce any = this.ParseTimeInForce(this.SafeString(order, "condition"))
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "condition"))
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2086,9 +2086,9 @@ func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var id *string = this.SafeString(transaction, "id")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var addressFrom *string = this.SafeString(transaction, "senderAddress")
 	var addressTo *string = this.SafeString(transaction, "recipientAddress")
 	var txid *string = this.SafeString(transaction, "transactionHash")
@@ -2098,12 +2098,12 @@ func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"cost":     nil,
 		"rate":     nil,
 	}
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "transactionFee"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(transaction, "transactionFee")
+	if feeCost != nil {
 		fee["cost"] = feeCost
 		fee["currency"] = code
 	}
-	var typeVar any = this.ParseTransactionType(this.SafeString(transaction, "type"))
+	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2127,7 +2127,7 @@ func (this *Latoken) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"fee":         fee,
 	}
 }
-func (this *Latoken) ParseTransactionStatus(status any) any {
+func (this *Latoken) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"TRANSACTION_STATUS_CONFIRMED": "ok",
 		"TRANSACTION_STATUS_EXECUTED":  "ok",
@@ -2138,7 +2138,7 @@ func (this *Latoken) ParseTransactionStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Latoken) ParseTransactionType(typeVar any) any {
+func (this *Latoken) ParseTransactionType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"TRANSACTION_TYPE_DEPOSIT":    "deposit",
 		"TRANSACTION_TYPE_WITHDRAWAL": "withdrawal",
@@ -2334,7 +2334,7 @@ func (this *Latoken) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Latoken) ParseTransferStatus(status any) any {
+func (this *Latoken) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"TRANSFER_STATUS_COMPLETED":  "ok",
 		"TRANSFER_STATUS_PENDING":    "pending",

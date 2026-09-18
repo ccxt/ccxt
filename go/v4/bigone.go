@@ -592,7 +592,7 @@ func (this *Bigone) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Bigone) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "symbol")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(rawCurrency, "name")
 	var networks map[string]any = map[string]any{}
 	var chains any = this.SafeList(rawCurrency, "binding_gateways", []any{})
@@ -632,7 +632,7 @@ func (this *Bigone) ParseCurrency(rawCurrency any) any {
 		}
 	}
 	var chainLength int = GetArrayLength(chains)
-	var typeVar any = nil
+	var typeVar string
 	if IsEqual(this.SafeBool(rawCurrency, "is_fiat"), true) {
 		typeVar = "fiat"
 	} else if chainLength == 0 {
@@ -753,8 +753,8 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteAsset any = this.SafeDict(market, "quote_asset", map[string]any{})
 		var baseId *string = this.SafeString(baseAsset, "symbol")
 		var quoteId *string = this.SafeString(quoteAsset, "symbol")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
 			"id":             this.SafeString(market, "name"),
 			"uuid":           this.SafeString(market, "id"),
@@ -813,9 +813,9 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
 		var settleId *string = this.SafeString(market, "settleCurrency")
 		var marketId *string = this.SafeString(market, "symbol")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
-		var settle any = this.SafeCurrencyCode(settleId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
+		var settle *string = this.SafeCurrencyCode(settleId)
 		var inverse *bool = this.SafeBool(market, "isInverse")
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
 			"id":             marketId,
@@ -926,7 +926,7 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) any {
 		return "swap"
 	}()
 	var marketId *string = this.SafeString2(ticker, "asset_pair_name", "symbol")
-	var symbol any = this.SafeSymbol(marketId, market, "-", marketType)
+	var symbol *string = this.SafeSymbol(marketId, market, "-", marketType)
 	var close *string = this.SafeString2(ticker, "close", "latestPrice")
 	var bid any = this.SafeDict(ticker, "bid", map[string]any{})
 	var ask any = this.SafeDict(ticker, "ask", map[string]any{})
@@ -982,7 +982,7 @@ func (this *Bigone) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTicker", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTicker", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if IsEqual(typeVar, "spot") {
@@ -1054,7 +1054,7 @@ func (this *Bigone) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (IsEqual(typeVar, "spot"))
@@ -1247,7 +1247,7 @@ func (this *Bigone) ParseContractBidsAsks(bidsAsks any) any {
 	var bidsAsksKeys []string = ObjectKeys(bidsAsks)
 	var result any = []any{}
 	for i := 0; i < len(bidsAsksKeys); i++ {
-		var price any = GetValue(bidsAsksKeys, i)
+		var price string = GetValue(bidsAsksKeys, i).(string)
 		var amount any = GetValue(bidsAsks, price)
 		AppendToArray(&result, []any{this.ParseNumber(price), this.ParseNumber(amount)})
 	}
@@ -1313,7 +1313,7 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(this.SafeString2(trade, "created_at", "inserted_at"))
+	var timestamp *int64 = this.Parse8601(this.SafeString2(trade, "created_at", "inserted_at"))
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "asset_pair_name")
@@ -1618,7 +1618,7 @@ func (this *Bigone) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var symbol *string = this.SafeString(balance, "asset_symbol")
-		var code any = this.SafeCurrencyCode(symbol)
+		var code *string = this.SafeCurrencyCode(symbol)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked_balance"))
@@ -1679,7 +1679,7 @@ func (this *Bigone) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bigone) ParseType(typeVar any) any {
+func (this *Bigone) ParseType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"STOP_LIMIT":  "limit",
 		"STOP_MARKET": "market",
@@ -1712,8 +1712,8 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id")
 	var marketId *string = this.SafeString(order, "asset_pair_name")
-	var symbol any = this.SafeSymbol(marketId, market, "-")
-	var timestamp any = this.Parse8601(this.SafeString(order, "created_at"))
+	var symbol *string = this.SafeSymbol(marketId, market, "-")
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var side any = DerefScalar(this.SafeString(order, "side"))
 	if IsEqual(side, "BID") {
 		side = "buy"
@@ -1729,12 +1729,12 @@ func (this *Bigone) ParseOrder(order any, optionalArgs ...any) any {
 	if immediateOrCancel != nil && *immediateOrCancel == true {
 		timeInForce = "IOC"
 	}
-	var typeVar any = this.ParseType(this.SafeString(order, "type"))
+	var typeVar *string = this.ParseType(this.SafeString(order, "type"))
 	var price *string = this.SafeString(order, "price")
 	var amount any = nil
 	var filled any = nil
 	var cost any = nil
-	if (IsEqual(typeVar, "market")) && (IsEqual(side, "buy")) {
+	if (typeVar != nil && *typeVar == "market") && (IsEqual(side, "buy")) {
 		cost = DerefScalar(this.SafeString(order, "filled_amount"))
 	} else {
 		amount = DerefScalar(this.SafeString(order, "amount"))
@@ -1876,20 +1876,20 @@ func (this *Bigone) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	} else {
 		if isBuy {
 			var createMarketBuyOrderRequiresPrice any = nil
-			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
+			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
-				if (IsEqual(price, nil)) && (IsEqual(cost, nil)) {
+				if (IsEqual(price, nil)) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
-					var amountString any = this.NumberToString(amount)
-					var priceString any = this.NumberToString(price)
+					var amountString *string = this.NumberToString(amount)
+					var priceString *string = this.NumberToString(price)
 					var quoteAmount any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 					var costRequest any = func() any {
-						if !IsEqual(cost, nil) {
+						if cost != nil {
 							return cost
 						}
 						return quoteAmount
@@ -2261,7 +2261,7 @@ func (this *Bigone) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
 }
-func (this *Bigone) ParseOrderStatus(status any) any {
+func (this *Bigone) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING":   "open",
 		"FILLED":    "closed",
@@ -2466,7 +2466,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	return nil
 }
-func (this *Bigone) ParseTransactionStatus(status any) any {
+func (this *Bigone) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"WITHHOLD":    "ok",
 		"UNCONFIRMED": "pending",
@@ -2531,12 +2531,12 @@ func (this *Bigone) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "asset_symbol")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var id *string = this.SafeString(transaction, "id")
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "inserted_at"))
-	var updated any = this.Parse8601(this.SafeString2(transaction, "updated_at", "completed_at"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "inserted_at"))
+	var updated *int64 = this.Parse8601(this.SafeString2(transaction, "updated_at", "completed_at"))
 	var txid *string = this.SafeString(transaction, "txid")
 	var address *string = this.SafeString(transaction, "target_address")
 	var tag *string = this.SafeString(transaction, "memo")
@@ -2796,7 +2796,7 @@ func (this *Bigone) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(code),
 	}
 }
-func (this *Bigone) ParseTransferStatus(status any) any {
+func (this *Bigone) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "ok",
 	}

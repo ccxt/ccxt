@@ -333,7 +333,7 @@ func (this *Kraken) createOrderWsBody(ch chan any, symbol any, typeVar any, side
 	var market any = this.Market(symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var requestId any = this.RequestId()
-	var messageHash any = this.NumberToString(requestId)
+	var messageHash *string = this.NumberToString(requestId)
 	var request any = map[string]any{
 		"method": "add_order",
 		"params": map[string]any{
@@ -423,7 +423,7 @@ func (this *Kraken) editOrderWsBody(ch chan any, id any, symbol any, typeVar any
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var requestId any = this.RequestId()
-	var messageHash any = this.NumberToString(requestId)
+	var messageHash *string = this.NumberToString(requestId)
 	var request any = map[string]any{
 		"method": "amend_order",
 		"params": map[string]any{
@@ -476,7 +476,7 @@ func (this *Kraken) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var requestId any = this.RequestId()
-	var messageHash any = this.NumberToString(requestId)
+	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
 		"method": "cancel_order",
 		"params": map[string]any{
@@ -525,7 +525,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var requestId any = this.RequestId()
-	var messageHash any = this.NumberToString(requestId)
+	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
 		"method": "cancel_order",
 		"params": map[string]any{
@@ -589,7 +589,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any 
 	ccxt.PanicOnError(token)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var requestId any = this.RequestId()
-	var messageHash any = this.NumberToString(requestId)
+	var messageHash *string = this.NumberToString(requestId)
 	var request map[string]any = map[string]any{
 		"method": "cancel_all",
 		"params": map[string]any{
@@ -739,7 +739,7 @@ func (this *Kraken) HandleOHLCV(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var first any = ccxt.GetValue(data, 0)
 	var marketId *string = this.SafeString(first, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
@@ -757,7 +757,7 @@ func (this *Kraken) HandleOHLCV(client any, message any) {
 	for i := 0; i < ohlcvsLength; i++ {
 		var candle any = ccxt.GetValue(data, i)
 		var datetime *string = this.SafeString(candle, "interval_begin")
-		var timestamp any = this.Parse8601(datetime)
+		var timestamp *int64 = this.Parse8601(datetime)
 		var parsed []any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
 		stored.(ccxt.Appender).Append(parsed)
 	}
@@ -1291,8 +1291,8 @@ func (this *Kraken) CustomHandleDeltas(bookside any, deltas any) {
 	// const sortOrder = (key === 'bids') ? true : false
 	for j := 0; j < ccxt.GetArrayLength(deltas); j++ {
 		var delta any = ccxt.GetValue(deltas, j)
-		var price any = ccxt.DerefScalar(this.SafeNumber(delta, "price"))
-		var amount any = ccxt.DerefScalar(this.SafeNumber(delta, "qty"))
+		var price *float64 = this.SafeNumber(delta, "price")
+		var amount *float64 = this.SafeNumber(delta, "qty")
 		bookside.(ccxt.IOrderBookSide).Store(price, amount)
 	}
 }
@@ -1350,7 +1350,7 @@ func (this *Kraken) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var authenticated string = "authenticated"
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
 	var now int64 = this.Seconds()
@@ -1946,7 +1946,7 @@ func (this *Kraken) HandleBalance(client any, message any) {
 	}
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var currencyId *string = this.SafeString(ccxt.GetValue(data, i), "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		var eq *string = this.SafeString(ccxt.GetValue(data, i), "balance")
 		ccxt.AddElementToObject(account, "total", eq)

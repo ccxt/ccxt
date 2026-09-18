@@ -407,8 +407,8 @@ func (this *Cryptomus) ParseMarket(market any) any {
 	var parts []string = Split(marketId, "_")
 	var baseId any = GetValue(parts, 0)
 	var quoteId any = GetValue(parts, 1)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var fees any = this.SafeDict(this.Fees, "trading")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -523,7 +523,7 @@ func (this *Cryptomus) ParseCurrency(rawCurrency any) any {
 		// set ID on first loop
 		if id == nil {
 			id = DerefScalar(this.SafeString(networkEntry, "currency_code"))
-			code = this.SafeCurrencyCode(id)
+			code = DerefScalar(this.SafeCurrencyCode(id))
 		}
 		var networkId *string = this.SafeString(networkEntry, "network_code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
@@ -677,7 +677,7 @@ func (this *Cryptomus) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		"currencyPair": GetValue(market, "id"),
 	}
 	var level any = 0
-	levelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
+	var levelparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "level", level)
 	level = GetValue(levelparamsVariable, 0)
 	params = GetValue(levelparamsVariable, 1)
 	request["level"] = level
@@ -861,7 +861,7 @@ func (this *Cryptomus) ParseBalance(balance any) any {
 	for i := 0; i < GetArrayLength(balance); i++ {
 		var balanceEntry any = GetValue(balance, i)
 		var currencyId *string = this.SafeString(balanceEntry, "ticker")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balanceEntry, "available"))
 		AddElementToObject(account, "used", this.SafeString(balanceEntry, "held"))
@@ -917,17 +917,17 @@ func (this *Cryptomus) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		request["client_order_id"] = clientOrderId
 	}
 	var sideBuy bool = (IsEqual(side, "buy"))
-	var amountToString any = this.NumberToString(amount)
-	var priceToString any = this.NumberToString(price)
+	var amountToString *string = this.NumberToString(amount)
+	var priceToString *string = this.NumberToString(price)
 	var cost any = nil
-	costparamsVariable := this.HandleParamString(params, "cost")
+	var costparamsVariable []any = this.HandleParamString(params, "cost")
 	cost = GetValue(costparamsVariable, 0)
 	params = GetValue(costparamsVariable, 1)
 	var response any = nil
 	if IsEqual(typeVar, "market") {
 		if sideBuy {
 			var createMarketBuyOrderRequiresPrice any = true
-			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
@@ -1251,12 +1251,12 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var dateTime *string = this.SafeString(order, "createdAt")
-	var timestamp any = this.Parse8601(dateTime)
+	var timestamp *int64 = this.Parse8601(dateTime)
 	var deal any = this.SafeDict(order, "deal", map[string]any{})
-	var averageFilledPrice any = DerefScalar(this.SafeNumber(deal, "averageFilledPrice"))
+	var averageFilledPrice *float64 = this.SafeNumber(deal, "averageFilledPrice")
 	var typeVar *string = this.SafeString(order, "type")
 	var side *string = this.SafeString(order, "direction")
-	var price any = DerefScalar(this.SafeNumber(order, "price"))
+	var price *float64 = this.SafeNumber(order, "price")
 	var transaction any = this.SafeList(deal, "transactions", []any{})
 	var fee any = nil
 	var firstTx any = this.SafeDict(transaction, 0)
@@ -1267,12 +1267,12 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 			"cost":     this.SafeNumber(firstTx, "fee"),
 		}
 	}
-	if IsEqual(price, nil) {
-		price = DerefScalar(this.SafeNumber(firstTx, "filledPrice"))
+	if price == nil {
+		price = this.SafeNumber(firstTx, "filledPrice")
 	}
-	var amount any = DerefScalar(this.SafeNumber(order, "quantity"))
-	var cost any = DerefScalar(this.SafeNumber(order, "value"))
-	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
+	var amount *float64 = this.SafeNumber(order, "quantity")
+	var cost *float64 = this.SafeNumber(order, "value")
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
@@ -1299,7 +1299,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 		"info":               order,
 	}, market)
 }
-func (this *Cryptomus) ParseOrderStatus(optionalArgs ...any) any {
+func (this *Cryptomus) ParseOrderStatus(optionalArgs ...any) *string {
 	status := GetArg(optionalArgs, 0, nil)
 	_ = status
 	var statuses map[string]any = map[string]any{
@@ -1420,7 +1420,7 @@ func (this *Cryptomus) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 	var makerFees any = []any{}
 	for i := 0; i < GetArrayLength(feeTiers); i++ {
 		var tier any = GetValue(feeTiers, i)
-		var turnover any = DerefScalar(this.SafeNumber(tier, "from_turnover"))
+		var turnover *float64 = this.SafeNumber(tier, "from_turnover")
 		var taker *string = this.SafeString(tier, "taker_percent")
 		var maker *string = this.SafeString(tier, "maker_percent")
 		maker = Precise.StringDiv(maker, "100")

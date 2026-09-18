@@ -285,7 +285,7 @@ func (this *Okx) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	}
 	symbols = this.MarketSymbols(symbols)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTrades", "channel", "trades")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "channel", "trades")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var topics any = []any{}
@@ -353,7 +353,7 @@ func (this *Okx) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTrades", "channel", "trades")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTrades", "channel", "trades")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var topics any = []any{}
@@ -449,7 +449,7 @@ func (this *Okx) HandleTrades(client any, message any) {
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel *string = this.SafeString(arg, "channel")
 	var marketId *string = this.SafeString(arg, "instId")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var data any = this.SafeList(message, "data", []any{})
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
@@ -611,7 +611,7 @@ func (this *Okx) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "channel", "tickers")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "channel", "tickers")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	ccxt.AddElementToObject(params, "channel", channel)
@@ -681,7 +681,7 @@ func (this *Okx) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "tickers")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "tickers")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 
@@ -718,7 +718,7 @@ func (this *Okx) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchMarkPrice", "channel", "mark-price")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchMarkPrice", "channel", "mark-price")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	ccxt.AddElementToObject(params, "channel", channel)
@@ -761,7 +761,7 @@ func (this *Okx) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchMarkPrices", "channel", "mark-price")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchMarkPrices", "channel", "mark-price")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 
@@ -806,7 +806,7 @@ func (this *Okx) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "tickers")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "tickers")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var topics any = []any{}
@@ -905,7 +905,7 @@ func (this *Okx) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchBidsAsks", "channel", "bbo-tbt")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchBidsAsks", "channel", "bbo-tbt")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var url any = this.GetUrl(channel, "public")
@@ -1070,7 +1070,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	}
 	var market any = this.GetMarketFromSymbols(symbols)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var channel string = "liquidation-orders"
@@ -1679,7 +1679,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 	}
 	symbols = this.MarketSymbols(symbols)
 	var depth any = nil
-	depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
+	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
 	if !ccxt.IsEqual(limit, nil) {
@@ -1694,7 +1694,7 @@ func (this *Okx) watchOrderBookForSymbolsBody(ch chan any, symbols any, optional
 		}
 	}
 	if (ccxt.IsEqual(depth, "books-l2-tbt")) || (ccxt.IsEqual(depth, "books50-l2-tbt")) {
-		if !ccxt.EvalTruthy(this.CheckRequiredCredentials(false)) {
+		if !this.CheckRequiredCredentials(false) {
 			panic(ccxt.AuthenticationError(this.Id + " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. Add credentials or change the depth option to books or books5"))
 		}
 
@@ -1756,7 +1756,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, option
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var depth any = nil
-	depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
+	var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
 	depth = ccxt.GetValue(depthparamsVariable, 0)
 	params = ccxt.GetValue(depthparamsVariable, 1)
 	var limit *int64 = this.SafeInteger(params, "limit")
@@ -1871,7 +1871,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook any, 
 	this.HandleDeltas(storedAsks, asks)
 	this.HandleDeltas(storedBids, bids)
 	var marketId *string = this.SafeString(message, "instId")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var seqId *int64 = this.SafeInteger(message, "seqId")
 	var prevSeqId *int64 = this.SafeInteger(message, "prevSeqId")
 	var nonce any = ccxt.GetValue(orderbook, "nonce")
@@ -1999,7 +1999,7 @@ func (this *Okx) HandleOrderBook(client any, message any) any {
 	if action != nil && *action == "snapshot" {
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var update any = ccxt.GetValue(data, i)
-			var orderbook any = this.OrderBook(map[string]any{}, limit)
+			var orderbook ccxt.OrderBookInterface = this.OrderBook(map[string]any{}, limit)
 			ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 			ccxt.AddElementToObject(orderbook, "symbol", symbol)
 			this.HandleOrderBookMessage(client, update, orderbook, messageHash, market)
@@ -2060,7 +2060,7 @@ func (this *Okx) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params = this.Omit(params, []any{"access"})
 	var url any = this.GetUrl("users", access)
 	var messageHash string = "authenticated"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
@@ -2288,7 +2288,7 @@ func (this *Okx) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleOptionAndParams(params, "watchMyTrades", "type", "ANY")
+	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "type", "ANY")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
@@ -2557,7 +2557,7 @@ func (this *Okx) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var typeVar any = nil
 	// By default, receive order updates from any instrument type
-	typeVarparamsVariable := this.HandleOptionAndParams(params, "watchOrders", "type", "ANY")
+	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "type", "ANY")
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isTrigger any = this.SafeValue2(params, "stop", "trigger", false)
@@ -2846,7 +2846,7 @@ func (this *Okx) createOrderWsBody(ch chan any, symbol any, typeVar any, side an
 	var url any = this.GetUrl("private", "private")
 	var messageHash any = this.RequestId()
 	var op any = nil
-	opparamsVariable := this.HandleOptionAndParams(params, "createOrderWs", "op", "batch-orders")
+	var opparamsVariable []any = this.HandleOptionAndParams(params, "createOrderWs", "op", "batch-orders")
 	op = ccxt.GetValue(opparamsVariable, 0)
 	params = ccxt.GetValue(opparamsVariable, 1)
 	var args any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2948,7 +2948,7 @@ func (this *Okx) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, s
 	var url any = this.GetUrl("private", "private")
 	var messageHash any = this.RequestId()
 	var op any = nil
-	opparamsVariable := this.HandleOptionAndParams(params, "editOrderWs", "op", "amend-order")
+	var opparamsVariable []any = this.HandleOptionAndParams(params, "editOrderWs", "op", "amend-order")
 	op = ccxt.GetValue(opparamsVariable, 0)
 	params = ccxt.GetValue(opparamsVariable, 1)
 	var args any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
@@ -3412,7 +3412,7 @@ func (this *Okx) HandleUnsubscription(client any, message any) {
 	var arg any = this.SafeDict(message, "arg", map[string]any{})
 	var channel *string = this.SafeString(arg, "channel", "")
 	var marketId *string = this.SafeString(arg, "instId")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	if (channel != nil && *channel == "trades") || (channel != nil && *channel == "trades-all") {
 		this.HandleUnSubscriptionTrades(client, symbol, channel)
 	} else if ccxt.StartsWith(channel, "bbo") || ccxt.StartsWith(channel, "book") {

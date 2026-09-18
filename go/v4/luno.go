@@ -504,7 +504,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !EvalTruthy(this.CheckRequiredCredentials(false)) {
+	if !this.CheckRequiredCredentials(false) {
 
 		ch <- map[string]any{}
 		return nil
@@ -533,7 +533,7 @@ func (this *Luno) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Luno) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(GetValue(rawCurrency, 0), "native_currency") // first item is guaranteed
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(rawCurrency); i++ {
 		var networkEntry any = GetValue(rawCurrency, i)
@@ -634,8 +634,8 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "market_id")
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "trading_status")
 		// Luno's published schedule is categorical, not a single pair. Entry-tier
 		// rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -747,7 +747,7 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 		var account any = GetValue(wallets, i)
 		var accountId *string = this.SafeString(account, "account_id")
 		var currencyId *string = this.SafeString(account, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		AppendToArray(&result, map[string]any{
 			"id":   accountId,
 			"type": nil,
@@ -769,7 +769,7 @@ func (this *Luno) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(wallets); i++ {
 		var wallet any = GetValue(wallets, i)
 		var currencyId *string = this.SafeString(wallet, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var reserved *string = this.SafeString(wallet, "reserved")
 		var unconfirmed *string = this.SafeString(wallet, "unconfirmed")
 		var balance *string = this.SafeString(wallet, "balance")
@@ -876,7 +876,7 @@ func (this *Luno) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume")
 	return nil
 }
-func (this *Luno) ParseOrderStatus(status any) any {
+func (this *Luno) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING": "open",
 	}
@@ -921,17 +921,17 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var price *string = this.SafeString(order, "limit_price")
 	var amount *string = this.SafeString(order, "limit_volume")
-	var quoteFee any = DerefScalar(this.SafeNumber(order, "fee_counter"))
-	var baseFee any = DerefScalar(this.SafeNumber(order, "fee_base"))
+	var quoteFee *float64 = this.SafeNumber(order, "fee_counter")
+	var baseFee *float64 = this.SafeNumber(order, "fee_base")
 	var filled *string = this.SafeString(order, "base")
 	var cost *string = this.SafeString(order, "counter")
 	var fee any = nil
-	if !IsEqual(quoteFee, nil) {
+	if quoteFee != nil {
 		fee = map[string]any{
 			"cost":     quoteFee,
 			"currency": GetValue(market, "quote"),
 		}
-	} else if !IsEqual(baseFee, nil) {
+	} else if baseFee != nil {
 		fee = map[string]any{
 			"cost":     baseFee,
 			"currency": GetValue(market, "base"),
@@ -1154,7 +1154,7 @@ func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var marketId *string = this.SafeString(ticker, "pair")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "last_trade")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1215,10 +1215,10 @@ func (this *Luno) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
 		var symbol any = GetValue(market, "symbol")
-		var ticker any = GetValue(tickers, id)
+		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
 
@@ -1905,13 +1905,13 @@ func (this *Luno) ParseLedgerEntry(entry any, optionalArgs ...any) any {
 	var account_id *string = this.SafeString(entry, "account_id")
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var currencyId *string = this.SafeString(entry, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
 	var available_delta *string = this.SafeString(entry, "available_delta")
 	var balance_delta *string = this.SafeString(entry, "balance_delta")
 	var after *string = this.SafeString(entry, "balance")
 	var comment *string = this.SafeString(entry, "description")
-	var before any = after
+	var before *string = after
 	var amount any = "0.0"
 	var result any = this.ParseLedgerComment(comment)
 	var typeVar any = GetValue(result, "type")
@@ -2093,7 +2093,7 @@ func (this *Luno) ParseDepositAddress(depositAddress any, optionalArgs ...any) a
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeStringUpper(depositAddress, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,

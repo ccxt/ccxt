@@ -334,7 +334,7 @@ func (this *Apex) watchTopicsBody(ch chan any, url any, messageHashes any, topic
 	// are already subscribed, skip the subscribe entirely.
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var newTopics any = []any{}
 	var newTopicsCount any = 0
 	for i := 0; i < ccxt.GetArrayLength(topics); i++ {
@@ -847,7 +847,7 @@ func (this *Apex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var url any = this.GetWsPrivateUrl()
 	messageHash = ccxt.Add("positions", messageHash)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 
 	retRes6578 := (<-this.AuthenticateAsync(url))
 	ccxt.PanicOnError(retRes6578)
@@ -1137,7 +1137,7 @@ func (this *Apex) authenticateBody(ch chan any, url any, optionalArgs ...any) an
 	var messageString any = (timestamp + http_method + request_path)
 	var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), ccxt.Sha256, "base64")
 	var messageHash string = "authenticated"
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(authenticated, nil) {
@@ -1265,7 +1265,6 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1304,9 +1303,9 @@ func (this *Apex) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
-			var method any = ccxt.GetValue(methods, key)
+			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return
 		}
@@ -1347,7 +1346,7 @@ func (this *Apex) pongBody(ch chan any, client any, message any) any {
 					}
 					ret_ = func(this *Apex) any {
 						// catch block:
-						error := ccxt.NetworkError(ccxt.Add(this.Id+" handlePing failed with error ", this.ExceptionMessage(e)))
+						error := ccxt.NetworkError(this.Id + " handlePing failed with error " + this.ExceptionMessage(e))
 						client.(ccxt.ClientInterface).Reset(error)
 						return nil
 					}(this)

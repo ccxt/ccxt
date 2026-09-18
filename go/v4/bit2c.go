@@ -352,7 +352,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
-		var code any = GetValue(codes, i)
+		var code string = GetValue(codes, i).(string)
 		var account any = this.Account()
 		var currency any = this.Currency(code)
 		var uppercase string = ToUpper(GetValue(currency, "id"))
@@ -360,7 +360,7 @@ func (this *Bit2c) ParseBalance(response any) any {
 			AddElementToObject(account, "free", this.SafeString(response, "AVAILABLE_"+uppercase))
 			AddElementToObject(account, "total", this.SafeString(response, uppercase))
 		}
-		AddElementToObject(result, code, account)
+		result[code] = account
 	}
 	return this.SafeBalance(result)
 }
@@ -508,7 +508,7 @@ func (this *Bit2c) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 func (this *Bit2c) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var averagePrice *string = this.SafeString(ticker, "av")
 	var baseVolume *string = this.SafeString(ticker, "a")
 	var last *string = this.SafeString(ticker, "ll")
@@ -691,8 +691,8 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(fees)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var marketId any = GetValue(keys, i)
-		var symbol any = this.SafeSymbol(marketId)
+		var marketId string = GetValue(keys, i).(string)
+		var symbol *string = this.SafeSymbol(marketId)
 		var fee any = this.SafeValue(fees, marketId)
 		var makerString *string = this.SafeString(fee, "FeeMaker")
 		var takerString *string = this.SafeString(fee, "FeeTaker")
@@ -760,8 +760,8 @@ func (this *Bit2c) createOrderBody(ch chan any, symbol any, typeVar any, side an
 		}
 	} else {
 		request["Price"] = price
-		var amountString any = this.NumberToString(amount)
-		var priceString any = this.NumberToString(price)
+		var amountString *string = this.NumberToString(amount)
+		var priceString *string = this.NumberToString(price)
 		request["Total"] = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 		request["IsBid"] = (IsEqual(side, "buy"))
 
@@ -950,7 +950,7 @@ func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) any {
 		orderUnified = order
 	}
 	var id *string = this.SafeString(orderUnified, "id")
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeIntegerProduct(orderUnified, "created", 1000)
 	// status field vary between responses
 	// bit2c status type:
@@ -1162,7 +1162,7 @@ func (this *Bit2c) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var id any = nil
 	var price any = nil
 	var amount any = nil
@@ -1297,7 +1297,7 @@ func (this *Bit2c) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
 	this.CheckAddress(address)
-	var code any = this.SafeCurrencyCode(nil, currency)
+	var code *string = this.SafeCurrencyCode(nil, currency)
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,

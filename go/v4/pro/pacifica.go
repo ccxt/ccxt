@@ -184,7 +184,7 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	if code != nil && *code == 200 {
 		success = true
 	}
-	var status any = nil
+	var status string
 	if !success {
 		status = "rejected"
 	} else {
@@ -274,7 +274,7 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	if code != nil && *code == 200 {
 		success = true
 	}
-	var status any = nil
+	var status string
 	if !success {
 		status = "rejected"
 	} else {
@@ -379,7 +379,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 		var market any = this.SafeMarket(marketId)
 		var orderId *string = this.SafeString(order, "i")
 		var clientOrderId *string = this.SafeString(order, "I")
-		var status any = nil
+		var status string
 		if (error != nil) || (success == nil || *success != true) {
 			status = "closed"
 		} else {
@@ -467,7 +467,7 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	if code != nil && *code == 200 {
 		success = true
 	}
-	var status any = nil
+	var status string
 	if !success {
 		status = "rejected"
 	} else {
@@ -581,7 +581,7 @@ func (this *Pacifica) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var aggLevel any = nil
-	aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.GetValue(aggLevelparamsVariable, 1)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -637,7 +637,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var market any = this.Market(symbol)
 	var aggLevel any = nil
-	aggLevelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
+	var aggLevelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "aggLevel", 1)
 	aggLevel = ccxt.GetValue(aggLevelparamsVariable, 0)
 	params = ccxt.GetValue(aggLevelparamsVariable, 1)
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
@@ -715,7 +715,7 @@ func (this *Pacifica) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 	}
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		var ob any = this.OrderBook(snapshot)
+		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -1214,7 +1214,7 @@ func (this *Pacifica) HandleTrades(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var stored any = ccxt.NewArrayCache(limit)
+		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
@@ -1656,8 +1656,8 @@ func (this *Pacifica) HandleOrder(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
-		var symbol any = ccxt.GetValue(keys, i)
-		var innerMessageHash any = ccxt.Add(messageHash+":", symbol)
+		var symbol string = ccxt.GetValue(keys, i).(string)
+		var innerMessageHash any = messageHash + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1846,9 +1846,9 @@ func (this *Pacifica) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
-			var method any = ccxt.GetValue(methods, key)
+			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return
 		}

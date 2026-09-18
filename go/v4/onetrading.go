@@ -517,7 +517,7 @@ func (this *Onetrading) fetchCurrenciesBody(ch chan any, optionalArgs ...any) an
 }
 func (this *Onetrading) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "code")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -625,8 +625,8 @@ func (this *Onetrading) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(baseAsset, "code")
 	var quoteId *string = this.SafeString(quoteAsset, "code")
 	var id *string = this.SafeString(market, "id")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var state *string = this.SafeString(market, "state")
 	var typeVar *string = this.SafeString(market, "type")
 	var isPerp bool = (typeVar != nil && *typeVar == "PERP")
@@ -950,7 +950,7 @@ func (this *Onetrading) ParseFeeTiers(feeTiers any, optionalArgs ...any) any {
 	var makerFees any = []any{}
 	for i := 0; i < GetArrayLength(feeTiers); i++ {
 		var tier any = GetValue(feeTiers, i)
-		var volume any = DerefScalar(this.SafeNumber(tier, "volume"))
+		var volume *float64 = this.SafeNumber(tier, "volume")
 		var taker *string = this.SafeString(tier, "taker_fee")
 		var maker *string = this.SafeString(tier, "maker_fee")
 		maker = Precise.StringDiv(maker, "100")
@@ -986,9 +986,9 @@ func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.Parse8601(this.SafeString(ticker, "time"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "time"))
 	var marketId *string = this.SafeString(ticker, "instrument_code")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var last *string = this.SafeString(ticker, "last_price")
 	var percentage *string = this.SafeString(ticker, "price_change_percentage")
 	var change *string = this.SafeString(ticker, "price_change")
@@ -1228,7 +1228,7 @@ func (this *Onetrading) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	//         ]
 	//     }
 	//
-	var timestamp any = this.Parse8601(this.SafeString(response, "time"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(response, "time"))
 
 	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
 	return nil
@@ -1267,8 +1267,8 @@ func (this *Onetrading) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	var timeframe any = Add(period, lowercaseUnit)
 	var durationInSeconds any = this.ParseTimeframe(timeframe)
 	var duration any = Multiply(durationInSeconds, 1000)
-	var timestamp any = this.Parse8601(this.SafeString(ohlcv, "time"))
-	if IsEqual(timestamp, nil) {
+	var timestamp *int64 = this.Parse8601(this.SafeString(ohlcv, "time"))
+	if timestamp == nil {
 		panic(ExchangeError(this.Id + " parseOHLCV() missing timestamp"))
 	}
 	var alignedTimestamp any = Multiply(duration, this.ParseToInt(Divide(timestamp, duration)))
@@ -1394,8 +1394,8 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var feeInfo any = this.SafeValue(trade, "fee", map[string]any{})
 	trade = this.SafeValue(trade, "trade", trade)
-	var timestamp any = DerefScalar(this.SafeInteger(trade, "trade_timestamp"))
-	if IsEqual(timestamp, nil) {
+	var timestamp *int64 = this.SafeInteger(trade, "trade_timestamp")
+	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(trade, "time"))
 	}
 	var side *string = this.SafeStringLower2(trade, "side", "taker_side")
@@ -1403,13 +1403,13 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeString(trade, "amount")
 	var costString *string = this.SafeString(trade, "volume")
 	var marketId *string = this.SafeString(trade, "instrument_code")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var feeCostString *string = this.SafeString(feeInfo, "fee_amount")
 	var takerOrMaker any = nil
 	var fee any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(feeInfo, "fee_currency")
-		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		var feeRateString *string = this.SafeString(feeInfo, "fee_percentage")
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -1442,7 +1442,7 @@ func (this *Onetrading) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "currency_code")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
@@ -1499,7 +1499,7 @@ func (this *Onetrading) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Onetrading) ParseOrderStatus(status any) any {
+func (this *Onetrading) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"OPEN":                          "open",
 		"BOOKED":                        "open",
@@ -1587,16 +1587,16 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
 	var rawOrder any = this.SafeValue(order, "order", order)
 	var id *string = this.SafeString(rawOrder, "order_id")
 	var clientOrderId *string = this.SafeString(rawOrder, "client_id")
-	var timestamp any = this.Parse8601(this.SafeString(rawOrder, "time"))
-	var status any = this.ParseOrderStatus(this.SafeString(rawOrder, "status"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrder, "time"))
+	var status *string = this.ParseOrderStatus(this.SafeString(rawOrder, "status"))
 	var marketId *string = this.SafeString(rawOrder, "instrument_code")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var price *string = this.SafeString(rawOrder, "price")
 	var amount *string = this.SafeString(rawOrder, "amount")
 	var filled *string = this.SafeString(rawOrder, "filled_amount")
 	var side *string = this.SafeStringLower(rawOrder, "side")
 	var typeVar *string = this.SafeStringLower(rawOrder, "type")
-	var timeInForce any = this.ParseTimeInForce(this.SafeString(rawOrder, "time_in_force"))
+	var timeInForce *string = this.ParseTimeInForce(this.SafeString(rawOrder, "time_in_force"))
 	var postOnly any = this.SafeValue(rawOrder, "is_post_only")
 	var rawTrades any = this.SafeValue(order, "trades", []any{})
 	return this.SafeOrder(map[string]any{
@@ -1622,7 +1622,7 @@ func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             rawTrades,
 	}, market)
 }
-func (this *Onetrading) ParseTimeInForce(timeInForce any) any {
+func (this *Onetrading) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_TILL_CANCELLED":    "GTC",
 		"GOOD_TILL_TIME":         "GTT",
@@ -1679,8 +1679,8 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 	if (uppercaseType == "LIMIT") || (uppercaseType == "STOP") {
 		priceIsRequired = true
 	}
-	var triggerPrice any = DerefScalar(this.SafeNumberN(params, []any{"triggerPrice", "trigger_price", "stopPrice"}))
-	if !IsEqual(triggerPrice, nil) {
+	var triggerPrice *float64 = this.SafeNumberN(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
+	if triggerPrice != nil {
 		if uppercaseType == "MARKET" {
 			panic(BadRequest(this.Id + " createOrder() cannot place stop market orders, only stop limit"))
 		}

@@ -260,7 +260,7 @@ func (this *Whitebit) HandleOrderBook(client any, message any) {
 	var data any = this.SafeValue(params, 1)
 	var timestamp *int64 = this.SafeTimestamp(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		var ob any = this.OrderBook()
+		var ob ccxt.OrderBookInterface = this.OrderBook()
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -407,7 +407,7 @@ func (this *Whitebit) HandleTicker(client any, message any) any {
 	// watchTickers
 	var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 	for i := 0; i < len(messageHashes); i++ {
-		var currentMessageHash any = ccxt.GetValue(messageHashes, i)
+		var currentMessageHash string = ccxt.GetValue(messageHashes, i).(string)
 		if (ccxt.GetIndexOf(currentMessageHash, "tickers") >= 0) && (ccxt.GetIndexOf(currentMessageHash, symbol) >= 0) {
 			// Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
 			// the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
@@ -802,10 +802,10 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 	var cost *string = this.SafeString(order, "deal_money")
 	var stopPrice *string = this.SafeString(order, "activation_price")
 	var rawType *string = this.SafeString(order, "type")
-	var typeVar any = this.ParseWsOrderType(rawType)
+	var typeVar *string = this.ParseWsOrderType(rawType)
 	var amount any = nil
 	var remaining any = nil
-	if ccxt.IsEqual(typeVar, "market") {
+	if typeVar != nil && *typeVar == "market" {
 		amount = ccxt.DerefScalar(this.SafeString(order, "deal_stock"))
 		remaining = "0"
 	} else {
@@ -830,7 +830,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 			"currency": ccxt.GetValue(market, "quote"),
 		}
 	}
-	var unifiedStatus any = nil
+	var unifiedStatus string
 	if (status != nil && *status == 1) || (status != nil && *status == 2) {
 		unifiedStatus = "open"
 	} else {
@@ -865,7 +865,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Whitebit) ParseWsOrderType(status any) any {
+func (this *Whitebit) ParseWsOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"1":   "limit",
 		"2":   "market",
@@ -908,11 +908,11 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes74912)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var messageHash any = "wallet:"
-	var method any = nil
+	var method string
 	if ccxt.IsEqual(typeVar, "spot") {
 		method = "balanceSpot_subscribe"
 		messageHash = ccxt.Add(messageHash, "spot")
@@ -921,14 +921,14 @@ func (this *Whitebit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(messageHash, "margin")
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, messageHash)
 	var fetchBalanceSnapshot any = nil
 	var awaitBalanceSnapshot any = nil
-	fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
 	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
-	awaitBalanceSnapshotparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "awaitBalanceSnapshot", true)
+	var awaitBalanceSnapshotparamsVariable []any = this.HandleOptionAndParams(params, "watchBalance", "awaitBalanceSnapshot", true)
 	awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
 	params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
 	if ccxt.EvalTruthy(fetchBalanceSnapshot) && ccxt.EvalTruthy(awaitBalanceSnapshot) {
@@ -1027,7 +1027,7 @@ func (this *Whitebit) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(this.Balance, "info", balanceDict)
 		if isMargin {
 			var currencyId *string = this.SafeString(balanceDict, "a")
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "free", this.SafeString(balanceDict, "av"))
 			ccxt.AddElementToObject(account, "total", this.SafeString(balanceDict, "B"))
@@ -1038,9 +1038,9 @@ func (this *Whitebit) HandleBalance(client any, message any) {
 		} else {
 			var keys []string = ccxt.ObjectKeys(balanceDict)
 			for j := 0; j < len(keys); j++ {
-				var currencyId any = ccxt.GetValue(keys, j)
+				var currencyId string = ccxt.GetValue(keys, j).(string)
 				var rawBalance any = this.SafeDict(balanceDict, currencyId, map[string]any{})
-				var code any = this.SafeCurrencyCode(currencyId)
+				var code *string = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
 				ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
 				ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
@@ -1213,7 +1213,7 @@ func (this *Whitebit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var subscribeHash string = "authenticated"
 	// handleAuthenticate () resolves the handshake future with 1, so 1 is
 	// the authorized sentinel authenticate () has always returned - every

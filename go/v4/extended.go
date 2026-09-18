@@ -517,7 +517,7 @@ func (this *Extended) IndexByStringifiedNumericId(input any) any {
 	}
 	var keys []string = ObjectKeys(input)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var item any = GetValue(input, key)
 		var numericIdString *string = this.SafeString(item, "numericId")
 		if numericIdString == nil {
@@ -705,18 +705,18 @@ func (this *Extended) ParseMarket(market any) any {
 		baseId = Replace(baseId, "SPOT", "")
 	}
 	var quoteId *string = this.SafeString(market, "collateralAssetName")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote any = DerefScalar(this.SafeCurrencyCode(quoteId))
 	if quoteId != nil && *quoteId == "USD" {
 		quote = "USDC"
 	}
 	var status *string = this.SafeString(market, "status")
 	var active bool = (status != nil && *status == "ACTIVE")
-	var amountPrecision any = DerefScalar(this.SafeNumber(tradingConfig, "minOrderSizeChange"))
-	var pricePrecision any = DerefScalar(this.SafeNumber(tradingConfig, "minPriceChange"))
-	var maxLeverage any = DerefScalar(this.SafeNumber(tradingConfig, "maxLeverage"))
-	var minAmount any = DerefScalar(this.SafeNumber(tradingConfig, "minOrderSize"))
-	var maxCost any = DerefScalar(this.SafeNumber(tradingConfig, "maxLimitOrderValue"))
+	var amountPrecision *float64 = this.SafeNumber(tradingConfig, "minOrderSizeChange")
+	var pricePrecision *float64 = this.SafeNumber(tradingConfig, "minPriceChange")
+	var maxLeverage *float64 = this.SafeNumber(tradingConfig, "maxLeverage")
+	var minAmount *float64 = this.SafeNumber(tradingConfig, "minOrderSize")
+	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
 	var settleId any = nil
 	var settle any = nil
@@ -871,7 +871,7 @@ func (this *Extended) ParseCurrency(currency any) any {
 	if (currencyId != nil) && (GetIndexOf(currencyId, "SPOT") >= 0) {
 		currencyId = Replace(currencyId, "SPOT", "")
 	}
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code any = DerefScalar(this.SafeCurrencyCode(currencyId))
 	if IsEqual(currencyId, "USD") {
 		code = "USDC"
 	}
@@ -1071,8 +1071,8 @@ func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
-	var last any = DerefScalar(this.SafeNumber(ticker, "lastPrice"))
+	var symbol *string = this.SafeSymbol(nil, market)
+	var last *float64 = this.SafeNumber(ticker, "lastPrice")
 	var percentageRaw *string = this.SafeString(ticker, "dailyPriceChangePercentage")
 	var percentage any = func() any {
 		if percentageRaw != nil {
@@ -1259,7 +1259,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	retRes9948 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes9948)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1358,7 +1358,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	retRes10648 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes10648)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1698,7 +1698,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	retRes13288 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes13288)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1946,7 +1946,7 @@ func (this *Extended) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = this.SafeDict(response, i, map[string]any{})
 		var currencyId *string = this.SafeString(balance, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "availableToWithdraw"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
@@ -2103,7 +2103,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	retRes16358 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes16358)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2236,7 +2236,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	retRes17288 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes17288)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransactions", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransactions", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2492,7 +2492,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	retRes18948 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes18948)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2641,8 +2641,8 @@ func (this *Extended) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}()
 	var accountId *string = this.SafeString(transfer, "accountId")
 	var counterpartyAccountId *string = this.SafeString(transfer, "counterpartyAccountId")
-	var fromAccount any = accountId
-	var toAccount any = counterpartyAccountId
+	var fromAccount *string = accountId
+	var toAccount *string = counterpartyAccountId
 	if (amountString != nil) && !Precise.StringLt(amountString, "0") {
 		fromAccount = counterpartyAccountId
 		toAccount = accountId
@@ -2685,13 +2685,13 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	if !IsEqual(currency, nil) {
 		return GetValue(currency, "code")
 	}
-	var code any = this.SafeCurrencyCode(assetId)
+	var code any = DerefScalar(this.SafeCurrencyCode(assetId))
 	if IsEqual(code, "USD") {
 		code = "USDC"
 	}
 	return code
 }
-func (this *Extended) ParseTransactionStatus(status any) any {
+func (this *Extended) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"CREATED":     "pending",
 		"IN_PROGRESS": "pending",
@@ -2700,7 +2700,7 @@ func (this *Extended) ParseTransactionStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Extended) ParseTransactionType(typeVar any) any {
+func (this *Extended) ParseTransactionType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"DEPOSIT":    "deposit",
 		"WITHDRAWAL": "withdrawal",
@@ -2743,7 +2743,7 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
 			"cost":     this.ParseNumber(Precise.StringAbs(feeCost)),
 		}
 	}
-	var transactionType any = this.ParseTransactionType(this.SafeString(transaction, "type"))
+	var transactionType *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
 	var network *string = this.SafeString(transaction, "chain")
 	return map[string]any{
 		"info":        transaction,
@@ -2765,7 +2765,7 @@ func (this *Extended) ParseTransaction(transaction any, optionalArgs ...any) any
 		"fee":         fee,
 		"network":     network,
 		"comment":     nil,
-		"internal":    (IsEqual(transactionType, "transfer")),
+		"internal":    (transactionType != nil && *transactionType == "transfer"),
 	}
 }
 
@@ -2999,7 +2999,7 @@ func (this *Extended) ParseLeverage(leverage any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(leverage, "market")
 	market = this.SafeMarket(marketId, market)
-	var leverageValue any = DerefScalar(this.SafeNumber(leverage, "leverage"))
+	var leverageValue *float64 = this.SafeNumber(leverage, "leverage")
 	return map[string]any{
 		"info":          leverage,
 		"symbol":        GetValue(market, "symbol"),
@@ -3139,7 +3139,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 		symbols = []any{symbols}
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3271,7 +3271,7 @@ func (this *Extended) ParsePosition(position any, optionalArgs ...any) any {
 func (this *Extended) GetExtendedStarkAmount(amount any, resolution any, optionalArgs ...any) any {
 	roundUp := GetArg(optionalArgs, 0, false)
 	_ = roundUp
-	var resolutionString any = this.NumberToString(resolution)
+	var resolutionString *string = this.NumberToString(resolution)
 	var precise *string = Precise.StringMul(amount, resolutionString)
 	var result any = this.DecimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
 	if EvalTruthy(roundUp) && Precise.StringGt(precise, result) {
@@ -3351,7 +3351,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", Add(Add(this.ParseToInt((now+999)/1000), 1209600), 60))
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", (this.ParseToInt((now+999)/1000)+1209600)+60)
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var positionId *string = this.SafeString2(params, "positionId", "l2Vault", this.SafeString(account, "l2Vault"))
 	var recipient *string = this.SafeString(params, "recipient", address)
@@ -3385,7 +3385,7 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency an
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var now int64 = this.Milliseconds()
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", Add(this.ParseToInt((now+999)/1000), 1814400))
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt((now+999)/1000)+1814400)
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var fromVault *string = this.SafeString2(params, "fromVault", "senderPositionId", this.SafeString(account, "l2Vault"))
 	var fromL2Key *string = this.SafeString2(params, "fromL2Key", "senderPublicKey", this.SafeString(account, "l2Key"))
@@ -3449,7 +3449,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	}
 	var amountString any = this.AmountToPrecision(symbol, amount)
 	var priceString any = this.PriceToPrecision(symbol, price)
-	var postOnly any = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
+	var postOnly bool = this.IsPostOnly((uppercaseType == "MARKET"), nil, params)
 	var reduceOnly *bool = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	if timeInForce == nil {
@@ -3468,21 +3468,21 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 		builderId = DerefScalar(this.SafeString2(params, "builderId", "defaultBuilderId"))
 		params = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
 	} else {
-		builderFeeRateparamsVariable := this.HandleOptionAndParams(params, "createOrder", "builderFeeRate", "0.0001")
+		var builderFeeRateparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 		builderFeeRate = GetValue(builderFeeRateparamsVariable, 0)
 		params = GetValue(builderFeeRateparamsVariable, 1)
-		builderIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "builderId")
+		var builderIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "builderId")
 		builderId = GetValue(builderIdparamsVariable, 0)
 		params = GetValue(builderIdparamsVariable, 1)
 	}
-	var totalFee any = fee
+	var totalFee *string = fee
 	if builderFeeRate != nil {
 		totalFee = Precise.StringAdd(fee, builderFeeRate)
 	}
 	var now int64 = this.Milliseconds()
 	var expiryEpochMillis *int64 = this.SafeInteger(params, "expiryEpochMillis", now+3600000)
-	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", Add(this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000)), 1209600))
-	var nonce any = this.NumberToString(this.Nonce())
+	var settlementExpiration *int64 = this.SafeInteger(params, "settlementExpiration", this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000))+1209600)
+	var nonce *string = this.NumberToString(this.Nonce())
 
 	account := (<-this.FetchExtendedAccountAsync())
 	PanicOnError(account)
@@ -4234,7 +4234,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	retRes32138 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes32138)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -4380,7 +4380,7 @@ func (this *Extended) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	ch <- this.FilterBySymbolSinceLimit(canceledOrders, symbol, since, limit)
 	return nil
 }
-func (this *Extended) ParseOrderStatus(status any) any {
+func (this *Extended) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":              "open",
 		"PARTIALLY_FILLED": "open",
@@ -4440,7 +4440,7 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger2(order, "createdTime", "timestamp")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updatedTime")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var side *string = this.SafeStringLower(order, "side")
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var amount *string = this.SafeString(order, "qty")
@@ -4492,7 +4492,7 @@ func (this *Extended) GetExtendedStringToFelt(value any) any {
 func (this *Extended) GetExtendedEncodeI64(value any) any {
 	// Cairo prime offset for i64 negative encoding.
 	var prime string = "3618502788666131213697322783095070105623107215331596699973092056135872020481"
-	var valueString any = this.NumberToString(value)
+	var valueString *string = this.NumberToString(value)
 	if Precise.StringLt(valueString, "0") {
 		return Precise.StringAdd(prime, valueString)
 	}
@@ -4503,12 +4503,12 @@ func (this *Extended) GetExtendedDecimalToBase16(value any) any {
 	if IsString(value) {
 		decimalString = value
 	} else {
-		decimalString = this.NumberToString(value)
+		decimalString = DerefScalar(this.NumberToString(value))
 	}
 	var hexChars []any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 	var result any = ""
 	for Precise.StringGt(decimalString, "0") {
-		var remainder any = this.ParseToInt(Precise.StringMod(decimalString, "16"))
+		var remainder int64 = this.ParseToInt(Precise.StringMod(decimalString, "16"))
 		result = Add(GetValue(hexChars, remainder), result)
 		decimalString = Precise.StringDiv(decimalString, "16", 0)
 	}
@@ -4524,7 +4524,7 @@ func (this *Extended) GetExtendedSignatureHex(signature any) any {
 		}
 		return Add("0x", this.GetExtendedDecimalToBase16(signature))
 	}
-	var signatureString any = this.NumberToString(signature)
+	var signatureString *string = this.NumberToString(signature)
 	if GetIndexOf(signatureString, "0x") == 0 {
 		return signatureString
 	}
@@ -4625,7 +4625,7 @@ func (this *Extended) Sign(path any, optionalArgs ...any) any {
 	}
 	url = Add(Add(Add(url, "/api/"), version), endpoint)
 	if ((IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) || queryPost) && (len(ObjectKeys(query)) > 0) {
-		url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
+		url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
 	}
 	return map[string]any{
 		"url":     url,

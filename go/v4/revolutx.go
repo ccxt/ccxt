@@ -291,8 +291,8 @@ func (this *Revolutx) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "id")
 	var base *string = this.SafeString(market, "base", "")
 	var quote *string = this.SafeString(market, "quote", "")
-	var baseId any = base
-	var quoteId any = quote
+	var baseId *string = base
+	var quoteId *string = quote
 	var baseStep *string = this.SafeString(market, "base_step")
 	var quoteStep *string = this.SafeString(market, "quote_step")
 	var minOrderSize *string = this.SafeString(market, "min_order_size")
@@ -399,7 +399,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(markets)
 	var result any = []any{}
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var market any = this.SafeDict(markets, key, map[string]any{})
 		var base *string = this.SafeString(market, "base")
 		var quote *string = this.SafeString(market, "quote")
@@ -424,7 +424,7 @@ func (this *Revolutx) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
  */
 func (this *Revolutx) ParseCurrency(currency any) any {
 	var id *string = this.SafeString2(currency, "id", "symbol", "")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var name *string = this.SafeString(currency, "name")
 	var scale *int64 = this.SafeInteger(currency, "scale")
 	var status *string = this.SafeString(currency, "status")
@@ -508,7 +508,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	var keys []string = ObjectKeys(currencies)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var currency any = this.SafeDict(currencies, key, map[string]any{})
 		var currencyData map[string]any = this.Extend(currency, map[string]any{
 			"id": key,
@@ -538,7 +538,7 @@ func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tickerSymbol *string = this.SafeString(ticker, "symbol")
-	var symbol any = this.SafeSymbol(tickerSymbol, market, "/")
+	var symbol *string = this.SafeSymbol(tickerSymbol, market, "/")
 	var bid *string = this.SafeString(ticker, "bid")
 	var ask *string = this.SafeString(ticker, "ask")
 	var last *string = this.SafeString(ticker, "last_price")
@@ -774,11 +774,11 @@ func (this *Revolutx) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ohlcv, "start")
-	var open any = DerefScalar(this.SafeNumber(ohlcv, "open"))
-	var high any = DerefScalar(this.SafeNumber(ohlcv, "high"))
-	var low any = DerefScalar(this.SafeNumber(ohlcv, "low"))
-	var close any = DerefScalar(this.SafeNumber(ohlcv, "close"))
-	var volume any = DerefScalar(this.SafeNumber(ohlcv, "volume"))
+	var open *float64 = this.SafeNumber(ohlcv, "open")
+	var high *float64 = this.SafeNumber(ohlcv, "high")
+	var low *float64 = this.SafeNumber(ohlcv, "low")
+	var close *float64 = this.SafeNumber(ohlcv, "close")
+	var volume *float64 = this.SafeNumber(ohlcv, "volume")
 	return []any{timestamp, open, high, low, close, volume}
 }
 
@@ -867,13 +867,13 @@ func (this *Revolutx) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(trade, "id")
 	var tradeSymbol *string = this.SafeString(trade, "symbol")
-	var symbol any = this.SafeSymbol(tradeSymbol, market, "/")
-	var price any = DerefScalar(this.SafeNumber(trade, "price"))
-	var amount any = DerefScalar(this.SafeNumber(trade, "quantity"))
+	var symbol *string = this.SafeSymbol(tradeSymbol, market, "/")
+	var price *float64 = this.SafeNumber(trade, "price")
+	var amount *float64 = this.SafeNumber(trade, "quantity")
 	var side *string = this.SafeStringLower(trade, "side")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var cost any = nil
-	if !IsEqual(price, nil) && !IsEqual(amount, nil) {
+	if (price != nil) && (amount != nil) {
 		cost = Multiply(price, amount)
 	}
 	return map[string]any{
@@ -1017,7 +1017,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(data); i++ {
 		var balance any = this.SafeDict(data, i, map[string]any{})
 		var currency *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currency)
+		var code *string = this.SafeCurrencyCode(currency)
 		if code == nil {
 			continue
 		}
@@ -1051,7 +1051,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
  * @param {string} status the exchange-specific order status
  * @returns {string|undefined} the unified order status
  */
-func (this *Revolutx) ParseOrderStatus(status any) any {
+func (this *Revolutx) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"pending_new":      "open",
 		"new":              "open",
@@ -1080,7 +1080,7 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString2(order, "id", "venue_order_id")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
 	var orderSymbol *string = this.SafeString(order, "symbol")
-	var symbol any = this.SafeSymbol(orderSymbol, market, "/")
+	var symbol *string = this.SafeSymbol(orderSymbol, market, "/")
 	var side *string = this.SafeStringLower(order, "side")
 	var orderType *string = this.SafeStringLower(order, "type")
 	var quantity *string = this.SafeString(order, "quantity")
@@ -1092,7 +1092,7 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) any {
 	var filledAmount *string = this.SafeString(order, "filled_amount")
 	var totalFee *string = this.SafeString(order, "total_fee")
 	var feeCurrency *string = this.SafeString(order, "fee_currency")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var timeInForce *string = this.SafeStringUpper(order, "time_in_force")
 	var createdDate *int64 = this.SafeInteger(order, "created_date")
 	var updatedDate *int64 = this.SafeInteger(order, "updated_date")
@@ -1602,8 +1602,8 @@ func (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(trade, "tid")
 	var orderId *string = this.SafeString(trade, "oid")
-	var price any = DerefScalar(this.SafeNumber(trade, "p"))
-	var amount any = DerefScalar(this.SafeNumber(trade, "q"))
+	var price *float64 = this.SafeNumber(trade, "p")
+	var amount *float64 = this.SafeNumber(trade, "q")
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
@@ -1614,10 +1614,10 @@ func (this *Revolutx) ParseMyTrade(trade any, optionalArgs ...any) any {
 		return "taker"
 	}()
 	var cost any = nil
-	if !IsEqual(price, nil) && !IsEqual(amount, nil) {
+	if (price != nil) && (amount != nil) {
 		cost = Multiply(price, amount)
 	}
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	return map[string]any{
 		"info":         trade,
 		"id":           id,

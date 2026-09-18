@@ -627,7 +627,7 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Apex) ParseCurrency(currency any) any {
 	var currencyId *string = this.SafeString(currency, "token")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var name *string = this.SafeString(currency, "displayName")
 	var networks map[string]any = map[string]any{}
 	var chains any = GetValue(this.Options, "_temp_currencies_chains")
@@ -791,9 +791,9 @@ func (this *Apex) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "l2PairId")
 	var baseId *string = this.SafeString(market, "baseTokenId")
 	var quote *string = this.SafeString(market, "settleAssetId")
-	var base any = this.SafeCurrencyCode(baseId)
+	var base *string = this.SafeCurrencyCode(baseId)
 	var settleId *string = this.SafeString(market, "settleAssetId")
-	var settle any = this.SafeCurrencyCode(settleId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(baseId, "/"), quote), ":"), settle)
 	var expiry int = 0
 	var takerFee any = this.ParseNumber("0.0002")
@@ -885,7 +885,7 @@ func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var timestamp int64 = this.Milliseconds()
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var percentage *string = this.SafeString(ticker, "price24hPcnt")
 	var quoteVolume *string = this.SafeString(ticker, "turnover24h")
@@ -1311,7 +1311,7 @@ func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	var timestamp int64 = this.Milliseconds()
 	var marketId *string = this.SafeString(interest, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
 		"openInterestAmount": this.SafeString(interest, "openInterest"),
@@ -1515,7 +1515,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) any {
 		"info": order,
 	}, market)
 }
-func (this *Apex) ParseTimeInForce(timeInForce any) any {
+func (this *Apex) ParseTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GOOD_TIL_CANCEL":     "GOOD_TIL_CANCEL",
 		"FILL_OR_KILL":        "FILL_OR_KILL",
@@ -1524,7 +1524,7 @@ func (this *Apex) ParseTimeInForce(timeInForce any) any {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Apex) ParseOrderStatus(status any) any {
+func (this *Apex) ParseOrderStatus(status any) *string {
 	if status != nil {
 		var statuses map[string]any = map[string]any{
 			"PENDING":     "open",
@@ -1538,7 +1538,7 @@ func (this *Apex) ParseOrderStatus(status any) any {
 	}
 	return nil
 }
-func (this *Apex) ParseOrderType(typeVar any) any {
+func (this *Apex) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":              "limit",
 		"MARKET":             "market",
@@ -1677,9 +1677,9 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
 	var taker *string = this.SafeString(fees, "taker", "0.0005")
 	var maker *string = this.SafeString(fees, "maker", "0.0002")
-	var limitFee any = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+	var limitFee string = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 	var timeNow int64 = this.Milliseconds()
-	var triggerPrice any = DerefScalar(this.SafeString(params, "triggerPrice"))
+	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
@@ -1704,12 +1704,12 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		panic(ArgumentsRequired(this.Id + " createOrder() requires a price argument for market orders"))
 	}
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
-	var postOnly any = this.IsPostOnly(isMarket, nil, params)
+	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
 	if timeInForce == nil {
 		timeInForce = "GOOD_TIL_CANCEL"
 	}
 	if !isMarket {
-		if EvalTruthy(postOnly) {
+		if postOnly {
 			timeInForce = "POST_ONLY"
 		} else if IsEqual(timeInForce, "ioc") {
 			timeInForce = "IMMEDIATE_OR_CANCEL"
@@ -1837,16 +1837,16 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 		}
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
-	var decimalsNum any = DerefScalar(this.SafeNumber(currency, "decimals", 0))
+	var decimalsNum *float64 = this.SafeNumber(currency, "decimals", 0)
 	var decimalsNumber any = func() any {
-		if IsEqual(decimalsNum, nil) {
+		if decimalsNum == nil {
 			return 0
 		}
 		return decimalsNum
 	}()
 	var mathPowResult float64 = (MathPow(10, decimalsNumber))
-	var amountNumber any = this.ParseToInt(Multiply(amount, mathPowResult))
-	var timestampSeconds any = this.ParseToInt(this.Milliseconds() / 1000)
+	var amountNumber int64 = this.ParseToInt(Multiply(amount, mathPowResult))
+	var timestampSeconds int64 = this.ParseToInt(this.Milliseconds() / 1000)
 	var clientOrderId any = DerefScalar(this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"}))
 	if clientOrderId == nil {
 		clientOrderId = this.GenerateRandomClientIdOmni(this.SafeString(this.Options, "accountId"))
@@ -1911,7 +1911,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 		signature := (<-this.GetZKTransferSignatureObjAsync(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
 		PanicOnError(signature)
 		var amountStr string = ToString(amount)
-		var ts any = timestampSeconds // java req
+		var ts int64 = timestampSeconds // java req
 		var request map[string]any = map[string]any{
 			"amount":               amountStr,
 			"timestamp":            ts,
@@ -2443,7 +2443,7 @@ func (this *Apex) setLeverageBody(ch chan any, leverage any, optionalArgs ...any
 		PanicOnError(retRes192512)
 	}
 	var market any = this.Market(symbol)
-	var leverageString any = this.NumberToString(leverage)
+	var leverageString *string = this.NumberToString(leverage)
 	var initialMarginRate *string = Precise.StringDiv("1", leverageString, 4)
 	var request map[string]any = map[string]any{
 		"symbol":            GetValue(market, "id"),

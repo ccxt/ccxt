@@ -769,7 +769,7 @@ func (this *Coinbaseexchange) ParseWsTrade(trade any, optionalArgs ...any) any {
 	})
 	return parsed
 }
-func (this *Coinbaseexchange) ParseWsOrderStatus(status any) any {
+func (this *Coinbaseexchange) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"filled":   "closed",
 		"canceled": "canceled",
@@ -865,7 +865,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var messageHash any = ccxt.Add("orders:", marketId)
-		var symbol any = this.SafeSymbol(marketId)
+		var symbol *string = this.SafeSymbol(marketId)
 		var orderId *string = this.SafeString(message, "order_id")
 		var makerOrderId *string = this.SafeString(message, "maker_order_id")
 		var takerOrderId *string = this.SafeString(message, "taker_order_id")
@@ -923,7 +923,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 							"currency": this.SafeString(ccxt.GetValue(trade, "fee"), "currency"),
 						})
 					}
-					if (!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil)) && (!ccxt.IsEqual(this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost"), nil)) {
+					if (!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil)) && (this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost") != nil) {
 						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.Sum(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost")))
 						var previousOrderFee any = this.SafeDict(previousOrder, "fee")
 						var tradeFee any = this.SafeDict(trade, "fee")
@@ -938,7 +938,7 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					var keys []string = ccxt.ObjectKeys(order)
 					// update the reference
 					for i := 0; i < len(keys); i++ {
-						var key any = ccxt.GetValue(keys, i)
+						var key string = ccxt.GetValue(keys, i).(string)
 						if !ccxt.IsEqual(ccxt.GetValue(order, key), nil) {
 							ccxt.AddElementToObject(previousOrder, key, ccxt.GetValue(order, key))
 						}
@@ -960,14 +960,14 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeString(order, "order_id")
 	var clientOrderId *string = this.SafeString(order, "client_oid")
 	var marketId *string = this.SafeString(order, "product_id")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var side *string = this.SafeString(order, "side")
-	var price any = ccxt.DerefScalar(this.SafeNumber(order, "price"))
+	var price *float64 = this.SafeNumber(order, "price")
 	var amount *string = this.SafeString2(order, "size", "funds")
 	var time *string = this.SafeString(order, "time")
-	var timestamp any = this.Parse8601(time)
+	var timestamp *int64 = this.Parse8601(time)
 	var reason *string = this.SafeString(order, "reason")
-	var status any = this.ParseWsOrderStatus(reason)
+	var status *string = this.ParseWsOrderStatus(reason)
 	var orderType *string = this.SafeString(order, "order_type")
 	var remaining *string = this.SafeString(order, "remaining_size")
 	var typeVar *string = this.SafeString(order, "type")
@@ -1068,8 +1068,8 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 		return this.base.ParseTicker(ticker, market)
 	}
 	var marketId *string = this.SafeString(ticker, "product_id")
-	var symbol any = this.SafeSymbol(marketId, market, "-")
-	var timestamp any = this.Parse8601(this.SafeString(ticker, "time"))
+	var symbol *string = this.SafeSymbol(marketId, market, "-")
+	var timestamp *int64 = this.Parse8601(this.SafeString(ticker, "time"))
 	var last *string = this.SafeString(ticker, "price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -1095,8 +1095,8 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 	})
 }
 func (this *Coinbaseexchange) HandleDelta(bookside any, delta any) {
-	var price any = ccxt.DerefScalar(this.SafeNumber(delta, 0))
-	var amount any = ccxt.DerefScalar(this.SafeNumber(delta, 1))
+	var price *float64 = this.SafeNumber(delta, 0)
+	var amount *float64 = this.SafeNumber(delta, 1)
 	bookside.(ccxt.IOrderBookSide).Store(price, amount)
 }
 func (this *Coinbaseexchange) HandleDeltas(bookside any, deltas any) {
@@ -1149,7 +1149,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else if typeVar != nil && *typeVar == "l2update" {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-		var timestamp any = this.Parse8601(this.SafeString(message, "time"))
+		var timestamp *int64 = this.Parse8601(this.SafeString(message, "time"))
 		var changes any = this.SafeList(message, "changes", []any{})
 		var sides map[string]any = map[string]any{
 			"sell": "asks",
@@ -1159,8 +1159,8 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
 			var change any = ccxt.GetValue(changes, i)
 			var key *string = this.SafeString(change, 0)
 			var side *string = this.SafeString(sides, key)
-			var price any = ccxt.DerefScalar(this.SafeNumber(change, 1))
-			var amount any = ccxt.DerefScalar(this.SafeNumber(change, 2))
+			var price *float64 = this.SafeNumber(change, 1)
+			var amount *float64 = this.SafeNumber(change, 2)
 			var bookside any = this.SafeValue(orderbook, side)
 			bookside.(ccxt.IOrderBookSide).Store(price, amount)
 		}
@@ -1225,7 +1225,6 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message any) any {
 			}
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1245,8 +1244,8 @@ func (this *Coinbaseexchange) HandleMessage(client any, message any) {
 		"done":      this.HandleOrder,
 		"error":     this.HandleErrorMessage,
 	}
-	var length any = ccxt.Subtract(ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl()), 0)
-	var authenticated bool = (ccxt.GetValue(client.(ccxt.ClientInterface).GetUrl(), ccxt.Subtract(length, 1)) == "?")
+	var length int64 = ccxt.Subtract(ccxt.GetLength(client.(ccxt.ClientInterface).GetUrl()), 0).(int64)
+	var authenticated bool = (ccxt.GetValue(client.(ccxt.ClientInterface).GetUrl(), length-1) == "?")
 	var method any = this.SafeValue(methods, typeVar)
 	if ccxt.IsEqual(method, nil) {
 		if typeVar != nil && *typeVar == "match" {

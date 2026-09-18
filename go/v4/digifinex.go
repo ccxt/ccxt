@@ -713,7 +713,7 @@ func (this *Digifinex) ParseCurrency(rawCurrency any) any {
 	var networkEntries any = rawCurrency
 	var firstEntry any = this.SafeDict(networkEntries, 0, map[string]any{}) // it must have at least one entry
 	var id *string = this.SafeString(firstEntry, "currency")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < GetArrayLength(networkEntries); j++ {
 		var networkEntry any = GetValue(networkEntries, j)
@@ -866,17 +866,17 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any 
 	//
 	var spotData any = this.SafeValue(spotMarkets, "symbol_list", []any{})
 	var swapData any = this.SafeValue(swapMarkets, "data", []any{})
-	var response any = this.ArrayConcat(spotData, swapData)
+	var response []any = this.ArrayConcat(spotData, swapData)
 	var result any = []any{}
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var market any = GetValue(response, i)
 		var id *string = this.SafeString2(market, "symbol", "instrument_id")
 		var baseId *string = this.SafeString2(market, "base_asset", "base_currency")
 		var quoteId *string = this.SafeString2(market, "quote_asset", "quote_currency")
 		var settleId *string = this.SafeString(market, "clear_currency")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
-		var settle any = this.SafeCurrencyCode(settleId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
+		var settle *string = this.SafeCurrencyCode(settleId)
 		//
 		// The status is documented in the exchange API docs as follows:
 		// TRADING, HALT (delisted), BREAK (trading paused)
@@ -1014,8 +1014,8 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 		baseIdquoteIdVariable := Split(id, "_")
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -1100,7 +1100,7 @@ func (this *Digifinex) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		var free *string = this.SafeString2(balance, "free", "avail_balance")
 		var total *string = this.SafeString2(balance, "total", "equity")
@@ -1140,7 +1140,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes88312)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchBalance", params)
@@ -1240,7 +1240,7 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes95312)
 	}
 	var market any = this.Market(symbol)
-	marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
+	var marketTypequeryVariable []any = this.HandleMarketTypeAndParams("fetchOrderBook", market, params)
 	marketType := GetValue(marketTypequeryVariable, 0)
 	query := GetValue(marketTypequeryVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -1297,11 +1297,11 @@ func (this *Digifinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//         }
 	//     }
 	//
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var orderBook any = nil
 	if marketType == "swap" {
 		orderBook = this.SafeValue(response, "data", map[string]any{})
-		timestamp = DerefScalar(this.SafeInteger(orderBook, "timestamp"))
+		timestamp = this.SafeInteger(orderBook, "timestamp")
 	} else {
 		orderBook = response
 		timestamp = this.SafeTimestamp(response, "date")
@@ -1345,7 +1345,7 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(first)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -1570,15 +1570,15 @@ func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var indexPrice any = DerefScalar(this.SafeNumber(ticker, "index_price"))
+	var indexPrice *float64 = this.SafeNumber(ticker, "index_price")
 	var marketType any = func() any {
-		if !IsEqual(indexPrice, nil) {
+		if indexPrice != nil {
 			return "contract"
 		}
 		return "spot"
 	}()
 	var marketId *string = this.SafeStringUpper2(ticker, "symbol", "instrument_id")
-	var symbol any = this.SafeSymbol(marketId, market, nil, marketType)
+	var symbol *string = this.SafeSymbol(marketId, market, nil, marketType)
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "date")
 	if IsEqual(GetValue(market, "swap"), true) {
@@ -1678,7 +1678,7 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeStringN(trade, []any{"amount", "volume", "size"})
 	var marketId *string = this.SafeStringUpper2(trade, "symbol", "instrument_id")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	if IsEqual(market, nil) {
 		market = this.SafeMarket(marketId)
 	}
@@ -1743,7 +1743,7 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
 		var feeCurrencyCode any = nil
 		if feeCurrencyId != nil {
-			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
+			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
 		}
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -2038,7 +2038,7 @@ func (this *Digifinex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 			request["start_time"] = startTime
 			if (!IsEqual(limit, nil)) || (until != nil) {
 				if until != nil {
-					var endByUntil any = this.ParseToInt(Divide(until, 1000))
+					var endByUntil int64 = this.ParseToInt(Divide(until, 1000))
 					if !IsEqual(limit, nil) {
 						var endByLimit any = this.Sum(startTime, Multiply(limit, duration))
 						request["end_time"] = mathMin(endByLimit, endByUntil)
@@ -2327,7 +2327,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var market any = this.Market(symbol)
 	var marketType any = nil
 	var marginMode any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("createOrderRequest", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("createOrderRequest", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModeparamsVariable := this.HandleMarginModeAndParams("createOrderRequest", params)
@@ -2347,7 +2347,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		return "symbol"
 	}()
 	AddElementToObject(request, marketIdRequest, GetValue(market, "id"))
-	var postOnly any = this.IsPostOnly(isMarketOrder, false, params)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	var postOnlyParsed any = nil
 	if swap {
 		var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -2416,20 +2416,20 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		// limit orders require the amount in the base currency, market orders require the amount in the quote currency
 		var quantity any = nil
 		var createMarketBuyOrderRequiresPrice any = true
-		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		if isMarketOrder && (IsEqual(side, "buy")) {
-			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
+			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
-			if !IsEqual(cost, nil) {
+			if cost != nil {
 				quantity = this.CostToPrecision(symbol, cost)
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 				if IsEqual(price, nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
-					var amountString any = this.NumberToString(amount)
-					var priceString any = this.NumberToString(price)
+					var amountString *string = this.NumberToString(amount)
+					var priceString *string = this.NumberToString(price)
 					var costRequest any = this.ParseNumber(Precise.StringMul(amountString, priceString))
 					quantity = this.CostToPrecision(symbol, costRequest)
 				}
@@ -2441,7 +2441,7 @@ func (this *Digifinex) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		}
 		request["amount"] = quantity
 	}
-	if EvalTruthy(postOnly) {
+	if postOnly {
 		if (!IsEqual(postOnlyParsed, nil)) && (!IsEqual(postOnlyParsed, 0)) {
 			request["post_only"] = postOnlyParsed
 		} else {
@@ -2523,7 +2523,7 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	}
 	id = ToString(id)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2674,7 +2674,7 @@ func (this *Digifinex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	ch <- this.ParseCancelOrders(response)
 	return nil
 }
-func (this *Digifinex) ParseOrderStatus(status any) any {
+func (this *Digifinex) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "open",
 		"1": "open",
@@ -2750,13 +2750,13 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = nil
-	var lastTradeTimestamp any = nil
+	var timestamp *int64 = nil
+	var lastTradeTimestamp *int64 = nil
 	var timeInForce any = nil
 	var typeVar any = nil
 	var side any = DerefScalar(this.SafeString(order, "type"))
 	var marketId *string = this.SafeString2(order, "symbol", "instrument_id")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	market = this.Market(symbol)
 	if GetValue(market, "type") == "swap" {
 		var orderType *int64 = this.SafeInteger(order, "order_type")
@@ -2783,8 +2783,8 @@ func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) any {
 		} else if IsEqual(side, "4") {
 			side = "close short"
 		}
-		timestamp = DerefScalar(this.SafeInteger(order, "insert_time"))
-		lastTradeTimestamp = DerefScalar(this.SafeInteger(order, "time_stamp"))
+		timestamp = this.SafeInteger(order, "insert_time")
+		lastTradeTimestamp = this.SafeInteger(order, "time_stamp")
 	} else {
 		timestamp = this.SafeTimestamp(order, "created_date")
 		lastTradeTimestamp = this.SafeTimestamp(order, "finished_date")
@@ -2864,7 +2864,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchOpenOrders", params)
@@ -3003,7 +3003,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchOrders", params)
@@ -3139,7 +3139,7 @@ func (this *Digifinex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchOrder", params)
@@ -3274,7 +3274,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
@@ -3375,7 +3375,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTrades(data, market, since, limit)
 	return nil
 }
-func (this *Digifinex) ParseLedgerEntryType(typeVar any) any {
+func (this *Digifinex) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{}
 	return this.SafeString(types, typeVar, typeVar)
 }
@@ -3402,12 +3402,12 @@ func (this *Digifinex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar any = this.ParseLedgerEntryType(this.SafeString2(item, "type", "finance_type"))
+	var typeVar *string = this.ParseLedgerEntryType(this.SafeString2(item, "type", "finance_type"))
 	var currencyId *string = this.SafeString2(item, "currency_mark", "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var amount any = DerefScalar(this.SafeNumber2(item, "num", "change"))
-	var after any = DerefScalar(this.SafeNumber(item, "balance"))
+	var amount *float64 = this.SafeNumber2(item, "num", "change")
+	var after *float64 = this.SafeNumber(item, "balance")
 	var timestamp *int64 = this.SafeTimestamp(item, "time")
 	if timestamp == nil {
 		timestamp = this.SafeInteger(item, "timestamp")
@@ -3466,7 +3466,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchLedger", params)
@@ -3571,7 +3571,7 @@ func (this *Digifinex) ParseDepositAddress(depositAddress any, optionalArgs ...a
 	var address *string = this.SafeString(depositAddress, "address")
 	var tag *string = this.SafeString(depositAddress, "addressTag")
 	var currencyId *string = this.SafeStringUpper(depositAddress, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": code,
@@ -3770,7 +3770,7 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	ch <- retRes295815
 	return nil
 }
-func (this *Digifinex) ParseTransactionStatus(status any) any {
+func (this *Digifinex) ParseTransactionStatus(status any) *string {
 	// deposit state includes: 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
 	// withdrawal state includes: 1 (application in progress), 2 (to be confirmed), 3 (completed), 4 (rejected)
 	var statuses map[string]any = map[string]any{
@@ -3813,14 +3813,14 @@ func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) an
 	var tag *string = this.SafeString(transaction, "memo")
 	var txid *string = this.SafeString(transaction, "hash")
 	var currencyId *string = this.SafeStringUpper(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_date"))
-	var updated any = this.Parse8601(this.SafeString(transaction, "finished_date"))
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_date"))
+	var updated *int64 = this.Parse8601(this.SafeString(transaction, "finished_date"))
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "state"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,
@@ -3850,7 +3850,7 @@ func (this *Digifinex) ParseTransaction(transaction any, optionalArgs ...any) an
 		"fee":         fee,
 	}
 }
-func (this *Digifinex) ParseTransferStatus(status any) any {
+func (this *Digifinex) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "ok",
 	}
@@ -4137,7 +4137,7 @@ func (this *Digifinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
 		}
 		return GetValue(market, "base")
 	}()
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return map[string]any{
 		"info":           info,
 		"symbol":         symbol,
@@ -4293,7 +4293,7 @@ func (this *Digifinex) ParseBorrowRates(info any, codeKey any) any {
 	for i := 0; i < GetArrayLength(info); i++ {
 		var item any = GetValue(info, i)
 		var currency *string = this.SafeString(item, codeKey)
-		var code any = this.SafeCurrencyCode(currency)
+		var code *string = this.SafeCurrencyCode(currency)
 		var borrowRate any = this.ParseBorrowRate(item)
 		if code != nil {
 			AddElementToObject(result, code, borrowRate)
@@ -4501,7 +4501,7 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	for i := 0; i < GetArrayLength(result); i++ {
 		var entry any = GetValue(result, i)
 		var marketId *string = this.SafeString(data, "instrument_id")
-		var symbolInner any = this.SafeSymbol(marketId)
+		var symbolInner *string = this.SafeSymbol(marketId)
 		var timestamp *int64 = this.SafeInteger(entry, "time")
 		AppendToArray(&rates, map[string]any{
 			"info":        entry,
@@ -4577,7 +4577,7 @@ func (this *Digifinex) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "instrument_id")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -4632,7 +4632,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 		}
 		market = this.Market(symbol)
 	}
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPositions", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchPositions", params)
@@ -4759,7 +4759,7 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	marginModequeryVariable := this.HandleMarginModeAndParams("fetchPosition", params)
@@ -5397,7 +5397,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 	for i := 0; i < GetArrayLength(response); i++ {
 		var entry any = GetValue(response, i)
 		var currencyId *string = this.SafeString(entry, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
 			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
@@ -5437,9 +5437,9 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 	}
 	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; i < len(depositWithdrawCodes); i++ {
-		var code any = GetValue(depositWithdrawCodes, i)
+		var code string = GetValue(depositWithdrawCodes, i).(string)
 		var currency any = this.Currency(code)
-		AddElementToObject(depositWithdrawFees, code, this.AssignDefaultDepositWithdrawFees(GetValue(depositWithdrawFees, code), currency))
+		depositWithdrawFees[code] = this.AssignDefaultDepositWithdrawFees(depositWithdrawFees[code], currency)
 	}
 	return depositWithdrawFees
 }

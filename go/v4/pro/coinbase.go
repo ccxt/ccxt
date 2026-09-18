@@ -331,7 +331,7 @@ func (this *Coinbase) unSubscribeMultipleBody(ch chan any, topic any, name any, 
 }
 func (this *Coinbase) CreateWSAuth(name any, productIds any) any {
 	var subscribe map[string]any = map[string]any{}
-	var timestamp any = this.NumberToString(this.Seconds())
+	var timestamp *string = this.NumberToString(this.Seconds())
 	this.CheckRequiredCredentials()
 	var isCloudAPiKey bool = (ccxt.GetIndexOf(this.ApiKey, "organizations/") >= 0) || (ccxt.StartsWith(this.Secret, "-----BEGIN"))
 	var auth any = ccxt.Add(ccxt.Add(timestamp, name), ccxt.Join(productIds, ","))
@@ -595,7 +595,7 @@ func (this *Coinbase) HandleTickers(client any, message any) {
 	var channel *string = this.SafeString(message, "channel")
 	var events any = this.SafeList(message, "events", []any{})
 	var datetime *string = this.SafeString(message, "timestamp")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	var newTickers any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(events); i++ {
 		var tickersObj any = ccxt.GetValue(events, i)
@@ -643,7 +643,7 @@ func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "product_id")
 	var timestamp any = nil
-	var last any = ccxt.DerefScalar(this.SafeNumber(ticker, "price"))
+	var last *float64 = this.SafeNumber(ticker, "price")
 	return this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(marketId, market, "-"),
@@ -1035,7 +1035,7 @@ func (this *Coinbase) HandleTrade(client any, message any) {
 	var trades any = this.SafeList(event, "trades")
 	var trade any = this.SafeDict(trades, 0)
 	var marketId *string = this.SafeString(trade, "product_id")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("market_trades::", symbol)
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(tradesArray, nil) {
@@ -1118,7 +1118,7 @@ func (this *Coinbase) HandleOrder(client any, message any) {
 	}
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
-		var symbol any = this.SafeSymbol(marketId)
+		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash any = ccxt.Add("user::", symbol)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		this.TryResolveUsdc(client, messageHash, this.Orders)
@@ -1182,8 +1182,8 @@ func (this *Coinbase) HandleOrderBookHelper(orderbook any, updates any) {
 		var trade any = ccxt.GetValue(updates, i)
 		var sideId *string = this.SafeString(trade, "side")
 		var side *string = this.SafeString(ccxt.GetValue(this.Options, "sides"), sideId)
-		var price any = ccxt.DerefScalar(this.SafeNumber(trade, "price_level"))
-		var amount any = ccxt.DerefScalar(this.SafeNumber(trade, "new_quantity"))
+		var price *float64 = this.SafeNumber(trade, "price_level")
+		var amount *float64 = this.SafeNumber(trade, "new_quantity")
 		var orderbookSide any = this.SafeValue(orderbook, side)
 		orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
 	}

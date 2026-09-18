@@ -218,7 +218,7 @@ func (this *Paymium) ParseBalance(response any) any {
 	}
 	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(currencies); i++ {
-		var code any = GetValue(currencies, i)
+		var code string = GetValue(currencies, i).(string)
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		var free any = Add("balance_", currencyId)
@@ -227,7 +227,7 @@ func (this *Paymium) ParseBalance(response any) any {
 			var used any = Add("locked_", currencyId)
 			AddElementToObject(account, "free", this.SafeString(response, free))
 			AddElementToObject(account, "used", this.SafeString(response, used))
-			AddElementToObject(result, code, account)
+			result[code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -323,7 +323,7 @@ func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "at")
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
@@ -840,7 +840,7 @@ func (this *Paymium) ParseTransfer(transfer any, optionalArgs ...any) any {
 		"status":      this.ParseTransferStatus(status),
 	}
 }
-func (this *Paymium) ParseTransferStatus(status any) any {
+func (this *Paymium) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"executed": "ok",
 	}

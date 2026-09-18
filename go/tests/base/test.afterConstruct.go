@@ -44,7 +44,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		// 3) ensure that the same network-id is not assigned to multiple networkCodes
 		var collectedNetworkIds any = []any{}
 		for i := 0; i < len(networkCodes); i++ {
-			var networkCode any = GetValue(networkCodes, i)
+			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
 				Assert(!EvalTruthy(exchange.InArray(networkId, collectedNetworkIds)), Add(Add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""))
@@ -60,11 +60,11 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		}
 		// 5) test networkCodeToId & networkIdToCode
 		for i := 0; i < len(networkCodes); i++ {
-			var networkCode any = GetValue(networkCodes, i)
+			var networkCode string = GetValue(networkCodes, i).(string)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
 			// check networkCodeToId
 			var networkIdConverted any = exchange.NetworkCodeToId(networkCode)
-			Assert(IsEqual(networkId, networkIdConverted), Add(Add(Add(Add(Add(Add(Add(Add("exchange.GetnetworkCodeToId() (\"", networkCode), "\")=\""), networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""))
+			Assert(IsEqual(networkId, networkIdConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkCodeToId() (\""+networkCode+"\")=\"", networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""))
 			// ensure it exists in networksById
 			Assert(InOp(GetValue(exchange.GetOptions(), "networksById"), networkId), Add(Add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""))
 			// ensure networkCode matches for networksById (however, it only works if one mapping is set)
@@ -72,7 +72,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 				Assert(IsEqual(GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId), networkCode), Add(Add(Add(Add(Add(Add("exchange.options[\"networksById\"][\"", networkId), "\"] value is not expected \""), networkCode), "\", but: \""), GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId)), "\""))
 				// check networkIdToCode conversion back
 				var networkCodeConverted any = exchange.NetworkIdToCode(networkId)
-				Assert((networkCode == networkCodeConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkIdToCode() (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"))
+				Assert(IsEqual(networkCode, networkCodeConverted), Add(Add(Add(Add(Add(Add("exchange.GetnetworkIdToCode() (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"))
 			}
 		}
 	}

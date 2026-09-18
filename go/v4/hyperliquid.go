@@ -480,7 +480,7 @@ func (this *Hyperliquid) fetchCurrenciesBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if EvalTruthy(this.CheckRequiredCredentials(false)) {
+	if this.CheckRequiredCredentials(false) {
 
 		retRes44812 := (<-this.InitializeClientAsync())
 		PanicOnError(retRes44812)
@@ -517,7 +517,7 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 	// const id = i;
 	var id *string = this.SafeString(rawCurrency, "index")
 	var name *string = this.SafeString(rawCurrency, "name")
-	var code any = this.SafeCurrencyCode(name)
+	var code *string = this.SafeCurrencyCode(name)
 	AddElementToObject(GetValue(this.Options, "cachedCurrenciesById"), id, name)
 	var result any = this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -552,7 +552,7 @@ func (this *Hyperliquid) ParseCurrency(rawCurrency any) any {
 			for j := 0; j < len(parts); j++ {
 				nameWithoutU = Add(nameWithoutU, GetValue(parts, j))
 			}
-			var baseCode any = this.SafeCurrencyCode(nameWithoutU)
+			var baseCode *string = this.SafeCurrencyCode(nameWithoutU)
 			if code != nil {
 				AddElementToObject(GetValue(this.Options, "spotCurrencyMapping"), code, baseCode)
 			}
@@ -596,7 +596,7 @@ func (this *Hyperliquid) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {
 		result = this.ArrayConcat(result, GetValue(promises, i))
 	}
@@ -697,7 +697,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
 	AddElementToObject(this.Options, "hip3TokensByName", map[string]any{})
-	var markets any = []any{}
+	var markets []any = []any{}
 	for i := 0; i < GetArrayLength(promises); i++ {
 		var dexName any = GetValue(fetchDexesList, i)
 		var offset any = GetValue(perpDexesOffset, dexName)
@@ -722,7 +722,7 @@ func (this *Hyperliquid) fetchHip3MarketsBody(ch chan any, optionalArgs ...any) 
 				var collateralTokenCode *string = this.SafeString(cachedCurrencies, collateralToken)
 				data["collateralTokenName"] = collateralTokenCode
 				// eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
-				var safeCode any = this.SafeCurrencyCode(name)
+				var safeCode *string = this.SafeCurrencyCode(name)
 				var hip3Code any = func() any {
 					if safeCode == nil {
 						return name
@@ -854,7 +854,7 @@ func (this *Hyperliquid) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) 
  */
 func (this *Hyperliquid) CalculatePricePrecision(price any, amountPrecision any, maxDecimals any) any {
 	var pricePrecision any = 0
-	var priceStr any = this.NumberToString(price)
+	var priceStr *string = this.NumberToString(price)
 	if priceStr == nil {
 		return 0
 	}
@@ -977,8 +977,8 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 		// const baseName = this.safeString (marketParts, 0);
 		// const quoteId = this.safeString (marketParts, 1);
 		var fees any = this.SafeDict(this.Fees, "spot", map[string]any{})
-		var taker any = DerefScalar(this.SafeNumber(fees, "taker"))
-		var maker any = DerefScalar(this.SafeNumber(fees, "maker"))
+		var taker *float64 = this.SafeNumber(fees, "taker")
+		var maker *float64 = this.SafeNumber(fees, "maker")
 		var tokensPos any = this.SafeList(market, "tokens", []any{})
 		var baseTokenPos *int64 = this.SafeInteger(tokensPos, 0)
 		var quoteTokenPos *int64 = this.SafeInteger(tokensPos, 1)
@@ -993,21 +993,21 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) 
 		var spotCurrencyMapping any = this.SafeDict(this.Options, "spotCurrencyMapping", map[string]any{})
 		var mappedBaseName *string = this.SafeString(spotCurrencyMapping, baseName, baseName)
 		var mappedQuoteId *string = this.SafeString(spotCurrencyMapping, quoteId, quoteId)
-		var mappedBase any = this.SafeCurrencyCode(mappedBaseName)
-		var mappedQuote any = this.SafeCurrencyCode(mappedQuoteId)
+		var mappedBase *string = this.SafeCurrencyCode(mappedBaseName)
+		var mappedQuote *string = this.SafeCurrencyCode(mappedQuoteId)
 		var mappedSymbol any = Add(Add(mappedBase, "/"), mappedQuote)
 		var innerBaseTokenInfo any = this.SafeDict(baseTokenInfo, "spec", baseTokenInfo)
 		// const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
 		var amountPrecisionStr *string = this.SafeString(innerBaseTokenInfo, "szDecimals")
 		var amountPrecision int64 = ParseInt(amountPrecisionStr)
-		var price any = DerefScalar(this.SafeNumber(extraData, "midPx"))
+		var price *float64 = this.SafeNumber(extraData, "midPx")
 		var pricePrecision any = 0
-		if !IsEqual(price, nil) {
+		if price != nil {
 			pricePrecision = this.CalculatePricePrecision(price, amountPrecision, 8)
 		}
-		var pricePrecisionStr any = this.NumberToString(pricePrecision)
+		var pricePrecisionStr *string = this.NumberToString(pricePrecision)
 		// const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-		var baseId any = this.NumberToString(Add(index, 10000))
+		var baseId *string = this.NumberToString(Add(index, 10000))
 		var entry map[string]any = map[string]any{
 			"id":             marketName,
 			"symbol":         mappedSymbol,
@@ -1103,14 +1103,14 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 		return collateralTokenCode
 	}()
 	var baseName *string = this.SafeString(market, "name")
-	var base any = this.SafeCurrencyCode(baseName)
+	var base any = DerefScalar(this.SafeCurrencyCode(baseName))
 	if base == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing base currency"))
 	}
 	base = Replace(base, ":", "-") // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var baseId *string = this.SafeString(market, "baseId")
-	var settle any = this.SafeCurrencyCode(settleId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(base, "/"), quote)
 	var contract bool = true
 	var swap bool = true
@@ -1120,16 +1120,16 @@ func (this *Hyperliquid) ParseMarket(market any) any {
 		}
 	}
 	var fees any = this.SafeDict(this.Fees, "swap", map[string]any{})
-	var taker any = DerefScalar(this.SafeNumber(fees, "taker"))
-	var maker any = DerefScalar(this.SafeNumber(fees, "maker"))
+	var taker *float64 = this.SafeNumber(fees, "taker")
+	var maker *float64 = this.SafeNumber(fees, "maker")
 	var amountPrecisionStr *string = this.SafeString(market, "szDecimals")
 	var amountPrecision int64 = ParseInt(amountPrecisionStr)
-	var price any = DerefScalar(this.SafeNumber(market, "markPx", 0))
+	var price *float64 = this.SafeNumber(market, "markPx", 0)
 	var pricePrecision any = 0
-	if !IsEqual(price, nil) {
+	if price != nil {
 		pricePrecision = this.CalculatePricePrecision(price, amountPrecision, 6)
 	}
-	var pricePrecisionStr any = this.NumberToString(pricePrecision)
+	var pricePrecisionStr *string = this.NumberToString(pricePrecision)
 	var isDelisted *bool = this.SafeBool(market, "isDelisted")
 	var active bool = true
 	if isDelisted != nil {
@@ -1228,7 +1228,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var marginMode any = nil
@@ -1295,7 +1295,7 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 		}
 		for i := 0; i < GetArrayLength(balances); i++ {
 			var balance any = GetValue(balances, i)
-			var unifiedCode any = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
+			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
 			var code any = func() any {
 				if isSpot == true {
 					return this.UpdateSpotCurrencyCode(unifiedCode)
@@ -1444,7 +1444,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	var typeVar *string = this.SafeString(params, "type")
 	params = this.Omit(params, "type")
 	var hip3 any = false
-	hip3paramsVariable := this.HandleOptionAndParams(params, "fetchTickers", "hip3", false)
+	var hip3paramsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "hip3", false)
 	hip3 = GetValue(hip3paramsVariable, 0)
 	params = GetValue(hip3paramsVariable, 1)
 	if !IsEqual(symbols, nil) {
@@ -1619,10 +1619,10 @@ func (this *Hyperliquid) ParseFundingRate(info any, optionalArgs ...any) any {
 	_ = market
 	var base *string = this.SafeString(info, "name")
 	var marketId any = this.CoinToMarketId(base)
-	var symbol any = this.SafeSymbol(marketId, market)
-	var funding any = DerefScalar(this.SafeNumber(info, "funding"))
-	var markPx any = DerefScalar(this.SafeNumber(info, "markPx"))
-	var oraclePx any = DerefScalar(this.SafeNumber(info, "oraclePx"))
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var funding *float64 = this.SafeNumber(info, "funding")
+	var markPx *float64 = this.SafeNumber(info, "markPx")
+	var oraclePx *float64 = this.SafeNumber(info, "oraclePx")
 	var fundingTimestamp any = Multiply(Multiply(Multiply((Add(MathFloor((this.Milliseconds()/60)/60/1000), 1)), 60), 60), 1000)
 	return map[string]any{
 		"info":                     info,
@@ -1884,7 +1884,7 @@ func (this *Hyperliquid) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 }
 func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
 	var market any = this.Market(symbol)
-	var result any = this.DecimalToPrecision(amount, ROUND, GetValue(GetValue(market, "precision"), "amount"), this.PrecisionMode, this.PaddingMode)
+	var result string = this.DecimalToPrecision(amount, ROUND, GetValue(GetValue(market, "precision"), "amount"), this.PrecisionMode, this.PaddingMode)
 	// a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
 	// with grouping positionTpsl and size 0, so only reject a positive amount that
 	// became zero after rounding, never an explicitly requested zero
@@ -1895,10 +1895,10 @@ func (this *Hyperliquid) AmountToPrecision(symbol any, amount any) any {
 }
 func (this *Hyperliquid) PriceToPrecision(symbol any, price any) any {
 	var market any = this.Market(symbol)
-	var priceStr any = this.NumberToString(price)
+	var priceStr *string = this.NumberToString(price)
 	var integerPart any = GetValue(Split(priceStr, "."), 0)
 	var significantDigits any = mathMax(5, GetLength(integerPart))
-	var result any = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
+	var result string = this.DecimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.PaddingMode)
 	var maxDecimals any = func() any {
 		if IsEqual(GetValue(market, "spot"), true) {
 			return 8
@@ -2367,7 +2367,7 @@ func (this *Hyperliquid) isUnifiedEnabledBody(ch chan any, method any, optionalA
 		params = GetValue(userAddressparamsVariable, 1)
 	}
 	var enableUnifiedMargin any = nil
-	enableUnifiedMarginparamsVariable := this.HandleOptionAndParams(params, method, "enableUnifiedMargin")
+	var enableUnifiedMarginparamsVariable []any = this.HandleOptionAndParams(params, method, "enableUnifiedMargin")
 	enableUnifiedMargin = GetValue(enableUnifiedMarginparamsVariable, 0)
 	params = GetValue(enableUnifiedMarginparamsVariable, 1)
 	if (enableUnifiedMargin == nil) || EvalTruthy(shouldRefresh) {
@@ -2683,7 +2683,7 @@ func (this *Hyperliquid) createTwapOrderBody(ch chan any, symbol any, side any, 
 	var vaultAddress any = nil
 	var randomize *bool = this.SafeBool(params, "randomize", false)
 	params = this.Omit(params, "randomize")
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "createOrder", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -2999,7 +2999,7 @@ func (this *Hyperliquid) CreateOrdersRequest(orders any, optionalArgs ...any) an
 		}
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "createOrder", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3181,7 +3181,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan any, id any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "cancelTwapOrder", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "cancelTwapOrder", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3282,7 +3282,7 @@ func (this *Hyperliquid) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	}
 	cancelAction["cancels"] = cancelReq
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "cancelOrders", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "cancelOrders", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3382,7 +3382,7 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan any, orders any, opt
 	}()
 	cancelAction["cancels"] = cancelReq
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "cancelOrdersForSymbols", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3455,7 +3455,7 @@ func (this *Hyperliquid) cancelAllOrdersAfterBody(ch chan any, timeout any, opti
 		"time": Add(nonce, timeout),
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "cancelAllOrdersAfter", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3538,7 +3538,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		var isTrigger bool = ((stopLossPrice != nil) || (takeProfitPrice != nil))
 		var reduceOnly *bool = this.SafeBool(orderParams, "reduceOnly", false)
 		orderParams = this.Omit(orderParams, []any{"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"})
-		var px any = this.NumberToString(price)
+		var px any = DerefScalar(this.NumberToString(price))
 		if isMarket {
 			px = func() any {
 				if isBuy {
@@ -3602,7 +3602,7 @@ func (this *Hyperliquid) EditOrdersRequest(orders any, optionalArgs ...any) any 
 		"modifies": modifies,
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "editOrder", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -3776,7 +3776,7 @@ func (this *Hyperliquid) createVaultBody(ch chan any, name any, description any,
 	var request map[string]any = map[string]any{
 		"nonce": nonce,
 	}
-	var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(initialUsd), "1000000"))
+	var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(initialUsd), "1000000"))
 	var action map[string]any = map[string]any{
 		"type":        "createVault",
 		"name":        name,
@@ -3941,7 +3941,7 @@ func (this *Hyperliquid) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
 	var method any = nil
-	methodparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "method", "frontendOpenOrders")
+	var methodparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "method", "frontendOpenOrders")
 	method = GetValue(methodparamsVariable, 0)
 	params = GetValue(methodparamsVariable, 1)
 	if IsEqual(this.Markets, nil) {
@@ -4521,7 +4521,7 @@ func (this *Hyperliquid) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hyperliquid) ParseOrderType(status any) any {
+func (this *Hyperliquid) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"stop limit":  "limit",
 		"stop market": "market",
@@ -4882,7 +4882,7 @@ func (this *Hyperliquid) ParsePosition(position any, optionalArgs ...any) any {
 	var marginMode *string = this.SafeString(leverage, "type")
 	var isIsolated bool = (marginMode != nil && *marginMode == "isolated")
 	var rawSize *string = this.SafeString(entry, "szi")
-	var size any = rawSize
+	var size *string = rawSize
 	var side any = nil
 	if size != nil {
 		side = func() any {
@@ -4967,7 +4967,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode any, optional
 	if leverage == nil {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
-	var asset any = this.ParseToInt(GetValue(market, "baseId"))
+	var asset int64 = this.ParseToInt(GetValue(market, "baseId"))
 	var isCross bool = (IsEqual(marginMode, "cross"))
 	var nonce int64 = this.Milliseconds()
 	params = this.Omit(params, []any{"leverage"})
@@ -4978,7 +4978,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan any, marginMode any, optional
 		"leverage": leverage,
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "setMarginMode", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "setMarginMode", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	if vaultAddress != nil {
@@ -5044,7 +5044,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs
 	var market any = this.Market(symbol)
 	var marginMode *string = this.SafeString(params, "marginMode", "cross")
 	var isCross bool = (marginMode != nil && *marginMode == "cross")
-	var asset any = this.ParseToInt(GetValue(market, "baseId"))
+	var asset int64 = this.ParseToInt(GetValue(market, "baseId"))
 	var nonce int64 = this.Milliseconds()
 	params = this.Omit(params, "marginMode")
 	var updateAction map[string]any = map[string]any{
@@ -5054,7 +5054,7 @@ func (this *Hyperliquid) setLeverageBody(ch chan any, leverage any, optionalArgs
 		"leverage": leverage,
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "setLeverage", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "setLeverage", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5157,7 +5157,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol any, amount 
 		PanicOnError(retRes408212)
 	}
 	var market any = this.Market(symbol)
-	var asset any = this.ParseToInt(GetValue(market, "baseId"))
+	var asset int64 = this.ParseToInt(GetValue(market, "baseId"))
 	var sz any = this.ParseToInt(Precise.StringMul(this.AmountToPrecision(symbol, amount), "1000000"))
 	if IsEqual(typeVar, "reduce") {
 		sz = OpNeg(sz)
@@ -5170,7 +5170,7 @@ func (this *Hyperliquid) modifyMarginHelperBody(ch chan any, symbol any, amount 
 		"ntli":  sz,
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "modifyMargin", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "modifyMargin", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5258,7 +5258,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 		if !this.InArray(toAccount, []any{"spot", "swap", "perp"}) {
 			panic(NotSupported(this.Id + " transfer() only support spot <> swap transfer"))
 		}
-		var strAmount any = this.NumberToString(amount)
+		var strAmount any = DerefScalar(this.NumberToString(amount))
 		var vaultAddress any = DerefScalar(this.SafeString2(params, "vaultAddress", "subAccountAddress"))
 		if vaultAddress != nil {
 			vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5323,7 +5323,7 @@ func (this *Hyperliquid) transferBody(ch chan any, code any, amount any, fromAcc
 	var isUsdc bool = (code == nil) || (ToUpper(code) == "USDC")
 	if isUsdc && (transferType == nil || *transferType != "spot") {
 		// Transfer USDC with subAccountTransfer
-		var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
+		var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
 		var action map[string]any = map[string]any{
 			"type":           "subAccountTransfer",
 			"subAccountUser": subAccountAddress,
@@ -5436,7 +5436,7 @@ func (this *Hyperliquid) withdrawBody(ch chan any, code any, amount any, address
 		}
 	}
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "withdraw", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "withdraw", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5661,7 +5661,7 @@ func (this *Hyperliquid) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	return map[string]any{
 		"info":       fee,
 		"symbol":     symbol,
@@ -5785,7 +5785,7 @@ func (this *Hyperliquid) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              fee,
 	}, currency)
 }
-func (this *Hyperliquid) ParseLedgerEntryType(typeVar any) any {
+func (this *Hyperliquid) ParseLedgerEntryType(typeVar any) *string {
 	var ledgerType map[string]any = map[string]any{
 		"internalTransfer":     "transfer",
 		"accountClassTransfer": "transfer",
@@ -5868,7 +5868,7 @@ func (this *Hyperliquid) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	}
 	var records any = this.ExtractTypeFromDelta(depositLedger)
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -5963,7 +5963,7 @@ func (this *Hyperliquid) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	}
 	var records any = this.ExtractTypeFromDelta(withdrawalLedger)
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "vaultAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)
@@ -6191,7 +6191,7 @@ func (this *Hyperliquid) ParseIncome(income any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var amount *string = this.SafeString(delta, "usdc")
 	var code *string = this.SafeString(market, "settle", "USDC")
-	var rate any = DerefScalar(this.SafeNumber(delta, "fundingRate"))
+	var rate *float64 = this.SafeNumber(delta, "fundingRate")
 	return map[string]any{
 		"info":      income,
 		"symbol":    GetValue(market, "symbol"),
@@ -6307,11 +6307,11 @@ func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 }
 func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
 	var userAux any = nil
-	userAuxparamsVariable := this.HandleOptionAndParams2(params, methodName, "user", "subAccountAddress")
+	var userAuxparamsVariable []any = this.HandleOptionAndParams2(params, methodName, "user", "subAccountAddress")
 	userAux = GetValue(userAuxparamsVariable, 0)
 	params = GetValue(userAuxparamsVariable, 1)
 	var user any = userAux
-	userparamsVariable := this.HandleOptionAndParams(params, methodName, "address", userAux)
+	var userparamsVariable []any = this.HandleOptionAndParams(params, methodName, "address", userAux)
 	user = GetValue(userparamsVariable, 0)
 	params = GetValue(userparamsVariable, 1)
 	if (user != nil) && (!IsEqual(user, "")) {
@@ -6438,7 +6438,7 @@ func (this *Hyperliquid) ParseCreateEditOrderArgs(id any, symbol any, typeVar an
 	_ = params
 	var market any = this.Market(symbol)
 	var vaultAddress any = nil
-	vaultAddressparamsVariable := this.HandleOptionAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
+	var vaultAddressparamsVariable []any = this.HandleOptionAndParams2(params, "createOrder", "vaultAddress", "subAccountAddress")
 	vaultAddress = GetValue(vaultAddressparamsVariable, 0)
 	params = GetValue(vaultAddressparamsVariable, 1)
 	vaultAddress = this.FormatVaultAddress(vaultAddress)

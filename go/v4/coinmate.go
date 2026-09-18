@@ -526,8 +526,8 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "name")
 		var baseId *string = this.SafeString(market, "firstCurrency")
 		var quoteId *string = this.SafeString(market, "secondCurrency")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var symbol any = Add(Add(base, "/"), quote)
 		AppendToArray(&result, map[string]any{
 			"id":             id,
@@ -590,8 +590,8 @@ func (this *Coinmate) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId any = GetValue(currencyIds, i)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId string = GetValue(currencyIds, i).(string)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance any = this.SafeValue(balances, currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
@@ -807,7 +807,7 @@ func (this *Coinmate) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(ticker, "timestamp")
-	var last any = DerefScalar(this.SafeNumber(ticker, "last"))
+	var last *float64 = this.SafeNumber(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeString(market, "symbol"),
 		"timestamp":     timestamp,
@@ -885,7 +885,7 @@ func (this *Coinmate) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	ch <- this.ParseTransactions(items, nil, since, limit)
 	return nil
 }
-func (this *Coinmate) ParseTransactionStatus(status any) any {
+func (this *Coinmate) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"COMPLETED": "ok",
 		"WAITING":   "pending",
@@ -942,7 +942,7 @@ func (this *Coinmate) ParseTransaction(transaction any, optionalArgs ...any) any
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "amountCurrency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString2(transaction, "transactionId", "id"),
@@ -1419,7 +1419,7 @@ func (this *Coinmate) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(data, market, since, limit)
 	return nil
 }
-func (this *Coinmate) ParseOrderStatus(status any) any {
+func (this *Coinmate) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"FILLED":           "closed",
 		"CANCELLED":        "canceled",
@@ -1428,7 +1428,7 @@ func (this *Coinmate) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinmate) ParseOrderType(typeVar any) any {
+func (this *Coinmate) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":  "limit",
 		"MARKET": "market",
@@ -1493,11 +1493,11 @@ func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(order, "price")
 	var amountString *string = this.SafeString(order, "originalAmount")
 	var remainingString *string = this.SafeString2(order, "remainingAmount", "amount")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var typeVar any = this.ParseOrderType(this.SafeString(order, "orderTradeType"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var typeVar *string = this.ParseOrderType(this.SafeString(order, "orderTradeType"))
 	var averageString *string = this.SafeString(order, "avgPrice")
 	var marketId *string = this.SafeString(order, "currencyPair")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var clientOrderId *string = this.SafeString(order, "clientOrderId")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,

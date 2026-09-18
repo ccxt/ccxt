@@ -110,9 +110,9 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,
 	}
-	var toAccountString any = this.ParseTransferType(toAccount)
+	var toAccountString *string = this.ParseTransferType(toAccount)
 	var response any = nil
-	if (ccxt.IsEqual(toAccountString, "TRADE")) || (ccxt.IsEqual(toAccountString, "MAIN")) {
+	if (toAccountString != nil && *toAccountString == "TRADE") || (toAccountString != nil && *toAccountString == "MAIN") {
 		request["recAccountType"] = toAccountString
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
@@ -134,7 +134,7 @@ func (this *Kucoinfutures) transferBody(ch chan any, code any, amount any, fromA
 	})
 	return nil
 }
-func (this *Kucoinfutures) ParseTransferType(transferType any) any {
+func (this *Kucoinfutures) ParseTransferType(transferType any) *string {
 	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",

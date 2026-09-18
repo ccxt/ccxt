@@ -599,7 +599,7 @@ func (this *Bittrade) HandleOrderBook(client any, message any) {
 	var ch any = this.SafeValue(message, "ch")
 	var parts []string = ccxt.Split(ch, ".")
 	var marketId *string = this.SafeString(parts, 1)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(ccxt.GetValue(orderbook, "nonce"), nil) {
 		ccxt.AppendToArray(orderbook.(ccxt.OrderBookInterface).GetCache(), message)

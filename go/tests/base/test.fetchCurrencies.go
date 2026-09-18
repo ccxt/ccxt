@@ -40,15 +40,15 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 			var currency any = GetValue(values, i)
 			TestCurrency(exchange, skippedProperties, method, currency)
 			// detailed check for deposit/withdraw
-			var active any = exchange.SafeBool(currency, "active")
+			var active any = ccxt.DerefScalar(exchange.SafeBool(currency, "active"))
 			if active == false {
 				numInactiveCurrencies = Add(numInactiveCurrencies, 1)
 			}
 			// ensure that major currencies are active and enabled for deposit and withdrawal
 			var code any = exchange.SafeString(currency, "code")
-			var withdraw any = exchange.SafeBool(currency, "withdraw")
-			var deposit any = exchange.SafeBool(currency, "deposit")
-			var isMicaCompliant any = exchange.SafeBool(exchange.GetOptions(), "mica", false)
+			var withdraw any = ccxt.DerefScalar(exchange.SafeBool(currency, "withdraw"))
+			var deposit any = ccxt.DerefScalar(exchange.SafeBool(currency, "deposit"))
+			var isMicaCompliant any = ccxt.DerefScalar(exchange.SafeBool(exchange.GetOptions(), "mica", false))
 			var skipUsdtForMica bool = (isMicaCompliant == true) && (code == "USDT")
 			if EvalTruthy(exchange.InArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && (skipUsdtForMica != true) {
 				Assert((withdraw == true) && (deposit == true), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
@@ -68,7 +68,7 @@ func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) an
 	var ids map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(currencyValues)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var currency any = GetValue(currencyValues, key)
 		var code any = GetValue(currency, "code")
 		if !(InOp(ids, code)) {

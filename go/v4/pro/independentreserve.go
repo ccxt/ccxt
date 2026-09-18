@@ -109,7 +109,7 @@ func (this *Independentreserve) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeValue(message, "Data", map[string]any{})
 	var marketId *string = this.SafeString(data, "Pair")
-	var symbol any = this.SafeSymbol(marketId, nil, "-")
+	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -187,7 +187,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan any, symbol any, opti
 	if ccxt.IsEqual(limit, nil) {
 		limit = 100
 	}
-	var limitString any = this.NumberToString(limit)
+	var limitString *string = this.NumberToString(limit)
 	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), limitString)
 	var subscription map[string]any = map[string]any{
@@ -232,8 +232,8 @@ func (this *Independentreserve) HandleOrderBook(client any, message any) {
 	var depth *string = this.SafeString(parts, 1)
 	var baseId *string = this.SafeString(parts, 2)
 	var quoteId *string = this.SafeString(parts, 3)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	var orderBook any = this.SafeDict(message, "Data", map[string]any{})
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), depth)
@@ -300,7 +300,7 @@ func (this *Independentreserve) ValueToChecksum(value any) any {
 	result = ccxt.Replace(result, ".", "")
 	// remove leading zeros
 	result = this.ParseNumber(result)
-	result = this.NumberToString(result)
+	result = ccxt.DerefScalar(this.NumberToString(result))
 	return result
 }
 func (this *Independentreserve) HandleDelta(bookside any, delta any) {

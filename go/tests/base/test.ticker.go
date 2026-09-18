@@ -82,8 +82,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	// only check "above zero" values if exchange is not supposed to have exotic index markets
 	var isStandardMarket bool = (!IsEqual(market, nil) && EvalTruthy(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
-	var valuesShouldBePositive any = isStandardMarket // || (market === undefined) atm, no check for index markets
-	if EvalTruthy(valuesShouldBePositive) && !(InOp(skippedProperties, "positiveValues")) {
+	var valuesShouldBePositive bool = isStandardMarket // || (market === undefined) atm, no check for index markets
+	if valuesShouldBePositive && !(InOp(skippedProperties, "positiveValues")) {
 		AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
 		AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
 		AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
@@ -120,7 +120,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
 		// far above baseVolume * high), so the spot-derived invariant does not hold there,
 		// see https://github.com/ccxt/ccxt/pull/29563
-		var isInverse any = exchange.SafeBool(market, "inverse", false)
+		var isInverse any = ccxt.DerefScalar(exchange.SafeBool(market, "inverse", false))
 		if (baseVolume != nil) && (quoteVolume != nil) && (high != nil) && (low != nil) && (isInverse != true) {
 			var baseLow *string = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh *string = ccxt.Precise.StringMul(baseVolume, high)
@@ -148,7 +148,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// 0.01), so we widen the acceptance window by one such step on
 			// each side - big enough to forgive rounding, far too small to
 			// hide a real bug like mismatched units or a wrong-field parse
-			var quoteVolumeDecimals any = exchange.PrecisionFromString(quoteVolume)
+			var quoteVolumeDecimals int = exchange.PrecisionFromString(quoteVolume)
 			var quoteQuantum any = exchange.ParsePrecision(exchange.NumberToString(quoteVolumeDecimals))
 			baseLow = ccxt.Precise.StringSub(baseLow, quoteQuantum)
 			baseHigh = ccxt.Precise.StringAdd(baseHigh, quoteQuantum)
@@ -168,13 +168,13 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// safeTicker derived, which needs a part per million of the price, and an
 		// exchange's own rounding, which its reported decimals reveal
 		var pricePart *string = ccxt.Precise.StringDiv(ccxt.Precise.StringAbs(close), "1000000")
-		var changeDecimals any = exchange.PrecisionFromString(changeString)
+		var changeDecimals int = exchange.PrecisionFromString(changeString)
 		// exponent notation ("1e4") makes `precisionFromString` return a negative
 		// count, which `parsePrecision` would turn into a step of 10000 - a string
 		// like that reveals no rounding at all, so fall back to the price part
 		// instead of letting it widen the window
-		var changeWindow any = pricePart
-		if IsGreaterThanOrEqual(changeDecimals, 0) {
+		var changeWindow *string = pricePart
+		if changeDecimals >= 0 {
 			var changeQuantum any = exchange.ParsePrecision(exchange.NumberToString(changeDecimals))
 			// a change of "0" prints no decimals, so its apparent step is a whole unit
 			// and accepts anything on a micro-priced asset. a per cent of the price
@@ -217,7 +217,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
 		// Assert (vwap >= low && vwap <= high)
 		// todo: calc compare
-		Assert(!EvalTruthy(valuesShouldBePositive) || ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
+		Assert(!valuesShouldBePositive || ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
 		if baseVolume != nil {
 			Assert((quoteVolume != nil), Add("baseVolume & vwap is defined, but quoteVolume is not", logText))
 		}
@@ -247,7 +247,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// paradex call at +109055% on its expiry date, mark price equal to
 	// intrinsic). the floors stay: a long option cannot lose more than its
 	// premium, so percentage >= -100 and change >= -open hold for options too
-	var isOptionMarket any = exchange.SafeBool(market, "option", false)
+	var isOptionMarket any = ccxt.DerefScalar(exchange.SafeBool(market, "option", false))
 	if !(InOp(skippedProperties, "maxIncrease")) && !isUnrecognizedSymbol {
 		//
 		// percentage

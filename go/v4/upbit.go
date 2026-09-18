@@ -511,7 +511,7 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs ...an
 		maxWithdrawLimit = maxDailyWithdrawal
 	}
 	var currencyId *string = this.SafeString(currencyInfo, "code")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 
 	ch <- map[string]any{
 		"info":      response,
@@ -610,8 +610,8 @@ func (this *Upbit) fetchMarketByIdBody(ch chan any, id any, optionalArgs ...any)
 	var marketId *string = this.SafeString(marketInfo, "id")
 	var baseId *string = this.SafeString(ask, "currency")
 	var quoteId *string = this.SafeString(bid, "currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var state *string = this.SafeString(marketInfo, "state")
 	var bidFee *string = this.SafeString(response, "bid_fee")
 	var askFee *string = this.SafeString(response, "ask_fee")
@@ -714,8 +714,8 @@ func (this *Upbit) ParseMarket(market any) any {
 	quoteIdbaseIdVariable := Split(id, "-")
 	quoteId := GetValue(quoteIdbaseIdVariable, 0)
 	baseId := GetValue(quoteIdbaseIdVariable, 1)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -777,7 +777,7 @@ func (this *Upbit) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
@@ -914,7 +914,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < len(orderbooks); i++ {
 		var orderbook any = GetValue(orderbooks, i)
 		var marketId *string = this.SafeString(orderbook, "market")
-		var symbol any = this.SafeSymbol(marketId, nil, "-")
+		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
 		AddElementToObject(result, symbol, map[string]any{
 			"symbol":    symbol,
@@ -1206,8 +1206,8 @@ func (this *Upbit) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString2(trade, "sequential_id", "uuid")
 	var orderId any = nil
-	var timestamp any = DerefScalar(this.SafeInteger(trade, "timestamp"))
-	if IsEqual(timestamp, nil) {
+	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
+	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(trade, "created_at"))
 	}
 	var side any = nil
@@ -1574,8 +1574,8 @@ func (this *Upbit) CalcOrderPrice(symbol any, amount any, optionalArgs ...any) a
 		if IsEqual(price, nil) || IsEqual(amount, nil) {
 			panic(InvalidOrder(this.Id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 		}
-		var amountString any = this.NumberToString(amount)
-		var priceString any = this.NumberToString(price)
+		var amountString *string = this.NumberToString(amount)
+		var priceString *string = this.NumberToString(price)
 		var costRequest *string = Precise.StringMul(amountString, priceString)
 		quoteAmount = this.CostToPrecision(symbol, costRequest)
 	} else {
@@ -1631,14 +1631,14 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var market any = this.Market(symbol)
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "ordType", "ord_type")
-	var postOnly any = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
+	var postOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "smp_type")
 	var test *bool = this.SafeBool(params, "test", false)
-	if EvalTruthy(postOnly) && (selfTradePrevention != nil) {
+	if postOnly && (selfTradePrevention != nil) {
 		panic(ExchangeError(this.Id + " createOrder() does not support post_only and selfTradePrevention simultaneously."))
 	}
-	var orderSide any = nil
+	var orderSide string
 	if IsEqual(side, "buy") {
 		orderSide = "bid"
 	} else if IsEqual(side, "sell") {
@@ -1688,7 +1688,7 @@ func (this *Upbit) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	if clientOrderId != nil {
 		request["identifier"] = clientOrderId
 	}
-	if EvalTruthy(postOnly) {
+	if postOnly {
 		if !IsEqual(request["ord_type"], "limit") {
 			panic(InvalidOrder(this.Id + " postOnly orders are only supported for limit orders"))
 		}
@@ -1840,10 +1840,10 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	var prevClientOrderId *string = this.SafeString(params, "clientOrderId")
 	var customType *string = this.SafeString2(params, "newOrdType", "new_ord_type")
 	var clientOrderId *string = this.SafeString(params, "newClientOrderId")
-	var postOnly any = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
+	var postOnly bool = this.IsPostOnly((IsEqual(typeVar, "market")), false, params)
 	var timeInForce *string = this.SafeStringLower2(params, "newTimeInForce", "new_time_in_force")
 	var selfTradePrevention *string = this.SafeString2(params, "selfTradePrevention", "new_smp_type")
-	if EvalTruthy(postOnly) && (selfTradePrevention != nil) {
+	if postOnly && (selfTradePrevention != nil) {
 		panic(ExchangeError(this.Id + " editOrder() does not support post_only and selfTradePrevention simultaneously."))
 	}
 	params = this.Omit(params, "clientOrderId")
@@ -1895,7 +1895,7 @@ func (this *Upbit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	if selfTradePrevention != nil {
 		request["new_smp_type"] = selfTradePrevention
 	}
-	if EvalTruthy(postOnly) {
+	if postOnly {
 		if !IsEqual(request["new_ord_type"], "limit") {
 			panic(InvalidOrder(this.Id + " postOnly orders are only supported for limit orders"))
 		}
@@ -2196,7 +2196,7 @@ func (this *Upbit) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any)
 	ch <- this.ParseTransaction(response, currency)
 	return nil
 }
-func (this *Upbit) ParseTransactionStatus(status any) any {
+func (this *Upbit) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"submitting":      "pending",
 		"submitted":       "pending",
@@ -2245,13 +2245,13 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var address any = nil // not present in the data structure received from the exchange
 	var tag any = nil     // not present in the data structure received from the exchange
 	var updatedRaw *string = this.SafeString(transaction, "done_at")
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "created_at", updatedRaw))
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "created_at", updatedRaw))
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "uuid"),
@@ -2278,7 +2278,7 @@ func (this *Upbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Upbit) ParseOrderStatus(status any) any {
+func (this *Upbit) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"wait":   "open",
 		"done":   "closed",
@@ -2371,8 +2371,8 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var identifier *string = this.SafeString(order, "identifier")
 	var typeVar any = DerefScalar(this.SafeString(order, "ord_type"))
-	var timestamp any = this.Parse8601(this.SafeString(order, "created_at"))
-	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var lastTradeTimestamp any = nil
 	var price any = DerefScalar(this.SafeString(order, "price"))
 	var amount *string = this.SafeString(order, "volume")
@@ -2834,7 +2834,7 @@ func (this *Upbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) 
 	var address *string = this.SafeString(depositAddress, "deposit_address")
 	var tag *string = this.SafeString(depositAddress, "secondary_address")
 	var currencyId *string = this.SafeString(depositAddress, "currency")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var networkId *string = this.SafeString(depositAddress, "net_type")
 	this.CheckAddress(address)
 	return map[string]any{

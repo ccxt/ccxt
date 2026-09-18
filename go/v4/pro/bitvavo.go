@@ -687,11 +687,11 @@ func (this *Bitvavo) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	var channels any = []any{}
 	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; i < len(intervals); i++ {
-		var interval any = ccxt.GetValue(intervals, i)
+		var interval string = ccxt.GetValue(intervals, i).(string)
 		ccxt.AppendToArray(&channels, map[string]any{
 			"name":     name,
 			"interval": []any{interval},
-			"markets":  ccxt.GetValue(marketIdsByInterval, interval),
+			"markets":  marketIdsByInterval[interval],
 		})
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -786,11 +786,11 @@ func (this *Bitvavo) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	var channels any = []any{}
 	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; i < len(intervals); i++ {
-		var interval any = ccxt.GetValue(intervals, i)
+		var interval string = ccxt.GetValue(intervals, i).(string)
 		ccxt.AppendToArray(&channels, map[string]any{
 			"name":     name,
 			"interval": []any{interval},
-			"markets":  ccxt.GetValue(marketIdsByInterval, interval),
+			"markets":  marketIdsByInterval[interval],
 		})
 	}
 	var subscriptionArgs map[string]any = map[string]any{
@@ -1079,7 +1079,7 @@ func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan any, client any, message
 	// multi-symbol watches share one subscription object without a marketId,
 	// in that case the buffered delta message identifies the market
 	var marketId *string = this.SafeString2(subscription, "marketId", "market", this.SafeString(message, "market"))
-	var snapshotSymbol any = this.SafeSymbol(marketId, nil, "-")
+	var snapshotSymbol *string = this.SafeSymbol(marketId, nil, "-")
 	if !(ccxt.InOp(this.Orderbooks, snapshotSymbol)) {
 
 		// this snapshot fetch was scheduled before an unsubscribe removed the
@@ -1125,7 +1125,7 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client any, message any) {
 		return
 	}
 	var marketId *string = this.SafeString(response, "market")
-	var symbol any = this.SafeSymbol(marketId, nil, "-")
+	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var name string = "book"
 	var messageHash any = ccxt.Add(name+"@", marketId)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -1164,7 +1164,7 @@ func (this *Bitvavo) HandleOrderBookSubscriptions(client any, message any, marke
 	var name string = "book"
 	for i := 0; i < ccxt.GetArrayLength(marketIds); i++ {
 		var marketId *string = this.SafeString(marketIds, i)
-		var symbol any = this.SafeSymbol(marketId, nil, "-")
+		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash any = ccxt.Add(name+"@", marketId)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1222,7 +1222,7 @@ func (this *Bitvavo) HandleUnsubscriptionStatus(client any, message any) any {
 	// which unsubscribe request it belongs to, so settle every pending unsubscription
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), key)) {
 			continue
 		}
@@ -1531,7 +1531,7 @@ func (this *Bitvavo) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	ccxt.PanicOnError(retRes11418)
 	var request map[string]any = map[string]any{}
 	var operatorId any = nil
-	operatorIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
+	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersWs", "operatorId")
 	operatorId = ccxt.GetValue(operatorIdparamsVariable, 0)
 	params = ccxt.GetValue(operatorIdparamsVariable, 1)
 	if operatorId != nil {
@@ -2405,7 +2405,7 @@ func (this *Bitvavo) HandleSubscriptionStatus(client any, message any) any {
 	}
 	var names []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; i < len(names); i++ {
-		var name any = ccxt.GetValue(names, i)
+		var name string = ccxt.GetValue(names, i).(string)
 		var method any = this.SafeValue(methods, name)
 		if !ccxt.IsEqual(method, nil) {
 			var subscription any = this.SafeValue(subscriptions, name)
@@ -2425,7 +2425,7 @@ func (this *Bitvavo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {

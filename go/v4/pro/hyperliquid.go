@@ -459,7 +459,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message any) {
 	var timestamp *int64 = this.SafeInteger(entry, "time")
 	var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		var ob any = this.OrderBook(snapshot)
+		var ob ccxt.OrderBookInterface = this.OrderBook(snapshot)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -603,7 +603,7 @@ func (this *Hyperliquid) watchTickersBody(ch chan any, optionalArgs ...any) any 
 			"type": "allMids",
 		},
 	}
-	var defaultDex any = ccxt.DerefScalar(this.SafeString(params, "dex"))
+	var defaultDex *string = this.SafeString(params, "dex")
 	var firstSymbol *string = this.SafeString(symbols, 0)
 	if firstSymbol != nil {
 		var market any = this.Market(firstSymbol)
@@ -811,7 +811,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message any) any {
 	if !ccxt.IsEqual(mids, nil) {
 		var keys []string = ccxt.ObjectKeys(mids)
 		for i := 0; i < len(keys); i++ {
-			var name any = ccxt.GetValue(keys, i)
+			var name string = ccxt.GetValue(keys, i).(string)
 			var marketId any = this.CoinToMarketId(name)
 			var market any = this.SafeMarket(marketId, nil, nil, "swap")
 			var symbol any = ccxt.GetValue(market, "symbol")
@@ -1062,7 +1062,7 @@ func (this *Hyperliquid) HandleTrades(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	if !(ccxt.InOp(this.Trades, symbol)) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var stored any = ccxt.NewArrayCache(limit)
+		var stored *ccxt.ArrayCache = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
 	var trades any = ccxt.GetValue(this.Trades, symbol)
@@ -1283,7 +1283,7 @@ func (this *Hyperliquid) HandleOHLCV(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var base *string = this.SafeString(data, "s")
 	var marketId any = this.CoinToMarketId(base)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var timeframe *string = this.SafeString(data, "i")
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
@@ -1345,7 +1345,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isUnifiedEnabled any = nil
@@ -1418,7 +1418,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan any, optionalArgs ...any) an
 	userAddress = ccxt.DerefScalar(this.SafeString(userAddressResult, 0))
 	params = this.SafeDict(userAddressResult, 1, params)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("unWatchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("unWatchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isUnifiedEnabled any = nil
@@ -1511,7 +1511,7 @@ func (this *Hyperliquid) HandleBalance(client any, message any) {
 	var info any = nil
 	var rawBalances any = []any{}
 	var account any = nil
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var data any = this.SafeValue(message, "data", []any{})
 	if ccxt.IsEqual(topic, "spotState") {
 		var spotState any = this.SafeDict(data, "spotState")
@@ -1524,7 +1524,7 @@ func (this *Hyperliquid) HandleBalance(client any, message any) {
 		var clearinghouseState any = this.SafeDict(data, "clearinghouseState")
 		ccxt.AppendToArray(&rawBalances, clearinghouseState)
 		info = clearinghouseState
-		timestamp = ccxt.DerefScalar(this.SafeInteger(clearinghouseState, "time"))
+		timestamp = this.SafeInteger(clearinghouseState, "time")
 		this.HandlePositions(client, message)
 	}
 	for i := 0; i < ccxt.GetArrayLength(rawBalances); i++ {
@@ -1581,7 +1581,7 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 		ccxt.AddElementToObject(account, "used", this.SafeString(marginSummary, "totalMarginUsed"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(marginSummary, "accountValue"))
 	} else {
-		code = this.SafeCurrencyCode(currencyId)
+		code = ccxt.DerefScalar(this.SafeCurrencyCode(currencyId))
 		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "hold"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "total"))
 	}
@@ -1656,7 +1656,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan any, optionalArgs ...any) an
 		"subscription": subscription,
 	}
 	var message map[string]any = this.Extend(request, params)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbols)
 	var cache any = this.Positions
 
@@ -1928,8 +1928,8 @@ func (this *Hyperliquid) HandleOrder(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; i < len(keys); i++ {
-		var symbol any = ccxt.GetValue(keys, i)
-		var innerMessageHash any = ccxt.Add(messageHash+":", symbol)
+		var symbol string = ccxt.GetValue(keys, i).(string)
+		var innerMessageHash any = messageHash + ":" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, innerMessageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -2031,7 +2031,7 @@ func (this *Hyperliquid) HandleOrderBookUnsubscription(client any, subscription 
 	//
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash any = ccxt.Add("orderbook:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -2043,7 +2043,7 @@ func (this *Hyperliquid) HandleTradesUnsubscription(client any, subscription any
 	//
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash any = ccxt.Add("trade:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -2065,7 +2065,7 @@ func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any
 	//
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var subMessageHash any = ccxt.Add("ticker:", symbol)
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -2076,7 +2076,7 @@ func (this *Hyperliquid) HandleTickerUnsubscription(client any, subscription any
 func (this *Hyperliquid) HandleOHLCVUnsubscription(client any, subscription any) {
 	var coin *string = this.SafeString(subscription, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var interval *string = this.SafeString(subscription, "interval")
 	var timeframe any = this.FindTimeframe(interval)
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
@@ -2237,9 +2237,9 @@ func (this *Hyperliquid) HandleMessage(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
-			var method any = ccxt.GetValue(methods, key)
+			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 			return
 		}

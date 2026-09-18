@@ -705,7 +705,7 @@ func (this *Backpack) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 }
 func (this *Backpack) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var networks any = this.SafeList(rawCurrency, "tokens", []any{})
 	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; j < GetArrayLength(networks); j++ {
@@ -891,33 +891,33 @@ func (this *Backpack) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseSymbol")
 	var quoteId *string = this.SafeString(market, "quoteSymbol")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	var filters any = this.SafeDict(market, "filters", map[string]any{})
 	var priceFilter any = this.SafeDict(filters, "price", map[string]any{})
-	var maxPrice any = DerefScalar(this.SafeNumber(priceFilter, "maxPrice"))
-	var minPrice any = DerefScalar(this.SafeNumber(priceFilter, "minPrice"))
-	var pricePrecision any = DerefScalar(this.SafeNumber(priceFilter, "tickSize"))
+	var maxPrice *float64 = this.SafeNumber(priceFilter, "maxPrice")
+	var minPrice *float64 = this.SafeNumber(priceFilter, "minPrice")
+	var pricePrecision *float64 = this.SafeNumber(priceFilter, "tickSize")
 	var quantityFilter any = this.SafeDict(filters, "quantity", map[string]any{})
-	var maxQuantity any = DerefScalar(this.SafeNumber(quantityFilter, "maxQuantity"))
-	var minQuantity any = DerefScalar(this.SafeNumber(quantityFilter, "minQuantity"))
-	var amountPrecision any = DerefScalar(this.SafeNumber(quantityFilter, "stepSize"))
+	var maxQuantity *float64 = this.SafeNumber(quantityFilter, "maxQuantity")
+	var minQuantity *float64 = this.SafeNumber(quantityFilter, "minQuantity")
+	var amountPrecision *float64 = this.SafeNumber(quantityFilter, "stepSize")
 	var typeVar any = nil
-	var typeOfMarket any = this.ParseMarketType(this.SafeString(market, "marketType"))
+	var typeOfMarket *string = this.ParseMarketType(this.SafeString(market, "marketType"))
 	var linear any = nil
 	var inverse any = nil
 	var settle any = nil
 	var settleId any = nil
 	var contractSize any = nil
-	if IsEqual(typeOfMarket, "spot") {
+	if typeOfMarket != nil && *typeOfMarket == "spot" {
 		typeVar = "spot"
-	} else if IsEqual(typeOfMarket, "swap") {
+	} else if typeOfMarket != nil && *typeOfMarket == "swap" {
 		typeVar = "swap"
 		linear = true
 		inverse = false
 		settleId = DerefScalar(this.SafeString(market, "quoteSymbol"))
-		settle = this.SafeCurrencyCode(settleId)
+		settle = DerefScalar(this.SafeCurrencyCode(settleId))
 		symbol = Add(symbol, Add(":", settle))
 		contractSize = 1
 	}
@@ -974,7 +974,7 @@ func (this *Backpack) ParseMarket(market any) any {
 		"info":    market,
 	})
 }
-func (this *Backpack) ParseMarketType(typeVar any) any {
+func (this *Backpack) ParseMarketType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"SPOT": "spot",
 		"PERP": "swap",
@@ -1074,7 +1074,7 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var open *string = this.SafeString(ticker, "firstPrice")
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var high *string = this.SafeString(ticker, "high")
@@ -1167,7 +1167,7 @@ func (this *Backpack) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	if microseconds == nil {
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microseconds"))
 	}
-	var timestamp any = this.ParseToInt(Divide(microseconds, 1000))
+	var timestamp int64 = this.ParseToInt(Divide(microseconds, 1000))
 	var orderbook any = this.ParseOrderBook(response, symbol, timestamp)
 	AddElementToObject(orderbook, "nonce", this.SafeInteger(response, "lastUpdateId"))
 
@@ -1215,7 +1215,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"interval": interval,
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -1326,7 +1326,7 @@ func (this *Backpack) ParseFundingRate(contract any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "nextFundingTimestamp")
 	return map[string]any{
 		"info":                     contract,
@@ -1402,7 +1402,7 @@ func (this *Backpack) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(interest, "timestamp")
-	var openInterest any = DerefScalar(this.SafeNumber(interest, "openInterest"))
+	var openInterest *float64 = this.SafeNumber(interest, "openInterest")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeString(market, "symbol"),
 		"openInterestAmount": nil,
@@ -1472,7 +1472,7 @@ func (this *Backpack) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	for i := 0; i < len(rawRates); i++ {
 		var rate any = GetValue(rawRates, i)
 		var datetime *string = this.SafeString(rate, "intervalEndTimestamp")
-		var timestamp any = this.Parse8601(datetime)
+		var timestamp *int64 = this.Parse8601(datetime)
 		AppendToArray(&rates, map[string]any{
 			"info":        rate,
 			"symbol":      GetValue(market, "symbol"),
@@ -1664,13 +1664,13 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 	var orderId *string = this.SafeString(trade, "orderId")
 	var fee any = nil
 	var feeAmount *string = this.SafeString(trade, "fee")
-	var timestamp any = DerefScalar(this.SafeInteger(trade, "timestamp"))
+	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	if feeAmount != nil {
 		// if fetchMyTrades
 		var datetime *string = this.SafeString(trade, "timestamp")
 		timestamp = this.Parse8601(datetime)
 	}
-	var feeSymbol any = this.SafeCurrencyCode(this.SafeString(trade, "feeSymbol"))
+	var feeSymbol *string = this.SafeCurrencyCode(this.SafeString(trade, "feeSymbol"))
 	if feeAmount != nil {
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -1809,8 +1809,8 @@ func (this *Backpack) ParseBalance(response any) any {
 	var balanceKeys []string = ObjectKeys(response)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(balanceKeys); i++ {
-		var id any = GetValue(balanceKeys, i)
-		var code any = this.SafeCurrencyCode(id)
+		var id string = GetValue(balanceKeys, i).(string)
+		var code *string = this.SafeCurrencyCode(id)
 		var balance any = GetValue(response, id)
 		var account any = this.Account()
 		var locked *string = this.SafeString(balance, "locked")
@@ -1870,7 +1870,7 @@ func (this *Backpack) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		request["limit"] = limit // default 100, max 1000
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -1929,7 +1929,7 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		request["limit"] = limit
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -2072,22 +2072,22 @@ func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) any
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
 	var id *string = this.SafeString(transaction, "id")
 	var txid *string = this.SafeString(transaction, "transactionHash")
 	var coin *string = this.SafeString(transaction, "symbol")
-	var code any = this.SafeCurrencyCode(coin, currency)
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "createdAt"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "quantity"))
+	var code *string = this.SafeCurrencyCode(coin, currency)
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "createdAt"))
+	var amount *float64 = this.SafeNumber(transaction, "quantity")
 	var networkId *string = this.SafeStringLower2(transaction, "source", "blockchain")
 	var network any = this.NetworkIdToCode(networkId, code)
 	var addressTo *string = this.SafeString(transaction, "toAddress")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var tag *string = this.SafeString(transaction, "platformMemo")
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var internal *bool = this.SafeBool(transaction, "isInternal", false)
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": code,
@@ -2116,7 +2116,7 @@ func (this *Backpack) ParseTransaction(transaction any, optionalArgs ...any) any
 		"fee":         fee,
 	}
 }
-func (this *Backpack) ParseTransactionStatus(status any) any {
+func (this *Backpack) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"cancelled":            "cancelled",
 		"confirmed":            "ok",
@@ -2280,8 +2280,8 @@ func (this *Backpack) createOrdersBody(ch chan any, orders any, optionalArgs ...
 		var marketId *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = DerefScalar(this.SafeNumber(rawOrder, "amount"))
-		var price any = DerefScalar(this.SafeNumber(rawOrder, "price"))
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
@@ -2374,7 +2374,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		params = this.Omit(params, "stopLoss")
 	}
 	var selfTradePrevention any = nil
-	selfTradePreventionparamsVariable := this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
+	var selfTradePreventionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
 	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
 	params = GetValue(selfTradePreventionparamsVariable, 1)
 	if selfTradePrevention != nil {
@@ -2712,21 +2712,21 @@ func (this *Backpack) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = DerefScalar(this.SafeInteger(order, "createdAt"))
-	var timestamp2 any = this.Parse8601(this.SafeString(order, "createdAt"))
-	if !IsEqual(timestamp2, nil) {
+	var timestamp *int64 = this.SafeInteger(order, "createdAt")
+	var timestamp2 *int64 = this.Parse8601(this.SafeString(order, "createdAt"))
+	if timestamp2 != nil {
 		timestamp = timestamp2
 	}
 	var id *string = this.SafeString(order, "id")
 	var clientOrderId *string = this.SafeString(order, "clientId")
-	var symbol any = this.SafeSymbol(this.SafeString(order, "symbol"), market)
+	var symbol *string = this.SafeSymbol(this.SafeString(order, "symbol"), market)
 	var typeVar *string = this.SafeStringLower(order, "orderType")
 	var timeInForce *string = this.SafeString(order, "timeInForce")
-	var side any = this.ParseOrderSide(this.SafeString(order, "side"))
+	var side *string = this.ParseOrderSide(this.SafeString(order, "side"))
 	var amount *string = this.SafeString2(order, "quantity", "triggerQuantity")
 	var price *string = this.SafeString(order, "price")
 	var cost *string = this.SafeString(order, "executedQuoteQuantity")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var triggerPrice *string = this.SafeString(order, "triggerPrice")
 	var filled *string = this.SafeString(order, "executedQuantity")
 	var reduceOnly *bool = this.SafeBool(order, "reduceOnly")
@@ -2760,7 +2760,7 @@ func (this *Backpack) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Backpack) ParseOrderStatus(status any) any {
+func (this *Backpack) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"New":             "open",
 		"Filled":          "closed",
@@ -2772,7 +2772,7 @@ func (this *Backpack) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Backpack) ParseOrderSide(side any) any {
+func (this *Backpack) ParseOrderSide(side any) *string {
 	var sides map[string]any = map[string]any{
 		"Bid": "buy",
 		"Ask": "sell",
@@ -2971,11 +2971,11 @@ func (this *Backpack) ParseIncome(income any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
-	var amount any = DerefScalar(this.SafeNumber(income, "quantity"))
+	var symbol *string = this.SafeSymbol(marketId, market)
+	var amount *float64 = this.SafeNumber(income, "quantity")
 	var id *string = this.SafeString(income, "userId")
-	var timestamp any = this.Parse8601(this.SafeString(income, "intervalEndTimestamp"))
-	var rate any = DerefScalar(this.SafeNumber(income, "fundingRate"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(income, "intervalEndTimestamp"))
+	var rate *float64 = this.SafeNumber(income, "fundingRate")
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,

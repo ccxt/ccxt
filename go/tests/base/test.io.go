@@ -11,7 +11,7 @@ func TestIo() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleex",
 	}, map[string]any{}, exchange)
-	var ms any = exchange.Milliseconds()
+	var ms int64 = exchange.Milliseconds()
 	var fileName any = "ccxt-test-io-" + ccxt.ToString(ms) + ".ccxtfile"
 	// upper tmp dir
 	var tempDir any = exchange.GetTempDir()

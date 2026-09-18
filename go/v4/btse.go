@@ -825,8 +825,8 @@ func (this *Btse) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
 	var baseId *string = this.SafeString(market, "baseCurrency")
 	var quoteId *string = this.SafeString(market, "quoteCurrency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	var maxAmountString *string = this.SafeString(market, "maxOrderSize")
 	var minAmountString *string = this.SafeString(market, "minOrderSize")
@@ -965,7 +965,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 	PanicOnError(retRes8188)
 	var maxLimit int = 300
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -990,7 +990,7 @@ func (this *Btse) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 		request["start"] = this.ParseToInt(Divide(since, 1000))
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -1149,7 +1149,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
 	var period any = nil
-	periodparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "period")
+	var periodparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "period")
 	period = GetValue(periodparamsVariable, 0)
 	params = GetValue(periodparamsVariable, 1)
 	if IsEqual(period, nil) {
@@ -1169,7 +1169,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 		"period": period,
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 
@@ -1252,7 +1252,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	retRes10468 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes10468)
 	var typeVar any = "spot"
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params, typeVar)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params, typeVar)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var response any = nil
@@ -1281,7 +1281,7 @@ func (this *Btse) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = this.SafeList(walletResponse, "data", []any{})
 	} else {
 		var wallet any = nil
-		walletparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "wallet", "CROSS@")
+		var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "wallet", "CROSS@")
 		wallet = GetValue(walletparamsVariable, 0)
 		params = GetValue(walletparamsVariable, 1)
 		var request map[string]any = map[string]any{
@@ -1311,7 +1311,7 @@ func (this *Btse) ParseBalance(response any) any {
 			var inUse any = this.SafeList(row, "assetsInUse", []any{})
 			for j := 0; j < GetArrayLength(inUse); j++ {
 				var usedRow any = GetValue(inUse, j)
-				var usedCode any = this.SafeCurrencyCode(this.SafeString(usedRow, "currency"))
+				var usedCode *string = this.SafeCurrencyCode(this.SafeString(usedRow, "currency"))
 				if usedCode == nil {
 					continue
 				}
@@ -1319,7 +1319,7 @@ func (this *Btse) ParseBalance(response any) any {
 			}
 			for j := 0; j < GetArrayLength(assets); j++ {
 				var assetRow any = GetValue(assets, j)
-				var code any = this.SafeCurrencyCode(this.SafeString(assetRow, "currency"))
+				var code *string = this.SafeCurrencyCode(this.SafeString(assetRow, "currency"))
 				if code == nil {
 					continue
 				}
@@ -1329,7 +1329,7 @@ func (this *Btse) ParseBalance(response any) any {
 		} else {
 			// unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
 			// legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
-			var code any = this.SafeCurrencyCode(this.SafeString2(row, "asset", "currency"))
+			var code *string = this.SafeCurrencyCode(this.SafeString2(row, "asset", "currency"))
 			if code == nil {
 				continue
 			}
@@ -1339,12 +1339,12 @@ func (this *Btse) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(totals)
 	for i := 0; i < len(codes); i++ {
-		var code any = GetValue(codes, i)
+		var code string = GetValue(codes, i).(string)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(totals, code))
 		AddElementToObject(account, "free", this.SafeString(frees, code))
 		AddElementToObject(account, "used", this.SafeString(useds, code))
-		AddElementToObject(result, code, account)
+		result[code] = account
 	}
 	return this.SafeBalance(result)
 }
@@ -1442,8 +1442,8 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	// previous tier's maxNotional for every subsequent tier
 	var symbolKeys []string = ObjectKeys(result)
 	for i := 0; i < len(symbolKeys); i++ {
-		var symbolKey any = GetValue(symbolKeys, i)
-		var tiersList any = GetValue(result, symbolKey)
+		var symbolKey string = GetValue(symbolKeys, i).(string)
+		var tiersList any = result[symbolKey]
 		for j := 0; j < GetArrayLength(tiersList); j++ {
 			if j == 0 {
 				AddElementToObject(GetValue(tiersList, j), "minNotional", 0)
@@ -1452,7 +1452,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		// php copies arrays by value, so the mutated list must be written back explicitly
-		AddElementToObject(result, symbolKey, tiersList)
+		result[symbolKey] = tiersList
 	}
 
 	ch <- result
@@ -1614,7 +1614,7 @@ func (this *Btse) ParseTicker(ticker any, optionalArgs ...any) any {
 	if (baseVolume != nil) && (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "contract"), true)) {
 		// for contract markets the amount field is denominated in contracts, verified live -
 		// scaling by contractSize converts it into base currency units
-		var contractSizeString any = this.NumberToString(GetValue(market, "contractSize"))
+		var contractSizeString *string = this.NumberToString(GetValue(market, "contractSize"))
 		if contractSizeString != nil {
 			baseVolume = Precise.StringMul(baseVolume, contractSizeString)
 		}
@@ -1871,7 +1871,7 @@ func (this *Btse) ParseFundingRate(contract any, optionalArgs ...any) any {
 	// interval: a caller annualising a rate divides by it. anything under an
 	// hour rounds to the same string, and the vocabulary has no minutes
 	if (fundingIntervalMinutes != nil) && (IsGreaterThanOrEqual(fundingIntervalMinutes, 60)) {
-		var hours any = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
+		var hours int64 = this.ParseToInt(Divide(fundingIntervalMinutes, 60))
 		interval = ToString(hours) + "h"
 	}
 	return map[string]any{
@@ -1934,7 +1934,7 @@ func (this *Btse) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	// the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 
@@ -2036,7 +2036,7 @@ func (this *Btse) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
 	var marketType any = "spot"
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params, marketType)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchMyTrades", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
@@ -2261,8 +2261,8 @@ func (this *Btse) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeNumber(trade, "feeAmount"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(trade, "feeAmount")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
@@ -2438,7 +2438,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	if needsQuoteSize {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice any = true
-		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		var cost *string = this.SafeString(params, "cost")
@@ -2449,8 +2449,8 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 			if IsEqual(price, nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
-				var amountString any = this.NumberToString(amount)
-				var priceString any = this.NumberToString(price)
+				var amountString *string = this.NumberToString(amount)
+				var priceString *string = this.NumberToString(price)
 				quoteAmount = this.CostToPrecision(symbol, Precise.StringMul(amountString, priceString))
 			}
 		} else {
@@ -2635,11 +2635,11 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	// if positionMode is provided, we will get it from params and send it as is
 	if positionMode == nil {
 		var hedged any = false
-		hedgedparamsVariable := this.HandleOptionAndParams(params, "createOrder", "hedged", hedged)
+		var hedgedparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "hedged", hedged)
 		hedged = GetValue(hedgedparamsVariable, 0)
 		params = GetValue(hedgedparamsVariable, 1)
 		var marginMode any = "cross"
-		marginModeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "marginMode", marginMode)
+		var marginModeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "marginMode", marginMode)
 		marginMode = GetValue(marginModeparamsVariable, 0)
 		params = GetValue(marginModeparamsVariable, 1)
 		if IsEqual(marginMode, "isolated") {
@@ -2737,7 +2737,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 			// the futures conditional variant has no trigger direction field,
 			// it takes a plain trigger price with an optional limit price
 			request["orderType"] = "CONDITIONAL"
-			var triggerPriceToSend any = triggerPrice
+			var triggerPriceToSend *string = triggerPrice
 			if triggerPriceToSend == nil {
 				triggerPriceToSend = takeProfitPrice
 			}
@@ -2859,7 +2859,7 @@ func (this *Btse) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) a
 		market = this.Market(symbol)
 	}
 	var marketType any = "spot"
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrder", market, params, marketType)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOrder", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
@@ -3084,7 +3084,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = "spot"
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params, marketType)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrders", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -3144,7 +3144,7 @@ func (this *Btse) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArg
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var marketType any = "spot"
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, marketType)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("cancelAllOrdersAfter", nil, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
@@ -3202,7 +3202,7 @@ func (this *Btse) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(symbol)
 	}
 	var marketType any = "spot"
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params, marketType)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
@@ -3301,8 +3301,8 @@ func (this *Btse) ParseOrder(order any, optionalArgs ...any) any {
 	var rawStatus *string = this.SafeString2(order, "status", "orderState")
 	var rawType *string = this.SafeString2(order, "orderType", "type")
 	var status any = this.ParseOrderStatus(rawStatus)
-	var orderType any = this.ParseOrderType(rawType)
-	if (IsEqual(orderType, "market")) && (IsEqual(status, "open")) {
+	var orderType *string = this.ParseOrderType(rawType)
+	if (orderType != nil && *orderType == "market") && (IsEqual(status, "open")) {
 		// market orders never rest on the book, the exchange reports the
 		// partially filled code on them when a residual quote dust amount
 		// cannot fill, observed live, such orders are finished
@@ -3337,7 +3337,7 @@ func (this *Btse) ParseOrder(order any, optionalArgs ...any) any {
 		"average":             this.OmitZero(this.SafeString2(order, "avgFilledPrice", "averageFillPrice")),
 	}, market)
 }
-func (this *Btse) ParseOrderStatus(status any) any {
+func (this *Btse) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"2":                          "open",
 		"3":                          "closed",
@@ -3361,7 +3361,7 @@ func (this *Btse) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btse) ParseOrderType(typeVar any) any {
+func (this *Btse) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"76": "limit",
 		"77": "market",
@@ -3369,7 +3369,7 @@ func (this *Btse) ParseOrderType(typeVar any) any {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Btse) ParseTimeInForce(timeInForce any) any {
+func (this *Btse) ParseTimeInForce(timeInForce any) *string {
 	var values map[string]any = map[string]any{
 		"GTC":        "GTC",
 		"IOC":        "IOC",
@@ -3411,7 +3411,7 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes28018)
 	var response any = nil
 	var marketType any = "spot"
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTradingFees", nil, params, marketType)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	if IsEqual(marketType, "spot") {
@@ -3435,15 +3435,15 @@ func (this *Btse) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	var rows any = this.SafeList(response, "data", response)
-	var responseList any = this.ArrayConcat([]any{}, rows)
+	var responseList []any = this.ArrayConcat([]any{}, rows)
 	var result map[string]any = map[string]any{}
-	for i := 0; i < GetArrayLength(responseList); i++ {
+	for i := 0; i < len(responseList); i++ {
 		var feeInfo any = GetValue(responseList, i)
 		var marketId *string = this.SafeString(feeInfo, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
-		var makerFee any = DerefScalar(this.SafeNumber(feeInfo, "makerFee"))
-		var takerFee any = DerefScalar(this.SafeNumber(feeInfo, "takerFee"))
+		var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
+		var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       feeInfo,
 			"symbol":     symbol,
@@ -3504,7 +3504,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 		request["pageSize"] = limit
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, methodName, "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, methodName, "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3698,7 +3698,7 @@ func (this *Btse) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString2(transaction, "currency", "asset")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger2(transaction, "timestamp", "transactionTime")
 	var networkId *string = this.SafeString2(transaction, "currencyNetwork", "cryptoNetwork")
 	return map[string]any{
@@ -3727,7 +3727,7 @@ func (this *Btse) ParseTransaction(transaction any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Btse) ParseTransactionType(typeVar any) any {
+func (this *Btse) ParseTransactionType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"Deposit":  "deposit",
 		"Withdraw": "withdrawal",
@@ -3736,7 +3736,7 @@ func (this *Btse) ParseTransactionType(typeVar any) any {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Btse) ParseTransactionStatus(status any) any {
+func (this *Btse) ParseTransactionStatus(status any) *string {
 	// the full enum from the wallet documentation, PROCESSING is also live-verified
 	var statuses map[string]any = map[string]any{
 		"PROCESSING": "pending",
@@ -3799,7 +3799,7 @@ func (this *Btse) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		request["pageSize"] = limit
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchLedger", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -3837,7 +3837,7 @@ func (this *Btse) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString2(item, "currency", "asset")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger2(item, "timestamp", "transactionTime")
 	var typeVar *string = this.SafeString(item, "type")
 	return map[string]any{
@@ -3861,7 +3861,7 @@ func (this *Btse) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		},
 	}
 }
-func (this *Btse) ParseLedgerEntryType(typeVar any) any {
+func (this *Btse) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"Deposit":                    "transaction",
 		"Withdraw":                   "transaction",
@@ -3966,8 +3966,8 @@ func (this *Btse) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...a
 	}
 	var rows any = this.SafeList(response, "data", response)
 	var feeInfo any = this.SafeDict(rows, 0, map[string]any{})
-	var makerFee any = DerefScalar(this.SafeNumber(feeInfo, "makerFee"))
-	var takerFee any = DerefScalar(this.SafeNumber(feeInfo, "takerFee"))
+	var makerFee *float64 = this.SafeNumber(feeInfo, "makerFee")
+	var takerFee *float64 = this.SafeNumber(feeInfo, "takerFee")
 
 	ch <- map[string]any{
 		"info":       feeInfo,
@@ -4144,7 +4144,7 @@ func (this *Btse) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Btse) ParseMarginModeType(marginMode any) any {
+func (this *Btse) ParseMarginModeType(marginMode any) *string {
 	var marginModes map[string]any = map[string]any{
 		"91":       "cross",
 		"92":       "isolated",
@@ -4153,7 +4153,7 @@ func (this *Btse) ParseMarginModeType(marginMode any) any {
 	}
 	return this.SafeString(marginModes, marginMode, marginMode)
 }
-func (this *Btse) ParsePositionSide(side any) any {
+func (this *Btse) ParsePositionSide(side any) *string {
 	var sides map[string]any = map[string]any{
 		"buy":  "long",
 		"sell": "short",
@@ -4427,7 +4427,7 @@ func (this *Btse) closePositionBody(ch chan any, symbol any, optionalArgs ...any
 		"symbol": this.FuturesRequestId(market),
 	}
 	var typeVar any = "market"
-	typeVarparamsVariable := this.HandleOptionAndParams(params, "closePosition", "type", typeVar)
+	var typeVarparamsVariable []any = this.HandleOptionAndParams(params, "closePosition", "type", typeVar)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	typeVar = ToUpper(typeVar)

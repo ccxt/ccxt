@@ -578,7 +578,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	var request map[string]any = map[string]any{}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchMarkets", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarkets", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if IsEqual(generation, 2) {
@@ -609,7 +609,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				baseId = GetValue(parts, 1)
 				quoteId = GetValue(parts, 0)
 				base = this.SafeCurrencyCode(baseId)
-				quote = this.SafeCurrencyCode(quoteId)
+				quote = DerefScalar(this.SafeCurrencyCode(quoteId))
 			}
 			if (base == nil) || (quote == nil) {
 				continue
@@ -683,12 +683,12 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = ObjectKeys(data)
 			for j := 0; j < len(currencyIds); j++ {
-				var currencyId any = GetValue(currencyIds, j)
-				if IsEqual(currencyId, "date") {
+				var currencyId string = GetValue(currencyIds, j).(string)
+				if currencyId == "date" {
 					continue
 				}
 				var market any = GetValue(data, currencyId)
-				var base any = this.SafeCurrencyCode(currencyId)
+				var base *string = this.SafeCurrencyCode(currencyId)
 				var active bool = true
 				if IsArray(market) {
 					var numElements int = GetArrayLength(market)
@@ -783,21 +783,21 @@ func (this *Bithumb) ParseBalance(response any) any {
 	if !IsEqual(balances, nil) {
 		var codes []string = ObjectKeys(this.Currencies)
 		for i := 0; i < len(codes); i++ {
-			var code any = GetValue(codes, i)
+			var code string = GetValue(codes, i).(string)
 			var account any = this.Account()
 			var currency any = this.Currency(code)
 			var lowerCurrencyId *string = this.SafeStringLower(currency, "id")
 			AddElementToObject(account, "total", this.SafeString(balances, Add("total_", lowerCurrencyId)))
 			AddElementToObject(account, "used", this.SafeString(balances, Add("in_use_", lowerCurrencyId)))
 			AddElementToObject(account, "free", this.SafeString(balances, Add("available_", lowerCurrencyId)))
-			AddElementToObject(result, code, account)
+			result[code] = account
 		}
 	} else {
 		for i := 0; i < GetArrayLength(response); i++ {
 			var entry any = GetValue(response, i)
 			var account any = this.Account()
 			var currencyId *string = this.SafeString(entry, "currency")
-			var code any = this.SafeCurrencyCode(currencyId)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			if code == nil {
 				continue
 			}
@@ -835,7 +835,7 @@ func (this *Bithumb) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes70512)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var response any = nil
@@ -886,14 +886,14 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes75712)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrderBook", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var response any = nil
 	var data any = nil
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if IsEqual(generation, 2) {
 		request["markets"] = this.GetGen2MarketId(market)
 
@@ -918,7 +918,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		//     ]
 		//
 		var result any = this.SafeDict(response, 0, map[string]any{})
-		timestamp = DerefScalar(this.SafeInteger(result, "timestamp"))
+		timestamp = this.SafeInteger(result, "timestamp")
 		var orderBookUnits any = this.SafeList(result, "orderbook_units", []any{})
 		var bids any = []any{}
 		var asks any = []any{}
@@ -967,7 +967,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		//     }
 		//
 		data = this.SafeDict(response, "data", map[string]any{})
-		timestamp = DerefScalar(this.SafeInteger(data, "timestamp"))
+		timestamp = this.SafeInteger(data, "timestamp")
 	}
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -1065,9 +1065,9 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger2(ticker, "date", "trade_timestamp")
 	var marketId *string = this.SafeString(ticker, "market")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var close *string = this.SafeString2(ticker, "closing_price", "trade_price")
-	var change any = DerefScalar(this.SafeString2(ticker, "signed_change_price", "change_price"))
+	var change *string = this.SafeString2(ticker, "signed_change_price", "change_price")
 	var percentage any = DerefScalar(this.SafeString2(ticker, "signed_change_rate", "change_rate"))
 	var open *string = this.SafeString(ticker, "opening_price")
 	var nonZeroOpen any = this.OmitZero(open)
@@ -1079,8 +1079,8 @@ func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) any {
 			percentage = nil
 		}
 	}
-	var high any = DerefScalar(this.SafeString2(ticker, "max_price", "high_price"))
-	var low any = DerefScalar(this.SafeString2(ticker, "min_price", "low_price"))
+	var high *string = this.SafeString2(ticker, "max_price", "high_price")
+	var low *string = this.SafeString2(ticker, "min_price", "low_price")
 	// Some generation 2 ticker payloads can contain inconsistent high/low versus last.
 	if (close != nil) && (high != nil) && Precise.StringGt(close, high) {
 		high = close
@@ -1141,7 +1141,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes99012)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchTickers", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -1229,7 +1229,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		var responsesLength int = GetArrayLength(responses)
 		for i := 0; i < responsesLength; i++ {
 			var response any = GetValue(responses, i)
-			if EvalTruthy(this.IsDictionary(response)) && (InOp(response, "data")) && (!IsEqual(GetValue(response, "data"), nil)) {
+			if this.IsDictionary(response) && (InOp(response, "data")) && (!IsEqual(GetValue(response, "data"), nil)) {
 				response = GetValue(response, "data")
 			}
 			var expectedMarketId any = nil
@@ -1241,13 +1241,13 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			var tickers any = []any{}
 			if IsArray(response) {
 				tickers = response
-			} else if EvalTruthy(this.IsDictionary(response)) {
+			} else if this.IsDictionary(response) {
 				if (InOp(response, "market")) || (InOp(response, "trade_date")) || (InOp(response, "trade_timestamp")) {
 					tickers = []any{response}
 				} else {
 					var ids []string = ObjectKeys(response)
 					for j := 0; j < len(ids); j++ {
-						var id any = GetValue(ids, j)
+						var id string = GetValue(ids, j).(string)
 						var ticker any = this.SafeDict(response, id)
 						if !IsEqual(ticker, nil) {
 							AddElementToObject(ticker, "market", this.SafeString(ticker, "market", id))
@@ -1263,7 +1263,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 					continue
 				}
 				var market any = this.SafeMarket(marketId)
-				var symbol any = this.SafeSymbol(marketId, market)
+				var symbol *string = this.SafeSymbol(marketId, market)
 				if symbol == nil {
 					continue
 				}
@@ -1272,7 +1272,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	} else {
 		var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
-		var quotes any = ObjectKeys(quoteCurrencies)
+		var quotes []string = ObjectKeys(quoteCurrencies)
 		if !IsEqual(symbols, nil) {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < GetArrayLength(symbols); i++ {
@@ -1290,24 +1290,24 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var promises any = []any{}
-		for i := 0; i < GetArrayLength(quotes); i++ {
+		for i := 0; i < len(quotes); i++ {
 			request["quoteId"] = GetValue(quotes, i)
 			AppendToArray(&promises, this.PublicGetPublicTickerALLQuoteId(this.Extend(request, params)))
 		}
 
 		responses := (<-promiseAll(promises))
 		PanicOnError(responses)
-		for i := 0; i < GetArrayLength(quotes); i++ {
-			var quote any = GetValue(quotes, i)
+		for i := 0; i < len(quotes); i++ {
+			var quote string = GetValue(quotes, i).(string)
 			var response any = GetValue(responses, i)
 			var data any = this.SafeDict(response, "data", map[string]any{})
 			var timestamp *int64 = this.SafeInteger(data, "date")
 			var tickers any = this.Omit(data, "date")
 			var currencyIds []string = ObjectKeys(tickers)
 			for j := 0; j < len(currencyIds); j++ {
-				var currencyId any = GetValue(currencyIds, j)
+				var currencyId string = GetValue(currencyIds, j).(string)
 				var ticker any = GetValue(data, currencyId)
-				var base any = this.SafeCurrencyCode(currencyId)
+				var base *string = this.SafeCurrencyCode(currencyId)
 				var symbol any = Add(Add(base, "/"), quote)
 				var market any = this.SafeMarket(symbol)
 				AddElementToObject(ticker, "date", timestamp)
@@ -1347,7 +1347,7 @@ func (this *Bithumb) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes119112)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchTicker", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchTicker", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -1454,9 +1454,9 @@ func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if IsArray(ohlcv) {
-		timestamp = DerefScalar(this.SafeInteger2(ohlcv, 0, "timestamp"))
+		timestamp = this.SafeInteger2(ohlcv, 0, "timestamp")
 	} else {
 		timestamp = this.Parse8601(this.SafeString2(ohlcv, "candle_date_time_utc", "candle_date_time_kst"))
 	}
@@ -1502,7 +1502,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(retRes132712)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -1761,7 +1761,7 @@ func (this *Bithumb) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes155612)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -1849,7 +1849,7 @@ func (this *Bithumb) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		PanicOnError(retRes162512)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "createOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -1931,7 +1931,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var request map[string]any = map[string]any{
 		"market": this.GetGen2MarketId(market),
 	}
-	var sideRequest any = nil
+	var sideRequest string
 	if IsEqual(side, "buy") {
 		sideRequest = "bid"
 	} else if IsEqual(side, "sell") {
@@ -1963,22 +1963,22 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		request["volume"] = this.AmountToPrecision(symbol, amount)
 		request["order_type"] = "limit"
 	} else {
-		var typeRequest any = nil
+		var typeRequest string
 		if IsEqual(side, "buy") {
 			typeRequest = "price"
 			// for market buy it requires the amount of quote currency to spend
 			var cost any = DerefScalar(this.SafeString(params, "cost"))
 			params = this.Omit(params, "cost")
 			var createMarketBuyOrderRequiresPrice any = true
-			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 			if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 				if (IsEqual(price, nil)) && (cost == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 				} else {
-					var amountString any = this.NumberToString(amount)
-					var priceString any = this.NumberToString(price)
+					var amountString *string = this.NumberToString(amount)
+					var priceString *string = this.NumberToString(price)
 					cost = Precise.StringMul(amountString, priceString)
 				}
 			} else {
@@ -2044,7 +2044,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		PanicOnError(retRes178912)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "createOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var request any = map[string]any{}
@@ -2061,7 +2061,7 @@ func (this *Bithumb) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		AddElementToObject(request, "units", this.AmountToPrecision(symbol, amount))
 		if IsEqual(typeVar, "limit") {
 			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-			var typeRequest any = nil
+			var typeRequest string
 			if IsEqual(side, "buy") {
 				typeRequest = "bid"
 			} else {
@@ -2123,7 +2123,7 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan any, symbol any, c
 		PanicOnError(retRes186112)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createMarketBuyOrderWithCost", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -2168,14 +2168,14 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
 		PanicOnError(retRes188912)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "createTwapOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createTwapOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
 		panic(BadRequest(this.Id + " createTwapOrder() is only supported for the generation 2 API"))
 	}
 	var market any = this.Market(symbol)
-	var durationString any = this.NumberToString(duration)
+	var durationString *string = this.NumberToString(duration)
 	var durationSeconds *string = Precise.StringDiv(durationString, "1000")
 	var request map[string]any = map[string]any{
 		"market":   this.GetGen2MarketId(market),
@@ -2184,7 +2184,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan any, symbol any, side any, amou
 	if !IsEqual(amount, nil) {
 		request["volume"] = this.AmountToPrecision(symbol, amount) // required for sale
 	}
-	var sideRequest any = nil
+	var sideRequest string
 	if IsEqual(side, "buy") {
 		sideRequest = "bid"
 	} else {
@@ -2238,7 +2238,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		PanicOnError(retRes194012)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var market any = nil
@@ -2373,7 +2373,7 @@ func (this *Bithumb) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(parsedOrder, market)
 	return nil
 }
-func (this *Bithumb) ParseOrderStatus(status any) any {
+func (this *Bithumb) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Pending":   "open",
 		"Completed": "closed",
@@ -2505,19 +2505,19 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var datetime any = DerefScalar(this.SafeString(order, "created_at"))
+	var datetime *string = this.SafeString(order, "created_at")
 	var timestamp any = nil
 	if datetime != nil {
 		if IsGreaterThan(GetIndexOf(datetime, "+09:00"), -1) {
 			var normalized string = Replace(datetime, "+09:00", "Z")
-			var normalizedTimestamp any = this.Parse8601(normalized)
-			if !IsEqual(normalizedTimestamp, nil) {
+			var normalizedTimestamp *int64 = this.Parse8601(normalized)
+			if normalizedTimestamp != nil {
 				timestamp = Subtract(normalizedTimestamp, Multiply(9, 3600000))
 			} else {
-				timestamp = this.Parse8601(datetime)
+				timestamp = DerefScalar(this.Parse8601(datetime))
 			}
 		} else {
-			timestamp = this.Parse8601(datetime)
+			timestamp = DerefScalar(this.Parse8601(datetime))
 		}
 	} else {
 		timestamp = this.SafeIntegerProduct(order, "order_date", 0.001)
@@ -2530,7 +2530,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	} else if sideProperty != nil && *sideProperty == "ask" {
 		side = "sell"
 	}
-	var status any = this.ParseOrderStatus(this.SafeString2(order, "order_status", "state"))
+	var status *string = this.ParseOrderStatus(this.SafeString2(order, "order_status", "state"))
 	var price *string = this.SafeString2(order, "order_price", "price")
 	var typeVar any = DerefScalar(this.SafeString2(order, "order_type", "ord_type"))
 	var progressCount *string = this.SafeString(order, "progress_count")
@@ -2544,17 +2544,17 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var amount any = this.FixCommaNumber(this.SafeStringN(order, []any{"order_qty", "units", "volume"}))
 	var remaining any = this.FixCommaNumber(this.SafeString2(order, "units_remaining", "remaining_volume"))
 	if IsEqual(remaining, nil) {
-		if IsEqual(status, "closed") {
+		if status != nil && *status == "closed" {
 			remaining = "0"
-		} else if !IsEqual(status, "canceled") {
+		} else if status == nil || *status != "canceled" {
 			remaining = amount
 		}
 	}
 	var symbol any = nil
 	var baseId *string = this.SafeString(order, "order_currency")
 	var quoteId *string = this.SafeString(order, "payment_currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base != nil) && (quote != nil) {
 		symbol = Add(Add(base, "/"), quote)
 	}
@@ -2565,9 +2565,9 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var id *string = this.SafeStringN(order, []any{"order_id", "uuid", "algo_order_id"})
 	var rawTrades any = this.SafeList2(order, "contract", "trades", []any{})
-	var feeCost any = DerefScalar(this.SafeNumber(order, "reserved_fee"))
+	var feeCost *float64 = this.SafeNumber(order, "reserved_fee")
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		var currency any = nil
 		if !IsEqual(market, nil) {
 			currency = GetValue(market, "quote")
@@ -2647,7 +2647,7 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes232212)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -2728,7 +2728,7 @@ func (this *Bithumb) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes239512)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -2930,7 +2930,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		PanicOnError(retRes253812)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	var market any = nil
@@ -2976,7 +2976,7 @@ func (this *Bithumb) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		if !side_in_params {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a `side` parameter (sell or buy)"))
 		}
-		var side any = nil
+		var side string
 		if IsEqual(GetValue(params, "side"), "buy") {
 			side = "bid"
 		} else {
@@ -3028,7 +3028,7 @@ func (this *Bithumb) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		PanicOnError(retRes262912)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "cancelOrders", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrders", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3129,7 +3129,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 		PanicOnError(retRes269912)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "withdraw", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "withdraw", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
@@ -3241,11 +3241,11 @@ func (this *Bithumb) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var currencyId *string = this.SafeString(transaction, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
 	var datetime *string = this.SafeString(transaction, "created_at")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp any = DerefScalar(this.Parse8601(datetime))
 	if (datetime != nil) && (IsGreaterThan(GetIndexOf(datetime, "+09:00"), -1)) {
 		var normalized string = Replace(datetime, "+09:00", "Z")
-		var normalizedTimestamp any = this.Parse8601(normalized)
-		if !IsEqual(normalizedTimestamp, nil) {
+		var normalizedTimestamp *int64 = this.Parse8601(normalized)
+		if normalizedTimestamp != nil {
 			timestamp = Subtract(normalizedTimestamp, Multiply(9, 3600000))
 		}
 	}
@@ -3329,7 +3329,7 @@ func (this *Bithumb) fetchWithdrawalWhitelistBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes289312)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawalWhitelist", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3387,7 +3387,7 @@ func (this *Bithumb) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError(retRes293212)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawal", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawal", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3466,7 +3466,7 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes298812)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3544,7 +3544,7 @@ func (this *Bithumb) fetchDepositBody(ch chan any, id any, optionalArgs ...any) 
 		PanicOnError(retRes304512)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchDeposit", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposit", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3623,7 +3623,7 @@ func (this *Bithumb) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes310112)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3698,7 +3698,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 		PanicOnError(retRes315712)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "createDepositAddress", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "createDepositAddress", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3757,7 +3757,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 		PanicOnError(retRes319912)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchDepositAddress", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositAddress", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3817,7 +3817,7 @@ func (this *Bithumb) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes324012)
 	}
 	var generation any = nil
-	generationparamsVariable := this.HandleOptionAndParams(params, "fetchDepositAddresses", "generation", 2)
+	var generationparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositAddresses", "generation", 2)
 	generation = GetValue(generationparamsVariable, 0)
 	params = GetValue(generationparamsVariable, 1)
 	if !IsEqual(generation, 2) {
@@ -3854,7 +3854,7 @@ func (this *Bithumb) ParseDepositAddress(response any, optionalArgs ...any) any 
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(response, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var address *string = this.SafeString(response, "deposit_address")
 	if address == nil {
 		panic(ExchangeError(this.Id + " parseDepositAddress() could not find deposit_address"))
@@ -3886,7 +3886,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 	var keys []string = ObjectKeys(query)
 	var result any = ""
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(query, key)
 		if IsArray(value) {
 			var encodedKey any = this.EncodeURIComponent(key) + "[]"

@@ -430,7 +430,7 @@ func (this *Cex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "currency")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var isFiat bool = (IsEqual(this.SafeBool(rawCurrency, "fiat"), true))
 	var typeVar any = func() any {
 		if isFiat {
@@ -443,7 +443,7 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	var rawNetworks any = this.SafeDict(rawCurrency, "blockchains", map[string]any{})
 	var keys []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(keys); j++ {
-		var networkId any = GetValue(keys, j)
+		var networkId string = GetValue(keys, j).(string)
 		var rawNetwork any = GetValue(rawNetworks, networkId)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var deposit bool = IsEqual(this.SafeString(rawNetwork, "deposit"), "enabled")
@@ -546,9 +546,9 @@ func (this *Cex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Cex) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "base")
-	var base any = this.SafeCurrencyCode(baseId)
+	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var id any = Add(Add(base, "-"), quote) // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
 	var symbol any = Add(Add(base, "/"), quote)
 	return this.SafeMarketStructure(map[string]any{
@@ -741,7 +741,7 @@ func (this *Cex) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "id")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -852,7 +852,7 @@ func (this *Cex) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var dateStr *string = this.SafeString(trade, "dateISO")
-	var timestamp any = this.Parse8601(dateStr)
+	var timestamp *int64 = this.Parse8601(dateStr)
 	market = this.SafeMarket(nil, market)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -960,7 +960,7 @@ func (this *Cex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var dataType any = nil
-	dataTypeparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "dataType")
+	var dataTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "dataType")
 	dataType = GetValue(dataTypeparamsVariable, 0)
 	params = GetValue(dataTypeparamsVariable, 1)
 	if dataType == nil {
@@ -1077,7 +1077,7 @@ func (this *Cex) ParseTradingFees(response any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var market any = nil
 		if EvalTruthy(useKeyAsId) {
 			market = this.SafeMarket(key)
@@ -1184,11 +1184,11 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var accountName any = nil
-	accountNameparamsVariable := this.HandleParamString(params, "account", "")
+	var accountNameparamsVariable []any = this.HandleParamString(params, "account", "")
 	accountName = GetValue(accountNameparamsVariable, 0)
 	params = GetValue(accountNameparamsVariable, 1) // default is empty string
 	var method any = nil
-	methodparamsVariable := this.HandleParamString(params, "method", "privatePostGetMyWalletBalance")
+	var methodparamsVariable []any = this.HandleParamString(params, "method", "privatePostGetMyWalletBalance")
 	method = GetValue(methodparamsVariable, 0)
 	params = GetValue(methodparamsVariable, 1)
 	var accountBalance any = nil
@@ -1240,9 +1240,9 @@ func (this *Cex) ParseBalance(response any) any {
 	}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var balance any = this.SafeDict(response, key, map[string]any{})
-		var code any = this.SafeCurrencyCode(key)
+		var code *string = this.SafeCurrencyCode(key)
 		var account map[string]any = map[string]any{
 			"used":  this.SafeString(balance, "balanceOnHold"),
 			"total": this.SafeString(balance, "balance"),
@@ -1506,7 +1506,7 @@ func (this *Cex) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...any) 
 	ch <- GetValue(result, 0)
 	return nil
 }
-func (this *Cex) ParseOrderStatus(status any) any {
+func (this *Cex) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"PENDING_NEW":      "open",
 		"NEW":              "open",
@@ -1562,20 +1562,20 @@ func (this *Cex) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var fee map[string]any = map[string]any{}
-	var feeAmount any = DerefScalar(this.SafeNumber(order, "feeAmount"))
-	if !IsEqual(feeAmount, nil) {
+	var feeAmount *float64 = this.SafeNumber(order, "feeAmount")
+	if feeAmount != nil {
 		var currencyId *string = this.SafeString(order, "feeCurrency")
-		var feeCode any = this.SafeCurrencyCode(currencyId)
+		var feeCode *string = this.SafeCurrencyCode(currencyId)
 		fee["currency"] = feeCode
 		fee["cost"] = feeAmount
 	}
 	var timestamp *int64 = this.SafeInteger(order, "serverCreateTimestamp")
-	var requestedBase any = DerefScalar(this.SafeNumber(order, "requestedAmountCcy1"))
-	var executedBase any = DerefScalar(this.SafeNumber(order, "executedAmountCcy1"))
+	var requestedBase *float64 = this.SafeNumber(order, "requestedAmountCcy1")
+	var executedBase *float64 = this.SafeNumber(order, "executedAmountCcy1")
 	// const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
-	var executedQuote any = DerefScalar(this.SafeNumber(order, "executedAmountCcy2"))
+	var executedQuote *float64 = this.SafeNumber(order, "executedAmountCcy2")
 	return this.SafeOrder(map[string]any{
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
@@ -1630,7 +1630,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var accountId any = nil
-	accountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "accountId")
+	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId == nil {
@@ -1656,7 +1656,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		"amountCcy1":    this.AmountToPrecision(symbol, amount),
 	}
 	var timeInForce any = nil
-	timeInForceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "timeInForce", "GTC")
+	var timeInForceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "timeInForce", "GTC")
 	timeInForce = GetValue(timeInForceparamsVariable, 0)
 	params = GetValue(timeInForceparamsVariable, 1)
 	if IsEqual(typeVar, "limit") {
@@ -1664,7 +1664,7 @@ func (this *Cex) createOrderBody(ch chan any, symbol any, typeVar any, side any,
 		request["timeInForce"] = timeInForce
 	}
 	var triggerPrice any = nil
-	triggerPriceparamsVariable := this.HandleParamString(params, "triggerPrice")
+	var triggerPriceparamsVariable []any = this.HandleParamString(params, "triggerPrice")
 	triggerPrice = GetValue(triggerPriceparamsVariable, 0)
 	params = GetValue(triggerPriceparamsVariable, 1)
 	if triggerPrice != nil {
@@ -1904,7 +1904,7 @@ func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var amount *string = this.SafeString(item, "amount")
-	var direction any = nil
+	var direction string
 	if Precise.StringLe(amount, "0") {
 		direction = "out"
 		amount = Precise.StringMul("-1", amount)
@@ -1913,9 +1913,9 @@ func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var currencyId *string = this.SafeString(item, "currency")
 	currency = this.SafeCurrency(currencyId, currency)
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestampString *string = this.SafeString(item, "timestamp")
-	var timestamp any = this.Parse8601(timestampString)
+	var timestamp *int64 = this.Parse8601(timestampString)
 	var typeVar *string = this.SafeString(item, "type")
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
@@ -1935,7 +1935,7 @@ func (this *Cex) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		"fee":              nil,
 	}, currency)
 }
-func (this *Cex) ParseLedgerEntryType(typeVar any) any {
+func (this *Cex) ParseLedgerEntryType(typeVar any) *string {
 	var ledgerType map[string]any = map[string]any{
 		"deposit":    "deposit",
 		"withdraw":   "withdrawal",
@@ -2031,9 +2031,9 @@ func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 		return "deposit"
 	}()
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var updatedAt *string = this.SafeString(transaction, "updatedAt")
-	var timestamp any = this.Parse8601(updatedAt)
+	var timestamp *int64 = this.Parse8601(updatedAt)
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "txId"),
@@ -2060,7 +2060,7 @@ func (this *Cex) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal": nil,
 	}
 }
-func (this *Cex) ParseTransactionStatus(status any) any {
+func (this *Cex) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"rejected": "rejected",
 		"pending":  "pending",
@@ -2232,7 +2232,7 @@ func (this *Cex) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "currency")
-	var currencyCode any = this.SafeCurrencyCode(currencyId, currency)
+	var currencyCode *string = this.SafeCurrencyCode(currencyId, currency)
 	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString2(transfer, "transactionId", "clientTxId"),
@@ -2267,7 +2267,7 @@ func (this *Cex) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var accountId any = nil
-	accountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "accountId")
+	var accountIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "accountId")
 	accountId = GetValue(accountIdparamsVariable, 0)
 	params = GetValue(accountIdparamsVariable, 1)
 	if accountId == nil {

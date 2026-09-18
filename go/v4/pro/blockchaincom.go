@@ -136,7 +136,7 @@ func (this *Blockchaincom) HandleBalance(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(balances); i++ {
 		var entry any = ccxt.GetValue(balances, i)
 		var currencyId *string = this.SafeString(entry, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString(entry, "available"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(entry, "balance"))
@@ -230,7 +230,7 @@ func (this *Blockchaincom) HandleOHLCV(client any, message any) {
 		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", jsonMessage)))
 	} else if event != nil && *event == "updated" {
 		var marketId *string = this.SafeString(message, "symbol")
-		var symbol any = this.SafeSymbol(marketId, nil, "-")
+		var symbol *string = this.SafeSymbol(marketId, nil, "-")
 		var messageHash any = ccxt.Add("ohlcv:", symbol)
 		var request any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
@@ -351,7 +351,7 @@ func (this *Blockchaincom) ParseWsUpdatedTicker(ticker any, optionalArgs ...any)
 	market := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var symbol any = this.SafeSymbol(marketId, nil, "-")
+	var symbol *string = this.SafeSymbol(marketId, nil, "-")
 	var last *string = this.SafeString(ticker, "mark_price")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -451,7 +451,7 @@ func (this *Blockchaincom) HandleTrades(client any, message any) {
 		return
 	}
 	var marketId *string = this.SafeString(message, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var stored any = this.SafeValue(this.Trades, symbol)
@@ -729,7 +729,7 @@ func (this *Blockchaincom) ParseWsOrder(order any, optionalArgs ...any) any {
 		"average":            this.SafeString(order, "avgPx"),
 	}, market)
 }
-func (this *Blockchaincom) ParseWsOrderStatus(status any) any {
+func (this *Blockchaincom) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"pending":   "open",
 		"open":      "open",
@@ -829,10 +829,10 @@ func (this *Blockchaincom) HandleOrderBook(client any, message any) {
 	}
 	var typeVar *string = this.SafeString(message, "channel")
 	var marketId *string = this.SafeString(message, "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderbook:", symbol), ":"), typeVar)
 	var datetime *string = this.SafeString(message, "timestamp")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	if ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.CountedOrderBook())
 	}
@@ -909,7 +909,7 @@ func (this *Blockchaincom) authenticateBody(ch chan any, optionalArgs ...any) an
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var isAuthenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

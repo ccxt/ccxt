@@ -725,7 +725,7 @@ func (this *Gemini) fetchCurrenciesFromWebBody(ch chan any, optionalArgs ...any)
 }
 func (this *Gemini) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, 0)
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var fiatFlag *string = this.SafeString(rawCurrency, 7)
 	var isFiat bool = (fiatFlag != nil) && (fiatFlag == nil || *fiatFlag != "")
 	var typeVar any = func() any {
@@ -869,17 +869,17 @@ func (this *Gemini) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any) an
 		// const base = this.safeCurrencyCode (baseId);
 		var minAmountString string = Replace(GetValue(cells, 1), "<td>", "")
 		var minAmountParts []string = Split(minAmountString, " ")
-		var minAmount any = DerefScalar(this.SafeNumber(minAmountParts, 0))
+		var minAmount *float64 = this.SafeNumber(minAmountParts, 0)
 		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
 		var amountPrecisionParts []string = Split(amountPrecisionString, " ")
-		var idLength any = Subtract(GetArrayLength(marketId), 0)
-		var startingIndex any = Subtract(idLength, 3)
+		var idLength int64 = Subtract(GetArrayLength(marketId), 0).(int64)
+		var startingIndex any = idLength - 3
 		var pricePrecisionString string = Replace(GetValue(cells, 3), "<td>", "")
 		var pricePrecisionParts []string = Split(pricePrecisionString, " ")
 		var quoteId *string = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
 		var baseId *string = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		AppendToArray(&result, map[string]any{
 			"id":             marketId,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -1092,7 +1092,7 @@ func (this *Gemini) ParseMarket(response any) any {
 	var settleId any = nil
 	var tickSize any = nil
 	var amountPrecision any = nil
-	var minSize any = nil
+	var minSize *float64 = nil
 	var status any = nil
 	var swap bool = false
 	var contractSize any = nil
@@ -1104,7 +1104,7 @@ func (this *Gemini) ParseMarket(response any) any {
 		marketId = this.SafeStringLower(response, "symbol")
 		amountPrecision = DerefScalar(this.SafeNumber(response, "tick_size")) // right, exchange has an imperfect naming and this turns out to be an amount-precision
 		tickSize = DerefScalar(this.SafeNumber(response, "quote_increment"))  // this is tick-size actually
-		minSize = DerefScalar(this.SafeNumber(response, "min_order_size"))
+		minSize = this.SafeNumber(response, "min_order_size")
 		status = this.ParseMarketActive(this.SafeString(response, "status"))
 		baseId = DerefScalar(this.SafeString(response, "base_currency"))
 		quoteId = DerefScalar(this.SafeString(response, "quote_currency"))
@@ -1117,7 +1117,7 @@ func (this *Gemini) ParseMarket(response any) any {
 			marketId = this.SafeStringLower(response, 0)
 			tickSize = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 1)))        // priceTickDecimalPlaces
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(response, 2))) // quantityTickDecimalPlaces
-			minSize = DerefScalar(this.SafeNumber(response, 3))                                   // quantityMinimum
+			minSize = this.SafeNumber(response, 3)                                                // quantityMinimum
 		}
 		var marketIdUpper string = ToUpper(marketId)
 		var isPerp bool = (GetIndexOf(marketIdUpper, "PERP") >= 0)
@@ -1136,7 +1136,7 @@ func (this *Gemini) ParseMarket(response any) any {
 			for i := 0; i < GetArrayLength(quoteCurrencies); i++ {
 				var quoteCurrency any = GetValue(quoteCurrencies, i)
 				if EndsWith(marketIdWithoutPerp, quoteCurrency) {
-					var quoteLength any = this.ParseToInt(Multiply(OpNeg(1), GetArrayLength(quoteCurrency)))
+					var quoteLength int64 = this.ParseToInt(Multiply(OpNeg(1), GetArrayLength(quoteCurrency)))
 					baseId = Slice(marketIdWithoutPerp, 0, quoteLength)
 					quoteId = quoteCurrency
 					if isPerp {
@@ -1147,9 +1147,9 @@ func (this *Gemini) ParseMarket(response any) any {
 			}
 		}
 	}
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
-	var settle any = this.SafeCurrencyCode(settleId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(base, "/"), quote)
 	if settleId != nil {
 		symbol = Add(Add(symbol, ":"), settle)
@@ -1454,16 +1454,16 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) any {
 	var base any = nil
 	var quote any = nil
 	if (marketId != nil) && (IsEqual(market, nil)) {
-		var idLength any = Subtract(GetLength(marketId), 0)
-		if IsEqual(idLength, 7) {
+		var idLength int64 = Subtract(GetLength(marketId), 0).(int64)
+		if idLength == 7 {
 			baseId = Slice(marketId, 0, 4)
 			quoteId = Slice(marketId, 4, 7)
 		} else {
 			baseId = Slice(marketId, 0, 3)
 			quoteId = Slice(marketId, 3, 6)
 		}
-		base = this.SafeCurrencyCode(baseId)
-		quote = this.SafeCurrencyCode(quoteId)
+		base = DerefScalar(this.SafeCurrencyCode(baseId))
+		quote = DerefScalar(this.SafeCurrencyCode(quoteId))
 		symbol = Add(Add(base, "/"), quote)
 	}
 	if (symbol == nil) && (!IsEqual(market, nil)) {
@@ -1590,7 +1590,7 @@ func (this *Gemini) ParseTrade(trade any, optionalArgs ...any) any {
 	var id *string = this.SafeString(trade, "tid")
 	var orderId *string = this.SafeString(trade, "order_id")
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-	var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+	var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(trade, "fee_amount"),
 		"currency": feeCurrencyCode,
@@ -1598,7 +1598,7 @@ func (this *Gemini) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var side *string = this.SafeStringLower(trade, "type")
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        orderId,
@@ -1683,7 +1683,7 @@ func (this *Gemini) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "total", this.SafeString(balance, "amount"))
@@ -1926,7 +1926,7 @@ func (this *Gemini) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var fee any = nil
 	var marketId *string = this.SafeString(order, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var id *string = this.SafeString(order, "order_id")
 	var side *string = this.SafeStringLower(order, "side")
 	var clientOrderId *string = this.SafeString(order, "client_order_id")
@@ -2478,14 +2478,14 @@ func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = currency
 	var timestamp *int64 = this.SafeInteger(transaction, "timestampms")
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var address *string = this.SafeString(transaction, "destination")
 	var typeVar *string = this.SafeStringLower(transaction, "type")
 	// if status field is available, then it's complete
 	var statusRaw *string = this.SafeString(transaction, "status")
 	var fee any = nil
-	var feeAmount any = DerefScalar(this.SafeNumber(transaction, "feeAmount"))
-	if !IsEqual(feeAmount, nil) {
+	var feeAmount *float64 = this.SafeNumber(transaction, "feeAmount")
+	if feeAmount != nil {
 		fee = map[string]any{
 			"cost":     feeAmount,
 			"currency": code,
@@ -2514,7 +2514,7 @@ func (this *Gemini) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"fee":         fee,
 	}
 }
-func (this *Gemini) ParseTransactionStatus(status any) any {
+func (this *Gemini) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"Advanced": "ok",
 		"Complete": "ok",
@@ -2532,7 +2532,7 @@ func (this *Gemini) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var address *string = this.SafeString(depositAddress, "address")
-	var code any = this.SafeCurrencyCode(nil, currency)
+	var code *string = this.SafeCurrencyCode(nil, currency)
 	return map[string]any{
 		"currency": code,
 		"network":  nil,

@@ -384,8 +384,8 @@ func (this *Bitbank) ParseMarket(entry any) any {
 	var id *string = this.SafeString(entry, "name")
 	var baseId *string = this.SafeString(entry, "base_asset")
 	var quoteId *string = this.SafeString(entry, "quote_asset")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
@@ -441,7 +441,7 @@ func (this *Bitbank) ParseMarket(entry any) any {
 func (this *Bitbank) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
@@ -814,7 +814,7 @@ func (this *Bitbank) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(assets); i++ {
 		var balance any = GetValue(assets, i)
 		var currencyId *string = this.SafeString(balance, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "free_amount"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked_amount"))
@@ -889,7 +889,7 @@ func (this *Bitbank) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseBalance(response)
 	return nil
 }
-func (this *Bitbank) ParseOrderStatus(status any) any {
+func (this *Bitbank) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"UNFILLED":                  "open",
 		"PARTIALLY_FILLED":          "open",
@@ -911,7 +911,7 @@ func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) any {
 	var filled *string = this.SafeString(order, "executed_amount")
 	var remaining *string = this.SafeString(order, "remaining_amount")
 	var average *string = this.SafeString(order, "average_price")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var typeVar *string = this.SafeStringLower(order, "type")
 	var side *string = this.SafeStringLower(order, "side")
 	return this.SafeOrder(map[string]any{

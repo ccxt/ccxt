@@ -352,8 +352,8 @@ func (this *Zaif) ParseMarket(market any) any {
 	baseIdquoteIdVariable := Split(name, "/")
 	baseId := GetValue(baseIdquoteIdVariable, 0)
 	quoteId := GetValue(baseIdquoteIdVariable, 1)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -416,8 +416,8 @@ func (this *Zaif) ParseBalance(response any) any {
 	var funds any = this.SafeDict(balances, "funds", map[string]any{})
 	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId any = GetValue(currencyIds, i)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId string = GetValue(currencyIds, i).(string)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var balance *string = this.SafeString(funds, currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", balance)
@@ -517,7 +517,7 @@ func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
 	var quoteVolume *string = Precise.StringMul(baseVolume, vwap)
@@ -619,7 +619,7 @@ func (this *Zaif) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "currency_pair")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"info":         trade,
@@ -837,7 +837,7 @@ func (this *Zaif) ParseOrder(order any, optionalArgs ...any) any {
 	}()
 	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
 	var marketId *string = this.SafeString(order, "currency_pair")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "amount")
 	var id *string = this.SafeString2(order, "id", "order_id")
@@ -1078,7 +1078,7 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) any {
 	}
 }
 func (this *Zaif) CustomNonce() any {
-	var num any = this.NumberToString(this.Milliseconds() / 1000)
+	var num *string = this.NumberToString(this.Milliseconds() / 1000)
 	var nonce any = ParseFloat(num)
 	return ToFixed(nonce, 8)
 }

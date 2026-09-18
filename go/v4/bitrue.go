@@ -893,7 +893,7 @@ func (this *Bitrue) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Bitrue) ParseCurrency(rawCurrency any) any {
 	var id *string = this.SafeString(rawCurrency, "coin")
 	var name *string = this.SafeString(rawCurrency, "coinFulName")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var networkDetails any = this.SafeList(rawCurrency, "chainDetail", []any{})
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < GetArrayLength(networkDetails); j++ {
@@ -1093,10 +1093,10 @@ func (this *Bitrue) ParseMarket(market any) any {
 		} else {
 			settleId = baseId
 		}
-		settle = this.SafeCurrencyCode(settleId)
+		settle = DerefScalar(this.SafeCurrencyCode(settleId))
 	}
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	if settle != nil {
 		symbol = Add(symbol, Add(":", settle))
@@ -1111,13 +1111,13 @@ func (this *Bitrue) ParseMarket(market any) any {
 	var pricePrecision *string = this.SafeString(priceFilter, "priceScale", defaultPricePrecision)
 	var amountPrecision *string = this.SafeString(amountFilter, "volumeScale", defaultAmountPrecision)
 	var multiplier *string = this.SafeString(market, "multiplier")
-	var maxQuantity any = DerefScalar(this.SafeNumber(amountFilter, "maxQty"))
-	if IsEqual(maxQuantity, nil) {
-		maxQuantity = DerefScalar(this.SafeNumber(market, "maxValidOrder"))
+	var maxQuantity *float64 = this.SafeNumber(amountFilter, "maxQty")
+	if maxQuantity == nil {
+		maxQuantity = this.SafeNumber(market, "maxValidOrder")
 	}
-	var minCost any = DerefScalar(this.SafeNumber(amountFilter, "minVal"))
-	if IsEqual(minCost, nil) {
-		minCost = DerefScalar(this.SafeNumber(market, "minOrderMoney"))
+	var minCost *float64 = this.SafeNumber(amountFilter, "minVal")
+	if minCost == nil {
+		minCost = this.SafeNumber(market, "minOrderMoney")
 	}
 	var isSpot bool = (typeVar == "spot")
 	return this.SafeMarketStructure(map[string]any{
@@ -1226,7 +1226,7 @@ func (this *Bitrue) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString2(balance, "asset", "marginCoin")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString2(balance, "free", "accountNormal"))
 		AddElementToObject(account, "used", this.SafeString2(balance, "locked", "accountLock"))
@@ -1267,7 +1267,7 @@ func (this *Bitrue) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes112512)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var subType any = nil
@@ -1435,7 +1435,7 @@ func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString2(ticker, "lastPrice", "last")
 	var timestamp *int64 = this.SafeInteger(ticker, "time")
 	var percentage any = nil
@@ -1847,7 +1847,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(this.Id + " fetchTickers only support spot & swap markets"))
 		}
 	} else {
-		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", nil, params)
+		var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		if !IsEqual(typeVar, "spot") {
@@ -1970,7 +1970,7 @@ func (this *Bitrue) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
 	var marketId *string = this.SafeString2(trade, "symbol", "contractName")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var orderId *string = this.SafeString(trade, "orderId")
 	var id *string = this.SafeString2(trade, "id", "tradeId")
 	var side any = nil
@@ -2089,7 +2089,7 @@ func (this *Bitrue) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.ParseTrades(response, market, since, limit)
 	return nil
 }
-func (this *Bitrue) ParseOrderStatus(status any) any {
+func (this *Bitrue) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"INIT":             "open",
 		"PENDING_CREATE":   "open",
@@ -2160,22 +2160,22 @@ func (this *Bitrue) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var status any = this.ParseOrderStatus(this.SafeString2(order, "status", "orderStatus"))
+	var status *string = this.ParseOrderStatus(this.SafeString2(order, "status", "orderStatus"))
 	var marketId *string = this.SafeString(order, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var filled *string = this.SafeString(order, "executedQty")
-	var timestamp any = nil
-	var lastTradeTimestamp any = nil
+	var timestamp *int64 = nil
+	var lastTradeTimestamp *int64 = nil
 	if InOp(order, "time") {
-		timestamp = DerefScalar(this.SafeInteger(order, "time"))
+		timestamp = this.SafeInteger(order, "time")
 	} else if InOp(order, "transactTime") {
-		timestamp = DerefScalar(this.SafeInteger(order, "transactTime"))
+		timestamp = this.SafeInteger(order, "transactTime")
 	} else if InOp(order, "updateTime") {
-		if IsEqual(status, "open") {
+		if status != nil && *status == "open" {
 			if Precise.StringGt(filled, "0") {
-				lastTradeTimestamp = DerefScalar(this.SafeInteger(order, "updateTime"))
+				lastTradeTimestamp = this.SafeInteger(order, "updateTime")
 			} else {
-				timestamp = DerefScalar(this.SafeInteger(order, "updateTime"))
+				timestamp = this.SafeInteger(order, "updateTime")
 			}
 		}
 	}
@@ -2318,8 +2318,8 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	if IsEqual(GetValue(market, "swap"), true) {
 		var isMarket bool = (uppercaseType == "MARKET")
 		var timeInForce *string = this.SafeStringLower(params, "timeInForce")
-		var postOnly any = this.IsPostOnly(isMarket, nil, params)
-		if EvalTruthy(postOnly) {
+		var postOnly bool = this.IsPostOnly(isMarket, nil, params)
+		if postOnly {
 			request["type"] = "POST_ONLY"
 		} else if timeInForce != nil && *timeInForce == "fok" {
 			request["type"] = "FOK"
@@ -2328,7 +2328,7 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		}
 		request["contractName"] = GetValue(market, "id")
 		var createMarketBuyOrderRequiresPrice any = true
-		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
 		if isMarket && (IsEqual(side, "buy")) && EvalTruthy(createMarketBuyOrderRequiresPrice) {
@@ -2337,8 +2337,8 @@ func (this *Bitrue) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			if IsEqual(price, nil) && (cost == nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)"))
 			} else {
-				var amountString any = this.NumberToString(amount)
-				var priceString any = this.NumberToString(price)
+				var amountString *string = this.NumberToString(amount)
+				var priceString *string = this.NumberToString(price)
 				var quoteAmount *string = Precise.StringMul(amountString, priceString)
 				var requestAmount any = func() any {
 					if cost != nil {
@@ -3173,7 +3173,7 @@ func (this *Bitrue) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseTransactions(data, currency)
 	return nil
 }
-func (this *Bitrue) ParseTransactionStatusByType(status any, optionalArgs ...any) any {
+func (this *Bitrue) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{
@@ -3282,8 +3282,8 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 		}
 		return "deposit"
 	}()
-	var status any = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var status *string = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
+	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var network any = nil
 	var currencyId *string = this.SafeString2(transaction, "symbol", "coin")
 	if currencyId != nil {
@@ -3294,10 +3294,10 @@ func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
 			network = ToUpper(networkId)
 		}
 	}
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": code,
 			"cost":     feeCost,

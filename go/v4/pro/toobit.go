@@ -711,7 +711,7 @@ func (this *Toobit) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "channel", "depth")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var messageHashes any = []any{}
@@ -824,7 +824,7 @@ func (this *Toobit) SetOrderBookSnapshot(client any, message any, channel any) {
 	for i := 0; i < length; i++ {
 		var entry any = ccxt.GetValue(data, i)
 		var marketId *string = this.SafeString(entry, "s")
-		var symbol any = this.SafeSymbol(marketId)
+		var symbol *string = this.SafeSymbol(marketId)
 		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("orderBook::", symbol), "::"), channel)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
 			var limit *int64 = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "orderBookLimit", 1000)
@@ -866,7 +866,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	retRes6998 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes6998)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
@@ -896,7 +896,7 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a subscription hash"))
 	}
 	var url any = this.GetUserStreamUrl()
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, marketType, subscriptionHash, params)
 	client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot"))
 
@@ -977,7 +977,7 @@ func (this *Toobit) HandleBalance(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
 		var balance any = ccxt.GetValue(data, i)
 		var currencyId *string = this.SafeString(balance, "a")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "info", balance)
 		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "l"))
@@ -1121,7 +1121,7 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "O")
 	var marketId *string = this.SafeString(order, "s")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var priceType *string = this.SafeStringLower(order, "pt")
 	var rawOrderType *string = this.SafeStringLower(order, "o")
 	var orderType any = nil
@@ -1130,9 +1130,9 @@ func (this *Toobit) ParseWsOrder(order any, optionalArgs ...any) any {
 	} else {
 		orderType = rawOrderType
 	}
-	var feeCost any = ccxt.DerefScalar(this.SafeNumber(order, "n"))
+	var feeCost *float64 = this.SafeNumber(order, "n")
 	var fee any = nil
-	if !ccxt.IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": nil,
@@ -1322,7 +1322,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	messageHash = ccxt.Add(typeVar+":positions", messageHash)
 	var url any = this.GetUserStreamUrl()
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbols)
 	var cache any = this.SafeValue(this.Positions, typeVar)
 	if ccxt.IsEqual(cache, nil) {
@@ -1513,7 +1513,7 @@ func (this *Toobit) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// client.futures is the registry: client.future () is the atomic check-and-insert and
 		// client.resolve () / client.reject () settle and remove the entry under the same lock in every port
 		var messageHash string = "authenticate"
-		var client any = this.Client("authenticationFlights")
+		var client ccxt.ClientInterface = this.Client("authenticationFlights")
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
@@ -1540,7 +1540,7 @@ func (this *Toobit) authenticateBody(ch chan any, optionalArgs ...any) any {
 							// reject the flight - waiters throw and the next caller re-leads.
 							// no rethrow here, the trailing suspension point rethrows to this
 							// caller AND attaches the handler an alone leader needs
-							err := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.ExceptionMessage(e)))
+							err := ccxt.AuthenticationError(this.Id + " " + this.ExceptionMessage(e))
 							client.(ccxt.ClientInterface).Reject(err, messageHash)
 							return nil
 						}(this)
@@ -1597,10 +1597,10 @@ func (this *Toobit) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any
 					ret_ = func(this *Toobit) any {
 						// catch block:
 						var url any = this.GetUserStreamUrl()
-						var client any = this.Client(url)
+						var client ccxt.ClientInterface = this.Client(url)
 						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 						for i := 0; i < len(messageHashes); i++ {
-							var messageHash any = ccxt.GetValue(messageHashes, i)
+							var messageHash string = ccxt.GetValue(messageHashes, i).(string)
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}
 						ccxt.AddElementToObject(ccxt.GetValue(this.Options, "ws"), "listenKey", nil)

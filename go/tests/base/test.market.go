@@ -70,11 +70,11 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var swap any = GetValue(market, "swap")
 	var future any = GetValue(market, "future")
 	var option any = GetValue(market, "option")
-	var index any = exchange.SafeBool(market, "index") // todo: unify
+	var index any = ccxt.DerefScalar(exchange.SafeBool(market, "index")) // todo: unify
 	var isIndex bool = (index != nil) && EvalTruthy(index)
 	var linear any = GetValue(market, "linear")
 	var inverse any = GetValue(market, "inverse")
-	var quanto any = exchange.SafeBool(market, "quanto") // todo: unify
+	var quanto any = ccxt.DerefScalar(exchange.SafeBool(market, "quanto")) // todo: unify
 	var isQuanto bool = (quanto != nil) && EvalTruthy(quanto)
 	var isInactiveMarket bool = IsEqual(GetValue(market, "active"), false)
 	//
@@ -228,7 +228,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var precisionKeysLen int = len(precisionKeys)
 	Assert((precisionKeysLen >= 2), Add("precision should have \"amount\" and \"price\" keys at least", logText))
 	for i := 0; i < len(precisionKeys); i++ {
-		var priceOrAmountKey any = GetValue(precisionKeys, i)
+		var priceOrAmountKey string = GetValue(precisionKeys, i).(string)
 		// only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
 		var isExclusivePair bool = IsEqual(GetValue(market, "baseId"), "BTC")
 		var isNonSpot bool = (spot != true) // such high precision is only allowed in contract markets
@@ -246,7 +246,7 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var limitsKeysLength int = len(limitsKeys)
 	Assert((limitsKeysLength >= 3), Add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText))
 	for i := 0; i < len(limitsKeys); i++ {
-		var key any = GetValue(limitsKeys, i)
+		var key string = GetValue(limitsKeys, i).(string)
 		var limitEntry any = GetValue(GetValue(market, "limits"), key)
 		if isInactiveMarket {
 			continue

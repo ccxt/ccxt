@@ -344,7 +344,7 @@ func (this *Phemex) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes32412)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var usePerpetualApi bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
@@ -408,7 +408,7 @@ func (this *Phemex) HandleBalance(typeVar any, client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
 		var balance any = ccxt.GetValue(message, i)
 		var currencyId *string = this.SafeString(balance, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var currency any = this.SafeValue(this.Currencies, code, map[string]any{})
 		var scale *int64 = this.SafeInteger(currency, "valueScale", 8)
 		var account any = this.Account()
@@ -925,7 +925,7 @@ func (this *Phemex) HandleOrderBook(client any, message any) {
 		var book any = this.SafeValue2(message, "book", "orderbook_p", map[string]any{})
 		var snapshot any = this.CustomParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market)
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
-		var orderbook any = this.OrderBook(snapshot, depth)
+		var orderbook ccxt.OrderBookInterface = this.OrderBook(snapshot, depth)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	} else {
@@ -988,7 +988,7 @@ func (this *Phemex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(params, "settle", "USDT")
 		}
 	}
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	if symbol == nil {
@@ -1137,8 +1137,8 @@ func (this *Phemex) HandleMyTrades(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var market any = ccxt.GetValue(keys, i)
-		var hash any = ccxt.Add(channel+":", market)
+		var market string = ccxt.GetValue(keys, i).(string)
+		var hash any = channel + ":" + market
 		client.(ccxt.ClientInterface).Resolve(cachedTrades, hash)
 	}
 	// generic subscription
@@ -1189,7 +1189,7 @@ func (this *Phemex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			ccxt.AddElementToObject(params, "settle", "USDT")
 		}
 	}
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isUSDTSettled bool = ccxt.IsEqual(this.SafeString(params, "settle"), "USDT")
@@ -1375,13 +1375,13 @@ func (this *Phemex) HandleOrders(client any, message any) {
 	if (ccxt.InOp(message, "closed")) || (ccxt.InOp(message, "fills")) || (ccxt.InOp(message, "open")) {
 		var closed any = this.SafeValue(message, "closed", []any{})
 		var open any = this.SafeValue(message, "open", []any{})
-		var orders any = this.ArrayConcat(open, closed)
-		var ordersLength int = ccxt.GetArrayLength(orders)
+		var orders []any = this.ArrayConcat(open, closed)
+		var ordersLength int = len(orders)
 		if ordersLength == 0 {
 			return
 		}
 		trades = this.SafeList(message, "fills", []any{})
-		for i := 0; i < ccxt.GetArrayLength(orders); i++ {
+		for i := 0; i < len(orders); i++ {
 			var rawOrder any = ccxt.GetValue(orders, i)
 			var parsedOrder any = this.ParseOrder(rawOrder)
 			ccxt.AppendToArray(&parsedOrders, parsedOrder)
@@ -1823,7 +1823,7 @@ func (this *Phemex) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var requestId any = this.RequestId()
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

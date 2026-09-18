@@ -214,11 +214,11 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers requires a symbols argument"))
 	}
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var interval any = 500
-	intervalparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	if ccxt.IsEqual(this.Markets, nil) {
@@ -698,7 +698,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		ccxt.PanicOnError(retRes52612)
 	}
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 	var isSnapshot bool = (ccxt.IsEqual(channel, "v1.book.s"))
@@ -707,12 +707,12 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
 	}
 	if ccxt.IsEqual(limit, nil) {
-		limitparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "limit", 100)
+		var limitparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "limit", 100)
 		limit = ccxt.GetValue(limitparamsVariable, 0)
 		params = ccxt.GetValue(limitparamsVariable, 1)
 	}
 	var interval any = 500
-	intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
+	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols)

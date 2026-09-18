@@ -203,7 +203,7 @@ func (this *Coinbaseinternational) subscribeMultipleBody(ch chan any, name any, 
 	if ccxt.IsEqual(url, nil) {
 		panic(ccxt.NotSupported(this.Id + " is not supported in sandbox environment"))
 	}
-	var timestamp any = this.NumberToString(this.Seconds())
+	var timestamp *string = this.NumberToString(this.Seconds())
 	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
 	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe map[string]any = map[string]any{
@@ -319,7 +319,7 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan any, symbol any, opti
 		ccxt.PanicOnError(retRes23012)
 	}
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "channel", "LEVEL1")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "channel", "LEVEL1")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 
@@ -369,7 +369,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan any, optionalArgs ..
 		ccxt.PanicOnError(retRes26212)
 	}
 	var channel any = nil
-	channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "LEVEL1")
+	var channelparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "channel", "LEVEL1")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
 
@@ -888,7 +888,7 @@ func (this *Coinbaseinternational) HandleOrderBook(client any, message any) {
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "product_id")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var datetime *string = this.SafeString(message, "time")
 	var channel *string = this.SafeString(message, "channel")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {

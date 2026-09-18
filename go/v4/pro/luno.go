@@ -322,8 +322,8 @@ func (this *Luno) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	_ = amountKey
 	thirdKey := ccxt.GetArg(optionalArgs, 2, 2)
 	_ = thirdKey
-	var price any = ccxt.DerefScalar(this.SafeNumber(bidask, priceKey))
-	var amount any = ccxt.DerefScalar(this.SafeNumber(bidask, amountKey))
+	var price *float64 = this.SafeNumber(bidask, priceKey)
+	var amount *float64 = this.SafeNumber(bidask, amountKey)
 	var result any = []any{price, amount}
 	if !ccxt.IsEqual(thirdKey, nil) {
 		var thirdValue *string = this.SafeString(bidask, thirdKey)

@@ -884,9 +884,9 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "symbol")
 		var lowercaseId *string = this.SafeStringLower(market, "symbol")
 		var settleId *string = this.SafeString(market, "marginAsset")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
-		var settle any = this.SafeCurrencyCode(settleId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
+		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(base, "/"), quote)
 		var filters any = this.SafeValue(market, "filters", []any{})
 		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
@@ -1173,7 +1173,7 @@ func (this *Tokocrypto) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount *string = this.SafeString2(trade, "q", "qty")
 	var cost *string = this.SafeString2(trade, "quoteQty", "baseQty") // inverse futures
 	var marketId *string = this.SafeString(trade, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var id *string = this.SafeString2(trade, "t", "a")
 	id = this.SafeString2(trade, "id", "tradeId", id)
 	var side any = nil
@@ -1425,7 +1425,7 @@ func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "closeTime")
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var isCoinm bool = (InOp(ticker, "baseVolume"))
 	var baseVolume any = nil
@@ -1860,7 +1860,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "free"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked"))
@@ -1870,7 +1870,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 	}
 	return this.SafeBalance(result)
 }
-func (this *Tokocrypto) ParseOrderStatus(status any) any {
+func (this *Tokocrypto) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"-2":               "open",
 		"0":                "open",
@@ -1991,9 +1991,9 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var filled *string = this.SafeString(order, "executedQty", "0")
 	var timestamp *int64 = this.SafeInteger(order, "createTime")
 	var average *string = this.SafeString(order, "avgPrice")
@@ -2003,7 +2003,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) any {
 	//   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
 	var cost *string = this.SafeStringN(order, []any{"cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase"})
 	var id *string = this.SafeString(order, "orderId")
-	var typeVar any = this.ParseOrderType(this.SafeStringLower(order, "type"))
+	var typeVar *string = this.ParseOrderType(this.SafeStringLower(order, "type"))
 	var side any = this.SafeStringLower(order, "side")
 	if IsEqual(side, "0") {
 		side = "buy"
@@ -2017,7 +2017,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = "PO"
 	}
-	var postOnly bool = (IsEqual(typeVar, "limit_maker")) || (IsEqual(timeInForce, "PO"))
+	var postOnly bool = (typeVar != nil && *typeVar == "limit_maker") || (IsEqual(timeInForce, "PO"))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -2043,7 +2043,7 @@ func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) any {
 		"trades":             fills,
 	}, market)
 }
-func (this *Tokocrypto) ParseOrderType(status any) any {
+func (this *Tokocrypto) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"2": "market",
 		"1": "limit",
@@ -2094,13 +2094,13 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	}
 	params = this.Omit(params, []any{"clientId", "clientOrderId"})
 	var initialUppercaseType string = ToUpper(typeVar)
-	var uppercaseType any = initialUppercaseType
+	var uppercaseType string = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
 	if !IsEqual(triggerPrice, nil) {
 		params = this.Omit(params, []any{"triggerPrice", "stopPrice"})
-		if IsEqual(uppercaseType, "MARKET") {
+		if uppercaseType == "MARKET" {
 			uppercaseType = "STOP_LOSS"
-		} else if IsEqual(uppercaseType, "LIMIT") {
+		} else if uppercaseType == "LIMIT" {
 			uppercaseType = "STOP_LOSS_LIMIT"
 		}
 	}
@@ -2156,24 +2156,24 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 	//     TAKE_PROFIT_LIMIT    timeInForce, quantity, price, stopPrice
 	//     LIMIT_MAKER          quantity, price
 	//
-	if IsEqual(uppercaseType, "MARKET") {
+	if uppercaseType == "MARKET" {
 		if IsEqual(side, "buy") {
 			var precision any = GetValue(GetValue(market, "precision"), "price")
 			var quoteAmount any = nil
 			var createMarketBuyOrderRequiresPrice any = true
-			createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+			var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			createMarketBuyOrderRequiresPrice = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 			params = GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-			var cost any = DerefScalar(this.SafeNumber2(params, "cost", "quoteOrderQty"))
+			var cost *float64 = this.SafeNumber2(params, "cost", "quoteOrderQty")
 			params = this.Omit(params, []any{"cost", "quoteOrderQty"})
-			if !IsEqual(cost, nil) {
+			if cost != nil {
 				quoteAmount = cost
 			} else if EvalTruthy(createMarketBuyOrderRequiresPrice) {
 				if IsEqual(price, nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {
-					var amountString any = this.NumberToString(amount)
-					var priceString any = this.NumberToString(price)
+					var amountString *string = this.NumberToString(amount)
+					var priceString *string = this.NumberToString(price)
 					quoteAmount = Precise.StringMul(amountString, priceString)
 				}
 			} else {
@@ -2183,20 +2183,20 @@ func (this *Tokocrypto) createOrderBody(ch chan any, symbol any, typeVar any, si
 		} else {
 			quantityIsRequired = true
 		}
-	} else if IsEqual(uppercaseType, "LIMIT") {
+	} else if uppercaseType == "LIMIT" {
 		priceIsRequired = true
 		quantityIsRequired = true
-	} else if (IsEqual(uppercaseType, "STOP_LOSS")) || (IsEqual(uppercaseType, "TAKE_PROFIT")) {
+	} else if (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT") {
 		triggerPriceIsRequired = true
 		quantityIsRequired = true
 		if (IsEqual(GetValue(market, "linear"), true)) || (IsEqual(GetValue(market, "inverse"), true)) {
 			priceIsRequired = true
 		}
-	} else if (IsEqual(uppercaseType, "STOP_LOSS_LIMIT")) || (IsEqual(uppercaseType, "TAKE_PROFIT_LIMIT")) {
+	} else if (uppercaseType == "STOP_LOSS_LIMIT") || (uppercaseType == "TAKE_PROFIT_LIMIT") {
 		quantityIsRequired = true
 		triggerPriceIsRequired = true
 		priceIsRequired = true
-	} else if IsEqual(uppercaseType, "LIMIT_MAKER") {
+	} else if uppercaseType == "LIMIT_MAKER" {
 		priceIsRequired = true
 		quantityIsRequired = true
 	}
@@ -2865,7 +2865,7 @@ func (this *Tokocrypto) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	ch <- this.ParseTransactions(withdrawals, currency, since, limit)
 	return nil
 }
-func (this *Tokocrypto) ParseTransactionStatusByType(status any, optionalArgs ...any) any {
+func (this *Tokocrypto) ParseTransactionStatusByType(status any, optionalArgs ...any) *string {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
 	var statusesByType map[string]any = map[string]any{
@@ -2945,8 +2945,8 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) a
 		txid = Slice(txid, 18, nil)
 	}
 	var currencyId *string = this.SafeString2(transaction, "coin", "fiatCurrency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var timestamp any = nil
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var timestamp *int64 = nil
 	var insertTime *int64 = this.SafeInteger(transaction, "insertTime")
 	var createTime *int64 = this.SafeInteger2(transaction, "createTime", "timestamp")
 	var typeVar any = DerefScalar(this.SafeString(transaction, "type"))
@@ -2959,13 +2959,13 @@ func (this *Tokocrypto) ParseTransaction(transaction any, optionalArgs ...any) a
 			timestamp = createTime
 		}
 	}
-	var feeCost any = DerefScalar(this.SafeNumber2(transaction, "transactionFee", "totalFee"))
+	var feeCost *float64 = this.SafeNumber2(transaction, "transactionFee", "totalFee")
 	var fee map[string]any = map[string]any{
 		"currency": nil,
 		"cost":     nil,
 		"rate":     nil,
 	}
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee["currency"] = code
 		fee["cost"] = feeCost
 	}

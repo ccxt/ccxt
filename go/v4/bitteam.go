@@ -525,17 +525,17 @@ func (this *Bitteam) ParseMarket(market any) any {
 	var parts []string = Split(id, "_")
 	var baseId *string = this.SafeString(parts, 0)
 	var quoteId *string = this.SafeString(parts, 1)
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var active any = this.SafeValue(market, "active")
 	var timeStart *string = this.SafeString(market, "timeStart")
-	var created any = this.Parse8601(timeStart)
-	var minCost any = nil
+	var created *int64 = this.Parse8601(timeStart)
+	var minCost *float64 = nil
 	var currenciesValuedInUsd any = this.HandleOption("fetchMarkets", "currenciesValuedInUsd", map[string]any{})
 	var quoteInUsd *bool = this.SafeBool(currenciesValuedInUsd, quote, false)
 	if quoteInUsd != nil && *quoteInUsd == true {
 		var settings any = this.SafeValue(market, "settings", map[string]any{})
-		minCost = DerefScalar(this.SafeNumber(settings, "limit_usd"))
+		minCost = this.SafeNumber(settings, "limit_usd")
 	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -738,7 +738,7 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var statusesResponse any = this.SafeValue(this.Options, "_temp_currencies_statuses", map[string]any{})
 	var id *string = this.SafeString(currency, "symbol")
 	var numericId *int64 = this.SafeInteger(currency, "id")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var active *bool = this.SafeBool(currency, "active", false)
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "precision")))
 	var txLimits any = this.SafeValue(currency, "txLimits", map[string]any{})
@@ -764,9 +764,9 @@ func (this *Bitteam) ParseCurrency(currency any) any {
 	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
 	var typeRaw *string = this.SafeString(currency, "type")
 	for j := 0; j < len(networkIds); j++ {
-		var networkId any = GetValue(networkIds, j)
+		var networkId string = GetValue(networkIds, j).(string)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var networkFee any = DerefScalar(this.SafeNumber(feesByNetworkId, networkId))
+		var networkFee *float64 = this.SafeNumber(feesByNetworkId, networkId)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -1591,7 +1591,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
 	var clientOrderId *string = this.SafeString(order, "orderCid")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var createdAt *string = this.SafeString(order, "createdAt")
 	if createdAt != nil {
 		timestamp = this.Parse8601(createdAt)
@@ -1599,9 +1599,9 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 		timestamp = this.SafeTimestamp(order, "timestamp")
 	}
 	var updatedAt *string = this.SafeString(order, "updatedAt")
-	var lastUpdateTimestamp any = this.Parse8601(updatedAt)
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var typeVar any = this.ParseOrderType(this.SafeString(order, "type"))
+	var lastUpdateTimestamp *int64 = this.Parse8601(updatedAt)
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var typeVar *string = this.ParseOrderType(this.SafeString(order, "type"))
 	var side *string = this.SafeString(order, "side")
 	var feeRaw any = this.SafeValue(order, "fee")
 	var price *string = this.SafeString(order, "price")
@@ -1642,7 +1642,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) any {
 		"postOnly":            false,
 	}, market)
 }
-func (this *Bitteam) ParseOrderStatus(status any) any {
+func (this *Bitteam) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"accepted":           "open",
 		"executed":           "closed",
@@ -1655,7 +1655,7 @@ func (this *Bitteam) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitteam) ParseOrderType(status any) any {
+func (this *Bitteam) ParseOrderType(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"market": "market",
 		"limit":  "limit",
@@ -2434,7 +2434,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) any {
 		"currency": this.SafeCurrencyCode(feeCurrencyId),
 		"cost":     feeCost,
 	}
-	var intTs any = this.ParseToInt(timestamp)
+	var intTs int64 = this.ParseToInt(timestamp)
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        order,
@@ -2534,12 +2534,12 @@ func (this *Bitteam) ParseBalance(response any) any {
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
 	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; i < len(rawCurrencyIds); i++ {
-		var rawCurrencyId any = GetValue(rawCurrencyIds, i)
+		var rawCurrencyId string = GetValue(rawCurrencyIds, i).(string)
 		var currencyBalance any = this.SafeValue(result, rawCurrencyId)
 		var free *string = this.SafeString(currencyBalance, "free")
 		var used *string = this.SafeString(currencyBalance, "used")
 		var total *string = this.SafeString(currencyBalance, "total")
-		var currencyCode any = this.SafeCurrencyCode(ToLower(rawCurrencyId))
+		var currencyCode *string = this.SafeCurrencyCode(ToLower(rawCurrencyId))
 		if currencyCode != nil {
 			AddElementToObject(balance, currencyCode, map[string]any{
 				"free":  free,
@@ -2741,7 +2741,7 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	_ = currency
 	var currencyObject any = this.SafeValue(transaction, "currency")
 	var currencyId *string = this.SafeString(currencyObject, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var id *string = this.SafeString(transaction, "id")
 	var params any = this.SafeValue(transaction, "params")
 	var txid *string = this.SafeString(params, "tx_id")
@@ -2755,9 +2755,9 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var addressFrom *string = this.SafeString(transaction, "sender")
 	var addressTo *string = this.SafeString(transaction, "recipient")
 	var tag *string = this.SafeString(transaction, "message")
-	var typeVar any = this.ParseTransactionType(this.SafeString(transaction, "type"))
+	var typeVar *string = this.ParseTransactionType(this.SafeString(transaction, "type"))
 	var amount any = this.ParseValueToPricision(transaction, "amount", currencyObject, "decimals")
-	var status any = this.ParseTransactionStatus(this.SafeValue(transaction, "status"))
+	var status *string = this.ParseTransactionStatus(this.SafeValue(transaction, "status"))
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2781,14 +2781,14 @@ func (this *Bitteam) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"internal":    false,
 	}
 }
-func (this *Bitteam) ParseTransactionType(typeVar any) any {
+func (this *Bitteam) ParseTransactionType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"deposit":  "deposit",
 		"withdraw": "withdrawal",
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bitteam) ParseTransactionStatus(status any) any {
+func (this *Bitteam) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"approving": "pending",
 		"success":   "ok",

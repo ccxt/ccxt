@@ -598,9 +598,9 @@ func (this *Coinspot) ParseBalance(response any) any {
 			var currencies any = GetValue(balances, i)
 			var currencyIds []string = ObjectKeys(currencies)
 			for j := 0; j < len(currencyIds); j++ {
-				var currencyId any = GetValue(currencyIds, j)
+				var currencyId string = GetValue(currencyIds, j).(string)
 				var balance any = GetValue(currencies, currencyId)
-				var code any = this.SafeCurrencyCode(currencyId)
+				var code *string = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
 				AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 				if code != nil {
@@ -611,8 +611,8 @@ func (this *Coinspot) ParseBalance(response any) any {
 	} else {
 		var currencyIds []string = ObjectKeys(balances)
 		for i := 0; i < len(currencyIds); i++ {
-			var currencyId any = GetValue(currencyIds, i)
-			var code any = this.SafeCurrencyCode(currencyId)
+			var currencyId string = GetValue(currencyIds, i).(string)
+			var code *string = this.SafeCurrencyCode(currencyId)
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balances, currencyId))
 			if code != nil {
@@ -728,7 +728,7 @@ func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -853,7 +853,7 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var prices any = this.SafeDict(response, "prices", map[string]any{})
 	var ids []string = ObjectKeys(prices)
 	for i := 0; i < len(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
 		if IsEqual(GetValue(market, "spot"), true) {
 			var symbol any = GetValue(market, "symbol")
@@ -994,7 +994,7 @@ func (this *Coinspot) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < GetArrayLength(sellTrades); i++ {
 		AddElementToObject(GetValue(sellTrades, i), "side", "sell")
 	}
-	var trades any = this.ArrayConcat(buyTrades, sellTrades)
+	var trades []any = this.ArrayConcat(buyTrades, sellTrades)
 
 	ch <- this.ParseTrades(trades, market, since, limit)
 	return nil
@@ -1027,7 +1027,7 @@ func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) any {
 	//     }
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	var priceString any = nil
 	var fee any = nil
 	var audTotal *string = this.SafeString(trade, "audtotal")
@@ -1035,7 +1035,7 @@ func (this *Coinspot) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeString(trade, "side")
 	var amountString *string = this.SafeString(trade, "amount")
 	var marketId *string = this.SafeString(trade, "market")
-	var symbol any = this.SafeSymbol(marketId, market, "/")
+	var symbol *string = this.SafeSymbol(marketId, market, "/")
 	var solddate *int64 = this.SafeInteger(trade, "solddate")
 	if solddate != nil {
 		priceString = DerefScalar(this.SafeString(trade, "rate"))

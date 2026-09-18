@@ -1206,8 +1206,8 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settleId any = nil
 		var marketTypeRaw *string = this.SafeString(market, "market_type")
 		var symbol any = Add(Add(base, "/"), quote)
@@ -1435,8 +1435,8 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) any {
 		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
 		baseId := GetValue(baseIdquoteIdVariable, 0)
 		quoteId := GetValue(baseIdquoteIdVariable, 1)
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var description *string = this.SafeString(market, "description")
 		if description == nil {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing description"))
@@ -1516,7 +1516,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	if microtimestamp == nil {
 		panic(ExchangeError(this.Id + " fetchOrderBook() missing microtimestamp"))
 	}
-	var timestamp any = this.ParseToInt(Divide(microtimestamp, 1000))
+	var timestamp int64 = this.ParseToInt(Divide(microtimestamp, 1000))
 	var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
 	AddElementToObject(orderbook, "nonce", microtimestamp)
 
@@ -1543,7 +1543,7 @@ func (this *Bitstamp) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "pair")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "timestamp")
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "volume")
@@ -1694,7 +1694,7 @@ func (this *Bitstamp) GetCurrencyIdFromTransaction(transaction any) any {
 	transaction = this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"})
 	var ids []string = ObjectKeys(transaction)
 	for i := 0; i < len(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id string = GetValue(ids, i).(string)
 		if GetIndexOf(id, "_") < 0 {
 			var value *int64 = this.SafeInteger(transaction, id)
 			if (value != nil) && (value == nil || *value != 0) {
@@ -1777,8 +1777,8 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsEqual(market, nil) {
 		var keys []string = ObjectKeys(trade)
 		for i := 0; i < len(keys); i++ {
-			var currentKey any = GetValue(keys, i)
-			if (!IsEqual(currentKey, "order_id")) && (GetIndexOf(currentKey, "_") >= 0) {
+			var currentKey string = GetValue(keys, i).(string)
+			if (currentKey != "order_id") && (GetIndexOf(currentKey, "_") >= 0) {
 				rawMarketId = currentKey
 				market = this.SafeMarket(rawMarketId, market, "_")
 			}
@@ -1819,7 +1819,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	if datetimeString != nil {
 		if GetIndexOf(datetimeString, " ") >= 0 {
 			// iso8601
-			timestamp = this.Parse8601(datetimeString)
+			timestamp = DerefScalar(this.Parse8601(datetimeString))
 		} else {
 			// string unix epoch in seconds
 			timestamp = ParseInt(datetimeString)
@@ -1994,14 +1994,14 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			request["limit"] = 1000 // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
 		} else {
 			limit = 1000
-			var start any = this.ParseToInt(Divide(since, 1000))
+			var start int64 = this.ParseToInt(Divide(since, 1000))
 			request["start"] = start
 			request["end"] = this.Sum(start, Multiply(duration, (Subtract(limit, 1))))
 			request["limit"] = limit
 		}
 	} else {
 		if !IsEqual(since, nil) {
-			var start any = this.ParseToInt(Divide(since, 1000))
+			var start int64 = this.ParseToInt(Divide(since, 1000))
 			request["start"] = start
 			request["end"] = this.Sum(start, Multiply(duration, (Subtract(limit, 1))))
 		}
@@ -2041,7 +2041,7 @@ func (this *Bitstamp) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var currencyBalance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
-		var currencyCode any = this.SafeCurrencyCode(currencyId)
+		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(currencyBalance, "available"))
 		AddElementToObject(account, "used", this.SafeString(currencyBalance, "reserved"))
@@ -2273,9 +2273,9 @@ func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) an
 	var currencies map[string]any = this.IndexBy(response, "currency")
 	var ids []string = ObjectKeys(currencies)
 	for i := 0; i < len(ids); i++ {
-		var id any = GetValue(ids, i)
+		var id string = GetValue(ids, i).(string)
 		var fees any = this.SafeValue(response, i, map[string]any{})
-		var code any = this.SafeCurrencyCode(id)
+		var code *string = this.SafeCurrencyCode(id)
 		if (!IsEqual(codes, nil)) && !this.InArray(code, codes) {
 			continue
 		}
@@ -2343,7 +2343,7 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
 		var networkEntry any = GetValue(fee, j)
 		var networkId *string = this.SafeString(networkEntry, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var withdrawFee any = DerefScalar(this.SafeNumber(networkEntry, "fee"))
+		var withdrawFee *float64 = this.SafeNumber(networkEntry, "fee")
 		AddElementToObject(result, "withdraw", map[string]any{
 			"fee":        withdrawFee,
 			"percentage": nil,
@@ -2622,7 +2622,7 @@ func (this *Bitstamp) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	ch <- this.ParseOrders(canceled)
 	return nil
 }
-func (this *Bitstamp) ParseOrderStatus(status any) any {
+func (this *Bitstamp) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"In Queue":       "open",
 		"Open":           "open",
@@ -2819,7 +2819,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -3073,9 +3073,9 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp any = this.Parse8601(this.SafeString(transaction, "datetime"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "datetime"))
 	var currencyId any = this.GetCurrencyIdFromTransaction(transaction)
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var feeCost *string = this.SafeString(transaction, "fee")
 	var feeCurrency any = nil
 	var amount any = nil
@@ -3155,7 +3155,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 		"fee":         fee,
 	}
 }
-func (this *Bitstamp) ParseTransactionStatus(status any) any {
+func (this *Bitstamp) ParseTransactionStatus(status any) *string {
 	//
 	//   withdrawals:
 	//   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
@@ -3247,10 +3247,10 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 		}()
 	}
 	// there is no timestamp from fetchOrder
-	var timestamp any = this.Parse8601(this.SafeString(order, "datetime"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(order, "datetime"))
 	var marketId *string = this.SafeStringLower(order, "currency_pair")
-	var symbol any = this.SafeSymbol(marketId, market, "/")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var symbol *string = this.SafeSymbol(marketId, market, "/")
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var amount *string = this.SafeString(order, "amount")
 	var transactions any = this.SafeValue(order, "transactions", []any{})
 	var price *string = this.SafeString(order, "price")
@@ -3278,7 +3278,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 		"average":            nil,
 	}, market)
 }
-func (this *Bitstamp) ParseLedgerEntryType(typeVar any) any {
+func (this *Bitstamp) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"0":  "transaction",
 		"1":  "transaction",
@@ -3316,8 +3316,8 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar any = this.ParseLedgerEntryType(this.SafeString(item, "type"))
-	if IsEqual(typeVar, "trade") {
+	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
+	if typeVar != nil && *typeVar == "trade" {
 		var parsedTrade any = this.ParseTrade(item)
 		var market any = nil
 		var keys []string = ObjectKeys(item)
@@ -3793,7 +3793,7 @@ func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 	return result
 }
-func (this *Bitstamp) ParseTransferStatus(status any) any {
+func (this *Bitstamp) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"ok":    "ok",
 		"error": "failed",
@@ -3887,7 +3887,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		} else if !IsEqual(error, nil) {
 			var keys []string = ObjectKeys(error)
 			for i := 0; i < len(keys); i++ {
-				var key any = GetValue(keys, i)
+				var key string = GetValue(keys, i).(string)
 				var value any = this.SafeValue(error, key)
 				if IsArray(value) {
 					errors = this.ArrayConcat(errors, value)

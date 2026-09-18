@@ -63,6 +63,7 @@ func testWatchLiquidationsForSymbolsBody(ch chan any, exchange ccxt.ICoreExchang
 				var m3 any = (Add(Add(Add(Add(Add(exchange.GetId(), " "), method), "() returned "), GetArrayLength(response)), " liquidations"))
 				fmt.Println(m3)
 				// log.noLocate (asTable (response))
+
 				for i := 0; i < GetArrayLength(response); i++ {
 					TestLiquidation(exchange, skippedProperties, method, GetValue(response, i), symbol)
 				}

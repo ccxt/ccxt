@@ -906,7 +906,7 @@ func (this *Nado) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "watchOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -965,7 +965,7 @@ func (this *Nado) unWatchOrdersBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "unWatchOrders", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchOrders", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1027,7 +1027,7 @@ func (this *Nado) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "watchMyTrades", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1086,7 +1086,7 @@ func (this *Nado) unWatchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		productId = this.ParseToInt(ccxt.GetValue(market, "id"))
 	}
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "unWatchMyTrades", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchMyTrades", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1150,7 +1150,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "watchPositions", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "watchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1213,7 +1213,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "unWatchPositions", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "unWatchPositions", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var sender any = this.CreateSubaccount(this.WalletAddress, subaccount)
@@ -1600,7 +1600,7 @@ func (this *Nado) watchPublicBody(ch chan any, streamType any, market any, messa
 		"streamType": streamType,
 		"symbol":     this.SafeString(market, "symbol"),
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
 	if ccxt.IsEqual(clientSubscription, nil) {
 		var id *string = this.SafeString(request, "id")
@@ -1626,7 +1626,7 @@ func (this *Nado) watchPrivateBody(ch chan any, streamType any, stream any, mess
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if !ccxt.IsEqual(clientSubscription, nil) {
 
@@ -1677,7 +1677,7 @@ func (this *Nado) unWatchPrivateBody(ch chan any, stream any, messageHash any, o
 		"id":          id,
 		"messageHash": messageHash,
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
 		"messageHash":     messageHash,
 		"unsubscribeHash": unsubscribeHash,
@@ -1700,7 +1700,7 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if !ccxt.IsEqual(authenticated, nil) {
@@ -1717,11 +1717,11 @@ func (this *Nado) authenticateBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var recvWindow any = nil
-	recvWindowparamsVariable := this.HandleOptionAndParams(params, "authenticate", "recvWindow", 5000)
+	var recvWindowparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "recvWindow", 5000)
 	recvWindow = ccxt.GetValue(recvWindowparamsVariable, 0)
 	params = ccxt.GetValue(recvWindowparamsVariable, 1)
 	var subaccount any = nil
-	subaccountparamsVariable := this.HandleOptionAndParams(params, "authenticate", "subaccount", "default")
+	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "authenticate", "subaccount", "default")
 	subaccount = ccxt.GetValue(subaccountparamsVariable, 0)
 	params = ccxt.GetValue(subaccountparamsVariable, 1)
 	var id any = this.RequestId()
@@ -1805,7 +1805,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan any, streamType any, markets a
 	subscriptionParams := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = subscriptionParams
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var clientSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1857,7 +1857,7 @@ func (this *Nado) unWatchPublicBody(ch chan any, streamType any, market any, mes
 		"messageHash": messageHash,
 	}
 	var unsubscribeHash any = ccxt.Add("unsubscribe:", messageHash)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.Add("unsubscription:", this.NumberToString(id)), map[string]any{
 		"messageHash":     messageHash,
 		"unsubscribeHash": unsubscribeHash,
@@ -1881,7 +1881,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 	subscriptionParams := ccxt.GetArg(optionalArgs, 1, nil)
 	_ = subscriptionParams
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "subscriptions")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var results any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
@@ -2324,7 +2324,7 @@ func (this *Nado) ParseWsAllBidsAsks(message any) any {
 	var marketIds []string = ccxt.ObjectKeys(bbos)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var bbo any = this.SafeDict(bbos, marketId, map[string]any{})
 		var bid *string = this.SafeString(bbo, "bid")
@@ -2349,12 +2349,12 @@ func (this *Nado) HandleAllBidsAsks(client any, message any) {
 	var tickers any = this.ParseWsAllBidsAsks(message)
 	var symbols []string = ccxt.ObjectKeys(tickers)
 	for i := 0; i < len(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
+		var symbol string = ccxt.GetValue(symbols, i).(string)
 		var ticker any = ccxt.GetValue(tickers, symbol)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-		client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("bidask:", symbol))
-		client.(ccxt.ClientInterface).Resolve(ticker, ccxt.Add("ticker:", symbol))
+		client.(ccxt.ClientInterface).Resolve(ticker, "bidask:"+symbol)
+		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(tickers, "bidask")
 	client.(ccxt.ClientInterface).Resolve(tickers, "ticker")
@@ -2388,7 +2388,7 @@ func (this *Nado) HandleOrderBook(client any, message any) {
 	if (maxTimestamp != nil) && (lastMaxTimestamp != nil) && (maxTimestamp != lastMaxTimestamp && (maxTimestamp == nil || lastMaxTimestamp == nil || *maxTimestamp != *lastMaxTimestamp)) {
 		var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptions); i++ {
-			var subscriptionHash any = ccxt.GetValue(subscriptions, i)
+			var subscriptionHash string = ccxt.GetValue(subscriptions, i).(string)
 			var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			var streamType *string = this.SafeString(subscription, "streamType")
 			var subscriptionSymbol *string = this.SafeString(subscription, "symbol")
@@ -2473,7 +2473,7 @@ func (this *Nado) HandleUnsubscription(client any, message any) {
 	}
 	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(subscriptions); i++ {
-		var unsubscribeHash any = ccxt.GetValue(subscriptions, i)
+		var unsubscribeHash string = ccxt.GetValue(subscriptions, i).(string)
 		var subscription any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), unsubscribeHash)
 		var subscriptionId *string = this.SafeString(subscription, "id")
 		if subscriptionId != id && (subscriptionId == nil || id == nil || *subscriptionId != *id) {

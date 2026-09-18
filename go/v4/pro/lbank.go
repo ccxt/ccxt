@@ -249,7 +249,7 @@ func (this *Lbank) HandleOHLCV(client any, message any) {
 	//      }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var symbol any = this.SafeSymbol(marketId, nil, "_")
+	var symbol *string = this.SafeSymbol(marketId, nil, "_")
 	var watchOHLCVOptions any = this.SafeValue(this.Options, "watchOHLCV", map[string]any{})
 	var timeframes any = this.SafeValue(watchOHLCVOptions, "timeframes", map[string]any{})
 	var records any = this.SafeValue(message, "records")
@@ -392,7 +392,7 @@ func (this *Lbank) HandleTicker(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
 	var parsedTicker any = this.ParseWsTicker(message, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, parsedTicker)
@@ -426,7 +426,7 @@ func (this *Lbank) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "pair")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var datetime *string = this.SafeString(ticker, "TS")
 	var tickerData any = this.SafeValue(ticker, "tick")
 	return this.SafeTicker(map[string]any{
@@ -581,7 +581,7 @@ func (this *Lbank) HandleTrades(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsEqual(stored, nil) {
@@ -617,14 +617,14 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = ccxt.DerefScalar(this.SafeInteger(trade, 0))
+	var timestamp *int64 = this.SafeInteger(trade, 0)
 	var datetime any = func() any {
-		if !ccxt.IsEqual(timestamp, nil) {
+		if timestamp != nil {
 			return (this.Iso8601(timestamp))
 		}
 		return (this.SafeString(trade, "TS"))
 	}()
-	if ccxt.IsEqual(timestamp, nil) {
+	if timestamp == nil {
 		timestamp = this.Parse8601(datetime)
 	}
 	var rawSide *string = this.SafeString2(trade, "direction", 3)
@@ -738,7 +738,7 @@ func (this *Lbank) HandleOrders(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var symbol any = this.SafeSymbol(marketId, nil, "_")
+	var symbol *string = this.SafeSymbol(marketId, nil, "_")
 	var myOrders any = this.Orders
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -813,7 +813,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 		}()
 	}
 	var marketId *string = this.SafeString(order, "pair")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	var timestamp *int64 = this.SafeInteger(orderUpdate, "updateTime")
 	var status *string = this.SafeString(orderUpdate, "orderStatus")
 	var orderAmount *string = this.SafeString(orderUpdate, "orderAmt")
@@ -844,7 +844,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":              nil,
 	}, market)
 }
-func (this *Lbank) ParseWsOrderStatus(status any) any {
+func (this *Lbank) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"-1": "canceled",
 		"0":  "open",
@@ -912,13 +912,13 @@ func (this *Lbank) HandleBalance(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var timestamp any = this.Parse8601(this.SafeString(message, "TS"))
-	var datetime any = this.Iso8601(timestamp)
+	var timestamp *int64 = this.Parse8601(this.SafeString(message, "TS"))
+	var datetime *string = this.Iso8601(timestamp)
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", datetime)
 	var currencyId *string = this.SafeString(data, "assetCode")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString(data, "free"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(data, "freeze"))
@@ -1086,10 +1086,10 @@ func (this *Lbank) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "pair")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var orderBook any = this.SafeValue(message, "depth", message)
 	var datetime *string = this.SafeString(message, "TS")
-	var timestamp any = this.Parse8601(datetime)
+	var timestamp *int64 = this.Parse8601(datetime)
 	// let orderbook = this.safeValue (this.orderbooks, symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
@@ -1199,7 +1199,7 @@ func (this *Lbank) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var now int64 = this.Milliseconds()
 	var messageHash string = "authenticateFlight"
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {

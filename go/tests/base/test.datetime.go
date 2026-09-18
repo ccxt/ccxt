@@ -118,7 +118,7 @@ func TestMicroseconds() {
 	}, map[string]any{}, exchange)
 	var value int64 = exchange.Microseconds()
 	var valueString string = ccxt.ToString(value)
-	Assert(ccxt.IsGreaterThan(value, 0))
+	Assert((value > 0))
 	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 16)))
 }
 func TestMilliseconds() {
@@ -129,7 +129,7 @@ func TestMilliseconds() {
 	}, map[string]any{}, exchange)
 	var value int64 = exchange.Milliseconds()
 	var valueString string = ccxt.ToString(value)
-	Assert(ccxt.IsGreaterThan(value, 0))
+	Assert((value > 0))
 	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 13)))
 }
 func TestSeconds() {
@@ -140,7 +140,7 @@ func TestSeconds() {
 	}, map[string]any{}, exchange)
 	var value int64 = exchange.Seconds()
 	var valueString string = ccxt.ToString(value)
-	Assert(ccxt.IsGreaterThan(value, 0))
+	Assert((value > 0))
 	Assert((ccxt.IsEqual(ccxt.GetLength(valueString), 10)))
 }
 func TestConvertExpireDate() {

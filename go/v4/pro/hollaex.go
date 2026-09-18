@@ -126,7 +126,7 @@ func (this *Hollaex) HandleOrderBook(client any, message any) {
 	}
 	var data any = this.SafeValue(message, "data")
 	var timestamp *string = this.SafeString(data, "timestamp")
-	var timestampMs any = this.Parse8601(timestamp)
+	var timestampMs *int64 = this.Parse8601(timestamp)
 	var snapshot any = this.ParseOrderBook(data, symbol, timestampMs)
 	var orderbook any = nil
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
@@ -325,7 +325,7 @@ func (this *Hollaex) HandleMyTrades(client any, message any, optionalArgs ...any
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var marketId any = ccxt.GetValue(keys, i)
+		var marketId string = ccxt.GetValue(keys, i).(string)
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
 	}
@@ -474,7 +474,7 @@ func (this *Hollaex) HandleOrder(client any, message any, optionalArgs ...any) {
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
 	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; i < len(keys); i++ {
-		var marketId any = ccxt.GetValue(keys, i)
+		var marketId string = ccxt.GetValue(keys, i).(string)
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	}
@@ -530,10 +530,10 @@ func (this *Hollaex) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		var parts []string = ccxt.Split(key, "_")
 		var currencyId *string = this.SafeString(parts, 0)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {
 			account = ccxt.GetValue(this.Balance, code)

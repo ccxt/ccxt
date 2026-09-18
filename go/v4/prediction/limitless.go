@@ -464,9 +464,9 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var eventsDict map[string]any = map[string]any{}
 	var eventKeys []string = ccxt.ObjectKeys(eventGroups)
 	for i := 0; i < len(eventKeys); i++ {
-		var eventKey any = ccxt.GetValue(eventKeys, i)
-		var g any = ccxt.GetValue(eventGroups, eventKey)
-		ccxt.AddElementToObject(eventsDict, eventKey, this.ParseEvent(g))
+		var eventKey string = ccxt.GetValue(eventKeys, i).(string)
+		var g any = eventGroups[eventKey]
+		eventsDict[eventKey] = this.ParseEvent(g)
 	}
 	this.Events = eventsDict
 	var marketsLength int = ccxt.GetArrayLength(markets)
@@ -572,7 +572,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	// expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
 	var expiryTimestamp *int64 = this.SafeInteger(raw, "expirationTimestamp")
 	// limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
-	var volume24h any = ccxt.DerefScalar(this.SafeNumber(raw, "volumeFormatted"))
+	var volume24h *float64 = this.SafeNumber(raw, "volumeFormatted")
 	// resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
 	var winningOutcomeIndex *int64 = this.SafeInteger(raw, "winningOutcomeIndex")
 	var marketResolved bool = (winningOutcomeIndex != nil)
@@ -589,7 +589,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	var outcomes any = []any{}
 	var tokenEntries []string = ccxt.ObjectKeys(tokens)
 	for i := 0; i < len(tokenEntries); i++ {
-		var outcomeLabel any = ccxt.GetValue(tokenEntries, i)
+		var outcomeLabel string = ccxt.GetValue(tokenEntries, i).(string)
 		var tokenData any = ccxt.GetValue(tokens, outcomeLabel)
 		var tokenId any = tokenData
 		var outcomeHandle any = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
@@ -1761,7 +1761,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 	var pseudoTrades any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(history); i++ {
 		var point any = ccxt.GetValue(history, i)
-		var pointPrice any = ccxt.DerefScalar(this.SafeNumber(point, "price"))
+		var pointPrice *float64 = this.SafeNumber(point, "price")
 		var pointTs any = ccxt.DerefScalar(this.SafeInteger(point, "timestamp"))
 		if ccxt.IsEqual(pointTs, nil) {
 			var tsString *string = this.SafeString(point, "timestamp")
@@ -1775,7 +1775,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 			// old responses may return unix seconds
 			pointTs = ccxt.Multiply(pointTs, 1000)
 		}
-		if (!ccxt.IsEqual(pointPrice, nil)) && (!ccxt.IsEqual(pointTs, nil)) {
+		if (pointPrice != nil) && (!ccxt.IsEqual(pointTs, nil)) {
 			ccxt.AppendToArray(&pseudoTrades, map[string]any{
 				"timestamp": pointTs,
 				"price":     pointPrice,
@@ -1794,7 +1794,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 	for i := 0; i < len(sorted); i++ {
 		var point any = ccxt.GetValue(sorted, i)
 		var pTs *int64 = this.SafeInteger(point, "timestamp")
-		var pPrice any = ccxt.DerefScalar(this.SafeNumber(point, "price"))
+		var pPrice *float64 = this.SafeNumber(point, "price")
 		if pTs == nil {
 			panic(ccxt.ExchangeError(this.Id + " method() missing pTs"))
 		}
@@ -1806,7 +1806,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 		} else {
 			var candle any = candles[key]
 			var pPriceOrZero any = func() any {
-				if ccxt.IsEqual(pPrice, nil) {
+				if pPrice == nil {
 					return 0
 				}
 				return pPrice
@@ -1819,7 +1819,7 @@ func (this *Limitless) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...
 				return ccxt.GetValue(candle, 3)
 			}()
 			var pPriceOrCandleLow any = func() any {
-				if ccxt.IsEqual(pPrice, nil) {
+				if pPrice == nil {
 					return ccxt.GetValue(candle, 3)
 				}
 				return pPrice
@@ -2323,10 +2323,10 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	var mkt any = this.SafeOutcome(tokenId, market)
 	var outcomeSymbol *string = this.SafeString(mkt, "outcome")
 	var rawSide *string = this.SafeString(rawOrder, "side")
-	var side any = this.ParseOrderSide(rawSide)
+	var side *string = this.ParseOrderSide(rawSide)
 	var price *string = this.SafeString(rawOrder, "price")
 	var amountKey any = func() any {
-		if ccxt.IsEqual(side, "buy") {
+		if side != nil && *side == "buy" {
 			return "takerAmount"
 		}
 		return "makerAmount"
@@ -2334,7 +2334,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	var amount *string = this.SafeString(rawOrder, amountKey)
 	var remaining *string = this.SafeString(rawOrder, "remainingSize")
 	var datetime *string = this.SafeString(rawOrder, "createdAt")
-	var ts any = this.Parse8601(datetime)
+	var ts *int64 = this.Parse8601(datetime)
 	var timeInForce *string = this.SafeString2(rawOrder, "type", "orderType")
 	var typeVar any = nil
 	if timeInForce != nil && *timeInForce == "GTC" {
@@ -2354,7 +2354,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 		filled = ccxt.DerefScalar(this.SafeString(totals, "contractsGross"))
 		var feeCurrency any = "USDC"
 		var feeCost *string = this.SafeString(totals, "usdFee")
-		if ccxt.IsEqual(side, "buy") {
+		if side != nil && *side == "buy" {
 			feeCurrency = outcomeSymbol
 			feeCost = this.SafeString(totals, "contractsFee")
 		}
@@ -2400,7 +2400,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
  * @param {string} status the raw limitless order status
  * @returns {string} the unified order status
  */
-func (this *Limitless) ParseOrderStatus(status any) any {
+func (this *Limitless) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"LIVE":      "open",
 		"MATCHED":   "closed",
@@ -2420,7 +2420,7 @@ func (this *Limitless) ParseOrderStatus(status any) any {
  * @param {string} timeInForce the raw limitless time in force
  * @returns {string} the unified time in force
  */
-func (this *Limitless) ParseOrderTimeInForce(timeInForce any) any {
+func (this *Limitless) ParseOrderTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"FAK": "FOK",
 	}
@@ -2435,7 +2435,7 @@ func (this *Limitless) ParseOrderTimeInForce(timeInForce any) any {
  * @param {string} side the raw limitless order side
  * @returns {string} the unified order side
  */
-func (this *Limitless) ParseOrderSide(side any) any {
+func (this *Limitless) ParseOrderSide(side any) *string {
 	var sides map[string]any = map[string]any{
 		"BUY":  "buy",
 		"SELL": "sell",
@@ -2448,7 +2448,7 @@ func (this *Limitless) ApplyScale(amount any, optionalArgs ...any) any {
 	multiply := ccxt.GetArg(optionalArgs, 0, false)
 	_ = multiply
 	var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
-	var scale any = this.NumberToString(ccxt.MathPow(10, decimals))
+	var scale *string = this.NumberToString(ccxt.MathPow(10, decimals))
 	if ccxt.EvalTruthy(multiply) {
 		return ccxt.Precise.StringMul(amount, scale)
 	} else {
@@ -2543,7 +2543,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		}
 		return walletFromAccount
 	}()
-	makerparamsVariable := this.HandleOptionAndParams(params, "createOrder", "maker", maker)
+	var makerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "maker", maker)
 	maker = ccxt.GetValue(makerparamsVariable, 0)
 	params = ccxt.GetValue(makerparamsVariable, 1)
 
@@ -2576,7 +2576,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	if isSmartWallet {
 		signer = embeddedAddress
 	}
-	signerparamsVariable := this.HandleOptionAndParams(params, "createOrder", "signer", signer)
+	var signerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "signer", signer)
 	signer = ccxt.GetValue(signerparamsVariable, 0)
 	params = ccxt.GetValue(signerparamsVariable, 1)
 
@@ -2601,7 +2601,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 
 	}
 	var taker any = ccxt.DerefScalar(this.SafeString(this.Options, "nullAddress", "0x0000000000000000000000000000000000000000"))
-	takerparamsVariable := this.HandleOptionAndParams(params, "createOrder", "taker", taker)
+	var takerparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "taker", taker)
 	taker = ccxt.GetValue(takerparamsVariable, 0)
 	params = ccxt.GetValue(takerparamsVariable, 1)
 
@@ -2642,7 +2642,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		}
 		return 0
 	}()
-	signatureTypeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "signatureType", signatureType)
+	var signatureTypeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "signatureType", signatureType)
 	signatureType = ccxt.GetValue(signatureTypeparamsVariable, 0)
 	params = ccxt.GetValue(signatureTypeparamsVariable, 1)
 	var signRequest map[string]any = map[string]any{
@@ -2664,8 +2664,8 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	} else {
 		signRequest["expiration"] = "0"
 	}
-	var amountString any = this.NumberToString(amount)
-	var priceString any = this.NumberToString(price)
+	var amountString *string = this.NumberToString(amount)
+	var priceString *string = this.NumberToString(price)
 	var makerAmount any = nil
 	var takerAmount any = nil
 	var isMarket bool = (ccxt.IsEqual(typeVar, "market"))
@@ -2686,18 +2686,18 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	var marketSymbol *string = this.SafeString(outcomeObj, "market")
 	if isMarket && (ccxt.IsEqual(side, "buy")) {
 		var createMarketBuyOrderRequiresPrice any = true
-		createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
+		var createMarketBuyOrderRequiresPriceparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 0)
 		params = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable, 1)
-		var cost any = ccxt.DerefScalar(this.SafeNumber(params, "cost"))
+		var cost *float64 = this.SafeNumber(params, "cost")
 		params = this.Omit(params, "cost")
 		if ccxt.EvalTruthy(createMarketBuyOrderRequiresPrice) {
-			if (ccxt.IsEqual(price, nil)) && (ccxt.IsEqual(cost, nil)) {
+			if (ccxt.IsEqual(price, nil)) && (cost == nil) {
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount any = this.ParseToNumeric(ccxt.Precise.StringMul(amountString, priceString))
 				var costRequest any = func() any {
-					if !ccxt.IsEqual(cost, nil) {
+					if cost != nil {
 						return cost
 					}
 					return quoteAmount
@@ -2887,13 +2887,13 @@ func (this *Limitless) approveBody(ch chan any, optionalArgs ...any) any {
 	}
 	var gasLimit *string = this.SafeString(params, "gasLimit", "0x186a0")
 	var maxUint string = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-	var amountHex any = maxUint
+	var amountHex string = maxUint
 	var amount *string = this.SafeString(params, "amount")
 	if amount != nil {
 		var decimals *int64 = this.SafeInteger(this.Options, "usdcDecimals", 6)
 		// scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
 		var scaled *string = ccxt.Precise.StringDiv(amount, this.ParsePrecision(this.NumberToString(decimals)))
-		var amountInt any = this.ParseToInt(scaled)
+		var amountInt int64 = this.ParseToInt(scaled)
 		var amountBase16 string = this.IntToBase16(amountInt)
 		amountHex = ccxt.PadStart(amountBase16, 64, "0")
 	}
@@ -3077,7 +3077,7 @@ func (this *Limitless) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if outcome != nil {
 		var warn any = true
-		warnparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
+		var warnparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn)
 		warn = ccxt.GetValue(warnparamsVariable, 0)
 		params = ccxt.GetValue(warnparamsVariable, 1)
 		if ccxt.EvalTruthy(warn) {
@@ -3146,7 +3146,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paginate any = false
 	var maxLimit int = 100
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", paginate)
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", paginate)
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
 	if ccxt.EvalTruthy(paginate) {
@@ -3262,7 +3262,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 	var matchedSize *string = this.SafeString(trade, "matchedSize")
 	if matchedSize != nil {
 		// public market events feed trade, see fetchTrades for the response sample
-		var ts any = this.Parse8601(this.SafeString(trade, "createdAt"))
+		var ts *int64 = this.Parse8601(this.SafeString(trade, "createdAt"))
 		var sideRaw *string = this.SafeString(trade, "side")
 		var feedSide any = nil
 		if sideRaw != nil && *sideRaw == "0" {
@@ -3951,16 +3951,16 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "limitless"))
 	var url any = ccxt.Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var querystring any = this.UrlencodeWithArrayRepeat(query)
-	if (ccxt.IsEqual(method, "GET")) && (!ccxt.IsEqual(querystring, "")) {
-		url = ccxt.Add(url, ccxt.Add("?", querystring))
+	var querystring string = this.UrlencodeWithArrayRepeat(query)
+	if (ccxt.IsEqual(method, "GET")) && (querystring != "") {
+		url = ccxt.Add(url, "?"+querystring)
 	}
 	if ccxt.IsEqual(access, "private") {
 		var bodyString any = ""
 		if ccxt.IsEqual(headers, nil) {
 			headers = map[string]any{}
 		}
-		if (ccxt.IsEqual(method, "POST")) && (!ccxt.IsEqual(querystring, "")) {
+		if (ccxt.IsEqual(method, "POST")) && (querystring != "") {
 			bodyString = this.Json(query)
 			body = bodyString
 			var headerDefaults any = func() any {
@@ -3975,7 +3975,7 @@ func (this *Limitless) Sign(path any, optionalArgs ...any) any {
 			}, headerDefaults)
 		}
 		this.CheckRequiredCredentials()
-		var timestamp any = this.Iso8601(this.Milliseconds())
+		var timestamp *string = this.Iso8601(this.Milliseconds())
 		var newline string = "\n" // eslint-disable-line quotes
 		var payload any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(timestamp, newline), method), newline), url), newline), bodyString)
 		var signature string = this.Hmac(this.Encode(payload), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")

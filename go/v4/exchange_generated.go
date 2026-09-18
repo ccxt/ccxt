@@ -388,6 +388,7 @@ func (this *BaseExchange) CleanWsData() {
 	this.MyTrades = nil
 	this.Positions = nil
 }
+
 func (this *BaseExchange) SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any {
 	/**
 	 * @ignore
@@ -401,7 +402,7 @@ func (this *BaseExchange) SafeDictN(dictionaryOrList any, keys any, optionalArgs
 	if IsEqual(value, nil) {
 		return defaultValue
 	}
-	if EvalTruthy(this.IsDictionary(value)) {
+	if this.IsDictionary(value) {
 		return value
 	}
 	return defaultValue
@@ -419,7 +420,7 @@ func (this *BaseExchange) SafeDict(dictionaryOrList any, key any, optionalArgs .
 	if IsEqual(value, nil) {
 		return defaultValue
 	}
-	if EvalTruthy(this.IsDictionary(value)) {
+	if this.IsDictionary(value) {
 		return value
 	}
 	return defaultValue
@@ -434,11 +435,11 @@ func (this *BaseExchange) SafeDict2(dictionaryOrList any, key1 any, key2 any, op
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value any = this.SafeValue(dictionaryOrList, key1)
-	if EvalTruthy(this.IsDictionary(value)) {
+	if this.IsDictionary(value) {
 		return value
 	}
 	var value2 any = this.SafeValue(dictionaryOrList, key2)
-	if EvalTruthy(this.IsDictionary(value2)) {
+	if this.IsDictionary(value2) {
 		return value2
 	}
 	return defaultValue
@@ -534,7 +535,7 @@ func (this *BaseExchange) GetCacheIndex(orderbook any, deltas any) any {
 	return OpNeg(1)
 }
 func (this *BaseExchange) ArraysConcat(arraysOfArrays any) any {
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(arraysOfArrays); i++ {
 		result = this.ArrayConcat(result, GetValue(arraysOfArrays, i))
 	}
@@ -548,7 +549,7 @@ func (this *BaseExchange) FindTimeframe(timeframe any, optionalArgs ...any) any 
 	}
 	var keys []string = ObjectKeys(timeframes)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		if IsEqual(GetValue(timeframes, key), timeframe) {
 			return key
 		}
@@ -773,7 +774,7 @@ func (this *BaseExchange) FindMessageHashes(client *Client, element any) any {
 	var result any = []any{}
 	var messageHashes []string = ObjectKeys(client.Futures)
 	for i := 0; i < len(messageHashes); i++ {
-		var messageHash any = GetValue(messageHashes, i)
+		var messageHash string = GetValue(messageHashes, i).(string)
 		if GetIndexOf(messageHash, element) >= 0 {
 			AppendToArray(&result, messageHash)
 		}
@@ -1787,18 +1788,18 @@ func (this *BaseExchange) fetchPaymentMethodsBody(ch chan any, optionalArgs ...a
 	_ = params
 	panic(NotSupported(this.Id + " fetchPaymentMethods() is not supported yet"))
 }
-func (this *BaseExchange) ParseToInt(number any) any {
+func (this *BaseExchange) ParseToInt(number any) int64 {
 	// Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
 	// using a number as parameter which is not valid in ts
 	// numberToString is typed as nullable under strictNullChecks; cast to string
 	// the cast is erased at transpile-time, so output matches every target language, rather than
 	// branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
-	var stringifiedNumber any = this.NumberToString(number)
+	var stringifiedNumber *string = this.NumberToString(number)
 	var convertedNumber any = ParseFloat(stringifiedNumber)
 	return ParseInt(convertedNumber)
 }
 func (this *BaseExchange) ParseToNumeric(number any) any {
-	var stringVersion any = this.NumberToString(number) // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+	var stringVersion *string = this.NumberToString(number) // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
 	// keep this in mind:
 	// in JS:     1 === 1.0 is true
 	// in Python: 1 == 1.0 is true
@@ -1808,7 +1809,7 @@ func (this *BaseExchange) ParseToNumeric(number any) any {
 	}
 	return ParseInt(stringVersion)
 }
-func (this *BaseExchange) IsRoundNumber(value any) any {
+func (this *BaseExchange) IsRoundNumber(value any) bool {
 	// this method is similar to isInteger, but this is more loyal and does not check for types.
 	// i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
 	var res any = this.ParseToNumeric((Mod(value, 1)))
@@ -1816,18 +1817,6 @@ func (this *BaseExchange) IsRoundNumber(value any) any {
 }
 func (this *BaseExchange) IsEmptyString(value any) any {
 	return !this.ValueIsDefined(value) || (value == "")
-}
-func (this *BaseExchange) SafeNumberOmitZero(obj any, key any, optionalArgs ...any) any {
-	defaultValue := GetArg(optionalArgs, 0, nil)
-	_ = defaultValue
-	var value *string = this.SafeString(obj, key)
-	var final any = this.ParseNumber(this.OmitZero(value))
-	return func() any {
-		if IsEqual(final, nil) {
-			return defaultValue
-		}
-		return final
-	}()
 }
 func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
@@ -1972,7 +1961,7 @@ func (this *BaseExchange) FeaturesMapper(initialFeatures any, marketType any, op
 	// other methods
 	var keys []string = ObjectKeys(featuresObj)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var featureBlock any = GetValue(featuresObj, key)
 		if !this.InArray(key, []any{"sandbox"}) && !IsEqual(featureBlock, nil) {
 			// default "symbolRequired" to false to all methods (except `createOrder`)
@@ -2400,9 +2389,9 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		var valueDefined map[string]any = map[string]any{}
 		var valueKeys []string = ObjectKeys(value)
 		for j := 0; j < len(valueKeys); j++ {
-			var valueKey any = GetValue(valueKeys, j)
+			var valueKey string = GetValue(valueKeys, j).(string)
 			if !IsEqual(GetValue(value, valueKey), nil) {
-				AddElementToObject(valueDefined, valueKey, GetValue(value, valueKey))
+				valueDefined[valueKey] = GetValue(value, valueKey)
 			}
 		}
 		var market map[string]any = this.DeepExtend(this.SafeMarketStructure(), map[string]any{
@@ -2466,12 +2455,12 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 		quoteCurrencies = this.SortBy(quoteCurrencies, "code", false, "")
 		this.BaseCurrencies = this.MapToSafeMap(this.IndexBy(baseCurrencies, "code"))
 		this.QuoteCurrencies = this.MapToSafeMap(this.IndexBy(quoteCurrencies, "code"))
-		var allCurrencies any = this.ArrayConcat(baseCurrencies, quoteCurrencies)
+		var allCurrencies []any = this.ArrayConcat(baseCurrencies, quoteCurrencies)
 		var groupedCurrencies map[string]any = this.GroupBy(allCurrencies, "code")
 		var codes []string = ObjectKeys(groupedCurrencies)
 		var resultingCurrencies any = []any{}
 		for i := 0; i < len(codes); i++ {
-			var code any = GetValue(codes, i)
+			var code string = GetValue(codes, i).(string)
 			var groupedCurrenciesCode any = this.SafeList(groupedCurrencies, code, []any{})
 			var highestPrecisionCurrency any = this.SafeValue(groupedCurrenciesCode, 0)
 			for j := 1; j < GetArrayLength(groupedCurrenciesCode); j++ {
@@ -2547,7 +2536,7 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 	AddElementToObject(balance, "total", map[string]any{})
 	var debtBalance map[string]any = map[string]any{}
 	for i := 0; i < len(codes); i++ {
-		var code any = GetValue(codes, i)
+		var code string = GetValue(codes, i).(string)
 		var total *string = this.SafeString(GetValue(balance, code), "total")
 		var free *string = this.SafeString(GetValue(balance, code), "free")
 		var used *string = this.SafeString(GetValue(balance, code), "used")
@@ -2569,7 +2558,7 @@ func (this *BaseExchange) SafeBalance(balance any) any {
 		AddElementToObject(GetValue(balance, "total"), code, GetValue(GetValue(balance, code), "total"))
 		if debt != nil {
 			AddElementToObject(GetValue(balance, code), "debt", this.ParseNumber(debt))
-			AddElementToObject(debtBalance, code, GetValue(GetValue(balance, code), "debt"))
+			debtBalance[code] = GetValue(GetValue(balance, code), "debt")
 		}
 	}
 	var debtBalanceArray []string = ObjectKeys(debtBalance)
@@ -2743,7 +2732,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	}
 	// ensure that the average field is calculated correctly
 	var inverse *bool = this.SafeBool(market, "inverse", false)
-	var contractSize any = this.NumberToString(this.SafeValue(market, "contractSize", 1))
+	var contractSize *string = this.NumberToString(this.SafeValue(market, "contractSize", 1))
 	// inverse
 	// price = filled * contract size / cost
 	//
@@ -2822,7 +2811,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "lastUpdateTimestamp")
-	var datetime any = this.SafeString(order, "datetime")
+	var datetime *string = this.SafeString(order, "datetime")
 	if datetime == nil {
 		datetime = this.Iso8601(timestamp)
 	}
@@ -2902,7 +2891,7 @@ func (this *BaseExchange) ParseOrders(orders any, optionalArgs ...any) any {
 	} else {
 		var ids []string = ObjectKeys(orders)
 		for i := 0; i < len(ids); i++ {
-			var id any = GetValue(ids, i)
+			var id string = GetValue(ids, i).(string)
 			var idExtended map[string]any = this.Extend(map[string]any{
 				"id": id,
 			}, GetValue(orders, id))
@@ -2944,10 +2933,10 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 		// the fee is always in feeSide currency
 		useQuote = (feeSide != nil && *feeSide == "quote")
 	}
-	var cost any = this.NumberToString(amount)
-	var key any = nil
+	var cost *string = this.NumberToString(amount)
+	var key string
 	if EvalTruthy(useQuote) {
-		var priceString any = this.NumberToString(price)
+		var priceString *string = this.NumberToString(price)
 		cost = Precise.StringMul(cost, priceString)
 		key = "quote"
 	} else {
@@ -3024,7 +3013,7 @@ func (this *BaseExchange) SafeTrade(trade any, optionalArgs ...any) any {
 	if cost == nil {
 		// contract trading
 		var contractSize *string = this.SafeString(market, "contractSize")
-		var multiplyPrice any = price
+		var multiplyPrice *string = price
 		if contractSize != nil {
 			var inverse *bool = this.SafeBool(market, "inverse", false)
 			if inverse != nil && *inverse == true {
@@ -3142,7 +3131,7 @@ func (this *BaseExchange) AddKeyInArrayItems(obj any, keyName any) any {
 	var result any = []any{}
 	var keys []string = ObjectKeys(obj)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var item any = GetValue(obj, key)
 		if IsEqual(item, nil) {
 			continue
@@ -3157,7 +3146,7 @@ func (this *BaseExchange) InvertFlatStringDictionary(dict any) any {
 	var reversed map[string]any = map[string]any{}
 	var keys []string = ObjectKeys(dict)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var value any = GetValue(dict, key)
 		if IsString(value) {
 			AddElementToObject(reversed, value, key)
@@ -3252,7 +3241,7 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) any {
 			}
 		}
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	var feeValues []any = ObjectValues(reduced)
 	for i := 0; i < len(feeValues); i++ {
 		var reducedFeeValues []any = ObjectValues(GetValue(feeValues, i))
@@ -3914,7 +3903,7 @@ func (this *BaseExchange) SafeNetwork(network any) any {
 	var limits any = this.SafeDict(network, "limits")
 	var withdraw any = this.SafeDict(limits, "withdraw")
 	var deposit any = this.SafeDict(limits, "deposit")
-	var isEnabled any = withdrawEnabled
+	var isEnabled *bool = withdrawEnabled
 	if withdrawEnabled != nil && *withdrawEnabled == true {
 		isEnabled = depositEnabled
 	}
@@ -3972,7 +3961,7 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 	var replacements any = this.SafeDict(this.Options, "defaultNetworkCodeReplacements", map[string]any{})
 	var keys []string = ObjectKeys(replacements)
 	for i := 0; i < len(keys); i++ {
-		var baseCoin any = GetValue(keys, i)
+		var baseCoin string = GetValue(keys, i).(string)
 		var entry any = GetValue(replacements, baseCoin)
 		var primary any = GetValue(entry, "primary")
 		var secondary any = GetValue(entry, "secondary")
@@ -3981,7 +3970,7 @@ func (this *BaseExchange) PrioritizedNetworkAliases(optionalArgs ...any) any {
 		}
 		// pick which form goes first in the returned pair
 		var preferPrimary bool = false
-		if currencyCode == baseCoin {
+		if IsEqual(currencyCode, baseCoin) {
 			preferPrimary = true // mainnet currency uses primary chain
 		} else if currencyCode != nil {
 			preferPrimary = false // any other (token) currency uses secondary chain
@@ -4164,12 +4153,6 @@ func (this *BaseExchange) SelectNetworkKeyFromNetworks(currencyCode any, network
 	}
 	return chosenNetworkId
 }
-func (this *BaseExchange) SafeNumber2(dictionary any, key1 any, key2 any, optionalArgs ...any) any {
-	d := GetArg(optionalArgs, 0, nil)
-	_ = d
-	var value *string = this.SafeString2(dictionary, key1, key2)
-	return this.ParseNumber(value, d)
-}
 func (this *BaseExchange) ParseOrderBook(orderbook any, symbol any, optionalArgs ...any) any {
 	timestamp := GetArg(optionalArgs, 0, nil)
 	_ = timestamp
@@ -4256,7 +4239,7 @@ func (this *BaseExchange) ParseLeverageTiers(response any, optionalArgs ...any) 
 	} else {
 		var keys []string = ObjectKeys(response)
 		for i := 0; i < len(keys); i++ {
-			var marketId any = GetValue(keys, i)
+			var marketId string = GetValue(keys, i).(string)
 			var item any = GetValue(response, marketId)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId, nil, nil, "swap")
@@ -4319,13 +4302,13 @@ func (this *BaseExchange) SafePosition(position any) any {
 		AddElementToObject(position, "percentage", this.ParseNumber(percentageString))
 	}
 	// if contractSize is undefined get from market
-	var contractSize any = this.SafeNumber(position, "contractSize")
+	var contractSize *float64 = this.SafeNumber(position, "contractSize")
 	var symbol *string = this.SafeString(position, "symbol")
 	var market any = nil
 	if symbol != nil {
 		market = this.SafeValue(this.Markets, symbol)
 	}
-	if IsEqual(contractSize, nil) && !IsEqual(market, nil) {
+	if (contractSize == nil) && !IsEqual(market, nil) {
 		contractSize = this.SafeNumber(market, "contractSize")
 		AddElementToObject(position, "contractSize", contractSize)
 	}
@@ -4549,7 +4532,7 @@ func (this *BaseExchange) Symbol(symbol any) any {
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleParamString(params any, paramName any, optionalArgs ...any) any {
+func (this *BaseExchange) HandleParamString(params any, paramName any, optionalArgs ...any) []any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString(params, paramName, defaultValue)
@@ -4561,7 +4544,7 @@ func (this *BaseExchange) HandleParamString(params any, paramName any, optionalA
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleParamString2(params any, paramName1 any, paramName2 any, optionalArgs ...any) any {
+func (this *BaseExchange) HandleParamString2(params any, paramName1 any, paramName2 any, optionalArgs ...any) []any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value *string = this.SafeString2(params, paramName1, paramName2, defaultValue)
@@ -4755,11 +4738,11 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 		PanicOnError(retRes641112)
 	}
 	var retries any = 0
-	retriesparamsVariable := this.HandleOptionAndParams(params, path, "maxRetriesOnFailure", retries)
+	var retriesparamsVariable []any = this.HandleOptionAndParams(params, path, "maxRetriesOnFailure", retries)
 	retries = GetValue(retriesparamsVariable, 0)
 	params = GetValue(retriesparamsVariable, 1)
 	var retryDelay any = 0
-	retryDelayparamsVariable := this.HandleOptionAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay)
+	var retryDelayparamsVariable []any = this.HandleOptionAndParams(params, path, "maxRetriesOnFailureDelay", retryDelay)
 	retryDelay = GetValue(retryDelayparamsVariable, 0)
 	params = GetValue(retryDelayparamsVariable, 1)
 	var fetchDataCacheEnabled bool = IsGreaterThan(this.FetchHistoryCacheSize, 0)
@@ -4938,7 +4921,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 			continue
 		}
 		var ohlcv_length int = GetArrayLength(ohlcvs)
-		var candle any = Subtract(ohlcv_length, 1)
+		var candle int64 = Subtract(ohlcv_length, 1).(int64)
 		if IsEqual(price, nil) {
 			panic(ArgumentsRequired(this.Id + " buildOHLCVC() requires a price argument"))
 		}
@@ -5157,7 +5140,7 @@ func (this *BaseExchange) MarketOrNull(optionalArgs ...any) any {
 	}
 	return this.DerivedExchange.Market(symbol)
 }
-func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) any {
+func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) bool {
 	/**
 	 * @ignore
 	 * @method
@@ -5168,12 +5151,12 @@ func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) any {
 	_ = error
 	var keys []string = ObjectKeys(this.RequiredCredentials)
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var credentialValue any = GetValue(this, key)
 		var credentialMissing bool = (IsEqual(credentialValue, nil)) || (IsEqual(credentialValue, nil)) || (credentialValue == false) || (credentialValue == "")
-		if (IsEqual(GetValue(this.RequiredCredentials, key), true)) && credentialMissing {
+		if (IsEqual(this.RequiredCredentials[key], true)) && credentialMissing {
 			if EvalTruthy(error) {
-				panic(AuthenticationError(Add(Add(this.Id+" requires \"", key), "\" credential")))
+				panic(AuthenticationError(this.Id + " requires \"" + key + "\" credential"))
 			} else {
 				return false
 			}
@@ -5454,7 +5437,7 @@ func (this *BaseExchange) RequireValue(value any, optionalArgs ...any) any {
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, optionName any, optionalArgs ...any) any {
+func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, optionName any, optionalArgs ...any) []any {
 	// This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
@@ -5465,7 +5448,7 @@ func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, opti
 		params = this.Omit(params, []any{optionName, defaultOptionName})
 	} else {
 		// handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
-		methodNameparamsVariable := this.HandleParamString(params, "callerMethodName", methodName)
+		var methodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", methodName)
 		methodName = GetValue(methodNameparamsVariable, 0)
 		params = GetValue(methodNameparamsVariable, 1)
 		// check if exchange has properties for this method
@@ -5491,11 +5474,11 @@ func (this *BaseExchange) HandleOptionAndParams(params any, methodName any, opti
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) any {
+func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, optionName1 any, optionName2 any, optionalArgs ...any) []any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
 	var value any = nil
-	valueparamsVariable := this.HandleOptionAndParams(params, methodName1, optionName1)
+	var valueparamsVariable []any = this.HandleOptionAndParams(params, methodName1, optionName1)
 	value = GetValue(valueparamsVariable, 0)
 	params = GetValue(valueparamsVariable, 1)
 	if !IsEqual(value, nil) {
@@ -5505,7 +5488,7 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 	}
 	// if still undefined, try optionName2
 	var value2 any = nil
-	value2paramsVariable := this.HandleOptionAndParams(params, methodName1, optionName2, defaultValue)
+	var value2paramsVariable []any = this.HandleOptionAndParams(params, methodName1, optionName2, defaultValue)
 	value2 = GetValue(value2paramsVariable, 0)
 	params = GetValue(value2paramsVariable, 1)
 	return []any{value2, params}
@@ -5513,10 +5496,10 @@ func (this *BaseExchange) HandleOptionAndParams2(params any, methodName1 any, op
 func (this *BaseExchange) HandleOption(methodName any, optionName any, optionalArgs ...any) any {
 	defaultValue := GetArg(optionalArgs, 0, nil)
 	_ = defaultValue
-	var res any = this.HandleOptionAndParams(map[string]any{}, methodName, optionName, defaultValue)
+	var res []any = this.HandleOptionAndParams(map[string]any{}, methodName, optionName, defaultValue)
 	return this.SafeValue(res, 0)
 }
-func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) any {
+func (this *BaseExchange) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) []any {
 	/**
 	 * @ignore
 	 * @method
@@ -5590,7 +5573,7 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 		}
 		// if it was not defined in market object
 		if subType == nil {
-			var values any = this.HandleOptionAndParams(map[string]any{}, methodName, "subType", defaultValue) // no need to re-test params here
+			var values []any = this.HandleOptionAndParams(map[string]any{}, methodName, "subType", defaultValue) // no need to re-test params here
 			subType = GetValue(values, 0)
 		}
 	}
@@ -6406,7 +6389,7 @@ func (this *BaseExchange) IsLeveragedCurrency(currencyCode any, optionalArgs ...
 	return false
 }
 func (this *BaseExchange) HandleWithdrawTagAndParams(tag any, params any) any {
-	if EvalTruthy(this.IsDictionary(tag)) {
+	if this.IsDictionary(tag) {
 		params = this.Extend(tag, params)
 		tag = nil
 	}
@@ -6434,7 +6417,7 @@ func (this *BaseExchange) PriceToPrecision(symbol any, price any) any {
 
 	var market any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
-	var result any = this.DecimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
+	var result string = this.DecimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
 		panic(InvalidOrder(Add(Add(Add(this.Id+" price of ", GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.NumberToString(GetValue(GetValue(market, "precision"), "price")))))
 	}
@@ -6447,7 +6430,7 @@ func (this *BaseExchange) AmountToPrecision(symbol any, amount any) any {
 
 	var market any = this.DerivedExchange.Market(symbol)
 	PanicOnError(market)
-	var result any = this.DecimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), this.PrecisionMode, this.PaddingMode)
+	var result string = this.DecimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), this.PrecisionMode, this.PaddingMode)
 	if result == "0" {
 		panic(InvalidOrder(Add(Add(Add(this.Id+" amount of ", GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.NumberToString(GetValue(GetValue(market, "precision"), "amount")))))
 	}
@@ -6496,18 +6479,6 @@ func (this *BaseExchange) IsDecimalPrecision() any {
 }
 func (this *BaseExchange) IsSignificantPrecision() any {
 	return IsEqual(this.PrecisionMode, SIGNIFICANT_DIGITS)
-}
-func (this *BaseExchange) SafeNumber(obj any, key any, optionalArgs ...any) any {
-	defaultNumber := GetArg(optionalArgs, 0, nil)
-	_ = defaultNumber
-	var value *string = this.SafeString(obj, key)
-	return this.ParseNumber(value, defaultNumber)
-}
-func (this *BaseExchange) SafeNumberN(obj any, arr any, optionalArgs ...any) any {
-	defaultNumber := GetArg(optionalArgs, 0, nil)
-	_ = defaultNumber
-	var value *string = this.SafeStringN(obj, arr)
-	return this.ParseNumber(value, defaultNumber)
 }
 func (this *BaseExchange) ParsePrecision(precision any) any {
 	/**
@@ -6629,11 +6600,11 @@ func (this *BaseExchange) createSubAccountBody(ch chan any, name any, optionalAr
 	_ = params
 	panic(NotSupported(this.Id + " createSubAccount() is not supported yet"))
 }
-func (this *BaseExchange) SafeCurrencyCode(currencyId any, optionalArgs ...any) any {
+func (this *BaseExchange) SafeCurrencyCode(currencyId any, optionalArgs ...any) *string {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	currency = this.SafeCurrency(currencyId, currency)
-	return GetValue(currency, "code")
+	return SafeStringPtr(GetValue(currency, "code"))
 }
 func (this *BaseExchange) FilterBySymbolSinceLimit(array any, optionalArgs ...any) any {
 	symbol := GetArg(optionalArgs, 0, nil)
@@ -6702,7 +6673,7 @@ func (this *BaseExchange) ParseLastPrices(pricesData any, optionalArgs ...any) a
 	} else {
 		var marketIds []string = ObjectKeys(pricesData)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId any = GetValue(marketIds, i)
+			var marketId string = GetValue(marketIds, i).(string)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
@@ -6752,7 +6723,7 @@ func (this *BaseExchange) ParseTickers(tickers any, optionalArgs ...any) any {
 	} else {
 		var marketIds []string = ObjectKeys(tickers)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId any = GetValue(marketIds, i)
+			var marketId string = GetValue(marketIds, i).(string)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
@@ -6844,7 +6815,7 @@ func (this *BaseExchange) ParseFundingRateHistories(response any, optionalArgs .
 	}()
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) any {
+func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) *string {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	delimiter := GetArg(optionalArgs, 1, nil)
@@ -6854,7 +6825,7 @@ func (this *BaseExchange) SafeSymbol(marketId any, optionalArgs ...any) any {
 
 	market = this.DerivedExchange.SafeMarket(marketId, market, delimiter, marketType)
 	PanicOnError(market)
-	return GetValue(market, "symbol")
+	return SafeStringPtr(GetValue(market, "symbol"))
 }
 func (this *BaseExchange) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -6973,7 +6944,7 @@ func (this *BaseExchange) IsTriggerOrder(params any) any {
 	// for backwards compatibility
 	return this.HandleTriggerAndParams(params)
 }
-func (this *BaseExchange) IsPostOnly(isMarketOrder any, exchangeSpecificParam any, optionalArgs ...any) any {
+func (this *BaseExchange) IsPostOnly(isMarketOrder any, exchangeSpecificParam any, optionalArgs ...any) bool {
 	/**
 	 * @ignore
 	 * @method
@@ -6985,7 +6956,7 @@ func (this *BaseExchange) IsPostOnly(isMarketOrder any, exchangeSpecificParam an
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var postOnly any = this.SafeBool2(params, "postOnly", "post_only", false)
+	var postOnly any = DerefScalar(this.SafeBool2(params, "postOnly", "post_only", false))
 	// we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
@@ -7020,7 +6991,7 @@ func (this *BaseExchange) HandlePostOnly(isMarketOrder any, exchangeSpecificPost
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var timeInForce *string = this.SafeStringUpper(params, "timeInForce")
-	var postOnly any = this.SafeBool(params, "postOnly", false)
+	var postOnly any = DerefScalar(this.SafeBool(params, "postOnly", false))
 	var ioc bool = (timeInForce != nil && *timeInForce == "IOC")
 	var fok bool = (timeInForce != nil && *timeInForce == "FOK")
 	var po bool = (timeInForce != nil && *timeInForce == "PO")
@@ -7652,7 +7623,7 @@ func (this *BaseExchange) HandleMaxEntriesPerRequestAndParams(method any, option
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var newMaxEntriesPerRequest any = nil
-	newMaxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, method, "maxEntriesPerRequest")
+	var newMaxEntriesPerRequestparamsVariable []any = this.HandleOptionAndParams(params, method, "maxEntriesPerRequest")
 	newMaxEntriesPerRequest = GetValue(newMaxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(newMaxEntriesPerRequestparamsVariable, 1)
 	if (!IsEqual(newMaxEntriesPerRequest, nil)) && (!IsEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)) {
@@ -7684,24 +7655,24 @@ func (this *BaseExchange) fetchPaginatedCallDynamicBody(ch chan any, method any,
 	removeRepeated := GetArg(optionalArgs, 5, true)
 	_ = removeRepeated
 	var maxCalls any = 10
-	maxCallsparamsVariable := this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
-	maxRetriesparamsVariable := this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	var paginationDirection any = nil
-	paginationDirectionparamsVariable := this.HandleOptionAndParams(params, method, "paginationDirection", "backward")
+	var paginationDirectionparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationDirection", "backward")
 	paginationDirection = GetValue(paginationDirectionparamsVariable, 0)
 	params = GetValue(paginationDirectionparamsVariable, 1)
 	var paginationTimestamp any = nil
 	var removeRepeatedOption any = removeRepeated
-	removeRepeatedOptionparamsVariable := this.HandleOptionAndParams(params, method, "removeRepeated", removeRepeated)
+	var removeRepeatedOptionparamsVariable []any = this.HandleOptionAndParams(params, method, "removeRepeated", removeRepeated)
 	removeRepeatedOption = GetValue(removeRepeatedOptionparamsVariable, 0)
 	params = GetValue(removeRepeatedOptionparamsVariable, 1)
 	var calls any = 0
-	var result any = []any{}
+	var result []any = []any{}
 	var errors any = 0
 	var until *int64 = this.SafeIntegerN(params, []any{"until", "untill", "till"}) // do not omit it from params here
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -7834,7 +7805,7 @@ func (this *BaseExchange) safeDeterministicCallBody(ch chan any, method any, opt
 	params := GetArg(optionalArgs, 4, map[string]any{})
 	_ = params
 	var maxRetries any = 3
-	maxRetriesparamsVariable := this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	var errors any = 0
@@ -7909,7 +7880,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 	maxEntriesPerRequest := GetArg(optionalArgs, 5, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls any = 10
-	maxCallsparamsVariable := this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -7961,7 +7932,7 @@ func (this *BaseExchange) fetchPaginatedCallDeterministicBody(ch chan any, metho
 
 	results := (<-promiseAll(tasks))
 	PanicOnError(results)
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
 		result = this.ArrayConcat(result, GetValue(results, i))
 	}
@@ -8004,11 +7975,11 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	maxEntriesPerRequest := GetArg(optionalArgs, 7, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls any = 10
-	maxCallsparamsVariable := this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
-	maxRetriesparamsVariable := this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -8017,7 +7988,7 @@ func (this *BaseExchange) fetchPaginatedCallCursorBody(ch chan any, method any, 
 	var cursorValue any = nil
 	var i any = 0
 	var errors any = 0
-	var result any = []any{}
+	var result []any = []any{}
 	var timeframe *string = this.SafeString(params, "timeframe")
 	params = this.Omit(params, "timeframe") // reading the timeframe from the method arguments to avoid changing the signature
 	for IsLessThan(i, maxCalls) {
@@ -8158,11 +8129,11 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	maxEntriesPerRequest := GetArg(optionalArgs, 5, nil)
 	_ = maxEntriesPerRequest
 	var maxCalls any = 10
-	maxCallsparamsVariable := this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
+	var maxCallsparamsVariable []any = this.HandleOptionAndParams(params, method, "paginationCalls", maxCalls)
 	maxCalls = GetValue(maxCallsparamsVariable, 0)
 	params = GetValue(maxCallsparamsVariable, 1)
 	var maxRetries any = 3
-	maxRetriesparamsVariable := this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
+	var maxRetriesparamsVariable []any = this.HandleOptionAndParams(params, method, "maxRetries", maxRetries)
 	maxRetries = GetValue(maxRetriesparamsVariable, 0)
 	params = GetValue(maxRetriesparamsVariable, 1)
 	maxEntriesPerRequestparamsVariable := this.HandleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params)
@@ -8170,7 +8141,7 @@ func (this *BaseExchange) fetchPaginatedCallIncrementalBody(ch chan any, method 
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 	var i any = 0
 	var errors any = 0
-	var result any = []any{}
+	var result []any = []any{}
 	for IsLessThan(i, maxCalls) {
 
 		{
@@ -8286,9 +8257,9 @@ func (this *BaseExchange) RemoveKeysFromDict(dict any, removeKeys any) any {
 	var keys []string = ObjectKeys(dict)
 	var newDict map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		if !this.InArray(key, removeKeys) {
-			AddElementToObject(newDict, key, GetValue(dict, key))
+			newDict[key] = GetValue(dict, key)
 		}
 	}
 	return newDict
@@ -8380,7 +8351,7 @@ func (this *BaseExchange) ParseAllGreeks(greeks any, optionalArgs ...any) any {
 	} else {
 		var marketIds []string = ObjectKeys(greeks)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId any = GetValue(marketIds, i)
+			var marketId string = GetValue(marketIds, i).(string)
 
 			var market any = this.DerivedExchange.SafeMarket(marketId)
 			PanicOnError(market)
@@ -8549,7 +8520,7 @@ func (this *BaseExchange) ParseConversions(conversions any, optionalArgs ...any)
 	}
 	var fromConversion []any = this.FilterBy(sorted, "fromCurrency", code)
 	var toConversion []any = this.FilterBy(sorted, "toCurrency", code)
-	var both any = this.ArrayConcat(fromConversion, toConversion)
+	var both []any = this.ArrayConcat(fromConversion, toConversion)
 	return this.FilterBySinceLimit(both, since, limit)
 }
 func (this *BaseExchange) ParseConversion(conversion any, optionalArgs ...any) any {
@@ -8814,16 +8785,16 @@ func (this *BaseExchange) CleanUnsubscription(client *Client, subHash any, unsub
 	} else {
 		var clientSubscriptions []string = ObjectKeys(client.Subscriptions)
 		for i := 0; i < len(clientSubscriptions); i++ {
-			var sub any = GetValue(clientSubscriptions, i)
-			if (sub != nil) && (subHash != nil) && StartsWith(sub, subHash) {
+			var sub string = GetValue(clientSubscriptions, i).(string)
+			if (!IsEqual(sub, nil)) && (subHash != nil) && StartsWith(sub, subHash) {
 				Remove(client.Subscriptions, sub)
 			}
 		}
 		var clientFutures []string = ObjectKeys(client.Futures)
 		for i := 0; i < len(clientFutures); i++ {
-			var future any = GetValue(clientFutures, i)
-			if (future != nil) && (subHash != nil) && StartsWith(future, subHash) {
-				error := UnsubscribeError(Add(this.Id+" ", future))
+			var future string = GetValue(clientFutures, i).(string)
+			if (!IsEqual(future, nil)) && (subHash != nil) && StartsWith(future, subHash) {
+				error := UnsubscribeError(this.Id + " " + future)
 				client.Reject(error, future)
 			}
 		}
@@ -8891,7 +8862,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		} else if ((topic != nil && *topic == "ticker") || (topic != nil && *topic == "markPrice")) && (!IsEqual(this.Tickers, nil)) {
 			var tickerSymbols []string = ObjectKeys(this.Tickers)
 			for i := 0; i < len(tickerSymbols); i++ {
-				var tickerSymbol any = GetValue(tickerSymbols, i)
+				var tickerSymbol string = GetValue(tickerSymbols, i).(string)
 				if InOp(this.Tickers, tickerSymbol) {
 					Remove(this.Tickers, tickerSymbol)
 				}
@@ -8899,7 +8870,7 @@ func (this *BaseExchange) CleanCache(subscription any) {
 		} else if (topic != nil && *topic == "bidsasks") && (!IsEqual(this.Bidsasks, nil)) {
 			var bidsaskSymbols []string = ObjectKeys(this.Bidsasks)
 			for i := 0; i < len(bidsaskSymbols); i++ {
-				var bidsaskSymbol any = GetValue(bidsaskSymbols, i)
+				var bidsaskSymbol string = GetValue(bidsaskSymbols, i).(string)
 				if InOp(this.Bidsasks, bidsaskSymbol) {
 					Remove(this.Bidsasks, bidsaskSymbol)
 				}
@@ -8912,8 +8883,8 @@ func (this *BaseExchange) TimeframeFromMilliseconds(ms any) any {
 		return ""
 	}
 	var second int = 1000
-	var minute any = Multiply(60, second)
-	var hour any = Multiply(60, minute)
+	var minute int64 = Multiply(60, second).(int64)
+	var hour any = 60 * minute
 	var day any = Multiply(24, hour)
 	var week any = Multiply(7, day)
 	if Mod(ms, week) == 0 {

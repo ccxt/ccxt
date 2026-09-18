@@ -190,7 +190,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 		ccxt.PanicOnError(retRes13712)
 	}
 	var method any = nil
-	methodparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
+	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -252,7 +252,7 @@ func (this *Woo) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...a
 		ccxt.PanicOnError(retRes17712)
 	}
 	var method any = nil
-	methodparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
+	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -512,7 +512,7 @@ func (this *Woo) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 		ccxt.PanicOnError(retRes36912)
 	}
 	var method any = nil
-	methodparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
+	var methodparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
 	method = ccxt.GetValue(methodparamsVariable, 0)
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -620,7 +620,7 @@ func (this *Woo) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var name string = "tickers"
-	var topic any = name
+	var topic string = name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -745,7 +745,7 @@ func (this *Woo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var name string = "bbos"
-	var topic any = name
+	var topic string = name
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1169,8 +1169,8 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var fee any = nil
-	var feeCost any = ccxt.DerefScalar(this.SafeNumber(trade, "fee"))
-	if !ccxt.IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(trade, "fee")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency")),
@@ -1216,7 +1216,7 @@ func (this *Woo) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
@@ -1500,9 +1500,9 @@ func (this *Woo) ParseWsOrder(order any, optionalArgs ...any) any {
 		"currency": this.SafeString(order, "feeAsset"),
 	}
 	var priceString *string = this.SafeString(order, "price")
-	var price any = ccxt.DerefScalar(this.SafeNumber(order, "price"))
-	var avgPrice any = ccxt.DerefScalar(this.SafeNumber(order, "avgPrice"))
-	if ccxt.Precise.StringEq(priceString, "0") && (!ccxt.IsEqual(avgPrice, nil)) {
+	var price *float64 = this.SafeNumber(order, "price")
+	var avgPrice *float64 = this.SafeNumber(order, "avgPrice")
+	if ccxt.Precise.StringEq(priceString, "0") && (avgPrice != nil) {
 		price = avgPrice
 	}
 	var amount *string = this.SafeString(order, "quantity")
@@ -1715,7 +1715,7 @@ func (this *Woo) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AppendToArray(&messageHashes, "positions")
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.Uid)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
@@ -1772,8 +1772,8 @@ func (this *Woo) loadPositionsSnapshotBody(ch chan any, client any, messageHash 
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
-		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
+		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
+		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
@@ -1820,7 +1820,7 @@ func (this *Woo) HandlePositions(client any, message any) {
 	var cache any = this.Positions
 	var newPositions any = []any{}
 	for i := 0; i < len(postitionsIds); i++ {
-		var marketId any = ccxt.GetValue(postitionsIds, i)
+		var marketId string = ccxt.GetValue(postitionsIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var rawPosition any = ccxt.GetValue(rawPositions, marketId)
 		var position any = this.ParsePosition(rawPosition, market)
@@ -1856,7 +1856,7 @@ func (this *Woo) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes142712)
 	}
 	var topic string = "balance"
-	var messageHash any = topic
+	var messageHash string = topic
 	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
@@ -1905,9 +1905,9 @@ func (this *Woo) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		var value any = ccxt.GetValue(balances, key)
-		var code any = this.SafeCurrencyCode(key)
+		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {
 			account = ccxt.GetValue(this.Balance, code)
@@ -2028,7 +2028,6 @@ func (this *Woo) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}

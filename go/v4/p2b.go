@@ -402,8 +402,8 @@ func (this *P2b) ParseMarket(market any) any {
 	var marketId *string = this.SafeString(market, "name")
 	var baseId *string = this.SafeString(market, "stock")
 	var quoteId *string = this.SafeString(market, "money")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var limits any = this.SafeDict(market, "limits")
 	var maxAmount *string = this.SafeString(limits, "max_amount")
 	var maxPrice *string = this.SafeString(limits, "max_price")
@@ -1009,9 +1009,9 @@ func (this *P2b) ParseBalance(response any) any {
 	}
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
-		var currencyId any = GetValue(keys, i)
+		var currencyId string = GetValue(keys, i).(string)
 		var balance any = GetValue(response, currencyId)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var used *string = this.SafeString(balance, "freeze")
 		var available *string = this.SafeString(balance, "available")
 		var account map[string]any = map[string]any{
@@ -1370,8 +1370,8 @@ func (this *P2b) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(BadRequest(this.Id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours"))
 	}
 	var market any = this.Market(symbol)
-	var sinceSec any = this.ParseToInt(Divide(since, 1000))
-	var untilSec any = this.ParseToInt(Divide(until, 1000))
+	var sinceSec int64 = this.ParseToInt(Divide(since, 1000))
+	var untilSec int64 = this.ParseToInt(Divide(until, 1000))
 	var request map[string]any = map[string]any{
 		"market":    GetValue(market, "id"),
 		"startTime": sinceSec,
@@ -1471,8 +1471,8 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	if IsGreaterThan((Subtract(until, since)), 86400000) {
 		panic(BadRequest(this.Id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours"))
 	}
-	var sinceSec any = this.ParseToInt(Divide(since, 1000))
-	var untilSec any = this.ParseToInt(Divide(until, 1000))
+	var sinceSec int64 = this.ParseToInt(Divide(since, 1000))
+	var untilSec int64 = this.ParseToInt(Divide(until, 1000))
 	var request map[string]any = map[string]any{
 		"startTime": sinceSec,
 		"endTime":   untilSec,
@@ -1513,10 +1513,10 @@ func (this *P2b) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var result any = this.SafeValue(response, "result")
-	var orders any = []any{}
+	var orders []any = []any{}
 	var keys []string = ObjectKeys(result)
 	for i := 0; i < len(keys); i++ {
-		var marketId any = GetValue(keys, i)
+		var marketId string = GetValue(keys, i).(string)
 		var marketOrders any = GetValue(result, marketId)
 		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
 		orders = this.ArrayConcat(orders, parsedOrders)

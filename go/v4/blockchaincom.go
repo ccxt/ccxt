@@ -358,13 +358,13 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	var marketIds []string = ObjectKeys(markets)
 	var result any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = GetValue(marketIds, i)
+		var marketId string = GetValue(marketIds, i).(string)
 		var market any = this.SafeValue(markets, marketId)
 		var baseId *string = this.SafeString(market, "base_currency")
 		var quoteId *string = this.SafeString(market, "counter_currency")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
-		var numericId any = DerefScalar(this.SafeNumber(market, "id"))
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
+		var numericId *float64 = this.SafeNumber(market, "id")
 		var active any = nil
 		var marketState *string = this.SafeString(market, "status")
 		if marketState != nil && *marketState == "open" {
@@ -566,7 +566,7 @@ func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market, "-")
+	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var last *string = this.SafeString(ticker, "last_trade_price")
 	var baseVolume *string = this.SafeString(ticker, "volume_24h")
 	var open *string = this.SafeString(ticker, "price_24h")
@@ -701,7 +701,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 	var state any = this.ParseOrderState(statusId)
 	var side *string = this.SafeStringLower(order, "side")
 	var marketId *string = this.SafeString(order, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market, "-")
+	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
 	var price any = func() any {
 		if typeVar == nil || *typeVar != "market" {
@@ -709,9 +709,9 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		return nil
 	}()
-	var average any = DerefScalar(this.SafeNumber(order, "avgPx"))
+	var average *float64 = this.SafeNumber(order, "avgPx")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
-	var datetime any = this.Iso8601(timestamp)
+	var datetime *string = this.Iso8601(timestamp)
 	var filled *string = this.SafeString(order, "cumQty")
 	var remaining *string = this.SafeString(order, "leavesQty")
 	var result any = this.SafeOrder(map[string]any{
@@ -934,8 +934,8 @@ func (this *Blockchaincom) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	//         "volumeInUSD": "0.0"
 	//     }
 	//
-	var makerFee any = DerefScalar(this.SafeNumber(response, "makerRate"))
-	var takerFee any = DerefScalar(this.SafeNumber(response, "takerRate"))
+	var makerFee *float64 = this.SafeNumber(response, "makerRate")
+	var takerFee *float64 = this.SafeNumber(response, "takerRate")
 	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	for i := 0; i < GetArrayLength(symbols); i++ {
@@ -1116,7 +1116,7 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
-	var datetime any = this.Iso8601(timestamp)
+	var datetime *string = this.Iso8601(timestamp)
 	market = this.SafeMarket(marketId, market, "-")
 	var symbol any = GetValue(market, "symbol")
 	var fee any = nil
@@ -1284,10 +1284,10 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	_ = currency
 	var typeVar any = nil
 	var id any = nil
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "currency")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var state *string = this.SafeString(transaction, "state")
 	if InOp(transaction, "depositId") {
 		typeVar = "deposit"
@@ -1619,7 +1619,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var entry any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(entry, "currency")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(entry, "available"))
 		AddElementToObject(account, "total", this.SafeString(entry, "balance"))

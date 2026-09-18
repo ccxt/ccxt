@@ -434,8 +434,8 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var id *string = this.SafeString(market, "id")
 		var baseId *string = this.SafeString(market, "traded_currency")
 		var quoteId *string = this.SafeString(market, "base_currency")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var isMaintenance *int64 = this.SafeInteger(market, "is_maintenance")
 		var inMaintenance bool = (isMaintenance != nil) && (isMaintenance == nil || *isMaintenance != 0)
 		AppendToArray(&result, map[string]any{
@@ -512,8 +512,8 @@ func (this *Indodax) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(free)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId any = GetValue(currencyIds, i)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId string = GetValue(currencyIds, i).(string)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(free, currencyId))
 		AddElementToObject(account, "used", this.SafeString(used, currencyId))
@@ -638,7 +638,7 @@ func (this *Indodax) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "server_time")
 	var baseVolume any = Add("vol_", this.SafeStringLower(market, "baseId"))
 	var quoteVolume any = Add("vol_", this.SafeStringLower(market, "quoteId"))
@@ -767,7 +767,7 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var keys []string = ObjectKeys(tickers)
 	var parsedTickers map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
-		var key any = GetValue(keys, i)
+		var key string = GetValue(keys, i).(string)
 		var rawTicker any = GetValue(tickers, key)
 		var marketId string = Replace(key, "_", "")
 		var market any = this.SafeMarket(marketId)
@@ -927,7 +927,7 @@ func (this *Indodax) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
 	return nil
 }
-func (this *Indodax) ParseOrderStatus(status any) any {
+func (this *Indodax) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"open":      "open",
 		"filled":    "closed",
@@ -983,7 +983,7 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	if InOp(order, "type") {
 		side = GetValue(order, "type")
 	}
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status", "open"))
 	var symbol any = nil
 	var cost any = nil
 	var price *string = this.SafeString(order, "price")
@@ -1142,9 +1142,9 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	// { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
 	var marketIds []string = ObjectKeys(rawOrders)
-	var exchangeOrders any = []any{}
+	var exchangeOrders []any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = GetValue(marketIds, i)
+		var marketId string = GetValue(marketIds, i).(string)
 		var marketOrders any = GetValue(rawOrders, marketId)
 		market = this.SafeMarket(marketId)
 		var parsedOrders any = this.ParseOrders(marketOrders, market, since, limit)
@@ -1246,16 +1246,16 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	if IsEqual(typeVar, "market") {
 		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
-			var cost any = DerefScalar(this.SafeNumber(params, "cost"))
+			var cost *float64 = this.SafeNumber(params, "cost")
 			params = this.Omit(params, "cost")
-			if !IsEqual(cost, nil) {
+			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else {
 				if IsEqual(price, nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price)."))
 				}
-				var amountString any = this.NumberToString(amount)
-				var priceString any = this.NumberToString(price)
+				var amountString *string = this.NumberToString(amount)
+				var priceString *string = this.NumberToString(price)
 				var costRequest *string = Precise.StringMul(amountString, priceString)
 				quoteAmount = this.CostToPrecision(symbol, costRequest)
 			}
@@ -1563,17 +1563,17 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	var data any = this.SafeValue(response, "return", map[string]any{})
 	var withdraw any = this.SafeDict(data, "withdraw", map[string]any{})
 	var deposit any = this.SafeDict(data, "deposit", map[string]any{})
-	var transactions any = []any{}
+	var transactions []any = []any{}
 	var currency any = nil
 	if code == nil {
 		var keys []string = ObjectKeys(withdraw)
 		for i := 0; i < len(keys); i++ {
-			var key any = GetValue(keys, i)
+			var key string = GetValue(keys, i).(string)
 			transactions = this.ArrayConcat(transactions, GetValue(withdraw, key))
 		}
 		keys = ObjectKeys(deposit)
 		for i := 0; i < len(keys); i++ {
-			var key any = GetValue(keys, i)
+			var key string = GetValue(keys, i).(string)
 			transactions = this.ArrayConcat(transactions, GetValue(deposit, key))
 		}
 	} else {
@@ -1706,9 +1706,9 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var status *string = this.SafeString(transaction, "status")
 	var timestamp *int64 = this.SafeTimestamp2(transaction, "success_time", "submit_time")
 	var depositId *string = this.SafeString(transaction, "deposit_id")
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
 	var fee any = nil
-	if !IsEqual(feeCost, nil) {
+	if feeCost != nil {
 		fee = map[string]any{
 			"currency": this.SafeCurrencyCode(nil, currency),
 			"cost":     feeCost,
@@ -1743,7 +1743,7 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"info":     transaction,
 	}
 }
-func (this *Indodax) ParseTransactionStatus(status any) any {
+func (this *Indodax) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"success": "ok",
 	}
@@ -1822,8 +1822,8 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		"info": data,
 	}
 	for i := 0; i < len(addressKeys); i++ {
-		var marketId any = GetValue(addressKeys, i)
-		var code any = this.SafeCurrencyCode(marketId)
+		var marketId string = GetValue(addressKeys, i).(string)
+		var code *string = this.SafeCurrencyCode(marketId)
 		var address *string = this.SafeString(addresses, marketId)
 		if (address != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)
@@ -1885,7 +1885,7 @@ func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 		var requestPath any = Add("/", this.ImplodeParams(path, params))
 		url = Add(url, requestPath)
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
+			url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()

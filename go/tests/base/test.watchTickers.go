@@ -32,7 +32,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	_ = argParams
 	var method string = "watchTickers"
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 15000)
+	var ends any = now + 15000
 	var maxIdleTime int = 5000
 	var idle bool = false
 	for (IsLessThan(now, ends)) && !idle {
@@ -120,7 +120,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 
 				}
 			}
-			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
+			if IsGreaterThan((now - startTime), maxIdleTime) {
 				idle = true
 			}
 		}

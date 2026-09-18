@@ -173,7 +173,7 @@ func (this *Deribit) HandleBalance(client any, message any) {
 	var data any = this.SafeValue(params, "data", map[string]any{})
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	var currencyId *string = this.SafeString(data, "currency")
-	var currencyCode any = this.SafeCurrencyCode(currencyId)
+	var currencyCode *string = this.SafeCurrencyCode(currencyId)
 	var balance any = this.ParseBalance(data)
 	if currencyCode != nil {
 		ccxt.AddElementToObject(this.Balance, currencyCode, balance)
@@ -340,7 +340,7 @@ func (this *Deribit) HandleTicker(client any, message any) {
 	var params any = this.SafeValue(message, "params", map[string]any{})
 	var data any = this.SafeValue(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var ticker any = this.ParseTicker(data)
 	var messageHash *string = this.SafeString(params, "channel")
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -508,7 +508,7 @@ func (this *Deribit) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var interval any = nil
-	intervalparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "interval", "100ms")
+	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchTradesForSymbols", "interval", "100ms")
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	if ccxt.IsEqual(interval, "raw") {
@@ -555,7 +555,7 @@ func (this *Deribit) HandleTrades(client any, message any) {
 	var parts []string = ccxt.Split(channel, ".")
 	var marketId *string = this.SafeString(parts, 1)
 	var interval *string = this.SafeString(parts, 2)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.SafeMarket(marketId)
 	var trades any = this.SafeList(params, "data", []any{})
 	if ccxt.IsEqual(this.SafeValue(this.Trades, symbol), nil) {
@@ -736,7 +736,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var interval any = nil
-	intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "interval", "100ms")
+	var intervalparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "interval", "100ms")
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	if ccxt.IsEqual(interval, "raw") {
@@ -746,16 +746,16 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var descriptor any = ""
 	var useDepthEndpoint any = nil // for more info, see comment in .options
-	useDepthEndpointparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "useDepthEndpoint", false)
+	var useDepthEndpointparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "useDepthEndpoint", false)
 	useDepthEndpoint = ccxt.GetValue(useDepthEndpointparamsVariable, 0)
 	params = ccxt.GetValue(useDepthEndpointparamsVariable, 1)
 	if ccxt.EvalTruthy(useDepthEndpoint) {
 		var depth any = nil
-		depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", "20")
+		var depthparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", "20")
 		depth = ccxt.GetValue(depthparamsVariable, 0)
 		params = ccxt.GetValue(depthparamsVariable, 1)
 		var group any = nil
-		groupparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "group", "none")
+		var groupparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "group", "none")
 		group = ccxt.GetValue(groupparamsVariable, 0)
 		params = ccxt.GetValue(groupparamsVariable, 1)
 		descriptor = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(group, "."), depth), "."), interval)
@@ -832,7 +832,7 @@ func (this *Deribit) HandleOrderBook(client any, message any) {
 		descriptor = interval
 	}
 	var marketId *string = this.SafeString(data, "instrument_name")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.CountedOrderBook())
@@ -1200,7 +1200,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 		"id": this.RequestId(),
 	}
 	var extendedRequest map[string]any = this.DeepExtend(request, params)
-	var maxMessageByteLimit any = ccxt.Subtract(32768, 1) // 'Message Too Big: limit 32768B'
+	var maxMessageByteLimit int64 = ccxt.Subtract(32768, 1).(int64) // 'Message Too Big: limit 32768B'
 	var jsonedText any = this.Json(extendedRequest)
 	if ccxt.IsGreaterThanOrEqual(ccxt.GetLength(jsonedText), maxMessageByteLimit) {
 		panic(ccxt.ExchangeError(this.Id + " requested subscription length over limit, try to reduce symbols amount"))
@@ -1339,10 +1339,10 @@ func (this *Deribit) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var time int64 = this.Milliseconds()
-	var timeString any = this.NumberToString(time)
-	var nonce any = timeString
+	var timeString *string = this.NumberToString(time)
+	var nonce *string = timeString
 	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsEqual(future, nil) {

@@ -257,7 +257,7 @@ func (this *Mexc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(firstSymbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchTickers", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
@@ -483,7 +483,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbols), "watchBidsAsks() markets is required")
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
@@ -876,11 +876,11 @@ func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var volume any = ccxt.DerefScalar(this.SafeNumber2(ohlcv, "v", "volume"))
+	var volume *float64 = this.SafeNumber2(ohlcv, "v", "volume")
 	// MEXC swap websocket klines publish contracts volume in `q`,
 	// while spot/protobuf uses `v`/`volume`.
-	if (!ccxt.IsEqual(market, nil)) && (!ccxt.IsEqual(this.SafeBool(market, "spot"), true)) && (ccxt.IsEqual(volume, nil)) {
-		volume = ccxt.DerefScalar(this.SafeNumber2(ohlcv, "q", "v"))
+	if (!ccxt.IsEqual(market, nil)) && (!ccxt.IsEqual(this.SafeBool(market, "spot"), true)) && (volume == nil) {
+		volume = this.SafeNumber2(ohlcv, "q", "v")
 	}
 	return []any{this.SafeTimestamp2(ohlcv, "t", "windowStart"), this.SafeNumber2(ohlcv, "o", "openingPrice"), this.SafeNumber2(ohlcv, "h", "highestPrice"), this.SafeNumber2(ohlcv, "l", "lowestPrice"), this.SafeNumber2(ohlcv, "c", "closingPrice"), volume}
 }
@@ -920,7 +920,7 @@ func (this *Mexc) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var orderbook any = nil
 	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
 		var frequency any = nil
-		frequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
+		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
 		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
 		params = ccxt.GetValue(frequencyparamsVariable, 1)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), ccxt.GetValue(market, "id"))
@@ -948,7 +948,7 @@ func (this *Mexc) HandleOrderBookSubscription(client any, message any) {
 	var msg *string = this.SafeString(message, "msg", "")
 	var parts []string = ccxt.Split(msg, "@")
 	var marketId *string = this.SafeString(parts, 2)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 }
 func (this *Mexc) GetCacheIndex(orderbook any, cache any) any {
@@ -1043,7 +1043,7 @@ func (this *Mexc) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDictN(message, []any{"d", "data", "publicAggreDepths"})
 	var marketId *string = this.SafeString2(message, "s", "symbol")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
@@ -1305,7 +1305,7 @@ func (this *Mexc) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var trades any = nil
@@ -1526,7 +1526,7 @@ func (this *Mexc) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var orders any = nil
@@ -1761,7 +1761,7 @@ func (this *Mexc) ParseWsOrder(order any, optionalArgs ...any) any {
 		"info":         order,
 	}, market)
 }
-func (this *Mexc) ParseWsOrderStatus(status any, optionalArgs ...any) any {
+func (this *Mexc) ParseWsOrderStatus(status any, optionalArgs ...any) *string {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var statuses map[string]any = map[string]any{
@@ -1778,7 +1778,7 @@ func (this *Mexc) ParseWsOrderStatus(status any, optionalArgs ...any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mexc) ParseWsOrderType(typeVar any) any {
+func (this *Mexc) ParseWsOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"1":   "limit",
 		"2":   "limit",
@@ -1791,7 +1791,7 @@ func (this *Mexc) ParseWsOrderType(typeVar any) any {
 	}
 	return this.SafeString(types, typeVar)
 }
-func (this *Mexc) ParseWsTimeInForce(timeInForce any) any {
+func (this *Mexc) ParseWsTimeInForce(timeInForce any) *string {
 	var timeInForceIds map[string]any = map[string]any{
 		"1":   "GTC",
 		"2":   "PO",
@@ -1830,7 +1830,7 @@ func (this *Mexc) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes157412)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var messageHash any = ccxt.Add("balance:", typeVar)
@@ -1902,7 +1902,7 @@ func (this *Mexc) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "timestamp", timestamp)
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), "datetime", this.Iso8601(timestamp))
 	var currencyId *string = this.SafeString2(data, "currency", "vcoinName")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString2(data, "balanceAmount", "availableBalance"))
 	ccxt.AddElementToObject(account, "used", this.SafeString2(data, "frozenBalance", "frozenAmount"))
@@ -1983,7 +1983,7 @@ func (this *Mexc) unWatchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	}
 	url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
 	this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.HandleUnsubscriptions(client, []any{messageHash})
 
 	return nil
@@ -2051,7 +2051,7 @@ func (this *Mexc) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "swap")
 		this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.HandleUnsubscriptions(client, []any{messageHash})
 
 	return nil
@@ -2090,7 +2090,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		market = this.Market(firstSymbol)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchTickers", market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("watchTickers", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(typeVar, "spot"))
@@ -2108,7 +2108,7 @@ func (this *Mexc) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		request["params"] = map[string]any{}
 		ccxt.AppendToArray(&messageHashes, "unsubscribe:ticker")
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)
 	this.HandleUnsubscriptions(client, messageHashes)
 
@@ -2146,7 +2146,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbols), "unWatchBidsAsks() markets is required")
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", ccxt.GetValue(markets, 0), params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
@@ -2167,7 +2167,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		"method": "UNSUBSCRIPTION",
 		"params": topics,
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes)
 	this.HandleUnsubscriptions(client, messageHashes)
 
@@ -2221,7 +2221,7 @@ func (this *Mexc) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.HandleUnsubscriptions(client, []any{messageHash})
 
 	return nil
@@ -2258,7 +2258,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	if ccxt.IsEqual(ccxt.GetValue(market, "spot"), true) {
 		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")
 		var frequency any = nil
-		frequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
+		var frequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "frequency", "100ms")
 		frequency = ccxt.GetValue(frequencyparamsVariable, 0)
 		params = ccxt.GetValue(frequencyparamsVariable, 1)
 		var channel any = ccxt.Add(ccxt.Add(ccxt.Add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), ccxt.GetValue(market, "id"))
@@ -2272,7 +2272,7 @@ func (this *Mexc) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		}
 		this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.HandleUnsubscriptions(client, []any{messageHash})
 
 	return nil
@@ -2319,7 +2319,7 @@ func (this *Mexc) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		}
 		this.Spawn(this.WatchSwapPublicAsync, channel, messageHash, requestParams, params)
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.HandleUnsubscriptions(client, []any{messageHash})
 
 	return nil
@@ -2394,7 +2394,7 @@ func (this *Mexc) authenticateBody(ch chan any, subscriptionHash any, optionalAr
 	// spot ws client - the first caller fetches the listenKey, concurrent
 	// callers wait on the future and resume when the listenKey is ready,
 	// otherwise the user-data subscriptions would be split across two connections
-	var client any = this.Client(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
+	var client ccxt.ClientInterface = this.Client(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
 	var messageHash string = "authenticate:listenKey"
 	var isFetching *bool = this.SafeBool(this.Options, "listenKeyFetching", false)
 	if isFetching != nil && *isFetching == true {
@@ -2476,7 +2476,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan any, listenKey any, optionalArg
 					ret_ = func(this *Mexc) any {
 						// catch block:
 						var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"), "?listenKey="), listenKey)
-						var client any = this.Client(url)
+						var client ccxt.ClientInterface = this.Client(url)
 						ccxt.AddElementToObject(this.Options, "listenKey", nil)
 						client.(ccxt.ClientInterface).Reject(error)
 						ccxt.Remove(this.Clients, url)

@@ -82,7 +82,7 @@ func (this *Cryptocom) pongBody(ch chan any, client any, message any) any {
 					}
 					ret_ = func(this *Cryptocom) any {
 						// catch block:
-						error := ccxt.NetworkError(ccxt.Add(this.Id+" pong failed with error ", this.ExceptionMessage(e)))
+						error := ccxt.NetworkError(this.Id + " pong failed with error " + this.ExceptionMessage(e))
 						client.(ccxt.ClientInterface).Reset(error)
 						return nil
 					}(this)
@@ -202,19 +202,19 @@ func (this *Cryptocom) watchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	}
 	var bookSubscriptionType any = nil
 	var bookSubscriptionType2 any = nil
-	bookSubscriptionTypeparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
+	var bookSubscriptionTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType = ccxt.GetValue(bookSubscriptionTypeparamsVariable, 0)
 	params = ccxt.GetValue(bookSubscriptionTypeparamsVariable, 1)
-	bookSubscriptionType2paramsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
+	var bookSubscriptionType2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
 	bookSubscriptionType2 = ccxt.GetValue(bookSubscriptionType2paramsVariable, 0)
 	params = ccxt.GetValue(bookSubscriptionType2paramsVariable, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookSubscriptionType2)
 	var bookUpdateFrequency any = nil
 	var bookUpdateFrequency2 any = nil
-	bookUpdateFrequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
+	var bookUpdateFrequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
 	bookUpdateFrequency = ccxt.GetValue(bookUpdateFrequencyparamsVariable, 0)
 	params = ccxt.GetValue(bookUpdateFrequencyparamsVariable, 1)
-	bookUpdateFrequency2paramsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
+	var bookUpdateFrequency2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
 	bookUpdateFrequency2 = ccxt.GetValue(bookUpdateFrequency2paramsVariable, 0)
 	params = ccxt.GetValue(bookUpdateFrequency2paramsVariable, 1)
 	if bookUpdateFrequency2 != nil {
@@ -274,19 +274,19 @@ func (this *Cryptocom) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, 
 	}
 	var bookSubscriptionType any = nil
 	var bookSubscriptionType2 any = nil
-	bookSubscriptionTypeparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
+	var bookSubscriptionTypeparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
 	bookSubscriptionType = ccxt.GetValue(bookSubscriptionTypeparamsVariable, 0)
 	params = ccxt.GetValue(bookSubscriptionTypeparamsVariable, 1)
-	bookSubscriptionType2paramsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
+	var bookSubscriptionType2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType)
 	bookSubscriptionType2 = ccxt.GetValue(bookSubscriptionType2paramsVariable, 0)
 	params = ccxt.GetValue(bookSubscriptionType2paramsVariable, 1)
 	ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookSubscriptionType2)
 	var bookUpdateFrequency any = nil
 	var bookUpdateFrequency2 any = nil
-	bookUpdateFrequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
+	var bookUpdateFrequencyparamsVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
 	bookUpdateFrequency = ccxt.GetValue(bookUpdateFrequencyparamsVariable, 0)
 	params = ccxt.GetValue(bookUpdateFrequencyparamsVariable, 1)
-	bookUpdateFrequency2paramsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
+	var bookUpdateFrequency2paramsVariable []any = this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "bookUpdateFrequency", bookUpdateFrequency)
 	bookUpdateFrequency2 = ccxt.GetValue(bookUpdateFrequency2paramsVariable, 0)
 	params = ccxt.GetValue(bookUpdateFrequency2paramsVariable, 1)
 	if bookUpdateFrequency2 != nil {
@@ -1300,7 +1300,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 		}
 		messageHash = "positions::" + ccxt.Join(symbols, ",")
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbols)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
@@ -1353,8 +1353,8 @@ func (this *Cryptocom) loadPositionsSnapshotBody(ch chan any, client any, messag
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
-		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
+		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
+		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
@@ -1499,7 +1499,7 @@ func (this *Cryptocom) HandleBalance(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(positionBalances); i++ {
 		var balance any = ccxt.GetValue(positionBalances, i)
 		var currencyId *string = this.SafeString(balance, "instrument_name")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "quantity"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "reserved_qty"))
@@ -1907,7 +1907,6 @@ func (this *Cryptocom) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -2008,7 +2007,7 @@ func (this *Cryptocom) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -2047,7 +2046,7 @@ func (this *Cryptocom) HandleUnsubscribe(client any, message any) {
 	var id *string = this.SafeString(message, "id")
 	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; i < len(keys); i++ {
-		var messageHash any = ccxt.GetValue(keys, i)
+		var messageHash string = ccxt.GetValue(keys, i).(string)
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			continue
 		}

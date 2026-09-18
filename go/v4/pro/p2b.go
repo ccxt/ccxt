@@ -184,7 +184,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	}
 	var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
-	nameparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "name", name)
+	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
 	var market any = this.Market(symbol)
@@ -231,7 +231,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false)
 	var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
-	nameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", name)
+	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
 	params = ccxt.GetValue(nameparamsVariable, 1)
 	var messageHashes any = []any{}
@@ -574,8 +574,8 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	if !ccxt.IsEqual(bids, nil) {
 		for i := 0; i < ccxt.GetArrayLength(bids); i++ {
 			var bid any = this.SafeValue(bids, i)
-			var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
-			var amount any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
+			var price *float64 = this.SafeNumber(bid, 0)
+			var amount *float64 = this.SafeNumber(bid, 1)
 			var bookSide any = ccxt.GetValue(orderbook, "bids")
 			bookSide.(ccxt.IOrderBookSide).Store(price, amount)
 		}
@@ -583,8 +583,8 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	if !ccxt.IsEqual(asks, nil) {
 		for i := 0; i < ccxt.GetArrayLength(asks); i++ {
 			var ask any = this.SafeValue(asks, i)
-			var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
-			var amount any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
+			var price *float64 = this.SafeNumber(ask, 0)
+			var amount *float64 = this.SafeNumber(ask, 1)
 			var bookside any = ccxt.GetValue(orderbook, "asks")
 			bookside.(ccxt.IOrderBookSide).Store(price, amount)
 		}

@@ -101,7 +101,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 	if !ccxt.EvalTruthy(isContract) {
 		url = ccxt.Add(url, "/private")
 	}
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var token *string = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), "token")
 	if token == nil {
 		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
@@ -214,14 +214,14 @@ func (this *Xt) HandleDelta(orderbook any, delta any) {
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	for i := 0; i < ccxt.GetArrayLength(obBids); i++ {
 		var bid any = ccxt.GetValue(obBids, i)
-		var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
-		var quantity any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
+		var price *float64 = this.SafeNumber(bid, 0)
+		var quantity *float64 = this.SafeNumber(bid, 1)
 		bids.(ccxt.IOrderBookSide).Store(price, quantity)
 	}
 	for i := 0; i < ccxt.GetArrayLength(obAsks); i++ {
 		var ask any = ccxt.GetValue(obAsks, i)
-		var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
-		var quantity any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
+		var price *float64 = this.SafeNumber(ask, 0)
+		var quantity *float64 = this.SafeNumber(ask, 1)
 		asks.(ccxt.IOrderBookSide).Store(price, quantity)
 	}
 }
@@ -256,7 +256,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 	_ = params
 	var privateAccess bool = (ccxt.IsEqual(access, "private"))
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
@@ -350,7 +350,7 @@ func (this *Xt) unSubscribeBody(ch chan any, messageHash any, name any, access a
 	_ = subscriptionParams
 	var privateAccess bool = (ccxt.IsEqual(access, "private"))
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var isContract bool = (!ccxt.IsEqual(typeVar, "spot"))
@@ -1008,7 +1008,7 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes64212)
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/"), "user")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
@@ -1166,8 +1166,8 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan any, client any, messageHash a
 	var cache any = this.Positions
 	for i := 0; i < ccxt.GetArrayLength(positions); i++ {
 		var position any = ccxt.GetValue(positions, i)
-		var contracts any = ccxt.DerefScalar(this.SafeNumber(position, "contracts", 0))
-		if (!ccxt.IsEqual(contracts, nil)) && (ccxt.IsGreaterThan(contracts, 0)) {
+		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
+		if (contracts != nil) && (ccxt.IsGreaterThan(contracts, 0)) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
@@ -1634,8 +1634,8 @@ func (this *Xt) HandleOrderBook(client any, message any) {
 			var asks any = ccxt.GetValue(orderbook, "asks")
 			for i := 0; i < ccxt.GetArrayLength(obAsks); i++ {
 				var ask any = ccxt.GetValue(obAsks, i)
-				var price any = ccxt.DerefScalar(this.SafeNumber(ask, 0))
-				var quantity any = ccxt.DerefScalar(this.SafeNumber(ask, 1))
+				var price *float64 = this.SafeNumber(ask, 0)
+				var quantity *float64 = this.SafeNumber(ask, 1)
 				asks.(ccxt.IOrderBookSide).Store(price, quantity)
 			}
 		}
@@ -1643,8 +1643,8 @@ func (this *Xt) HandleOrderBook(client any, message any) {
 			var bids any = ccxt.GetValue(orderbook, "bids")
 			for i := 0; i < ccxt.GetArrayLength(obBids); i++ {
 				var bid any = ccxt.GetValue(obBids, i)
-				var price any = ccxt.DerefScalar(this.SafeNumber(bid, 0))
-				var quantity any = ccxt.DerefScalar(this.SafeNumber(bid, 1))
+				var price *float64 = this.SafeNumber(bid, 0)
+				var quantity *float64 = this.SafeNumber(bid, 1)
 				bids.(ccxt.IOrderBookSide).Store(price, quantity)
 			}
 		}
@@ -1905,7 +1905,7 @@ func (this *Xt) HandleBalance(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var currencyId *string = this.SafeString2(data, "c", "coin")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString(data, "availableBalance"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(data, "f"))

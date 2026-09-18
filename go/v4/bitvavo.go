@@ -570,8 +570,8 @@ func (this *Bitvavo) ParseMarkets(markets any) any {
 		var id *string = this.SafeString(market, "market")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		var status *string = this.SafeString(market, "status")
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
@@ -723,16 +723,16 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 	//
 	var fiatCurrencies any = this.HandleOption("fetchCurrencies", "fiatCurrencies", []any{})
 	var id *string = this.SafeString(rawCurrency, "symbol")
-	var code any = this.SafeCurrencyCode(id)
+	var code *string = this.SafeCurrencyCode(id)
 	var isFiat bool = this.InArray(code, fiatCurrencies)
 	var networks map[string]any = map[string]any{}
 	var networksArray any = this.SafeList(rawCurrency, "networks", []any{})
 	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
 	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
 	var active bool = deposit && withdrawal
-	var withdrawFee any = DerefScalar(this.SafeNumber(rawCurrency, "withdrawalFee"))
+	var withdrawFee *float64 = this.SafeNumber(rawCurrency, "withdrawalFee")
 	var precision *string = this.SafeString(rawCurrency, "decimals", "8")
-	var minWithdraw any = DerefScalar(this.SafeNumber(rawCurrency, "withdrawalMinAmount"))
+	var minWithdraw *float64 = this.SafeNumber(rawCurrency, "withdrawalMinAmount")
 	// btw, absolutely all of them have 1 network atm
 	for j := 0; j < GetArrayLength(networksArray); j++ {
 		var networkId any = GetValue(networksArray, j)
@@ -863,7 +863,7 @@ func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market")
-	var symbol any = this.SafeSymbol(marketId, market, "-")
+	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
 	var last *string = this.SafeString(ticker, "last")
 	var baseVolume *string = this.SafeString(ticker, "volume")
@@ -979,7 +979,7 @@ func (this *Bitvavo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1084,7 +1084,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 	var side *string = this.SafeString(trade, "side")
 	var id *string = this.SafeString2(trade, "id", "fillId")
 	var marketId *string = this.SafeString(trade, "market")
-	var symbol any = this.SafeSymbol(marketId, market, "-")
+	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if !IsEqual(taker, nil) {
@@ -1099,7 +1099,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	if feeCostString != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "feeCurrency")
-		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -1175,8 +1175,8 @@ func (this *Bitvavo) ParseTradingFees(fees any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var feesValue any = this.SafeValue(fees, "fees")
-	var maker any = DerefScalar(this.SafeNumber(feesValue, "maker"))
-	var taker any = DerefScalar(this.SafeNumber(feesValue, "taker"))
+	var maker *float64 = this.SafeNumber(feesValue, "maker")
+	var taker *float64 = this.SafeNumber(feesValue, "taker")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(this.Symbols); i++ {
 		var symbol any = GetValue(this.Symbols, i)
@@ -1393,7 +1393,7 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1427,7 +1427,7 @@ func (this *Bitvavo) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var currencyId *string = this.SafeString(balance, "symbol")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		AddElementToObject(account, "used", this.SafeString(balance, "inOrder"))
@@ -1565,7 +1565,7 @@ func (this *Bitvavo) transferBody(ch chan any, code any, amount any, fromAccount
 	var currency any = this.Currency(code)
 	var subaccountId any = DerefScalar(this.SafeString(params, "subaccountId"))
 	params = this.Omit(params, "subaccountId")
-	var direction any = nil
+	var direction string
 	if (IsEqual(fromAccount, "master")) && (IsEqual(toAccount, "master")) {
 		panic(ArgumentsRequired(this.Id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)"))
 	} else if IsEqual(fromAccount, "master") {
@@ -1744,7 +1744,7 @@ func (this *Bitvavo) fetchTransferBody(ch chan any, id any, optionalArgs ...any)
 	ch <- this.ParseTransfer(response, currency)
 	return nil
 }
-func (this *Bitvavo) ParseTransferStatus(status any) any {
+func (this *Bitvavo) ParseTransferStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"completed": "ok",
 		"pending":   "pending",
@@ -1756,7 +1756,7 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transfer, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var subaccountId *string = this.SafeString(transfer, "subaccountId")
 	var direction *string = this.SafeString(transfer, "direction")
 	var fromAccount any = nil
@@ -1768,8 +1768,8 @@ func (this *Bitvavo) ParseTransfer(transfer any, optionalArgs ...any) any {
 		fromAccount = subaccountId
 		toAccount = "master"
 	}
-	var timestamp any = DerefScalar(this.SafeInteger(transfer, "createdAt"))
-	if IsEqual(timestamp, nil) {
+	var timestamp *int64 = this.SafeInteger(transfer, "createdAt")
+	if timestamp == nil {
 		timestamp = this.Parse8601(this.SafeString(transfer, "createdAt"))
 	}
 	return map[string]any{
@@ -1856,15 +1856,15 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var isLimitOrder bool = (IsEqual(typeVar, "limit")) || (IsEqual(typeVar, "stopLossLimit")) || (IsEqual(typeVar, "takeProfitLimit"))
 	var timeInForce *string = this.SafeString(params, "timeInForce")
 	var triggerPrice any = DerefScalar(this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"}))
-	var postOnly any = this.IsPostOnly(isMarketOrder, false, params)
+	var postOnly bool = this.IsPostOnly(isMarketOrder, false, params)
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice")     // trigger when price crosses from above to below this value
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice") // trigger when price crosses from below to above this value
 	params = this.Omit(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
 	if isMarketOrder {
 		var cost any = nil
 		if !IsEqual(price, nil) {
-			var priceString any = this.NumberToString(price)
-			var amountString any = this.NumberToString(amount)
+			var priceString *string = this.NumberToString(price)
+			var amountString *string = this.NumberToString(amount)
 			var quoteAmount *string = Precise.StringMul(amountString, priceString)
 			cost = this.ParseNumber(quoteAmount)
 		} else {
@@ -1912,11 +1912,11 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	if (timeInForce != nil) && (timeInForce == nil || *timeInForce != "PO") {
 		request["timeInForce"] = timeInForce
 	}
-	if EvalTruthy(postOnly) {
+	if postOnly {
 		request["postOnly"] = true
 	}
 	var operatorId any = nil
-	operatorIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "operatorId")
+	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "operatorId")
 	operatorId = GetValue(operatorIdparamsVariable, 0)
 	params = GetValue(operatorIdparamsVariable, 1)
 	if operatorId != nil {
@@ -1925,7 +1925,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		panic(ArgumentsRequired(this.Id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890"))
 	}
 	var selfTradePrevention any = nil
-	selfTradePreventionparamsVariable := this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
+	var selfTradePreventionparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
 	selfTradePrevention = GetValue(selfTradePreventionparamsVariable, 0)
 	params = GetValue(selfTradePreventionparamsVariable, 1)
 	if selfTradePrevention != nil {
@@ -2037,7 +2037,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	_ = params
 	var request map[string]any = map[string]any{}
 	var market any = this.Market(symbol)
-	var amountRemaining any = DerefScalar(this.SafeNumber(params, "amountRemaining"))
+	var amountRemaining *float64 = this.SafeNumber(params, "amountRemaining")
 	var triggerPrice *string = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	params = this.Omit(params, []any{"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"})
 	if !IsEqual(price, nil) {
@@ -2046,7 +2046,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	if !IsEqual(amount, nil) {
 		request["amount"] = this.AmountToPrecision(symbol, amount)
 	}
-	if !IsEqual(amountRemaining, nil) {
+	if amountRemaining != nil {
 		request["amountRemaining"] = this.AmountToPrecision(symbol, amountRemaining)
 	}
 	if triggerPrice != nil {
@@ -2061,7 +2061,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 		request["orderId"] = id
 	}
 	var operatorId any = nil
-	operatorIdparamsVariable := this.HandleOptionAndParams(params, "editOrder", "operatorId")
+	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "operatorId")
 	operatorId = GetValue(operatorIdparamsVariable, 0)
 	params = GetValue(operatorIdparamsVariable, 1)
 	if operatorId != nil {
@@ -2132,7 +2132,7 @@ func (this *Bitvavo) CancelOrderRequest(id any, optionalArgs ...any) any {
 		request["orderId"] = id
 	}
 	var operatorId any = nil
-	operatorIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
+	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "operatorId")
 	operatorId = GetValue(operatorIdparamsVariable, 0)
 	params = GetValue(operatorIdparamsVariable, 1)
 	if operatorId != nil {
@@ -2218,7 +2218,7 @@ func (this *Bitvavo) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		request["market"] = GetValue(market, "id")
 	}
 	var operatorId any = nil
-	operatorIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
+	var operatorIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "operatorId")
 	operatorId = GetValue(operatorIdparamsVariable, 0)
 	params = GetValue(operatorIdparamsVariable, 1)
 	if operatorId != nil {
@@ -2273,7 +2273,7 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 		PanicOnError(retRes181812)
 	}
 	var codGroupId any = nil
-	codGroupIdparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
+	var codGroupIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrdersAfter", "codGroupId", 1)
 	codGroupId = GetValue(codGroupIdparamsVariable, 0)
 	params = GetValue(codGroupIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2441,7 +2441,7 @@ func (this *Bitvavo) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes193712)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2578,7 +2578,7 @@ func (this *Bitvavo) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseOrders(response, market, since, limit)
 	return nil
 }
-func (this *Bitvavo) ParseOrderStatus(status any) any {
+func (this *Bitvavo) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"new":                         "open",
 		"canceled":                    "canceled",
@@ -2649,7 +2649,7 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "market")
 	market = this.SafeMarket(marketId, market, "-")
 	var symbol any = GetValue(market, "symbol")
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
 	var price *string = this.SafeString(order, "price")
@@ -2663,10 +2663,10 @@ func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) any {
 		cost = Precise.StringSub(amountQuote, amountQuoteRemaining)
 	}
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeNumber(order, "feePaid"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(order, "feePaid")
+	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(order, "feeCurrency")
-		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
@@ -2763,7 +2763,7 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes220912)
 	}
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -2879,7 +2879,7 @@ func (this *Bitvavo) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	ch <- this.ParseLedger(items, currency, since, limit)
 	return nil
 }
-func (this *Bitvavo) ParseLedgerEntryType(typeVar any) any {
+func (this *Bitvavo) ParseLedgerEntryType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"buy":                        "trade",
 		"sell":                       "trade",
@@ -2895,7 +2895,7 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var rawType *string = this.SafeString(item, "type")
-	var typeVar any = this.ParseLedgerEntryType(rawType)
+	var typeVar *string = this.ParseLedgerEntryType(rawType)
 	var currencyId *string = this.SafeString(item, "receivedCurrency")
 	var amount *string = this.SafeString(item, "receivedAmount")
 	var direction string = "in"
@@ -2904,14 +2904,14 @@ func (this *Bitvavo) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		amount = this.SafeString(item, "sentAmount")
 		direction = "out"
 	}
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	currency = this.SafeCurrency(currencyId, currency)
-	var timestamp any = this.Parse8601(this.SafeString(item, "executedAt"))
+	var timestamp *int64 = this.Parse8601(this.SafeString(item, "executedAt"))
 	var fee any = nil
 	var feeCost *string = this.SafeString(item, "feesAmount")
 	if feeCost != nil {
 		var feeCurrencyId *string = this.SafeString(item, "feesCurrency")
-		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
+		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurrencyCode,
@@ -3167,7 +3167,7 @@ func (this *Bitvavo) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	})
 	return nil
 }
-func (this *Bitvavo) ParseTransactionStatus(status any) any {
+func (this *Bitvavo) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"awaiting_processing":         "pending",
 		"awaiting_email_confirmation": "pending",
@@ -3220,20 +3220,20 @@ func (this *Bitvavo) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var id any = nil
 	var timestamp *int64 = this.SafeInteger(transaction, "timestamp")
 	var currencyId *string = this.SafeString(transaction, "symbol")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
-	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = DerefScalar(this.SafeNumber(transaction, "amount"))
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
+	var status *string = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
+	var amount *float64 = this.SafeNumber(transaction, "amount")
 	var address *string = this.SafeString(transaction, "address")
 	var txid *string = this.SafeString(transaction, "txId")
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": code,
 		}
 	}
-	var typeVar any = nil
+	var typeVar string
 	if (InOp(transaction, "success")) || (InOp(transaction, "address")) {
 		typeVar = "withdrawal"
 	} else {

@@ -267,9 +267,9 @@ func (this *Onetrading) HandleTicker(client any, message any) {
 	for i := 0; i < ccxt.GetArrayLength(tickers); i++ {
 		var ticker any = ccxt.GetValue(tickers, i)
 		var marketId *string = this.SafeString(ticker, "instrument")
-		var symbol any = this.SafeSymbol(marketId)
+		var symbol *string = this.SafeSymbol(marketId)
 		ccxt.AddElementToObject(this.Tickers, symbol, this.ParseWSTicker(ticker))
-		var timestamp any = this.Parse8601(datetime)
+		var timestamp *int64 = this.Parse8601(datetime)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Tickers, symbol), "timestamp", timestamp)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Tickers, symbol), "datetime", this.Iso8601(timestamp))
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), ccxt.Add("ticker.", symbol))
@@ -467,9 +467,9 @@ func (this *Onetrading) HandleOrderBook(client any, message any) {
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var marketId *string = this.SafeString(message, "instrument_code")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
-	var timestamp any = this.Parse8601(dateTime)
+	var timestamp *int64 = this.Parse8601(dateTime)
 	var channel any = ccxt.Add("book:", symbol)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsEqual(orderbook, nil) {
@@ -734,7 +734,7 @@ func (this *Onetrading) ParseTradingOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var datetime *string = this.SafeString(order, "time")
 	var marketId *string = this.SafeString(order, "instrument_code")
-	var symbol any = this.SafeSymbol(marketId, market, "_")
+	var symbol *string = this.SafeSymbol(marketId, market, "_")
 	return this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "client_id"),
@@ -759,7 +759,7 @@ func (this *Onetrading) ParseTradingOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Onetrading) ParseTradingOrderStatus(status any) any {
+func (this *Onetrading) ParseTradingOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"CANCELLED":               "canceled",
 		"SELF_TRADE":              "rejected",
@@ -1136,7 +1136,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 	}
 }
-func (this *Onetrading) ParseWsOrderStatus(status any) any {
+func (this *Onetrading) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"ORDER_REJECTED":       "rejected",
 		"ORDER_CLOSED":         "closed",
@@ -1154,7 +1154,7 @@ func (this *Onetrading) UpdateBalance(balance any) {
 	//     }
 	//
 	var currencyId *string = this.SafeString(balance, "currency_code")
-	var code any = this.SafeCurrencyCode(currencyId)
+	var code *string = this.SafeCurrencyCode(currencyId)
 	var account any = this.Account()
 	ccxt.AddElementToObject(account, "free", this.SafeString(balance, "new_available"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(balance, "new_locked"))
@@ -1299,7 +1299,7 @@ func (this *Onetrading) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var marketId *string = this.SafeString(message, "instrument_code")
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var dateTime *string = this.SafeString(message, "time")
 	var timeframeId any = this.SafeValue(message, "granularity")
 	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
@@ -1329,7 +1329,7 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) any {
 	}
 	var keys []string = ccxt.ObjectKeys(timeframes)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframes, key), "unit"), ccxt.GetValue(timeframe, "unit")) && ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(timeframes, key), "period"), ccxt.GetValue(timeframe, "period")) {
 			return key
 		}
@@ -1504,7 +1504,7 @@ func (this *Onetrading) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var client any = this.Client(url)
+	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

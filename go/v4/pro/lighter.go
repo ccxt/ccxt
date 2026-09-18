@@ -378,7 +378,7 @@ func (this *Lighter) HandleTicker(client any, message any) {
 	if channel != nil && *channel == "market_stats:all" {
 		var marketIds []string = ccxt.ObjectKeys(data)
 		for i := 0; i < len(marketIds); i++ {
-			var marketId any = ccxt.GetValue(marketIds, i)
+			var marketId string = ccxt.GetValue(marketIds, i).(string)
 			var market any = this.SafeMarket(marketId)
 			var symbol any = ccxt.GetValue(market, "symbol")
 			var ticker any = this.ParseTicker(ccxt.GetValue(data, marketId), market)
@@ -1033,7 +1033,7 @@ func (this *Lighter) HandleMyTrades(client any, message any) any {
 	var stored any = this.MyTrades
 	var messageHash any = this.GetMessageHash("myTrades")
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var trades any = this.SafeList(data, marketId, []any{})
 		var tradesLength int = ccxt.GetArrayLength(trades)
@@ -1340,7 +1340,7 @@ func (this *Lighter) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	}
 	var defaultType *string = this.SafeString2(this.Options, "watchBalance", "defaultType", "spot")
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleParamString(params, "type", defaultType)
+	var typeVarparamsVariable []any = this.HandleParamString(params, "type", defaultType)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var accountIndex any = nil
@@ -1430,10 +1430,10 @@ func (this *Lighter) HandleBalance(client any, message any) any {
 		var assets any = this.SafeDict(message, "assets", map[string]any{})
 		var assetIds []string = ccxt.ObjectKeys(assets)
 		for i := 0; i < len(assetIds); i++ {
-			var assetId any = ccxt.GetValue(assetIds, i)
+			var assetId string = ccxt.GetValue(assetIds, i).(string)
 			var asset any = ccxt.GetValue(assets, assetId)
 			var codeId *string = this.SafeString(asset, "symbol")
-			var code any = this.SafeCurrencyCode(codeId)
+			var code *string = this.SafeCurrencyCode(codeId)
 			var account any = this.Account()
 			ccxt.AddElementToObject(account, "used", this.SafeString(asset, "locked_balance"))
 			ccxt.AddElementToObject(account, "total", this.SafeString(asset, "balance"))
@@ -1768,7 +1768,7 @@ func (this *Lighter) HandleOrders(client any, message any) any {
 	var stored any = this.Orders
 	var messageHash any = this.GetMessageHash("orders")
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = ccxt.GetValue(marketIds, i)
+		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var orders any = this.SafeList(data, marketId, []any{})
 		for j := 0; j < ccxt.GetArrayLength(orders); j++ {
@@ -1809,7 +1809,7 @@ func (this *Lighter) HandleErrorMessage(client any, message any) any {
 						if id != nil {
 							var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 							for i := 0; i < len(subscriptionKeys); i++ {
-								var subscriptionHash any = ccxt.GetValue(subscriptionKeys, i)
+								var subscriptionHash string = ccxt.GetValue(subscriptionKeys, i).(string)
 								var subscriptionId *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
 								var subscription *string = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "subscription")
 								if id == subscriptionId || (id != nil && subscriptionId != nil && *id == *subscriptionId) {

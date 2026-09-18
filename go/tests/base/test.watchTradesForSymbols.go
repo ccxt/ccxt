@@ -16,7 +16,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	var method string = "watchTradesForSymbols"
 	var logText any = Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " [symbols: "), exchange.Json(symbols)), "] ")
 	var now int64 = exchange.Milliseconds()
-	var ends any = Add(now, 30000)
+	var ends any = now + 30000
 	var maxIdleTime int = 5000
 	var idle bool = false
 	var returnedSymbols any = []any{}
@@ -51,7 +51,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 
 		}
 		now = exchange.Milliseconds()
-		var elapsedMs int64 = Subtract(now, startTime).(int64)
+		var elapsedMs any = now - startTime
 		if (success == true) && (!IsEqual(response, nil)) {
 			Assert(IsArray(response), Add(Add(logText, "must return an array. "), exchange.Json(response)))
 			for i := 0; i < GetArrayLength(response); i++ {

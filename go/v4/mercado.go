@@ -373,8 +373,8 @@ func (this *Mercado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var coin any = GetValue(coins, i)
 		var baseId any = coin
 		var quoteId string = "BRL"
-		var base any = this.SafeCurrencyCode(baseId)
-		var quote any = this.SafeCurrencyCode(quoteId)
+		var base *string = this.SafeCurrencyCode(baseId)
+		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {
 			continue
 		}
@@ -486,7 +486,7 @@ func (this *Mercado) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var timestamp *int64 = this.SafeTimestamp(ticker, "date")
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
@@ -660,8 +660,8 @@ func (this *Mercado) ParseBalance(response any) any {
 	}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; i < len(currencyIds); i++ {
-		var currencyId any = GetValue(currencyIds, i)
-		var code any = this.SafeCurrencyCode(currencyId)
+		var currencyId string = GetValue(currencyIds, i).(string)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		if InOp(balances, currencyId) {
 			var balance any = this.SafeValue(balances, currencyId, map[string]any{})
 			var account any = this.Account()
@@ -756,8 +756,8 @@ func (this *Mercado) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			if IsEqual(price, nil) {
 				panic(InvalidOrder(this.Id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount"))
 			}
-			var amountString any = this.NumberToString(amount)
-			var priceString any = this.NumberToString(price)
+			var amountString *string = this.NumberToString(amount)
+			var priceString *string = this.NumberToString(price)
 			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 			request["cost"] = this.PriceToPrecision(GetValue(market, "symbol"), cost)
 
@@ -845,7 +845,7 @@ func (this *Mercado) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	ch <- this.ParseOrder(order, market)
 	return nil
 }
-func (this *Mercado) ParseOrderStatus(status any) any {
+func (this *Mercado) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"2": "open",
 		"3": "canceled",
@@ -892,7 +892,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 			return "sell"
 		}()
 	}
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "coin_pair")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeTimestamp(order, "created_timestamp")

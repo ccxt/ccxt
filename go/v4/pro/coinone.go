@@ -133,8 +133,8 @@ func (this *Coinone) HandleOrderBook(client any, message any) {
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var baseId *string = this.SafeStringUpper(data, "target_currency")
 	var quoteId *string = this.SafeStringUpper(data, "quote_currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
@@ -270,8 +270,8 @@ func (this *Coinone) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString(ticker, "last")
 	var baseId *string = this.SafeString(ticker, "target_currency")
 	var quoteId *string = this.SafeString(ticker, "quote_currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = this.Symbol(ccxt.Add(ccxt.Add(base, "/"), quote))
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -394,8 +394,8 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var baseId *string = this.SafeStringUpper(trade, "target_currency")
 	var quoteId *string = this.SafeStringUpper(trade, "quote_currency")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = ccxt.Add(ccxt.Add(base, "/"), quote)
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	market = this.SafeMarket(symbol, market)
@@ -464,9 +464,9 @@ func (this *Coinone) HandleMessage(client any, message any) {
 		}
 		var keys []string = ccxt.ObjectKeys(methods)
 		for i := 0; i < len(keys); i++ {
-			var key any = ccxt.GetValue(keys, i)
+			var key string = ccxt.GetValue(keys, i).(string)
 			if ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)) >= 0 {
-				var method any = ccxt.GetValue(methods, key)
+				var method any = methods[key]
 				ccxt.CallDynamically(method, client, message)
 				return
 			}

@@ -192,7 +192,7 @@ func (this *Bitrue) ParseWSBalances(balances any) {
 	for i := 0; i < ccxt.GetArrayLength(balances); i++ {
 		var balance any = ccxt.GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "a")
-		var code any = this.SafeCurrencyCode(currencyId)
+		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		var free *string = this.SafeString(balance, "F")
 		var used *string = this.SafeString(balance, "L")
@@ -511,8 +511,8 @@ func (this *Bitrue) ParseContractBidsAsks(bidsAsks any, symbol any) any {
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(bidsAsks); i++ {
 		var level any = ccxt.GetValue(bidsAsks, i)
-		var price any = ccxt.DerefScalar(this.SafeNumber(level, 0))
-		var rawAmount any = ccxt.DerefScalar(this.SafeNumber(level, 1))
+		var price *float64 = this.SafeNumber(level, 0)
+		var rawAmount *float64 = this.SafeNumber(level, 1)
 		var amount any = this.ConvertFromRawQuantity(symbol, rawAmount)
 		ccxt.AppendToArray(&result, []any{price, amount})
 	}
@@ -526,7 +526,7 @@ func (this *Bitrue) ConvertFromRawQuantity(symbol any, rawQuantity any) any {
 	if !ccxt.IsEqual(ccxt.GetValue(market, "contract"), true) {
 		return rawQuantity
 	}
-	var contractSize any = ccxt.DerefScalar(this.SafeNumber(market, "contractSize", 1))
+	var contractSize *float64 = this.SafeNumber(market, "contractSize", 1)
 	return ccxt.Multiply(rawQuantity, contractSize)
 }
 
@@ -644,7 +644,7 @@ func (this *Bitrue) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(trade, "ts")
 	var sideLower *string = this.SafeStringLower(trade, "side")
 	var priceString *string = this.SafeString(trade, "price")
-	var rawVol any = ccxt.DerefScalar(this.SafeNumber(trade, "vol"))
+	var rawVol *float64 = this.SafeNumber(trade, "vol")
 	var baseAmount any = this.ConvertFromRawQuantity(symbol, rawVol)
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -788,11 +788,11 @@ func (this *Bitrue) ParseWsOHLCV(tick any, optionalArgs ...any) any {
 		}
 		return ccxt.Multiply(idSeconds, 1000)
 	}()
-	var open any = ccxt.DerefScalar(this.SafeNumber(tick, "open"))
-	var high any = ccxt.DerefScalar(this.SafeNumber(tick, "high"))
-	var low any = ccxt.DerefScalar(this.SafeNumber(tick, "low"))
-	var close any = ccxt.DerefScalar(this.SafeNumber(tick, "close"))
-	var rawVol any = ccxt.DerefScalar(this.SafeNumber(tick, "vol"))
+	var open *float64 = this.SafeNumber(tick, "open")
+	var high *float64 = this.SafeNumber(tick, "high")
+	var low *float64 = this.SafeNumber(tick, "low")
+	var close *float64 = this.SafeNumber(tick, "close")
+	var rawVol *float64 = this.SafeNumber(tick, "vol")
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)
 	return []any{timestamp, open, high, low, close, baseVolume}
 }
@@ -885,14 +885,14 @@ func (this *Bitrue) ParseWsTicker(tick any, market any, optionalArgs ...any) any
 	timestamp := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = timestamp
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var rawVol any = ccxt.DerefScalar(this.SafeNumber(tick, "vol"))
-	var rawAmount any = ccxt.DerefScalar(this.SafeNumber(tick, "amount"))
+	var rawVol *float64 = this.SafeNumber(tick, "vol")
+	var rawAmount *float64 = this.SafeNumber(tick, "amount")
 	var baseVolume any = this.ConvertFromRawQuantity(symbol, rawVol)
 	var quoteVolume any = this.ConvertFromRawQuantity(symbol, rawAmount)
-	var close any = ccxt.DerefScalar(this.SafeNumber(tick, "close"))
-	var rose any = ccxt.DerefScalar(this.SafeNumber(tick, "rose"))
+	var close *float64 = this.SafeNumber(tick, "close")
+	var rose *float64 = this.SafeNumber(tick, "rose")
 	var percentage any = func() any {
-		if ccxt.IsEqual(rose, nil) {
+		if rose == nil {
 			return nil
 		}
 		return ccxt.Multiply(rose, 100)
@@ -920,7 +920,7 @@ func (this *Bitrue) ParseWsTicker(tick any, market any, optionalArgs ...any) any
 		"quoteVolume":   quoteVolume,
 	}, market)
 }
-func (this *Bitrue) ParseWsOrderType(typeId any) any {
+func (this *Bitrue) ParseWsOrderType(typeId any) *string {
 	var types map[string]any = map[string]any{
 		"1": "limit",
 		"2": "market",
@@ -928,7 +928,7 @@ func (this *Bitrue) ParseWsOrderType(typeId any) any {
 	}
 	return this.SafeString(types, typeId, typeId)
 }
-func (this *Bitrue) ParseWsOrderStatus(status any) any {
+func (this *Bitrue) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"0": "open",
 		"1": "open",
@@ -1011,7 +1011,7 @@ func (this *Bitrue) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// so every mutation of that map happens under the ws client's own
 		// lock rather than through an unsynchronized map write
 		var messageHash string = "authenticateFlight"
-		var client any = this.Client("authenticationFlights")
+		var client ccxt.ClientInterface = this.Client("authenticationFlights")
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey url is then in the options

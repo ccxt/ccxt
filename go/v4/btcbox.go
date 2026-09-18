@@ -284,7 +284,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var marketIds []string = ObjectKeys(response1)
 	var markets any = []any{}
 	for i := 0; i < len(marketIds); i++ {
-		var marketId any = GetValue(marketIds, i)
+		var marketId string = GetValue(marketIds, i).(string)
 		var symbolParts []string = Split(marketId, "_")
 		var baseCurr *string = this.SafeString(symbolParts, 0, "")
 		var quote *string = this.SafeString(symbolParts, 1, "")
@@ -359,9 +359,9 @@ func (this *Btcbox) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Btcbox) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "base")
-	var base any = this.SafeCurrencyCode(baseId)
+	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
-	var quote any = this.SafeCurrencyCode(quoteId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             this.SafeString(market, "symbol"),
@@ -420,7 +420,7 @@ func (this *Btcbox) ParseBalance(response any) any {
 	}
 	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; i < len(codes); i++ {
-		var code any = GetValue(codes, i)
+		var code string = GetValue(codes, i).(string)
 		var currency any = this.Currency(code)
 		var currencyId any = GetValue(currency, "id")
 		var free any = Add(currencyId, "_balance")
@@ -429,7 +429,7 @@ func (this *Btcbox) ParseBalance(response any) any {
 			var used any = Add(currencyId, "_lock")
 			AddElementToObject(account, "free", this.SafeString(response, free))
 			AddElementToObject(account, "used", this.SafeString(response, used))
-			AddElementToObject(result, code, account)
+			result[code] = account
 		}
 	}
 	return this.SafeBalance(result)
@@ -509,7 +509,7 @@ func (this *Btcbox) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 func (this *Btcbox) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = this.SafeSymbol(nil, market)
+	var symbol *string = this.SafeSymbol(nil, market)
 	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -795,7 +795,7 @@ func (this *Btcbox) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	ch <- this.ParseOrder(response, market)
 	return nil
 }
-func (this *Btcbox) ParseOrderStatus(status any) any {
+func (this *Btcbox) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"part":      "open",
 		"all":       "closed",
@@ -825,7 +825,7 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id")
 	var datetimeString *string = this.SafeString(order, "datetime")
-	var timestamp any = nil
+	var timestamp *int64 = nil
 	if datetimeString != nil {
 		timestamp = this.Parse8601(Add(GetValue(order, "datetime"), "+09:00")) // Tokyo time
 	}

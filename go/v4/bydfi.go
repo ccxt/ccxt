@@ -622,9 +622,9 @@ func (this *Bydfi) ParseMarket(market any) any {
 	var baseId *string = this.SafeString(market, "baseAsset")
 	var quoteId *string = this.SafeString(market, "quoteAsset")
 	var settleId *string = this.SafeString(market, "marginAsset")
-	var base any = this.SafeCurrencyCode(baseId)
-	var quote any = this.SafeCurrencyCode(quoteId)
-	var settle any = this.SafeCurrencyCode(settleId)
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
+	var settle *string = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 	var inverse *bool = this.SafeBool(market, "reverse")
 	var limitMaxQty *string = this.SafeString(market, "limitMaxQty")
@@ -638,9 +638,9 @@ func (this *Bydfi) ParseMarket(market any) any {
 	var rawAmountPrecision any = this.ParsePrecision(this.SafeString(market, "volumePrecision"))
 	var amountPrecision *string = Precise.StringDiv(rawAmountPrecision, contractSize)
 	var basePrecision any = this.ParsePrecision(this.SafeString(market, "basePrecision"))
-	var taker any = DerefScalar(this.SafeNumber(market, "feeRateTaker"))
-	var maker any = DerefScalar(this.SafeNumber(market, "feeRateMaker"))
-	var maxLeverage any = DerefScalar(this.SafeNumber(market, "maxLeverageLevel"))
+	var taker *float64 = this.SafeNumber(market, "feeRateTaker")
+	var maker *float64 = this.SafeNumber(market, "feeRateMaker")
+	var maxLeverage *float64 = this.SafeNumber(market, "maxLeverageLevel")
 	var status *string = this.SafeString(market, "status")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
@@ -898,7 +898,7 @@ func (this *Bydfi) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchMyTrades", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -1014,7 +1014,7 @@ func (this *Bydfi) ParseTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, market)
 }
-func (this *Bydfi) ParseTradeType(typeVar any) any {
+func (this *Bydfi) ParseTradeType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"1": "limit",
 		"2": "market",
@@ -1059,7 +1059,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	}
 	var maxLimit int = 500 // docs says max 1500, but in practice only 500 works
 	var paginate any = false
-	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if EvalTruthy(paginate) {
@@ -1081,7 +1081,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		return maxLimit
 	}()
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	var now int64 = this.Milliseconds()
@@ -1346,7 +1346,7 @@ func (this *Bydfi) ParseFundingRate(contract any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(contract, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var timestamp *int64 = this.SafeInteger(contract, "time")
 	var nextFundingTimestamp *int64 = this.SafeInteger(contract, "nextFundingTime")
 	return map[string]any{
@@ -1418,7 +1418,7 @@ func (this *Bydfi) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 		request["limit"] = limit
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
+	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRateHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if !IsEqual(until, nil) {
@@ -1514,7 +1514,7 @@ func (this *Bydfi) createOrderBody(ch chan any, symbol any, typeVar any, side an
 	var market any = this.Market(symbol)
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	orderRequest = this.Extend(orderRequest, map[string]any{
@@ -1596,8 +1596,8 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	} else if isTailingStopOrder {
 		params = this.Omit(params, []any{"trailingPercent"})
 		request["callbackRate"] = trailingPercent
-		var trailingTriggerPrice any = this.NumberToString(price)
-		trailingTriggerPriceparamsVariable := this.HandleParamString(params, "trailingTriggerPrice", trailingTriggerPrice)
+		var trailingTriggerPrice any = DerefScalar(this.NumberToString(price))
+		var trailingTriggerPriceparamsVariable []any = this.HandleParamString(params, "trailingTriggerPrice", trailingTriggerPrice)
 		trailingTriggerPrice = GetValue(trailingTriggerPriceparamsVariable, 0)
 		params = GetValue(trailingTriggerPriceparamsVariable, 1)
 		if trailingTriggerPrice != nil {
@@ -1630,7 +1630,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	}
 	request["type"] = typeVar
 	var hedged any = false
-	hedgedparamsVariable := this.HandleOptionAndParams(params, "createOrder", "hedged", hedged)
+	var hedgedparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "hedged", hedged)
 	hedged = GetValue(hedgedparamsVariable, 0)
 	params = GetValue(hedgedparamsVariable, 1)
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly", false)
@@ -1673,7 +1673,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	}
 	if isStopLossOrder || isTakeProfitOrder || isTailingStopOrder {
 		var workingType any = "CONTRACT_PRICE"
-		workingTypeparamsVariable := this.HandleOptionAndParams(params, "createOrder", "triggerPriceType", workingType)
+		var workingTypeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "triggerPriceType", workingType)
 		workingType = GetValue(workingTypeparamsVariable, 0)
 		params = GetValue(workingTypeparamsVariable, 1)
 		request["workingType"] = this.EncodeWorkingType(workingType)
@@ -1726,14 +1726,14 @@ func (this *Bydfi) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var typeVar *string = this.SafeString(rawOrder, "type")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = DerefScalar(this.SafeNumber(rawOrder, "amount"))
-		var price any = DerefScalar(this.SafeNumber(rawOrder, "price"))
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, orderParams)
 		AppendToArray(&ordersRequests, orderRequest)
 	}
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -1786,7 +1786,7 @@ func (this *Bydfi) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	}
 	var request any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	AddElementToObject(request, "wallet", wallet)
@@ -1834,14 +1834,14 @@ func (this *Bydfi) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 		var id *string = this.SafeString(rawOrder, "id")
 		var symbol *string = this.SafeString(rawOrder, "symbol")
 		var side *string = this.SafeString(rawOrder, "side")
-		var amount any = DerefScalar(this.SafeNumber(rawOrder, "amount"))
-		var price any = DerefScalar(this.SafeNumber(rawOrder, "price"))
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
+		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams)
 		AppendToArray(&ordersRequests, orderRequest)
 	}
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -1916,7 +1916,7 @@ func (this *Bydfi) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrders", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "cancelAllOrders", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2004,7 +2004,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2013,7 +2013,7 @@ func (this *Bydfi) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var response any = nil
 	var trigger any = false
-	triggerparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "trigger", trigger)
+	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrders", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
 	params = GetValue(triggerparamsVariable, 1)
 	if !EvalTruthy(trigger) {
@@ -2108,13 +2108,13 @@ func (this *Bydfi) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) 
 		request["orderId"] = id
 	}
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrder", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrder", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	request["wallet"] = wallet
 	var response any = nil
 	var trigger any = false
-	triggerparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrder", "trigger", trigger)
+	var triggerparamsVariable []any = this.HandleOptionAndParams(params, "fetchOpenOrder", "trigger", trigger)
 	trigger = GetValue(triggerparamsVariable, 0)
 	params = GetValue(triggerparamsVariable, 1)
 	if !EvalTruthy(trigger) {
@@ -2184,7 +2184,7 @@ func (this *Bydfi) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 		return nil
 	}
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2258,16 +2258,16 @@ func (this *Bydfi) HandleSinceAndUntil(methodName any, optionalArgs ...any) any 
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams2(params, methodName, "until", "endTime")
+	var untilparamsVariable []any = this.HandleOptionAndParams2(params, methodName, "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	var now int64 = this.Milliseconds()
-	var sevenDays any = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000) // the maximum range is 7 days
+	var sevenDays int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // the maximum range is 7 days
 	var startTime any = since
 	if IsEqual(startTime, nil) {
 		if IsEqual(until, nil) {
 			// both since and until are undefined
-			startTime = Subtract(now, sevenDays)
+			startTime = now - sevenDays
 			until = now
 		} else {
 			// since is undefined but until is defined
@@ -2363,15 +2363,15 @@ func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) any {
 	var isStopLossOrder bool = (rawType != nil && *rawType == "STOP") || (rawType != nil && *rawType == "STOP_MARKET") || (rawType != nil && *rawType == "TRAILING_STOP_MARKET")
 	var isTakeProfitOrder bool = (rawType != nil && *rawType == "TAKE_PROFIT") || (rawType != nil && *rawType == "TAKE_PROFIT_MARKET")
 	var rawTimeInForce *string = this.SafeString(order, "timeInForce")
-	var timeInForce any = this.ParseOrderTimeInForce(rawTimeInForce)
+	var timeInForce *string = this.ParseOrderTimeInForce(rawTimeInForce)
 	var postOnly any = nil
-	if IsEqual(timeInForce, "PO") {
+	if timeInForce != nil && *timeInForce == "PO" {
 		postOnly = true
 	}
 	var rawStatus *string = this.SafeString(order, "status")
 	var fee map[string]any = map[string]any{}
-	var quoteFee any = DerefScalar(this.SafeNumber(order, "quoteFee"))
-	if !IsEqual(quoteFee, nil) {
+	var quoteFee *float64 = this.SafeNumber(order, "quoteFee")
+	if quoteFee != nil {
 		fee["cost"] = quoteFee
 		fee["currency"] = GetValue(market, "quote")
 	}
@@ -2413,7 +2413,7 @@ func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) any {
 		"average":   this.OmitZero(this.SafeString(order, "avgPrice")),
 	}, market)
 }
-func (this *Bydfi) ParseOrderType(typeVar any) any {
+func (this *Bydfi) ParseOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"LIMIT":                "limit",
 		"MARKET":               "market",
@@ -2425,7 +2425,7 @@ func (this *Bydfi) ParseOrderType(typeVar any) any {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bydfi) ParseOrderTimeInForce(timeInForce any) any {
+func (this *Bydfi) ParseOrderTimeInForce(timeInForce any) *string {
 	var timeInForces map[string]any = map[string]any{
 		"GTC":           "GTC",
 		"FOK":           "FOK",
@@ -2435,7 +2435,7 @@ func (this *Bydfi) ParseOrderTimeInForce(timeInForce any) any {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Bydfi) ParseOrderStatus(status any) any {
+func (this *Bydfi) ParseOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"NEW":                   "open",
 		"PARTIALLY_FILLED":      "open",
@@ -2482,7 +2482,7 @@ func (this *Bydfi) setLeverageBody(ch chan any, leverage any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "setLeverage", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setLeverage", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2529,7 +2529,7 @@ func (this *Bydfi) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "fetchLeverage", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchLeverage", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2598,7 +2598,7 @@ func (this *Bydfi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes205412)
 	}
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2663,7 +2663,7 @@ func (this *Bydfi) fetchPositionsForSymbolBody(ch chan any, symbol any, optional
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2736,7 +2736,7 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var buyOrSell *string = this.SafeString(position, "side")
 	var rawPositionSide *string = this.SafeStringLower(position, "positionSide")
-	var positionSide any = this.ParsePositionSide(buyOrSell)
+	var positionSide *string = this.ParsePositionSide(buyOrSell)
 	var hedged any = nil
 	var isFetchPositionsHistory bool = false
 	if rawPositionSide != nil {
@@ -2784,7 +2784,7 @@ func (this *Bydfi) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  nil,
 	})
 }
-func (this *Bydfi) ParsePositionSide(side any) any {
+func (this *Bydfi) ParsePositionSide(side any) *string {
 	var sides map[string]any = map[string]any{
 		"BUY":  "long",
 		"SELL": "short",
@@ -2827,7 +2827,7 @@ func (this *Bydfi) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionHistory", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionHistory", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2886,7 +2886,7 @@ func (this *Bydfi) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes228112)
 	}
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -2976,11 +2976,11 @@ func (this *Bydfi) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarginMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "fetchMarginMode", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchMarginMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3057,11 +3057,11 @@ func (this *Bydfi) setMarginModeBody(ch chan any, marginMode any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "setMarginMode", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setMarginMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3117,15 +3117,15 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		return "ONEWAY"
 	}()
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "setPositionMode", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "setPositionMode", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var settleCoin any = "USDT"
-	settleCoinparamsVariable := this.HandleOptionAndParams(params, "setPositionMode", "settleCoin", settleCoin)
+	var settleCoinparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "settleCoin", settleCoin)
 	settleCoin = GetValue(settleCoinparamsVariable, 0)
 	params = GetValue(settleCoinparamsVariable, 1)
 	var request map[string]any = map[string]any{
@@ -3178,16 +3178,16 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes248512)
 	}
 	var wallet any = "W001"
-	walletparamsVariable := this.HandleOptionAndParams(params, "fetchPositionMode", "wallet", wallet)
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var contractType any = "FUTURE"
-	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionMode", "contractType", contractType)
+	var contractTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionMode", "contractType", contractType)
 	contractType = GetValue(contractTypeparamsVariable, 0)
 	params = GetValue(contractTypeparamsVariable, 1)
 	var settleCoin any = "USDT"
 	if symbol == nil {
-		settleCoinparamsVariable := this.HandleOptionAndParams(params, "fetchPositionMode", "settleCoin", settleCoin)
+		var settleCoinparamsVariable []any = this.HandleOptionAndParams(params, "fetchPositionMode", "settleCoin", settleCoin)
 		settleCoin = GetValue(settleCoinparamsVariable, 0)
 		params = GetValue(settleCoinparamsVariable, 1)
 	} else {
@@ -3257,11 +3257,11 @@ func (this *Bydfi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes254312)
 	}
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	var typeVarparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	var wallet any = nil
-	walletparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "wallet")
+	var walletparamsVariable []any = this.HandleOptionAndParams(params, "fetchBalance", "wallet")
 	wallet = GetValue(walletparamsVariable, 0)
 	params = GetValue(walletparamsVariable, 1)
 	var request map[string]any = map[string]any{}
@@ -3338,7 +3338,7 @@ func (this *Bydfi) ParseBalance(response any) any {
 	for i := 0; i < GetArrayLength(response); i++ {
 		var balance any = GetValue(response, i)
 		var symbol *string = this.SafeString(balance, "asset")
-		var code any = this.SafeCurrencyCode(symbol)
+		var code *string = this.SafeCurrencyCode(symbol)
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString2(balance, "total", "balance"))
 		AddElementToObject(account, "free", this.SafeString2(balance, "available", "availableBalance"))
@@ -3468,7 +3468,7 @@ func (this *Bydfi) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		"asset": GetValue(currency, "id"),
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
+	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	if IsEqual(until, nil) {
@@ -3669,16 +3669,16 @@ func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code an
 		"asset": GetValue(currency, "id"),
 	}
 	var until any = nil
-	untilparamsVariable := this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
+	var untilparamsVariable []any = this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
 	var now int64 = this.Milliseconds()
-	var sevenDays any = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000) // the maximum range is 7 days
+	var sevenDays int64 = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000).(int64) // the maximum range is 7 days
 	var startTime any = since
 	if IsEqual(startTime, nil) {
 		if IsEqual(until, nil) {
 			// both since and until are undefined
-			startTime = Subtract(now, sevenDays)
+			startTime = now - sevenDays
 			until = now
 		} else {
 			// since is undefined but until is defined
@@ -3760,12 +3760,12 @@ func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var currencyId *string = this.SafeString(transaction, "asset")
-	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var rawStatus *string = this.SafeStringLower(transaction, "status")
 	var timestamp *int64 = this.SafeInteger(transaction, "createTime")
 	var fee any = nil
-	var feeCost any = DerefScalar(this.SafeNumber(transaction, "fee"))
-	if !IsEqual(feeCost, nil) {
+	var feeCost *float64 = this.SafeNumber(transaction, "fee")
+	if feeCost != nil {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": nil,
@@ -3794,7 +3794,7 @@ func (this *Bydfi) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"internal":    false,
 	}
 }
-func (this *Bydfi) ParseTransactionStatus(status any) any {
+func (this *Bydfi) ParseTransactionStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"success": "ok",
 		"wait":    "pending",

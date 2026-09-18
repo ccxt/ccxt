@@ -214,7 +214,7 @@ func (this *Bitstamp) HandleOrderBook(client any, message any) {
 	}
 	var parts []string = ccxt.Split(channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var nonce any = this.SafeValue(storedOrderBook, "nonce")
 	var delta any = this.SafeValue(message, "data")
@@ -383,7 +383,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
 	var id *string = this.SafeString(trade, "id")
-	var timestamp any = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
 	if ccxt.IsEqual(market, nil) {
@@ -783,7 +783,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var microtimestamp *int64 = this.SafeInteger(trade, "microtimestamp", 0)
-	var timestamp any = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
+	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
 	market = this.SafeMarket(nil, market)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var feeCost *string = this.SafeString(trade, "fee")
@@ -918,7 +918,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	// amount_str carries the amount left to be executed, while
 	// amount_at_create is the original order amount - older messages
 	// do not carry amount_at_create, so fall back to the old behaviour
-	var amount any = amountLeft
+	var amount *string = amountLeft
 	var remaining any = nil
 	if amountAtCreate != nil {
 		amount = amountAtCreate
@@ -968,7 +968,7 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message any) {
 	}
 	var parts []string = ccxt.Split(channel, "_")
 	var marketId *string = this.SafeString(parts, 3)
-	var symbol any = this.SafeSymbol(marketId)
+	var symbol *string = this.SafeSymbol(marketId)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 }
 func (this *Bitstamp) HandleSubscriptionStatus(client any, message any) {
@@ -1101,9 +1101,9 @@ func (this *Bitstamp) HandleSubject(client any, message any) {
 	}
 	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; i < len(keys); i++ {
-		var key any = ccxt.GetValue(keys, i)
+		var key string = ccxt.GetValue(keys, i).(string)
 		if ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, key), -1) {
-			var method any = ccxt.GetValue(methods, key)
+			var method any = methods[key]
 			ccxt.CallDynamically(method, client, message)
 		}
 	}
@@ -1118,7 +1118,7 @@ func (this *Bitstamp) HandleErrorMessage(client any, message any) any {
 	if event != nil && *event == "bts:error" {
 		var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
 		var data any = this.SafeValue(message, "data", map[string]any{})
-		var code any = ccxt.DerefScalar(this.SafeNumber(data, "code"))
+		var code *float64 = this.SafeNumber(data, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 	}
 	return true
@@ -1193,7 +1193,7 @@ func (this *Bitstamp) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// client.resolve / client.reject, so every mutation of that map
 		// goes through the client's own accessors in the ported languages
 		var messageHash string = "authenticateFlight"
-		var client any = this.Client("authenticationFlights")
+		var client ccxt.ClientInterface = this.Client("authenticationFlights")
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the token is then in this.options

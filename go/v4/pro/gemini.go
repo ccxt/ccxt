@@ -180,7 +180,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var marketId *string = this.SafeStringLower(trade, "symbol")
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        nil,
@@ -301,9 +301,9 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
 		}
 		var symbols []string = ccxt.ObjectKeys(storesForSymbols)
 		for i := 0; i < len(symbols); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			var stored any = ccxt.GetValue(storesForSymbols, symbol)
-			var messageHash any = ccxt.Add("trades:", symbol)
+			var symbol string = ccxt.GetValue(symbols, i).(string)
+			var stored any = storesForSymbols[symbol]
+			var messageHash any = "trades:" + symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 		}
 	}
@@ -395,7 +395,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	timeframeId = ccxt.Slice(timeframeId, 0, timeframeEndIndex)
 	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
 	var market any = this.SafeMarket(marketId)
-	var symbol any = this.SafeSymbol(marketId, market)
+	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes any = this.SafeList(message, "changes", []any{})
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var ohlcvsBySymbol any = this.SafeValue(this.Ohlcvs, symbol)
@@ -491,8 +491,8 @@ func (this *Gemini) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	for i := 0; i < ccxt.GetArrayLength(changes); i++ {
 		var delta any = ccxt.GetValue(changes, i)
-		var price any = ccxt.DerefScalar(this.SafeNumber(delta, 1))
-		var size any = ccxt.DerefScalar(this.SafeNumber(delta, 2))
+		var price *float64 = this.SafeNumber(delta, 1)
+		var size *float64 = this.SafeNumber(delta, 2)
 		var side any = func() any {
 			if ccxt.IsEqual(ccxt.GetValue(delta, 0), "buy") {
 				return "bids"
@@ -606,7 +606,7 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges any,
 	for i := 0; i < ccxt.GetArrayLength(rawBidAskChanges); i++ {
 		var entry any = ccxt.GetValue(rawBidAskChanges, i)
 		var rawSide *string = this.SafeString(entry, "side")
-		var price any = ccxt.DerefScalar(this.SafeNumber(entry, "price"))
+		var price *float64 = this.SafeNumber(entry, "price")
 		var sizeString *string = this.SafeString(entry, "remaining")
 		if ccxt.Precise.StringEq(sizeString, "0") {
 			continue
@@ -698,7 +698,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		var ob any = this.OrderBook()
+		var ob ccxt.OrderBookInterface = this.OrderBook()
 		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
@@ -706,8 +706,8 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	for i := 0; i < ccxt.GetArrayLength(rawOrderBookChanges); i++ {
 		var entry any = ccxt.GetValue(rawOrderBookChanges, i)
-		var price any = ccxt.DerefScalar(this.SafeNumber(entry, "price"))
-		var size any = ccxt.DerefScalar(this.SafeNumber(entry, "remaining"))
+		var price *float64 = this.SafeNumber(entry, "price")
+		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
 		if rawSide != nil && *rawSide == "bid" {
 			bids.(ccxt.IOrderBookSide).Store(price, size)
@@ -945,7 +945,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, market)
 }
-func (this *Gemini) ParseWsOrderStatus(status any) any {
+func (this *Gemini) ParseWsOrderStatus(status any) *string {
 	var statuses map[string]any = map[string]any{
 		"accepted":        "open",
 		"booked":          "open",
@@ -956,7 +956,7 @@ func (this *Gemini) ParseWsOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gemini) ParseWsOrderType(typeVar any) any {
+func (this *Gemini) ParseWsOrderType(typeVar any) *string {
 	var types map[string]any = map[string]any{
 		"exchange limit": "limit",
 		"market buy":     "market",

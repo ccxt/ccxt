@@ -257,11 +257,11 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		ccxt.PanicOnError(retRes18912)
 	}
 	var callerMethodName any = nil
-	callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
+	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	var channelName any = nil
-	channelNameparamsVariable := this.HandleOptionAndParams(params, callerMethodName, "channel", "books")
+	var channelNameparamsVariable []any = this.HandleOptionAndParams(params, callerMethodName, "channel", "books")
 	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
 	params = ccxt.GetValue(channelNameparamsVariable, 1)
 	// due to some problem, temporarily disable other channels
@@ -452,7 +452,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var firstMarket any = this.Market(ccxt.GetValue(symbolsList, 0))
 	var channel string = "tickers"
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue((ccxt.GetValue(this.Urls, "api")), "ws"), marketType), "public")
@@ -658,7 +658,7 @@ func (this *Blofin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	retRes4828 := (<-this.AuthenticateAsync())
 	ccxt.PanicOnError(retRes4828)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	if ccxt.IsEqual(marketType, "spot") {
@@ -932,7 +932,7 @@ func (this *Blofin) watchFundingRateBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchFundingRate", market, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("watchFundingRate", market, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var messageHash any = ccxt.Add("fundingRate:", ccxt.GetValue(market, "symbol"))
@@ -990,7 +990,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 		retRes70712 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes70712)
 	}
-	callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", callerMethodName)
+	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", callerMethodName)
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
 	// if ccxt.OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
@@ -1008,7 +1008,7 @@ func (this *Blofin) watchMultipleWrapperBody(ch chan any, isPublic any, channelN
 		firstMarket = this.Market(firstSymbol)
 	}
 	var marketType any = nil
-	marketTypeparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, firstMarket, params)
+	var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams(callerMethodName, firstMarket, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	if !ccxt.IsEqual(marketType, "swap") {
