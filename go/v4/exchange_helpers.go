@@ -2,8 +2,6 @@ package ccxt
 
 import (
 	"bytes"
-	"compress/flate"
-	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -1654,19 +1652,6 @@ func Reverse(slice any) {
 	}
 }
 
-// Pop removes the last element from a slice and returns the new slice and the removed element
-func Pop(slice any) (any, any) {
-	sliceVal, ok := castToSlice(slice)
-	if !ok || len(sliceVal) == 0 {
-		return slice, nil
-	}
-	return sliceVal[:len(sliceVal)-1], sliceVal[len(sliceVal)-1]
-}
-
-func CastToSlice(slice any) ([]any, bool) {
-	return castToSlice(slice)
-}
-
 // Helper function to cast any to []any
 func castToSlice(slice any) ([]any, bool) {
 	val := reflect.ValueOf(slice)
@@ -2445,109 +2430,6 @@ func setDefaults(p any) {
 // name is the typed sync method. Mirrors GO_ASYNC_SUFFIX in build/goTranspiler.ts.
 const asyncMethodSuffix = "Async"
 
-func CallInternalMethod3(itf any, name2 string, args ...any) <-chan any {
-	name := Capitalize(name2)
-	baseValue := reflect.ValueOf(itf)
-	baseType := baseValue.Type()
-	// prefer the Async-suffixed channel trampoline over the same-named typed sync method
-	if _, ok := baseType.MethodByName(name + asyncMethodSuffix); ok {
-		name += asyncMethodSuffix
-	}
-
-	ch := make(chan any)
-	go func() {
-
-		// Error handling
-		defer func() {
-			if r := recover(); r != nil {
-				ch <- fmt.Sprintf("panic:%v:%v:%v", getCallerName(), name2, r)
-				close(ch)
-			}
-		}()
-
-		for i := 0; i < baseType.NumMethod(); i++ {
-			method := baseType.Method(i)
-			if name == method.Name {
-				methodValue := baseValue.MethodByName(name)
-				methodType := method.Type
-				numIn := methodType.NumIn()
-				isVariadic := methodType.IsVariadic()
-
-				var in []reflect.Value
-
-				// Handle fixed arguments for both regular and variadic functions
-				for k := 0; k < numIn-1; k++ {
-					if k < len(args) {
-						if args[k] == nil {
-							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						} else {
-							in = append(in, reflect.ValueOf(args[k]))
-						}
-					} else {
-						// paramType := methodType.In(k)
-						in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						// in = append(in, reflect.Zero(paramType))
-					}
-				}
-
-				// Properly handle the variadic arguments
-				if isVariadic {
-					variadicArgs := []reflect.Value{}
-					// variadicType := methodType.In(numIn - 1).Elem() // Get the type of the variadic argument
-					for k := numIn - 1; k < len(args); k++ {
-						if args[k] == nil {
-							variadicArgs = append(variadicArgs, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						} else {
-							variadicArgs = append(variadicArgs, reflect.ValueOf(args[k]))
-						}
-					}
-					in = append(in, variadicArgs...)
-				} else if len(args) >= numIn-1 {
-					// Handle non-variadic arguments beyond fixed ones
-					for k := numIn - 1; k < len(args); k++ {
-						if args[k] == nil {
-							// paramType := methodType.In(k)
-							in = append(in, reflect.Zero(reflect.TypeOf((*any)(nil)).Elem()))
-						} else {
-							in = append(in, reflect.ValueOf(args[k]))
-						}
-					}
-				}
-
-				// Call the method with the constructed arguments
-				res := methodValue.Call(in)
-
-				// Handle the result
-				if len(res) > 0 && res[0].Kind() == reflect.Chan {
-					resultChan := res[0]
-					go func() {
-						for {
-							val, ok := resultChan.Recv()
-							if !ok {
-								break // result channel is closed
-							}
-							ch <- val.Interface() // pass the value to the output channel
-						}
-						close(ch) // close the output channel after all values are received
-					}()
-					return
-				} else if len(res) > 0 {
-					ch <- res[0].Interface()
-				} else {
-					ch <- nil
-				}
-				close(ch)
-				return
-			}
-		}
-
-		// If no method is found, return nil
-		ch <- nil
-		close(ch)
-	}()
-	return ch
-}
-
 func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...any) <-chan any {
 	name := Capitalize(name2)
 	// baseValue := reflect.ValueOf(itf)
@@ -2785,19 +2667,4 @@ func HandleDeltas(bookside any, deltas any) any {
 	}
 
 	return bookside
-}
-
-func GunzipSync(data []byte) ([]byte, error) {
-	r, err := gzip.NewReader(bytes.NewReader(data))
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	return io.ReadAll(r)
-}
-
-func InflateSync(data []byte) ([]byte, error) {
-	r := flate.NewReader(bytes.NewReader(data))
-	defer r.Close()
-	return io.ReadAll(r)
 }

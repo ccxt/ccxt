@@ -111,15 +111,6 @@ public class Helpers {
         return t;
     }
 
-    // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
-    public static Object normalizeIntIfNeeded(Object a) {
-        if (a == null) return null;
-        if (a instanceof Integer) {
-            return Long.valueOf(((Integer) a).longValue());
-        }
-        return a;
-    }
-
     // In Java, wire up your preferred JSON lib and return Map/List accordingly.
     public static Object parseJson(Object json) {
         // placeholder: return the string itself (or plug in Jackson/Gson here)
@@ -151,30 +142,6 @@ public class Helpers {
         }
     }
 
-    public static boolean isNumber(Object number) {
-        if (number == null) return false;
-        try {
-            Double.parseDouble(String.valueOf(number));
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * Null-safe Array.isArray equivalent. ast-transpiler emits
-     * `(X instanceof List) || (X.getClass().isArray())` for `Array.isArray(X)`,
-     * which NPEs when X is null (e.g. test.sharedMethods entryKeyVal coming
-     * from safeValue() that returned undefined). JS Array.isArray(null) is
-     * false; mirror that here. Used as a post-transpile regex target so all
-     * 150+ call sites become null-safe in one place.
-     */
-    public static boolean isArrayJs(Object a) {
-        if (a == null) return false;
-        if (a instanceof List<?>) return true;
-        return a.getClass().isArray();
-    }
-
     /**
      * Direct emit target for ast-transpiler PR #48: `Array.isArray(x)` now
      * emits `Helpers.isArray(x)`. Same behaviour as {@link #isArrayJs} —
@@ -182,27 +149,6 @@ public class Helpers {
      */
     public static boolean isArray(Object a) {
         return isArrayJs(a);
-    }
-
-    /**
-     * JS-style truthy `typeof o === 'object'` check. The TS source uses this
-     * to assert "I got back something object-shaped" without caring whether
-     * it's a Map, an array, or a typed wrapper. The ast-transpiler maps it
-     * to Java `instanceof java.util.Map` which is too strict — typed return
-     * types like WsOrderBook and Trade aren't Maps but ARE objects in the
-     * JS sense. Match the loose JS semantics: anything non-null and not a
-     * primitive boxed type or string.
-     *
-     * Used as a post-transpile rewrite target so the 150+ test assertion
-     * sites become permissive in one place.
-     */
-    public static boolean isObject(Object o) {
-        if (o == null) return false;
-        if (o instanceof String) return false;
-        if (o instanceof Number) return false;
-        if (o instanceof Boolean) return false;
-        if (o instanceof Character) return false;
-        return true;
     }
 
     public static boolean isEqual(Object a, Object b) {
@@ -385,23 +331,6 @@ public class Helpers {
         }
     }
 
-    public static boolean IsInteger(Object value) {
-        if (value == null) return false;
-
-        if (value instanceof Byte || value instanceof Short ||
-            value instanceof Integer || value instanceof Long ||
-            value instanceof java.util.concurrent.atomic.AtomicInteger ||
-            value instanceof java.util.concurrent.atomic.AtomicLong) {
-            return true;
-        }
-
-        if (value instanceof Float || value instanceof Double || value instanceof BigDecimal) {
-            BigDecimal d = new BigDecimal(String.valueOf(value));
-            return d.stripTrailingZeros().scale() <= 0;
-        }
-        return false;
-    }
-
     public static Object mathMin(Object a, Object b) {
         if (a == null || b == null) return null;
         double first = toDouble(a);
@@ -512,28 +441,6 @@ public class Helpers {
 
     public static CompletableFuture<List<Object>> promiseAll(Object promisesObj) { return PromiseAll(promisesObj); }
 
-    public static CompletableFuture<List<Object>> PromiseAll(Object promisesObj) {
-        List<?> promises = (List<?>) promisesObj;
-        List<CompletableFuture<Object>> futures = new ArrayList<>();
-        for (Object p : promises) {
-            if (p instanceof CompletableFuture) {
-                futures.add((CompletableFuture<Object>) p);
-            }
-        }
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApply(v -> {
-                    List<Object> out = new ArrayList<>(futures.size());
-                    for (CompletableFuture<Object> f : futures) {
-                        try {
-                            out.add(f.get());
-                        } catch (InterruptedException | ExecutionException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                    return out;
-                });
-    }
-
     public static Object toStringOrNull(Object value) {
         if (value == null) return null;
         return value;
@@ -549,15 +456,6 @@ public class Helpers {
     // This function is the salient bit here
     public Object newException(Object exception, Object message) {
         return NewException((Class<?>) exception, (String) message);
-    }
-
-    public static Exception NewException(Class<?> exception, String message) {
-        try {
-            Constructor<?> ctor = exception.getConstructor(String.class);
-            return (Exception) ctor.newInstance(message);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public static Object toFixed(Object number, Object decimals) {
@@ -658,20 +556,6 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
 }
 
     public static boolean inOp(Object obj, Object key) { return InOp(obj, key); }
-
-    public static boolean InOp(Object obj, Object key) {
-        if (obj == null || key == null) return false;
-
-        if (obj instanceof List<?>) {
-            return ((List<?>) obj).contains(key);
-        } else if (obj instanceof Map<?, ?>) {
-            if (key instanceof String) {
-                return ((Map<?, ?>) obj).containsKey(key);
-            } else return false;
-        } else {
-            return false;
-        }
-    }
 
     public static String slice(Object str2, Object idx1, Object idx2) { return Slice(str2, idx1, idx2); }
 

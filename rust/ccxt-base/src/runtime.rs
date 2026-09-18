@@ -208,10 +208,8 @@ pub fn is_true<T: IsTruthy + ?Sized>(v: &T) -> bool { v.truthy() }
 
 pub fn is_array(v: &Value)    -> bool { matches!(v, Value::Arr(_)) }
 pub fn is_object(v: &Value)   -> bool { matches!(v, Value::Dict(_)) }
-pub fn is_string(v: &Value)   -> bool { matches!(v, Value::Str(_)) }
 pub fn is_number(v: &Value)   -> bool { matches!(v, Value::Int(_) | Value::Float(_)) }
 pub fn is_bool(v: &Value)     -> bool { matches!(v, Value::Bool(_)) }
-pub fn is_integer(v: &Value)  -> bool { matches!(v, Value::Int(_)) }
 pub fn is_function(_v: &Value)-> bool { false }
 
 /// Convert a `catch_unwind` panic payload into the `Value::Str` shape
@@ -225,21 +223,6 @@ pub fn panic_to_value(payload: Box<dyn std::any::Any + Send>) -> Value {
         .or_else(|| payload.downcast_ref::<&str>().map(|s| (*s).to_string()))
         .unwrap_or_else(|| "panic".to_string());
     Value::Str(msg)
-}
-
-/// Parse a transpiled error payload (`"[Kind] message"`) into a typed
-/// `ExchangeError`. Falls back to the generic `ExchangeError` kind when
-/// the payload doesn't carry a leading `[Kind]` marker.
-pub fn panic_msg_to_error(msg: &str) -> crate::ExchangeError {
-    if let Some(start) = msg.find('[') {
-        let after = &msg[start + 1..];
-        if let Some(end) = after.find(']') {
-            let kind = &after[..end];
-            let rest = after[end + 1..].trim_start_matches(|c: char| c == ' ' || c == ':');
-            return crate::ExchangeError::new(kind, rest);
-        }
-    }
-    crate::ExchangeError::new("ExchangeError", msg)
 }
 
 /// Bridge an async exchange call's panic-based error convention onto Rust's
@@ -606,10 +589,6 @@ pub fn math_ceil(v: &Value) -> Value {
 
 // ── misc ────────────────────────────────────────────────────────────────────
 
-pub fn ternary(cond: bool, when_true: Value, when_false: Value) -> Value {
-    if cond { when_true } else { when_false }
-}
-
 pub fn println_val(v: &Value) {
     println!("{v}");
 }
@@ -815,9 +794,6 @@ pub fn parse_float(v: &Value) -> Value {
     }
 }
 
-/// `length(value)` — array / string / map length as i64 Value.
-pub fn length(v: &Value) -> Value { get_array_length(v) }
-
 /// `starts_with(haystack, prefix)` — true if Value haystack starts with prefix.
 pub fn starts_with(haystack: &Value, prefix: &Value) -> bool {
     match (haystack, prefix) {
@@ -847,11 +823,6 @@ pub fn trim(v: &Value) -> Value {
     match v { Value::Str(s) => Value::Str(s.trim().to_string()), _ => Value::Null }
 }
 
-/// `index_of(haystack, needle)` — alias for `get_index_of`.
-pub fn index_of(haystack: &Value, needle: &Value) -> Value {
-    get_index_of(haystack, needle)
-}
-
 /// `contains(haystack, needle)` — substring check for `Value::Str`,
 /// element check for `Value::Array`. Used by the transpiled tests
 /// for `string.includes(...)` / `array.includes(...)` (the regex
@@ -876,14 +847,6 @@ pub const TICK_SIZE: i64 = 4;
 pub const NO_PADDING:           i64 = 5;
 pub const PAD_WITH_ZERO:        i64 = 6;
 
-/// `string_replace(s, old, new)` — string replacement.
-pub fn string_replace(s: &Value, old: &Value, new_val: &Value) -> Value {
-    match (s, old, new_val) {
-        (Value::Str(s), Value::Str(o), Value::Str(n)) => Value::Str(s.replace(o.as_str(), n)),
-        _ => s.clone(),
-    }
-}
-
 /// `split(s, delim)` — string split returning Value::Array of Value::Str.
 pub fn split(s: &Value, delim: &Value) -> Value {
     match (s, delim) {
@@ -891,15 +854,6 @@ pub fn split(s: &Value, delim: &Value) -> Value {
             Value::Array(s.split(d.as_str()).map(|p| Value::Str(p.to_string())).collect())
         }
         _ => Value::Array(vec![]),
-    }
-}
-
-/// `concat(a, b)` — generic concat: array+array or string+string.
-pub fn concat(a: &Value, b: &Value) -> Value {
-    match (a, b) {
-        (Value::Arr(_), Value::Arr(_)) => concat_arrays(a, b),
-        (Value::Str(x), Value::Str(y)) => Value::Str(format!("{x}{y}")),
-        _ => Value::Null,
     }
 }
 
@@ -1481,8 +1435,3 @@ pub fn to_fixed(x: &Value, digits: &Value) -> Value {
 }
 
 // ── Value helpers used by transpiled code in HashMap-construction blocks ─────
-
-/// Helper for transpiler-emitted code that builds `Value::Map`s — kept here
-/// so the `use crate::runtime::*` glob doesn't need to import std collections.
-pub fn empty_map() -> Value { Value::Map(HashMap::new()) }
-pub fn empty_array() -> Value { Value::Array(vec![]) }

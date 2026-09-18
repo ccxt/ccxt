@@ -11,24 +11,6 @@ public partial class BaseExchange
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
 
-    public static object normalizeIntIfNeeded(object a)
-    {
-        if (a == null)
-            return null;
-
-        if (a is int)
-        {
-            return System.Convert.ToInt64(a);
-        }
-        // large int literals (2^31..2^32-1, e.g. 2592000000 = 30 days in ms)
-        // are typed uint by the C# compiler and would fail the (Int64) casts
-        // in the arithmetic helpers
-        if (a is uint)
-        {
-            return System.Convert.ToInt64(a);
-        }
-        return a;
-    }
     public static object postFixIncrement(ref object a)
     {
         if (a is Int64)
@@ -276,11 +258,6 @@ public partial class BaseExchange
         {
             return false;
         }
-    }
-
-    public static bool isNumber(object number)
-    {
-        return Double.TryParse(number.ToString(), out _);
     }
 
     public static bool isEqual(object a, object b)
