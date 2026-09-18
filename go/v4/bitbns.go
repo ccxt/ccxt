@@ -902,7 +902,7 @@ func (this *Bitbns) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	//     }
 	//
 	var parsed any = func() any {
-		if IsEqual(response, nil) {
+		if response == nil {
 			return map[string]any{}
 		}
 		return response
@@ -970,7 +970,7 @@ func (this *Bitbns) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 	response = (<-this.V2PostCancel(this.Extend(request, params)))
 	PanicOnError(response)
 	var parsed any = func() any {
-		if IsEqual(response, nil) {
+		if response == nil {
 			return map[string]any{}
 		}
 		return response

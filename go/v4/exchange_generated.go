@@ -3704,7 +3704,7 @@ func (this *BaseExchange) fetchWebEndpointBody(ch chan any, method any, endpoint
 			}
 			if (returnAsJson == true) && (IsString(content)) {
 				var jsoned any = this.ParseJson(Trim(content)) // content should be trimmed before json parsing
-				if (!IsEqual(jsoned, nil)) && (!IsEqual(jsoned, nil)) {
+				if (jsoned != nil) {
 
 					ch <- jsoned // if parsing was not successfull, exception should be thrown
 					chSent = true
@@ -4767,7 +4767,7 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 						}
 						ret_ = func(this *BaseExchange) any {
 							// catch block:
-							if !IsEqual(fetchData, nil) {
+							if fetchData != nil {
 								AddElementToObject(fetchData, "error", e)
 								this.AddFetchCache(fetchData)
 							}
@@ -4797,14 +4797,14 @@ func (this *BaseExchange) fetch2Body(ch chan any, path any, optionalArgs ...any)
 
 				var request any = this.DerivedExchange.Sign(path, api, method, params, headers, body)
 				PanicOnError(request)
-				if !IsEqual(fetchData, nil) {
+				if fetchData != nil {
 					AddElementToObject(fetchData, "request", request)
 				}
 				this.SetLastRequest(request)
 
 				response := (<-this.FetchAsync(GetValue(request, "url"), GetValue(request, "method"), GetValue(request, "headers"), GetValue(request, "body")))
 				PanicOnError(response)
-				if !IsEqual(fetchData, nil) {
+				if fetchData != nil {
 					AddElementToObject(GetValue(fetchData, "response"), "body", response)
 					this.AddFetchCache(fetchData)
 				}

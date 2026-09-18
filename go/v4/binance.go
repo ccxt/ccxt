@@ -6374,7 +6374,7 @@ func (this *Binance) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		ch <- this.ParseTicker(firstTicker, market)
 		return nil
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
@@ -6738,7 +6738,7 @@ func (this *Binance) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ..
 		ch <- this.ParseTicker(this.SafeDict(response, 0, map[string]any{}), market)
 		return nil
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchMarkPrice() returned empty response"))
 	}
 
@@ -7591,7 +7591,7 @@ func (this *Binance) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	//     ]
 	//
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 
@@ -7951,7 +7951,7 @@ func (this *Binance) editContractOrderBody(ch chan any, id any, symbol any, type
 	//         "updateTime": 1684300587845
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -9115,7 +9115,7 @@ func (this *Binance) createOrderBody(ch chan any, symbol any, typeVar any, side 
 			PanicOnError(response)
 		}
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -9822,7 +9822,7 @@ func (this *Binance) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		response = (<-this.PrivateGetOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -10642,7 +10642,7 @@ func (this *Binance) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 	//         "priceProtect": false
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -11016,7 +11016,7 @@ func (this *Binance) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		response = (<-this.PrivateDeleteOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
@@ -11661,7 +11661,7 @@ func (this *Binance) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	var responseList any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		if IsEqual(stock, true) {
 			var rows any = this.SafeList(response, "rows", []any{})
 			responseList = rows
@@ -13290,7 +13290,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 		//    ]
 		//
 		var result map[string]any = map[string]any{}
-		if IsEqual(response, nil) {
+		if response == nil {
 			panic(NullResponse(this.Id + " method() returned empty response"))
 		}
 		var fees []any = this.ToArray(response)
@@ -14356,7 +14356,7 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 			panic(NotSupported(this.Id + " loadLeverageBrackets() supports linear and inverse contracts only"))
 		}
 		AddElementToObject(this.Options, "leverageBrackets", this.CreateSafeDictionary())
-		if IsEqual(response, nil) {
+		if response == nil {
 			panic(NullResponse(this.Id + " loadLeverageBrackets() returned empty response"))
 		}
 		var entries []any = this.ToArray(response)
@@ -15071,7 +15071,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 	//     ]
 	//
 	var result any = []any{}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " method() returned empty response"))
 	}
 	var positions []any = this.ToArray(response)
@@ -15258,7 +15258,7 @@ func (this *Binance) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 	} else {
 		panic(NotSupported(this.Id + " setLeverage() supports linear and inverse contracts only"))
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " setLeverage() returned empty response"))
 	}
 
@@ -15365,7 +15365,7 @@ func (this *Binance) setMarginModeBody(ch chan any, marginMode any, optionalArgs
 		}(this)
 
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " setMarginMode() returned empty response"))
 	}
 
@@ -15455,7 +15455,7 @@ func (this *Binance) setPositionModeBody(ch chan any, hedged any, optionalArgs .
 	//       "msg": "success"
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " setPositionMode() returned empty response"))
 	}
 
@@ -16551,7 +16551,7 @@ func (this *Binance) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 	//         "type": 1
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseMarginModification() returned empty response"))
 	}
 
@@ -18361,7 +18361,7 @@ func (this *Binance) fetchMarginModeBody(ch chan any, symbol any, optionalArgs .
 	} else {
 		panic(BadRequest(this.Id + " fetchMarginMode () supports linear and inverse subTypes only"))
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchMarginMode() returned empty response"))
 	}
 
@@ -18599,7 +18599,7 @@ func (this *Binance) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs 
 	//        ...
 	//    ]
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseMarginModifications() returned empty response"))
 	}
 	var modifications any = this.ParseMarginModifications(this.ToArray(response))
@@ -18736,7 +18736,7 @@ func (this *Binance) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any
 	//
 	var fromCurrency any = this.Currency(fromCode)
 	var toCurrency any = this.Currency(toCode)
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseConversion() returned empty response"))
 	}
 
@@ -18794,7 +18794,7 @@ func (this *Binance) createConvertTradeBody(ch chan any, id any, fromCode any, t
 	}
 	var fromCurrency any = this.Currency(fromCode)
 	var toCurrency any = this.Currency(toCode)
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseConversion() returned empty response"))
 	}
 
@@ -19267,7 +19267,7 @@ func (this *Binance) fetchADLRankBody(ch chan any, symbol any, optionalArgs ...a
 	} else {
 		panic(BadRequest(this.Id + " fetchADLRank() supports linear subTypes only"))
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseADLRank() returned empty response"))
 	}
 
@@ -19352,7 +19352,7 @@ func (this *Binance) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any)
 	//     ]
 	//
 	var responseList []any = []any{}
-	if !IsEqual(response, nil) {
+	if response != nil {
 		responseList = this.ToArray(response)
 	}
 

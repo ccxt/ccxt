@@ -3447,7 +3447,7 @@ func (this *Htx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchOrderBook() returned empty response"))
 	}
 	if InOp(response, "tick") {
@@ -8809,7 +8809,7 @@ func (this *Htx) transferBody(ch chan any, code any, amount any, fromAccount any
 	//        "print-log": true
 	//    }
 	//
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseTransfer() returned empty response"))
 	}
 
@@ -9885,7 +9885,7 @@ func (this *Htx) setLeverageBody(ch chan any, leverage any, optionalArgs ...any)
 			panic(NotSupported(this.Id + " setLeverage() not support this market type"))
 		}
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " setLeverage() returned empty response"))
 	}
 
@@ -11829,7 +11829,7 @@ func (this *Htx) closePositionBody(ch chan any, symbol any, optionalArgs ...any)
 		ch <- this.ParseOrder(data, market)
 		return nil
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 

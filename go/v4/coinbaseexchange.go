@@ -2320,7 +2320,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		response = (<-this.PrivatePostWithdrawalsCrypto(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(ExchangeError(Add(this.Id+" withdraw() error: ", this.Json(response))))
 	}
 

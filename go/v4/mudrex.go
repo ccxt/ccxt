@@ -784,7 +784,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if currency == nil {
 		currency = "USDT"
 	}
-	if IsEqual(response, nil) {
+	if response == nil {
 		panic(NullResponse(this.Id + " fetchBalance() returned empty response"))
 	}
 	AddElementToObject(response, "currency", currency)
