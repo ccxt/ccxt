@@ -1161,7 +1161,7 @@ export default class onetrading extends Exchange {
         //         }
         //     }
         //
-        const feeInfo = this.safeValue (trade, 'fee', {});
+        const feeInfo = this.safeDict (trade, 'fee', {});
         trade = this.safeValue (trade, 'trade', trade);
         let timestamp = this.safeInteger (trade, 'trade_timestamp');
         if (timestamp === undefined) {

@@ -439,7 +439,7 @@ export default class indodax extends Exchange {
     }
 
     override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'return', {});
+        const balances = this.safeDict (response, 'return', {});
         const free = this.safeDict (balances, 'balance', {});
         const used = this.safeValue (balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp (balances, 'server_time');
@@ -1040,7 +1040,7 @@ export default class indodax extends Exchange {
             request[market['baseId'] as string] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, params));
-        const data = this.safeValue (result, 'return', {});
+        const data = this.safeDict (result, 'return', {});
         const id = this.safeString (data, 'order_id');
         return this.safeOrder ({
             'info': result,
@@ -1127,7 +1127,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'return', {});
+        const data = this.safeDict (response, 'return', {});
         const currencyId = this.safeString (data, 'currency');
         return {
             'info': response,
@@ -1250,7 +1250,7 @@ export default class indodax extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'return', {});
+        const data = this.safeDict (response, 'return', {});
         const withdraw = this.safeDict (data, 'withdraw', {});
         const deposit = this.safeDict (data, 'deposit', {});
         let transactions: List = [];

@@ -4552,7 +4552,7 @@ export default class gate extends Exchange {
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             const triggerValue = this.safeValueN (orderParams, [ 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ]);
             if (triggerValue !== undefined) {
@@ -5211,7 +5211,7 @@ export default class gate extends Exchange {
             });
         }
         const put = this.safeValue2 (order, 'put', 'initial', {});
-        const trigger = this.safeValue (order, 'trigger', {});
+        const trigger = this.safeDict (order, 'trigger', {});
         let contract = this.safeString (put, 'contract');
         let type = this.safeString (put, 'type');
         let timeInForce = this.safeStringUpper2 (put, 'time_in_force', 'tif');
@@ -7550,7 +7550,7 @@ export default class gate extends Exchange {
             //
             response = await this.privateOptionsGetMySettlements (this.extend (request, params));
         }
-        const result = this.safeValue (response, 'result', {});
+        const result = this.safeDict (response, 'result', {});
         const data = this.safeValue (result, 'list', []);
         const settlements = this.parseSettlements (data, market);
         const sorted = this.sortBy (settlements, 'timestamp');

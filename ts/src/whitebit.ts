@@ -793,11 +793,11 @@ export default class whitebit extends Exchange {
             const currency = currenciesIds[i];
             const data = this.safeDict (response, currency, {});
             const code = this.safeCurrencyCode (currency);
-            const withdraw = this.safeValue (data, 'withdraw', {});
+            const withdraw = this.safeDict (data, 'withdraw', {});
             if (code !== undefined) {
                 withdrawFees[code] = this.safeString (withdraw, 'fixed');
             }
-            const deposit = this.safeValue (data, 'deposit', {});
+            const deposit = this.safeDict (data, 'deposit', {});
             if (code !== undefined) {
                 depositFees[code] = this.safeString (deposit, 'fixed');
             }
@@ -2923,7 +2923,7 @@ export default class whitebit extends Exchange {
         //     }
         //
         const url = this.safeString (response, 'url');
-        const account = this.safeValue (response, 'account', {});
+        const account = this.safeDict (response, 'account', {});
         const address = this.safeString (account, 'address', url);
         const tag = this.safeString (account, 'memo');
         this.checkAddress (address);

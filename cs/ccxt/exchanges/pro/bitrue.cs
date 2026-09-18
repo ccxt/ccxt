@@ -986,7 +986,7 @@ public partial class bitrue : ccxt.bitrue
                 //         }
                 //     }
                 //
-                object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+                IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 string? key = this.safeString(data, "listenKey");
                 if ((key == null))
                 {

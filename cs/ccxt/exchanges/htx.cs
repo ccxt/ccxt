@@ -2836,7 +2836,7 @@ public partial class htx : Exchange
         for (int i = 0; isLessThan(i, futureMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(futureMarkets, i);
-            object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
+            IDictionary<string, object> info = this.safeDict(market, "info", new Dictionary<string, object>() {});
             string? contractType = this.safeString(info, "contract_type");
             object contractSuffix = this.safeValue(futuresCharsMaps, contractType);
             // see comment on formats a bit above

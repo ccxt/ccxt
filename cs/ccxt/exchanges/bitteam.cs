@@ -518,7 +518,7 @@ public partial class bitteam : Exchange
         bool? quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if ((quoteInUsd == true))
         {
-            object settings = this.safeValue(market, "settings", new Dictionary<string, object>() {});
+            IDictionary<string, object> settings = this.safeDict(market, "settings", new Dictionary<string, object>() {});
             minCost = this.safeNumber(settings, "limit_usd");
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -714,7 +714,7 @@ public partial class bitteam : Exchange
         string? code = this.safeCurrencyCode(id);
         bool? active = this.safeBool(currency, "active", false);
         double? precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
-        object txLimits = this.safeValue(currency, "txLimits", new Dictionary<string, object>() {});
+        IDictionary<string, object> txLimits = this.safeDict(currency, "txLimits", new Dictionary<string, object>() {});
         string? minWithdraw = this.safeString(txLimits, "minWithdraw");
         string? maxWithdraw = this.safeString(txLimits, "maxWithdraw");
         string? minDeposit = this.safeString(txLimits, "minDeposit");

@@ -6037,7 +6037,7 @@ public partial class bitget : Exchange
             response = await this.publicUtaGetV3MarketFills(this.extend(request, parameters));
         } else if (isEqual(GetValue(market, "spot"), true))
         {
-            object spotOptions = this.safeValue(options, "spot", new Dictionary<string, object>() {});
+            IDictionary<string, object> spotOptions = this.safeDict(options, "spot", new Dictionary<string, object>() {});
             string? defaultSpotMethod = this.safeString(spotOptions, "method", "publicSpotGetV2SpotMarketFillsHistory");
             string? spotMethod = this.safeString(parameters, "method", defaultSpotMethod);
             parameters = this.omit(parameters, "method");
@@ -6057,7 +6057,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            object swapOptions = this.safeValue(options, "swap", new Dictionary<string, object>() {});
+            IDictionary<string, object> swapOptions = this.safeDict(options, "swap", new Dictionary<string, object>() {});
             string? defaultSwapMethod = this.safeString(swapOptions, "method", "publicMixGetV2MixMarketFillsHistory");
             string? swapMethod = this.safeString(parameters, "method", defaultSwapMethod);
             parameters = this.omit(parameters, "method");

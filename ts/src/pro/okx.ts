@@ -337,7 +337,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
@@ -616,7 +616,7 @@ export default class okx extends okxRest {
         //     }
         //
         this.handleBidAsk (client, message);
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -1198,7 +1198,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         if (channel === undefined) {
             return;
@@ -1743,7 +1743,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const balance = this.parseTradingBalance (message);
         const newBalance = this.deepExtend (this.balance, balance);
@@ -1944,7 +1944,7 @@ export default class okx extends okxRest {
         //        }]
         //    }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId, undefined, '-');
         const symbol = market['symbol'];
@@ -2087,7 +2087,7 @@ export default class okx extends okxRest {
         //     }
         //
         this.handleMyTrades (client, message);
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const orders = this.safeList (message, 'data', []);
         const ordersLength = orders.length;
@@ -2170,7 +2170,7 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
-        const arg = this.safeValue (message, 'arg', {});
+        const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const rawOrders = this.safeList (message, 'data', []);
         const filteredOrders: List = [];
@@ -2626,7 +2626,7 @@ export default class okx extends okxRest {
                 method.call (this, client, message);
             }
         } else {
-            const arg = this.safeValue (message, 'arg', {});
+            const arg = this.safeDict (message, 'arg', {});
             const channel = this.safeString (arg, 'channel');
             if (channel === undefined) {
                 return;

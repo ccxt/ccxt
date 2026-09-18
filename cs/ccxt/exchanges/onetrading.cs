@@ -1235,7 +1235,7 @@ public partial class onetrading : Exchange
         //         }
         //     }
         //
-        object feeInfo = this.safeValue(trade, "fee", new Dictionary<string, object>() {});
+        IDictionary<string, object> feeInfo = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
         trade = this.safeValue(trade, "trade", trade);
         Int64? timestamp = this.safeInteger(trade, "trade_timestamp");
         if (isEqual(timestamp, null))

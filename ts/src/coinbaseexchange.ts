@@ -1814,7 +1814,7 @@ export default class coinbaseexchange extends Exchange {
         const timestamp = this.parse8601 (this.safeValue (item, 'created_at'));
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (undefined, currency);
-        const details = this.safeValue (item, 'details', {});
+        const details = this.safeDict (item, 'details', {});
         let account: Str = undefined;
         let referenceAccount: Str = undefined;
         let referenceId: Str = undefined;
@@ -2091,7 +2091,7 @@ export default class coinbaseexchange extends Exchange {
         //        }
         //    ]
         //
-        const details = this.safeValue (transaction, 'details', {});
+        const details = this.safeDict (transaction, 'details', {});
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);

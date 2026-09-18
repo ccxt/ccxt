@@ -1153,7 +1153,7 @@ public partial class deribit : ccxt.deribit
             }
             throw new NotSupported (add(add(this.id, " no handler found for this message "), this.json(message))) ;
         }
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         string? accessToken = this.safeString(result, "access_token");
         if ((accessToken != null))
         {

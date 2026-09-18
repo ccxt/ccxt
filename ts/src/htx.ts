@@ -1911,7 +1911,7 @@ export default class htx extends Exchange {
         };
         for (let i = 0; i < futureMarkets.length; i++) {
             const market = futureMarkets[i];
-            const info = this.safeValue (market, 'info', {});
+            const info = this.safeDict (market, 'info', {});
             const contractType = this.safeString (info, 'contract_type');
             const contractSuffix = this.safeValue (futuresCharsMaps, contractType);
             // see comment on formats a bit above

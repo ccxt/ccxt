@@ -982,7 +982,7 @@ public partial class hollaex : Exchange
         //         ...
         //     }
         //
-        object firstTier = this.safeValue(response, "1", new Dictionary<string, object>() {});
+        IDictionary<string, object> firstTier = this.safeDict(response, "1", new Dictionary<string, object>() {});
         object fees = this.safeValue(firstTier, "fees", new Dictionary<string, object>() {});
         object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
         object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
@@ -1406,7 +1406,7 @@ public partial class hollaex : Exchange
         string? amount = this.safeString(order, "size");
         string? filled = this.safeString(order, "filled");
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
-        object meta = this.safeValue(order, "meta", new Dictionary<string, object>() {});
+        IDictionary<string, object> meta = this.safeDict(order, "meta", new Dictionary<string, object>() {});
         bool? postOnly = this.safeBool(meta, "post_only", false);
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1463,7 +1463,7 @@ public partial class hollaex : Exchange
             { "type", type },
         };
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
-        object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
+        IDictionary<string, object> meta = this.safeDict(parameters, "meta", new Dictionary<string, object>() {});
         bool? exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         bool isMarketOrder = isEqual(type, "market");
         bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);

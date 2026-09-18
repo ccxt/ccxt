@@ -740,7 +740,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 {
                     return;
                 }
-                object previousInfo = this.safeValue(previousOrder, "info", new Dictionary<string, object>() {});
+                IDictionary<string, object> previousInfo = this.safeDict(previousOrder, "info", new Dictionary<string, object>() {});
                 Int64? previousSequence = this.safeInteger(previousInfo, "sequence");
                 if ((isEqual(previousSequence, null)) || (isGreaterThan(sequence, previousSequence)))
                 {

@@ -2449,7 +2449,7 @@ public partial class phemex : Exchange
             { "info", response },
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object balance = this.safeValue(data, "account", new Dictionary<string, object>() {});
+        IDictionary<string, object> balance = this.safeDict(data, "account", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(balance, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> currency = this.currency(((string)code));

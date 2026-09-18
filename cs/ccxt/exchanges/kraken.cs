@@ -1171,7 +1171,7 @@ public partial class kraken : Exchange
         object orderbook = this.safeValue(result, GetValue(market, "id"));
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        object marketInfo = this.safeValue(market, "info", new Dictionary<string, object>() {});
+        IDictionary<string, object> marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         object wsName = this.safeValue(marketInfo, "wsname");
         if ((wsName != null))
         {
@@ -4053,7 +4053,7 @@ public partial class kraken : Exchange
         //        }
         //    }
         //
-        object result = this.safeValue(transfer, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(transfer, "result", new Dictionary<string, object>() {});
         string? refid = this.safeString(result, "refid");
         return new Dictionary<string, object>() {
             { "info", transfer },

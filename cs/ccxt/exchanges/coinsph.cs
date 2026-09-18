@@ -960,9 +960,9 @@ public partial class coinsph : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             Dictionary<string, object> limits = this.indexBy(this.safeList(market, "filters", new List<object>() {}), "filterType");
-            object amountLimits = this.safeValue(limits, "LOT_SIZE", new Dictionary<string, object>() {});
-            object priceLimits = this.safeValue(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
-            object costLimits = this.safeValue(limits, "NOTIONAL", new Dictionary<string, object>() {});
+            IDictionary<string, object> amountLimits = this.safeDict(limits, "LOT_SIZE", new Dictionary<string, object>() {});
+            IDictionary<string, object> priceLimits = this.safeDict(limits, "PRICE_FILTER", new Dictionary<string, object>() {});
+            IDictionary<string, object> costLimits = this.safeDict(limits, "NOTIONAL", new Dictionary<string, object>() {});
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
