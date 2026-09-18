@@ -4703,10 +4703,10 @@ func (this *Binance) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		ch <- map[string]any{}
 		return nil
 	}
-	var promises any = []any{this.SapiGetCapitalConfigGetall(params)}
+	var promises []any = []any{this.SapiGetCapitalConfigGetall(params)}
 	var fetchMargins *bool = this.SafeBool(this.Options, "fetchMargins", false)
 	if fetchMargins != nil && *fetchMargins == true {
-		AppendToArray(&promises, this.SapiGetMarginAllPairs(params))
+		promises = append(promises, this.SapiGetMarginAllPairs(params))
 	}
 
 	results := (<-promiseAll(promises))
@@ -4953,7 +4953,7 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promisesRaw any = []any{}
+	var promisesRaw []any = []any{}
 	var rawFetchMarkets any = nil
 	var defaultTypes []any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
@@ -4972,32 +4972,32 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var demoMode *bool = this.SafeBool(this.Options, "enableDemoTrading", false)
 	var isDemoEnv bool = (demoMode != nil && *demoMode == true) || (sandboxMode != nil && *sandboxMode == true)
-	var fetchMarkets any = []any{}
+	var fetchMarkets []any = []any{}
 	for i := 0; i < GetArrayLength(rawFetchMarkets); i++ {
 		var typeVar any = GetValue(rawFetchMarkets, i)
 		if (IsEqual(typeVar, "option")) && (isDemoEnv == true) {
 			continue
 		}
-		AppendToArray(&fetchMarkets, typeVar)
+		fetchMarkets = append(fetchMarkets, typeVar)
 	}
 	var fetchMargins *bool = this.SafeBool(this.Options, "fetchMargins", false)
-	for i := 0; i < GetArrayLength(fetchMarkets); i++ {
+	for i := 0; i < len(fetchMarkets); i++ {
 		var marketType any = GetValue(fetchMarkets, i)
 		if IsEqual(marketType, "spot") {
-			AppendToArray(&promisesRaw, this.PublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, this.PublicGetExchangeInfo(params))
 			if (fetchMargins != nil && *fetchMargins == true) && this.CheckRequiredCredentials(false) && (isDemoEnv != true) {
-				AppendToArray(&promisesRaw, this.SapiGetMarginAllPairs(params))
-				AppendToArray(&promisesRaw, this.SapiGetMarginIsolatedAllPairs(params))
+				promisesRaw = append(promisesRaw, this.SapiGetMarginAllPairs(params))
+				promisesRaw = append(promisesRaw, this.SapiGetMarginIsolatedAllPairs(params))
 			}
 		} else if IsEqual(marketType, "linear") {
-			AppendToArray(&promisesRaw, this.FapiPublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, this.FapiPublicGetExchangeInfo(params))
 		} else if IsEqual(marketType, "inverse") {
-			AppendToArray(&promisesRaw, this.DapiPublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, this.DapiPublicGetExchangeInfo(params))
 		} else if IsEqual(marketType, "option") {
-			AppendToArray(&promisesRaw, this.EapiPublicGetExchangeInfo(params))
+			promisesRaw = append(promisesRaw, this.EapiPublicGetExchangeInfo(params))
 		} else if IsEqual(marketType, "stock") {
 			if (isDemoEnv != true) && (!IsEqual(this.ApiKey, nil) && (this.ApiKey != "")) {
-				AppendToArray(&promisesRaw, this.SapiGetEquityMarketExchangeInfo(params))
+				promisesRaw = append(promisesRaw, this.SapiGetEquityMarketExchangeInfo(params))
 			}
 		} else {
 			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", marketType), "\" is not a supported market type")))
@@ -5271,9 +5271,9 @@ func (this *Binance) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		retRes373912 := (<-this.LoadTimeDifferenceAsync())
 		PanicOnError(retRes373912)
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < len(markets); i++ {
-		AppendToArray(&result, this.ParseMarket(GetValue(markets, i)))
+		result = append(result, this.ParseMarket(GetValue(markets, i)))
 	}
 
 	ch <- result
@@ -6667,13 +6667,13 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Binance) ParseTickersForRolling(response any, symbols any) any {
-	var results any = []any{}
+	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		var marketId *string = this.SafeString(GetValue(response, i), "symbol")
 		var tickerMarket any = this.SafeMarket(marketId, nil, nil, "spot")
 		var parsedTicker any = this.ParseTicker(GetValue(response, i))
 		AddElementToObject(parsedTicker, "symbol", GetValue(tickerMarket, "symbol"))
-		AppendToArray(&results, parsedTicker)
+		results = append(results, parsedTicker)
 	}
 	return this.FilterByArray(results, "symbol", symbols)
 }
@@ -8038,7 +8038,7 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 		retRes605812 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes605812)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -8058,7 +8058,7 @@ func (this *Binance) editOrdersBody(ch chan any, orders any, optionalArgs ...any
 			panic(NotSupported(this.Id + " editOrders() does not support portfolio margin orders"))
 		}
 		var orderRequest any = this.EditContractOrderRequest(id, marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(orderSymbols, 0))
@@ -8871,7 +8871,7 @@ func (this *Binance) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		retRes686512 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes686512)
 	}
-	var ordersRequests any = []any{}
+	var ordersRequests []any = []any{}
 	var orderSymbols any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
 		var rawOrder any = GetValue(orders, i)
@@ -8883,7 +8883,7 @@ func (this *Binance) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-		AppendToArray(&ordersRequests, orderRequest)
+		ordersRequests = append(ordersRequests, orderRequest)
 	}
 	orderSymbols = this.MarketSymbols(orderSymbols, nil, false, true, true)
 	var market any = this.Market(GetValue(orderSymbols, 0))
@@ -11757,12 +11757,12 @@ func (this *Binance) fetchMyDustTradesBody(ch chan any, optionalArgs ...any) any
 	//     }
 	var results any = this.SafeList(response, "userAssetDribblets", []any{})
 	var rows *int64 = this.SafeInteger(response, "total", 0)
-	var data any = []any{}
+	var data []any = []any{}
 	for i := 0; IsLessThan(i, rows); i++ {
 		var logs any = this.SafeList(GetValue(results, i), "userAssetDribbletDetails", []any{})
 		for j := 0; j < GetArrayLength(logs); j++ {
 			AddElementToObject(GetValue(logs, j), "isDustTrade", true)
-			AppendToArray(&data, GetValue(logs, j))
+			data = append(data, GetValue(logs, j))
 		}
 	}
 	var trades any = this.ParseTrades(data, nil, since, limit)
@@ -13758,7 +13758,7 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 			})
 		}
 	}
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var position any = GetValue(positions, i)
 		var marketId *string = this.SafeString(position, "symbol")
@@ -13779,7 +13779,7 @@ func (this *Binance) ParseAccountPositions(account any, optionalArgs ...any) any
 					"crossMargin":        GetValue(GetValue(balances, code), "crossMargin"),
 					"crossWalletBalance": GetValue(GetValue(balances, code), "crossWalletBalance"),
 				}), market)
-				AppendToArray(&result, parsed)
+				result = append(result, parsed)
 			}
 		}
 	}
@@ -14365,12 +14365,12 @@ func (this *Binance) loadLeverageBracketsBody(ch chan any, optionalArgs ...any) 
 			var marketId *string = this.SafeString(entry, "symbol")
 			var symbol *string = this.SafeSymbol(marketId, nil, nil, "contract")
 			var brackets any = this.SafeList(entry, "brackets", []any{})
-			var result any = []any{}
+			var result []any = []any{}
 			for j := 0; j < GetArrayLength(brackets); j++ {
 				var bracket any = GetValue(brackets, j)
 				var floorValue *string = this.SafeString2(bracket, "notionalFloor", "qtyFloor")
 				var maintenanceMarginPercentage *string = this.SafeString(bracket, "maintMarginRatio")
-				AppendToArray(&result, []any{floorValue, maintenanceMarginPercentage})
+				result = append(result, []any{floorValue, maintenanceMarginPercentage})
 			}
 			AddElementToObject(GetValue(this.Options, "leverageBrackets"), symbol, result)
 		}
@@ -14517,10 +14517,10 @@ func (this *Binance) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
 	var marketId *string = this.SafeString(info, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var brackets any = this.SafeList(info, "brackets", []any{})
-	var tiers any = []any{}
+	var tiers []any = []any{}
 	for j := 0; j < GetArrayLength(brackets); j++ {
 		var bracket any = GetValue(brackets, j)
-		AppendToArray(&tiers, map[string]any{
+		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeNumber(bracket, "bracket"),
 			"symbol":                this.SafeSymbol(marketId, market),
 			"currency":              GetValue(market, "quote"),
@@ -14665,10 +14665,10 @@ func (this *Binance) fetchOptionPositionsBody(ch chan any, optionalArgs ...any) 
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	var positions []any = this.ToArray(response)
 	for i := 0; i < len(positions); i++ {
-		AppendToArray(&result, this.ParseOptionPosition(GetValue(positions, i), market))
+		result = append(result, this.ParseOptionPosition(GetValue(positions, i), market))
 	}
 
 	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
@@ -15070,7 +15070,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	if IsEqual(response, nil) {
 		panic(NullResponse(this.Id + " method() returned empty response"))
 	}
@@ -15079,7 +15079,7 @@ func (this *Binance) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) an
 		var rawPosition any = GetValue(positions, i)
 		var entryPriceString *string = this.SafeString(rawPosition, "entryPrice")
 		if Precise.StringGt(entryPriceString, "0") {
-			AppendToArray(&result, this.ParsePositionRisk(rawPosition))
+			result = append(result, this.ParsePositionRisk(rawPosition))
 		}
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -15823,9 +15823,9 @@ func (this *Binance) ParseSettlements(settlements any, market any) any {
 	//         }
 	//     ]
 	//
-	var result any = []any{}
+	var result []any = []any{}
 	for i := 0; i < GetArrayLength(settlements); i++ {
-		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+		result = append(result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
 	return result
 }
@@ -16274,9 +16274,9 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 				}
 				if origclientorderidlistLength > 0 {
 					// wrap clientOrderids around ""
-					var newClientOrderIds any = []any{}
+					var newClientOrderIds []any = []any{}
 					for i := 0; i < origclientorderidlistLength; i++ {
-						AppendToArray(&newClientOrderIds, Add(Add("%22", GetValue(origclientorderidlist, i)), "%22"))
+						newClientOrderIds = append(newClientOrderIds, Add(Add("%22", GetValue(origclientorderidlist, i)), "%22"))
 					}
 					query = Add(Add(Add(Add(query, "&"), "origclientorderidlist=%5B"), Join(newClientOrderIds, "%2C")), "%5D")
 				}
