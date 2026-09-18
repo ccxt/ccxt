@@ -1148,7 +1148,7 @@ impl TokocryptoCore {
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut filters: Value = self.safe_value_k(market.clone(), "filters", &[Value::List(vec![])]);
             let mut filtersByType: Value = self.index_by(filters.clone(), Value::Str("filterType".to_string()));
             let mut status: Value = self.safe_string_k(market.clone(), "spotTradingEnable", &[]);
@@ -2314,7 +2314,7 @@ impl TokocryptoCore {
         });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), add(&add(&market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), &Value::Str("_".to_string())), &market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null)));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null), Value::Str("_".to_string()))), market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null))));
                 m.insert("type".to_string(), self.safe_string(reverseOrderTypeMapping.clone(), uppercaseType.clone(), &[]));
             m
         });

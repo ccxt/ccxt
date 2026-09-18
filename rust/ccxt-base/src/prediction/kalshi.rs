@@ -1164,7 +1164,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         // Build outcomes
         let mut outcomeLabels: Value = Value::List(vec![Value::Str("YES".to_string()), Value::Str("NO".to_string())]);
-        let mut outcomeIds: Value = Value::List(vec![ticker.clone(), add(&ticker, &Value::Str("-NO".to_string()))]);
+        let mut outcomeIds: Value = Value::List(vec![ticker.clone(), Value::Str(format!("{}{}", ticker, Value::Str("-NO".to_string())))]);
         let mut outcomes: Value = Value::List(vec![]);
         let mut resolvedOutcome: Value = Value::Null;
         {

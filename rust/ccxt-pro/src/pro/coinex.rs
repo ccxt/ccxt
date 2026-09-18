@@ -779,7 +779,7 @@ impl CoinexCore {
         let mut subscribedSymbols: Value = Value::List(vec![]);
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         if (market != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, add(&Value::Str(":".to_string()), &symbol)));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
             append_to_array(&mut subscribedSymbols, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }  else {
             if (type_var.as_str() == Some("spot")) {
@@ -1595,7 +1595,7 @@ impl CoinexCore {
         let mut messageHash: Value = Value::Str("orders".to_string());
         let mut messageWithType: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)));
         client.resolve(&[self.orders.clone(), messageWithType.clone()]);
-        messageHash = Value::Str(format!("{}{}", messageHash, add(&Value::Str(":".to_string()), &symbol)));
+        messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
 }
 
@@ -1837,7 +1837,7 @@ impl CoinexCore {
         let mut parsedTicker: Value = self.parse_ws_bid_ask(data.clone(), &[]);
         let mut symbol: Value = parsedTicker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.bidsasks, &symbol, parsedTicker.clone());
-        let mut messageHash: Value = add(&Value::Str("bidsasks:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidsasks:".to_string()), symbol));
         client.resolve(&[parsedTicker.clone(), messageHash.clone()]);
 }
 

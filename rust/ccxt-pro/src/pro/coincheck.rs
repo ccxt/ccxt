@@ -290,7 +290,7 @@ impl CoincheckCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("-orderbook".to_string())));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-orderbook".to_string()))));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);
@@ -368,7 +368,7 @@ impl CoincheckCore {
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("subscribe".to_string()));
-                m.insert("channel".to_string(), add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("-trades".to_string())));
+                m.insert("channel".to_string(), Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("-trades".to_string()))));
             m
         });
         let mut message: Value = self.extend(request, &[params.clone()]);

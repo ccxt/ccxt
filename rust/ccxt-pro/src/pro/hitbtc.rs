@@ -1455,7 +1455,7 @@ impl HitbtcCore {
         let mut parsed: Value = self.parse_order(order.clone(), &[]);
         orders.append(parsed.clone());
         client.resolve(&[orders.clone(), messageHash.clone()]);
-        client.resolve(&[orders.clone(), Value::Str(format!("{}{}", add(&messageHash, &Value::Str("::".to_string())), symbol))]);
+        client.resolve(&[orders.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".to_string()))), symbol))]);
 }
 
     pub fn parse_ws_order_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -2004,7 +2004,7 @@ impl HitbtcCore {
                 let mut code: Value = self.safe_value_k(error.clone(), "code", &[]);
                 let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
                 let mut description: Value = self.safe_string_k(error.clone(), "description", &[]);
-                let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &description);
+                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), description));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone(), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));

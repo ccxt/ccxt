@@ -2317,7 +2317,7 @@ pub trait ExchangeBase:
 }
 
     fn orderbook_checksum_message(&self, mut symbol: Value) -> Value {
-        return Value::Str(format!("{}{}", add(&symbol, &Value::Str(" : ".to_string())), Value::Str("orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false".to_string())));
+        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(" : ".to_string()))), Value::Str("orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false".to_string())));
 
     Value::Null
 }
@@ -6881,7 +6881,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: Value = self.market(symbol.clone());
         let mut result: Value = self.decimal_to_precision(price.clone(), Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if (result.as_str() == Some("0")) {
-            panic!("{}", crate::exchange_errors::invalid_order(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" price of ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(" must be greater than minimum price precision of ".to_string()))), &self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null)))));
+            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" price of ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(" must be greater than minimum price precision of ".to_string()))), self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null))))));
         }
         return result;
 
@@ -6895,7 +6895,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut market: Value = self.market(symbol.clone());
         let mut result: Value = self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::TRUNCATE), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if (result.as_str() == Some("0")) {
-            panic!("{}", crate::exchange_errors::invalid_order(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amount of ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(" must be greater than minimum amount precision of ".to_string()))), &self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)))));
+            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amount of ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(" must be greater than minimum amount precision of ".to_string()))), self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null))))));
         }
         return result;
 
@@ -8284,7 +8284,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (Value::Null).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                     let mut responseLength: Value = get_array_length(&response);
                     if is_true(&self.verbose) {
-                        let mut backwardMessage: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".to_string()), self.number_to_string(calls.clone()))), Value::Str(" method ".to_string()))), method)), Value::Str(" response length ".to_string()))), &self.number_to_string(responseLength.clone()));
+                        let mut backwardMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".to_string()), self.number_to_string(calls.clone()))), Value::Str(" method ".to_string()))), method)), Value::Str(" response length ".to_string()))), self.number_to_string(responseLength.clone())));
                         if (paginationTimestamp != Value::Null) {
                             backwardMessage = Value::Str(format!("{}{}", backwardMessage, Value::Str(format!("{}{}", Value::Str(" timestamp ".to_string()), self.number_to_string(paginationTimestamp.clone())))));
                         }
@@ -8308,7 +8308,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut response: Value = self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (paginationTimestamp).clone(), (maxEntriesPerRequest).clone(), (params).clone()]).await;
                     let mut responseLength: Value = get_array_length(&response);
                     if is_true(&self.verbose) {
-                        let mut forwardMessage: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".to_string()), self.number_to_string(calls.clone()))), Value::Str(" method ".to_string()))), method)), Value::Str(" response length ".to_string()))), &self.number_to_string(responseLength.clone()));
+                        let mut forwardMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Dynamic pagination call ".to_string()), self.number_to_string(calls.clone()))), Value::Str(" method ".to_string()))), method)), Value::Str(" response length ".to_string()))), self.number_to_string(responseLength.clone())));
                         if (paginationTimestamp != Value::Null) {
                             forwardMessage = Value::Str(format!("{}{}", forwardMessage, Value::Str(format!("{}{}", Value::Str(" timestamp ".to_string()), self.number_to_string(paginationTimestamp.clone())))));
                         }
@@ -8665,7 +8665,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (timestamp == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" removeRepeatedTradesFromArray() missing timestamp".to_string()))));
                 }
-                id = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("t_".to_string()), to_string_val(&timestamp))), Value::Str("_".to_string()))), &side), Value::Str("_".to_string()))), &price), Value::Str("_".to_string()))), &amount);
+                id = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("t_".to_string()), to_string_val(&timestamp))), Value::Str("_".to_string()))), side)), Value::Str("_".to_string()))), price)), Value::Str("_".to_string()))), amount));
             }
             if (id != Value::Null) && !is_true(&(Value::Bool(in_op(&uniqueResult, &id)))) {
                 add_element_to_object(&mut uniqueResult, &id, entry.clone());
@@ -9054,7 +9054,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else if (monthRaw.as_str() == Some("12")) {
             month = Value::Str("DEC".to_string());
         }
-        let mut reconstructedDate: Value = Value::Str(format!("{}{}", add(&day, &month), year));
+        let mut reconstructedDate: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", day, month)), year));
         return reconstructedDate;
 
     Value::Null
@@ -9089,7 +9089,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut monthName: Value = slice(&date, &Value::Int(2), &Value::Int(5));
         let mut month: Value = self.safe_string(monthMappping.clone(), monthName.clone(), &[]);
         let mut day: Value = slice(&date, &Value::Int(5), &Value::Int(7));
-        let mut reconstructedDate: Value = Value::Str(format!("{}{}", add(&day, &month), year));
+        let mut reconstructedDate: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", day, month)), year));
         return reconstructedDate;
 
     Value::Null

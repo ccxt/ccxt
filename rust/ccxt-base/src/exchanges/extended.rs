@@ -1109,7 +1109,7 @@ impl ExtendedCore {
         let mut created: Value = self.safe_integer_k(market.clone(), "createdAt", &[]);
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut isSpot: Value = Value::Bool(false);
         let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("type".to_string()), &[]);
         let mut contractSize: Value = Value::Null;
@@ -1124,7 +1124,7 @@ impl ExtendedCore {
             type_var = Value::Str("swap".to_string());
             settleId = quoteId.clone();
             settle = quote.clone();
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
             contractSize = self.parse_number(Value::Str("1".to_string()), &[]);
             linear = Value::Bool(true);
             inverse = Value::Bool(false);
@@ -4902,7 +4902,7 @@ impl ExtendedCore {
                 add_element_to_object(&mut headers, &Value::Str("Content-Type".to_string()), Value::Str("application/json".to_string()));
             }
         }
-        url = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", url, Value::Str("/api/".to_string()))), &version), endpoint));
+        url = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", url, Value::Str("/api/".to_string()))), version)), endpoint));
         if is_true(&(Value::Bool((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || queryPost))) && is_true(&(Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode_with_array_repeat(query.clone())))));
         }

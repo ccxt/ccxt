@@ -707,7 +707,7 @@ impl HyperliquidCore {
             if is_true(&Value::Bool(in_op(&spotCurrencyMapping, &baseName))) {
                 let mut unifiedBaseName: Value = self.safe_string(spotCurrencyMapping.clone(), baseName.clone(), &[]);
                 let mut quote: Value = self.safe_string(symbolParts.clone(), Value::Int(1), &[]);
-                let mut newSymbol: Value = add(&add(&self.safe_currency_code(unifiedBaseName.clone(), &[]), &Value::Str("/".to_string())), &quote);
+                let mut newSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_currency_code(unifiedBaseName.clone(), &[]), Value::Str("/".to_string()))), quote));
                 if is_true(&Value::Bool(in_op(&self.markets, &newSymbol))) {
                     return get_value(&self.markets, &newSymbol);
                 }
@@ -1378,7 +1378,7 @@ impl HyperliquidCore {
             let mut mappedQuoteId: Value = self.safe_string(spotCurrencyMapping.clone(), quoteId.clone(), &[quoteId.clone()]);
             let mut mappedBase: Value = self.safe_currency_code(mappedBaseName.clone(), &[]);
             let mut mappedQuote: Value = self.safe_currency_code(mappedQuoteId.clone(), &[]);
-            let mut mappedSymbol: Value = add(&add(&mappedBase, &Value::Str("/".to_string())), &mappedQuote);
+            let mut mappedSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", mappedBase, Value::Str("/".to_string()))), mappedQuote));
             let mut innerBaseTokenInfo: Value = self.safe_dict_k(baseTokenInfo.clone(), "spec", &[baseTokenInfo.clone()]);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             let mut amountPrecisionStr: Value = self.safe_string_k(innerBaseTokenInfo.clone(), "szDecimals", &[]);
@@ -1500,12 +1500,12 @@ impl HyperliquidCore {
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "baseId", &[]);
         let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-        let mut symbol: Value = add(&Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut contract: Value = Value::Bool(true);
         let mut swap: Value = Value::Bool(true);
         if is_true(&contract) {
             if is_true(&swap) {
-                symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
             }
         }
         let mut fees: Value = self.safe_dict_k(self.fees.clone(), "swap", &[Value::Map({
@@ -2249,7 +2249,7 @@ impl HyperliquidCore {
         // with grouping positionTpsl and size 0, so only reject a positive amount that
         // became zero after rounding, never an explicitly requested zero
         if is_true(&crate::precise::Precise::stringEq(&result, &Value::Str("0".to_string()))) && is_true(&crate::precise::Precise::stringGt(&self.number_to_string(amount.clone()), &Value::Str("0".to_string()))) {
-            panic!("{}", crate::exchange_errors::invalid_order(add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amount of ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(" must be greater than minimum amount precision of ".to_string()))), &self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)))));
+            panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" amount of ".to_string()))), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Str(" must be greater than minimum amount precision of ".to_string()))), self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null))))));
         }
         return result;
 
@@ -5428,7 +5428,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut vaultAddress: Value = self.safe_string2(params.clone(), Value::Str("vaultAddress".to_string()), Value::Str("subAccountAddress".to_string()), &[]);
             if (vaultAddress != Value::Null) {
                 vaultAddress = self.format_vault_address(&[vaultAddress.clone()]);
-                strAmount = add(&Value::Str(format!("{}{}", strAmount, Value::Str(" subaccount:".to_string()))), &vaultAddress);
+                strAmount = Value::Str(format!("{}{}", Value::Str(format!("{}{}", strAmount, Value::Str(" subaccount:".to_string()))), vaultAddress));
             }
             let mut strAmountFinal: Value = strAmount.clone(); // java req
             let mut toPerp: Value = Value::Bool(is_true(&(Value::Bool(toAccount.as_str() == Some("perp")))) || is_true(&(Value::Bool(toAccount.as_str() == Some("swap")))));
@@ -5518,7 +5518,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut tokenName: Value = self.safe_string_k(currencyInfo.clone(), "name", &[]);
             let mut tokenId: Value = self.safe_string_k(currencyInfo.clone(), "tokenId", &[]);
-            let mut token: Value = add(&add(&tokenName, &Value::Str(":".to_string())), &tokenId);
+            let mut token: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", tokenName, Value::Str(":".to_string()))), tokenId));
             let mut action: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountSpotTransfer".to_string()));
@@ -6460,7 +6460,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if get_index_of(&coin, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             coin = replace_str(&coin, &Value::Str(":".to_string()), &Value::Str("-".to_string())); // hip3
         }
-        return add(&self.safe_currency_code(coin.clone(), &[]), &Value::Str("/USDC:USDC".to_string()));
+        return Value::Str(format!("{}{}", self.safe_currency_code(coin.clone(), &[]), Value::Str("/USDC:USDC".to_string())));
 
     Value::Null
 }

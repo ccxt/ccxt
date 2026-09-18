@@ -1539,7 +1539,7 @@ impl KrakenCore {
         let mut parts: Value = split(&data, &Value::Str(".".to_string()));
         let mut integer: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);
         let mut decimals: Value = self.safe_string(parts.clone(), Value::Int(1), &[Value::Str("".to_string())]);
-        let mut joinedResult: Value = add(&integer, &decimals);
+        let mut joinedResult: Value = Value::Str(format!("{}{}", integer, decimals));
         let mut i: Value = Value::Int(0);
         while (get_value(&joinedResult, &i).as_str() == Some("0")) {
             i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });

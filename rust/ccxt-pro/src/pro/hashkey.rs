@@ -440,7 +440,7 @@ impl HashkeyCore {
             stored.append(parsed.clone());
         }
         }
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol)), Value::Str(":".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -510,7 +510,7 @@ impl HashkeyCore {
         let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut ticker: Value = self.parse_ticker(self.safe_dict(data.clone(), Value::Int(0), &[]), &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
 }
@@ -761,7 +761,7 @@ impl HashkeyCore {
         let mut messageHash: Value = Value::Str("orders".to_string());
         client.resolve(&[orders.clone(), messageHash.clone()]);
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut symbolSpecificMessageHash: Value = add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol);
+        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
         client.resolve(&[orders.clone(), symbolSpecificMessageHash.clone()]);
 }
 
@@ -887,7 +887,7 @@ impl HashkeyCore {
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut symbolSpecificMessageHash: Value = add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol);
+        let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol));
         client.resolve(&[tradesArray.clone(), symbolSpecificMessageHash.clone()]);
 }
 
@@ -1036,7 +1036,7 @@ impl HashkeyCore {
         let mut messageHash: Value = Value::Str("positions".to_string());
         client.resolve(&[parsed.clone(), messageHash.clone()]);
         let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        client.resolve(&[parsed.clone(), add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol)]);
+        client.resolve(&[parsed.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
 }
 
     pub fn parse_ws_position(&self, mut position: Value, optional_args: &[Value]) -> Value {

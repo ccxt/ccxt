@@ -824,7 +824,7 @@ impl CoinbaseCore {
                     add_element_to_object(&mut self.tickers, &symbol, result.clone());
                 }
                 append_to_array(&mut newTickers, result.clone());
-                let mut messageHash: Value = add(&add(&channel, &Value::Str("::".to_string())), &symbol);
+                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".to_string()))), symbol));
                 client.resolve(&[result.clone(), messageHash.clone()]);
                 self.try_resolve_usdc(client.clone(), messageHash.clone(), result.clone());
             }

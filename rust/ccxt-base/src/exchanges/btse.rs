@@ -1195,7 +1195,7 @@ impl BtseCore {
         let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut maxAmountString: Value = self.safe_string_k(market.clone(), "maxOrderSize", &[]);
         let mut minAmountString: Value = self.safe_string_k(market.clone(), "minOrderSize", &[]);
         let mut minPriceString: Value = self.safe_string_k(market.clone(), "minOrderPrice", &[]);
@@ -1206,7 +1206,7 @@ impl BtseCore {
         let mut expiry: Value = Value::Null;
         let mut contractSize: Value = Value::Null;
         if !is_true(&isSpot) {
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &quote)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), quote))));
             contractSize = self.safe_string_k(market.clone(), "contractSize", &[]);
             if is_true(&isFuture) {
                 expiry = self.safe_integer_k(market.clone(), "contractEndTime", &[]);

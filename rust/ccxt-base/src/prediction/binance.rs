@@ -998,7 +998,7 @@ impl BinanceCore {
             let mut rawOutcome: Value = get_value(&rawOutcomes, &oi);
             let mut label: Value = self.safe_string_upper(rawOutcome.clone(), Value::Str("name".to_string()), &[]);
             let mut tokenId: Value = self.safe_string_k(rawOutcome.clone(), "tokenId", &[]);
-            let mut outcomeHandle: Value = add(&Value::Str(format!("{}{}", marketSymbol, Value::Str(":".to_string()))), &label);
+            let mut outcomeHandle: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketSymbol, Value::Str(":".to_string()))), label));
             let mut price: Value = self.safe_string_k(rawOutcome.clone(), "price", &[]);
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
@@ -1443,7 +1443,7 @@ impl BinanceCore {
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.clone();
             }
-            outcomeName = add(&outcomeName, &add(&Value::Str(":".to_string()), &outcome));
+            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".to_string()), outcome))));
             outcomeObj = self.safe_outcome(outcomeName.clone(), &[]);
         }
         let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
@@ -1872,7 +1872,7 @@ impl BinanceCore {
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.clone();
             }
-            outcomeName = add(&outcomeName, &add(&Value::Str(":".to_string()), &outcome));
+            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".to_string()), outcome))));
             outcomeObj = self.safe_outcome(outcomeName.clone(), &[]);
         }
         let mut timestamp: Value = self.safe_integer_k(position.clone(), "createdTime", &[]);
@@ -2062,7 +2062,7 @@ impl BinanceCore {
             if (outcomeName == Value::Null) {
                 outcomeName = marketId.clone();
             }
-            outcomeName = add(&outcomeName, &add(&Value::Str(":".to_string()), &outcome));
+            outcomeName = Value::Str(format!("{}{}", outcomeName, Value::Str(format!("{}{}", Value::Str(":".to_string()), outcome))));
             outcomeObj = self.safe_outcome(outcomeName.clone(), &[]);
         }
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "createTime", &[]);
@@ -2470,7 +2470,7 @@ impl BinanceCore {
                 if i.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     failedDetails = Value::Str(format!("{}{}", failedDetails, Value::Str(", ".to_string())));
                 }
-                failedDetails = add(&Value::Str(format!("{}{}", add(&failedDetails, &failedOrderId), Value::Str(": ".to_string()))), &failedReason);
+                failedDetails = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", failedDetails, failedOrderId)), Value::Str(": ".to_string()))), failedReason));
             }
             }
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), failedDetails)));

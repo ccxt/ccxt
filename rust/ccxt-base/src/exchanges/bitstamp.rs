@@ -1990,7 +1990,7 @@ impl BitstampCore {
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settleId: Value = Value::Null;
             let mut marketTypeRaw: Value = self.safe_string_k(market.clone(), "market_type", &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut type_var: Value = Value::Null;
             let mut subType: Value = Value::Null;
             if (marketTypeRaw.as_str() == Some("SPOT")) {
@@ -1998,7 +1998,7 @@ impl BitstampCore {
             }  else if (marketTypeRaw.as_str() == Some("PERPETUAL")) {
                 type_var = Value::Str("swap".to_string());
                 settleId = quoteId.clone();
-                symbol = add(&Value::Str(format!("{}{}", add(&add(&base, &Value::Str("/".to_string())), &quote), Value::Str(":".to_string()))), &settleId);
+                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)), Value::Str(":".to_string()))), settleId));
                 let mut payoffType: Value = self.safe_string_k(market.clone(), "payoff_type", &[]);
                 if (payoffType.as_str() == Some("Linear")) {
                     subType = Value::Str("linear".to_string());
@@ -2551,7 +2551,7 @@ impl BitstampCore {
         // this endpoint is not aligned with "markets" endpoint
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
-        let mut dashedIdLower: Value = add(&add(&baseIdLower, &Value::Str("_".to_string())), &quoteIdLower);
+        let mut dashedIdLower: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("_".to_string()))), quoteIdLower));
         if (priceString == Value::Null) {
             priceString = self.safe_string(trade.clone(), dashedIdLower.clone(), &[]);
         }
@@ -4342,7 +4342,7 @@ impl BitstampCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string()));
-        url = Value::Str(format!("{}{}", url, add(&self.version, &Value::Str("/".to_string()))));
+        url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".to_string())))));
         url = Value::Str(format!("{}{}", url, self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (api.as_str() == Some("public")) {

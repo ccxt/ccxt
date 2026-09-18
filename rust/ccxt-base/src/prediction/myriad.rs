@@ -653,7 +653,7 @@ impl MyriadCore {
                 let mut raw: Value = get_value(&found, &j);
                 let mut networkId: Value = self.safe_string_k(raw.clone(), "networkId", &[]);
                 let mut marketId: Value = self.safe_string_k(raw.clone(), "id", &[]);
-                let mut key: Value = add(&add(&networkId, &Value::Str(":".to_string())), &marketId);
+                let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".to_string()))), marketId));
                 if !is_true(&(Value::Bool(in_op(&seen, &key)))) {
                     add_element_to_object(&mut seen, &key, Value::Bool(true));
                     append_to_array(&mut rawMarkets, raw.clone());
@@ -1091,7 +1091,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(position.clone(), "networkId", &[]);
         let mut marketId: Value = self.safe_string_k(position.clone(), "marketId", &[]);
         let mut outcomeId: Value = self.safe_string_k(position.clone(), "outcomeId", &[]);
-        let mut id: Value = add(&Value::Str(format!("{}{}", add(&add(&networkId, &Value::Str(":".to_string())), &marketId), Value::Str("/".to_string()))), &outcomeId);
+        let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".to_string()))), marketId)), Value::Str("/".to_string()))), outcomeId));
         let mut shares: Value = self.safe_number_k(position.clone(), "shares", &[]);
         let mut value: Value = self.safe_number_k(position.clone(), "value", &[]);
         let mut profit: Value = self.safe_number_k(position.clone(), "profit", &[]);
@@ -1645,7 +1645,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
         let mut chainConfig: Value = self.safe_dict(chains.clone(), networkId.clone(), &[]);
         if (chainConfig == Value::Null) {
-            panic!("{}", crate::exchange_errors::not_supported(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() has no on-chain config for network ".to_string()))), &networkId)));
+            panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() has no on-chain config for network ".to_string()))), networkId))));
         }
         let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".to_string()), Value::Str("rpc".to_string()), &[self.safe_string_k(chainConfig.clone(), "rpcUrl", &[])]);
         let mut predictionMarket: Value = self.safe_string_k(chainConfig.clone(), "predictionMarket", &[]);
@@ -3066,7 +3066,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut outcomeLabel: Value = self.safe_string_k(outcome.clone(), "label", &[self.safe_string(outcome.clone(), Value::Str("title".to_string()), &[outcomeId.clone()])]);
             let mut price: Value = self.safe_number_k(outcome.clone(), "price", &[]);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(eventSlug.clone(), slug.clone(), outcomeLabel.clone());
-            let mut outcomeCompositeId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&add(&networkId, &Value::Str(":".to_string())), &marketId), Value::Str("/".to_string()))), outcomeId));
+            let mut outcomeCompositeId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".to_string()))), marketId)), Value::Str("/".to_string()))), outcomeId));
             let mut winnerRaw: Value = Value::Null;
             let mut settleFractionRaw: Value = Value::Null;
             if hasResolution {
@@ -3124,14 +3124,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketResolvedOutcome: Value = resolvedOutcome.clone();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), add(&add(&networkId, &Value::Str(":".to_string())), &marketId));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".to_string()))), marketId)));
         m.insert("market".to_string(), marketSymbol.clone());
         m.insert("marketType".to_string(), (if is_true(&(outcomesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN))) { Value::Str("categorical".to_string()) } else { Value::Str("binary".to_string()) }));
         m.insert("executionModel".to_string(), marketExecutionModel.clone());
         m.insert("base".to_string(), slug.clone());
         m.insert("quote".to_string(), quoteCurrency.clone());
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), add(&add(&networkId, &Value::Str(":".to_string())), &marketId));
+        m.insert("baseId".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".to_string()))), marketId)));
         m.insert("quoteId".to_string(), quoteCurrency.clone());
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("prediction".to_string()));
@@ -3884,7 +3884,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
             let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
-            let mut key: Value = add(&add(&networkId, &Value::Str(":".to_string())), &marketId);
+            let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId, Value::Str(":".to_string()))), marketId));
             if !is_true(&(Value::Bool(in_op(&outcomesByMarket, &key)))) {
                 add_element_to_object(&mut outcomesByMarket, &key, Value::List(vec![]));
                 append_to_array(&mut marketKeys, key.clone());
@@ -4491,8 +4491,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
-        let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("orderbook:".to_string()), &networkId), Value::Str(":".to_string()))), &marketId);
-        let mut messageHash: Value = add(&Value::Str("orderbook::".to_string()), &sym);
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook:".to_string()), networkId)), Value::Str(":".to_string()))), marketId));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), sym));
         let mut url: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".to_string()), &[]);
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         self.connect_centrifugo(url.clone()).await;
@@ -4613,8 +4613,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
-        let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("trades:".to_string()), &networkId), Value::Str(":".to_string()))), &marketId);
-        let mut messageHash: Value = add(&Value::Str("trades::".to_string()), &sym);
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades:".to_string()), networkId)), Value::Str(":".to_string()))), marketId));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".to_string()), sym));
         let mut trades: Value = self.subscribe_myriad_channel(messageHash.clone(), channel.clone(), &[params.clone()]).await;
         return self.filter_by_since_limit(trades.clone(), &[since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
 
@@ -4652,7 +4652,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
-        let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("trades:".to_string()), &networkId), Value::Str(":".to_string()))), &marketId);
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades:".to_string()), networkId)), Value::Str(":".to_string()))), marketId));
         let mut messageHash: Value = Value::Str("myTrades".to_string());
         let mut trades: Value = self.subscribe_myriad_channel(messageHash.clone(), channel.clone(), &[params.clone()]).await;
         return self.filter_by_value_since_limit(trades.clone(), Value::Str("outcome".to_string()), &[sym.clone(), since.clone(), limit.clone(), Value::Str("timestamp".to_string()), Value::Bool(true)]);
@@ -4825,8 +4825,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
         let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
         let mut sym: Value = self.safe_outcome_symbol(outcome.clone(), &[outcomeObj.clone()]);
-        let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("prices:".to_string()), &networkId), Value::Str(":".to_string()))), &marketId);
-        let mut messageHash: Value = add(&Value::Str("ticker::".to_string()), &sym);
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("prices:".to_string()), networkId)), Value::Str(":".to_string()))), marketId));
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker::".to_string()), sym));
         return self.subscribe_myriad_channel(messageHash.clone(), channel.clone(), &[params.clone()]).await;
 
     Value::Null
@@ -4871,7 +4871,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut networkId: Value = self.safe_string_k(info.clone(), "networkId", &[]);
             let mut marketId: Value = self.safe_string_k(info.clone(), "marketId", &[]);
-            let mut channel: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("prices:".to_string()), &networkId), Value::Str(":".to_string()))), &marketId);
+            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("prices:".to_string()), networkId)), Value::Str(":".to_string()))), marketId));
             append_to_array(&mut resolvedSymbols, self.safe_outcome_symbol(get_value(&outcomes, &i), &[outcomeObj.clone()]));
             if (self.safe_value(seenChannels.clone(), channel.clone(), &[]) == Value::Null) {
                 add_element_to_object(&mut seenChannels, &channel, Value::Bool(true));

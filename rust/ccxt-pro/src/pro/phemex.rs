@@ -1364,7 +1364,7 @@ impl PhemexCore {
         }
         }
         // generic subscription
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), &type_var);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".to_string()))), type_var));
         client.resolve(&[cachedTrades.clone(), messageHash.clone()]);
 }
 
@@ -1653,7 +1653,7 @@ impl PhemexCore {
         }
         }
         // resolve generic subscription (spot or swap)
-        let mut messageHash: Value = add(&Value::Str("orders:".to_string()), &type_var);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders:".to_string()), type_var));
         client.resolve(&[self.orders.clone(), messageHash.clone()]);
 }
 

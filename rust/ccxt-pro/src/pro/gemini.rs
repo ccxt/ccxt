@@ -446,7 +446,7 @@ impl GeminiCore {
             }
         }
         stored.append(trade.clone());
-        let mut messageHash: Value = add(&Value::Str("trades:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 

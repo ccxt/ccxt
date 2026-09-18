@@ -2477,7 +2477,7 @@ impl BingxCore {
         let mut type_var: Value = (if is_true(&(Value::Bool(settle != Value::Null))) { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut spot: Value = Value::Bool(type_var.as_str() == Some("spot"));
         let mut swap: Value = Value::Bool(type_var.as_str() == Some("swap"));
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         if (settle != Value::Null) {
             symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
         }
@@ -8272,26 +8272,26 @@ impl BingxCore {
                     let mut isString: bool = is_string(&arrayElement);
                     if isString {
                         if j.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                            arrStr = add(&arrStr, &Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(",".to_string()), Value::Str("\"".to_string()))), to_string_val(&arrayElement))), Value::Str("\"".to_string()))));
+                            arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(",".to_string()), Value::Str("\"".to_string()))), to_string_val(&arrayElement))), Value::Str("\"".to_string())))));
                         }  else {
                             arrStr = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("\"".to_string()), to_string_val(&arrayElement))), Value::Str("\"".to_string())));
                         }
                     }  else {
                         if j.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-                            arrStr = add(&arrStr, &add(&Value::Str(",".to_string()), &to_string_val(&arrayElement)));
+                            arrStr = Value::Str(format!("{}{}", arrStr, add(&Value::Str(",".to_string()), &to_string_val(&arrayElement))));
                         }  else {
                             arrStr = to_string_val(&arrayElement);
                         }
                     }
                 }
                 }
-                adjustedValue = Value::Str(format!("{}{}", add(&Value::Str("[".to_string()), &arrStr), Value::Str("]".to_string())));
+                adjustedValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".to_string()), arrStr)), Value::Str("]".to_string())));
                 value = adjustedValue.clone();
             }
             if (i.as_f64() == Some(0.0)) {
                 result = add(&add(&key, &Value::Str("=".to_string())), &value);
             }  else {
-                result = add(&result, &add(&Value::Str(format!("{}{}", add(&Value::Str("&".to_string()), &key), Value::Str("=".to_string()))), &value));
+                result = Value::Str(format!("{}{}", result, add(&Value::Str(format!("{}{}", add(&Value::Str("&".to_string()), &key), Value::Str("=".to_string()))), &value)));
             }
         }
         }

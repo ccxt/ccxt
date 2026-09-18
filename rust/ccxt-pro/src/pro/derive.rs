@@ -361,7 +361,7 @@ impl DeriveCore {
             limit = Value::Int(10);
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("orderbook.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".10.".to_string()))), self.number_to_string(limit.clone())));
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".10.".to_string()))), self.number_to_string(limit.clone())));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
@@ -445,7 +445,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", add(&Value::Str("ticker_slim.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".100".to_string()))); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker_slim.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".100".to_string()))); // the venue deprecated the fat ticker channel in favor of ticker_slim
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
@@ -605,7 +605,7 @@ impl DeriveCore {
             limit = Value::Int(10);
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("orderbook.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".10.".to_string()))), self.number_to_string(limit.clone())));
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null))), Value::Str(".10.".to_string()))), self.number_to_string(limit.clone())));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unwatch".to_string()), topic));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -644,7 +644,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = add(&Value::Str("trades.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut messageHah: Value = Value::Str(format!("{}{}", Value::Str("unwatch".to_string()), topic));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -772,7 +772,7 @@ impl DeriveCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut topic: Value = add(&Value::Str("trades.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("subscribe".to_string()));
@@ -916,7 +916,7 @@ impl DeriveCore {
         }
         let mut subaccountId: Value = Value::Null;
         { let __destr_tmp = self.parent.handle_derive_subaccount_id(Value::Str("watchOrders".to_string()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut topic: Value = add(&self.number_to_string(subaccountId.clone()), &Value::Str(".orders".to_string()));
+        let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId.clone()), Value::Str(".orders".to_string())));
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
@@ -1028,7 +1028,7 @@ impl DeriveCore {
                     add_element_to_object(&mut parsed, &Value::Str("datetime".to_string()), self.safe_string_k(order.clone(), "datetime", &[]));
                 }
                 cachedOrders.append(parsed.clone());
-                let mut messageHashSymbol: Value = Value::Str(format!("{}{}", add(&topic, &Value::Str(":".to_string())), symbol));
+                let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str(":".to_string()))), symbol));
                 client.resolve(&[self.orders.clone(), messageHashSymbol.clone()]);
             }
         }
@@ -1061,7 +1061,7 @@ impl DeriveCore {
         }
         let mut subaccountId: Value = Value::Null;
         { let __destr_tmp = self.parent.handle_derive_subaccount_id(Value::Str("watchMyTrades".to_string()), params.clone()); subaccountId = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        let mut topic: Value = add(&self.number_to_string(subaccountId.clone()), &Value::Str(".trades".to_string()));
+        let mut topic: Value = Value::Str(format!("{}{}", self.number_to_string(subaccountId.clone()), Value::Str(".trades".to_string())));
         let mut messageHash: Value = topic.clone();
         if (symbol != Value::Null) {
             let mut market: Value = self.market(symbol.clone());
@@ -1112,7 +1112,7 @@ impl DeriveCore {
             let mut trade: Value = self.parse_trade(message.clone(), &[]);
             myTrades.append(trade.clone());
             client.resolve(&[myTrades.clone(), topic.clone()]);
-            let mut messageHash: Value = add(&topic, &self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".to_string())]));
+            let mut messageHash: Value = Value::Str(format!("{}{}", topic, self.safe_string_k(trade.clone(), "symbol", &[Value::Str("".to_string())])));
             client.resolve(&[myTrades.clone(), messageHash.clone()]);
         }
         }

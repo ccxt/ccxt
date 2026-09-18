@@ -453,7 +453,7 @@ impl MudrexCore {
         })]);
         let mut code: Value = self.safe_string_k(error.clone(), "code", &[]);
         let mut msg: Value = self.safe_string_k(error.clone(), "msg", &[]);
-        let mut feedback: Value = add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), &msg);
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), msg));
         if (code.as_str() == Some("429")) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
         }

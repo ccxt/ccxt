@@ -623,7 +623,7 @@ impl BitgetCore {
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
@@ -841,7 +841,7 @@ impl BitgetCore {
         if (symbol != Value::Null) {
             add_element_to_object(&mut self.bidsasks, &symbol, ticker.clone());
         }
-        let mut messageHash: Value = add(&Value::Str("bidask:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("bidask:".to_string()), symbol));
         client.resolve(&[ticker.clone(), messageHash.clone()]);
 }
 
@@ -930,7 +930,7 @@ impl BitgetCore {
             })]);
             messageHash = Value::Str(format!("{}{}", Value::Str("kline:".to_string()), symbol));
         }  else {
-            add_element_to_object(&mut args, &Value::Str("channel".to_string()), add(&Value::Str("candle".to_string()), &interval));
+            add_element_to_object(&mut args, &Value::Str("channel".to_string()), Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval)));
             add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
         }
@@ -992,10 +992,10 @@ impl BitgetCore {
             add_element_to_object(&mut params, &Value::Str("interval".to_string()), interval.clone());
             messageHash = Value::Str(format!("{}{}", channel, symbol));
         }  else {
-            channel = add(&Value::Str("candle".to_string()), &interval);
+            channel = Value::Str(format!("{}{}", Value::Str("candle".to_string()), interval));
             add_element_to_object(&mut args, &Value::Str("channel".to_string()), channel.clone());
             add_element_to_object(&mut args, &Value::Str("instId".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            messageHash = add(&Value::Str("candles:".to_string()), &interval);
+            messageHash = Value::Str(format!("{}{}", Value::Str("candles:".to_string()), interval));
         }
         return self.un_watch_channel(symbol.clone(), channel.clone(), messageHash.clone(), Value::Str("watchOHLCV".to_string()), &[params.clone()]).await;
 
@@ -1847,7 +1847,7 @@ impl BitgetCore {
         if is_true(&uta) {
             instType = Value::Str("UTA".to_string());
         }
-        messageHash = Value::Str(format!("{}{}", add(&instType, &Value::Str(":positions".to_string())), messageHash));
+        messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", instType, Value::Str(":positions".to_string()))), messageHash));
         let mut args: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType.clone());
@@ -2161,7 +2161,7 @@ impl BitgetCore {
             marketId = Value::Str("default".to_string());
         }
         if is_true(&(Value::Bool(productType == Value::Null))) && is_true(&(Value::Bool(type_var.as_str() != Some("spot")))) && is_true(&(Value::Bool(symbol == Value::Null))) {
-            messageHash = add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &subType);
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), subType));
         }  else if (productType.as_str() == Some("USDT-FUTURES")) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":linear".to_string())));
         }  else if (productType.as_str() == Some("COIN-FUTURES")) {
@@ -2198,7 +2198,7 @@ impl BitgetCore {
             instType = Value::Str("UTA".to_string());
             channel = Value::Str("order".to_string());
         }
-        subscriptionHash = add(&Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".to_string()))), &instType);
+        subscriptionHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".to_string()))), instType));
         let mut args: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType.clone());
@@ -2721,7 +2721,7 @@ impl BitgetCore {
         if is_true(&uta) {
             instType = Value::Str("UTA".to_string());
         }
-        let mut subscriptionHash: Value = add(&Value::Str("fill:".to_string()), &instType);
+        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("fill:".to_string()), instType));
         let mut args: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType.clone());
@@ -2892,7 +2892,7 @@ impl BitgetCore {
             let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut symbolSpecificMessageHash: Value = add(&Value::Str("myTrades:".to_string()), &symbol);
+            let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".to_string()), symbol));
             client.resolve(&[stored.clone(), symbolSpecificMessageHash.clone()]);
         }
         }
@@ -3123,7 +3123,7 @@ impl BitgetCore {
         // see https://github.com/ccxt/ccxt/issues/21973
         add_element_to_object(&mut self.balance, &Value::Str("info".to_string()), message.clone());
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
-        let mut messageHash: Value = add(&Value::Str("balance:".to_string()), &instType);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".to_string()), instType));
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
 }
 
@@ -3620,8 +3620,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             messageHash = Value::Str(format!("{}{}", Value::Str("unsubscribe:kline:".to_string()), symbol));
             subMessageHash = Value::Str(format!("{}{}", Value::Str("kline:".to_string()), symbol));
         }  else {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("unsubscribe:candles:".to_string()), &timeframe), Value::Str(":".to_string()))), symbol));
-            subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("candles:".to_string()), &timeframe), Value::Str(":".to_string()))), symbol));
+            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
+            subMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".to_string()), timeframe)), Value::Str(":".to_string()))), symbol));
         }
         if is_true(&Value::Bool(in_op(&self.ohlcvs, &symbol))) {
             if is_true(&(Value::Bool(timeframe != Value::Null))) && is_true(&(Value::Bool(in_op(&get_value(&self.ohlcvs, &symbol), &timeframe)))) {

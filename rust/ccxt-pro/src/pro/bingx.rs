@@ -470,7 +470,7 @@ impl BingxCore {
         }  else {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone(), &[]);
         }
-        let mut dataType: Value = add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@ticker".to_string()));
+        let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@ticker".to_string())));
         let mut messageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
@@ -514,7 +514,7 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut dataType: Value = add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@ticker".to_string()));
+        let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@ticker".to_string())));
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("ticker".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subMessageHash));
         let mut topic: Value = Value::Str("ticker".to_string());
@@ -731,7 +731,7 @@ impl BingxCore {
         }  else {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone(), &[]);
         }
-        let mut rawHash: Value = add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@trade".to_string()));
+        let mut rawHash: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".to_string())));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade::".to_string()), symbol));
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
@@ -786,7 +786,7 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut dataType: Value = add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@trade".to_string()));
+        let mut dataType: Value = Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@trade".to_string())));
         let mut subMessageHash: Value = self.get_message_hash(Value::Str("trade".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subMessageHash));
         let mut topic: Value = Value::Str("trades".to_string());
@@ -945,7 +945,7 @@ impl BingxCore {
             m
         })]);
         let mut depth: Value = self.safe_integer_k(options.clone(), "depth", &[Value::Int(100)]);
-        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@".to_string())), Value::Str("depth".to_string()))), self.number_to_string(depth.clone())));
+        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), Value::Str("depth".to_string()))), self.number_to_string(depth.clone())));
         let mut messageHash: Value = self.get_message_hash(Value::Str("orderbook".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]);
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
@@ -1012,7 +1012,7 @@ impl BingxCore {
             m
         })]);
         let mut depth: Value = self.safe_integer_k(options.clone(), "depth", &[Value::Int(100)]);
-        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@".to_string())), Value::Str("depth".to_string()))), self.number_to_string(depth.clone())));
+        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@".to_string()))), Value::Str("depth".to_string()))), self.number_to_string(depth.clone())));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subMessageHash));
         let mut topic: Value = Value::Str("orderbook".to_string());
         let mut methodName: Value = Value::Str("unWatchOrderBook".to_string());
@@ -1352,7 +1352,7 @@ impl BingxCore {
         })]);
         let mut rawTimeframe: Value = self.safe_string(timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: Value = self.get_message_hash(Value::Str("ohlcv".to_string()), &[market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe.clone()]);
-        let mut subscriptionHash: Value = Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@kline_".to_string())), rawTimeframe));
+        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".to_string()))), rawTimeframe));
         let mut uuid: Value = self.uuid(&[]);
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1413,7 +1413,7 @@ impl BingxCore {
             m
         })]);
         let mut rawTimeframe: Value = self.safe_string(timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut subMessageHash: Value = Value::Str(format!("{}{}", add(&market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &Value::Str("@kline_".to_string())), rawTimeframe));
+        let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), Value::Str("@kline_".to_string()))), rawTimeframe));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe::".to_string()), subMessageHash));
         let mut topic: Value = Value::Str("ohlcv".to_string());
         let mut methodName: Value = Value::Str("unWatchOHLCV".to_string());
@@ -1466,7 +1466,7 @@ impl BingxCore {
         let mut swapMessageHash: Value = Value::Str("swap:order".to_string());
         let mut messageHash: Value = (if isSpot { spotMessageHash.clone() } else { swapMessageHash.clone() });
         if (market != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, add(&Value::Str(":".to_string()), &symbol)));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
         }
         let mut uuid: Value = self.uuid(&[]);
         let mut baseUrl: Value = Value::Null;
@@ -1486,7 +1486,7 @@ impl BingxCore {
                 m
             });
         }
-        let mut url: Value = add(&add(&baseUrl, &Value::Str("?listenKey=".to_string())), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".to_string()))), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1544,7 +1544,7 @@ impl BingxCore {
         let mut swapMessageHash: Value = Value::Str("swap:mytrades".to_string());
         let mut messageHash: Value = (if isSpot { spotMessageHash.clone() } else { swapMessageHash.clone() });
         if (market != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, add(&Value::Str(":".to_string()), &symbol)));
+            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".to_string()), symbol))));
         }
         let mut uuid: Value = self.uuid(&[]);
         let mut baseUrl: Value = Value::Null;
@@ -1567,7 +1567,7 @@ impl BingxCore {
                 m
             });
         }
-        let mut url: Value = add(&add(&baseUrl, &Value::Str("?listenKey=".to_string())), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".to_string()))), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
         let mut subscription: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(false));
@@ -1632,7 +1632,7 @@ impl BingxCore {
                 m
             });
         }
-        let mut url: Value = add(&add(&baseUrl, &Value::Str("?listenKey=".to_string())), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".to_string()))), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
         let mut client: Value = self.client(&[url.clone()]);
         self.set_balance_cache(client.clone(), type_var.clone(), subType.clone(), subscriptionHash.clone(), params.clone());
         let mut fetchBalanceSnapshot: Value = Value::Null;
@@ -1738,7 +1738,7 @@ impl BingxCore {
         let mut subscriptionHash: Value = Value::Str("swap:private".to_string());
         messageHash = Value::Str(format!("{}{}", Value::Str("swap:positions".to_string()), messageHash));
         let mut baseUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), subType.clone(), &[]);
-        let mut url: Value = add(&add(&baseUrl, &Value::Str("?listenKey=".to_string())), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
+        let mut url: Value = add(&Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".to_string()))), &self.options.as_map().and_then(|__m| __m.get("listenKey")).cloned().unwrap_or(Value::Null));
         let mut client: Value = self.client(&[url.clone()]);
         self.set_positions_cache(client.clone(), type_var.clone(), &[symbols.clone()]);
         let mut fetchPositionsSnapshot: Value = Value::Null;
@@ -2201,7 +2201,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut swapHash: Value = Value::Str("swap:order".to_string());
         let mut messageHash: Value = (if (isSpot) { spotHash.clone() } else { swapHash.clone() });
         client.resolve(&[stored.clone(), messageHash.clone()]);
-        client.resolve(&[stored.clone(), add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol)]);
+        client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
 }
 
     pub fn handle_my_trades(&mut self, mut client: Value, mut message: Value) {
@@ -2282,7 +2282,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: Value = (if isSpot { spotHash.clone() } else { swapHash.clone() });
         cachedTrades.append(parsed.clone());
         client.resolve(&[cachedTrades.clone(), messageHash.clone()]);
-        client.resolve(&[cachedTrades.clone(), add(&Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), &symbol)]);
+        client.resolve(&[cachedTrades.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".to_string()))), symbol))]);
 }
 
     pub fn handle_balance(&mut self, mut client: Value, mut message: Value) {

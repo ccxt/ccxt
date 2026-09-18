@@ -651,13 +651,13 @@ impl BitrueCore {
         if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
             let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
-            let mut wsId: Value = add(&add(&Value::Str("e_".to_string()), &baseIdLower), &quoteIdLower);
+            let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".to_string()), baseIdLower)), quoteIdLower));
             channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".to_string()), wsId)), Value::Str("_depth_step0".to_string())));
             cbId = wsId.clone();
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
         }  else {
             let mut marketIdLowercase: Value = self.safe_string_lower(market.clone(), Value::Str("id".to_string()), &[]);
-            channel = Value::Str(format!("{}{}", add(&Value::Str("market_".to_string()), &marketIdLowercase), Value::Str("_simple_depth_step0".to_string())));
+            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".to_string()), marketIdLowercase)), Value::Str("_simple_depth_step0".to_string())));
             cbId = marketIdLowercase.clone();
             url = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
         }
@@ -766,7 +766,7 @@ impl BitrueCore {
             }
             let mut baseId: Value = self.safe_string_lower(candidate.clone(), Value::Str("baseId".to_string()), &[Value::Str("".to_string())]);
             let mut quoteId: Value = self.safe_string_lower(candidate.clone(), Value::Str("quoteId".to_string()), &[Value::Str("".to_string())]);
-            if (add(&baseId, &quoteId).as_str() == wsBaseQuote.as_str()) {
+            if (Value::Str(format!("{}{}", baseId, quoteId)).as_str() == wsBaseQuote.as_str()) {
                 return candidate;
             }
         }
@@ -837,7 +837,7 @@ impl BitrueCore {
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
-        let mut wsId: Value = add(&add(&Value::Str("e_".to_string()), &baseIdLower), &quoteIdLower);
+        let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".to_string()), baseIdLower)), quoteIdLower));
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".to_string()), wsId)), Value::Str("_trade_ticker".to_string())));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
@@ -985,7 +985,7 @@ impl BitrueCore {
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
-        let mut wsId: Value = add(&add(&Value::Str("e_".to_string()), &baseIdLower), &quoteIdLower);
+        let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".to_string()), baseIdLower)), quoteIdLower));
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".to_string()), wsId)), Value::Str("_kline_".to_string()))), interval));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".to_string()), symbol)), Value::Str(":".to_string()))), timeframe));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
@@ -1060,7 +1060,7 @@ impl BitrueCore {
         }
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
         stored.append(parsed.clone());
-        let mut messageHash: Value = add(&Value::Str(format!("{}{}", add(&Value::Str("ohlcv:".to_string()), &symbol), Value::Str(":".to_string()))), &timeframe);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("ohlcv:".to_string()), &symbol), Value::Str(":".to_string()))), timeframe));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -1104,7 +1104,7 @@ impl BitrueCore {
         }
         let mut baseIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("baseId".to_string()), &[]);
         let mut quoteIdLower: Value = self.safe_string_lower(market.clone(), Value::Str("quoteId".to_string()), &[]);
-        let mut wsId: Value = add(&add(&Value::Str("e_".to_string()), &baseIdLower), &quoteIdLower);
+        let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".to_string()), baseIdLower)), quoteIdLower));
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".to_string()), wsId)), Value::Str("_ticker".to_string())));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");

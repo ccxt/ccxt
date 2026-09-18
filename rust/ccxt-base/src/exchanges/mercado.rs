@@ -1540,7 +1540,7 @@ impl MercadoCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            url = Value::Str(format!("{}{}", url, add(&self.version, &Value::Str("/".to_string()))));
+            url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", self.version.clone(), Value::Str("/".to_string())))));
             let mut nonce: Value = self.nonce();
             let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1549,7 +1549,7 @@ impl MercadoCore {
                 m
             }), &[params.clone()]);
             body = self.urlencode(__ws_arg_16, &[]);
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/tapi/".to_string()), &self.version), Value::Str("/".to_string()))), Value::Str("?".to_string()))), body));
+            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("/tapi/".to_string()), self.version.clone())), Value::Str("/".to_string()))), Value::Str("?".to_string()))), body));
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));

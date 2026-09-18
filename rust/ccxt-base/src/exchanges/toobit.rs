@@ -1680,11 +1680,11 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut isContract: Value = (Value::Bool(in_op(&market, &Value::Str("contractMultiplier".to_string()))));
         let mut inverse: Value = self.safe_bool2(market.clone(), Value::Str("isInverse".to_string()), Value::Str("inverse".to_string()), &[]);
         if is_true(&isContract) {
-            symbol = Value::Str(format!("{}{}", symbol, add(&Value::Str(":".to_string()), &settle)));
+            symbol = Value::Str(format!("{}{}", symbol, Value::Str(format!("{}{}", Value::Str(":".to_string()), settle))));
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4014,7 +4014,7 @@ impl ToobitCore {
                 queryString = Value::Str(format!("{}{}", queryString, add(&Value::Str("&signature=".to_string()), &signature)));
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString))));
             }  else {
-                body = add(&body, &add(&Value::Str("&signature=".to_string()), &signature));
+                body = Value::Str(format!("{}{}", body, add(&Value::Str("&signature=".to_string()), &signature)));
             }
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();

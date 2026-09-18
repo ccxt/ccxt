@@ -621,7 +621,7 @@ impl BlockchaincomCore {
                     m.insert("info".to_string(), market.clone());
                     m.insert("id".to_string(), marketId.clone());
                     m.insert("numericId".to_string(), numericId.clone());
-                    m.insert("symbol".to_string(), add(&add(&base, &Value::Str("/".to_string())), &quote));
+                    m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
                     m.insert("base".to_string(), base.clone());
                     m.insert("quote".to_string(), quote.clone());
                     m.insert("settle".to_string(), Value::Null);

@@ -600,7 +600,7 @@ impl P2bCore {
         })]);
         let mut timeframe: Value = self.find_timeframe(channel.clone(), &[timeframes.clone()]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-        let mut messageHash: Value = add(&add(&channel, &Value::Str("::".to_string())), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str("::".to_string()))), symbol));
         let mut parsed: Value = self.parse_ohlcv(data.clone(), &[market.clone()]);
         { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -662,7 +662,7 @@ impl P2bCore {
             tradesArray.append(trade.clone());
         }
         }
-        let mut messageHash: Value = add(&Value::Str("deals::".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("deals::".to_string()), symbol));
         client.resolve(&[tradesArray.clone(), messageHash.clone()]);
         return message;
 
@@ -724,7 +724,7 @@ impl P2bCore {
         }
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
-        let mut messageHash: Value = add(&add(&messageHashStart, &Value::Str("::".to_string())), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHashStart, Value::Str("::".to_string()))), symbol));
         client.resolve(&[ticker.clone(), messageHash.clone()]);
         return message;
 

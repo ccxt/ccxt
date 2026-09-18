@@ -5942,7 +5942,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 settleId = self.safe_string(supportMarginCoins.clone(), Value::Int(0), &[]);
             }
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut type_var: Value = Value::Null;
             let mut swap: Value = Value::Bool(false);
             let mut spot: Value = Value::Bool(false);
@@ -5975,7 +5975,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (symbolType.as_str() == Some("perpetual")) {
                     type_var = Value::Str("swap".to_string());
                     swap = Value::Bool(true);
-                    symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
                 }  else if (symbolType.as_str() == Some("delivery")) {
                     expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
                     expiryDatetime = self.iso8601(expiry.clone());
@@ -5985,10 +5985,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut year: Value = slice(&yearPart, &Value::Int(2), &Value::Int(4));
                     let mut month: Value = self.safe_string(expiryParts.clone(), Value::Int(1), &[]);
                     let mut day: Value = slice(&dayPart, &Value::Int(0), &Value::Int(2));
-                    let mut expiryString: Value = Value::Str(format!("{}{}", add(&year, &month), day));
+                    let mut expiryString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", year, month)), day));
                     type_var = Value::Str("future".to_string());
                     future = Value::Bool(true);
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), expiryString));
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), expiryString));
                 }
                 contract = Value::Bool(true);
                 inverse = (Value::Bool(base.as_str() == settle.as_str()));
@@ -6237,7 +6237,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (settleId != Value::Null) {
                 settle = self.safe_currency_code(settleId.clone(), &[]);
             }
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             let mut type_var: Value = Value::Null;
             let mut swap: Value = Value::Bool(false);
             let mut spot: Value = Value::Bool(false);
@@ -6274,7 +6274,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (symbolType.as_str() == Some("perpetual")) {
                     type_var = Value::Str("swap".to_string());
                     swap = Value::Bool(true);
-                    symbol = add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle);
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
                 }  else if (symbolType.as_str() == Some("delivery")) {
                     expiry = self.safe_integer_k(market.clone(), "deliveryTime", &[]);
                     expiryDatetime = self.iso8601(expiry.clone());
@@ -6284,10 +6284,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut year: Value = slice(&yearPart, &Value::Int(2), &Value::Int(4));
                     let mut month: Value = self.safe_string(expiryParts.clone(), Value::Int(1), &[]);
                     let mut day: Value = slice(&dayPart, &Value::Int(0), &Value::Int(2));
-                    let mut expiryString: Value = Value::Str(format!("{}{}", add(&year, &month), day));
+                    let mut expiryString: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", year, month)), day));
                     type_var = Value::Str("future".to_string());
                     future = Value::Bool(true);
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), &settle), Value::Str("-".to_string()))), expiryString));
+                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle)), Value::Str("-".to_string()))), expiryString));
                 }
                 contract = Value::Bool(true);
                 inverse = (Value::Bool(base.as_str() == settle.as_str()));

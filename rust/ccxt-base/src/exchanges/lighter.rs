@@ -1861,7 +1861,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
             let mut settle: Value = self.safe_currency_code(settleId.clone(), &[]);
-            let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
             if (settle != Value::Null) {
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".to_string()))), settle));
             }
@@ -1999,7 +1999,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("id".to_string(), id.clone());
         m.insert("name".to_string(), code.clone());
         m.insert("code".to_string(), code.clone());
-        m.insert("precision".to_string(), self.parse_number(add(&Value::Str("1e-".to_string()), &decimals), &[]));
+        m.insert("precision".to_string(), self.parse_number(Value::Str(format!("{}{}", Value::Str("1e-".to_string()), decimals)), &[]));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("fee".to_string(), Value::Null);
         m.insert("networks".to_string(), Value::Map({
@@ -4460,7 +4460,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (api.as_str() == Some("root")) {
             url = self.implode_hostname(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("public")).cloned().unwrap_or(Value::Null));
         }  else {
-            url = add(&Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/api/".to_string()))), &self.version), Value::Str("/".to_string()))), &path);
+            url = add(&Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api)), Value::Str("/api/".to_string()))), self.version.clone())), Value::Str("/".to_string()))), &path);
         }
         if (api.as_str() == Some("private")) {
             headers = Value::Map({

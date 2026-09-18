@@ -357,7 +357,7 @@ impl CoinoneCore {
         let mut quoteId: Value = self.safe_string_upper(data.clone(), Value::Str("quote_currency".to_string()), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = self.symbol(add(&add(&base, &Value::Str("/".to_string())), &quote));
+        let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
         let mut orderbook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         if (orderbook == Value::Null) {
@@ -457,7 +457,7 @@ impl CoinoneCore {
         let mut ticker: Value = self.parse_ws_ticker(data.clone(), &[]);
         let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut self.tickers, &symbol, ticker.clone());
-        let mut messageHash: Value = add(&Value::Str("ticker:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".to_string()), symbol));
         client.resolve(&[get_value(&self.tickers, &symbol), messageHash.clone()]);
 }
 
@@ -494,7 +494,7 @@ impl CoinoneCore {
         let mut quoteId: Value = self.safe_string_k(ticker.clone(), "quote_currency", &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = self.symbol(add(&add(&base, &Value::Str("/".to_string())), &quote));
+        let mut symbol: Value = self.symbol(Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote)));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
@@ -598,7 +598,7 @@ impl CoinoneCore {
             add_element_to_object(&mut self.trades, &symbol, stored.clone());
         }
         stored.append(trade.clone());
-        let mut messageHash: Value = add(&Value::Str("trade:".to_string()), &symbol);
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".to_string()), symbol));
         client.resolve(&[stored.clone(), messageHash.clone()]);
 }
 
@@ -619,7 +619,7 @@ impl CoinoneCore {
         let mut quoteId: Value = self.safe_string_upper(trade.clone(), Value::Str("quote_currency".to_string()), &[]);
         let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-        let mut symbol: Value = add(&add(&base, &Value::Str("/".to_string())), &quote);
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".to_string()))), quote));
         let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
         market = self.safe_market(&[symbol.clone(), market.clone()]);
         let mut isSellerMaker: Value = self.safe_value_k(trade.clone(), "is_seller_maker", &[]);
