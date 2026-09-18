@@ -3246,8 +3246,8 @@ export default class okx extends Exchange {
         const slOrdPx = this.safeNumber (params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString (params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callbackRatio');
@@ -3655,8 +3655,8 @@ export default class okx extends Exchange {
         let takeProfitTriggerPrice: Num = this.safeNumber2 (params, 'takeProfitPrice', 'newTpTriggerPx');
         let takeProfitPrice = this.safeNumber (params, 'newTpOrdPx');
         const takeProfitTriggerPriceType = this.safeString (params, 'newTpTriggerPxType', 'last');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const takeProfit = this.safeValue (params, 'takeProfit');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
         const hasStopLoss = (stopLoss !== undefined);
         const hasTakeProfit = (takeProfit !== undefined);
         if (isAlgoOrder) {
