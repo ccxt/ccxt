@@ -5,6 +5,7 @@ import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Bool, Dict, Num, Order, Str } from '../../../base/types.js';
+import { TICK_SIZE } from '../../../base/functions.js';
 
 function logTemplate (exchange: Exchange, method: Str, entry: object | undefined) {
     // there are cases when exchange is undefined (eg. base tests)
@@ -382,7 +383,7 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     if (key in skippedProperties) {
         return;
     }
-    if (exchange.isTickPrecision ()) {
+    if (exchange.precisionMode === TICK_SIZE) {
         // TICK_SIZE should be above zero
         assertGreater (exchange, skippedProperties, method, entry, key, '0');
         // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error

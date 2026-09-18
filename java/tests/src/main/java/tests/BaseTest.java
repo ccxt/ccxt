@@ -21,15 +21,15 @@ import io.github.ccxt.base.NumberHelpers;
 
 public class BaseTest {
 
-    public int TRUNCATE = Exchange.TRUNCATE;
-    public int DECIMAL_PLACES = Exchange.DECIMAL_PLACES;
-    public int ROUND = Exchange.ROUND;
-    public int ROUND_UP = Exchange.ROUND_UP;
-    public int ROUND_DOWN = Exchange.ROUND_DOWN;
-    public int SIGNIFICANT_DIGITS = Exchange.SIGNIFICANT_DIGITS;
-    public int TICK_SIZE = Exchange.TICK_SIZE;
-    public int NO_PADDING = Exchange.NO_PADDING;
-    public int PAD_WITH_ZERO = Exchange.PAD_WITH_ZERO;
+    public static int TRUNCATE = Exchange.TRUNCATE;
+    public static int DECIMAL_PLACES = Exchange.DECIMAL_PLACES;
+    public static int ROUND = Exchange.ROUND;
+    public static int ROUND_UP = Exchange.ROUND_UP;
+    public static int ROUND_DOWN = Exchange.ROUND_DOWN;
+    public static int SIGNIFICANT_DIGITS = Exchange.SIGNIFICANT_DIGITS;
+    public static int TICK_SIZE = Exchange.TICK_SIZE;
+    public static int NO_PADDING = Exchange.NO_PADDING;
+    public static int PAD_WITH_ZERO = Exchange.PAD_WITH_ZERO;
 
     public static String sha1() {
         return "sha1";

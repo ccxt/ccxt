@@ -155,7 +155,6 @@ const {
     DECIMAL_PLACES,
     NO_PADDING,
     TICK_SIZE,
-    SIGNIFICANT_DIGITS,
     sleep,
     readFile, writeFile, existsFile, getTempDir, filePathToFileUrlForWindows,
 } = functions;
@@ -5431,7 +5430,7 @@ export class BaseExchange {
             // average
             if (average === undefined && close !== undefined) {
                 let precision = 18;
-                if (market !== undefined && this.isTickPrecision ()) {
+                if (market !== undefined && this.precisionMode === TICK_SIZE) {
                     const marketPrecision = this.safeDict (market, 'precision');
                     const precisionPrice = this.safeString (marketPrecision, 'price');
                     if (precisionPrice !== undefined) {
@@ -7442,18 +7441,6 @@ export class BaseExchange {
             return this.numberToString (value);
         }
         return value;
-    }
-
-    isTickPrecision (): boolean {
-        return this.precisionMode === TICK_SIZE;
-    }
-
-    isDecimalPrecision (): boolean {
-        return this.precisionMode === DECIMAL_PLACES;
-    }
-
-    isSignificantPrecision (): boolean {
-        return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
     safeNumber (obj: any, key: NullableIndexType, defaultNumber: Num = undefined): Num {
