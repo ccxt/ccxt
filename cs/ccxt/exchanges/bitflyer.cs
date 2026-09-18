@@ -814,7 +814,7 @@ public partial class bitflyer : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -909,7 +909,7 @@ public partial class bitflyer : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -988,7 +988,7 @@ public partial class bitflyer : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol));
         Dictionary<string, object> ordersById = this.indexBy(orders, "id");
@@ -996,7 +996,7 @@ public partial class bitflyer : Exchange
         {
             return ccxt.BaseExchange.ToOrder(getValue(ordersById, id));
         }
-        throw new OrderNotFound (add(add(this.id, " No order found with id "), id)) ;
+        throw new OrderNotFound (((this.id + " No order found with id ") + id)) ;
     }
 
     /**
@@ -1015,7 +1015,7 @@ public partial class bitflyer : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1061,7 +1061,7 @@ public partial class bitflyer : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbols, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
+            throw new ArgumentsRequired ((this.id + " fetchPositions() requires a `symbols` argument, exactly one symbol in an array")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1114,7 +1114,7 @@ public partial class bitflyer : Exchange
         }
         if (!isEqual(code, "JPY") && !isEqual(code, "USD") && !isEqual(code, "EUR"))
         {
-            throw new ExchangeError (add(add(add(this.id, " allows withdrawing JPY, USD, EUR only, "), code), " is not supported")) ;
+            throw new ExchangeError ((((this.id + " allows withdrawing JPY, USD, EUR only, ") + code) + " is not supported")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1396,7 +1396,7 @@ public partial class bitflyer : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = add(add("/", this.version), "/");
+        object request = (("/" + this.version) + "/");
         if (isEqual(api, "private"))
         {
             request = add(request, "me/");
@@ -1406,7 +1406,7 @@ public partial class bitflyer : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                request = add(request, add("?", this.urlencode(parameters)));
+                request = add(request, ("?" + this.urlencode(parameters)));
             }
         }
         object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), "rest"));
@@ -1446,7 +1446,7 @@ public partial class bitflyer : Exchange
         {
             return null;  // fallback to the default error handler
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         string? errorMessage = this.safeString(response, "error_message");
         Int64? statusCode = this.safeInteger(response, "status");

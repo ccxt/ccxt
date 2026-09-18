@@ -868,7 +868,7 @@ public partial class pacifica : Exchange
         bool? isolatedMargin = null;
         if ((id == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing id")) ;
         }
         if (isSpot)
         {
@@ -1444,11 +1444,11 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(since, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a \"since\" argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a \"since\" argument")) ;
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a \"symbol\" argument")) ;
         }
         int defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (isEqual(this.markets, null))
@@ -1828,11 +1828,11 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         /**
          * @method
@@ -1997,7 +1997,7 @@ public partial class pacifica : Exchange
         {
             if (isGreaterThan(lenActions, maxLen))
             {
-                throw new ExchangeError (add(add(this.id, " batchOrdersRequest() too many orders to create/cancel. Limit is "), maxLen)) ;
+                throw new ExchangeError (((this.id + " batchOrdersRequest() too many orders to create/cancel. Limit is ") + maxLen)) ;
             }
         }
         return new Dictionary<string, object>() {
@@ -2024,7 +2024,7 @@ public partial class pacifica : Exchange
             double? priceNumber = this.parseNumber(price);
             if (type != "limit")
             {
-                throw new NotSupported (add(add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
+                throw new NotSupported (((this.id + " createOrders() supports only type = \"limit\"! Your value type=") + type)) ;
             }
             List<object> requestList = this.createOrderRequest(symbol, type, side, amountNumber, priceNumber, orderParams);
             Dictionary<string, object> action = new Dictionary<string, object>() {
@@ -2121,7 +2121,7 @@ public partial class pacifica : Exchange
         await this.initializeClient();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a \"symbol\" argument!")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a \"symbol\" argument!")) ;
         }
         Dictionary<string, object> request = this.cancelOrdersRequest(ids, symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow", "clientOrderIds"});
@@ -2281,7 +2281,7 @@ public partial class pacifica : Exchange
         await this.initializeClient();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> request = this.cancelOrderRequest(id, symbol, parameters);
         bool? isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
@@ -2379,15 +2379,15 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         if (isEqual(amount, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount!")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount!")) ;
         }
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a price")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a price")) ;
         }
         string operationType = "edit_order";
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2400,7 +2400,7 @@ public partial class pacifica : Exchange
         };
         if (((clientOrderId == null)) && (isEqual(id, null)))
         {
-            throw new ArgumentsRequired (add("this.id", "editOrder() requires either \"id\" or \"clientOrderId\"")) ;
+            throw new ArgumentsRequired (("this.id" + "editOrder() requires either \"id\" or \"clientOrderId\"")) ;
         }
         if ((clientOrderId != null))
         {
@@ -2435,7 +2435,7 @@ public partial class pacifica : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? paginate = false;
@@ -3217,7 +3217,7 @@ public partial class pacifica : Exchange
         string operationType = "update_margin_mode";
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3255,7 +3255,7 @@ public partial class pacifica : Exchange
         string operationType = "update_leverage";
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3435,7 +3435,7 @@ public partial class pacifica : Exchange
         IDictionary<string, object> oi = this.safeDict(ois, symbolVar);
         if ((oi == null))
         {
-            throw new BadSymbol (add(add(this.id, " fetchOpenInterest() could not find open interest for "), symbolVar)) ;
+            throw new BadSymbol (((this.id + " fetchOpenInterest() could not find open interest for ") + symbolVar)) ;
         }
         return ccxt.BaseExchange.ToOpenInterest(oi);
     }
@@ -3801,7 +3801,7 @@ public partial class pacifica : Exchange
         parameters = originAddressparametersVariable[1];
         if ((originAddress == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired ((this.id + " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         if ((agentAddress != null))
         {
@@ -3817,11 +3817,11 @@ public partial class pacifica : Exchange
         parameters = subAccountPrivateKeyparametersVariable[1];
         if ((subAccountAddress == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createSubAccount() requires a \"subAccountAddress\"!")) ;
+            throw new ArgumentsRequired ((this.id + " createSubAccount() requires a \"subAccountAddress\"!")) ;
         }
         if ((subAccountPrivateKey == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
+            throw new ArgumentsRequired ((this.id + " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
         }
         Int64? timestamp = null;
         IList<object> timestampparametersVariable = (IList<object>)this.handleParamInteger(parameters, "timestamp", this.milliseconds());
@@ -3954,7 +3954,7 @@ public partial class pacifica : Exchange
         {
             return new List<object>() {address1, parameters};
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -3981,7 +3981,7 @@ public partial class pacifica : Exchange
         bool nonEmptyMessage = (((message != null)) && (message != ""));
         if (error == true || nonEmptyMessage)
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), inCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
@@ -4006,7 +4006,7 @@ public partial class pacifica : Exchange
         };
         if ((isEqual(method, "GET")) && (isGreaterThan(paramsLen, 0)))
         {
-            url = add(url, add("?", this.urlencode(parameters)));
+            url = add(url, ("?" + this.urlencode(parameters)));
             ((IDictionary<string,object>)headers)["Accept"] = "*/*";
         }
         if (isEqual(method, "POST"))
@@ -4073,7 +4073,7 @@ public partial class pacifica : Exchange
     {
         if (isEqual(getValue(header, "type"), null) || isEqual(getValue(header, "timestamp"), null) || isEqual(getValue(header, "expiry_window"), null))
         {
-            throw new ArgumentsRequired (add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
+            throw new ArgumentsRequired ((this.id + " prepareMessage() requires type, timestamp, expiry_window in header")) ;
         }
         Dictionary<string, object> data = this.extend(header, new Dictionary<string, object>() {
             { "data", payload },
@@ -4099,7 +4099,7 @@ public partial class pacifica : Exchange
         this.checkRequiredCredentials(); // check credentials every post action
         if (isEqual(operationType, "undefined"))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " action: "), operationType), " postActionRequest() requires \"operationType\"")) ;
+            throw new ArgumentsRequired ((((this.id + " action: ") + operationType) + " postActionRequest() requires \"operationType\"")) ;
         }
         if (!isTrue(this.isSandboxModeEnabled))
         {
@@ -4140,7 +4140,7 @@ public partial class pacifica : Exchange
         parameters = originAddressparametersVariable[1];
         if ((originAddress == null))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " action: "), operationType), " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
+            throw new ArgumentsRequired ((((this.id + " action: ") + operationType) + " postActionRequest() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")) ;
         }
         finalHeaders["account"] = originAddress;
         if ((agentAddress != null))

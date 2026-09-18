@@ -794,7 +794,7 @@ public partial class btcturk : Exchange
             limitVar = mathMin(limitVar, 11000); // max 11000 candles diapason can be covered
             if (isEqual(timeframeVar, "1y"))
             {
-                throw new BadRequest (add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
+                throw new BadRequest ((this.id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
             }
             int seconds = this.parseTimeframe(timeframeVar);
             object limitSeconds = multiply(seconds, (subtract(limitVar, 1)));
@@ -1177,14 +1177,14 @@ public partial class btcturk : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.id, "btctrader"))
         {
-            throw new ExchangeError (add(this.id, " is an abstract base API for BTCExchange, BTCTurk")) ;
+            throw new ExchangeError ((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
@@ -1216,10 +1216,10 @@ public partial class btcturk : Exchange
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
         object output = ((message == null)) ? body : message;
-        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), output));
+        this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, ((this.id + " ") + output));
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {
-            throw new ExchangeError (add(add(this.id, " "), output)) ;
+            throw new ExchangeError (((this.id + " ") + output)) ;
         }
         return null;
     }

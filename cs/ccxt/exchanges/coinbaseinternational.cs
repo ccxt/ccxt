@@ -474,7 +474,7 @@ public partial class coinbaseinternational : Exchange
                 return new List<object>() {portfolioId, parameters};
             }
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
     }
 
     public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters = null)
@@ -494,7 +494,7 @@ public partial class coinbaseinternational : Exchange
                 // find default network
                 if (isTrue(this.isEmpty(networks)))
                 {
-                    throw new BadRequest (add(add(add(this.id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")) ;
+                    throw new BadRequest ((((this.id + " createDepositAddress network not found for currency ") + currencyCode) + " please specify networkId in params")) ;
                 }
                 object defaultNetwork = this.findDefaultNetwork(networks);
                 networkId = getValue(defaultNetwork, "id");
@@ -610,7 +610,7 @@ public partial class coinbaseinternational : Exchange
             request["start"] = this.iso8601(since);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a since argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since argument")) ;
         }
         Int64? unitl = this.safeInteger(parameters, "until");
         if ((unitl != null))
@@ -669,7 +669,7 @@ public partial class coinbaseinternational : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1148,7 +1148,7 @@ public partial class coinbaseinternational : Exchange
         parameters = ((IList<object>)portfolioparametersVariable)[1];
         if (!isEqual(symbol, null))
         {
-            throw new BadRequest (add(this.id, " setMargin() only allows setting margin to full portfolio")) ;
+            throw new BadRequest ((this.id + " setMargin() only allows setting margin to full portfolio")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
@@ -1684,13 +1684,13 @@ public partial class coinbaseinternational : Exchange
         if (!isSpot)
         {
             settleId = quoteId;
-            symbol = add(symbol, add(":", quoteId));
+            symbol = add(symbol, (":" + quoteId));
         }
         bool? isLinear = isSpot ? null : (isEqual(settleId, quoteId));
         bool? isInverse = isSpot ? null : (!isEqual(settleId, quoteId));
         if ((marketId == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -2053,11 +2053,11 @@ public partial class coinbaseinternational : Exchange
         string typeId = type.ToUpper();
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         string clientOrderIdprefix = ((string)this.safeString(this.options, "brokerId", "nfqkvdjp"));
-        string? clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
+        string? clientOrderId = ((clientOrderIdprefix + "-") + this.uuid());
         clientOrderId = slice(clientOrderId, 0, 17);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
@@ -2081,7 +2081,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() requires a price parameter for a limit order types")) ;
+                throw new InvalidOrder ((this.id + " createOrder() requires a price parameter for a limit order types")) ;
             }
             request["price"] = price;
         }
@@ -2100,7 +2100,7 @@ public partial class coinbaseinternational : Exchange
         {
             if ((tif != null) && tif != "IOC")
             {
-                throw new InvalidOrder (add(this.id, " createOrder() market orders must have tif set to \"IOC\"")) ;
+                throw new InvalidOrder ((this.id + " createOrder() market orders must have tif set to \"IOC\"")) ;
             }
             tif = "IOC";
         } else
@@ -2372,7 +2372,7 @@ public partial class coinbaseinternational : Exchange
         string? clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         if ((clientOrderId == null))
         {
-            throw new BadRequest (add(this.id, " editOrder() requires a clientOrderId parameter")) ;
+            throw new BadRequest ((this.id + " editOrder() requires a clientOrderId parameter")) ;
         }
         request["client_order_id"] = clientOrderId;
         Dictionary<string, object> order = await this.v1PrivatePutOrdersId(this.extend(request, parameters));
@@ -2492,7 +2492,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isGreaterThan(limit, 100))
             {
-                throw new BadRequest (add(this.id, " fetchOpenOrders() maximum limit is 100")) ;
+                throw new BadRequest ((this.id + " fetchOpenOrders() maximum limit is 100")) ;
             }
             request["result_limit"] = limit;
         }
@@ -2586,7 +2586,7 @@ public partial class coinbaseinternational : Exchange
         {
             if (isGreaterThan(limit, 100))
             {
-                throw new BadRequest (add(this.id, " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
+                throw new BadRequest ((this.id + " fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.")) ;
             }
             request["result_limit"] = limit;
         }
@@ -2719,14 +2719,14 @@ public partial class coinbaseinternational : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
         bool signed = isEqual(getValue(api, 1), "private");
-        string fullPath = add(add(add("/", version), "/"), this.implodeParams(path, parameters));
+        string fullPath = ((("/" + version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        string savedPath = add("/api", fullPath);
+        string savedPath = ("/api" + fullPath);
         if (isEqual(method, "GET") || isEqual(method, "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                fullPath = add(fullPath, add("?", this.urlencodeWithArrayRepeat(query)));
+                fullPath = add(fullPath, ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         }
         object url = add(getValue(getValue(this.urls, "api"), "rest"), fullPath);
@@ -2743,7 +2743,7 @@ public partial class coinbaseinternational : Exchange
                     payload = body;
                 }
             }
-            object auth = add(add(add(nonce, method), savedPath), payload);
+            object auth = (((nonce + method) + savedPath) + payload);
             string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-TIMESTAMP", nonce },
@@ -2772,7 +2772,7 @@ public partial class coinbaseinternational : Exchange
         {
             return null;  // fallback to default error handler
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         string? errMsg = this.safeString(response, "title");
         if ((errMsg != null))
         {

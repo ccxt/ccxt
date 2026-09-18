@@ -277,7 +277,7 @@ public partial class btcbox : Exchange
             string quoteId = quote.ToLower();
             string id = baseCurr.ToLower();
             IDictionary<string, object> res = this.safeDict(response1, marketId, new Dictionary<string, object>() {});
-            string symbol = add(add(baseCurr, "/"), quote);
+            string symbol = ((baseCurr + "/") + quote);
             double? fee = (id == "BTC") ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
             IDictionary<string, object> details = this.safeDict(result2Data, id, new Dictionary<string, object>() {});
             IDictionary<string, object> tradeDetails = this.safeDict(details, "trade", new Dictionary<string, object>() {});
@@ -904,7 +904,7 @@ public partial class btcbox : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else if (isEqual(api, "webApi"))
         {
@@ -950,7 +950,7 @@ public partial class btcbox : Exchange
             return null;  // either public API (no error codes expected) or success
         }
         object code = this.safeValue(response, "code");
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
         throw new ExchangeError (feedback) ;
     }
@@ -968,7 +968,7 @@ public partial class btcbox : Exchange
             response = this.strip(response);
             if (!isTrue(this.isJsonEncodedObject(response)))
             {
-                throw new ExchangeError (add(add(this.id, " "), response)) ;
+                throw new ExchangeError (((this.id + " ") + response)) ;
             }
             response = parseJson(response);
         }

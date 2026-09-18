@@ -164,7 +164,7 @@ public partial class htx : ccxt.htx
         string? topic = this.safeString(options, "name", "market.{marketId}.detail");
         if (topic == "market.{marketId}.ticker" && !isEqual(GetValue(market, "type"), "spot"))
         {
-            throw new BadRequest (add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
+            throw new BadRequest ((this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
         }
         string? messageHash = this.implodeParams(topic, new Dictionary<string, object>() {
             { "marketId", GetValue(market, "id") },
@@ -196,7 +196,7 @@ public partial class htx : ccxt.htx
         string? channel = this.safeString(options, "name", "market.{marketId}.detail");
         if (channel == "market.{marketId}.ticker" && !isEqual(GetValue(market, "type"), "spot"))
         {
-            throw new BadRequest (add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
+            throw new BadRequest ((this.id + " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
         }
         string? subMessageHash = this.implodeParams(channel, new Dictionary<string, object>() {
             { "marketId", GetValue(market, "id") },
@@ -284,7 +284,7 @@ public partial class htx : ccxt.htx
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add(add("market.", GetValue(market, "id")), ".trade.detail");
+        string messageHash = (("market." + GetValue(market, "id")) + ".trade.detail");
         object url = this.getUrlByMarketType(GetValue(market, "type"), GetValue(market, "linear"));
         object trades = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
         if (isTrue(this.newUpdates))
@@ -399,7 +399,7 @@ public partial class htx : ccxt.htx
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = add(add(add("market.", GetValue(market, "id")), ".kline."), interval);
+        string messageHash = ((("market." + GetValue(market, "id")) + ".kline.") + interval);
         object url = this.getUrlByMarketType(GetValue(market, "type"), GetValue(market, "linear"));
         object ohlcv = await this.subscribePublic(url, symbolVar, messageHash, null, parameters);
         if (isTrue(this.newUpdates))
@@ -433,7 +433,7 @@ public partial class htx : ccxt.htx
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string subMessageHash = add(add(add("market.", GetValue(market, "id")), ".kline."), interval);
+        string subMessageHash = ((("market." + GetValue(market, "id")) + ".kline.") + interval);
         string topic = "ohlcv";
         ((IDictionary<string,object>)parameters)["symbolsAndTimeframes"] = new List<object>() {new List<object>() {GetValue(market, "symbol"), timeframeVar}};
         return await this.unsubscribePublic(market, subMessageHash, topic, parameters);
@@ -520,15 +520,15 @@ public partial class htx : ccxt.htx
         }
         if (!this.inArray(limitVar, allowedLimits))
         {
-            throw new ExchangeError (add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
+            throw new ExchangeError ((this.id + " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         string? messageHash = null;
         if (isEqual(GetValue(market, "spot"), true))
         {
-            messageHash = add(add(add("market.", GetValue(market, "id")), ".mbp."), this.numberToString(limitVar));
+            messageHash = ((("market." + GetValue(market, "id")) + ".mbp.") + this.numberToString(limitVar));
         } else
         {
-            messageHash = add(add(add(add("market.", GetValue(market, "id")), ".depth.size_"), this.numberToString(limitVar)), ".high_freq");
+            messageHash = (((("market." + GetValue(market, "id")) + ".depth.size_") + this.numberToString(limitVar)) + ".high_freq");
         }
         object url = this.getUrlByMarketType(GetValue(market, "type"), GetValue(market, "linear"), false, true);
         object method = this.handleOrderBookSubscription;
@@ -568,10 +568,10 @@ public partial class htx : ccxt.htx
         string? subMessageHash = null;
         if (isEqual(GetValue(market, "spot"), true))
         {
-            subMessageHash = add(add(add("market.", GetValue(market, "id")), ".mbp."), this.numberToString(depth));
+            subMessageHash = ((("market." + GetValue(market, "id")) + ".mbp.") + this.numberToString(depth));
         } else
         {
-            subMessageHash = add(add(add(add("market.", GetValue(market, "id")), ".depth.size_"), this.numberToString(depth)), ".high_freq");
+            subMessageHash = (((("market." + GetValue(market, "id")) + ".depth.size_") + this.numberToString(depth)) + ".high_freq");
         }
         if (!isEqual(GetValue(market, "spot"), true))
         {
@@ -653,7 +653,7 @@ public partial class htx : ccxt.htx
                     }
                 } else
                 {
-                    throw new InvalidNonce (add(add(add(add(add(this.id, " failed to synchronize WebSocket feed with the snapshot for symbol "), symbol), " in "), maxAttempts.ToString()), " attempts")) ;
+                    throw new InvalidNonce ((((((this.id + " failed to synchronize WebSocket feed with the snapshot for symbol ") + symbol) + " in ") + maxAttempts.ToString()) + " attempts")) ;
                 }
             } else
             {
@@ -832,7 +832,7 @@ public partial class htx : ccxt.htx
             bool checksum = ((bool)this.handleOption("watchOrderBook", "checksum", true));
             if (isEqual(checksum, true))
             {
-                throw new ChecksumError (add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+                throw new ChecksumError (((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
         }
         bool spotConditon = (isEqual(GetValue(market, "spot"), true)) && (isEqual(prevSeqNum, getValue(orderbook, "nonce")));
@@ -1001,7 +1001,7 @@ public partial class htx : ccxt.htx
                 mode = this.safeString(parameters, "mode", mode);
                 parameters = this.omit(parameters, "mode");
             }
-            messageHash = add(add(add(add("trade.clearing", "#"), marketId), "#"), mode);
+            messageHash = (((("trade.clearing" + "#") + marketId) + "#") + mode);
             channel = messageHash;
         } else if (isV5Linear)
         {
@@ -1024,7 +1024,7 @@ public partial class htx : ccxt.htx
         trades = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
         if ((trades == null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchMyTrades() trades is required")) ;
+            throw new ArgumentsRequired ((this.id + " watchMyTrades() trades is required")) ;
         }
         if (isTrue(this.newUpdates))
         {
@@ -1057,7 +1057,7 @@ public partial class htx : ccxt.htx
             messageHash = marginPrefix;
             if ((marketCode != null))
             {
-                messageHash = add(messageHash, add(".", marketCode));
+                messageHash = add(messageHash, ("." + marketCode));
                 channel = messageHash;
             } else
             {
@@ -1154,7 +1154,7 @@ public partial class htx : ccxt.htx
         string? channel = null;
         if (isEqual(type, "spot"))
         {
-            messageHash = add(add("orders", "#"), suffix);
+            messageHash = (("orders" + "#") + suffix);
             channel = messageHash;
         } else if (isV5Linear)
         {
@@ -1435,9 +1435,9 @@ public partial class htx : ccxt.htx
         {
             return;
         }
-        string genericMessageHash = ((string)messageHash).Replace(add(".", GetValue(market, "lowercaseId")), (string)"");
+        string genericMessageHash = ((string)messageHash).Replace(("." + GetValue(market, "lowercaseId")), (string)"");
         string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
-        genericMessageHash = genericMessageHash.Replace(add(".", lowerCaseBaseId), (string)"");
+        genericMessageHash = genericMessageHash.Replace(("." + lowerCaseBaseId), (string)"");
         callDynamically(client, "resolve", new object[] {this.orders, genericMessageHash});
     }
 
@@ -1760,7 +1760,7 @@ public partial class htx : ccxt.htx
         if ((!isTrue(this.isEmpty(symbols))) && (!isEqual(symbols, null)))
         {
             market = this.getMarketFromSymbols(symbols);
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object type = null;
         object subType = null;
@@ -2009,7 +2009,7 @@ public partial class htx : ccxt.htx
         {
             string? mode = this.safeString2(this.options, "watchBalance", "mode", "2");
             mode = this.safeString(parameters, "mode", mode);
-            messageHash = add(add("accounts.update", "#"), mode);
+            messageHash = (("accounts.update" + "#") + mode);
             channel = messageHash;
         } else if (isV5Linear)
         {
@@ -2045,7 +2045,7 @@ public partial class htx : ccxt.htx
                         // isolated margin only allows filtering by symbol3
                         if (((symbol != null)) && ((market != null)))
                         {
-                            messageHash = add(messageHash, add(".", GetValue(market, "id")));
+                            messageHash = add(messageHash, ("." + GetValue(market, "id")));
                             channel = messageHash;
                         } else
                         {
@@ -2071,7 +2071,7 @@ public partial class htx : ccxt.htx
                 // inverse futures account
                 if ((currencyCode != null))
                 {
-                    messageHash = add(messageHash, add(".", GetValue(currencyCode, "id")));
+                    messageHash = add(messageHash, ("." + GetValue(currencyCode, "id")));
                     channel = messageHash;
                 } else
                 {
@@ -2083,7 +2083,7 @@ public partial class htx : ccxt.htx
                 // inverse swaps account
                 if ((market != null))
                 {
-                    messageHash = add(messageHash, add(".", GetValue(market, "id")));
+                    messageHash = add(messageHash, ("." + GetValue(market, "id")));
                     channel = messageHash;
                 } else
                 {
@@ -2293,7 +2293,7 @@ public partial class htx : ccxt.htx
                 {
                     return;
                 }
-                messageHash = add(messageHash, add(".", currencyId.ToLower()));
+                messageHash = add(messageHash, ("." + currencyId.ToLower()));
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
             string? subType = this.safeString(subscription, "subType");
@@ -2636,7 +2636,7 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " pong failed "), this.exceptionMessage(e)));
+            var error = new NetworkError(((this.id + " pong failed ") + this.exceptionMessage(e)));
             client.reset(error);
         }
     }
@@ -2749,7 +2749,7 @@ public partial class htx : ccxt.htx
         string? code = this.safeString2(message, "code", "err-code");
         if ((code != null) && ((code != "200") && (code != "0")))
         {
-            string feedback = add(add(this.id, " "), this.json(message));
+            string feedback = ((this.id + " ") + this.json(message));
             try
             {
                 this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), code, feedback);
@@ -3031,10 +3031,10 @@ public partial class htx : ccxt.htx
                 // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
-                string genericOrderHash = ((string)messageHash).Replace(add(".", getValue(market, "lowercaseId")), (string)"");
+                string genericOrderHash = ((string)messageHash).Replace(("." + getValue(market, "lowercaseId")), (string)"");
                 string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
-                genericOrderHash = genericOrderHash.Replace(add(".", lowerCaseBaseId), (string)"");
-                string genericTradesHash = add(add(genericOrderHash, ":"), "trade");
+                genericOrderHash = genericOrderHash.Replace(("." + lowerCaseBaseId), (string)"");
+                string genericTradesHash = ((genericOrderHash + ":") + "trade");
                 callDynamically(client, "resolve", new object[] {this.myTrades, genericTradesHash});
             }
         }
@@ -3215,11 +3215,11 @@ public partial class htx : ccxt.htx
             { "unsub", subMessageHash },
             { "id", requestId },
         };
-        string messageHash = add("unsubscribe::", subMessageHash);
+        string messageHash = ("unsubscribe::" + subMessageHash);
         bool isFeed = (isEqual(topic, "orderbook"));
         if (isEqual(market, null))
         {
-            throw new ArgumentsRequired (add(this.id, " unsubscribePublic() market is required")) ;
+            throw new ArgumentsRequired ((this.id + " unsubscribePublic() market is required")) ;
         }
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, isFeed);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -3286,11 +3286,11 @@ public partial class htx : ccxt.htx
         string? type = this.safeString(parameters, "type");
         if ((url == null) || (hostname == null) || (type == null))
         {
-            throw new ArgumentsRequired (add(this.id, " authenticate requires a url, hostname and type argument")) ;
+            throw new ArgumentsRequired ((this.id + " authenticate requires a url, hostname and type argument")) ;
         }
         this.checkRequiredCredentials();
         string messageHash = "auth";
-        string relativePath = url.Replace(add("wss://", hostname), (string)"");
+        string relativePath = url.Replace(("wss://" + hostname), (string)"");
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(client.subscriptions, messageHash);

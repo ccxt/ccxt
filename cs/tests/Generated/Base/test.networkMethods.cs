@@ -134,7 +134,7 @@ public partial class BaseTest
                         object chainMapping = getValue(defaultNetworkCodeReplacements, chainBaseCoin);
                         object primaryNetworkCode = getValue(chainMapping, "primary");
                         object secondaryNetworkCode = getValue(chainMapping, "secondary");
-                        object msg = add(add(add(add(add(add("network protocol test failed for networkCode:", randomNetworkCode), " & currencyCode: "), randomCurrencyCode), ", result: "), result), ", expected: ");
+                        object msg = add(((((("network protocol test failed for networkCode:" + randomNetworkCode) + " & currencyCode: ") + randomCurrencyCode) + ", result: ") + result), ", expected: ");
                         if (isEqual(randomNetworkCode, primaryNetworkCode))
                         {
                             if (isEqual(randomCurrencyCode, chainBaseCoin))

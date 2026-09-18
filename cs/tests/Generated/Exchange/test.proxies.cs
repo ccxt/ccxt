@@ -24,10 +24,10 @@ public partial class testMainClass : BaseTest
         var httpProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[1];
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
-        exchange.proxyUrl = add(add("http://", proxyServerIp), ":8090/proxy_url.php?caller=https://ccxt.com&url=");
+        exchange.proxyUrl = (("http://" + proxyServerIp) + ":8090/proxy_url.php?caller=https://ccxt.com&url=");
         string encodedColon = "%3A";
         string encodedSlash = "%2F";
-        string ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
+        string ipCheckUrl = (((("https" + encodedColon) + encodedSlash) + encodedSlash) + "api.ipify.org");
         object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
@@ -43,7 +43,7 @@ public partial class testMainClass : BaseTest
         var httpProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[1];
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
-        exchange.httpProxy = add(add("http://", proxyServerIp), ":8911");
+        exchange.httpProxy = (("http://" + proxyServerIp) + ":8911");
         string ipCheckUrl = "https://api.ipify.org/";
         object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));

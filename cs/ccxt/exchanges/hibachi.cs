@@ -916,11 +916,11 @@ public partial class hibachi : Exchange
     {
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         int sideInternal = 0;
         if (isEqual(side, "sell"))
@@ -937,8 +937,8 @@ public partial class hibachi : Exchange
         string? amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
         string? feeRateStr = this.numberToString(feeRate);
         IDictionary<string, object> info = this.safeDict(market, "info");
-        string underlying = add("1e", this.safeString(info, "underlyingDecimals"));
-        string settlement = add("1e", this.safeString(info, "settlementDecimals"));
+        string underlying = ("1e" + this.safeString(info, "underlyingDecimals"));
+        string settlement = ("1e" + this.safeString(info, "settlementDecimals"));
         string one = "1";
         string feeRateFactor = "100000000"; // 10^8
         string priceFactor = "4294967296"; // 2^32
@@ -979,11 +979,11 @@ public partial class hibachi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
@@ -1128,11 +1128,11 @@ public partial class hibachi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", 0);
@@ -1954,7 +1954,7 @@ public partial class hibachi : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = add("/", this.implodeParams(path, parameters));
+        string endpoint = ("/" + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
         headers = new Dictionary<string, object>() {
             { "Hibachi-Client", "HibachiCCXT/unversioned" },
@@ -1965,7 +1965,7 @@ public partial class hibachi : Exchange
             string query = this.urlencode(request);
             if ((query.Length != 0))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + query));
             }
         }
         if (isEqual(method, "POST") || isEqual(method, "PUT") || isEqual(method, "DELETE"))
@@ -2001,7 +2001,7 @@ public partial class hibachi : Exchange
             if (status == "failed")
             {
                 string? code = this.safeString(response, "errorCode");
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 string? message = this.safeString(response, "message");

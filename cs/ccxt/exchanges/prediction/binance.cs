@@ -955,7 +955,7 @@ public partial class binance : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(outcomes, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
         await this.loadOutcomes(outcomes);
         Dictionary<string, object> responsesByMarketId = new Dictionary<string, object>() {};
@@ -1118,7 +1118,7 @@ public partial class binance : PredictionExchange
             {
                 outcomeName = marketId;
             }
-            outcomeName = add(outcomeName, add(":", outcome));
+            outcomeName = add(outcomeName, (":" + outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
         string? side = this.safeStringLower(order, "side");
@@ -1518,7 +1518,7 @@ public partial class binance : PredictionExchange
             {
                 outcomeName = marketId;
             }
-            outcomeName = add(outcomeName, add(":", outcome));
+            outcomeName = add(outcomeName, (":" + outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
         Int64? timestamp = this.safeInteger(position, "createdTime");
@@ -1706,7 +1706,7 @@ public partial class binance : PredictionExchange
             {
                 outcomeName = marketId;
             }
-            outcomeName = add(outcomeName, add(":", outcome));
+            outcomeName = add(outcomeName, (":" + outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
         Int64? timestamp = this.safeInteger(trade, "createTime");
@@ -1799,7 +1799,7 @@ public partial class binance : PredictionExchange
         }
         if ((cachedWallet == null))
         {
-            throw new NotSupported (add(add(this.id, "fetchWallet could'n find wallet "), walletAddress)) ;
+            throw new NotSupported (((this.id + "fetchWallet could'n find wallet ") + walletAddress)) ;
         }
         ((IDictionary<string,object>)this.options)["wallet"] = cachedWallet;
         return ccxt.BaseExchange.ToDict(cachedWallet);
@@ -1927,7 +1927,7 @@ public partial class binance : PredictionExchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(this.id, "createOrder requires price for limit order")) ;
+                throw new ArgumentsRequired ((this.id + "createOrder requires price for limit order")) ;
             }
             commonRequest["priceLimit"] = this.priceToPrecision(marketSymbol, price);
             defaultTif = "GTC";
@@ -1948,7 +1948,7 @@ public partial class binance : PredictionExchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new ArgumentsRequired (add(add(add(this.id, " createOrder requires price for "), side), " order")) ;
+                        throw new ArgumentsRequired ((((this.id + " createOrder requires price for ") + side) + " order")) ;
                     }
                 }
                 string? feeRate = Precise.stringDiv(feeRateBps, "10000");
@@ -1961,7 +1961,7 @@ public partial class binance : PredictionExchange
         string? accountType = this.safeString(parameters, "accountType");
         if ((accountType == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder requires accountType (SPOT, FUNDING)")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder requires accountType (SPOT, FUNDING)")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "accountType", "cost"});
         Dictionary<string, object> quoteRequest = this.extend(commonRequest, new Dictionary<string, object>() {
@@ -2045,7 +2045,7 @@ public partial class binance : PredictionExchange
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            string key = add(add("cancelInfoList[", this.numberToString(i)), "].orderId");
+            string key = (("cancelInfoList[" + this.numberToString(i)) + "].orderId");
             request[(string)key] = getValue(ids, i);
         }
         Dictionary<string, object> response = await this.sapiPrivatePostTradeBatchCancel(this.extend(request, parameters));
@@ -2080,7 +2080,7 @@ public partial class binance : PredictionExchange
                 }
                 failedDetails = add(add(add(failedDetails, failedOrderId), ": "), failedReason);
             }
-            throw new OrderNotFound (add(add(this.id, " cancelOrders() failed for "), failedDetails)) ;
+            throw new OrderNotFound (((this.id + " cancelOrders() failed for ") + failedDetails)) ;
         }
         List<object> orders = new List<object>() {};
         int canceledOrdersLength = canceledOrders.Count;
@@ -2114,7 +2114,7 @@ public partial class binance : PredictionExchange
         if (((errorCode != null)) && isTrue(Precise.stringLt(errorCode, "0")))
         {
             string? message = this.safeString(response, "msg", "");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;
@@ -2158,7 +2158,7 @@ public partial class binance : PredictionExchange
         querystring = querystring.Replace((string)"%5B", (string)"[");
         querystring = querystring.Replace((string)"%5D", (string)"]");
         string signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256);
-        querystring = add(add(querystring, "&signature="), signature);
+        querystring = ((querystring + "&signature=") + signature);
         headers = new Dictionary<string, object>() {
             { "X-MBX-APIKEY", this.apiKey },
         };

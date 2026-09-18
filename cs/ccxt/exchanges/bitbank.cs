@@ -1112,7 +1112,7 @@ public partial class bitbank : Exchange
         parameters = tagparametersVariable[1];
         if (!(inOp(parameters, "uuid")))
         {
-            throw new ExchangeError (add(this.id, " uuid is required for withdrawal")) ;
+            throw new ExchangeError ((this.id + " uuid is required for withdrawal")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1200,13 +1200,13 @@ public partial class bitbank : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/");
+        object url = (this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/");
         if ((isEqual(api, "public")) || (isEqual(api, "markets")))
         {
             url = add(url, this.implodeParams(path, parameters));
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
@@ -1223,7 +1223,7 @@ public partial class bitbank : Exchange
             object auth = null;
             if (isTimeWindow)
             {
-                auth = add(requestTime, timeWindow);
+                auth = (requestTime + timeWindow);
             } else
             {
                 auth = nonce;
@@ -1235,12 +1235,12 @@ public partial class bitbank : Exchange
                 auth = add(auth, body);
             } else
             {
-                auth = add(auth, add(add(add("/", this.version), "/"), path));
+                auth = add(auth, ((("/" + this.version) + "/") + path));
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     query = this.urlencode(query);
-                    url = add(url, add("?", query));
-                    auth = add(auth, add("?", query));
+                    url = add(url, ("?" + query));
+                    auth = add(auth, ("?" + query));
                 }
             }
             headers = new Dictionary<string, object>() {
@@ -1340,7 +1340,7 @@ public partial class bitbank : Exchange
             string? code = this.safeString(data, "code");
             string? message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
-            throw new ExchangeError (add(add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;
     }

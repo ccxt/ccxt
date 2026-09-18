@@ -10922,8 +10922,8 @@ function dropRedundantAddCast (csharp, printed, node, argText, pattern, replacem
     if (typeof printed !== 'string' || !concatLeftOperandIsString (csharp, node)) {
         return printed;
     }
-    const text = argText ?? csharp.printNode (node, 0);
-    if (typeof text !== 'string' || text === '' || text.includes ('\n') || !text.startsWith ('add(')) {
+    const text = concatArgumentText (csharp, node, argText ?? csharp.printNode (node, 0));
+    if (typeof text !== 'string' || text === '' || text.includes ('\n')) {
         return printed;
     }
     const needle = pattern.replace ('$ARG', text);
@@ -10933,6 +10933,19 @@ function dropRedundantAddCast (csharp, printed, node, argText, pattern, replacem
     // a function replacement: `$` in the message literals must never be read as a backreference
     const fixed = replacement.replace ('$ARG', text);
     return printed.replace (needle, () => fixed);
+}
+
+// the printed argument this pass wraps in `(string)`: the `add (a, b)` helper call, or the
+// native `(a + b)` the U57 hook prints for the same node. Every other text is rejected.
+function concatArgumentText (csharp, node, text) {
+    if (typeof text !== 'string' || text.startsWith ('add(')) {
+        return text;
+    }
+    if (typeof csharp.csharpNativeStringConcat !== 'function' || node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const native = csharp.csharpNativeStringConcat (node.left, node.right, csharp.printNode (node.left, 0), csharp.printNode (node.right, 0));
+    return (native === text) ? text : undefined;
 }
 
 // install the wrappers. Idempotent; every printer method is optional (a pin without it is a no-op).
@@ -11382,6 +11395,10 @@ export function installCsharpLocalTypes (transpiler) {
         };
     }
     installCsharpStringEquality (csharp);
+    // `add (x, y)` -> native `(x + y)` for the operands the prover above names (U57); the
+    // hook is consulted by the ast printer's `+` branch, so the helper emission is unchanged
+    // wherever this rule cannot prove the left operand's printed type
+    installCsharpNativeStringConcat (csharp);
     csharp._localTypesPatched = true;
     // S22: the declared-type record has to wrap the rewrite above — it reads the line this
     // module actually emits, not the printer's `object ... = ` it replaced
@@ -11681,6 +11698,144 @@ function stringEqualityBindingIsProvable (scope, node) {
 // awaited call, which no printer-side table names), so the condition-operand hook answers reads of
 // these declarations from this record first -- the recorded type IS the emitted declaration.
 const retypedDeclarationTypes = new WeakMap ();
+
+// ===== `add (x, y)` -> native `(x + y)` (U57) =====
+//
+// The printer emits `add (x, y)` for `x + y`. When the LEFT operand's printed C# static type
+// is a string, the call binds add(string, string) (`a + b`) or add(string, object)
+// (`a + b?.ToString()`) (cs/ccxt/base/Exchange.TranspileHelpers.cs), and C#'s string
+// concatenation computes exactly those values for every input, null operands included: a null
+// operand becomes "" (null + "y" == "y", "x" + null == "x", null + null == ""). The overload
+// an `object` left binds — add(object, object), whose null LEFT comes back as null — is the
+// divergence this rule must never reach, so it is gated on a PROVEN string operand.
+//
+// Locals are proven from the PRINTED declaration line recorded below (the type the emitted
+// file really carries, whether the printer or these tables typed it) with the same
+// exactly-one-binding proof the isEqual twin uses; the other arms are the operand prover the
+// redundant-cast family already uses (isProvablyStringOperand). A `string?` left is accepted
+// only when the right operand is a proven string too — the call then binds add(string, string),
+// whose body IS `a + b`, i.e. literally the expression emitted here.
+function installCsharpNativeStringConcat (csharp) {
+    if (!csharp || csharp._nativeStringConcatPatched || typeof csharp.printVariableDeclarationList !== 'function') {
+        return;
+    }
+    // enclosing function -> Map (source name -> Set (printed declaration types))
+    const declaredTypes = new WeakMap ();
+    const stringDeclaration = /^\s*(string\??) ([A-Za-z_][A-Za-z0-9_]*) = /;
+    const upstreamDeclaration = csharp.printVariableDeclarationList.bind (csharp);
+    csharp.printVariableDeclarationList = (node, identation) => {
+        const printed = upstreamDeclaration (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (typeof printed === 'string' && declaration?.name?.kind === ts.SyntaxKind.Identifier) {
+            const match = stringDeclaration.exec (printed);
+            if (match !== null) {
+                const scope = enclosingFunctionScopeOf (csharp, declaration);
+                if (scope !== undefined) {
+                    let names = declaredTypes.get (scope);
+                    if (names === undefined) {
+                        names = new Map ();
+                        declaredTypes.set (scope, names);
+                    }
+                    let types = names.get (declaration.name.escapedText);
+                    if (types === undefined) {
+                        types = new Set ();
+                        names.set (declaration.name.escapedText, types);
+                    }
+                    types.add (match[1]);
+                }
+            }
+        }
+        return printed;
+    };
+    csharp.csharpNativeStringConcat = (left, right, leftText, rightText) => nativeStringConcat (csharp, declaredTypes, left, right, leftText, rightText);
+    csharp._nativeStringConcatPatched = true;
+}
+
+function nativeStringConcat (csharp, declaredTypes, left, right, leftText, rightText) {
+    if (typeof leftText !== 'string' || typeof rightText !== 'string' || leftText === '' || rightText === '') {
+        return undefined;
+    }
+    const leftType = concatOperandType (csharp, declaredTypes, left, 0);
+    if (leftType === undefined) {
+        return undefined;
+    }
+    // `string?`: only the add(string, string) binding is provably the same expression
+    if ((leftType === 'string?') && (concatOperandType (csharp, declaredTypes, right, 0) === undefined)) {
+        return undefined;
+    }
+    return '(' + leftText + ' + ' + rightText + ')';
+}
+
+// the printed C# static type of a `+` operand this rule can prove, or undefined. The arms are
+// the module's operand prover (see isProvablyStringOperand), kept type-precise so a `string?`
+// left can demand a string right; a `+` chain that converts prints a native concat (a string).
+function concatOperandType (csharp, declaredTypes, node, depth) {
+    if (depth > 4) {
+        return undefined;
+    }
+    const value = concatInner (node);
+    switch (value?.kind) {
+    case ts.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        return 'string';
+    case ts.SyntaxKind.AsExpression:
+        return (value.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
+    case ts.SyntaxKind.Identifier:
+        return concatDeclaredReadType (csharp, declaredTypes, value);
+    case ts.SyntaxKind.PropertyAccessExpression: {
+        if (value.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return undefined;
+        }
+        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[value.name?.escapedText];
+        return (memberType === 'string' || memberType === 'string?') ? memberType : undefined;
+    }
+    case ts.SyntaxKind.CallExpression: {
+        const callee = value.expression;
+        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.name?.escapedText === 'toString') {
+            return 'string';
+        }
+        const own = callReturnType (csharp, value);
+        return (own === 'string' || own === 'string?') ? own : undefined;
+    }
+    case ts.SyntaxKind.BinaryExpression: {
+        if (value.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
+            return undefined;
+        }
+        const innerType = concatOperandType (csharp, declaredTypes, value.left, depth + 1);
+        if ((innerType === 'string?') && (concatOperandType (csharp, declaredTypes, value.right, depth + 1) === undefined)) {
+            return undefined;
+        }
+        return (innerType === undefined) ? undefined : 'string';
+    }
+    }
+    return undefined;
+}
+
+// the printed declaration type of a single-binding local read, or undefined
+function concatDeclaredReadType (csharp, declaredTypes, node) {
+    const scope = enclosingFunctionScopeOf (csharp, node);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const types = declaredTypes.get (scope)?.get (node.escapedText);
+    if (types === undefined || types.size !== 1) {
+        return undefined;
+    }
+    const type = types.values ().next ().value;
+    if ((type !== 'string') && (type !== 'string?')) {
+        return undefined;
+    }
+    return stringEqualityBindingIsProvable (scope, node) ? type : undefined;
+}
+
+// `(x)` keeps the operand's static type; every other node is returned as it is
+function concatInner (node) {
+    let value = node;
+    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        value = value.expression;
+    }
+    return value;
+}
 
 // `isTrue (x)` in an if / while / && / || / ! condition: the ast printer's
 // csharpConditionOperandType hook prints a C# `bool` operand bare and a `bool?` one as

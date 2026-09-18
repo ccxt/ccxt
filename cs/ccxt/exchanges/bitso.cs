@@ -1274,7 +1274,7 @@ public partial class bitso : Exchange
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((!isEqual(since, null)) && !markerInParams)
         {
-            throw new ExchangeError (add(this.id, " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
+            throw new ExchangeError ((this.id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
         // convert it to an integer unconditionally
         if (markerInParams)
@@ -1377,7 +1377,7 @@ public partial class bitso : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() ids argument should be an array")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() ids argument should be an array")) ;
         }
         IDictionary<string, object> market = null;
         if (!isEqual(symbol, null))
@@ -1419,7 +1419,7 @@ public partial class bitso : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported (add(this.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
+            throw new NotSupported ((this.id + " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
         }
         Dictionary<string, object> response = await this.privateDeleteOrdersAll(parameters);
         //
@@ -1528,7 +1528,7 @@ public partial class bitso : Exchange
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((!isEqual(since, null)) && !markerInParams)
         {
-            throw new ExchangeError (add(this.id, " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
+            throw new ExchangeError ((this.id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id")) ;
         }
         // convert it to an integer unconditionally
         if (markerInParams)
@@ -1577,7 +1577,7 @@ public partial class bitso : Exchange
                 return ccxt.BaseExchange.ToOrder(this.parseOrder(getValue(payload, 0)));
             }
         }
-        throw new OrderNotFound (add(add(add(this.id, ": The order "), id), " not found.")) ;
+        throw new OrderNotFound ((((this.id + ": The order ") + id) + " not found.")) ;
     }
 
     /**
@@ -2038,14 +2038,14 @@ public partial class bitso : Exchange
         object method = (inOp(methods, code)) ? getValue(methods, code) : null;
         if ((method == null))
         {
-            throw new ExchangeError (add(add(this.id, " not valid withdraw coin: "), code)) ;
+            throw new ExchangeError (((this.id + " not valid withdraw coin: ") + code)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
             { "address", address },
             { "destination_tag", tagVar },
         };
-        string classMethod = add(add("privatePost", method), "Withdrawal");
+        string classMethod = (("privatePost" + method) + "Withdrawal");
         object response = await ((Task<object>)callDynamically(this, classMethod, new object[] { this.extend(request, parameters) }));
         //
         //     {
@@ -2165,13 +2165,13 @@ public partial class bitso : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        string endpoint = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(method, "GET") || isEqual(method, "DELETE"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                endpoint = add(endpoint, add("?", this.urlencode(query)));
+                endpoint = add(endpoint, ("?" + this.urlencode(query)));
             }
         }
         string? url = ((string)add(getValue(getValue(this.urls, "api"), "rest"), endpoint));
@@ -2179,7 +2179,7 @@ public partial class bitso : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            endpoint = add("/api", endpoint);
+            endpoint = ("/api" + endpoint);
             List<object> content = new List<object>() {nonce, method, endpoint};
             object request = String.Join("", content.ToArray());
             if (!isEqual(method, "GET") && !isEqual(method, "DELETE"))
@@ -2193,7 +2193,7 @@ public partial class bitso : Exchange
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
             string? auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
-                { "Authorization", add("Bitso ", auth) },
+                { "Authorization", ("Bitso " + auth) },
             };
         }
         return new Dictionary<string, object>() {
@@ -2228,7 +2228,7 @@ public partial class bitso : Exchange
             }
             if (!isEqual(success, true))
             {
-                string feedback = add(add(this.id, " "), this.json(response));
+                string feedback = ((this.id + " ") + this.json(response));
                 object error = this.safeValue(response, "error");
                 if ((error == null))
                 {

@@ -331,7 +331,7 @@ public partial class zaif : Exchange
         string? name = this.safeString(market, "name");
         if ((name == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing name")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing name")) ;
         }
         var baseIdquoteIdVariable = name.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         var baseId = baseIdquoteIdVariable[0];
@@ -654,7 +654,7 @@ public partial class zaif : Exchange
         }
         if (!isEqual(type, "limit"))
         {
-            throw new ExchangeError (add(this.id, " createOrder() allows limit orders only")) ;
+            throw new ExchangeError ((this.id + " createOrder() allows limit orders only")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -847,7 +847,7 @@ public partial class zaif : Exchange
         Dictionary<string, object> currency = this.currency(code);
         if (isEqual(code, "JPY"))
         {
-            throw new ExchangeError (add(add(add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;
+            throw new ExchangeError ((((this.id + " withdraw() does not allow ") + code) + " withdrawals")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
@@ -943,10 +943,10 @@ public partial class zaif : Exchange
         object url = add(getValue(getValue(this.urls, "api"), "rest"), "/");
         if (isEqual(api, "public"))
         {
-            url = add(url, add(add(add("api/", this.version), "/"), this.implodeParams(path, parameters)));
+            url = add(url, ((("api/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else if (isEqual(api, "fapi"))
         {
-            url = add(url, add(add(add("fapi/", this.version), "/"), this.implodeParams(path, parameters)));
+            url = add(url, ((("fapi/" + this.version) + "/") + this.implodeParams(path, parameters)));
         } else
         {
             this.checkRequiredCredentials();
@@ -988,7 +988,7 @@ public partial class zaif : Exchange
         //
         //     {"error": "unsupported currency_pair"}
         //
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         string? error = this.safeString(response, "error");
         if ((error != null))
         {

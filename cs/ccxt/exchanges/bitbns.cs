@@ -606,7 +606,7 @@ public partial class bitbns : Exchange
                 // note that "Money" stands for INR - the only fiat in bitbns
                 Dictionary<string, object> account = this.account();
                 account["free"] = this.safeString(data, key);
-                account["used"] = this.safeString(data, add("inorder", currencyId));
+                account["used"] = this.safeString(data, ("inorder" + currencyId));
                 if (currencyId == "Money")
                 {
                     currencyId = "INR";
@@ -783,7 +783,7 @@ public partial class bitbns : Exchange
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "side", side.ToUpper() },
@@ -847,7 +847,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -885,7 +885,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -899,7 +899,7 @@ public partial class bitbns : Exchange
         bool? trigger = this.safeBool2(parameters, "trigger", "stop");
         if ((trigger == true))
         {
-            throw new BadRequest (add(this.id, " fetchOrder cannot fetch stop orders")) ;
+            throw new BadRequest ((this.id + " fetchOrder cannot fetch stop orders")) ;
         }
         Dictionary<string, object> response = await this.v1PostOrderStatusSymbol(this.extend(request, parameters));
         //
@@ -950,7 +950,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -963,7 +963,7 @@ public partial class bitbns : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "uppercaseId") },
             { "page", 0 },
-            { "side", ((isTrigger == true)) ? (add(quoteSide, "StopOrders")) : (add(quoteSide, "Orders")) },
+            { "side", ((isTrigger == true)) ? ((quoteSide + "StopOrders")) : ((quoteSide + "Orders")) },
         };
         Dictionary<string, object> response = await this.v2PostGetordersnew(this.extend(request, parameters));
         //
@@ -1093,7 +1093,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1169,7 +1169,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1206,7 +1206,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDeposits() requires a currency code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDeposits() requires a currency code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1260,7 +1260,7 @@ public partial class bitbns : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawals() requires a currency code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1426,7 +1426,7 @@ public partial class bitbns : Exchange
         object urls = this.urls;
         if (!(inOp(getValue(urls, "api"), api)))
         {
-            throw new ExchangeError (add(add(add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
+            throw new ExchangeError ((((this.id + " does not have a testnet/sandbox URL for ") + api) + " endpoints")) ;
         }
         if (!isEqual(api, "www"))
         {
@@ -1443,7 +1443,7 @@ public partial class bitbns : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(method, "POST"))
         {
@@ -1488,7 +1488,7 @@ public partial class bitbns : Exchange
         bool error = ((code != null)) && (code != "200") && (code != "204");
         if (error || ((message != null)))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

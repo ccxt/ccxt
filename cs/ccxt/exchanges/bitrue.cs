@@ -934,7 +934,7 @@ public partial class bitrue : Exchange
                 promisesRaw.Add(this.dapiV1PublicGetContracts(parameters));
             } else
             {
-                throw new ExchangeError (add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
+                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesRaw);
@@ -1056,7 +1056,7 @@ public partial class bitrue : Exchange
         object symbol = add(add(bs, "/"), quote);
         if ((settle != null))
         {
-            symbol = add(symbol, add(":", settle));
+            symbol = add(symbol, (":" + settle));
         }
         List<object> filters = this.safeList(market, "filters", new List<object>() {});
         Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
@@ -1308,7 +1308,7 @@ public partial class bitrue : Exchange
             response = await this.spotV1PublicGetDepth(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOrderBook only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchOrderBook only support spot & swap markets")) ;
         }
         //
         // spot
@@ -1456,7 +1456,7 @@ public partial class bitrue : Exchange
             data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTicker only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchTicker only support spot & swap markets")) ;
         }
         //
         // spot
@@ -1566,7 +1566,7 @@ public partial class bitrue : Exchange
             data = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOHLCV only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchOHLCV only support spot & swap markets")) ;
         }
         //
         // spot
@@ -1679,7 +1679,7 @@ public partial class bitrue : Exchange
             response = await this.spotV1PublicGetTickerBookTicker(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchBidsAsks only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchBidsAsks only support spot & swap markets")) ;
         }
         //
         // spot
@@ -1739,14 +1739,14 @@ public partial class bitrue : Exchange
             Dictionary<string, object> market = this.market(first);
             if (isEqual(getValue(market, "swap"), true))
             {
-                throw new NotSupported (add(this.id, " fetchTickers does not support swap markets, please use fetchTicker instead")) ;
+                throw new NotSupported ((this.id + " fetchTickers does not support swap markets, please use fetchTicker instead")) ;
             } else if (isEqual(getValue(market, "spot"), true))
             {
                 response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
                 data = this.toArray(response);
             } else
             {
-                throw new NotSupported (add(this.id, " fetchTickers only support spot & swap markets")) ;
+                throw new NotSupported ((this.id + " fetchTickers only support spot & swap markets")) ;
             }
         } else
         {
@@ -1755,7 +1755,7 @@ public partial class bitrue : Exchange
             parameters = typeparametersVariable[1];
             if (type != "spot")
             {
-                throw new NotSupported (add(this.id, " fetchTickers only support spot when symbols are not proved")) ;
+                throw new NotSupported ((this.id + " fetchTickers only support spot when symbols are not proved")) ;
             }
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
             data = this.toArray(response);
@@ -1949,7 +1949,7 @@ public partial class bitrue : Exchange
             response = await this.spotV1PublicGetTrades(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTrades only support spot markets")) ;
+            throw new NotSupported ((this.id + " fetchTrades only support spot markets")) ;
         }
         //
         // spot
@@ -2130,7 +2130,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports swap orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports swap orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
@@ -2179,7 +2179,7 @@ public partial class bitrue : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() requires a price argument")) ;
+                throw new InvalidOrder ((this.id + " createOrder() requires a price argument")) ;
             }
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2209,7 +2209,7 @@ public partial class bitrue : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (isEqual(price, null) && (cost == null))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
                 } else
                 {
                     string? amountString = this.numberToString(amount);
@@ -2245,7 +2245,7 @@ public partial class bitrue : Exchange
             object validOrderTypes = this.safeValue(GetValue(market, "info"), "orderTypes");
             if (!this.inArray(uppercaseType, validOrderTypes))
             {
-                throw new InvalidOrder (add(add(add(add(this.id, " "), type), " is not a valid order type in market "), symbol)) ;
+                throw new InvalidOrder (((((this.id + " ") + type) + " is not a valid order type in market ") + symbol)) ;
             }
             string? clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
             if ((clientOrderId != null))
@@ -2263,7 +2263,7 @@ public partial class bitrue : Exchange
             data = response;
         } else
         {
-            throw new NotSupported (add(this.id, " createOrder only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " createOrder only support spot & swap markets")) ;
         }
         //
         // spot
@@ -2305,7 +2305,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2349,7 +2349,7 @@ public partial class bitrue : Exchange
             data = response;
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOrder only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchOrder only support spot & swap markets")) ;
         }
         //
         // spot
@@ -2413,7 +2413,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchClosedOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2422,7 +2422,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " fetchClosedOrders only support spot markets")) ;
+            throw new NotSupported ((this.id + " fetchClosedOrders only support spot markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -2478,7 +2478,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2506,7 +2506,7 @@ public partial class bitrue : Exchange
             data = response;
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOpenOrders only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchOpenOrders only support spot & swap markets")) ;
         }
         //
         // spot
@@ -2574,7 +2574,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2617,7 +2617,7 @@ public partial class bitrue : Exchange
             data = response;
         } else
         {
-            throw new NotSupported (add(this.id, " cancelOrder only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " cancelOrder only support spot & swap markets")) ;
         }
         //
         // spot
@@ -2678,7 +2678,7 @@ public partial class bitrue : Exchange
             data = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            throw new NotSupported (add(this.id, " cancelAllOrders only support future markets")) ;
+            throw new NotSupported ((this.id + " cancelAllOrders only support future markets")) ;
         }
         //
         // swap
@@ -2714,7 +2714,7 @@ public partial class bitrue : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> response = null;
@@ -2750,7 +2750,7 @@ public partial class bitrue : Exchange
             data = response;
         } else
         {
-            throw new NotSupported (add(this.id, " fetchMyTrades only support spot & swap markets")) ;
+            throw new NotSupported ((this.id + " fetchMyTrades only support spot & swap markets")) ;
         }
         //
         // spot
@@ -2816,7 +2816,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDeposits() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDeposits() requires a code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2892,7 +2892,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchWithdrawals() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawals() requires a code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3396,11 +3396,11 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
         {
-            throw new BadRequest (add(this.id, " leverage should be between 1 and 125")) ;
+            throw new BadRequest ((this.id + " leverage should be between 1 and 125")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3414,7 +3414,7 @@ public partial class bitrue : Exchange
         };
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " setLeverage only support swap markets")) ;
+            throw new NotSupported ((this.id + " setLeverage only support swap markets")) ;
         }
         if (isEqual(GetValue(market, "linear"), true))
         {
@@ -3472,7 +3472,7 @@ public partial class bitrue : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " setMargin only support swap markets")) ;
+            throw new NotSupported ((this.id + " setMargin only support swap markets")) ;
         }
         Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3525,13 +3525,13 @@ public partial class bitrue : Exchange
                     { "recvWindow", recvWindow },
                 }, parameters));
                 string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
-                query = add(query, add(add("&", "signature="), signature));
+                query = add(query, (("&" + "signature=") + signature));
                 headers = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
                 };
                 if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
                 {
-                    url = add(url, add("?", query));
+                    url = add(url, ("?" + query));
                 } else
                 {
                     body = query;
@@ -3549,14 +3549,14 @@ public partial class bitrue : Exchange
                     signPath = "/dapi";
                 }
                 signPath = add(add(add(add(signPath, "/"), version), "/"), path);
-                object signMessage = add(add(timestamp, method), signPath);
+                object signMessage = ((timestamp + method) + signPath);
                 if (isEqual(method, "GET"))
                 {
                     List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
                     int keysLength = keys.Count;
                     if (isGreaterThan(keysLength, 0))
                     {
-                        signMessage = add(signMessage, add("?", this.urlencode(parameters)));
+                        signMessage = add(signMessage, ("?" + this.urlencode(parameters)));
                     }
                     string signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
@@ -3564,7 +3564,7 @@ public partial class bitrue : Exchange
                         { "X-CH-SIGN", signature },
                         { "X-CH-TS", timestamp },
                     };
-                    url = add(url, add("?", this.urlencode(parameters)));
+                    url = add(url, ("?" + this.urlencode(parameters)));
                 } else
                 {
                     Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
@@ -3585,7 +3585,7 @@ public partial class bitrue : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         }
         return new Dictionary<string, object>() {
@@ -3600,7 +3600,7 @@ public partial class bitrue : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection (add(add(add(add(add(add(this.id, " "), code.ToString()), " "), reason), " "), body)) ;
+            throw new DDoSProtection (add((((((this.id + " ") + code.ToString()) + " ") + reason) + " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3609,15 +3609,15 @@ public partial class bitrue : Exchange
         {
             if (getIndexOf(body, "Price * QTY is zero or less") >= 0)
             {
-                throw new InvalidOrder (add(add(this.id, " order cost = amount * price is zero or less "), body)) ;
+                throw new InvalidOrder (((this.id + " order cost = amount * price is zero or less ") + body)) ;
             }
             if (getIndexOf(body, "LOT_SIZE") >= 0)
             {
-                throw new InvalidOrder (add(add(this.id, " order amount should be evenly divisible by lot size "), body)) ;
+                throw new InvalidOrder (((this.id + " order amount should be evenly divisible by lot size ") + body)) ;
             }
             if (getIndexOf(body, "PRICE_FILTER") >= 0)
             {
-                throw new InvalidOrder (add(add(this.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
+                throw new InvalidOrder (((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + body)) ;
             }
         }
         if (isEqual(response, null))
@@ -3650,8 +3650,8 @@ public partial class bitrue : Exchange
         string? message = this.safeString(response, "msg");
         if ((message != null))
         {
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, add(add(this.id, " "), message));
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, ((this.id + " ") + message));
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, ((this.id + " ") + message));
         }
         // checks against error codes
         string? error = this.safeString(response, "code");
@@ -3668,15 +3668,15 @@ public partial class bitrue : Exchange
             // on a temporary ban, the API key is valid, but disabled for a while
             if ((error == "-2015") && (isEqual(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
             {
-                throw new DDoSProtection (add(add(this.id, " temporary banned: "), body)) ;
+                throw new DDoSProtection (((this.id + " temporary banned: ") + body)) ;
             }
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             throw new ExchangeError (feedback) ;
         }
         if ((success != true))
         {
-            throw new ExchangeError (add(add(this.id, " "), body)) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

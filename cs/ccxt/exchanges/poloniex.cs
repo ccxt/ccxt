@@ -1163,11 +1163,11 @@ public partial class poloniex : Exchange
         object symbol = add(add(bs, "/"), quote);
         if (linear)
         {
-            symbol = add(symbol, add(":", settle));
+            symbol = add(symbol, (":" + settle));
         } else
         {
             // actually, exchange does not have any inverse future now
-            symbol = add(symbol, add(":", bs));
+            symbol = add(symbol, (":" + bs));
         }
         string? alias = this.safeString(market, "alias");
         string type = "swap";
@@ -2252,7 +2252,7 @@ public partial class poloniex : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType == "spot")
         {
-            throw new NotSupported (add(this.id, " fetchClosedOrders() is not supported for spot markets yet")) ;
+            throw new NotSupported ((this.id + " fetchClosedOrders() is not supported for spot markets yet")) ;
         }
         if (!isEqual(limit, null))
         {
@@ -2388,11 +2388,11 @@ public partial class poloniex : Exchange
             {
                 if ((marginMode == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() requires a marginMode parameter \"cross\" or \"isolated\" for hedged orders")) ;
                 }
                 if (!(inOp(parameters, "posSide")))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() requires a posSide parameter \"LONG\" or \"SHORT\" for hedged orders")) ;
                 }
             }
         }
@@ -2404,7 +2404,7 @@ public partial class poloniex : Exchange
         {
             if (!isEqual(GetValue(market, "spot"), true))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() does not support trigger orders for "), GetValue(market, "type")), " markets")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() does not support trigger orders for ") + GetValue(market, "type")) + " markets")) ;
             }
             upperCaseType = (isEqual(price, null)) ? "STOP" : "STOP_LIMIT";
             ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
@@ -2431,7 +2431,7 @@ public partial class poloniex : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -2493,7 +2493,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(add(add(this.id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")) ;
+            throw new NotSupported ((((this.id + " editOrder() does not support ") + GetValue(market, "type")) + " orders, only spot orders are accepted")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
@@ -2542,7 +2542,7 @@ public partial class poloniex : Exchange
         await this.loadMarkets();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2703,7 +2703,7 @@ public partial class poloniex : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType != "spot")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchOrder() is not supported for "), marketType), " markets yet")) ;
+            throw new NotSupported ((((this.id + " fetchOrder() is not supported for ") + marketType) + " markets yet")) ;
         }
         object isTrigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -3106,7 +3106,7 @@ public partial class poloniex : Exchange
         int length = keys.Count;
         if (isLessThan(length, 1))
         {
-            throw new ExchangeError (add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
+            throw new ExchangeError ((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddressSpecial(response, currency, networkEntry));
     }
@@ -3116,7 +3116,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!(inOp(this.currencies, code)))
         {
-            throw new BadSymbol (add(add(add(this.id, " fetchDepositAddress(): can not recognize "), code), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
+            throw new BadSymbol ((((this.id + " fetchDepositAddress(): can not recognize ") + code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
         string? networkCode = null;
@@ -3125,7 +3125,7 @@ public partial class poloniex : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " fetchDepositAddress requires a network parameter for "), code), ".")) ;
+            throw new ArgumentsRequired ((((this.id + " fetchDepositAddress requires a network parameter for ") + code) + ".")) ;
         }
         object exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
@@ -3257,7 +3257,7 @@ public partial class poloniex : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " withdraw requires a network parameter for "), code), ".")) ;
+            throw new ArgumentsRequired ((((this.id + " withdraw requires a network parameter for ") + code) + ".")) ;
         }
         request["network"] = this.networkCodeToId(networkCode, code);
         if (!isEqual(tagVar, null))
@@ -3708,7 +3708,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -3718,7 +3718,7 @@ public partial class poloniex : Exchange
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
         }
         bool? hedged = null;
         IList<object> hedgedparametersVariable = (IList<object>)this.handleParamBool(parameters, "hedged", false);
@@ -3728,7 +3728,7 @@ public partial class poloniex : Exchange
         {
             if (!(inOp(parameters, "posSide")))
             {
-                throw new ArgumentsRequired (add(this.id, " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
+                throw new ArgumentsRequired ((this.id + " setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3763,7 +3763,7 @@ public partial class poloniex : Exchange
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
+            throw new ArgumentsRequired ((this.id + " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")) ;
         }
         request["mgnMode"] = ((string)marginMode).ToUpper();
         Dictionary<string, object> response = await this.swapPrivateGetV3PositionLeverages(this.extend(request, parameters));
@@ -4140,37 +4140,37 @@ public partial class poloniex : Exchange
         string? implodedPath = this.implodeParams(path, parameters);
         if (isEqual(api, "public") || isEqual(api, "swapPublic"))
         {
-            url = add(url, add("/", implodedPath));
+            url = add(url, ("/" + implodedPath));
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
             object auth = add(method, "\n"); // eslint-disable-line quotes
-            url = add(url, add("/", implodedPath));
-            auth = add(auth, add("/", implodedPath));
+            url = add(url, ("/" + implodedPath));
+            auth = add(auth, ("/" + implodedPath));
             if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || (isEqual(method, "DELETE")))
             {
                 auth = add(auth, "\n"); // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     body = this.json(query);
-                    auth = add(auth, add(add("requestBody=", body), "&"));
+                    auth = add(auth, (("requestBody=" + body) + "&"));
                 }
-                auth = add(auth, add("signTimestamp=", timestamp));
+                auth = add(auth, ("signTimestamp=" + timestamp));
             } else
             {
                 Dictionary<string, object> sortedQuery = this.extend(new Dictionary<string, object>() {
                     { "signTimestamp", timestamp },
                 }, query);
                 sortedQuery = this.keysort(sortedQuery);
-                auth = add(auth, add("\n", this.urlencode(sortedQuery))); // eslint-disable-line quotes
+                auth = add(auth, ("\n" + this.urlencode(sortedQuery))); // eslint-disable-line quotes
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
@@ -4205,7 +4205,7 @@ public partial class poloniex : Exchange
         if (((responseCode != null)) && (responseCode != "200"))
         {
             string? message = this.safeString2(response, "message", "msg");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;

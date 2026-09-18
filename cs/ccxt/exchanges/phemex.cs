@@ -1446,7 +1446,7 @@ public partial class phemex : Exchange
         amountKey ??= 1;
         if (isEqual(market, null))
         {
-            throw new ArgumentsRequired (add(this.id, " customParseBidAsk() requires a market argument")) ;
+            throw new ArgumentsRequired ((this.id + " customParseBidAsk() requires a market argument")) ;
         }
         string? amount = this.safeString(bidask, amountKey);
         if (isEqual(getValue(market, "spot"), true))
@@ -2493,7 +2493,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((type != "spot") && (type != "swap"))
         {
-            throw new BadRequest (add(add(add(this.id, " does not support "), type), " markets, only spot and swap")) ;
+            throw new BadRequest ((((this.id + " does not support ") + type) + " markets, only spot and swap")) ;
         }
         if (type == "swap")
         {
@@ -2525,7 +2525,7 @@ public partial class phemex : Exchange
                 string? currency = this.safeString(parameters, "currency");
                 if ((currency == null))
                 {
-                    throw new ArgumentsRequired (add(add(add(this.id, " fetchBalance() requires a code parameter or a currency or settle parameter for "), type), " type")) ;
+                    throw new ArgumentsRequired ((((this.id + " fetchBalance() requires a code parameter or a currency or settle parameter for ") + type) + " type")) ;
                 }
                 response = await this.privateGetSpotWallets(this.extend(request, parameters));
             }
@@ -3084,7 +3084,7 @@ public partial class phemex : Exchange
             string brokerId = ((string)this.safeString(this.options, "brokerId", "CCXT123456"));
             if ((brokerId != null))
             {
-                request["clOrdID"] = add(brokerId, this.uuid16());
+                request["clOrdID"] = (brokerId + this.uuid16());
             }
         } else
         {
@@ -3139,7 +3139,7 @@ public partial class phemex : Exchange
                         cost = this.parseNumber(quoteAmount);
                     } else if (isEqual(cost, null))
                     {
-                        throw new ArgumentsRequired (add(add(add(this.id, " createOrder() "), qtyType), " requires a price argument or a cost parameter")) ;
+                        throw new ArgumentsRequired ((((this.id + " createOrder() ") + qtyType) + " requires a price argument or a cost parameter")) ;
                     }
                 }
                 cost = (isEqual(cost, null)) ? amount : cost;
@@ -3191,7 +3191,7 @@ public partial class phemex : Exchange
                 parameters = triggerDirectionparametersVariable[1];
                 if ((triggerDirection == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'ascending' or 'descending' value")) ;
                 }
                 // the flow defined per https://phemex-docs.github.io/#more-order-typeVar-examples
                 if (triggerDirection == "ascending" || triggerDirection == "up")
@@ -3221,7 +3221,7 @@ public partial class phemex : Exchange
                     object stopLossTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     if ((stopLossTriggerPrice == null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
                     }
                     if (isStableSettled)
                     {
@@ -3246,7 +3246,7 @@ public partial class phemex : Exchange
                     object takeProfitTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     if ((takeProfitTriggerPrice == null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
                     }
                     if (isStableSettled)
                     {
@@ -3504,7 +3504,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3557,7 +3557,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3602,7 +3602,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3641,10 +3641,10 @@ public partial class phemex : Exchange
             {
                 if ((clientOrderId != null))
                 {
-                    throw new OrderNotFound (add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
+                    throw new OrderNotFound ((((((this.id + " fetchOrder() ") + symbol) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
                 } else
                 {
-                    throw new OrderNotFound (add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
+                    throw new OrderNotFound ((((((this.id + " fetchOrder() ") + symbol) + " order with id ") + id) + " not found")) ;
                 }
             }
             order = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -3656,10 +3656,10 @@ public partial class phemex : Exchange
             {
                 if ((clientOrderId != null))
                 {
-                    throw new OrderNotFound (add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with clientOrderId "), clientOrderId), " not found")) ;
+                    throw new OrderNotFound ((((((this.id + " fetchOrder() ") + symbol) + " order with clientOrderId ") + clientOrderId) + " not found")) ;
                 } else
                 {
-                    throw new OrderNotFound (add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
+                    throw new OrderNotFound ((((((this.id + " fetchOrder() ") + symbol) + " order with id ") + id) + " not found")) ;
                 }
             }
             order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
@@ -3683,7 +3683,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3740,7 +3740,7 @@ public partial class phemex : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4089,7 +4089,7 @@ public partial class phemex : Exchange
         network = this.safeString(networks, network, network);
         if ((network == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() requires a network parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a network parameter")) ;
         } else
         {
             request["chainName"] = network;
@@ -4780,7 +4780,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4794,7 +4794,7 @@ public partial class phemex : Exchange
         {
             if (isGreaterThan(limit, 200))
             {
-                throw new BadRequest (add(this.id, " fetchFundingHistory() limit argument cannot exceed 200")) ;
+                throw new BadRequest ((this.id + " fetchFundingHistory() limit argument cannot exceed 200")) ;
             }
             request["limit"] = limit;
         }
@@ -4887,7 +4887,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5078,7 +5078,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5087,12 +5087,12 @@ public partial class phemex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " setMarginMode() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " setMarginMode() supports swap contracts only")) ;
         }
         marginModeVar = marginModeVar.ToLower();
         if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5103,7 +5103,7 @@ public partial class phemex : Exchange
             string? currentLeverage = this.safeString(parameters, "leverage");
             if ((currentLeverage == null))
             {
-                throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
+                throw new ArgumentsRequired ((this.id + " setMarginMode() requires a \"leverage\" parameter for USDT markets")) ;
             }
             request["leverageRr"] = isCross ? Precise.stringNeg(Precise.stringAbs(currentLeverage)) : Precise.stringAbs(currentLeverage);
             return ccxt.BaseExchange.ToDict(await this.privatePutGPositionsLeverage(this.extend(request, parameters)));
@@ -5115,7 +5115,7 @@ public partial class phemex : Exchange
         }
         if (isEqual(leverage, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter")) ;
         }
         request["leverage"] = leverage;
         return ccxt.BaseExchange.ToDict(await this.privatePutPositionsLeverage(this.extend(request, parameters)));
@@ -5142,7 +5142,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "settle"), "USDT"))
         {
-            throw new BadSymbol (add(this.id, " setPositionMode() supports USDT settled markets only")) ;
+            throw new BadSymbol ((this.id + " setPositionMode() supports USDT settled markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5178,7 +5178,7 @@ public partial class phemex : Exchange
             Dictionary<string, object> market = this.market(first);
             if (!isEqual(GetValue(market, "settle"), "USD"))
             {
-                throw new BadSymbol (add(this.id, " fetchLeverageTiers() supports USD settled markets only")) ;
+                throw new BadSymbol ((this.id + " fetchLeverageTiers() supports USD settled markets only")) ;
             }
         }
         Dictionary<string, object> response = await this.publicGetCfgV2Products(parameters);
@@ -5313,7 +5313,7 @@ public partial class phemex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        string requestPath = add("/", this.implodeParams(path, parameters));
+        string requestPath = ("/" + this.implodeParams(path, parameters));
         string url = requestPath;
         string queryString = "";
         if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(method, "PUT")) || (url == "/positions/assign"))
@@ -5321,7 +5321,7 @@ public partial class phemex : Exchange
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencodeWithArrayRepeat(query);
-                url = add(url, add("?", queryString));
+                url = add(url, ("?" + queryString));
             }
         }
         if (isEqual(api, "private"))
@@ -5344,17 +5344,17 @@ public partial class phemex : Exchange
                     if ((this.safeString(parameters, "clOrdID") == null))
                     {
                         string id = ((string)this.safeString(this.options, "brokerId", "CCXT123456"));
-                        ((IDictionary<string,object>)parameters)["clOrdID"] = add(id, this.uuid16());
+                        ((IDictionary<string,object>)parameters)["clOrdID"] = (id + this.uuid16());
                     }
                 }
                 payload = this.json(parameters);
                 body = payload;
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            string auth = add(add(add(requestPath, queryString), expiryString), payload);
+            string auth = (((requestPath + queryString) + expiryString) + payload);
             ((IDictionary<string,object>)headers)["x-phemex-request-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         }
-        url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), url);
+        url = (this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + url);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -5383,11 +5383,11 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if ((isLessThan(leverage, -100)) || (isGreaterThan(leverage, 100)))
         {
-            throw new BadRequest (add(this.id, " setLeverage() leverage should be between -100 and 100")) ;
+            throw new BadRequest ((this.id + " setLeverage() leverage should be between -100 and 100")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5544,7 +5544,7 @@ public partial class phemex : Exchange
         }
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a code argument")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5672,7 +5672,7 @@ public partial class phemex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5682,7 +5682,7 @@ public partial class phemex : Exchange
         bool isUsdtSettled = isEqual(GetValue(market, "settle"), "USDT") || isEqual(GetValue(market, "settle"), "USDC");
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadRequest (add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+            throw new BadRequest ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
@@ -5695,10 +5695,10 @@ public partial class phemex : Exchange
         string? customSymbol = null;
         if (isUsdtSettled)
         {
-            customSymbol = add(add(".", GetValue(market, "id")), "FR8H"); // phemex requires a custom symbol for funding rate history
+            customSymbol = (("." + GetValue(market, "id")) + "FR8H"); // phemex requires a custom symbol for funding rate history
         } else
         {
-            customSymbol = add(add(".", GetValue(market, "baseId")), "FR8H");
+            customSymbol = (("." + GetValue(market, "baseId")) + "FR8H");
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", customSymbol },
@@ -5800,7 +5800,7 @@ public partial class phemex : Exchange
                 networkId = GetValue(currency, "id");
             } else
             {
-                throw new ArgumentsRequired (add(this.id, " withdraw () requires an extra argument params[\"network\"]")) ;
+                throw new ArgumentsRequired ((this.id + " withdraw () requires an extra argument params[\"network\"]")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5864,7 +5864,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest is only supported for contract markets.")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -6406,7 +6406,7 @@ public partial class phemex : Exchange
         string? message = this.safeString(error, "msg");
         if (((errorCode != null)) && (errorCode != "0"))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;

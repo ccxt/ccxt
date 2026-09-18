@@ -1344,7 +1344,7 @@ public partial class luno : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1447,7 +1447,7 @@ public partial class luno : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         if (isEqual(type, "market"))
         {
@@ -1470,7 +1470,7 @@ public partial class luno : Exchange
         }
         if ((response == null))
         {
-            throw new NullResponse (add(this.id, " createOrder() returned empty response")) ;
+            throw new NullResponse ((this.id + " createOrder() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", GetValue(response, "order_id") },         }, market));
     }
@@ -1552,14 +1552,14 @@ public partial class luno : Exchange
         {
             if (isEqual(code, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchLedger() requires a currency code argument if no account id specified in params")) ;
+                throw new ArgumentsRequired ((this.id + " fetchLedger() requires a currency code argument if no account id specified in params")) ;
             }
             currency = this.currency(code);
             Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
             object account = this.safeValue(accountsByCurrencyCode, code);
             if ((account == null))
             {
-                throw new ExchangeError (add(add(this.id, " fetchLedger() could not find account id for "), code)) ;
+                throw new ExchangeError (((this.id + " fetchLedger() could not find account id for ") + code)) ;
             }
             id = getValue(account, "id");
         }
@@ -1569,7 +1569,7 @@ public partial class luno : Exchange
             min_row = -1000; // Maximum number of records supported
         } else if ((min_row == null) || (max_row == null))
         {
-            throw new ExchangeError (add(this.id, " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
+            throw new ExchangeError ((this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
         }
         if (!isEqual(limit, null) && isGreaterThan(subtract(max_row, min_row), limit))
         {
@@ -1583,7 +1583,7 @@ public partial class luno : Exchange
         }
         if (isGreaterThan(subtract(max_row, min_row), 1000))
         {
-            throw new ExchangeError (add(this.id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
+            throw new ExchangeError ((this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
@@ -1832,7 +1832,7 @@ public partial class luno : Exchange
         string? address = this.safeString(parameters, "address");
         if ((address == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositWithdrawFee() requires an \"address\" parameter - luno quotes the send fee per destination address")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);
@@ -1861,14 +1861,14 @@ public partial class luno : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
-            url = add(url, add("?", this.urlencode(query)));
+            url = add(url, ("?" + this.urlencode(query)));
         }
         if ((isEqual(api, "private")) || (isEqual(api, "exchangePrivate")))
         {
             this.checkRequiredCredentials();
             string auth = this.stringToBase64(add(add(this.apiKey, ":"), this.secret));
             headers = new Dictionary<string, object>() {
-                { "Authorization", add("Basic ", auth) },
+                { "Authorization", ("Basic " + auth) },
             };
         }
         return new Dictionary<string, object>() {
@@ -1888,7 +1888,7 @@ public partial class luno : Exchange
         object error = this.safeValue(response, "error");
         if ((error != null))
         {
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             string? errorCode = this.safeString(response, "error_code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

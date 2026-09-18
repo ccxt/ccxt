@@ -193,7 +193,7 @@ public partial class BaseTest
             // common props
             //
             // @SKIP_START_GO
-            Assert(isEqual(exchange.id, add("Exch", "ange")), "id should be \"Exchange\"");
+            Assert(isEqual(exchange.id, ("Exch" + "ange")), "id should be \"Exchange\"");
             Assert(!isEqual(exchange.has, null), "has should not be undefined");
             Assert(isEqual(exchange.api, null), "api should be undefined");
             Assert(isEqual(exchange.features, null), "features should be undefined");
@@ -208,7 +208,7 @@ public partial class BaseTest
             List<object> httpExceptionKeys = new List<object>() {"400", "401", "403", "404", "405", "407", "408", "409", "410", "418", "422", "429", "451", "500", "501", "502", "503", "504", "511", "520", "521", "522", "525", "526", "530"};
             // php errors with below, bcz integer key cast
             // AssertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
-            Assert((((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))).Count == getArrayLength(httpExceptionKeys)), add(add("httpExceptions should have ", ((object)(getArrayLength(httpExceptionKeys))).ToString()), " keys"));
+            Assert((((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))).Count == getArrayLength(httpExceptionKeys)), (("httpExceptions should have " + ((object)(getArrayLength(httpExceptionKeys))).ToString()) + " keys"));
             Dictionary<string, object> limits = new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },

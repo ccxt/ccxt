@@ -1582,7 +1582,7 @@ public partial class lbank : Exchange
         if ((positionFeeTime != null))
         {
             Int64? interval = this.parseToInt(divide(divide(positionFeeTime, 60), 60));
-            intervalString = add(((object)interval).ToString(), "h");
+            intervalString = (((object)interval).ToString() + "h");
         }
         return new Dictionary<string, object>() {
             { "info", ticker },
@@ -1738,7 +1738,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> balanceResult = this.parseBalance(balanceResponse);
         if ((balanceResult == null))
         {
-            throw new NullResponse (add(this.id, " fetchBalance() returned empty response")) ;
+            throw new NullResponse ((this.id + " fetchBalance() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToBalances(balanceResult);
     }
@@ -1830,7 +1830,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
@@ -1870,7 +1870,7 @@ public partial class lbank : Exchange
         bool maker = (((postOnly == true)) || (timeInForce == "PO"));
         if ((isEqual(type, "market")) && (ioc || fok || maker))
         {
-            throw new InvalidOrder (add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
+            throw new InvalidOrder ((this.id + " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
         }
         if (isEqual(type, "limit"))
         {
@@ -1910,7 +1910,7 @@ public partial class lbank : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -2158,7 +2158,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2201,7 +2201,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2240,7 +2240,7 @@ public partial class lbank : Exchange
             return ccxt.BaseExchange.ToOrder(this.parseOrder(getValue(result, 0)));
         } else
         {
-            throw new BadRequest (add(this.id, " fetchOrder() can only fetch one order at a time")) ;
+            throw new BadRequest ((this.id + " fetchOrder() can only fetch one order at a time")) ;
         }
     }
 
@@ -2261,7 +2261,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2326,7 +2326,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2392,7 +2392,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2456,7 +2456,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2505,7 +2505,7 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3398,13 +3398,13 @@ public partial class lbank : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(this.keysort(query))));
+                url = add(url, ("?" + this.urlencode(this.keysort(query))));
             }
         } else
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            string echostr = add(this.uuid22(), this.uuid16());
+            string echostr = (this.uuid22() + this.uuid16());
             query = this.extend(new Dictionary<string, object>() {
                 { "api_key", this.apiKey },
             }, query);
@@ -3475,16 +3475,16 @@ public partial class lbank : Exchange
         {
             Int64 start = multiply(i, lineLength);
             Int64 end = this.sum(start, lineLength);
-            pem = add(pem, add(slice(this.secret, start, end), "\n")); // eslint-disable-line
+            pem = add(pem, (slice(this.secret, start, end) + "\n")); // eslint-disable-line
         }
-        return add(pem, "-----END PRIVATE KEY-----");
+        return (pem + "-----END PRIVATE KEY-----");
     }
 
     public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (isEqual(response, null))
         {
-            throw new NullResponse (add(this.id, " parseBalance() returned empty response")) ;
+            throw new NullResponse ((this.id + " parseBalance() returned empty response")) ;
         }
         object success = this.safeValue(response, "result");
         if ((isEqual(success, "false")) || ((success == null)) || ((success == null)) || (isEqual(success, false)))

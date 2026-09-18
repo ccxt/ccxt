@@ -641,22 +641,22 @@ public partial class alpaca : Exchange
         string? timestamp = this.safeString(response, "timestamp");
         if ((timestamp == null))
         {
-            throw new ExchangeError (add(this.id, " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         string? localTime = slice(timestamp, 0, 23);
         if ((timestamp == null))
         {
-            throw new ExchangeError (add(this.id, " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         int jetlagStrStart = subtract(timestamp.Length, 6);
         if ((timestamp == null))
         {
-            throw new ExchangeError (add(this.id, " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         int jetlagStrEnd = subtract(timestamp.Length, 3);
         if ((timestamp == null))
         {
-            throw new ExchangeError (add(this.id, " fetchTime() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " fetchTime() missing timestamp")) ;
         }
         string? jetlag = slice(timestamp, jetlagStrStart, jetlagStrEnd);
         object iso = subtract(this.parseToInt(this.parse8601(localTime)), multiply(multiply(this.parseToNumeric(jetlag), 3600), 1000));
@@ -729,7 +729,7 @@ public partial class alpaca : Exchange
         string? marketId = this.safeString(asset, "symbol");
         if ((marketId == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
         }
         List<object> parts = marketId.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         string? assetClass = this.safeString(asset, "class");
@@ -888,7 +888,7 @@ public partial class alpaca : Exchange
             symbolTrades = new List<object>() {symbolTrade};
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
+            throw new NotSupported ((((this.id + " fetchTrades() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
         }
         List<object> symbolTradesList = new List<object>() {};
         if ((symbolTrades != null))
@@ -1109,7 +1109,7 @@ public partial class alpaca : Exchange
             ohlcvs = new List<object>() {bar};
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchOHLCV() does not support "), method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
+            throw new NotSupported ((((this.id + " fetchOHLCV() does not support ") + method) + ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")) ;
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limit));
     }
@@ -1403,7 +1403,7 @@ public partial class alpaca : Exchange
                 newType = "stop_limit";
             } else
             {
-                throw new NotSupported (add(add(add(this.id, " createOrder() does not support stop orders for "), type), " orders, only stop_limit orders are supported")) ;
+                throw new NotSupported ((((this.id + " createOrder() does not support stop orders for ") + type) + " orders, only stop_limit orders are supported")) ;
             }
             request["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
             request["type"] = newType;
@@ -2316,7 +2316,7 @@ public partial class alpaca : Exchange
         {
             string? netAmount = this.safeString(transaction, "net_amount");
             bool isIncoming = (activityType == "CSD") || ((activityType == "TRANS") && !isTrue(Precise.stringLt(netAmount, "0")));
-            timestamp = this.parse8601(add(this.safeString(transaction, "date"), "T00:00:00Z"));
+            timestamp = this.parse8601((this.safeString(transaction, "date") + "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = isIncoming ? "deposit" : "withdrawal";
             amount = this.parseNumber(Precise.stringAbs(netAmount));
@@ -2565,7 +2565,7 @@ public partial class alpaca : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = add("/", this.implodeParams(path, parameters));
+        string endpoint = ("/" + this.implodeParams(path, parameters));
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), getValue(api, 0)));
         headers = (!isEqual(headers, null)) ? headers : new Dictionary<string, object>() {};
         if (isEqual(getValue(api, 1), "private"))
@@ -2579,7 +2579,7 @@ public partial class alpaca : Exchange
         {
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
             {
-                endpoint = add(endpoint, add("?", this.urlencode(query)));
+                endpoint = add(endpoint, ("?" + this.urlencode(query)));
             } else
             {
                 body = this.json(query);
@@ -2605,7 +2605,7 @@ public partial class alpaca : Exchange
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         string? errorCode = this.safeString(response, "code");
         if (!isEqual(code, null))
         {

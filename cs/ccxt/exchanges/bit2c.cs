@@ -353,7 +353,7 @@ public partial class bit2c : Exchange
             string uppercase = ((string)GetValue(currency, "id")).ToUpper();
             if (inOp(response, uppercase))
             {
-                account["free"] = this.safeString(response, add("AVAILABLE_", uppercase));
+                account["free"] = this.safeString(response, ("AVAILABLE_" + uppercase));
                 account["total"] = this.safeString(response, uppercase);
             }
             result[(string)code] = account;
@@ -734,7 +734,7 @@ public partial class bit2c : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1145,7 +1145,7 @@ public partial class bit2c : Exchange
         Dictionary<string, object> currency = this.currency(code);
         if (isTrue(this.isFiat(code)))
         {
-            throw new NotSupported (add(this.id, " fetchDepositAddress() does not support fiat currencies")) ;
+            throw new NotSupported ((this.id + " fetchDepositAddress() does not support fiat currencies")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "Coin", GetValue(currency, "id") },
@@ -1206,7 +1206,7 @@ public partial class bit2c : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", auth));
+                    url = add(url, ("?" + auth));
                 }
             } else
             {
@@ -1245,7 +1245,7 @@ public partial class bit2c : Exchange
         }
         if ((error != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError (feedback) ;

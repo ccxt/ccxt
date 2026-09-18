@@ -871,7 +871,7 @@ public partial class woofipro : Exchange
         string? marketId = this.safeString(market, "symbol");
         if ((marketId == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
         }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string marketType = "swap";
@@ -1039,7 +1039,7 @@ public partial class woofipro : Exchange
             });
             if ((parsed == null))
             {
-                throw new ExchangeError (add(this.id, " fetchCurrencies() could not resolve parsed")) ;
+                throw new ExchangeError ((this.id + " fetchCurrencies() could not resolve parsed")) ;
             }
             result[(string)GetValue(parsed, "code")] = parsed;
         }
@@ -2210,11 +2210,11 @@ public partial class woofipro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         /**
          * @method
@@ -2233,7 +2233,7 @@ public partial class woofipro : Exchange
         string orderType = ((string)type).ToUpper();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrderRequest() requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string orderSide = ((string)side).ToUpper();
@@ -2415,7 +2415,7 @@ public partial class woofipro : Exchange
             bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(orderParams, "childOrders"), null));
             if (isConditional)
             {
-                throw new NotSupported (add(this.id, " createOrders() only support non-stop order")) ;
+                throw new NotSupported ((this.id + " createOrders() only support non-stop order")) ;
             }
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.Add(orderRequest);
@@ -2495,7 +2495,7 @@ public partial class woofipro : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a side argument")) ;
         }
         if (isConditional)
         {
@@ -2567,7 +2567,7 @@ public partial class woofipro : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (((trigger != true)) && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3446,7 +3446,7 @@ public partial class woofipro : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual string signHash(object hash, object privateKey)
@@ -3455,7 +3455,7 @@ public partial class woofipro : Exchange
         string? r = ((string)GetValue(signature, "r"));
         string? s = ((string)GetValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return ((("0x" + (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }
 
     public virtual string signMessage(object message, object privateKey)
@@ -3489,7 +3489,7 @@ public partial class woofipro : Exchange
             codeVar = codeVar.ToUpper();
             if (!isEqual(codeVar, "USDC"))
             {
-                throw new NotSupported (add(this.id, " withdraw() only support USDC")) ;
+                throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
             }
         }
         Dictionary<string, object> currency = this.currency(codeVar);
@@ -3500,7 +3500,7 @@ public partial class woofipro : Exchange
         double? coinNetworkId = this.safeNumber(coinNetwork, "id");
         if ((coinNetworkId == null))
         {
-            throw new BadRequest (add(this.id, " withdraw() require chainId parameter")) ;
+            throw new BadRequest ((this.id + " withdraw() require chainId parameter")) ;
         }
         double? withdrawNonce = await this.getWithdrawNonce(parameters);
         Int64 nonce = this.nonce();
@@ -3639,7 +3639,7 @@ public partial class woofipro : Exchange
         IDictionary<string, object> marginMode = this.safeDict(marginModes, GetValue(market, "symbol"));
         if ((marginMode == null))
         {
-            throw new BadSymbol (add(add(this.id, " fetchMarginMode() did not return a margin mode for "), GetValue(market, "symbol"))) ;
+            throw new BadSymbol (((this.id + " fetchMarginMode() did not return a margin mode for ") + GetValue(market, "symbol"))) ;
         }
         return ccxt.BaseExchange.ToMarginMode(marginMode);
     }
@@ -3660,7 +3660,7 @@ public partial class woofipro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3669,7 +3669,7 @@ public partial class woofipro : Exchange
         marginModeVar = marginModeVar.ToLower();
         if (!isEqual(marginModeVar, "cross") && !isEqual(marginModeVar, "isolated"))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode must be either cross or isolated")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3859,7 +3859,7 @@ public partial class woofipro : Exchange
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 50)))
         {
-            throw new BadRequest (add(this.id, " leverage should be between 1 and 50")) ;
+            throw new BadRequest ((this.id + " leverage should be between 1 and 50")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
@@ -4073,7 +4073,7 @@ public partial class woofipro : Exchange
             url = add(url, pathWithParams);
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
@@ -4104,14 +4104,14 @@ public partial class woofipro : Exchange
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "ed25519:") < 0)
             {
-                apiKey = add("ed25519:", apiKey);
+                apiKey = ("ed25519:" + apiKey);
             }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
+            auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
             if (isEqual(method, "POST") || isEqual(method, "PUT"))
             {
                 body = this.json(parameters);
@@ -4121,8 +4121,8 @@ public partial class woofipro : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(parameters)));
-                    auth = add(auth, add("?", this.rawencode(parameters)));
+                    url = add(url, ("?" + this.urlencode(parameters)));
+                    auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
                 if (isEqual(method, "DELETE"))
@@ -4161,7 +4161,7 @@ public partial class woofipro : Exchange
         string? errorCode = this.safeString(response, "code");
         if ((success != true))
         {
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

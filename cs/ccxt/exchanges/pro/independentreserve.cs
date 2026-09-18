@@ -58,7 +58,7 @@ public partial class independentreserve : ccxt.independentreserve
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), GetValue(market, "base")), "-"), GetValue(market, "quote"));
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + symbolVar);
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -86,7 +86,7 @@ public partial class independentreserve : ccxt.independentreserve
         IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue(message, "Data", new Dictionary<string, object>() {}));
         string? marketId = this.safeString(data, "Pair");
         string? symbol = this.safeSymbol(marketId, null, "-");
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + symbol);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -159,7 +159,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         string? limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), GetValue(market, "base")), "-"), GetValue(market, "quote"));
-        string messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
+        string messageHash = ((("orderbook:" + symbolVar) + ":") + limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
@@ -205,7 +205,7 @@ public partial class independentreserve : ccxt.independentreserve
         string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
-        string messageHash = add(add(add("orderbook:", symbol), ":"), depth);
+        string messageHash = ((("orderbook:" + symbol) + ":") + depth);
         object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
@@ -259,7 +259,7 @@ public partial class independentreserve : ccxt.independentreserve
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (!isEqual(calculatedChecksum, responseChecksum))
             {
-                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 ((IDictionary<string,object>)client.subscriptions).Remove(messageHash);
                 ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
                 client.reject(error, messageHash);
@@ -338,6 +338,6 @@ public partial class independentreserve : ccxt.independentreserve
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
             return;
         }
-        throw new NotSupported (add(add(this.id, " received an unsupported message: "), this.json(message))) ;
+        throw new NotSupported (((this.id + " received an unsupported message: ") + this.json(message))) ;
     }
 }

@@ -48,7 +48,7 @@ public partial class testMainClass : BaseTest
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    assert(!isTrue(exchange.inArray(networkId, collectedNetworkIds)), add(add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""));
+                    assert(!isTrue(exchange.inArray(networkId, collectedNetworkIds)), (("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"" + networkId) + "\""));
                 }
                 ((IList<object>)collectedNetworkIds).Add(networkId);
             }
@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
             for (int i = 0; isLessThan(i, networkCodes.Count); postFixIncrement(ref i))
             {
                 string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
-                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), add(add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", getValue(networkCodes, i)), "\" in different uppercase/lowercase format"));
+                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + getValue(networkCodes, i)) + "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
@@ -66,17 +66,17 @@ public partial class testMainClass : BaseTest
                 string? networkCode = ((string)getValue(networkCodes, i));
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
-                string? networkIdConverted = exchange.networkCodeToId(networkCode);
-                assert(isEqual(networkId, networkIdConverted), add(add(add(add(add(add(add(add("exchange.networkCodeToId (\"", networkCode), "\")=\""), networkIdConverted), "\" does not match exchange.options[\"networks\"][\""), networkCode), "\"]=\""), networkId), "\""));
+                object networkIdConverted = exchange.networkCodeToId(networkCode);
+                assert(isEqual(networkId, networkIdConverted), add(add(add(((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode), "\"]=\""), networkId), "\""));
                 // ensure it exists in networksById
-                assert(inOp(getValue(exchange.options, "networksById"), networkId), add(add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""));
+                assert(inOp(getValue(exchange.options, "networksById"), networkId), (("exchange.options[\"networksById\"] does not contain networkId \"" + networkId) + "\""));
                 // ensure networkCode matches for networksById (however, it only works if one mapping is set)
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
-                    assert(isEqual(getValue(getValue(exchange.options, "networksById"), networkId), networkCode), add(add(add(add(add(add("exchange.options[\"networksById\"][\"", networkId), "\"] value is not expected \""), networkCode), "\", but: \""), getValue(getValue(exchange.options, "networksById"), networkId)), "\""));
+                    assert(isEqual(getValue(getValue(exchange.options, "networksById"), networkId), networkCode), add(((((("exchange.options[\"networksById\"][\"" + networkId) + "\"] value is not expected \"") + networkCode) + "\", but: \"") + getValue(getValue(exchange.options, "networksById"), networkId)), "\""));
                     // check networkIdToCode conversion back
                     string? networkCodeConverted = exchange.networkIdToCode(networkId);
-                    assert(isEqual(networkCode, networkCodeConverted), add(add(add(add(add(add("exchange.networkIdToCode (\"", networkId), "\")=\""), networkCodeConverted), "\" does not match key \""), networkCode), "\" of exchange.options[\"networks\"]"));
+                    assert(isEqual(networkCode, networkCodeConverted), add(((((("exchange.networkIdToCode (\"" + networkId) + "\")=\"") + networkCodeConverted) + "\" does not match key \"") + networkCode), "\" of exchange.options[\"networks\"]"));
                 }
             }
         }

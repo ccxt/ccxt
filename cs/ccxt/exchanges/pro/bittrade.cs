@@ -69,7 +69,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         // only supports a limit of 150 at this time
-        string messageHash = add(add("market.", GetValue(market, "id")), ".detail");
+        string messageHash = (("market." + GetValue(market, "id")) + ".detail");
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -149,7 +149,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         // only supports a limitVar of 150 at this time
-        string messageHash = add(add("market.", GetValue(market, "id")), ".trade.detail");
+        string messageHash = (("market." + GetValue(market, "id")) + ".trade.detail");
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -248,7 +248,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = add(add(add("market.", GetValue(market, "id")), ".kline."), interval);
+        string messageHash = ((("market." + GetValue(market, "id")) + ".kline.") + interval);
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -333,7 +333,7 @@ public partial class bittrade : ccxt.bittrade
         parameters ??= new Dictionary<string, object>();
         if ((!isEqual(limitVar, null)) && (!isEqual(limitVar, 150)))
         {
-            throw new ExchangeError (add(this.id, " watchOrderBook accepts limit = 150 only")) ;
+            throw new ExchangeError ((this.id + " watchOrderBook accepts limit = 150 only")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -343,7 +343,7 @@ public partial class bittrade : ccxt.bittrade
         symbolVar = GetValue(market, "symbol");
         // only supports a limitVar of 150 at this time
         limitVar = (isEqual(limitVar, null)) ? 150 : limitVar;
-        string messageHash = add(add(add("market.", GetValue(market, "id")), ".mbp."), limitVar.ToString());
+        string messageHash = ((("market." + GetValue(market, "id")) + ".mbp.") + limitVar.ToString());
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },

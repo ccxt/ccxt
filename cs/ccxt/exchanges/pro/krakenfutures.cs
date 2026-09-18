@@ -332,9 +332,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         symbols = this.marketSymbols(symbols);
         if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
         {
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        messageHash = add("positions", messageHash);
+        messageHash = ("positions" + messageHash);
         object newPositions = await this.subscribePrivate("open_positions", messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -517,7 +517,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = add(messageHash, add(":", GetValue(market, "symbol")));
+            messageHash = add(messageHash, (":" + GetValue(market, "symbol")));
         }
         object orders = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -551,7 +551,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = add(messageHash, add(":", GetValue(market, "symbol")));
+            messageHash = add(messageHash, (":" + GetValue(market, "symbol")));
         }
         object trades = await this.subscribePrivate(name, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -587,9 +587,9 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             if (!isEqual(account, "futures") && !isEqual(account, "flex_futures"))
             {
-                throw new ArgumentsRequired (add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
+                throw new ArgumentsRequired ((this.id + " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
-            messageHash = add(messageHash, add(":", account));
+            messageHash = add(messageHash, (":" + account));
         }
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, messageHash, parameters));
     }
@@ -1042,7 +1042,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? symbol = ((string)getValue(keys, i));
-                string symbolMessageHash = add(add(messageHash, ":"), symbol);
+                string symbolMessageHash = ((messageHash + ":") + symbol);
                 callDynamically(client, "resolve", new object[] {this.orders, symbolMessageHash});
             }
         }
@@ -1603,7 +1603,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             ((IDictionary<string,object>)this.balance)["margin"] = futuresResult;
             ((IDictionary<string,object>)this.balance)["margin"] = this.safeBalance(getValue(this.balance, "margin"));
-            callDynamically(client, "resolve", new object[] {getValue(this.balance, "margin"), add(messageHash, "futures")});
+            callDynamically(client, "resolve", new object[] {getValue(this.balance, "margin"), (messageHash + "futures")});
         }
         if ((flexFutures != null))
         {
@@ -1630,7 +1630,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
             ((IDictionary<string,object>)this.balance)["flex"] = flexFuturesResult;
             ((IDictionary<string,object>)this.balance)["flex"] = this.safeBalance(getValue(this.balance, "flex"));
-            callDynamically(client, "resolve", new object[] {getValue(this.balance, "flex"), add(messageHash, "flex_futures")});
+            callDynamically(client, "resolve", new object[] {getValue(this.balance, "flex"), (messageHash + "flex_futures")});
         }
         callDynamically(client, "resolve", new object[] {this.balance, messageHash});
     }
@@ -1685,7 +1685,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         for (int i = 0; isLessThan(i, tradeSymbolKeys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(tradeSymbolKeys, i));
-            string messageHash = add("myTrades:", symbol);
+            string messageHash = ("myTrades:" + symbol);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
         callDynamically(client, "resolve", new object[] {stored, "myTrades"});
@@ -1789,11 +1789,11 @@ public partial class krakenfutures : ccxt.krakenfutures
             messageHash = add(messageHash, "s");
         } else
         {
-            messageHash = add(messageHash, add(":", symbol));
+            messageHash = add(messageHash, (":" + symbol));
         }
         if (!isEqual(subChannelName, null))
         {
-            messageHash = add(messageHash, add("#", subChannelName));
+            messageHash = add(messageHash, ("#" + subChannelName));
         }
         return ((string?)((object)(messageHash)));
     }
@@ -1822,7 +1822,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         }
         try
         {
-            throw new ExchangeError (add(add(this.id, " "), errMsg)) ;
+            throw new ExchangeError (((this.id + " ") + errMsg)) ;
         } catch(Exception error)
         {
             client.reject(error);
@@ -1897,7 +1897,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             (future as Future).resolve(true);
         } else
         {
-            var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
+            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
             if (inOp(client.subscriptions, messageHash))
             {

@@ -1583,7 +1583,7 @@ public partial class woo : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
     }
@@ -1608,7 +1608,7 @@ public partial class woo : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
         return await this.CreateOrder(symbol, "market", "sell",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
     }
@@ -1633,11 +1633,11 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(trailingAmount, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createTrailingAmountOrder() requires a trailingAmount argument")) ;
+            throw new ArgumentsRequired ((this.id + " createTrailingAmountOrder() requires a trailingAmount argument")) ;
         }
         if (isEqual(trailingTriggerPrice, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createTrailingAmountOrder() requires a trailingTriggerPrice argument")) ;
+            throw new ArgumentsRequired ((this.id + " createTrailingAmountOrder() requires a trailingTriggerPrice argument")) ;
         }
         ((IDictionary<string,object>)parameters)["trailingAmount"] = trailingAmount;
         ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
@@ -1664,11 +1664,11 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(trailingPercent, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createTrailingPercentOrder() requires a trailingPercent argument")) ;
+            throw new ArgumentsRequired ((this.id + " createTrailingPercentOrder() requires a trailingPercent argument")) ;
         }
         if (isEqual(trailingTriggerPrice, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
+            throw new ArgumentsRequired ((this.id + " createTrailingPercentOrder() requires a trailingTriggerPrice argument")) ;
         }
         ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
         ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
@@ -1801,7 +1801,7 @@ public partial class woo : Exchange
         {
             if ((trailingTriggerPrice == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a trailingTriggerPrice parameter for trailing orders")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a trailingTriggerPrice parameter for trailing orders")) ;
             }
             request["activatedPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
             request["algoType"] = "TRAILING_STOP";
@@ -2015,7 +2015,7 @@ public partial class woo : Exchange
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (((isTrigger != true)) && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2651,7 +2651,7 @@ public partial class woo : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
+            throw new NotSupported ((this.id + " fetchTicker() supports swap markets only, there is no spot ticker endpoint")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -2687,7 +2687,7 @@ public partial class woo : Exchange
         IDictionary<string, object> first = this.safeDict(rows, 0);
         if ((first == null))
         {
-            throw new BadSymbol (add(add(this.id, " fetchTicker() could not find ticker data for "), symbol)) ;
+            throw new BadSymbol (((this.id + " fetchTicker() could not find ticker data for ") + symbol)) ;
         }
         Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
             { "timestamp", this.safeInteger(response, "timestamp") },
@@ -2724,7 +2724,7 @@ public partial class woo : Exchange
                 Dictionary<string, object> firstMarket = this.market(getValue(symbols, 0));
                 if (!isEqual(GetValue(firstMarket, "swap"), true))
                 {
-                    throw new NotSupported (add(this.id, " fetchTickers() supports swap markets only")) ;
+                    throw new NotSupported ((this.id + " fetchTickers() supports swap markets only")) ;
                 }
             }
         }
@@ -2737,7 +2737,7 @@ public partial class woo : Exchange
             parameters = marketTypeparametersVariable[1];
             if (marketType != "swap")
             {
-                throw new NotSupported (add(this.id, " fetchTickers() supports swap markets only")) ;
+                throw new NotSupported ((this.id + " fetchTickers() supports swap markets only")) ;
             }
         }
         Dictionary<string, object> response = await this.v3PublicGetFutures(parameters);
@@ -3202,7 +3202,7 @@ public partial class woo : Exchange
         if ((networkEntry == null))
         {
             List<object> supportedNetworks = new List<object>(((IDictionary<string,object>)getValue(currency, "networks")).Keys);
-            throw new BadRequest (add(add(this.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.json(supportedNetworks))) ;
+            throw new BadRequest (((this.id + "  can not determine a network code, please provide unified \"network\" param, one from the following: ") + this.json(supportedNetworks))) ;
         }
         string? currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
         return new List<object>() {currentyNetworkId, parameters};
@@ -3391,7 +3391,7 @@ public partial class woo : Exchange
             object currencyId = this.safeString(parts, 1, firstPart);
             if (isGreaterThan(partsLength, 2))
             {
-                currencyId = add(currencyId, add("_", this.safeString(parts, 2)));
+                currencyId = add(currencyId, ("_" + this.safeString(parts, 2)));
             }
             currency = this.safeCurrency(currencyId);
         }
@@ -3756,7 +3756,7 @@ public partial class woo : Exchange
         string? network = this.safeString(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired (add(add(this.id, " withdraw() requires a network parameter for "), code)) ;
+            throw new ArgumentsRequired (((this.id + " withdraw() requires a network parameter for ") + code)) ;
         }
         parameters = this.omit(parameters, "network");
         request["token"] = GetValue(currency, "id");
@@ -3857,7 +3857,7 @@ public partial class woo : Exchange
         object access = getValue(section, 1);
         string? pathWithParams = this.implodeParams(path, parameters);
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), access));
-        url = add(url, add(add("/", version), "/"));
+        url = add(url, (("/" + version) + "/"));
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isEqual(access, "public"))
@@ -3865,14 +3865,14 @@ public partial class woo : Exchange
             url = add(url, add(add(access, "/"), pathWithParams));
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else if (isEqual(access, "pub"))
         {
             url = add(url, pathWithParams);
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
@@ -3904,7 +3904,7 @@ public partial class woo : Exchange
             };
             if (isEqual(version, "v3"))
             {
-                auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
+                auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
                 if (isEqual(method, "POST") || isEqual(method, "PUT"))
                 {
                     body = this.json(parameters);
@@ -3915,8 +3915,8 @@ public partial class woo : Exchange
                     if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                     {
                         string query = this.urlencode(parameters);
-                        url = add(url, add("?", query));
-                        auth = add(auth, add("?", query));
+                        url = add(url, ("?" + query));
+                        auth = add(auth, ("?" + query));
                     }
                 }
             } else
@@ -3929,10 +3929,10 @@ public partial class woo : Exchange
                 {
                     if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                     {
-                        url = add(url, add("?", auth));
+                        url = add(url, ("?" + auth));
                     }
                 }
-                auth = add(auth, add("|", ts));
+                auth = add(auth, ("|" + ts));
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
             }
             ((IDictionary<string,object>)headers)["x-api-signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
@@ -3959,7 +3959,7 @@ public partial class woo : Exchange
         string? errorCode = this.safeString(response, "code");
         if ((success != true))
         {
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         }
@@ -4275,7 +4275,7 @@ public partial class woo : Exchange
         }
         if (isEqual(symbolVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = ((string)GetValue(market, "symbol"));
@@ -4403,7 +4403,7 @@ public partial class woo : Exchange
             response = await this.v3PrivateGetFuturesLeverage(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchLeverage() is not supported for "), GetValue(market, "type")), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchLeverage() is not supported for ") + GetValue(market, "type")) + " markets")) ;
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(data, market));
@@ -4490,7 +4490,7 @@ public partial class woo : Exchange
             return ccxt.BaseExchange.ToDict(await this.v3PrivatePutFuturesLeverage(this.extend(request, parameters)));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchLeverage() is not supported for "), this.safeString(market, "type")), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchLeverage() is not supported for ") + this.safeString(market, "type")) + " markets")) ;
         }
     }
 

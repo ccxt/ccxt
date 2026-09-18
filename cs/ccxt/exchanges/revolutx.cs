@@ -223,26 +223,26 @@ public partial class revolutx : Exchange
                 if (isGreaterThan(queryLength, 0))
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, add("?", queryString));
+                    url = add(url, ("?" + queryString));
                 }
             } else if (isEqual(method, "DELETE"))
             {
                 if (isGreaterThan(queryLength, 0))
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, add("?", queryString));
+                    url = add(url, ("?" + queryString));
                 }
             } else
             {
                 body = this.json(query);
             }
-            string requestPath = add("/api/", implodedPath);
+            string requestPath = ("/api/" + implodedPath);
             object bodyString = "";
             if (!isEqual(body, null))
             {
                 bodyString = body;
             }
-            string message = add(add(add(add(timestamp, ((string)method).ToUpper()), requestPath), queryString), bodyString);
+            string message = ((((timestamp + ((string)method).ToUpper()) + requestPath) + queryString) + bodyString);
             string signature = eddsa(this.encode(message), this.privateKey, ed25519);
             headers = new Dictionary<string, object>() {
                 { "X-Revx-API-Key", this.apiKey },
@@ -260,7 +260,7 @@ public partial class revolutx : Exchange
                 if (isGreaterThan(queryLength, 0))
                 {
                     queryString = this.urlencode(query);
-                    url = add(url, add("?", queryString));
+                    url = add(url, ("?" + queryString));
                 }
             } else
             {
@@ -300,7 +300,7 @@ public partial class revolutx : Exchange
         string? minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
         string? status = this.safeString(market, "status");
         bool active = (status == "active");
-        string symbol = add(add(bs, "/"), quote);
+        string symbol = ((bs + "/") + quote);
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -653,7 +653,7 @@ public partial class revolutx : Exchange
         IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
         if ((ticker == null))
         {
-            throw new ExchangeError (add(add(this.id, " fetchTicker() could not find ticker for symbol "), symbol)) ;
+            throw new ExchangeError (((this.id + " fetchTicker() could not find ticker for symbol ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToTicker(ticker);
     }
@@ -1104,11 +1104,11 @@ public partial class revolutx : Exchange
         {
             if ((timeInForce != null))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() timeInForce is only supported for limit orders")) ;
+                throw new InvalidOrder ((this.id + " createOrder() timeInForce is only supported for limit orders")) ;
             }
             if ((executionInstructions != null))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() executionInstructions are only supported for limit orders")) ;
+                throw new InvalidOrder ((this.id + " createOrder() executionInstructions are only supported for limit orders")) ;
             }
             Dictionary<string, object> marketConfig = new Dictionary<string, object>() {};
             if ((cost != null))
@@ -1121,7 +1121,7 @@ public partial class revolutx : Exchange
             orderConfiguration["market"] = marketConfig;
         } else
         {
-            throw new InvalidOrder (add(add(this.id, " createOrder() does not support order type "), type)) ;
+            throw new InvalidOrder (((this.id + " createOrder() does not support order type ") + type)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
@@ -1469,7 +1469,7 @@ public partial class revolutx : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol parameter")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1607,7 +1607,7 @@ public partial class revolutx : Exchange
             {
                 return null;
             }
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             string? errorMessage = null;
             if ((response is IDictionary<string, object>))
             {

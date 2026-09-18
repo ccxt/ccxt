@@ -362,11 +362,11 @@ public partial class hyperliquid : Exchange
     {
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " market() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " market() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
-            throw new ExchangeError (add(this.id, " markets not loaded")) ;
+            throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         if ((!isEqual(symbol, null)) && !(inOp(this.markets, symbol)))
         {
@@ -377,7 +377,7 @@ public partial class hyperliquid : Exchange
             {
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
                 string? quote = this.safeString(symbolParts, 1);
-                string newSymbol = add(add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
+                string newSymbol = ((this.safeCurrencyCode(unifiedBaseName) + "/") + quote);
                 if (inOp(this.markets, newSymbol))
                 {
                     return ccxt.BaseExchange.ToDict(getValue(this.markets, newSymbol));
@@ -1035,7 +1035,7 @@ public partial class hyperliquid : Exchange
         object bs = this.safeCurrencyCode(baseName);
         if ((bs == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing base currency")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing base currency")) ;
         }
         bs = ((string)bs).Replace((string)":", (string)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         string? quote = this.safeCurrencyCode(quoteId);
@@ -1395,7 +1395,7 @@ public partial class hyperliquid : Exchange
         IDictionary<string, object> rate = this.safeDict(rates, GetValue(market, "symbol"));
         if ((rate == null))
         {
-            throw new BadSymbol (add(add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+            throw new BadSymbol (((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToFundingRate(rate);
     }
@@ -1730,7 +1730,7 @@ public partial class hyperliquid : Exchange
         // became zero after rounding, never an explicitly requested zero
         if (isTrue(Precise.stringEq(result, "0")) && isTrue(Precise.stringGt(this.numberToString(amount), "0")))
         {
-            throw new InvalidOrder (add(add(add(add(this.id, " amount of "), GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(getValue(GetValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder (((((this.id + " amount of ") + GetValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(GetValue(market, "precision"), "amount")))) ;
         }
         return result;
     }
@@ -1749,15 +1749,15 @@ public partial class hyperliquid : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         return new Dictionary<string, object>() {
-            { "r", add("0x", GetValue(signature, "r")) },
-            { "s", add("0x", GetValue(signature, "s")) },
+            { "r", ("0x" + GetValue(signature, "r")) },
+            { "s", ("0x" + GetValue(signature, "s")) },
             { "v", this.sum(27, GetValue(signature, "v")) },
         };
     }
@@ -1782,7 +1782,7 @@ public partial class hyperliquid : Exchange
         object dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
         object data = dataHex;
-        data = add(data, add("00000", this.intToBase16(nonce)));
+        data = add(data, ("00000" + this.intToBase16(nonce)));
         if (isEqual(vaultAddress, null))
         {
             data = add(data, "00");
@@ -1794,7 +1794,7 @@ public partial class hyperliquid : Exchange
         if (!isEqual(expiresAfter, null))
         {
             data = add(data, "00");
-            data = add(data, add("00000", this.intToBase16(expiresAfter)));
+            data = add(data, ("00000" + this.intToBase16(expiresAfter)));
         }
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
@@ -2466,11 +2466,11 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         type = ((string)type).ToUpper();
@@ -2496,7 +2496,7 @@ public partial class hyperliquid : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(this.id, "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
+                throw new ArgumentsRequired ((this.id + "  market orders require price to calculate the max slippage price. Default slippage can be set in options (default is 5%).")) ;
             }
             px = isBuy ? Precise.stringMul(price, Precise.stringAdd("1", slippage)) : Precise.stringMul(price, Precise.stringSub("1", slippage));
             px = this.priceToPrecision(symbol, px); // round after adding slippage
@@ -2580,7 +2580,7 @@ public partial class hyperliquid : Exchange
                 string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if ((clientOrderId == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrders() all orders must have clientOrderId if at least one has a clientOrderId")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrders() all orders must have clientOrderId if at least one has a clientOrderId")) ;
                 }
             }
         }
@@ -2627,7 +2627,7 @@ public partial class hyperliquid : Exchange
                     orderReq.Add(mainOrderObj);
                 } else
                 {
-                    throw new NotSupported (add(this.id, " only support grouping normalTpsl and positionTpsl.")) ;
+                    throw new NotSupported ((this.id + " only support grouping normalTpsl and positionTpsl.")) ;
                 }
                 orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit", "grouping"});
                 string triggerOrderSide = "";
@@ -2744,7 +2744,7 @@ public partial class hyperliquid : Exchange
         this.checkRequiredCredentials();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2802,7 +2802,7 @@ public partial class hyperliquid : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelTwapOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelTwapOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         object vaultAddress = null;
@@ -2964,11 +2964,11 @@ public partial class hyperliquid : Exchange
             string? symbol = this.safeString(order, "symbol");
             if ((symbol == null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelOrdersForSymbols() requires a symbol argument in each order")) ;
+                throw new ArgumentsRequired ((this.id + " cancelOrdersForSymbols() requires a symbol argument in each order")) ;
             }
             if ((id != null) && cancelByCloid)
             {
-                throw new BadRequest (add(this.id, " cancelOrdersForSymbols() all orders must have either id or clientOrderId")) ;
+                throw new BadRequest ((this.id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId")) ;
             }
             string assetKey = cancelByCloid ? "asset" : "a";
             string idKey = cancelByCloid ? "cloid" : "o";
@@ -3085,7 +3085,7 @@ public partial class hyperliquid : Exchange
                 string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if ((clientOrderId == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " editOrders() all orders must have clientOrderId if at least one has a clientOrderId")) ;
+                    throw new ArgumentsRequired ((this.id + " editOrders() all orders must have clientOrderId if at least one has a clientOrderId")) ;
                 }
             }
         }
@@ -3231,7 +3231,7 @@ public partial class hyperliquid : Exchange
         }
         if (isEqual(id, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an id argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an id argument")) ;
         }
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
         var order = orderglobalParamsVariable[0];
@@ -3367,7 +3367,7 @@ public partial class hyperliquid : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4156,7 +4156,7 @@ public partial class hyperliquid : Exchange
                 string? currentDexName = this.getDexFromHip3Symbol(market);
                 if (!isEqual(currentDexName, dexName))
                 {
-                    throw new NotSupported (add(add(add(this.id, " "), methodName), " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
+                    throw new NotSupported ((((this.id + " ") + methodName) + " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
                 }
             }
         }
@@ -4351,7 +4351,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4361,7 +4361,7 @@ public partial class hyperliquid : Exchange
         Int64? leverage = this.safeInteger(parameters, "leverage");
         if ((leverage == null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter")) ;
         }
         Int64? asset = this.parseToInt(GetValue(market, "baseId"));
         bool isCross = (isEqual(marginMode, "cross"));
@@ -4421,7 +4421,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4602,7 +4602,7 @@ public partial class hyperliquid : Exchange
             // handle swap <> spot account transfer
             if (!this.inArray(toAccount, new List<object>() {"spot", "swap", "perp"}))
             {
-                throw new NotSupported (add(this.id, " transfer() only support spot <> swap transfer")) ;
+                throw new NotSupported ((this.id + " transfer() only support spot <> swap transfer")) ;
             }
             object strAmount = this.numberToString(amount);
             string? vaultAddress = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
@@ -4653,7 +4653,7 @@ public partial class hyperliquid : Exchange
             subAccountAddress = fromAccount;
         } else
         {
-            throw new NotSupported (add(this.id, " transfer() only support main <> subaccount transfer")) ;
+            throw new NotSupported ((this.id + " transfer() only support main <> subaccount transfer")) ;
         }
         this.checkAddress(subAccountAddress);
         // hyperliquid keeps separate perp and spot ledgers for sub-account transfers: subAccountTransfer
@@ -4689,7 +4689,7 @@ public partial class hyperliquid : Exchange
             // expects the token as "NAME:tokenId", e.g. "USDC:0x6d1e7cde53ba9467b783cb7c530ce054"
             if (isEqual(code, null))
             {
-                throw new ArgumentsRequired (add(this.id, " transfer() requires a currency code for spot sub-account transfers")) ;
+                throw new ArgumentsRequired ((this.id + " transfer() requires a currency code for spot sub-account transfers")) ;
             }
             Dictionary<string, object> currency = this.currency(code);
             IDictionary<string, object> currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
@@ -4761,7 +4761,7 @@ public partial class hyperliquid : Exchange
             codeVar = codeVar.ToUpper();
             if (!isEqual(codeVar, "USDC"))
             {
-                throw new NotSupported (add(this.id, " withdraw() only support USDC")) ;
+                throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
             }
         }
         object vaultAddress = null;
@@ -4777,7 +4777,7 @@ public partial class hyperliquid : Exchange
         {
             action = new Dictionary<string, object>() {
                 { "type", "vaultTransfer" },
-                { "vaultAddress", add("0x", vaultAddress) },
+                { "vaultAddress", ("0x" + vaultAddress) },
                 { "isDeposit", false },
                 { "usd", amount },
             };
@@ -5129,7 +5129,7 @@ public partial class hyperliquid : Exchange
         {
             if (isEqual(since, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchDeposits requires since while until is set")) ;
+                throw new ArgumentsRequired ((this.id + " fetchDeposits requires since while until is set")) ;
             }
             request["endTime"] = until;
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -5168,7 +5168,7 @@ public partial class hyperliquid : Exchange
                 if (isEqual(getValue(record, "type"), "vaultDeposit"))
                 {
                     IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
-                    if (isEqual(GetValue(delta, "vault"), add("0x", vaultAddress)))
+                    if (isEqual(GetValue(delta, "vault"), ("0x" + vaultAddress)))
                     {
                         ((IList<object>)deposits).Add(record);
                     }
@@ -5253,7 +5253,7 @@ public partial class hyperliquid : Exchange
                 if (isEqual(getValue(record, "type"), "vaultWithdraw"))
                 {
                     IDictionary<string, object> delta = this.safeDict(record, "delta", new Dictionary<string, object>() {});
-                    if (isEqual(GetValue(delta, "vault"), add("0x", vaultAddress)))
+                    if (isEqual(GetValue(delta, "vault"), ("0x" + vaultAddress)))
                     {
                         ((IList<object>)withdrawals).Add(record);
                     }
@@ -5549,7 +5549,7 @@ public partial class hyperliquid : Exchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the wallet address set")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the wallet address set")) ;
     }
 
     public virtual string? coinToMarketId(object coin)
@@ -5575,7 +5575,7 @@ public partial class hyperliquid : Exchange
         {
             coin = ((string)coin).Replace((string)":", (string)"-"); // hip3
         }
-        return add(this.safeCurrencyCode(coin), "/USDC:USDC");
+        return (this.safeCurrencyCode(coin) + "/USDC:USDC");
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -5602,7 +5602,7 @@ public partial class hyperliquid : Exchange
             message = this.safeString(response, "response");
         } else if (status == "unknownOid")
         {
-            throw new OrderNotFound (add(add(this.id, " "), body)) ;
+            throw new OrderNotFound (((this.id + " ") + body)) ;
         } else if ((error != null))
         {
             message = error;
@@ -5629,7 +5629,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         bool nonEmptyMessage = (((message != null)) && (message != ""));
         if (nonEmptyMessage)
         {
@@ -5648,7 +5648,7 @@ public partial class hyperliquid : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/") + path);
         if (isEqual(method, "POST"))
         {
             headers = new Dictionary<string, object>() {

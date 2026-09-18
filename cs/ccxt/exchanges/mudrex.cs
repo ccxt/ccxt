@@ -234,7 +234,7 @@ public partial class mudrex : Exchange
         string? bs = this.safeString(apiUrls, api);
         if ((bs == null))
         {
-            throw new ExchangeError (add(add(this.id, " unknown API namespace: "), api)) ;
+            throw new ExchangeError (((this.id + " unknown API namespace: ") + api)) ;
         }
         string url = add(add(bs, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
@@ -261,7 +261,7 @@ public partial class mudrex : Exchange
                 if ((isSymbol != null))
                 {
                     query = this.omit(query, "is_symbol");
-                    url = add(url, add("?", this.urlencode(new Dictionary<string, object>() {
+                    url = add(url, ("?" + this.urlencode(new Dictionary<string, object>() {
     { "is_symbol", isSymbol },
 })));
                 }
@@ -285,7 +285,7 @@ public partial class mudrex : Exchange
         }
         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
         {
-            url = add(url, add("?", this.urlencode(query)));
+            url = add(url, ("?" + this.urlencode(query)));
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -308,10 +308,10 @@ public partial class mudrex : Exchange
             IDictionary<string, object> first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
             string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), text, add(add(this.id, " "), text));
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, add(add(this.id, " "), text));
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, add(add(this.id, " "), text));
-            string msg = add(add(this.id, " "), text);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), text, ((this.id + " ") + text));
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, ((this.id + " ") + text));
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, ((this.id + " ") + text));
+            string msg = ((this.id + " ") + text);
             string low = text.ToLower();
             if (isEqual(code, 401) || getIndexOf(low, "auth") >= 0)
             {
@@ -393,7 +393,7 @@ public partial class mudrex : Exchange
         }
         if (isEqual(startTime, null))
         {
-            throw new ExchangeError (add(this.id, " fetchOHLCV() missing startTime")) ;
+            throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
         }
         object endTime = add(startTime, multiply(duration, requestLimit));
         Int64? until = this.safeInteger(parameters, "until");
@@ -732,7 +732,7 @@ public partial class mudrex : Exchange
         }
         if ((response == null))
         {
-            throw new NullResponse (add(this.id, " fetchBalance() returned empty response")) ;
+            throw new NullResponse ((this.id + " fetchBalance() returned empty response")) ;
         }
         response["currency"] = currency;
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
@@ -804,7 +804,7 @@ public partial class mudrex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -863,7 +863,7 @@ public partial class mudrex : Exchange
             string? positionId = this.safeString2(parameters, "positionId", "position_id");
             if ((positionId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a positionId parameter to place a stopLossPrice or takeProfitPrice order")) ;
             }
             parameters = this.omit(parameters, new List<object>() {"stopLossPrice", "takeProfitPrice", "positionId", "position_id"});
             Dictionary<string, object> riskRequest = new Dictionary<string, object>() {
@@ -886,7 +886,7 @@ public partial class mudrex : Exchange
         Int64? lev = this.safeInteger(parameters, "leverage", 1);
         if ((isEqual(type, "market")) && (isEqual(price, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument for market orders")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for market orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_id", GetValue(market, "id") },
@@ -1406,7 +1406,7 @@ public partial class mudrex : Exchange
         }
         if ((positionId == null))
         {
-            throw new OrderNotFound (add(this.id, " closePosition() could not resolve position_id")) ;
+            throw new OrderNotFound ((this.id + " closePosition() could not resolve position_id")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "position_id", positionId },
@@ -1464,7 +1464,7 @@ public partial class mudrex : Exchange
         }
         if ((positionId == null))
         {
-            throw new OrderNotFound (add(this.id, " addMargin() could not resolve position_id")) ;
+            throw new OrderNotFound ((this.id + " addMargin() could not resolve position_id")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "position_id", positionId },
@@ -1575,7 +1575,7 @@ public partial class mudrex : Exchange
         {
             object entry = getValue(allRows, i);
             string? feeType = this.safeString(entry, "fee_type");
-            string pairKey = add(add(add(add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
+            string pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
             if (feeType == "TRANSACTION")
             {
                 transactions.Add(entry);

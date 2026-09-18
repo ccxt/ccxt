@@ -1945,14 +1945,14 @@ public partial class mexc : Exchange
                 request["startTime"] = since;
                 if ((until == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " fetchTrades() requires an until parameter when since is provided")) ;
+                    throw new ArgumentsRequired ((this.id + " fetchTrades() requires an until parameter when since is provided")) ;
                 }
             }
             if ((until != null))
             {
                 if (isEqual(since, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " fetchTrades() requires a since parameter when until is provided")) ;
+                    throw new ArgumentsRequired ((this.id + " fetchTrades() requires a since parameter when until is provided")) ;
                 }
                 request["endTime"] = until;
             }
@@ -1970,7 +1970,7 @@ public partial class mexc : Exchange
                 trades = await this.spotPublicGetTrades(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchTrades() not support this method")) ;
+                throw new NotSupported ((this.id + " fetchTrades() not support this method")) ;
             }
         } else if (isEqual(GetValue(market, "swap"), true))
         {
@@ -2271,7 +2271,7 @@ public partial class mexc : Exchange
                 response = await this.contractPublicGetKlineFairPriceSymbol(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchOHLCV() not support this price type, [default, index, mark]")) ;
+                throw new NotSupported ((this.id + " fetchOHLCV() not support this price type, [default, index, mark]")) ;
             }
             //
             //     {
@@ -2594,7 +2594,7 @@ public partial class mexc : Exchange
             tickers = await this.spotPublicGetTickerBookTicker(query);
         } else if (isEqual(marketType, "swap"))
         {
-            throw new NotSupported (add(add(add(this.id, " fetchBidsAsks() is not available for "), marketType), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchBidsAsks() is not available for ") + marketType) + " markets")) ;
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if (isSingularMarket)
@@ -2624,7 +2624,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
@@ -2652,7 +2652,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
@@ -2757,7 +2757,7 @@ public partial class mexc : Exchange
         {
             if (!isEqual(marginMode, "isolated"))
             {
-                throw new BadRequest (add(add(add(this.id, " createOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                throw new BadRequest ((((this.id + " createOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
             }
         }
         bool? postOnly = null;
@@ -2895,7 +2895,7 @@ public partial class mexc : Exchange
                 openType = 1;
             } else
             {
-                throw new ArgumentsRequired (add(this.id, " createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"")) ;
+                throw new ArgumentsRequired ((this.id + " createSwapOrder() marginMode parameter should be either \"cross\" or \"isolated\"")) ;
             }
         } else
         {
@@ -2903,7 +2903,7 @@ public partial class mexc : Exchange
         }
         if ((!isEqual(type, "limit")) && (!isEqual(type, "market")) && (!isEqual(type, 1)) && (!isEqual(type, 2)) && (!isEqual(type, 3)) && (!isEqual(type, 4)) && (!isEqual(type, 5)) && (!isEqual(type, 6)))
         {
-            throw new InvalidOrder (add(this.id, " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
+            throw new InvalidOrder ((this.id + " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
         }
         bool? postOnly = null;
         IList<object> postOnlyparametersVariable = (IList<object>)this.handlePostOnly(isEqual(type, "market"), isEqual(type, 2), parameters);
@@ -2944,7 +2944,7 @@ public partial class mexc : Exchange
             Int64? leverage = this.safeInteger(parameters, "leverage");
             if ((leverage == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
+                throw new ArgumentsRequired ((this.id + " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
             }
         }
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
@@ -3031,7 +3031,7 @@ public partial class mexc : Exchange
             Dictionary<string, object> market = this.market(marketId);
             if (!isEqual(GetValue(market, "spot"), true))
             {
-                throw new NotSupported (add(this.id, " createOrders() is only supported for spot markets")) ;
+                throw new NotSupported ((this.id + " createOrders() is only supported for spot markets")) ;
             }
             if ((symbol == null))
             {
@@ -3040,7 +3040,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(symbol, marketId))
                 {
-                    throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                    throw new BadRequest ((this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
             }
             string? type = this.safeString(rawOrder, "type");
@@ -3099,7 +3099,7 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3128,7 +3128,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest (add(add(add(this.id, " fetchOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                    throw new BadRequest ((((this.id + " fetchOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                 }
                 data = await this.spotPrivateGetMarginOrder(this.extend(request, query));
             } else
@@ -3214,7 +3214,7 @@ public partial class mexc : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument for spot market")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument for spot market")) ;
             }
             IList<object> marginModequeryInnerVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", parameters);
             var marginMode = marginModequeryInnerVariable[0];
@@ -3236,7 +3236,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest (add(add(add(this.id, " fetchOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                    throw new BadRequest ((((this.id + " fetchOrders() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                 }
                 response = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
             } else
@@ -3305,7 +3305,7 @@ public partial class mexc : Exchange
                 {
                     if (isGreaterThan((subtract(end, since)), getValue(this.options, "maxTimeTillEnd")))
                     {
-                        throw new BadRequest (add(this.id, " end is invalid, i.e. exceeds allowed 90 days.")) ;
+                        throw new BadRequest ((this.id + " end is invalid, i.e. exceeds allowed 90 days.")) ;
                     } else
                     {
                         request["end_time"] = until;
@@ -3418,7 +3418,7 @@ public partial class mexc : Exchange
         var query = marketTypequeryVariable[1];
         if (isEqual(marketType, "spot"))
         {
-            throw new BadRequest (add(add(this.id, " fetchOrdersByIds() is not supported for "), marketType)) ;
+            throw new BadRequest (((this.id + " fetchOrdersByIds() is not supported for ") + marketType)) ;
         } else
         {
             request["order_ids"] = String.Join(",", ((IList<object>)ids).ToArray());
@@ -3507,7 +3507,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest (add(add(add(this.id, " fetchOpenOrders() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                    throw new BadRequest ((((this.id + " fetchOpenOrders() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                 }
                 response = await this.spotPrivateGetMarginOpenOrders(this.extend(request, query));
             } else
@@ -3630,7 +3630,7 @@ public partial class mexc : Exchange
         var marketType = marketTypeVariable[0];
         if (isEqual(marketType, "spot"))
         {
-            throw new NotSupported (add(add(this.id, " fetchOrdersByState() is not supported for "), marketType)) ;
+            throw new NotSupported (((this.id + " fetchOrdersByState() is not supported for ") + marketType)) ;
         } else
         {
             request["states"] = state;
@@ -3677,7 +3677,7 @@ public partial class mexc : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
             }
             Dictionary<string, object> requestInner = new Dictionary<string, object>() {
                 { "symbol", this.safeString(market, "id") },
@@ -3695,7 +3695,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest (add(add(add(this.id, " cancelOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
+                    throw new BadRequest ((((this.id + " cancelOrder() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                 }
                 data = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
             } else
@@ -3716,7 +3716,7 @@ public partial class mexc : Exchange
                 response = await this.contractPrivatePostPlanorderCancel(new List<object>() {id}); // the request cannot be changed or extended. This is the only way to send.
             } else
             {
-                throw new NotSupported (add(this.id, " cancelOrder() not support this method")) ;
+                throw new NotSupported ((this.id + " cancelOrder() not support this method")) ;
             }
             //
             //     {
@@ -3736,7 +3736,7 @@ public partial class mexc : Exchange
             object errorMsg = this.safeValue(order, "errorMsg", "");
             if (!isEqual(errorMsg, "success"))
             {
-                throw new InvalidOrder (add(add(add(add(this.id, " cancelOrder() the order with id "), id), " cannot be cancelled: "), errorMsg)) ;
+                throw new InvalidOrder (((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
@@ -3764,7 +3764,7 @@ public partial class mexc : Exchange
         var marketType = marketTypeVariable[0];
         if (isEqual(marketType, "spot"))
         {
-            throw new BadRequest (add(add(this.id, " cancelOrders() is not supported for "), marketType)) ;
+            throw new BadRequest (((this.id + " cancelOrders() is not supported for ") + marketType)) ;
         } else
         {
             Dictionary<string, object> response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
@@ -4261,7 +4261,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new BadRequest (add(this.id, " fetchTradingFee() supports spot markets only")) ;
+            throw new BadRequest ((this.id + " fetchTradingFee() supports spot markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -4484,7 +4484,7 @@ public partial class mexc : Exchange
             response = await this.contractPrivateGetAccountAssets(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchBalance() not support this method")) ;
+            throw new NotSupported ((this.id + " fetchBalance() not support this method")) ;
         }
         //
         // spot
@@ -4591,7 +4591,7 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4701,7 +4701,7 @@ public partial class mexc : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrderTrades() requires a symbol argument")) ;
             }
             request["symbol"] = this.safeString(market, "id");
             request["orderId"] = id;
@@ -4744,7 +4744,7 @@ public partial class mexc : Exchange
         Int64? positionId = this.safeInteger(parameters, "positionId");
         if ((positionId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " modifyMarginHelper() requires a positionId parameter")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4824,7 +4824,7 @@ public partial class mexc : Exchange
             Dictionary<string, object> market = (!isEqual(symbol, null)) ? this.market(symbol) : null;
             if (((openType == null)) || ((positionType == null)) || ((market == null)))
             {
-                throw new ArgumentsRequired (add(this.id, " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
+                throw new ArgumentsRequired ((this.id + " setLeverage() requires a positionId parameter or a symbol argument with openType and positionType parameters, use openType 1 or 2 for isolated or cross margin respectively, use positionType 1 or 2 for long or short positions")) ;
             } else
             {
                 request["openType"] = openType;
@@ -5045,7 +5045,7 @@ public partial class mexc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5363,7 +5363,7 @@ public partial class mexc : Exchange
         string? networkCode = this.safeString(parameters, "network");
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createDepositAddress requires a `network` parameter")) ;
+            throw new ArgumentsRequired ((this.id + " createDepositAddress requires a `network` parameter")) ;
         }
         // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
         string? networkId = null;
@@ -5429,7 +5429,7 @@ public partial class mexc : Exchange
         }
         if ((result == null))
         {
-            throw new InvalidAddress (add(add(add(add(add(this.id, " fetchDepositAddress() cannot find a deposit address for "), code), ", and network"), network), "consider creating one using .createDepositAddress() method or in MEXC website")) ;
+            throw new InvalidAddress ((((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + code) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(result);
     }
@@ -5959,9 +5959,9 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
         } else if (isEqual(marketType, "swap"))
         {
-            throw new BadRequest (add(add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
+            throw new BadRequest (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
         }
-        throw new BadRequest (add(add(this.id, " fetchTransfer() is not supported for "), marketType)) ;
+        throw new BadRequest (((this.id + " fetchTransfer() is not supported for ") + marketType)) ;
     }
 
     /**
@@ -6011,7 +6011,7 @@ public partial class mexc : Exchange
             request["fromAccountType"] = this.safeString(accountTypes, fromAccountType, fromAccountType);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
         object toAccountType = null;
         IList<object> toAccountTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
@@ -6022,7 +6022,7 @@ public partial class mexc : Exchange
             request["toAccountType"] = this.safeString(accountTypes, toAccountType, toAccountType);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a toAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
         }
         List<object> resultList = new List<object>() {};
         if (marketType == "spot")
@@ -6103,12 +6103,12 @@ public partial class mexc : Exchange
         if ((fromId == null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
-            throw new ExchangeError (add(add(this.id, " fromAccount must be one of "), String.Join(", ", keys.ToArray()))) ;
+            throw new ExchangeError (((this.id + " fromAccount must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         if ((toId == null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
-            throw new ExchangeError (add(add(this.id, " toAccount must be one of "), String.Join(", ", keys.ToArray()))) ;
+            throw new ExchangeError (((this.id + " toAccount must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", GetValue(currency, "id") },
@@ -6122,7 +6122,7 @@ public partial class mexc : Exchange
             parameters = this.omit(parameters, "symbol");
             if ((symbol == null))
             {
-                throw new ArgumentsRequired (add(this.id, " transfer() requires a symbol argument for isolated margin")) ;
+                throw new ArgumentsRequired ((this.id + " transfer() requires a symbol argument for isolated margin")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
             request["symbol"] = GetValue(market, "id");
@@ -6276,7 +6276,7 @@ public partial class mexc : Exchange
             string? toAccountType = this.safeString(parameters, "toAccountType");
             if ((toAccountType == null))
             {
-                throw new ArgumentsRequired (add(this.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
+                throw new ArgumentsRequired ((this.id + " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
             }
             Dictionary<string, object> responseForInternal = await this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, parameters));
             //
@@ -6787,17 +6787,17 @@ public partial class mexc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new BadSymbol (add(this.id, " setMarginMode() supports contract markets only")) ;
+            throw new BadSymbol ((this.id + " setMarginMode() supports contract markets only")) ;
         }
         string marginModeLower = marginMode.ToLower();
         if (marginModeLower != "isolated" && marginModeLower != "cross")
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         Int64? leverage = this.safeInteger(parameters, "leverage");
         if ((leverage == null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter")) ;
         }
         string? direction = this.safeStringLower2(parameters, "direction", "positionId");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -6865,13 +6865,13 @@ public partial class mexc : Exchange
             if ((new List<object>(((IDictionary<string,object>)urlParams).Keys)).Count > 0)
             {
                 paramsEncoded = this.urlencode(urlParams);
-                url = add(url, add("?", paramsEncoded));
+                url = add(url, ("?" + paramsEncoded));
             }
             if (access == "private")
             {
                 this.checkRequiredCredentials();
                 string signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
-                url = add(url, add(add("&", "signature="), signature));
+                url = add(url, (("&" + "signature=") + signature));
                 headers = new Dictionary<string, object>() {
                     { "X-MEXC-APIKEY", this.apiKey },
                     { "source", this.safeString(this.options, "broker", "CCXT") },
@@ -6890,7 +6890,7 @@ public partial class mexc : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(parameters)));
+                    url = add(url, ("?" + this.urlencode(parameters)));
                 }
             } else
             {
@@ -6913,7 +6913,7 @@ public partial class mexc : Exchange
                     if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                     {
                         auth = add(auth, this.urlencode(parameters));
-                        url = add(url, add("?", auth));
+                        url = add(url, ("?" + auth));
                     }
                 }
                 auth = add(add(this.apiKey, timestamp), auth);
@@ -6953,7 +6953,7 @@ public partial class mexc : Exchange
         string? responseCode = this.safeString(response, "code");
         if (((responseCode != null)) && (responseCode != "200") && (responseCode != "0"))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             throw new ExchangeError (feedback) ;

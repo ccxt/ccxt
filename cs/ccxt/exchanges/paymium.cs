@@ -215,18 +215,18 @@ public partial class paymium : Exchange
         {
             string? code = ((string)getValue(currencies, i));
             Dictionary<string, object> currency = this.currency(((string)code));
-            string? currencyId = ((string)GetValue(currency, "id"));
-            string free = add("balance_", currencyId);
+            object currencyId = GetValue(currency, "id");
+            string free = ("balance_" + currencyId);
             if (inOp(response, free))
             {
                 Dictionary<string, object> account = this.account();
-                string used = add("locked_", currencyId);
+                string used = ("locked_" + currencyId);
                 account["free"] = this.safeString(response, free);
                 account["used"] = this.safeString(response, used);
                 result[(string)code] = account;
             }
         }
-        return this.safeBalance(result);
+        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
     }
 
     /**
@@ -372,7 +372,7 @@ public partial class paymium : Exchange
         market = this.safeMarket(null, market);
         string? side = this.safeString(trade, "side");
         string? price = this.safeString(trade, "price");
-        string amountField = add("traded_", ((string)getValue(market, "base")).ToLower());
+        string amountField = ("traded_" + ((string)getValue(market, "base")).ToLower());
         string? amount = this.safeString(trade, amountField);
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -549,7 +549,7 @@ public partial class paymium : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "type", add(this.capitalize(type), "Order") },
+            { "type", (this.capitalize(type) + "Order") },
             { "currency", GetValue(market, "id") },
             { "direction", side },
             { "amount", amount },
@@ -604,11 +604,11 @@ public partial class paymium : Exchange
         Dictionary<string, object> currency = this.currency(code);
         if (getIndexOf(toAccount, "@") < 0)
         {
-            throw new ExchangeError (add(this.id, " transfer() only allows transfers to an email address")) ;
+            throw new ExchangeError ((this.id + " transfer() only allows transfers to an email address")) ;
         }
         if (!isEqual(code, "BTC") && !isEqual(code, "EUR"))
         {
-            throw new ExchangeError (add(this.id, " transfer() only allows BTC or EUR")) ;
+            throw new ExchangeError ((this.id + " transfer() only allows BTC or EUR")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
@@ -723,13 +723,13 @@ public partial class paymium : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object auth = add(nonce, url);
+            object auth = (nonce + url);
             headers = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },
                 { "Api-Nonce", nonce },
@@ -748,7 +748,7 @@ public partial class paymium : Exchange
                 {
                     string queryString = this.urlencode(query);
                     auth = add(auth, queryString);
-                    url = add(url, add("?", queryString));
+                    url = add(url, ("?" + queryString));
                 }
             }
             ((IDictionary<string,object>)headers)["Api-Signature"] = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
@@ -770,7 +770,7 @@ public partial class paymium : Exchange
         object errors = this.safeValue(response, "errors");
         if ((errors != null))
         {
-            throw new ExchangeError (add(add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;
     }

@@ -66,7 +66,7 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", GetValue(market, "symbol"));
+        string messageHash = ("orderbook:" + GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -129,7 +129,7 @@ public partial class coinone : ccxt.coinone
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -157,7 +157,7 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", GetValue(market, "symbol"));
+        string messageHash = ("ticker:" + GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -206,7 +206,7 @@ public partial class coinone : ccxt.coinone
         Dictionary<string, object> ticker = this.parseWsTicker(data);
         string? symbol = ((string)GetValue(ticker, "symbol"));
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
     }
 
@@ -288,7 +288,7 @@ public partial class coinone : ccxt.coinone
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", GetValue(market, "symbol"));
+        string messageHash = ("trade:" + GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
@@ -335,7 +335,7 @@ public partial class coinone : ccxt.coinone
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 

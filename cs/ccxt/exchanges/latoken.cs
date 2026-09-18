@@ -586,8 +586,8 @@ public partial class latoken : Exchange
                             { "max", null },
                         } },
                         { "cost", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(market, add("minOrderCost", capitalizedQuote)) },
-                            { "max", this.safeNumber(market, add("maxOrderCost", capitalizedQuote)) },
+                            { "min", this.safeNumber(market, ("minOrderCost" + capitalizedQuote)) },
+                            { "max", this.safeNumber(market, ("maxOrderCost" + capitalizedQuote)) },
                         } },
                     } },
                     { "created", this.safeInteger(market, "created") },
@@ -1128,7 +1128,7 @@ public partial class latoken : Exchange
             return ccxt.BaseExchange.ToTradingFeeInterface(await this.FetchPublicTradingFee(symbol, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " not support this method")) ;
+            throw new NotSupported ((this.id + " not support this method")) ;
         }
     }
 
@@ -1396,7 +1396,7 @@ public partial class latoken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1606,7 +1606,7 @@ public partial class latoken : Exchange
         string uppercaseType = type.ToUpper();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "baseCurrency", GetValue(market, "baseId") },
@@ -2065,7 +2065,7 @@ public partial class latoken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         string requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
         string urlencodedQuery = this.urlencode(query);
@@ -2073,7 +2073,7 @@ public partial class latoken : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                requestString = add(requestString, add("?", urlencodedQuery));
+                requestString = add(requestString, ("?" + urlencodedQuery));
             }
         }
         if (isEqual(api, "private"))
@@ -2114,7 +2114,7 @@ public partial class latoken : Exchange
         // {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
         //
         string? message = this.safeString(response, "message");
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         if ((message != null))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

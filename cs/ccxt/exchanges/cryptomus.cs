@@ -386,7 +386,7 @@ public partial class cryptomus : Exchange
         string? marketId = this.safeString(market, "symbol");
         if ((marketId == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing marketId")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing marketId")) ;
         }
         List<object> parts = marketId.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
         string? baseId = ((string)getValue(parts, 0));
@@ -854,7 +854,7 @@ public partial class cryptomus : Exchange
                 {
                     if ((isEqual(price, null)) && ((cost == null)))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
                     } else if ((cost == null))
                     {
                         cost = Precise.stringMul(amountToString, priceToString);
@@ -873,14 +873,14 @@ public partial class cryptomus : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a price parameter for a "), type), " order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price parameter for a ") + type) + " order")) ;
             }
             request["quantity"] = amountToString;
             request["price"] = price;
             response = await this.privatePostV2UserApiExchangeOrders(this.extend(request, parameters));
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a type parameter (limit or market)")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a type parameter (limit or market)")) ;
         }
         //
         //     {
@@ -1321,7 +1321,7 @@ public partial class cryptomus : Exchange
                 string query = this.urlencode(parameters);
                 if ((query.Length != 0))
                 {
-                    url = add(url, add("?", query));
+                    url = add(url, ("?" + query));
                 }
             }
             string jsonParamsBase64 = this.stringToBase64(jsonParams);
@@ -1333,7 +1333,7 @@ public partial class cryptomus : Exchange
             string query = this.urlencode(parameters);
             if ((query.Length != 0))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + query));
             }
         }
         return new Dictionary<string, object>() {
@@ -1353,7 +1353,7 @@ public partial class cryptomus : Exchange
         if (inOp(response, "code"))
         {
             string? code = this.safeString(response, "code");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError (feedback) ;
         } else if (inOp(response, "message"))
@@ -1362,7 +1362,7 @@ public partial class cryptomus : Exchange
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
             string? message = this.safeString(response, "message");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;

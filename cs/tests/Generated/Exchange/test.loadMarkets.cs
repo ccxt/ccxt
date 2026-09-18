@@ -43,14 +43,14 @@ public partial class testMainClass : BaseTest
             if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))
             {
                 bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && mType == "option";
-                assert(isTrue(exchange.inArray(mType, collectedTypes)) || skipMarketTypes, add(add(add(add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"));
+                assert(isTrue(exchange.inArray(mType, collectedTypes)) || skipMarketTypes, (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
             } else if (isEqual(getValue(exchange.has, mType), false))
             {
                 // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
                 // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
                 // in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
                 bool isKnownException = (inOp(skippedProperties, mType));
-                assert(!isTrue(exchange.inArray(mType, collectedTypes)) || isKnownException, add(add(add(add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"));
+                assert(!isTrue(exchange.inArray(mType, collectedTypes)) || isKnownException, (((("exchange.has[" + mType) + "] is false, but markets of type ") + mType) + " were found in exchange.markets"));
             }
         }
         return true;

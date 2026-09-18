@@ -883,7 +883,7 @@ public partial class paradex : Exchange
         if (isOption)
         {
             string optionTypeSuffix = (optionType == "CALL") ? "C" : "P";
-            string deliveryValue = (isEqual(expiry, 0)) ? "" : add(this.yymmdd(expiry), "-");
+            string deliveryValue = (isEqual(expiry, 0)) ? "" : (this.yymmdd(expiry) + "-");
             symbol = add(add(add(add(add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
         } else
@@ -995,7 +995,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTradingFee() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTradingFee() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1373,7 +1373,7 @@ public partial class paradex : Exchange
         IDictionary<string, object> rate = this.safeDict(rates, GetValue(market, "symbol"));
         if ((rate == null))
         {
-            throw new BadSymbol (add(add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+            throw new BadSymbol (((this.id + " fetchFundingRate() could not find a funding rate for ") + symbol)) ;
         }
         return ccxt.BaseExchange.ToFundingRate(rate);
     }
@@ -1642,7 +1642,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", GetValue(market, "id") },
@@ -1709,7 +1709,7 @@ public partial class paradex : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -1718,7 +1718,7 @@ public partial class paradex : Exchange
         object r = GetValue(signature, "r");
         object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return ((("0x" + (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -1846,7 +1846,7 @@ public partial class paradex : Exchange
             Int64? cachedExpires = this.safeInteger(this.options, "expires");
             if ((cachedExpires == null))
             {
-                throw new ExchangeError (add(this.id, " authenticateRest() missing cachedExpires")) ;
+                throw new ExchangeError ((this.id + " authenticateRest() missing cachedExpires")) ;
             }
             if (isLessThan(now, cachedExpires))
             {
@@ -2040,11 +2040,11 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
@@ -2151,7 +2151,7 @@ public partial class paradex : Exchange
         string? orderType = this.safeString(request, "type");
         if ((orderType == null))
         {
-            throw new ExchangeError (add(this.id, " signOrderRequest() missing orderType")) ;
+            throw new ExchangeError ((this.id + " signOrderRequest() missing orderType")) ;
         }
         bool isMarket = (getIndexOf(orderType, "MARKET") >= 0);
         Dictionary<string, object> orderReq = new Dictionary<string, object>() {
@@ -2292,11 +2292,11 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(amount, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument")) ;
         }
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a price argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a price argument")) ;
         }
         await this.authenticateRest();
         if (isEqual(this.markets, null))
@@ -2478,7 +2478,7 @@ public partial class paradex : Exchange
         bool hasClientOrderIds = ((clientOrderIds != null)) && (((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         if (!hasOrderIds && !hasClientOrderIds)
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (hasOrderIds)
@@ -2558,7 +2558,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         await this.authenticateRest();
         if (isEqual(this.markets, null))
@@ -3843,7 +3843,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
         await this.authenticateRest();
         if (isEqual(this.markets, null))
@@ -3942,7 +3942,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4020,13 +4020,13 @@ public partial class paradex : Exchange
             version = "v2";
             path = ((string)path).Replace((string)"v2/", (string)"");
         }
-        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))), "/"), this.implodeParams(path, parameters));
+        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), ((string)version))) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -4054,14 +4054,14 @@ public partial class paradex : Exchange
             } else
             {
                 object token = getValue(this.options, "authToken");
-                ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
+                ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + token);
                 if ((isEqual(method, "POST")) || (isEqual(method, "PUT")) || ((isEqual(method, "DELETE")) && (isEqual(path, "orders/batch"))))
                 {
                     ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                     body = this.json(query);
                 } else
                 {
-                    url = add(add(url, "?"), this.urlencode(query));
+                    url = ((url + "?") + this.urlencode(query));
                 }
             }
         }
@@ -4089,7 +4089,7 @@ public partial class paradex : Exchange
         string? errorCode = this.safeString(response, "error");
         if ((errorCode != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

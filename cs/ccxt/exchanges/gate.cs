@@ -2715,7 +2715,7 @@ public partial class gate : Exchange
         {
             if (isEqual(market, null))
             {
-                throw new ArgumentsRequired (add(this.id, " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
+                throw new ArgumentsRequired ((this.id + " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
             request["account"] = marginMode;
             request["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
@@ -2790,7 +2790,7 @@ public partial class gate : Exchange
             }
             if (marginMode == "cross_margin")
             {
-                throw new BadRequest (add(this.id, " getMarginMode() does not support trigger orders for cross margin")) ;
+                throw new BadRequest ((this.id + " getMarginMode() does not support trigger orders for cross margin")) ;
             }
         }
         object isUnifiedAccount = false;
@@ -2942,7 +2942,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         var requestqueryVariable = this.prepareRequest(market, null, parameters);
         var request = requestqueryVariable[0];
@@ -3620,7 +3620,7 @@ public partial class gate : Exchange
             response = await this.privateDeliveryGetSettleAccountBook(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchFundingHistory() only support swap & future market type")) ;
+            throw new NotSupported ((this.id + " fetchFundingHistory() only support swap & future market type")) ;
         }
         //
         //    [
@@ -3735,7 +3735,7 @@ public partial class gate : Exchange
             response = await this.publicOptionsGetOrderBook(this.extend(request, query));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOrderBook() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchOrderBook() not support this market type")) ;
         }
         //
         // spot
@@ -3804,7 +3804,7 @@ public partial class gate : Exchange
         object timestamp = this.safeInteger(response, "current");
         if (isEqual(timestamp, null))
         {
-            throw new ExchangeError (add(this.id, " method() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " method() missing timestamp")) ;
         }
         if (!isEqual(GetValue(market, "spot"), true))
         {
@@ -3859,7 +3859,7 @@ public partial class gate : Exchange
             response = await this.publicOptionsGetTickers(this.extend(request, query));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTicker() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchTicker() not support this market type")) ;
         }
         object ticker = null;
         if (isEqual(GetValue(market, "option"), true))
@@ -3879,7 +3879,7 @@ public partial class gate : Exchange
         }
         if ((ticker == null))
         {
-            throw new NullResponse (add(this.id, " fetchTicker() returned empty response")) ;
+            throw new NullResponse ((this.id + " fetchTicker() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
@@ -4054,7 +4054,7 @@ public partial class gate : Exchange
             response = await this.publicOptionsGetTickers(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option")) ;
+            throw new NotSupported ((this.id + " fetchTickers() not support this market type, provide symbols or set params[\"defaultType\"] to one from spot/margin/swap/future/option")) ;
         }
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
@@ -4135,7 +4135,7 @@ public partial class gate : Exchange
                 response = await this.privateMarginGetCrossAccounts(this.extend(request, requestQuery));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchBalance() not support this marginMode")) ;
+                throw new NotSupported ((this.id + " fetchBalance() not support this marginMode")) ;
             }
         } else if (isEqual(type, "funding"))
         {
@@ -4151,7 +4151,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetAccounts(this.extend(request, requestQuery));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchBalance() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchBalance() not support this market type")) ;
         }
         bool contract = ((isEqual(type, "swap")) || (isEqual(type, "future")) || (isEqual(type, "option")));
         if (contract)
@@ -4531,7 +4531,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4548,7 +4548,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         var requestparametersVariable = this.prepareRequest(market, null, parameters);
@@ -4713,7 +4713,7 @@ public partial class gate : Exchange
             response = await this.publicOptionsGetTrades(this.extend(request, query));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTrades() not support this market type.")) ;
+            throw new NotSupported ((this.id + " fetchTrades() not support this market type.")) ;
         }
         //
         // spot
@@ -4778,7 +4778,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrderTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4905,7 +4905,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetMyTrades(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchMyTrades() not support this market type.")) ;
+            throw new NotSupported ((this.id + " fetchMyTrades() not support this market type.")) ;
         }
         //
         // spot
@@ -5615,11 +5615,11 @@ public partial class gate : Exchange
         int ordersLength = getArrayLength(orders);
         if ((ordersLength == 0))
         {
-            throw new BadRequest (add(this.id, " createOrders() requires at least one order")) ;
+            throw new BadRequest ((this.id + " createOrders() requires at least one order")) ;
         }
         if (isGreaterThan(ordersLength, 10))
         {
-            throw new BadRequest (add(this.id, " createOrders() accepts a maximum of 10 orders at a time")) ;
+            throw new BadRequest ((this.id + " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -5635,7 +5635,7 @@ public partial class gate : Exchange
             object triggerValue = this.safeValueN(orderParams, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
             if ((triggerValue != null))
             {
-                throw new NotSupported (add(this.id, " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
+                throw new NotSupported ((this.id + " createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)")) ;
             }
             extendedParams["textIsRequired"] = true; // the exchange requires a text parameter for each order here
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -5645,7 +5645,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
         if ((isEqual(GetValue(market, "future"), true)) || (isEqual(GetValue(market, "option"), true)))
         {
-            throw new NotSupported (add(this.id, " createOrders() does not support futures or options markets")) ;
+            throw new NotSupported ((this.id + " createOrders() does not support futures or options markets")) ;
         }
         return ordersRequests;
     }
@@ -5687,11 +5687,11 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? contract = ((bool?)GetValue(market, "contract"));
@@ -5704,7 +5704,7 @@ public partial class gate : Exchange
         bool isTpsl = isStopLossOrder || isTakeProfitOrder;
         if (isStopLossOrder && isTakeProfitOrder)
         {
-            throw new ExchangeError (add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
+            throw new ExchangeError ((this.id + " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
         }
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         string? exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new List<object>() {"timeInForce", "tif", "time_in_force"});
@@ -5725,13 +5725,13 @@ public partial class gate : Exchange
         bool isMarketOrder = (isEqual(type, "market"));
         if (isLimitOrder && isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + type) + " orders")) ;
         }
         if (isMarketOrder)
         {
             if ((timeInForce == "poc") || (timeInForce == "gtc"))
             {
-                throw new ExchangeError (add(this.id, " createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\"")) ;
+                throw new ExchangeError ((this.id + " createOrder () timeInForce for market order can only be \"FOK\" or \"IOC\"")) ;
             } else
             {
                 if ((timeInForce == null))
@@ -5818,7 +5818,7 @@ public partial class gate : Exchange
                     {
                         if (isEqual(price, null))
                         {
-                            throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                            throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
                             string? amountString = this.numberToString(amount);
@@ -5853,12 +5853,12 @@ public partial class gate : Exchange
                 //     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
                 if (clientOrderId.Length > 28)
                 {
-                    throw new BadRequest (add(this.id, " createOrder () clientOrderId or text param must be up to 28 characters")) ;
+                    throw new BadRequest ((this.id + " createOrder () clientOrderId or text param must be up to 28 characters")) ;
                 }
                 parameters = this.omit(parameters, "textIsRequired");
                 if (!isEqual(getValue(clientOrderId, 0), "t"))
                 {
-                    clientOrderId = add("t-", clientOrderId);
+                    clientOrderId = ("t-" + clientOrderId);
                 }
                 request["text"] = clientOrderId;
             } else
@@ -5866,14 +5866,14 @@ public partial class gate : Exchange
                 if ((textIsRequired == true))
                 {
                     // batchOrders requires text in the request
-                    request["text"] = add("t-", this.uuid16());
+                    request["text"] = ("t-" + this.uuid16());
                 }
             }
         } else
         {
             if (isEqual(GetValue(market, "option"), true))
             {
-                throw new NotSupported (add(this.id, " createOrder() conditional option orders are not supported")) ;
+                throw new NotSupported ((this.id + " createOrder() conditional option orders are not supported")) ;
             }
             if (isEqual(contract, true))
             {
@@ -5910,7 +5910,7 @@ public partial class gate : Exchange
                     Int64? priceType = this.safeInteger(parameters, "price_type", 0);
                     if (isLessThan(priceType, 0) || isGreaterThan(priceType, 2))
                     {
-                        throw new BadRequest (add(this.id, " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
+                        throw new BadRequest ((this.id + " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
                     }
                     parameters = this.omit(parameters, new List<object>() {"price_type"});
                     request["trigger"] = new Dictionary<string, object>() {
@@ -6008,7 +6008,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "createMarketBuyOrderRequiresPrice", false },
@@ -6038,7 +6038,7 @@ public partial class gate : Exchange
         {
             if (!isLimitOrder)
             {
-                throw new InvalidOrder (add(add(add(add(add(this.id, " editOrder() does not support "), type), " orders for "), marketType), " markets")) ;
+                throw new InvalidOrder ((((((this.id + " editOrder() does not support ") + type) + " orders for ") + marketType) + " markets")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -6552,7 +6552,7 @@ public partial class gate : Exchange
             parameters = this.omit(parameters, new List<object>() {"text", "clientOrderId"});
             if (!isEqual(getValue(clientOrderId, 0), "t"))
             {
-                clientOrderId = add("t-", clientOrderId);
+                clientOrderId = ("t-" + clientOrderId);
             }
             orderId = clientOrderId;
         }
@@ -6636,7 +6636,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetOrdersOrderId(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOrder() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchOrder() not support this market type")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
@@ -6864,7 +6864,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetOrders(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchOrders() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchOrders() not support this market type")) ;
         }
         //
         // spot open orders
@@ -7097,7 +7097,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsDeleteOrdersOrderId(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " cancelOrder() not support this market type")) ;
+            throw new NotSupported ((this.id + " cancelOrder() not support this market type")) ;
         }
         //
         // spot
@@ -7217,7 +7217,7 @@ public partial class gate : Exchange
         bool isSpot = (type == "spot");
         if (isSpot && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders requires a symbol argument for spot markets")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders requires a symbol argument for spot markets")) ;
         }
         if (isSpot)
         {
@@ -7272,7 +7272,7 @@ public partial class gate : Exchange
             Dictionary<string, object> market = this.market(symbol);
             if (!isEqual(GetValue(market, "spot"), true))
             {
-                throw new NotSupported (add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
+                throw new NotSupported ((this.id + " cancelOrdersForSymbols() supports only spot markets")) ;
             }
             string? id = this.safeString(order, "id");
             Dictionary<string, object> orderItem = new Dictionary<string, object>() {
@@ -7359,7 +7359,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsDeleteOrders(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " cancelAllOrders() not support this market type")) ;
+            throw new NotSupported ((this.id + " cancelAllOrders() not support this market type")) ;
         }
         //
         //    [
@@ -7441,7 +7441,7 @@ public partial class gate : Exchange
             string? symbol = this.safeString2(parameters, "symbol", "currency_pair");
             if ((symbol == null))
             {
-                throw new ArgumentsRequired (add(this.id, " transfer requires params[\"symbol\"] for isolated margin transfers")) ;
+                throw new ArgumentsRequired ((this.id + " transfer requires params[\"symbol\"] for isolated margin transfers")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
             request["currency_pair"] = GetValue(market, "id");
@@ -7506,13 +7506,13 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((isLessThan(leverage, 0)) || (isGreaterThan(leverage, 100)))
         {
-            throw new BadRequest (add(this.id, " setLeverage() leverage should be between 1 and 100")) ;
+            throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 100")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -7548,7 +7548,7 @@ public partial class gate : Exchange
             response = await this.privateDeliveryPostSettlePositionsContractLeverage(this.extend(request, query));
         } else
         {
-            throw new NotSupported (add(this.id, " setLeverage() not support this market type")) ;
+            throw new NotSupported ((this.id + " setLeverage() not support this market type")) ;
         }
         //
         //     {
@@ -7755,7 +7755,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchPosition() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchPosition() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         var requestparametersVariable = this.prepareRequest(market, GetValue(market, "type"), parameters);
@@ -7831,7 +7831,7 @@ public partial class gate : Exchange
         //
         if ((response == null))
         {
-            throw new NullResponse (add(this.id, " fetchPosition() returned empty response")) ;
+            throw new NullResponse ((this.id + " fetchPosition() returned empty response")) ;
         }
         return ccxt.BaseExchange.ToPosition(this.parsePosition(response, market));
     }
@@ -7993,7 +7993,7 @@ public partial class gate : Exchange
         var requestParams = requestrequestParamsVariable[1];
         if (!isEqual(type, "future") && !isEqual(type, "swap"))
         {
-            throw new BadRequest (add(this.id, " fetchLeverageTiers only supports swap and future")) ;
+            throw new BadRequest ((this.id + " fetchLeverageTiers only supports swap and future")) ;
         }
         List<object> response = null;
         if (isEqual(type, "swap"))
@@ -8004,7 +8004,7 @@ public partial class gate : Exchange
             response = await this.publicDeliveryGetSettleContracts(this.extend(request, requestParams));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchLeverageTiers() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchLeverageTiers() not support this market type")) ;
         }
         //
         // Perpetual swap
@@ -8127,7 +8127,7 @@ public partial class gate : Exchange
         var requestParams = requestrequestParamsVariable[1];
         if (!isEqual(type, "future") && !isEqual(type, "swap"))
         {
-            throw new BadRequest (add(this.id, " fetchMarketLeverageTiers only supports swap and future")) ;
+            throw new BadRequest ((this.id + " fetchMarketLeverageTiers only supports swap and future")) ;
         }
         List<object> response = null;
         if (isEqual(type, "swap"))
@@ -8582,8 +8582,8 @@ public partial class gate : Exchange
         {
             path = this.implodeParams(path, parameters);
         }
-        string endPart = (isEqual(path, "")) ? "" : (add("/", path));
-        string entirePath = add(add("/", type), endPart);
+        string endPart = (isEqual(path, "")) ? "" : (("/" + path));
+        string entirePath = (("/" + type) + endPart);
         if ((isEqual(type, "subAccounts")) || (isEqual(type, "withdrawals")))
         {
             entirePath = endPart;
@@ -8591,14 +8591,14 @@ public partial class gate : Exchange
         object url = getValue(getValue(getValue(this.urls, "api"), authentication), type);
         if ((url == null))
         {
-            throw new NotSupported (add(add(add(this.id, " does not have a testnet for the "), type), " market type.")) ;
+            throw new NotSupported ((((this.id + " does not have a testnet for the ") + type) + " market type.")) ;
         }
         url = add(url, entirePath);
         if (isEqual(authentication, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
@@ -8624,7 +8624,7 @@ public partial class gate : Exchange
                     {
                         queryString = queryString.Replace((string)"%2C", (string)",");
                     }
-                    url = add(url, add("?", queryString));
+                    url = add(url, ("?" + queryString));
                 }
                 if (isEqual(method, "PATCH"))
                 {
@@ -8636,7 +8636,7 @@ public partial class gate : Exchange
                 if ((new List<object>(((IDictionary<string,object>)urlQueryParams).Keys)).Count > 0)
                 {
                     queryString = this.urlencode(urlQueryParams);
-                    url = add(url, add("?", queryString));
+                    url = add(url, ("?" + queryString));
                 }
                 query = this.omit(query, "query");
                 body = this.json(query);
@@ -8646,7 +8646,7 @@ public partial class gate : Exchange
             Int64 nonce = this.nonce();
             Int64? timestamp = this.parseToInt(divide(nonce, 1000));
             string timestampString = ((object)timestamp).ToString();
-            string signaturePath = add(add("/api/", this.version), entirePath);
+            string signaturePath = (("/api/" + this.version) + entirePath);
             List<object> payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", payloadArray.ToArray());
@@ -8687,7 +8687,7 @@ public partial class gate : Exchange
             response = await this.privateDeliveryPostSettlePositionsContractMargin(this.extend(request, query));
         } else
         {
-            throw new NotSupported (add(this.id, " modifyMarginHelper() not support this market type")) ;
+            throw new NotSupported ((this.id + " modifyMarginHelper() not support this market type")) ;
         }
         return this.parseMarginModification(response, market);
     }
@@ -8806,7 +8806,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest() supports swap markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest() supports swap markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contract", GetValue(market, "id") },
@@ -8893,7 +8893,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchSettlementHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8906,7 +8906,7 @@ public partial class gate : Exchange
         parameters = typeparametersVariable[1];
         if (type != "option")
         {
-            throw new NotSupported (add(this.id, " fetchSettlementHistory() supports option markets only")) ;
+            throw new NotSupported ((this.id + " fetchSettlementHistory() supports option markets only")) ;
         }
         string? marketId = ((string)GetValue(market, "id"));
         List<object> optionParts = marketId.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
@@ -8972,7 +8972,7 @@ public partial class gate : Exchange
         bool isFuture = type == "future";
         if (!isOption && !isFuture)
         {
-            throw new NotSupported (add(this.id, " fetchMySettlementHistory() supports option and future markets only")) ;
+            throw new NotSupported ((this.id + " fetchMySettlementHistory() supports option and future markets only")) ;
         }
         var requestqueryVariable = this.prepareRequest(market, type, parameters);
         var request = requestqueryVariable[0];
@@ -9011,7 +9011,7 @@ public partial class gate : Exchange
                 string? underlying = this.safeString(parameters, "underlying");
                 if ((underlying == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params")) ;
+                    throw new ArgumentsRequired ((this.id + " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params")) ;
                 }
             } else
             {
@@ -9454,7 +9454,7 @@ public partial class gate : Exchange
         }
         if (marketType != "option")
         {
-            throw new NotSupported (add(this.id, " fetchUnderlyingAssets() supports option markets only")) ;
+            throw new NotSupported ((this.id + " fetchUnderlyingAssets() supports option markets only")) ;
         }
         List<object> response = await this.publicOptionsGetUnderlyings(parameters);
         //
@@ -9501,7 +9501,7 @@ public partial class gate : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " fetchLiquidations() supports swap markets only")) ;
+            throw new NotSupported ((this.id + " fetchLiquidations() supports swap markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "settle", GetValue(market, "settleId") },
@@ -9552,7 +9552,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyLiquidations() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -9587,7 +9587,7 @@ public partial class gate : Exchange
             response = await this.privateOptionsGetPositionClose(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchMyLiquidations() does not support "), GetValue(market, "type")), " orders")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + GetValue(market, "type")) + " orders")) ;
         }
         //
         // swap and future
@@ -9770,7 +9770,7 @@ public partial class gate : Exchange
                 return ccxt.BaseExchange.ToGreeks(this.parseGreeks(entry, market));
             }
         }
-        throw new NullResponse (add(add(this.id, " fetchGreeks() could not find greeks for "), symbol)) ;
+        throw new NullResponse (((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
     }
 
     public override object parseGreeks(object greeks, IDictionary<string, object> market = null)
@@ -9799,7 +9799,7 @@ public partial class gate : Exchange
         string? symbol = this.safeSymbol(marketId, market);
         if (isEqual(market, null))
         {
-            throw new ExchangeError (add(this.id, " parseGreeks() could not resolve market")) ;
+            throw new ExchangeError ((this.id + " parseGreeks() could not resolve market")) ;
         }
         return new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -9894,7 +9894,7 @@ public partial class gate : Exchange
             response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchLeverage() does not support "), this.safeString(market, "type")), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchLeverage() does not support ") + this.safeString(market, "type")) + " markets")) ;
         }
         return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
     }
@@ -10208,7 +10208,7 @@ public partial class gate : Exchange
             response = await this.privateDeliveryGetSettlePositionClose(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(this.id, " fetchPositionsHistory() does not support markets of type "), marketType)) ;
+            throw new NotSupported (((this.id + " fetchPositionsHistory() does not support markets of type ") + marketType)) ;
         }
         //
         //    [
@@ -10255,7 +10255,7 @@ public partial class gate : Exchange
         string? label = this.safeString(response, "label");
         if ((label != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), label, feedback);
             throw new ExchangeError (feedback) ;
         }

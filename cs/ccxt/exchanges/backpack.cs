@@ -896,7 +896,7 @@ public partial class backpack : Exchange
             inverse = false;
             settleId = this.safeString(market, "quoteSymbol");
             settle = this.safeCurrencyCode(settleId);
-            symbol = add(symbol, add(":", settle));
+            symbol = add(symbol, (":" + settle));
             contractSize = 1;
         }
         string? orderBookState = this.safeString(market, "orderBookState");
@@ -1109,7 +1109,7 @@ public partial class backpack : Exchange
         Int64? microseconds = this.safeInteger(response, "timestamp");
         if (isEqual(microseconds, null))
         {
-            throw new ExchangeError (add(this.id, " fetchOrderBook() missing microseconds")) ;
+            throw new ExchangeError ((this.id + " fetchOrderBook() missing microseconds")) ;
         }
         Int64? timestamp = this.parseToInt(divide(microseconds, 1000));
         Dictionary<string, object> orderbook = this.parseOrderBook(response, symbol, timestamp);
@@ -1219,7 +1219,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new BadRequest (add(add(this.id, " fetchFundingRate() symbol does not support market "), symbol)) ;
+            throw new BadRequest (((this.id + " fetchFundingRate() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1285,7 +1285,7 @@ public partial class backpack : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new BadRequest (add(add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
+            throw new BadRequest (((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1334,7 +1334,7 @@ public partial class backpack : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1572,7 +1572,7 @@ public partial class backpack : Exchange
         string? status = this.safeString(response, "status");
         if ((status == null))
         {
-            throw new ExchangeError (add(this.id, " fetchStatus() missing status")) ;
+            throw new ExchangeError ((this.id + " fetchStatus() missing status")) ;
         }
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", status.ToLower() },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
@@ -1772,7 +1772,7 @@ public partial class backpack : Exchange
         object networkId = this.networkCodeToId(networkCode, GetValue(currency, "code"));
         if ((networkId == null))
         {
-            throw new BadRequest (add(this.id, " withdraw() requires a network parameter")) ;
+            throw new BadRequest ((this.id + " withdraw() requires a network parameter")) ;
         }
         request["blockchain"] = networkId;
         Dictionary<string, object> response = await this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query));
@@ -1937,7 +1937,7 @@ public partial class backpack : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2049,11 +2049,11 @@ public partial class backpack : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2208,7 +2208,7 @@ public partial class backpack : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2238,7 +2238,7 @@ public partial class backpack : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2267,7 +2267,7 @@ public partial class backpack : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2666,7 +2666,7 @@ public partial class backpack : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = add("/", path);
+        string endpoint = ("/" + path);
         object url = getValue(getValue(this.urls, "api"), api);
         object sortedParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? parameters : this.keysort(parameters);
         if (isEqual(api, "private"))
@@ -2688,7 +2688,7 @@ public partial class backpack : Exchange
                 {
                     queryString = add(queryString, "&");
                 }
-                payload = add(add(add(add(add(add(add("instruction=", instruction), "&"), queryString), "timestamp="), ts), "&window="), recvWindow);
+                payload = add(add(((((("instruction=" + instruction) + "&") + queryString) + "timestamp=") + ts), "&window="), recvWindow);
             }
             object secretBytes = this.base64ToBinary(this.secret);
             object seed = this.arraySlice(secretBytes, 0, 32);
@@ -2711,7 +2711,7 @@ public partial class backpack : Exchange
             string query = this.urlencode(sortedParams);
             if ((query.Length != 0))
             {
-                endpoint = add(endpoint, add("?", query));
+                endpoint = add(endpoint, ("?" + query));
             }
         }
         url = add(url, endpoint);
@@ -2731,10 +2731,10 @@ public partial class backpack : Exchange
             IDictionary<string, object> order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
             string orderQuery = this.urlencode(sortedOrder);
-            payload = add(payload, add(add(add(add("instruction=", instruction), "&"), orderQuery), "&"));
+            payload = add(payload, (((("instruction=" + instruction) + "&") + orderQuery) + "&"));
             if (isEqual(i, (subtract(getArrayLength(parameters), 1))))
             {
-                payload = add(payload, add(add(add("timestamp=", ts), "&window="), recvWindow));
+                payload = add(payload, ((("timestamp=" + ts) + "&window=") + recvWindow));
             }
         }
         return payload;
@@ -2754,7 +2754,7 @@ public partial class backpack : Exchange
         string? message = this.safeString(response, "message");
         if ((errorCode != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

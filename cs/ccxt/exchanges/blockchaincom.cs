@@ -683,7 +683,7 @@ public partial class blockchaincom : Exchange
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
@@ -698,7 +698,7 @@ public partial class blockchaincom : Exchange
         {
             if ((triggerPrice == null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a stopPx or triggerPrice param for a "), uppercaseOrderType), " order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a stopPx or triggerPrice param for a ") + uppercaseOrderType) + " order")) ;
             }
         }
         if ((triggerPrice != null))
@@ -1301,7 +1301,7 @@ public partial class blockchaincom : Exchange
         object balances = this.safeValue(response, accountName);
         if ((balances == null))
         {
-            throw new ExchangeError (add(add(add(this.id, " fetchBalance() could not find the \""), accountName), "\" account")) ;
+            throw new ExchangeError ((((this.id + " fetchBalance() could not find the \"") + accountName) + "\" account")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
@@ -1368,14 +1368,14 @@ public partial class blockchaincom : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string requestPath = add("/", this.implodeParams(path, parameters));
+        string requestPath = ("/" + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -1387,7 +1387,7 @@ public partial class blockchaincom : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -1415,14 +1415,14 @@ public partial class blockchaincom : Exchange
         {
             if (text == "Insufficient Balance")
             {
-                throw new InsufficientFunds (add(add(this.id, " "), body)) ;
+                throw new InsufficientFunds (((this.id + " ") + body)) ;
             }
         }
         string? errorCode = this.safeString(response, "status");
         string? errorMessage = this.safeString(response, "error");
         if (!isEqual(code, null))
         {
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
         }

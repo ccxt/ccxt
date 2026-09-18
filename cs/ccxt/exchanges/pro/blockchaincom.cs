@@ -156,7 +156,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = add("ohlcv:", symbolVar);
+        string messageHash = ("ohlcv:" + symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "prices" },
@@ -198,12 +198,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         if (eventVar == "rejected")
         {
             string jsonMessage = this.json(message);
-            throw new ExchangeError (add(add(this.id, " "), jsonMessage)) ;
+            throw new ExchangeError (((this.id + " ") + jsonMessage)) ;
         } else if (eventVar == "updated")
         {
             string? marketId = this.safeString(message, "symbol");
             string? symbol = this.safeSymbol(marketId, null, "-");
-            string messageHash = add("ohlcv:", symbol);
+            string messageHash = ("ohlcv:" + symbol);
             object request = this.safeValue(client.subscriptions, messageHash);
             string? timeframeId = this.safeString(request, "granularity");
             string? timeframe = this.findTimeframe(timeframeId);
@@ -220,7 +220,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         } else if (eventVar != "subscribed")
         {
-            throw new NotSupported (add(add(this.id, " "), this.json(message))) ;
+            throw new NotSupported (((this.id + " ") + this.json(message))) ;
         }
     }
 
@@ -244,7 +244,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "ticker" },
@@ -300,7 +300,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             object lastTicker = this.safeValue(this.tickers, symbol);
             ticker = this.parseWsUpdatedTicker(message, lastTicker, market);
         }
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client, "resolve", new object[] {ticker, messageHash});
     }
@@ -365,7 +365,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "trades" },
@@ -407,7 +407,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? marketId = this.safeString(message, "symbol");
         string? symbol = this.safeSymbol(marketId);
         Dictionary<string, object> market = this.safeMarket(marketId);
-        string messageHash = add("trades:", symbol);
+        string messageHash = ("trades:" + symbol);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -585,7 +585,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             return;
         } else if (eventVar == "rejected")
         {
-            throw new ExchangeError (add(add(this.id, " "), this.json(message))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(message))) ;
         } else if (eventVar == "snapshot")
         {
             List<object> orders = this.safeList(message, "orders", new List<object>() {});
@@ -714,7 +714,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string? type = this.safeString(parameters, "type", "l2");
         parameters = this.omit(parameters, "type");
-        string messageHash = add(add(add("orderbook:", symbol), ":"), type);
+        string messageHash = ((("orderbook:" + symbol) + ":") + type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", type },
@@ -769,7 +769,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? type = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "symbol");
         string? symbol = this.safeSymbol(marketId);
-        string messageHash = add(add(add("orderbook:", symbol), ":"), type);
+        string messageHash = ((("orderbook:" + symbol) + ":") + type);
         string? datetime = this.safeString(message, "timestamp");
         Int64? timestamp = this.parse8601(datetime);
         if (isEqual(this.safeOrderBook(this.orderbooks, symbol), null))
@@ -791,7 +791,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             orderbook["datetime"] = datetime;
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " watchOrderBook() does not support "), eventVar), " yet")) ;
+            throw new NotSupported ((((this.id + " watchOrderBook() does not support ") + eventVar) + " yet")) ;
         }
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -829,7 +829,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
             return;
         }
-        throw new NotSupported (add(add(this.id, " received an unsupported message: "), this.json(message))) ;
+        throw new NotSupported (((this.id + " received an unsupported message: ") + this.json(message))) ;
     }
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, Dictionary<string, object> message)
@@ -845,7 +845,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? eventVar = this.safeString(message, "event");
         if (eventVar != "subscribed")
         {
-            throw new AuthenticationError (add(add(this.id, " received an authentication error: "), this.json(message))) ;
+            throw new AuthenticationError (((this.id + " received an authentication error: ") + this.json(message))) ;
         }
         Future future = ((Future)this.safeValue(client.futures, "authenticated"));
         if ((future != null))

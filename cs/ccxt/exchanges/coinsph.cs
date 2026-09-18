@@ -1379,7 +1379,7 @@ public partial class coinsph : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1419,7 +1419,7 @@ public partial class coinsph : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrderTrades() requires a symbol argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -1625,7 +1625,7 @@ public partial class coinsph : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
             request["price"] = this.priceToPrecision(symbol, price);
@@ -1656,7 +1656,7 @@ public partial class coinsph : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -1676,7 +1676,7 @@ public partial class coinsph : Exchange
             string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             if ((triggerPrice == null))
             {
-                throw new InvalidOrder (add(this.id, " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
+                throw new InvalidOrder ((this.id + " createOrder () requires a triggerPrice or stopPrice param for stop_loss, take_profit, stop_loss_limit, and take_profit_limit orders")) ;
             }
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
@@ -1796,7 +1796,7 @@ public partial class coinsph : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchClosedOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1864,7 +1864,7 @@ public partial class coinsph : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2198,13 +2198,13 @@ public partial class coinsph : Exchange
         bool? warning = this.safeBool(options, "warning", true);
         if ((warning == true))
         {
-            throw new InvalidAddress (add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
+            throw new InvalidAddress ((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         string? networkCode = this.safeString(parameters, "network");
         object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
-            throw new BadRequest (add(this.id, " withdraw() require network parameter")) ;
+            throw new BadRequest ((this.id + " withdraw() require network parameter")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2497,7 +2497,7 @@ public partial class coinsph : Exchange
         object networkId = ((networkCode == null)) ? null : this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
-            throw new BadRequest (add(this.id, " fetchDepositAddress() require network parameter")) ;
+            throw new BadRequest ((this.id + " fetchDepositAddress() require network parameter")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2563,7 +2563,7 @@ public partial class coinsph : Exchange
         string encodedQuery = this.urlencode(query);
         if ((encodedQuery.Length != 0))
         {
-            return ((string?)((object)(add(add(encodedQuery, "&"), encodedArrayParams))));
+            return ((string?)((object)(((encodedQuery + "&") + encodedArrayParams))));
         } else
         {
             return ((string?)((object)(encodedArrayParams)));
@@ -2612,7 +2612,7 @@ public partial class coinsph : Exchange
             query = this.urlEncodeQuery(query);
             if ((getArrayLength(query) != 0))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + query));
             }
         }
         return new Dictionary<string, object>() {
@@ -2632,7 +2632,7 @@ public partial class coinsph : Exchange
         string? responseCode = this.safeString(response, "code");
         if (((responseCode != null)) && (responseCode != "200") && (responseCode != "0"))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             throw new ExchangeError (feedback) ;

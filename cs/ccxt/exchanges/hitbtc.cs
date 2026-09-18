@@ -1216,7 +1216,7 @@ public partial class hitbtc : Exchange
         } else
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
-            throw new BadRequest (add(add(this.id, " fetchBalance() type parameter must be one of "), String.Join(", ", keys.ToArray()))) ;
+            throw new BadRequest (((this.id + " fetchBalance() type parameter must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         //
         //     [
@@ -1479,7 +1479,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginHistoryTrade(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchMyTrades() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchMyTrades() not support this market type")) ;
             }
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
@@ -1932,7 +1932,7 @@ public partial class hitbtc : Exchange
             response = await this.privateGetFuturesFeeSymbol(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTradingFee() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchTradingFee() not support this market type")) ;
         }
         //
         //     {
@@ -1971,7 +1971,7 @@ public partial class hitbtc : Exchange
             response = await this.privateGetFuturesFee(query);
         } else
         {
-            throw new NotSupported (add(this.id, " fetchTradingFees() not support this market type")) ;
+            throw new NotSupported ((this.id + " fetchTradingFees() not support this market type")) ;
         }
         //
         //     [
@@ -2183,7 +2183,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginHistoryOrder(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchClosedOrders() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchClosedOrders() not support this market type")) ;
             }
         }
         IList<object> parsed = this.parseOrders(response, market, since, limit);
@@ -2245,7 +2245,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginHistoryOrder(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchOrder() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchOrder() not support this market type")) ;
             }
         }
         //
@@ -2328,7 +2328,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginHistoryTrade(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchOrderTrades() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchOrderTrades() not support this market type")) ;
             }
         }
         //
@@ -2427,7 +2427,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginOrder(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchOpenOrders() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchOpenOrders() not support this market type")) ;
             }
         }
         //
@@ -2507,7 +2507,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginOrderClientOrderId(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchOpenOrder() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchOpenOrder() not support this market type")) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
@@ -2566,7 +2566,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateDeleteMarginOrder(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " cancelAllOrders() not support this market type")) ;
+                throw new NotSupported ((this.id + " cancelAllOrders() not support this market type")) ;
             }
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
@@ -2627,7 +2627,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateDeleteMarginOrderClientOrderId(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " cancelOrder() not support this market type")) ;
+                throw new NotSupported ((this.id + " cancelOrder() not support this market type")) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
@@ -2649,7 +2649,7 @@ public partial class hitbtc : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ExchangeError (add(this.id, " editOrder() limit order requires price")) ;
+                throw new ExchangeError ((this.id + " editOrder() limit order requires price")) ;
             }
             request["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2683,7 +2683,7 @@ public partial class hitbtc : Exchange
                 response = await this.privatePatchMarginOrderClientOrderId(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " editOrder() not support this market type")) ;
+                throw new NotSupported ((this.id + " editOrder() not support this market type")) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
@@ -2761,7 +2761,7 @@ public partial class hitbtc : Exchange
         {
             if ((!isEqual(getValue(market, "type"), "swap")) && (!isEqual(getValue(market, "type"), "margin")))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() does not support reduce_only for "), getValue(market, "type")), " orders, reduce_only orders are supported for swap and margin markets only")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() does not support reduce_only for ") + getValue(market, "type")) + " orders, reduce_only orders are supported for swap and margin markets only")) ;
             }
         }
         if (isEqual(reduceOnly, true))
@@ -2780,7 +2780,7 @@ public partial class hitbtc : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ExchangeError (add(this.id, " createOrder() requires a price argument for limit orders")) ;
+                throw new ExchangeError ((this.id + " createOrder() requires a price argument for limit orders")) ;
             }
             request["price"] = this.priceToPrecision(getValue(market, "symbol"), price);
         }
@@ -2789,7 +2789,7 @@ public partial class hitbtc : Exchange
             string? expireTime = this.safeString(parameters, "expire_time");
             if ((expireTime == null))
             {
-                throw new ExchangeError (add(this.id, " createOrder() requires an expire_time parameter for a GTD order")) ;
+                throw new ExchangeError ((this.id + " createOrder() requires an expire_time parameter for a GTD order")) ;
             }
         }
         if ((triggerPrice != null))
@@ -2804,7 +2804,7 @@ public partial class hitbtc : Exchange
             }
         } else if ((isEqual(type, "stopLimit")) || (isEqual(type, "stopMarket")) || (isEqual(type, "takeProfitLimit")) || (isEqual(type, "takeProfitMarket")))
         {
-            throw new ExchangeError (add(this.id, " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
+            throw new ExchangeError ((this.id + " createOrder() requires a triggerPrice parameter for stop-loss and take-profit orders")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "timeInForce", "stopPrice", "stop_price", "reduceOnly", "postOnly"});
         if (isEqual(marketType, "swap"))
@@ -2993,7 +2993,7 @@ public partial class hitbtc : Exchange
             response = await this.privateGetFuturesConfig(parameters);
         } else
         {
-            throw new BadSymbol (add(this.id, " fetchMarginModes () supports swap contracts and margin only")) ;
+            throw new BadSymbol ((this.id + " fetchMarginModes () supports swap contracts and margin only")) ;
         }
         List<object> config = this.safeList(response, "config", new List<object>() {});
         return ccxt.BaseExchange.ToMarginModes(this.parseMarginModes(config, symbols, "symbol"));
@@ -3040,7 +3040,7 @@ public partial class hitbtc : Exchange
         string? toId = this.safeString(accountsByType, toAccountVar, toAccountVar);
         if ((fromId == toId))
         {
-            throw new BadRequest (add(this.id, " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
+            throw new BadRequest ((this.id + " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
@@ -3087,7 +3087,7 @@ public partial class hitbtc : Exchange
         }
         if (!isEqual(code, "USDT"))
         {
-            throw new ExchangeError (add(this.id, " convertCurrencyNetwork() only supports USDT currently")) ;
+            throw new ExchangeError ((this.id + " convertCurrencyNetwork() only supports USDT currently")) ;
         }
         IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         fromNetwork = ((string)fromNetwork).ToUpper();
@@ -3096,12 +3096,12 @@ public partial class hitbtc : Exchange
         toNetwork = this.safeString(networks, toNetwork); // handle ETH>ERC20 alias
         if (isEqual(fromNetwork, toNetwork))
         {
-            throw new BadRequest (add(this.id, " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")) ;
+            throw new BadRequest ((this.id + " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")) ;
         }
         if ((isEqual(fromNetwork, null)) || (isEqual(toNetwork, null)))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)networks).Keys);
-            throw new ArgumentsRequired (add(add(this.id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are "), String.Join(", ", keys.ToArray()))) ;
+            throw new ArgumentsRequired (((this.id + " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ") + String.Join(", ", keys.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "from_currency", fromNetwork },
@@ -3206,7 +3206,7 @@ public partial class hitbtc : Exchange
         parameters = typeparametersVariable[1];
         if (type != "swap")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
         }
         Dictionary<string, object> response = await this.publicGetPublicFuturesInfo(this.extend(request, parameters));
         //
@@ -3381,7 +3381,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginAccount(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchPositions() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchPositions() not support this market type")) ;
             }
         }
         //
@@ -3470,7 +3470,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchPosition() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchPosition() not support this market type")) ;
             }
         }
         //
@@ -3700,7 +3700,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchOpenInterest() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -3743,7 +3743,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -3821,7 +3821,7 @@ public partial class hitbtc : Exchange
         {
             if ((leverage == null))
             {
-                throw new ArgumentsRequired (add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
+                throw new ArgumentsRequired ((this.id + " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
             }
         }
         string? stringAmount = this.numberToString(amount);
@@ -3857,7 +3857,7 @@ public partial class hitbtc : Exchange
             response = await this.privatePutMarginAccountIsolatedSymbol(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " modifyMarginHelper() not support this market type")) ;
+            throw new NotSupported ((this.id + " modifyMarginHelper() not support this market type")) ;
         }
         //
         //     {
@@ -3941,7 +3941,7 @@ public partial class hitbtc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(this.numberToString(amount), "0"))
         {
-            throw new BadRequest (add(this.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
+            throw new BadRequest ((this.id + " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")) ;
         }
         return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
     }
@@ -4010,7 +4010,7 @@ public partial class hitbtc : Exchange
                 response = await this.privateGetMarginAccountIsolatedSymbol(this.extend(request, parameters));
             } else
             {
-                throw new NotSupported (add(this.id, " fetchLeverage() not support this market type")) ;
+                throw new NotSupported ((this.id + " fetchLeverage() not support this market type")) ;
             }
         }
         //
@@ -4074,7 +4074,7 @@ public partial class hitbtc : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4082,18 +4082,18 @@ public partial class hitbtc : Exchange
         }
         if (isEqual(getValue(parameters, "margin_balance"), null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         double? amount = this.safeNumber(parameters, "margin_balance");
         Int64? maxLeverage = this.safeInteger(getValue(GetValue(market, "limits"), "leverage"), "max", 50);
         if (!isEqual(GetValue(market, "type"), "swap"))
         {
-            throw new BadSymbol (add(this.id, " setLeverage() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " setLeverage() supports swap contracts only")) ;
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, maxLeverage)))
         {
-            throw new BadRequest (add(add(add(add(this.id, " setLeverage() leverage should be between 1 and "), ((object)maxLeverage).ToString()), " for "), symbol)) ;
+            throw new BadRequest (((((this.id + " setLeverage() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -4301,7 +4301,7 @@ public partial class hitbtc : Exchange
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString2(error, "message", "description");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
@@ -4328,7 +4328,7 @@ public partial class hitbtc : Exchange
         {
             if ((!isEqual(queryLength, null)) && ((queryLength != 0)))
             {
-                getRequest = add("?", this.urlencode(query));
+                getRequest = ("?" + this.urlencode(query));
                 url = add(url, getRequest);
             }
         } else
@@ -4339,7 +4339,7 @@ public partial class hitbtc : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
-            List<object> payload = new List<object>() {method, add("/api/3/", implodedPath)};
+            List<object> payload = new List<object>() {method, ("/api/3/" + implodedPath)};
             if (isEqual(method, "GET"))
             {
                 if ((getRequest != null))
@@ -4358,7 +4358,7 @@ public partial class hitbtc : Exchange
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
             object secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);
             string encoded = this.stringToBase64(secondPayload);
-            ((IDictionary<string,object>)headers)["Authorization"] = add("HS256 ", encoded);
+            ((IDictionary<string,object>)headers)["Authorization"] = ("HS256 " + encoded);
         }
         return new Dictionary<string, object>() {
             { "url", url },

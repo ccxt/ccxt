@@ -917,7 +917,7 @@ public partial class coinmate : Exchange
         if ((method == null))
         {
             List<object> allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);
-            throw new ExchangeError (add(add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.Join(", ", allowedCurrencies.ToArray()))) ;
+            throw new ExchangeError (((this.id + " withdraw() only allows withdrawing the following currencies: ") + String.Join(", ", allowedCurrencies.ToArray()))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", this.currencyToPrecision(code, amount) },
@@ -958,7 +958,7 @@ public partial class coinmate : Exchange
             response = await this.privatePostSolWithdrawal(requestParams);
         } else
         {
-            throw new ExchangeError (add(add(add(this.id, " withdraw() does not support the "), method), " method")) ;
+            throw new ExchangeError ((((this.id + " withdraw() does not support the ") + method) + " method")) ;
         }
         //
         //     {
@@ -1208,7 +1208,7 @@ public partial class coinmate : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1359,7 +1359,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        string method = add("privatePost", this.capitalize(side));
+        string method = ("privatePost" + this.capitalize(side));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currencyPair", GetValue(market, "id") },
@@ -1396,7 +1396,7 @@ public partial class coinmate : Exchange
             response = await this.privatePostSellLimit(requestParams);
         } else
         {
-            throw new InvalidOrder (add(add(this.id, " createOrder() does not support order type "), type)) ;
+            throw new InvalidOrder (((this.id + " createOrder() does not support order type ") + type)) ;
         }
         string? id = this.safeString(response, "data");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market));
@@ -1480,13 +1480,13 @@ public partial class coinmate : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
-            object auth = add(add(nonce, this.uid), this.apiKey);
+            object auth = ((nonce + this.uid) + this.apiKey);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },
@@ -1519,7 +1519,7 @@ public partial class coinmate : Exchange
         string? errorMessage = this.safeString(response, "errorMessage");
         if ((errorMessage != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
             throw new ExchangeError (feedback) ;

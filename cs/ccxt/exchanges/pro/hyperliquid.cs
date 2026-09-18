@@ -258,7 +258,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -290,8 +290,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = GetValue(market, "symbol");
-        string subMessageHash = add("orderbook:", symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ("orderbook:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         string id = this.nonce().ToString();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -352,7 +352,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         (orderbook as IOrderBook).reset(snapshot);
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -379,7 +379,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         // pushes at block cadence with full ticker fields (mark, oracle, funding, volume),
         // instead of the aggregate allMids broadcast that only carries mids and arrives at the
         // server's own batch cadence, see https://github.com/ccxt/ccxt/issues/27475
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -409,8 +409,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = GetValue(market, "symbol");
-        string subMessageHash = add("ticker:", symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ("ticker:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -462,7 +462,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if ((defaultDex != null))
         {
             parameters = this.omit(parameters, "dex");
-            messageHash = add("tickers:", defaultDex);
+            messageHash = ("tickers:" + defaultDex);
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["subscription"])["type"] = "allMids";
             ((IDictionary<string,object>)((IDictionary<string,object>)request)["subscription"])["dex"] = defaultDex;
         }
@@ -492,7 +492,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         symbols = this.marketSymbols(symbols, null, true);
         string subMessageHash = "tickers";
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -532,7 +532,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -545,9 +545,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         Dictionary<string, object> message = this.extend(request, parameters);
         if ((userAddress == null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchMyTrades() requires a user address")) ;
+            throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a user address")) ;
         }
-        string subscribeHash = add("subscribe:userFills::", userAddress.ToLower());
+        string subscribeHash = ("subscribe:userFills::" + userAddress.ToLower());
         object trades = await this.watch(url, messageHash, message, subscribeHash);
         if (isTrue(this.newUpdates))
         {
@@ -575,7 +575,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported (add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
+            throw new NotSupported ((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
         }
         string? userAddress = null;
         List<object> userAddressResult = this.handlePublicAddress("unWatchMyTrades", parameters);
@@ -631,7 +631,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             string? dexMessage = this.safeString(data, "dex");
             if ((dexMessage != null))
             {
-                messageHash = add(messageHash, add(":", dexMessage));
+                messageHash = add(messageHash, (":" + dexMessage));
             }
             callDynamically(client, "resolve", new object[] {this.tickers, messageHash});
         }
@@ -670,7 +670,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         IDictionary<string, object> ctx = this.safeDict(data, "ctx", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(ctx, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         callDynamically(client, "resolve", new object[] {ticker, messageHash});
         return true;
     }
@@ -735,7 +735,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string currentMessageHash = add("myTrades:", getValue(keys, i));
+            string currentMessageHash = ("myTrades:" + getValue(keys, i));
             callDynamically(client, "resolve", new object[] {trades, currentMessageHash});
         }
         // non-symbol specific
@@ -765,7 +765,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add("trade:", symbolVar);
+        string messageHash = ("trade:" + symbolVar);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
@@ -801,8 +801,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = GetValue(market, "symbol");
-        string subMessageHash = add("trade:", symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ("trade:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -857,7 +857,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             Dictionary<string, object> trade = this.parseWsTrade(data);
             callDynamically(trades, "append", new object[] {trade});
         }
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         callDynamically(client, "resolve", new object[] {trades, messageHash});
     }
 
@@ -964,7 +964,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "interval", timeframeVar },
             } },
         };
-        string messageHash = add(add(add("candles:", timeframeVar), ":"), symbolVar);
+        string messageHash = ((("candles:" + timeframeVar) + ":") + symbolVar);
         Dictionary<string, object> message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
@@ -1004,8 +1004,8 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "interval", timeframeVar },
             } },
         };
-        string subMessageHash = add(add(add("candles:", timeframeVar), ":"), symbol);
-        string messagehash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ((("candles:" + timeframeVar) + ":") + symbol);
+        string messagehash = ("unsubscribe:" + subMessageHash);
         Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messagehash, message, messagehash);
     }
@@ -1047,7 +1047,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
         IList<object> parsed = this.parseOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
-        string messageHash = add(add(add("candles:", timeframe), ":"), symbol);
+        string messageHash = ((("candles:" + timeframe) + ":") + symbol);
         callDynamically(client, "resolve", new object[] {ohlcv, messageHash});
     }
 
@@ -1100,7 +1100,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? dex = this.safeString(parameters, "dex");
         bool isSpot = ((type == "spot") || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
         string topic = ((isSpot == true)) ? "spotState" : "clearinghouseState";
-        string messageHash = add(topic, "::balance");
+        string messageHash = (topic + "::balance");
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "type", topic },
@@ -1158,7 +1158,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? dex = this.safeString(parameters, "dex");
         bool isSpot = ((type == "spot") || (isEqual(isUnifiedEnabled, true))) && ((dex == null));
         string topic = ((isSpot == true)) ? "spotState" : "clearinghouseState";
-        string messageHash = add(add("unsubscribe", ":"), topic);
+        string messageHash = (("unsubscribe" + ":") + topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
@@ -1356,11 +1356,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         userAddress = this.safeString(userAddressResult, 0);
         parameters = this.safeDict(userAddressResult, 1, parameters);
         string topic = "clearinghouseState";
-        string messageHash = add(topic, "::positions");
+        string messageHash = (topic + "::positions");
         if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
-            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+            messageHash = add(messageHash, ("::" + String.Join(",", ((IList<object>)symbols).ToArray())));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -1454,7 +1454,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
         {
-            throw new NotSupported (add(this.id, " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
+            throw new NotSupported ((this.id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders")) ;
         }
         string messageHash = "unsubscribe:clearinghouseState";
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -1523,9 +1523,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         // note: orderUpdates payloads carry no user, so resolution/data stays shared across users
         if ((userAddress == null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchOrders() requires a user address")) ;
+            throw new ArgumentsRequired ((this.id + " watchOrders() requires a user address")) ;
         }
-        string subscribeHash = add("subscribe:orderUpdates::", userAddress.ToLower());
+        string subscribeHash = ("subscribe:orderUpdates::" + userAddress.ToLower());
         object orders = await this.watch(url, messageHash, message, subscribeHash);
         if (isTrue(this.newUpdates))
         {
@@ -1553,7 +1553,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported (add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
+            throw new NotSupported ((this.id + " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
         }
         string messageHash = "unsubscribe:order";
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -1620,7 +1620,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? symbol = ((string)getValue(keys, i));
-            string innerMessageHash = add(add(messageHash, ":"), symbol);
+            string innerMessageHash = ((messageHash + ":") + symbol);
             callDynamically(client, "resolve", new object[] {stored, innerMessageHash});
         }
         callDynamically(client, "resolve", new object[] {stored, messageHash});
@@ -1668,7 +1668,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return ((bool?)((object)(true)));
             }
-            var error = new ExchangeError(add(add(this.id, " "), ret_msg));
+            var error = new ExchangeError(((this.id + " ") + ret_msg));
             client.reject(error);
             return ((bool?)((object)(true)));
         }
@@ -1683,14 +1683,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? status = this.safeString(payload, "status");
         if ((status != null) && status != "ok")
         {
-            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
+            var error = new ExchangeError(((this.id + " ") + this.json(payload)));
             client.reject(error, id);
             return ((bool?)((object)(true)));
         }
         string? type = this.safeString(payload, "type");
         if (type == "error")
         {
-            var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
+            var error = new ExchangeError(((this.id + " ") + this.json(payload)));
             client.reject(error, id);
             return ((bool?)((object)(true)));
         }
@@ -1718,8 +1718,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(subscription, "coin");
         string? marketId = this.coinToMarketId(coin);
         string? symbol = this.safeSymbol(marketId);
-        string subMessageHash = add("orderbook:", symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ("orderbook:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.orderbooks, symbol))
         {
@@ -1733,8 +1733,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(subscription, "coin");
         string? marketId = this.coinToMarketId(coin);
         string? symbol = this.safeSymbol(marketId);
-        string subMessageHash = add("trade:", symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ("trade:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.trades, symbol))
         {
@@ -1746,7 +1746,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     {
         //
         string subMessageHash = "tickers";
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
         for (int i = 0; isLessThan(i, symbols.Count); postFixIncrement(ref i))
@@ -1761,8 +1761,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? coin = this.safeString(subscription, "coin");
         string? marketId = this.coinToMarketId(coin);
         string? symbol = this.safeSymbol(marketId);
-        string subMessageHash = add("ticker:", symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ("ticker:" + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.tickers, symbol))
         {
@@ -1777,8 +1777,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         string? symbol = this.safeSymbol(marketId);
         string? interval = this.safeString(subscription, "interval");
         string? timeframe = this.findTimeframe(interval);
-        string subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
-        string messageHash = add("unsubscribe:", subMessageHash);
+        string subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
+        string messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (inOp(this.ohlcvs, symbol))
         {
@@ -1792,14 +1792,14 @@ public partial class hyperliquid : ccxt.hyperliquid
     public virtual void handleOrderUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "order";
-        string unSubHash = add("unsubscribe:", subHash);
+        string unSubHash = ("unsubscribe:" + subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         string? user = this.safeStringLower(subscription, "user");
         if ((user != null))
         {
-            string subscribeHash = add("subscribe:orderUpdates::", user);
+            string subscribeHash = ("subscribe:orderUpdates::" + user);
             if (inOp(client.subscriptions, subscribeHash))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
@@ -1814,14 +1814,14 @@ public partial class hyperliquid : ccxt.hyperliquid
     public virtual void handleMyTradesUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "myTrades";
-        string unSubHash = add("unsubscribe:", subHash);
+        string unSubHash = ("unsubscribe:" + subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         string? user = this.safeStringLower(subscription, "user");
         if ((user != null))
         {
-            string subscribeHash = add("subscribe:userFills::", user);
+            string subscribeHash = ("subscribe:userFills::" + user);
             if (inOp(client.subscriptions, subscribeHash))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
@@ -1836,7 +1836,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public virtual void handlePositionsUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "clearinghouseState";
-        string unSubHash = add("unsubscribe:", subHash);
+        string unSubHash = ("unsubscribe:" + subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         Dictionary<string, object> topicStructure = new Dictionary<string, object>() {
             { "topic", "positions" },
@@ -1852,7 +1852,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public virtual void handleSpotBalanceUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         string subHash = "spotState";
-        string unSubHash = add("unsubscribe:", subHash);
+        string unSubHash = ("unsubscribe:" + subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         if (inOp(this.balance, "spot"))
         {

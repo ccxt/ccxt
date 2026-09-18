@@ -1220,7 +1220,7 @@ public partial class bitteam : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             } else
             {
                 request["price"] = this.priceToPrecision(symbol, price);
@@ -2571,7 +2571,7 @@ public partial class bitteam : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object request = this.omit(parameters, this.extractParams(path));
-        string endpoint = add("/", this.implodeParams(path, parameters));
+        string endpoint = ("/" + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
         string query = this.urlencode(request);
         if (isEqual(api, "private"))
@@ -2582,18 +2582,18 @@ public partial class bitteam : Exchange
                 body = this.json(request);
             } else if ((query.Length != 0))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + query));
             }
             string? auth = add(add(this.apiKey, ":"), this.secret);
             string auth64 = this.stringToBase64(auth);
-            string signature = add("Basic ", auth64);
+            string signature = ("Basic " + auth64);
             headers = new Dictionary<string, object>() {
                 { "Authorization", signature },
                 { "Content-Type", "application/json" },
             };
         } else if ((query.Length != 0))
         {
-            url = add(url, add("?", query));
+            url = add(url, ("?" + query));
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -2617,16 +2617,16 @@ public partial class bitteam : Exchange
                 {
                     List<object> parts = url.Split(new [] {"/order/"}, StringSplitOptions.None).ToList<object>();
                     string? orderId = this.safeString(parts, 1);
-                    throw new OrderNotFound (add(add(add(this.id, " order "), orderId), " not found")) ;
+                    throw new OrderNotFound ((((this.id + " order ") + orderId) + " not found")) ;
                 }
                 if (getIndexOf(url, "/cmc/orderbook/") >= 0)
                 {
                     List<object> parts = url.Split(new [] {"/cmc/orderbook/"}, StringSplitOptions.None).ToList<object>();
                     string? symbolId = this.safeString(parts, 1);
-                    throw new BadSymbol (add(add(add(this.id, " symbolId "), symbolId), " not found")) ;
+                    throw new BadSymbol ((((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString(response, "message");
             string? responseCode = this.safeString(response, "code");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
