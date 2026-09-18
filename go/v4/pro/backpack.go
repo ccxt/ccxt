@@ -699,7 +699,7 @@ func (this *Backpack) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)
@@ -920,7 +920,7 @@ func (this *Backpack) watchTradesForSymbolsBody(ch chan any, symbols any, option
 
 	trades := (<-this.WatchPublicAsync(topics, messageHashes, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -1349,7 +1349,7 @@ func (this *Backpack) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync([]any{topic}, []any{messageHash}, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1589,7 +1589,7 @@ func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	positions := (<-this.WatchPrivateAsync(topics, messageHashes, params))
 	ccxt.PanicOnError(positions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- positions
 		return nil

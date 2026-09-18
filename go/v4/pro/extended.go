@@ -248,7 +248,7 @@ func (this *Extended) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"limit":  limit,
 	}))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -389,7 +389,7 @@ func (this *Extended) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		"limit":  limit,
 	}))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -499,7 +499,7 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"limit":   limit,
 	}))
 	ccxt.PanicOnError(positions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- positions
 		return nil
@@ -560,7 +560,7 @@ func (this *Extended) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(filtered)) {
+		if !this.IsEmpty(filtered) {
 			client.(ccxt.ClientInterface).Resolve(filtered, messageHash)
 		}
 	}
@@ -840,7 +840,7 @@ func (this *Extended) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"limit":  limit,
 	}))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -960,7 +960,7 @@ func (this *Extended) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"messageHash": messageHash,
 	}))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 

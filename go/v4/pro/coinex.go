@@ -509,7 +509,7 @@ func (this *Coinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -795,7 +795,7 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	result := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(subscribe, params), subscriptionHashes))
 	ccxt.PanicOnError(result)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- result
 		return nil
@@ -904,7 +904,7 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 	trades := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(subscribe, params), messageHashes))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- trades
 		return nil
@@ -991,7 +991,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 
 	orderbooks := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(subscribe, params), messageHashes))
 	ccxt.PanicOnError(orderbooks)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- orderbooks
 		return nil
@@ -1186,7 +1186,7 @@ func (this *Coinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1534,7 +1534,7 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	result := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(subscribe, params), subscriptionHashes))
 	ccxt.PanicOnError(result)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- result
 		return nil

@@ -92,7 +92,7 @@ func (this *Luno) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 
 	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 

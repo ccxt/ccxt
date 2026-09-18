@@ -322,7 +322,7 @@ func (this *Bitstamp) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -573,7 +573,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribePrivateAsync(subscription, messageHash, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -671,7 +671,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.SubscribePrivateAsync(subscription, messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 

@@ -296,7 +296,7 @@ func (this *Weex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTicker := (<-this.SubscribePublicAsync(messageHashes, channels, isContract, params))
 	ccxt.PanicOnError(newTicker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
@@ -566,7 +566,7 @@ func (this *Weex) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 
 	trades := (<-this.SubscribePublicAsync(messageHashes, channels, isContract, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -855,7 +855,7 @@ func (this *Weex) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframestoredVariable, 1)
 	stored := ccxt.GetValue(symboltimeframestoredVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(stored, since, limit, 0, true)
@@ -1321,7 +1321,7 @@ func (this *Weex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	newTicker := (<-this.SubscribePublicAsync(messageHashes, channels, false, params))
 	ccxt.PanicOnError(newTicker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
@@ -1495,7 +1495,7 @@ func (this *Weex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.SubscribePrivateAsync(messageHash, subscriptionHash, channel, isContract, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1753,7 +1753,7 @@ func (this *Weex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribePrivateAsync(messageHash, subscriptionHash, channel, isContract, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -2282,7 +2282,7 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.SubscribePrivateAsync(messageHash, subscriptionHash, channel, true, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -2427,7 +2427,7 @@ func (this *Weex) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}

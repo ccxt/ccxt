@@ -153,7 +153,7 @@ func (this *Upbit) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.WatchPublicMultipleAsync(symbols, "ticker"))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
@@ -225,7 +225,7 @@ func (this *Upbit) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 
 	trades := (<-this.WatchPublicMultipleAsync(symbols, "trade"))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -590,7 +590,7 @@ func (this *Upbit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivateAsync(symbol, channel, messageHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -635,7 +635,7 @@ func (this *Upbit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchPrivateAsync(symbol, channel, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 

@@ -197,7 +197,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 
 	ohlcv := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -549,7 +549,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan any, optionalArgs ...any) any
 
 	orders := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 

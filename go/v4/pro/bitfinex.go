@@ -216,7 +216,7 @@ func (this *Bitfinex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -389,7 +389,7 @@ func (this *Bitfinex) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.SubscribeAsync("trades", symbol, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -461,7 +461,7 @@ func (this *Bitfinex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.SubscribePrivateAsync(messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1394,7 +1394,7 @@ func (this *Bitfinex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribePrivateAsync(messageHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 

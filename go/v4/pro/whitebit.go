@@ -118,7 +118,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.WatchPublicAsync(messageHash, method, reqParams, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -462,7 +462,7 @@ func (this *Whitebit) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -558,7 +558,7 @@ func (this *Whitebit) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, true, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -715,7 +715,7 @@ func (this *Whitebit) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchMultipleSubscriptionAsync(messageHash, method, symbol, false, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 

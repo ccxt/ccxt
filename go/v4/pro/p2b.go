@@ -148,7 +148,7 @@ func (this *P2b) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 
 	ohlcv := (<-this.SubscribeAsync("kline.subscribe", messageHash, request, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -335,7 +335,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 
 	trades := (<-this.WatchMultiple(url, messageHashes, query, messageHashes))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)

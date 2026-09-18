@@ -531,7 +531,7 @@ func (this *Xt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	tickers := (<-this.SubscribeAsync(name, "public", "watchTickers", market, symbols, params))
 	ccxt.PanicOnError(tickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- tickers
 		return nil
@@ -579,7 +579,7 @@ func (this *Xt) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	tickers := (<-this.UnSubscribeAsync(messageHash, name, "public", "unWatchTickers", "ticker", nil, symbols, params))
 	ccxt.PanicOnError(tickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- tickers
 		return nil
@@ -628,7 +628,7 @@ func (this *Xt) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any
 
 	ohlcv := (<-this.SubscribeAsync(name, "public", "watchOHLCV", market, nil, params))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -713,7 +713,7 @@ func (this *Xt) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) an
 
 	trades := (<-this.SubscribeAsync(name, "public", "watchTrades", market, nil, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -886,7 +886,7 @@ func (this *Xt) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.SubscribeAsync(name, "private", "watchOrders", market, nil, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -935,7 +935,7 @@ func (this *Xt) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.SubscribeAsync(name, "private", "watchMyTrades", market, nil, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1013,7 +1013,7 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
 	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
 	var cache any = this.Positions
-	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && ccxt.EvalTruthy(this.IsEmpty(cache)) {
+	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && this.IsEmpty(cache) {
 
 		snapshot := (<-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot"))
 		ccxt.PanicOnError(snapshot)
@@ -1025,7 +1025,7 @@ func (this *Xt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.SubscribeAsync(name, "private", "watchPositions", nil, nil, params))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -1224,7 +1224,7 @@ func (this *Xt) HandlePosition(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}

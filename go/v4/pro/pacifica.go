@@ -797,7 +797,7 @@ func (this *Pacifica) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	tickers := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(tickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- this.FilterByArrayTickers(tickers, "symbol", symbols)
 		return nil
@@ -918,7 +918,7 @@ func (this *Pacifica) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1131,7 +1131,7 @@ func (this *Pacifica) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1373,7 +1373,7 @@ func (this *Pacifica) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -1540,7 +1540,7 @@ func (this *Pacifica) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 

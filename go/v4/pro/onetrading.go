@@ -370,7 +370,7 @@ func (this *Onetrading) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 
 	trades := (<-this.Watch(url, messageHash, request, subscribeHash, request))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 	trades = this.FilterBySymbolSinceLimit(trades, symbol, since, limit)
@@ -574,7 +574,7 @@ func (this *Onetrading) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, request, subscribeHash, request))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 	orders = this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
@@ -1256,7 +1256,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 	ohlcv := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), subscriptionHash, subscription))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 

@@ -439,7 +439,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	var messageHashes any = []any{}
 	var streamHash any = "liquidations"
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 		ccxt.AppendToArray(&subscriptionHashes, "!"+"forceOrder@arr")
 		ccxt.AppendToArray(&messageHashes, "liquidations")
 	} else {
@@ -451,7 +451,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
 	}
 	var firstMarket any = nil
-	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if !this.IsEmpty(symbols) {
 		firstMarket = this.GetMarketFromSymbols(symbols)
 	}
 	var resolvedAuth any = this.ResolveAuthType("watchLiquidationsForSymbols", firstMarket, params)
@@ -481,7 +481,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 
 	newLiquidations := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), subscriptionHashes, subscribe))
 	ccxt.PanicOnError(newLiquidations)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newLiquidations
 		return nil
@@ -705,7 +705,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = this.GetMarketFromSymbols(symbols)
 	var messageHashes any = []any{"myLiquidations"}
-	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if !this.IsEmpty(symbols) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("myLiquidations::", symbol))
@@ -733,7 +733,7 @@ func (this *Binance) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 
 	newLiquidations := (<-this.WatchMultiple(url, messageHashes, message, []any{typeVar}))
 	ccxt.PanicOnError(newLiquidations)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newLiquidations
 		return nil
@@ -1553,7 +1553,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 
 	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -2077,7 +2077,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		stockSymbol := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 0)
 		stockTimeframe := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 1)
 		stockCandles := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 2)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 			limit = ccxt.ToGetsLimit(stockCandles).GetLimit(stockSymbol, limit)
 		}
 		var stockFiltered any = this.FilterBySinceLimit(stockCandles, since, limit, 0, true)
@@ -2157,7 +2157,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
 	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)
@@ -2671,7 +2671,7 @@ func (this *Binance) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.WatchMultiTickerHelperAsync("watchMarkPrices", channelName, symbols, params))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newTickers
 		return nil
@@ -2721,7 +2721,7 @@ func (this *Binance) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 		stockResult := (<-this.WatchStockMarketStreamAsync([]any{"price"}, []any{"stock:price"}, params))
 		ccxt.PanicOnError(stockResult)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 
 			ch <- stockResult
 			return nil
@@ -2740,7 +2740,7 @@ func (this *Binance) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTickers := (<-this.WatchMultiTickerHelperAsync("watchTickers", channelName, symbols, params))
 	ccxt.PanicOnError(newTickers)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newTickers
 		return nil
@@ -2962,7 +2962,7 @@ func (this *Binance) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 		stockResult := (<-this.WatchStockMarketStreamAsync(stockStreams, stockMessageHashes, params))
 		ccxt.PanicOnError(stockResult)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 
 			ch <- stockResult
 			return nil
@@ -2975,7 +2975,7 @@ func (this *Binance) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	result := (<-this.WatchMultiTickerHelperAsync("watchBidsAsks", "bookTicker", symbols, params))
 	ccxt.PanicOnError(result)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- result
 		return nil
@@ -5554,7 +5554,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 		stockOrders := (<-this.Watch(stockUrl, stockMessageHash, this.Extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe))
 		ccxt.PanicOnError(stockOrders)
-		if ccxt.EvalTruthy(this.NewUpdates) {
+		if this.NewUpdates {
 			limit = ccxt.ToGetsLimit(stockOrders).GetLimit(symbol, limit)
 		}
 
@@ -5617,7 +5617,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, message, typeVar))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -6206,7 +6206,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var messageHash any = ""
 	symbols = this.MarketSymbols(symbols)
-	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if !this.IsEmpty(symbols) {
 		market = this.GetMarketFromSymbols(symbols)
 		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
@@ -6273,7 +6273,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.Watch(url, messageHash, nil, typeVar))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -6400,7 +6400,7 @@ func (this *Binance) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
@@ -6799,7 +6799,7 @@ func (this *Binance) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.Watch(url, messageHash, message, typeVar))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -6824,7 +6824,7 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 					// accumulate order fees
 					var fees any = this.SafeValue(order, "fees")
 					var fee any = this.SafeValue(order, "fee")
-					if !ccxt.EvalTruthy(this.IsEmpty(fees)) {
+					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
 						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
 							var orderFee any = ccxt.GetValue(fees, i)
@@ -6996,7 +6996,7 @@ func (this *Binance) HandleOptionsAccountUpdate(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}

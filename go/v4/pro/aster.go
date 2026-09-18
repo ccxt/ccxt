@@ -233,7 +233,7 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(newTicker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
@@ -440,7 +440,7 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(newTicker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
@@ -659,7 +659,7 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(newTicker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
@@ -903,7 +903,7 @@ func (this *Aster) watchTradesForSymbolsBody(ch chan any, symbols any, optionalA
 
 	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -1550,7 +1550,7 @@ func (this *Aster) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 	symbol := ccxt.GetValue(symboltimeframestoredVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframestoredVariable, 1)
 	stored := ccxt.GetValue(symboltimeframestoredVariable, 2)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(stored).GetLimit(symbol, limit)
 	}
 	var filtered any = this.FilterBySinceLimit(stored, since, limit, 0, true)
@@ -2087,7 +2087,7 @@ func (this *Aster) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.WatchMultiple(url, messageHashes, nil, []any{typeVar}))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -2189,7 +2189,7 @@ func (this *Aster) HandlePositions(client any, message any) {
 		cache.(ccxt.Appender).Append(position)
 	}
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
-	if !ccxt.EvalTruthy(this.IsEmpty(messageHashes)) {
+	if !this.IsEmpty(messageHashes) {
 		for i := 0; i < ccxt.GetArrayLength(newPositions); i++ {
 			var position any = ccxt.GetValue(newPositions, i)
 			var symbol any = ccxt.GetValue(position, "symbol")
@@ -2312,7 +2312,7 @@ func (this *Aster) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeVar}))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -2376,7 +2376,7 @@ func (this *Aster) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.WatchMultiple(url, []any{messageHash}, nil, []any{typeVar}))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -2420,7 +2420,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 					// accumulate order fees
 					var fees any = this.SafeValue(order, "fees")
 					var fee any = this.SafeValue(order, "fee")
-					if !ccxt.EvalTruthy(this.IsEmpty(fees)) {
+					if !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
 						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
 							var orderFee any = ccxt.GetValue(fees, i)
@@ -2564,7 +2564,7 @@ func (this *Aster) HandleOrder(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	cache.(ccxt.Appender).Append(parsed)
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), messageHash)
-	if !ccxt.EvalTruthy(this.IsEmpty(messageHashes)) {
+	if !this.IsEmpty(messageHashes) {
 		var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
 		client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)
 		client.(ccxt.ClientInterface).Resolve(cache, messageHash)

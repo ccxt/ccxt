@@ -1009,7 +1009,7 @@ func (this *Hashkey) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var spotMarkets any = this.SafeList(response, "symbols", []any{})
 	var swapMarkets any = this.SafeList(response, "contracts", []any{})
 	var markets []any = this.ArrayConcat(spotMarkets, swapMarkets)
-	if EvalTruthy(this.IsEmpty(markets)) {
+	if this.IsEmpty(markets) {
 		markets = []any{response} // if user provides params.symbol the exchange returns a single object instead of list of objects
 	}
 

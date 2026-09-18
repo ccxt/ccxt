@@ -2053,7 +2053,7 @@ func (this *Bitvavo) EditOrderRequest(id any, symbol any, typeVar any, side any,
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	request = this.Extend(request, params)
-	if EvalTruthy(this.IsEmpty(request)) {
+	if this.IsEmpty(request) {
 		panic(ArgumentsRequired(this.Id + " editOrder() requires an amount argument, or a price argument, or non-empty params"))
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")

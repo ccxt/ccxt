@@ -147,7 +147,7 @@ func (this *Bitmex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), rawSubscriptions))
 	ccxt.PanicOnError(ticker)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
@@ -470,7 +470,7 @@ func (this *Bitmex) watchLiquidationsForSymbolsBody(ch chan any, symbols any, op
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var messageHashes any = []any{}
 	var subscriptionHashes any = []any{}
-	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if this.IsEmpty(symbols) {
 		ccxt.AppendToArray(&subscriptionHashes, "liquidation")
 		ccxt.AppendToArray(&messageHashes, "liquidations")
 	} else {
@@ -489,7 +489,7 @@ func (this *Bitmex) watchLiquidationsForSymbolsBody(ch chan any, symbols any, op
 
 	newLiquidations := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), subscriptionHashes))
 	ccxt.PanicOnError(newLiquidations)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newLiquidations
 		return nil
@@ -890,7 +890,7 @@ func (this *Bitmex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes7598)
 	var subscriptionHash string = "position"
 	var messageHash any = "positions"
-	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if !this.IsEmpty(symbols) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = "positions::" + ccxt.Join(symbols, ",")
 	}
@@ -902,7 +902,7 @@ func (this *Bitmex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	newPositions := (<-this.Watch(url, messageHash, request, subscriptionHash))
 	ccxt.PanicOnError(newPositions)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 
 		ch <- newPositions
 		return nil
@@ -1097,7 +1097,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 		var symbolsString any = ccxt.GetValue(parts, 1)
 		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
-		if !ccxt.EvalTruthy(this.IsEmpty(positions)) {
+		if !this.IsEmpty(positions) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
 		}
 	}
@@ -1154,7 +1154,7 @@ func (this *Bitmex) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, request, subscriptionHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -1394,7 +1394,7 @@ func (this *Bitmex) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	trades := (<-this.Watch(url, messageHash, request, subscriptionHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -1626,7 +1626,7 @@ func (this *Bitmex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 
 	trades := (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), topics))
 	ccxt.PanicOnError(trades)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		var first any = this.SafeValue(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
@@ -1681,7 +1681,7 @@ func (this *Bitmex) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 
 	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.EvalTruthy(this.NewUpdates) {
+	if this.NewUpdates {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 

@@ -1134,7 +1134,7 @@ func (this *Btcbox) requestBody(ch chan any, path any, optionalArgs ...any) any 
 	if IsString(response) {
 		// sometimes the exchange returns whitespace prepended to json
 		response = this.Strip(response)
-		if !EvalTruthy(this.IsJsonEncodedObject(response)) {
+		if !this.IsJsonEncodedObject(response) {
 			panic(ExchangeError(Add(this.Id+" ", response)))
 		}
 		response = JsonParse(response)

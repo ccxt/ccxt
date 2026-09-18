@@ -4130,7 +4130,7 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), request)
 	// const type = this.getPathAuthenticationType (path);
 	if IsEqual(api, "public") {
-		if !EvalTruthy(this.IsEmpty(query)) {
+		if !this.IsEmpty(query) {
 			url = Add(url, "?"+this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
@@ -4144,13 +4144,13 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 		}
 		var sign_body any = ""
 		if IsEqual(method, "GET") {
-			if !EvalTruthy(this.IsEmpty(query)) {
+			if !this.IsEmpty(query) {
 				var urlencodedQuery any = "?" + this.Urlencode(query)
 				url = Add(url, urlencodedQuery)
 				request = Add(request, urlencodedQuery)
 			}
 		} else {
-			if !EvalTruthy(this.IsEmpty(query)) {
+			if !this.IsEmpty(query) {
 				body = this.Json(query)
 				sign_body = body
 			}
