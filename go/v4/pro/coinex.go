@@ -539,12 +539,7 @@ func (this *Coinex) HandleMyTrades(client any, message any) {
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var defaultType any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType any = func() any { if isSpot { return "spot" }; return "swap" }()
 	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("myTrades:", symbol)
@@ -605,12 +600,7 @@ func (this *Coinex) HandleTrades(client any, message any) {
 	var trades any = this.SafeList(data, "deal_list", []any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var defaultType any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType any = func() any { if isSpot { return "spot" }; return "swap" }()
 	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trades:", symbol)
@@ -670,12 +660,7 @@ func (this *Coinex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var isSpot bool = (ccxt.InOp(trade, "margin_market"))
-	var defaultType any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType any = func() any { if isSpot { return "spot" }; return "swap" }()
 	var marketId *string = this.SafeString(trade, "market")
 	market = this.SafeMarket(marketId, market, nil, defaultType)
 	var fee map[string]any = map[string]any{}
@@ -1069,19 +1054,14 @@ func (this *Coinex) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var defaultType any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType any = func() any { if isSpot { return "spot" }; return "swap" }()
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var depth any = this.SafeDict(data, "depth", map[string]any{})
 	var marketId *string = this.SafeString(data, "market")
 	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var name string = "orderbook"
-	var messageHash any = ccxt.Add(name+":", symbol)
+	var messageHash any = ccxt.Add(name + ":", symbol)
 	var timestamp *int64 = this.SafeInteger(depth, "updated_at")
 	var currentOrderBook any = this.SafeValue(this.Orderbooks, symbol)
 	var fullOrderBook *bool = this.SafeBool(data, "is_full", false)
@@ -1424,12 +1404,7 @@ func (this *Coinex) ParseWsOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "market")
 	var status *string = this.SafeString(order, "status")
 	var isSpot bool = (ccxt.InOp(order, "margin_market"))
-	var defaultType any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "swap"
-	}()
+	var defaultType any = func() any { if isSpot { return "spot" }; return "swap" }()
 	market = this.SafeMarket(marketId, market, nil, defaultType)
 	var fee any = nil
 	var feeCost any = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
@@ -1630,7 +1605,7 @@ func (this *Coinex) HandleErrors(code any, reason any, url any, method any, head
 	var errorCode *string = this.SafeString(response, "code")
 	var isErrorCode bool = (errorCode != nil) && (errorCode == nil || *errorCode != "0")
 	if isErrorCode || isErrorMessage {
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback any = ccxt.Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))

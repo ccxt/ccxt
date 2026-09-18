@@ -4,15 +4,14 @@ package ccxt
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 type PredictionExchange struct {
-   BaseExchange
-   Outcomes any
-   Outcomes_by_id any
-   Events any
-   Events_by_slug any
-   ReloadingEvents bool
-   EventsLoading any
+	BaseExchange
+	Outcomes        any
+	Outcomes_by_id  any
+	Events          any
+	Events_by_slug  any
+	ReloadingEvents bool
+	EventsLoading   any
 }
-
 
 func (this *PredictionExchange) Describe() any {
 	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
@@ -2341,6 +2340,5 @@ func (this *PredictionExchange) waitForTransactionReceiptBody(ch chan any, rpcUr
 }
 
 func (this *PredictionExchange) CallEndpointAsync(endpointName string, args ...any) <-chan any {
-   return this.callEndpointAsync(endpointName, args...)
+	return this.callEndpointAsync(endpointName, args...)
 }
-

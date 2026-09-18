@@ -610,8 +610,8 @@ func (this *Latoken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 						"max": nil,
 					},
 					"cost": map[string]any{
-						"min": this.SafeNumber(market, "minOrderCost"+capitalizedQuote),
-						"max": this.SafeNumber(market, "maxOrderCost"+capitalizedQuote),
+						"min": this.SafeNumber(market, "minOrderCost" + capitalizedQuote),
+						"max": this.SafeNumber(market, "maxOrderCost" + capitalizedQuote),
 					},
 				},
 				"created": this.SafeInteger(market, "created"),
@@ -687,16 +687,11 @@ func (this *Latoken) ParseCurrency(currency any) any {
 	var currencyType *string = this.SafeString(currency, "type")
 	var isCrypto bool = ((currencyType != nil && *currencyType == "CURRENCY_TYPE_CRYPTO") || (currencyType != nil && *currencyType == "CURRENCY_TYPE_IEO"))
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":   id,
-		"code": code,
-		"info": currency,
-		"name": this.SafeString(currency, "name"),
-		"type": func() any {
-			if isCrypto {
-				return "crypto"
-			}
-			return "other"
-		}(),
+		"id":        id,
+		"code":      code,
+		"info":      currency,
+		"name":      this.SafeString(currency, "name"),
+		"type":      func() any { if isCrypto { return "crypto" }; return "other" }(),
 		"active":    IsEqual(this.SafeString(currency, "status"), "CURRENCY_STATUS_ACTIVE"),
 		"deposit":   nil,
 		"withdraw":  nil,
@@ -1095,12 +1090,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	var makerBuyer any = this.SafeValue(trade, "makerBuyer")
 	var side any = DerefScalar(this.SafeString(trade, "direction"))
 	if side == nil {
-		side = func() any {
-			if makerBuyer == true {
-				return "sell"
-			}
-			return "buy"
-		}()
+		side = func() any { if (makerBuyer == true) { return "sell" }; return "buy" }()
 	} else {
 		if IsEqual(side, "TRADE_DIRECTION_BUY") {
 			side = "buy"
@@ -1110,12 +1100,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isBuy bool = (IsEqual(side, "buy"))
 	var isMaker bool = (makerBuyer == true) && isBuy
-	var takerOrMaker any = func() any {
-		if isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker any = func() any { if isMaker { return "maker" }; return "taker" }()
 	var baseId *string = this.SafeString(trade, "baseCurrency")
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
@@ -2361,7 +2346,7 @@ func (this *Latoken) Sign(path any, optionalArgs ...any) any {
 	var urlencodedQuery string = this.Urlencode(query)
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(query)) > 0 {
-			requestString = Add(requestString, "?"+urlencodedQuery)
+			requestString = Add(requestString, "?" + urlencodedQuery)
 		}
 	}
 	if IsEqual(api, "private") {
@@ -2397,7 +2382,7 @@ func (this *Latoken) HandleErrors(code any, reason any, url any, method any, hea
 	// {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
 	//
 	var message *string = this.SafeString(response, "message")
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	if message != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

@@ -475,7 +475,7 @@ func (this *Zebpay) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		} else if IsEqual(typeVar, "swap") {
 			AppendToArray(&promisesUnresolved, this.FetchSwapMarketsAsync(params))
 		} else {
-			panic(ExchangeError(Add(Add(this.Id+" fetchMarkets() this.options fetchMarkets \"", typeVar), "\" is not a supported market type")))
+			panic(ExchangeError(Add(Add(this.Id + " fetchMarkets() this.options fetchMarkets \"", typeVar), "\" is not a supported market type")))
 		}
 	}
 
@@ -562,45 +562,20 @@ func (this *Zebpay) ParseCurrency(rawCurrency any) any {
 		var networkId *string = this.SafeString(chain, "chainId")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var depositAllowed bool = IsEqual(this.SafeBool(chain, "isDepositEnabled"), true)
-		deposit = func() any {
-			if depositAllowed {
-				return depositAllowed
-			}
-			return deposit
-		}()
+		deposit = func() any { if (depositAllowed) { return depositAllowed }; return deposit }()
 		var withdrawAllowed bool = IsEqual(this.SafeBool(chain, "isWithdrawEnabled"), true)
-		withdraw = func() any {
-			if withdrawAllowed {
-				return withdrawAllowed
-			}
-			return withdraw
-		}()
+		withdraw = func() any { if (withdrawAllowed) { return withdrawAllowed }; return withdraw }()
 		var withdrawFeeString *string = this.SafeString(chain, "withdrawalFee")
 		if withdrawFeeString != nil {
-			minWithdrawFeeString = func() any {
-				if minWithdrawFeeString == nil {
-					return withdrawFeeString
-				}
-				return Precise.StringMin(withdrawFeeString, minWithdrawFeeString)
-			}()
+			minWithdrawFeeString = func() any { if (minWithdrawFeeString == nil) { return withdrawFeeString }; return Precise.StringMin(withdrawFeeString, minWithdrawFeeString) }()
 		}
 		var minNetworkWithdrawString *string = this.SafeString(chain, "withdrawalMinSize")
 		if minNetworkWithdrawString != nil {
-			minWithdrawString = func() any {
-				if minWithdrawString == nil {
-					return minNetworkWithdrawString
-				}
-				return Precise.StringMin(minNetworkWithdrawString, minWithdrawString)
-			}()
+			minWithdrawString = func() any { if (minWithdrawString == nil) { return minNetworkWithdrawString }; return Precise.StringMin(minNetworkWithdrawString, minWithdrawString) }()
 		}
 		var minNetworkDepositString *string = this.SafeString(chain, "depositMinSize")
 		if minNetworkDepositString != nil {
-			minDepositString = func() any {
-				if minDepositString == nil {
-					return minNetworkDepositString
-				}
-				return Precise.StringMin(minNetworkDepositString, minDepositString)
-			}()
+			minDepositString = func() any { if (minDepositString == nil) { return minNetworkDepositString }; return Precise.StringMin(minNetworkDepositString, minDepositString) }()
 		}
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
@@ -925,7 +900,7 @@ func (this *Zebpay) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchTickers() does not support ", typeVar), " markets")))
+		panic(NotSupported(Add(Add(this.Id + " fetchTickers() does not support ", typeVar), " markets")))
 	}
 	if IsEqual(this.Markets, nil) {
 
@@ -1226,7 +1201,7 @@ func (this *Zebpay) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...an
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" fetchOrderTrades() does not support ", typeVar), " markets")))
+		panic(NotSupported(Add(Add(this.Id + " fetchOrderTrades() does not support ", typeVar), " markets")))
 	}
 	if IsEqual(this.Markets, nil) {
 
@@ -1601,7 +1576,7 @@ func (this *Zebpay) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if !IsEqual(typeVar, "spot") {
-		panic(NotSupported(Add(Add(this.Id+" cancelAllOrders() does not support ", typeVar), " markets")))
+		panic(NotSupported(Add(Add(this.Id + " cancelAllOrders() does not support ", typeVar), " markets")))
 	}
 	if IsEqual(this.Markets, nil) {
 
@@ -2556,12 +2531,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	params = this.Omit(params, "defaultType")
 	var isV1 bool = IsGreaterThan(GetIndexOf(path, "v1/"), -1)
-	var marketType any = func() any {
-		if isV1 {
-			return "swap"
-		}
-		return "spot"
-	}()
+	var marketType any = func() any { if isV1 { return "swap" }; return "spot" }()
 	var url any = GetValue(GetValue(this.Urls, "api"), marketType)
 	var tail any = Add("/api/", this.ImplodeParams(path, params))
 	url = Add(url, tail)
@@ -2573,7 +2543,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 	if access != nil && *access == "public" {
 		if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 			if (!IsEqual(queryLength, nil)) && (queryLength != 0) {
-				url = Add(url, "?"+this.Urlencode(query))
+				url = Add(url, "?" + this.Urlencode(query))
 			}
 		} else {
 			body = JsonStringify(params)
@@ -2590,7 +2560,7 @@ func (this *Zebpay) Sign(path any, optionalArgs ...any) any {
 			// For GET/DELETE: Append params to URL and sign the query string
 			var queryString string = this.Urlencode(params)
 			signature = this.Hmac(this.Encode(queryString), this.Encode(this.Secret), sha256, "hex")
-			url = Add(url, "?"+queryString)
+			url = Add(url, "?" + queryString)
 		} else {
 			// For POST/PUT: Convert body to JSON and sign the stringified payload
 			body = this.Json(params)
@@ -2624,7 +2594,7 @@ func (this *Zebpay) HandleErrors(code any, reason any, url any, method any, head
 	//
 	var errorCode *string = this.SafeString2(response, "code", "statusCode")
 	var message *string = this.SafeString2(response, "msg", "statusDescription")
-	var feedback any = Add(this.Id+" ", message)
+	var feedback any = Add(this.Id + " ", message)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

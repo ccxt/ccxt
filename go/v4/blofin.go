@@ -840,42 +840,27 @@ func (this *Blofin) ParseMarket(market any) any {
 	var maxLimitAmount *float64 = this.SafeNumber(market, "maxLimitSize")
 	var maxSpotCost *float64 = this.SafeNumber(market, "maxMarketSize") // for spot, market-buy size is denominated in the quote currency, i.e. cost
 	return this.SafeMarketStructure(map[string]any{
-		"id":       id,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settle":   settle,
-		"settleId": settleId,
-		"type":     typeVar,
-		"spot":     spot,
-		"option":   option,
-		"margin":   isMargin,
-		"swap":     swap,
-		"future":   future,
-		"active":   isActive,
-		"taker":    taker,
-		"maker":    maker,
-		"contract": contract,
-		"linear": func() any {
-			if contract {
-				return (contractType != nil && *contractType == "linear")
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if contract {
-				return (contractType != nil && *contractType == "inverse")
-			}
-			return nil
-		}(),
-		"contractSize": func() any {
-			if contract {
-				return this.SafeNumber(market, "contractValue")
-			}
-			return nil
-		}(),
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settle":         settle,
+		"settleId":       settleId,
+		"type":           typeVar,
+		"spot":           spot,
+		"option":         option,
+		"margin":         isMargin,
+		"swap":           swap,
+		"future":         future,
+		"active":         isActive,
+		"taker":          taker,
+		"maker":          maker,
+		"contract":       contract,
+		"linear":         func() any { if contract { return (contractType != nil && *contractType == "linear") }; return nil }(),
+		"inverse":        func() any { if contract { return (contractType != nil && *contractType == "inverse") }; return nil }(),
+		"contractSize":   func() any { if contract { return this.SafeNumber(market, "contractValue") }; return nil }(),
 		"expiry":         expiry,
 		"expiryDatetime": expiry,
 		"strike":         strikePrice,
@@ -900,12 +885,7 @@ func (this *Blofin) ParseMarket(market any) any {
 			},
 			"cost": map[string]any{
 				"min": nil,
-				"max": func() any {
-					if contract {
-						return nil
-					}
-					return maxSpotCost
-				}(),
+				"max": func() any { if contract { return nil }; return maxSpotCost }(),
 			},
 		},
 		"info": market,
@@ -943,12 +923,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
-	limit = func() any {
-		if IsEqual(limit, nil) {
-			return 50
-		}
-		return limit
-	}()
+	limit = func() any { if (IsEqual(limit, nil)) { return 50 }; return limit }()
 	if !IsEqual(limit, nil) {
 		request["size"] = limit // max 100
 	}
@@ -1012,12 +987,7 @@ func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) any {
 	var last *string = this.SafeString(ticker, "last")
 	var open *string = this.SafeString(ticker, "open24h")
 	var spot *bool = this.SafeBool(market, "spot", false)
-	var quoteVolume any = func() any {
-		if spot != nil && *spot == true {
-			return this.SafeString(ticker, "volCurrency24h")
-		}
-		return nil
-	}()
+	var quoteVolume any = func() any { if (spot != nil && *spot == true) { return this.SafeString(ticker, "volCurrency24h") }; return nil }()
 	var baseVolume *string = this.SafeString(ticker, "vol24h")
 	var high *string = this.SafeString(ticker, "high24h")
 	var low *string = this.SafeString(ticker, "low24h")
@@ -1784,12 +1754,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var timeInForce *string = this.SafeString(params, "timeInForce", "GTC")
 	var isHedged *bool = this.SafeBool(params, "hedged", false)
 	if isHedged != nil && *isHedged == true {
-		request["positionSide"] = func() any {
-			if IsEqual(side, "buy") {
-				return "long"
-			}
-			return "short"
-		}()
+		request["positionSide"] = func() any { if (IsEqual(side, "buy")) { return "long" }; return "short" }()
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "market"))
 	params = this.Omit(params, []any{"timeInForce"})
@@ -1798,12 +1763,7 @@ func (this *Blofin) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	if isMarketOrder || marketIOC {
 		request["orderType"] = "market"
 	} else {
-		var key any = func() any {
-			if triggerPriceAny != nil {
-				return "orderPrice"
-			}
-			return "price"
-		}()
+		var key any = func() any { if (triggerPriceAny != nil) { return "orderPrice" }; return "price" }()
 		AddElementToObject(request, key, this.PriceToPrecision(symbol, price))
 	}
 	var postOnly any = false
@@ -2039,12 +1999,7 @@ func (this *Blofin) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var response any = nil
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil {
-		AddElementToObject(params, "reduceOnly", func() any {
-			if reduceOnly != nil && *reduceOnly {
-				return "true"
-			}
-			return "false"
-		}())
+		AddElementToObject(params, "reduceOnly", func() any { if (reduceOnly != nil && *reduceOnly) { return "true" }; return "false" }())
 	}
 	if isCombinedSlTp {
 		var tpslRequest any = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2088,12 +2043,7 @@ func (this *Blofin) CreateTpslOrderRequest(symbol any, typeVar any, side any, op
 	var hedged *bool = this.SafeBool(params, "hedged", false)
 	var positionSide any = "net"
 	if hedged != nil && *hedged == true {
-		positionSide = func() any {
-			if IsEqual(side, "buy") {
-				return "short"
-			}
-			return "long"
-		}()
+		positionSide = func() any { if (IsEqual(side, "buy")) { return "short" }; return "long" }()
 	}
 	var request map[string]any = map[string]any{
 		"instId":       GetValue(market, "id"),
@@ -3952,12 +3902,7 @@ func (this *Blofin) setPositionModeBody(ch chan any, hedged any, optionalArgs ..
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{
-		"positionMode": func() any {
-			if EvalTruthy(hedged) {
-				return "long_short_mode"
-			}
-			return "net_mode"
-		}(),
+		"positionMode": func() any { if EvalTruthy(hedged) { return "long_short_mode" }; return "net_mode" }(),
 	}
 
 	retRes305215 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
@@ -4088,7 +4033,7 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	//
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "msg")
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	if (code != nil) && (code == nil || *code != "0") {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
@@ -4131,7 +4076,7 @@ func (this *Blofin) Sign(path any, optionalArgs ...any) any {
 	// const type = this.getPathAuthenticationType (path);
 	if IsEqual(api, "public") {
 		if !EvalTruthy(this.IsEmpty(query)) {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()

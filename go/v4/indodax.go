@@ -439,26 +439,21 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var isMaintenance *int64 = this.SafeInteger(market, "is_maintenance")
 		var inMaintenance bool = (isMaintenance != nil) && (isMaintenance == nil || *isMaintenance != 0)
 		AppendToArray(&result, map[string]any{
-			"id":       id,
-			"symbol":   Add(Add(base, "/"), quote),
-			"base":     base,
-			"quote":    quote,
-			"settle":   nil,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": nil,
-			"type":     "spot",
-			"spot":     true,
-			"margin":   false,
-			"swap":     false,
-			"future":   false,
-			"option":   false,
-			"active": func() any {
-				if inMaintenance {
-					return false
-				}
-				return true
-			}(),
+			"id":             id,
+			"symbol":         Add(Add(base, "/"), quote),
+			"base":           base,
+			"quote":          quote,
+			"settle":         nil,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       nil,
+			"type":           "spot",
+			"spot":           true,
+			"margin":         false,
+			"swap":           false,
+			"future":         false,
+			"option":         false,
+			"active":         func() any { if inMaintenance { return false }; return true }(),
 			"contract":       false,
 			"linear":         nil,
 			"inverse":        nil,
@@ -1272,7 +1267,7 @@ func (this *Indodax) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	if priceIsRequired {
 		if IsEqual(price, nil) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(InvalidOrder(Add(Add(this.Id + " createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = price
 	}
@@ -1725,22 +1720,17 @@ func (this *Indodax) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"address":     this.SafeString(transaction, "withdraw_address"),
 		"addressTo":   nil,
 		"amount":      this.SafeNumberN(transaction, []any{"amount", "withdraw_amount", "deposit_amount"}),
-		"type": func() any {
-			if depositId == nil {
-				return "withdraw"
-			}
-			return "deposit"
-		}(),
-		"currency": this.SafeCurrencyCode(nil, currency),
-		"status":   this.ParseTransactionStatus(status),
-		"updated":  nil,
-		"tagFrom":  nil,
-		"tag":      nil,
-		"tagTo":    nil,
-		"comment":  this.SafeString(transaction, "withdraw_memo"),
-		"internal": nil,
-		"fee":      fee,
-		"info":     transaction,
+		"type":        func() any { if (depositId == nil) { return "withdraw" }; return "deposit" }(),
+		"currency":    this.SafeCurrencyCode(nil, currency),
+		"status":      this.ParseTransactionStatus(status),
+		"updated":     nil,
+		"tagFrom":     nil,
+		"tag":         nil,
+		"tagTo":       nil,
+		"comment":     this.SafeString(transaction, "withdraw_memo"),
+		"internal":    nil,
+		"fee":         fee,
+		"info":        transaction,
 	}
 }
 func (this *Indodax) ParseTransactionStatus(status any) *string {
@@ -1885,7 +1875,7 @@ func (this *Indodax) Sign(path any, optionalArgs ...any) any {
 		var requestPath any = Add("/", this.ImplodeParams(path, params))
 		url = Add(url, requestPath)
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.UrlencodeWithArrayRepeat(query))
+			url = Add(url, "?" + this.UrlencodeWithArrayRepeat(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1929,12 +1919,12 @@ func (this *Indodax) HandleErrors(code any, reason any, url any, method any, hea
 	if IsEqual(this.SafeInteger(response, "success", 0), 1) {
 		// { success: 1, return: { orders: [] }}
 		if !(InOp(response, "return")) {
-			panic(ExchangeError(Add(this.Id+": malformed response: ", this.Json(response))))
+			panic(ExchangeError(Add(this.Id + ": malformed response: ", this.Json(response))))
 		} else {
 			return nil
 		}
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 	panic(ExchangeError(feedback))

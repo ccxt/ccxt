@@ -801,12 +801,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 		var status *string = this.SafeString(market, "status")
 		var isActive bool = (status != nil && *status == "online")
-		var symbol any = func() any {
-			if !isSynthetic {
-				return (Add(Add(base, "/"), quote))
-			}
-			return id
-		}()
+		var symbol any = func() any { if (!isSynthetic) { return (Add(Add(base, "/"), quote)) }; return id }()
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"wsId":           this.SafeString(market, "wsname"),
@@ -898,12 +893,7 @@ func (this *Kraken) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var statusRaw *string = this.SafeString(result, "status")
 
 	ch <- map[string]any{
-		"status": func() any {
-			if statusRaw != nil && *statusRaw == "online" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status":  func() any { if (statusRaw != nil && *statusRaw == "online") { return "ok" }; return "maintenance" }(),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -1036,17 +1026,12 @@ func (this *Kraken) ParseCurrency(rawCurrency any) any {
 	var isFiat bool = (GetIndexOf(code, ".HOLD") >= 0)
 	rawCurrency = this.Omit(rawCurrency, "_coin_id")
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":     id,
-		"code":   code,
-		"info":   rawCurrency,
-		"name":   this.SafeString(rawCurrency, "altname"),
-		"active": IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
-		"type": func() any {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"id":        id,
+		"code":      code,
+		"info":      rawCurrency,
+		"name":      this.SafeString(rawCurrency, "altname"),
+		"active":    IsEqual(this.SafeString(rawCurrency, "status"), "enabled"),
+		"type":      func() any { if isFiat { return "fiat" }; return "crypto" }(),
 		"deposit":   nil,
 		"withdraw":  nil,
 		"fee":       nil,
@@ -1777,18 +1762,8 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var symbol any = nil
 	if IsArray(trade) {
 		timestamp = this.SafeTimestamp(trade, 2)
-		side = func() any {
-			if IsEqual(GetValue(trade, 3), "s") {
-				return "sell"
-			}
-			return "buy"
-		}()
-		typeVar = func() any {
-			if IsEqual(GetValue(trade, 4), "l") {
-				return "limit"
-			}
-			return "market"
-		}()
+		side = func() any { if (IsEqual(GetValue(trade, 3), "s")) { return "sell" }; return "buy" }()
+		typeVar = func() any { if (IsEqual(GetValue(trade, 4), "l")) { return "limit" }; return "market" }()
 		price = DerefScalar(this.SafeString(trade, 0))
 		amount = DerefScalar(this.SafeString(trade, 1))
 		var tradeLength int = GetArrayLength(trade)
@@ -1839,12 +1814,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if maker != nil {
-		takerOrMaker = func() any {
-			if maker != nil && *maker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (maker != nil && *maker) { return "maker" }; return "taker" }()
 	}
 	if datetime == nil {
 		datetime = DerefScalar(this.Iso8601(timestamp))
@@ -2541,12 +2511,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	// for "space-delimited" orders we dont have market/limit suffixes, their format is
 	// eg: `stop loss > limit 123`, so we need to parse them manually
 	if this.InArray(typeParsed, []any{"stop loss", "take profit"}) {
-		typeParsed = func() any {
-			if price == nil {
-				return "market"
-			}
-			return "limit"
-		}()
+		typeParsed = func() any { if (price == nil) { return "market" }; return "limit" }()
 	}
 	var amendId *string = this.SafeString(order, "amend_id")
 	if amendId != nil {
@@ -2613,12 +2578,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 		} else {
 			AddElementToObject(request, "volume", this.CostToPrecision(symbol, cost))
 		}
-		var extendedOflags any = func() any {
-			if flags != nil {
-				return Add(flags, ",viqc")
-			}
-			return "viqc"
-		}()
+		var extendedOflags any = func() any { if (flags != nil) { return Add(flags, ",viqc") }; return "viqc" }()
 		AddElementToObject(request, "oflags", extendedOflags)
 	} else if isLimitOrder && !isTrailingAmountOrder && !isTrailingPercentOrder {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
@@ -2646,37 +2606,17 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	} else if isTrailingAmountOrder || isTrailingPercentOrder {
 		var trailingPercentString any = nil
 		if trailingPercent != nil {
-			trailingPercentString = func() any {
-				if EndsWith(trailingPercent, "%") {
-					return (Add("+", trailingPercent))
-				}
-				return (Add(Add("+", trailingPercent), "%"))
-			}()
+			trailingPercentString = func() any { if (EndsWith(trailingPercent, "%")) { return (Add("+", trailingPercent)) }; return (Add(Add("+", trailingPercent), "%")) }()
 		}
-		var trailingAmountString any = func() any {
-			if trailingAmount != nil {
-				return Add("+", trailingAmount)
-			}
-			return nil
-		}() // must use + for this
-		var offset *string = this.SafeString(params, "offset", "-") // can use + or - for this
-		var trailingLimitAmountString any = func() any {
-			if trailingLimitAmount != nil {
-				return Add(offset, this.NumberToString(trailingLimitAmount))
-			}
-			return nil
-		}()
+		var trailingAmountString any = func() any { if (trailingAmount != nil) { return Add("+", trailingAmount) }; return nil }() // must use + for this
+		var offset *string = this.SafeString(params, "offset", "-")                                                                // can use + or - for this
+		var trailingLimitAmountString any = func() any { if (trailingLimitAmount != nil) { return Add(offset, this.NumberToString(trailingLimitAmount)) }; return nil }()
 		var trailingActivationPriceType *string = this.SafeString(params, "trigger", "last")
 		AddElementToObject(request, "trigger", trailingActivationPriceType)
 		if isLimitOrder || (trailingLimitAmount != nil) || (trailingLimitPercent != nil) {
 			AddElementToObject(request, "ordertype", "trailing-stop-limit")
 			if trailingLimitPercent != nil {
-				var trailingLimitPercentString any = func() any {
-					if EndsWith(trailingLimitPercent, "%") {
-						return (Add(offset, trailingLimitPercent))
-					}
-					return (Add(Add(offset, trailingLimitPercent), "%"))
-				}()
+				var trailingLimitPercentString any = func() any { if (EndsWith(trailingLimitPercent, "%")) { return (Add(offset, trailingLimitPercent)) }; return (Add(Add(offset, trailingLimitPercent), "%")) }()
 				AddElementToObject(request, "price", trailingPercentString)
 				AddElementToObject(request, "price2", trailingLimitPercentString)
 			} else if trailingLimitAmount != nil {
@@ -2702,12 +2642,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	var close any = this.SafeDict(params, "close")
 	if !IsEqual(close, nil) {
 		close = this.Extend(map[string]any{}, close)
-		close = func() any {
-			if IsEqual(close, nil) {
-				return map[string]any{}
-			}
-			return close
-		}()
+		close = func() any { if (IsEqual(close, nil)) { return map[string]any{} }; return close }()
 		var closePrice any = this.SafeValue(close, "price")
 		if !IsEqual(closePrice, nil) {
 			AddElementToObject(close, "price", this.PriceToPrecision(symbol, closePrice))
@@ -2728,12 +2663,7 @@ func (this *Kraken) OrderRequest(method any, symbol any, typeVar any, request an
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
 	if postOnly == true {
-		var extendedPostFlags any = func() any {
-			if flags != nil {
-				return Add(flags, ",post")
-			}
-			return "post"
-		}()
+		var extendedPostFlags any = func() any { if (flags != nil) { return Add(flags, ",post") }; return "post" }()
 		AddElementToObject(request, "oflags", extendedPostFlags)
 	}
 	if (flags != nil) && !(InOp(request, "oflags")) {
@@ -2787,7 +2717,7 @@ func (this *Kraken) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	}
 	var market any = this.Market(symbol)
 	if !IsEqual(GetValue(market, "spot"), true) {
-		panic(NotSupported(Add(Add(this.Id+" editOrder() does not support ", GetValue(market, "type")), " orders, only spot orders are accepted")))
+		panic(NotSupported(Add(Add(this.Id + " editOrder() does not support ", GetValue(market, "type")), " orders, only spot orders are accepted")))
 	}
 	var request any = map[string]any{
 		"txid": id,
@@ -2919,7 +2849,7 @@ func (this *Kraken) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 	//
 	var result any = this.SafeValue(response, "result", []any{})
 	if !(InOp(result, id)) {
-		panic(OrderNotFound(Add(this.Id+" fetchOrder() could not find order id ", id)))
+		panic(OrderNotFound(Add(this.Id + " fetchOrder() could not find order id ", id)))
 	}
 
 	ch <- this.ParseOrder(this.Extend(map[string]any{
@@ -3226,7 +3156,7 @@ func (this *Kraken) cancelOrderBody(ch chan any, id any, optionalArgs ...any) an
 						// catch block:
 						if (!IsEqual(this.Last_http_response, nil)) && (this.Last_http_response != "") {
 							if GetIndexOf(this.Last_http_response, "EOrder:Unknown order") >= 0 {
-								panic(OrderNotFound(Add(this.Id+" cancelOrder() error ", this.Last_http_response)))
+								panic(OrderNotFound(Add(this.Id + " cancelOrder() error ", this.Last_http_response)))
 							}
 						}
 						panic(e)
@@ -3370,12 +3300,7 @@ func (this *Kraken) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalA
 		panic(ExchangeError(this.Id + " cancelAllOrdersAfter() missing timeout"))
 	}
 	var request map[string]any = map[string]any{
-		"timeout": func() any {
-			if IsGreaterThan(timeout, 0) {
-				return (this.ParseToInt(Divide(timeout, 1000)))
-			}
-			return 0
-		}(),
+		"timeout": func() any { if (IsGreaterThan(timeout, 0)) { return (this.ParseToInt(Divide(timeout, 1000))) }; return 0 }(),
 	}
 
 	response := (<-this.PrivatePostCancelAllOrdersAfter(this.Extend(request, params)))
@@ -4160,7 +4085,7 @@ func (this *Kraken) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var result any = this.SafeValue(response, "result", []any{})
 	var firstResult any = this.SafeValue(result, 0, map[string]any{})
 	if IsEqual(firstResult, nil) {
-		panic(InvalidAddress(Add(this.Id+" privatePostDepositAddresses() returned no addresses for ", code)))
+		panic(InvalidAddress(Add(this.Id + " privatePostDepositAddresses() returned no addresses for ", code)))
 	}
 
 	ch <- this.ParseDepositAddress(firstResult, currency)
@@ -4351,12 +4276,7 @@ func (this *Kraken) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "pair")
 	var rawSide *string = this.SafeString(position, "type")
-	var side any = func() any {
-		if rawSide != nil && *rawSide == "buy" {
-			return "long"
-		}
-		return "short"
-	}()
+	var side any = func() any { if (rawSide != nil && *rawSide == "buy") { return "long" }; return "short" }()
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -4461,7 +4381,7 @@ func (this *Kraken) transferBody(ch chan any, code any, amount any, fromAccount 
 		"asset":  GetValue(currency, "id"),
 	}
 	if fromAccountParsed == nil || *fromAccountParsed != "Spot Wallet" {
-		panic(BadRequest(Add(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
+		panic(BadRequest(Add(Add(Add(Add(this.Id + " transfer cannot transfer from ", fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")))
 	}
 
 	response := (<-this.PrivatePostWalletTransfer(this.Extend(request, params)))
@@ -4533,12 +4453,7 @@ func (this *Kraken) Sign(path any, optionalArgs ...any) any {
 		var price *string = this.SafeString(params, "price")
 		var isTriggerPercent any = false
 		if price != nil {
-			isTriggerPercent = func() any {
-				if EndsWith(price, "%") {
-					return true
-				}
-				return false
-			}()
+			isTriggerPercent = func() any { if (EndsWith(price, "%")) { return true }; return false }()
 		}
 		var isCancelOrderBatch bool = (IsEqual(path, "CancelOrderBatch"))
 		var isBatchOrder bool = (IsEqual(path, "AddOrderBatch"))
@@ -4585,14 +4500,14 @@ func (this *Kraken) Nonce() any {
 }
 func (this *Kraken) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(code, 520) {
-		panic(ExchangeNotAvailable(Add(this.Id+" "+ToString(code)+" ", reason)))
+		panic(ExchangeNotAvailable(Add(this.Id + " " + ToString(code) + " ", reason)))
 	}
 	if IsEqual(response, nil) {
 		return nil
 	}
 	if GetValue(body, 0) == "{" {
 		if !IsString(response) {
-			var message any = Add(this.Id+" ", body)
+			var message any = Add(this.Id + " ", body)
 			if InOp(response, "error") {
 				var numErrors int = GetArrayLength(GetValue(response, "error"))
 				if numErrors > 0 {

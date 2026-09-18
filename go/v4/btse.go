@@ -842,7 +842,7 @@ func (this *Btse) ParseMarket(market any) any {
 		contractSize = DerefScalar(this.SafeString(market, "contractSize"))
 		if isFuture {
 			expiry = DerefScalar(this.SafeInteger(market, "contractEndTime"))
-			symbol = Add(symbol, "-"+this.Yymmdd(expiry))
+			symbol = Add(symbol, "-" + this.Yymmdd(expiry))
 			typeVar = "future"
 		} else {
 			typeVar = "swap"
@@ -853,49 +853,24 @@ func (this *Btse) ParseMarket(market any) any {
 		fees = this.SafeValue(this.Fees, "spot")
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":     id,
-		"symbol": symbol,
-		"base":   base,
-		"quote":  quote,
-		"settle": func() any {
-			if isSpot {
-				return nil
-			}
-			return quote
-		}(),
-		"baseId":  baseId,
-		"quoteId": quoteId,
-		"settleId": func() any {
-			if isSpot {
-				return nil
-			}
-			return quoteId
-		}(),
-		"type": typeVar,
-		"spot": isSpot,
-		"margin": func() any {
-			if isSpot {
-				return false
-			}
-			return nil
-		}(),
-		"swap":     isSwap,
-		"future":   isFuture,
-		"option":   false,
-		"active":   active,
-		"contract": isSwap || isFuture,
-		"linear": func() any {
-			if isSpot {
-				return nil
-			}
-			return true
-		}(),
-		"inverse": func() any {
-			if isSpot {
-				return nil
-			}
-			return false
-		}(),
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         func() any { if isSpot { return nil }; return quote }(),
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       func() any { if isSpot { return nil }; return quoteId }(),
+		"type":           typeVar,
+		"spot":           isSpot,
+		"margin":         func() any { if isSpot { return false }; return nil }(),
+		"swap":           isSwap,
+		"future":         isFuture,
+		"option":         false,
+		"active":         active,
+		"contract":       isSwap || isFuture,
+		"linear":         func() any { if isSpot { return nil }; return true }(),
+		"inverse":        func() any { if isSpot { return nil }; return false }(),
 		"taker":          GetValue(fees, "taker"),
 		"maker":          GetValue(fees, "maker"),
 		"contractSize":   this.ParseNumber(contractSize),
@@ -1670,7 +1645,7 @@ func (this *Btse) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ..
 	PanicOnError(retRes13978)
 	var market any = this.Market(symbol)
 	if IsEqual(GetValue(market, "spot"), true) {
-		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
+		panic(BadRequest(Add(this.Id + " fetchOpenInterest() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -2428,7 +2403,7 @@ func (this *Btse) createSpotOrderBody(ch chan any, symbol any, typeVar any, side
 	var isAlgoOrder bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder)
 	if isLimitOrder || (IsEqual(typeVar, "PEG")) || (IsEqual(typeVar, "OCO")) {
 		if IsEqual(price, nil) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for ", typeVar), " orders")))
+			panic(InvalidOrder(Add(Add(this.Id + " createOrder() requires a price argument for ", typeVar), " orders")))
 		}
 	}
 	// market and trailing buys are denominated in the quote currency while
@@ -2674,7 +2649,7 @@ func (this *Btse) createContractOrderBody(ch chan any, symbol any, typeVar any, 
 	var isAlgoOrder bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder)
 	if isLimitOrder || (IsEqual(typeVar, "OCO")) {
 		if IsEqual(price, nil) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() requires a price argument for ", typeVar), " orders")))
+			panic(InvalidOrder(Add(Add(this.Id + " createOrder() requires a price argument for ", typeVar), " orders")))
 		}
 	}
 	// here we handling with attached take profit and stop loss orders
@@ -3091,12 +3066,7 @@ func (this *Btse) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	if IsEqual(marketType, "spot") {
 		// the literal ALL value cancels every open order across all pairs
-		request["symbol"] = func() any {
-			if !IsEqual(market, nil) {
-				return GetValue(market, "id")
-			}
-			return "ALL"
-		}()
+		request["symbol"] = func() any { if (!IsEqual(market, nil)) { return GetValue(market, "id") }; return "ALL" }()
 
 		response = (<-this.PrivateDeleteSpotApiV4TradeOrdersAll(this.Extend(request, params)))
 		PanicOnError(response)
@@ -3495,7 +3465,7 @@ func (this *Btse) requestWalletHistoryRowsBody(ch chan any, methodName any, hist
 		currency = this.Currency(code)
 		request["asset"] = GetValue(currency, "id")
 	} else if walletType != nil && *walletType == "SPOT" {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a code argument for the spot wallet history")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a code argument for the spot wallet history")))
 	}
 	if !IsEqual(since, nil) {
 		request["startTime"] = since
@@ -4248,12 +4218,7 @@ func (this *Btse) setPositionModeBody(ch chan any, hedged any, optionalArgs ...a
 	retRes34558 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes34558)
 	var market any = this.Market(symbol)
-	var positionMode any = func() any {
-		if EvalTruthy(hedged) {
-			return "HEDGE"
-		}
-		return "ONE_WAY"
-	}()
+	var positionMode any = func() any { if EvalTruthy(hedged) { return "HEDGE" }; return "ONE_WAY" }()
 	var request map[string]any = map[string]any{
 		"symbol":       this.FuturesRequestId(market),
 		"positionMode": positionMode,
@@ -4602,7 +4567,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	if success == nil || *success != true {
 		var spotErrorCode *string = this.SafeString(response, "code")
 		var spotMessage *string = this.SafeString(response, "msg")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], spotErrorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], spotMessage, feedback)
 		panic(ExchangeError(feedback))
@@ -4610,7 +4575,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	var errorCode *string = this.SafeString(response, "errorCode")
 	if errorCode != nil {
 		var message *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))
@@ -4631,7 +4596,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 	var legacyEnumCode *string = this.SafeString(response, "code")
 	if (legacyErrorText != nil) && (legacyEnumCode != nil) {
 		var legacyMessage *string = this.SafeString(response, "message")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], legacyEnumCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], legacyMessage, feedback)
 		panic(ExchangeError(feedback))
@@ -4651,7 +4616,7 @@ func (this *Btse) HandleErrors(code any, reason any, url any, method any, header
 			if !IsEqual(embedded, nil) {
 				message = this.SafeString(embedded, "default_msg", message)
 			}
-			var feedback any = Add(this.Id+" ", body)
+			var feedback any = Add(this.Id + " ", body)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		}
@@ -4681,7 +4646,7 @@ func (this *Btse) Sign(path any, optionalArgs ...any) any {
 	if ((IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))) && !isBodyDelete {
 		if len(ObjectKeys(query)) > 0 {
 			queryString = this.Urlencode(query)
-			url = Add(url, "?"+queryString)
+			url = Add(url, "?" + queryString)
 		}
 	}
 	if IsEqual(api, "private") {

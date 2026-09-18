@@ -1346,7 +1346,7 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), path)
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url = Add(url, "?" + this.Urlencode(params))
 		}
 	} else {
 		body = this.Json(params)
@@ -1373,15 +1373,10 @@ func (this *Btcturk) Sign(path any, optionalArgs ...any) any {
 func (this *Btcturk) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	var errorCode *string = this.SafeString(response, "code", "0")
 	var message *string = this.SafeString(response, "message")
-	var output any = func() any {
-		if message == nil {
-			return body
-		}
-		return message
-	}()
-	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", output))
+	var output any = func() any { if (message == nil) { return body }; return message }()
+	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id + " ", output))
 	if (errorCode == nil || *errorCode != "0") && (errorCode == nil || *errorCode != "SUCCESS") {
-		panic(ExchangeError(Add(this.Id+" ", output)))
+		panic(ExchangeError(Add(this.Id + " ", output)))
 	}
 	return nil
 }

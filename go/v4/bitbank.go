@@ -1396,7 +1396,7 @@ func (this *Bitbank) Sign(path any, optionalArgs ...any) any {
 	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1518,7 +1518,7 @@ func (this *Bitbank) HandleErrors(httpCode any, reason any, url any, method any,
 		var code *string = this.SafeString(data, "code")
 		var message *string = this.SafeString(errorMessages, code, "Error")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, message)
-		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id + " ", this.Json(response))))
 	}
 	return nil
 }

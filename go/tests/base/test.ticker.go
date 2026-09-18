@@ -56,12 +56,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var market any = nil
 	var isUnrecognizedSymbol bool = false
 	var isFetchTickerCalled bool = (method == "fetchTicker")
-	var symbolForMarket any = func() any {
-		if symbol != nil {
-			return symbol
-		}
-		return exchange.SafeString(entry, "symbol")
-	}()
+	var symbolForMarket any = func() any { if (symbol != nil) { return symbol }; return exchange.SafeString(entry, "symbol") }()
 	if symbolForMarket != nil {
 		if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
 			market = exchange.Market(symbolForMarket)
@@ -257,7 +252,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
 			if isOptionMarket != true {
-				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add("percentage should be below "+maxIncrease+"00% ", logText))
+				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add("percentage should be below " + maxIncrease + "00% ", logText))
 			}
 		}
 		//
@@ -268,7 +263,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
 			if isOptionMarket != true {
-				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add("change should be below "+maxIncrease+"x price ", logText))
+				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add("change should be below " + maxIncrease + "x price ", logText))
 			}
 		}
 	}

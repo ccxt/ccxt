@@ -707,12 +707,7 @@ func (this *Lighter) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
 	var isMakerAsk *bool = this.SafeBool(trade, "is_maker_ask")
-	var side any = func() any {
-		if isMakerAsk != nil && *isMakerAsk == true {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side any = func() any { if (isMakerAsk != nil && *isMakerAsk == true) { return "buy" }; return "sell" }()
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           tradeId,
@@ -919,46 +914,21 @@ func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
 			// Own trades should use the account's order side
 			side = "buy"
 			order = ccxt.DerefScalar(this.SafeString(trade, "bid_id"))
-			takerOrMaker = func() any {
-				if isMakerAsk != nil && *isMakerAsk == true {
-					return "taker"
-				}
-				return "maker"
-			}()
+			takerOrMaker = func() any { if (isMakerAsk != nil && *isMakerAsk == true) { return "taker" }; return "maker" }()
 		} else if askAccountId == accountIndex || (askAccountId != nil && accountIndex != nil && *askAccountId == *accountIndex) {
 			side = "sell"
 			order = ccxt.DerefScalar(this.SafeString(trade, "ask_id"))
-			takerOrMaker = func() any {
-				if isMakerAsk != nil && *isMakerAsk == true {
-					return "maker"
-				}
-				return "taker"
-			}()
+			takerOrMaker = func() any { if (isMakerAsk != nil && *isMakerAsk == true) { return "maker" }; return "taker" }()
 		}
 	}
 	// public trades use Lighter's taker-side convention
 	if side == nil {
-		side = func() any {
-			if isMakerAsk != nil && *isMakerAsk == true {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (isMakerAsk != nil && *isMakerAsk == true) { return "buy" }; return "sell" }()
 	}
 	var fee any = nil
 	if takerOrMaker != nil {
-		var feeRateRaw any = func() any {
-			if ccxt.IsEqual(takerOrMaker, "maker") {
-				return this.SafeString(trade, "maker_fee")
-			}
-			return this.SafeString(trade, "taker_fee")
-		}()
-		var feeRate any = func() any {
-			if feeRateRaw != nil {
-				return ccxt.Precise.StringDiv(feeRateRaw, "1000000")
-			}
-			return "0"
-		}()
+		var feeRateRaw any = func() any { if (ccxt.IsEqual(takerOrMaker, "maker")) { return this.SafeString(trade, "maker_fee") }; return this.SafeString(trade, "taker_fee") }()
+		var feeRate any = func() any { if (feeRateRaw != nil) { return ccxt.Precise.StringDiv(feeRateRaw, "1000000") }; return "0" }()
 		var feeAmount *string = ccxt.Precise.StringMul(costString, feeRate)
 		fee = map[string]any{
 			"cost":     feeAmount,
@@ -1186,12 +1156,7 @@ func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) an
 	_ = market
 	var timestamp *int64 = this.SafeInteger(liquidation, "timestamp")
 	var isMakerAsk *bool = this.SafeBool(liquidation, "is_maker_ask")
-	var side any = func() any {
-		if isMakerAsk != nil && *isMakerAsk == true {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side any = func() any { if (isMakerAsk != nil && *isMakerAsk == true) { return "buy" }; return "sell" }()
 	var contracts *string = this.SafeString(liquidation, "size")
 	var contractSize *string = this.SafeString(market, "contractSize")
 	var price *string = this.SafeString(liquidation, "price")
@@ -1832,7 +1797,7 @@ func (this *Lighter) HandleErrorMessage(client any, message any) any {
 			if !ccxt.IsEqual(error, nil) {
 				var code *string = this.SafeString(error, "code")
 				var errorMessage *string = this.SafeString(error, "message")
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 				panic(ccxt.ExchangeError(feedback))

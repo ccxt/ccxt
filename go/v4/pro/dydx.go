@@ -170,7 +170,7 @@ func (this *Dydx) HandleTrades(client any, message any) {
 		var parsed any = ccxt.GetValue(parsedTrades, i)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("trade"+":", symbol)
+	var messageHash any = ccxt.Add("trade" + ":", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Dydx) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -527,7 +527,7 @@ func (this *Dydx) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			var msg *string = this.SafeString(message, "message")
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", msg)))
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", msg)))
 
 		}(this)
 

@@ -424,15 +424,10 @@ func (this *Bitopro) ParseCurrency(rawCurrency any) any {
 	var withdraw *bool = this.SafeBool(rawCurrency, "withdraw")
 	var isFiat bool = this.InArray(code, fiatCurrencies)
 	return this.SafeCurrencyStructure(map[string]any{
-		"id":   currencyId,
-		"code": code,
-		"info": rawCurrency,
-		"type": func() any {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"id":        currencyId,
+		"code":      code,
+		"info":      rawCurrency,
+		"type":      func() any { if isFiat { return "fiat" }; return "crypto" }(),
 		"name":      nil,
 		"active":    ((deposit != nil && *deposit == true) && (withdraw != nil && *withdraw == true)),
 		"deposit":   deposit,
@@ -1225,12 +1220,7 @@ func (this *Bitopro) ParseOrderStatus(status any) any {
 		"4":  "canceled",
 		"6":  "canceled",
 	}
-	return func() any {
-		if status == nil {
-			return nil
-		}
-		return this.SafeString(statuses, status)
-	}()
+	return func() any { if (status == nil) { return nil }; return this.SafeString(statuses, status) }()
 }
 func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -2233,14 +2223,9 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
 		var requestedNetwork *string = this.SafeStringUpper(params, "network")
 		params = this.Omit(params, []any{"network"})
-		var networkId any = func() any {
-			if requestedNetwork == nil {
-				return nil
-			}
-			return this.SafeString(networks, requestedNetwork)
-		}()
+		var networkId any = func() any { if (requestedNetwork == nil) { return nil }; return this.SafeString(networks, requestedNetwork) }()
 		if networkId == nil {
-			panic(ExchangeError(Add(this.Id+" invalid network ", requestedNetwork)))
+			panic(ExchangeError(Add(this.Id + " invalid network ", requestedNetwork)))
 		}
 		request["protocol"] = networkId
 	}
@@ -2373,7 +2358,7 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		} else if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url = Add(url, "?" + this.Urlencode(query))
 			}
 			var nonce int64 = this.Milliseconds()
 			var rawData map[string]any = map[string]any{
@@ -2388,7 +2373,7 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if (IsEqual(api, "public")) && (IsEqual(method, "GET")) {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	}
 	url = Add(GetValue(GetValue(this.Urls, "api"), "rest"), url)
@@ -2406,7 +2391,7 @@ func (this *Bitopro) HandleErrors(code any, reason any, url any, method any, hea
 	if IsGreaterThanOrEqual(code, 200) && IsLessThan(code, 300) {
 		return nil
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	var error *string = this.SafeString(response, "error")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)

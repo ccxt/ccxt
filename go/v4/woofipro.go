@@ -1215,12 +1215,7 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if isFromFetchOrder {
 		var isMaker bool = IsEqual(this.SafeString(trade, "is_maker"), "1")
-		takerOrMaker = func() any {
-			if isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if isMaker { return "maker" }; return "taker" }()
 	}
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -1938,12 +1933,7 @@ func (this *Woofipro) ParseIncome(income any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(income, "updated_time")
 	var rate *float64 = this.SafeNumber(income, "funding_rate")
 	var paymentType *string = this.SafeString(income, "payment_type")
-	amount = func() any {
-		if paymentType != nil && *paymentType == "Pay" {
-			return Precise.StringNeg(amount)
-		}
-		return amount
-	}()
+	amount = func() any { if (paymentType != nil && *paymentType == "Pay") { return Precise.StringNeg(amount) }; return amount }()
 	return map[string]any{
 		"info":      income,
 		"symbol":    symbol,
@@ -2322,12 +2312,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var status any = this.SafeValue2(order, "status", "algoStatus")
 	var success *bool = this.SafeBool(order, "success")
 	if success != nil {
-		status = func() any {
-			if success != nil && *success {
-				return "NEW"
-			}
-			return "REJECTED"
-		}()
+		status = func() any { if (success != nil && *success) { return "NEW" }; return "REJECTED" }()
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
@@ -2461,24 +2446,9 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var orderQtyKey any = func() any {
-		if isConditional {
-			return "quantity"
-		}
-		return "order_quantity"
-	}()
-	var priceKey any = func() any {
-		if isConditional {
-			return "price"
-		}
-		return "order_price"
-	}()
-	var typeKey any = func() any {
-		if isConditional {
-			return "type"
-		}
-		return "order_type"
-	}()
+	var orderQtyKey any = func() any { if isConditional { return "quantity" }; return "order_quantity" }()
+	var priceKey any = func() any { if isConditional { return "price" }; return "order_price" }()
+	var typeKey any = func() any { if isConditional { return "type" }; return "order_type" }()
 	AddElementToObject(request, typeKey, orderType) // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !isConditional {
 		if postOnly {
@@ -2510,12 +2480,7 @@ func (this *Woofipro) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	} else if hasStopLoss || hasTakeProfit {
 		request["algo_type"] = "TP_SL"
 		var childOrders any = []any{}
-		var closeSide any = func() any {
-			if orderSide == "BUY" {
-				return "SELL"
-			}
-			return "BUY"
-		}()
+		var closeSide any = func() any { if (orderSide == "BUY") { return "SELL" }; return "BUY" }()
 		if hasStopLoss {
 			var stopLossPrice any = this.SafeValue2(stopLoss, "triggerPrice", "price", stopLoss)
 			var stopLossOrder map[string]any = map[string]any{
@@ -2733,18 +2698,8 @@ func (this *Woofipro) editOrderBody(ch chan any, id any, symbol any, typeVar any
 		request["triggerPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	var isConditional bool = (triggerPrice != nil) || (!IsEqual(this.SafeValue(params, "childOrders"), nil))
-	var orderQtyKey any = func() any {
-		if isConditional {
-			return "quantity"
-		}
-		return "order_quantity"
-	}()
-	var priceKey any = func() any {
-		if isConditional {
-			return "price"
-		}
-		return "order_price"
-	}()
+	var orderQtyKey any = func() any { if isConditional { return "quantity" }; return "order_quantity" }()
+	var priceKey any = func() any { if isConditional { return "price" }; return "order_price" }()
 	if !IsEqual(price, nil) {
 		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
 	}
@@ -2902,12 +2857,7 @@ func (this *Woofipro) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		extendParams["id"] = id
 	}
 	if trigger != nil && *trigger == true {
-		var parsedResponse any = func() any {
-			if IsEqual(response, nil) {
-				return map[string]any{}
-			}
-			return response
-		}()
+		var parsedResponse any = func() any { if (IsEqual(response, nil)) { return map[string]any{} }; return response }()
 
 		ch <- this.Extend(this.ParseOrder(parsedResponse), extendParams)
 		return nil
@@ -3139,12 +3089,7 @@ func (this *Woofipro) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	// }
 	//
 	var orders any = this.SafeDict(response, "data", response)
-	var parsedOrders any = func() any {
-		if IsEqual(orders, nil) {
-			return map[string]any{}
-		}
-		return orders
-	}()
+	var parsedOrders any = func() any { if (IsEqual(orders, nil)) { return map[string]any{} }; return orders }()
 
 	ch <- this.ParseOrder(parsedOrders, market)
 	return nil
@@ -3190,12 +3135,7 @@ func (this *Woofipro) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paginate any = false
 	var isTrigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var maxLimit any = func() any {
-		if isTrigger != nil && *isTrigger == true {
-			return 100
-		}
-		return 500
-	}()
+	var maxLimit any = func() any { if (isTrigger != nil && *isTrigger == true) { return 100 }; return 500 }()
 	var paginateparamsVariable []any = this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
@@ -3685,12 +3625,7 @@ func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency = this.SafeCurrency(currencyId, currency)
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "token_side")
-	var direction any = func() any {
-		if side != nil && *side == "DEPOSIT" {
-			return "in"
-		}
-		return "out"
-	}()
+	var direction any = func() any { if (side != nil && *side == "DEPOSIT") { return "in" }; return "out" }()
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
 	var fee any = this.ParseTokenAndFeeTemp(item, "fee_token", "fee_amount")
 	return this.SafeLedgerEntry(map[string]any{
@@ -4180,7 +4115,7 @@ func (this *Woofipro) fetchMarginModeBody(ch chan any, symbol any, optionalArgs 
 	PanicOnError(marginModes)
 	var marginMode any = this.SafeDict(marginModes, GetValue(market, "symbol"))
 	if IsEqual(marginMode, nil) {
-		panic(BadSymbol(Add(this.Id+" fetchMarginMode() did not return a margin mode for ", GetValue(market, "symbol"))))
+		panic(BadSymbol(Add(this.Id + " fetchMarginMode() did not return a margin mode for ", GetValue(market, "symbol"))))
 	}
 
 	ch <- marginMode
@@ -4257,14 +4192,9 @@ func (this *Woofipro) ParseMarginModification(data any, optionalArgs ...any) any
 		"amount":     nil,
 		"total":      nil,
 		"code":       this.SafeString(market, "settle"),
-		"status": func() any {
-			if success != nil && *success == true {
-				return "ok"
-			}
-			return "failed"
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"status":     func() any { if (success != nil && *success == true) { return "ok" }; return "failed" }(),
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 
@@ -4311,12 +4241,7 @@ func (this *Woofipro) modifyMarginHelperBody(ch chan any, symbol any, amount any
 	// }
 	//
 	var modification any = this.ParseMarginModification(response, market)
-	AddElementToObject(modification, "type", func() any {
-		if IsEqual(typeVar, "ADD") {
-			return "add"
-		}
-		return "reduce"
-	}())
+	AddElementToObject(modification, "type", func() any { if (IsEqual(typeVar, "ADD")) { return "add" }; return "reduce" }())
 	AddElementToObject(modification, "amount", this.ParseNumber(this.NumberToString(amount)))
 
 	ch <- modification
@@ -4721,7 +4646,7 @@ func (this *Woofipro) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(access, "public") {
 		url = Add(url, pathWithParams)
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url = Add(url, "?" + this.Urlencode(params))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -4759,8 +4684,8 @@ func (this *Woofipro) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "content-type", "application/json")
 		} else {
 			if len(ObjectKeys(params)) > 0 {
-				url = Add(url, "?"+this.Urlencode(params))
-				auth = Add(auth, "?"+this.Rawencode(params))
+				url = Add(url, "?" + this.Urlencode(params))
+				auth = Add(auth, "?" + this.Rawencode(params))
 			}
 			AddElementToObject(headers, "content-type", "application/x-www-form-urlencoded")
 			if IsEqual(method, "DELETE") {
@@ -4793,7 +4718,7 @@ func (this *Woofipro) HandleErrors(httpCode any, reason any, url any, method any
 	var success *bool = this.SafeBool(response, "success")
 	var errorCode *string = this.SafeString(response, "code")
 	if success == nil || *success != true {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback any = Add(this.Id + " ", this.Json(response))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

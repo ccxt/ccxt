@@ -767,12 +767,7 @@ func (this *Bitvavo) ParseCurrency(rawCurrency any) any {
 		"networks":  networks,
 		"fee":       withdrawFee,
 		"precision": nil,
-		"type": func() any {
-			if isFiat {
-				return "fiat"
-			}
-			return "crypto"
-		}(),
+		"type":      func() any { if isFiat { return "fiat" }; return "crypto" }(),
 		"limits": map[string]any{
 			"amount": map[string]any{
 				"min": nil,
@@ -1088,12 +1083,7 @@ func (this *Bitvavo) ParseTrade(trade any, optionalArgs ...any) any {
 	var taker any = this.SafeValue(trade, "taker")
 	var takerOrMaker any = nil
 	if !IsEqual(taker, nil) {
-		takerOrMaker = func() any {
-			if taker == true {
-				return "taker"
-			}
-			return "maker"
-		}()
+		takerOrMaker = func() any { if (taker == true) { return "taker" }; return "maker" }()
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee any = nil
@@ -1887,22 +1877,12 @@ func (this *Bitvavo) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		if !IsEqual(stopLossPrice, nil) {
 			triggerPrice = stopLossPrice
 		}
-		request["orderType"] = func() any {
-			if isMarketOrder {
-				return "stopLoss"
-			}
-			return "stopLossLimit"
-		}()
+		request["orderType"] = func() any { if isMarketOrder { return "stopLoss" }; return "stopLossLimit" }()
 	} else if isTakeProfit {
 		if !IsEqual(takeProfitPrice, nil) {
 			triggerPrice = takeProfitPrice
 		}
-		request["orderType"] = func() any {
-			if isMarketOrder {
-				return "takeProfit"
-			}
-			return "takeProfitLimit"
-		}()
+		request["orderType"] = func() any { if isMarketOrder { return "takeProfit" }; return "takeProfitLimit" }()
 	}
 	if triggerPrice != nil {
 		request["triggerAmount"] = this.PriceToPrecision(symbol, triggerPrice)
@@ -2277,13 +2257,8 @@ func (this *Bitvavo) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 	codGroupId = GetValue(codGroupIdparamsVariable, 0)
 	params = GetValue(codGroupIdparamsVariable, 1)
 	var request map[string]any = map[string]any{
-		"codGroupId": codGroupId,
-		"expiryAfterSeconds": func() any {
-			if IsGreaterThan(timeout, 0) {
-				return this.ParseToInt(Divide(timeout, 1000))
-			}
-			return 0
-		}(),
+		"codGroupId":         codGroupId,
+		"expiryAfterSeconds": func() any { if (IsGreaterThan(timeout, 0)) { return this.ParseToInt(Divide(timeout, 1000)) }; return 0 }(),
 	}
 
 	response := (<-this.PrivatePostCancelOrdersAfter(this.Extend(request, params)))
@@ -3379,7 +3354,7 @@ func (this *Bitvavo) Sign(path any, optionalArgs ...any) any {
 	var getOrDelete bool = (IsEqual(method, "GET")) || (IsEqual(method, "DELETE"))
 	if getOrDelete {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	}
 	if IsEqual(api, "private") {
@@ -3425,7 +3400,7 @@ func (this *Bitvavo) HandleErrors(httpCode any, reason any, url any, method any,
 	var errorCode *string = this.SafeString(response, "errorCode")
 	var error *string = this.SafeString(response, "error")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

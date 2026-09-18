@@ -1491,12 +1491,7 @@ func (this *Coinex) fetchContractMarketsBody(ch chan any, params any) any {
 		var quoteId *string = this.SafeString(entry, "quote_ccy")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var settleId any = func() any {
-			if subType != nil && *subType == "linear" {
-				return "USDT"
-			}
-			return baseId
-		}()
+		var settleId any = func() any { if (subType != nil && *subType == "linear") { return "USDT" }; return baseId }()
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 		var leveragesLength int = GetArrayLength(leverages)
@@ -1594,23 +1589,13 @@ func (this *Coinex) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketType any = func() any {
-		if InOp(ticker, "mark_price") {
-			return "swap"
-		}
-		return "spot"
-	}()
+	var marketType any = func() any { if (InOp(ticker, "mark_price")) { return "swap" }; return "spot" }()
 	var marketId *string = this.SafeString(ticker, "market")
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol any = GetValue(market, "symbol")
 	// on inverse contracts 'value' is denominated in the settle currency, not
 	// the quote, so it is the quote volume only for spot and linear markets
-	var quoteVolume any = func() any {
-		if IsEqual(GetValue(market, "inverse"), true) {
-			return nil
-		}
-		return this.SafeString(ticker, "value")
-	}()
+	var quoteVolume any = func() any { if (IsEqual(GetValue(market, "inverse"), true)) { return nil }; return this.SafeString(ticker, "value") }()
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -2790,12 +2775,7 @@ func (this *Coinex) ParseOrder(order any, optionalArgs ...any) any {
 	if IsEqual(orderType, "futures") {
 		orderType = "swap"
 	}
-	var marketType any = func() any {
-		if IsEqual(orderType, "swap") {
-			return "swap"
-		}
-		return "spot"
-	}()
+	var marketType any = func() any { if (IsEqual(orderType, "swap")) { return "swap" }; return "spot" }()
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var feeCurrencyId *string = this.SafeString(order, "fee_ccy")
 	var feeCurrency any = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
@@ -2904,7 +2884,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 	var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 	if reduceOnly != nil && *reduceOnly == true {
 		if !IsEqual(GetValue(market, "swap"), true) {
-			panic(InvalidOrder(Add(Add(this.Id+" createOrder() does not support reduceOnly for ", GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")))
+			panic(InvalidOrder(Add(Add(this.Id + " createOrder() does not support reduceOnly for ", GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")))
 		}
 	}
 	var request map[string]any = map[string]any{
@@ -2977,12 +2957,7 @@ func (this *Coinex) CreateOrderRequest(symbol any, typeVar any, side any, amount
 					var amountString *string = this.NumberToString(amount)
 					var priceString *string = this.NumberToString(price)
 					var quoteAmount any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-					var costRequest any = func() any {
-						if cost != nil {
-							return cost
-						}
-						return quoteAmount
-					}()
+					var costRequest any = func() any { if (cost != nil) { return cost }; return quoteAmount }()
 					request["amount"] = this.CostToPrecision(symbol, costRequest)
 				}
 			} else {
@@ -3143,7 +3118,7 @@ func (this *Coinex) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeValue(rawOrder, "params", map[string]any{})
 		if typeVar == nil || *typeVar != "limit" {
-			panic(NotSupported(Add(Add(this.Id+" createOrders() does not support ", typeVar), " orders, only limit orders are accepted")))
+			panic(NotSupported(Add(Add(this.Id + " createOrders() does not support ", typeVar), " orders, only limit orders are accepted")))
 		}
 		reduceOnly = this.SafeValue(orderParams, "reduceOnly")
 		var triggerPrice *float64 = this.SafeNumber2(orderParams, "stopPrice", "triggerPrice")
@@ -3484,7 +3459,7 @@ func (this *Coinex) editOrdersBody(ch chan any, orders any, optionalArgs ...any)
 		var code *string = this.SafeString(entry, "code")
 		var message *string = this.SafeString(entry, "message", "")
 		if (code == nil || *code != "0") || ((message == nil || *message != "Success") && (message == nil || *message != "Succeeded") && (ToLower(message) != "ok") && (IsEqual(data, nil))) {
-			var feedback any = Add(this.Id+" ", message)
+			var feedback any = Add(this.Id + " ", message)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			panic(ExchangeError(feedback))
@@ -4458,7 +4433,7 @@ func (this *Coinex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a leverage parameter"))
 	}
 	if (IsLessThan(leverage, 1)) || (IsGreaterThan(leverage, maxLeverage)) {
-		panic(BadRequest(Add(this.Id+" setMarginMode() leverage should be between 1 and "+ToString(maxLeverage)+" for ", symbol)))
+		panic(BadRequest(Add(this.Id + " setMarginMode() leverage should be between 1 and " + ToString(maxLeverage) + " for ", symbol)))
 	}
 	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
@@ -4515,7 +4490,7 @@ func (this *Coinex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 	var minLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "min", 1)
 	var maxLeverage *int64 = this.SafeInteger(GetValue(GetValue(market, "limits"), "leverage"), "max", 100)
 	if (IsLessThan(leverage, minLeverage)) || (IsGreaterThan(leverage, maxLeverage)) {
-		panic(BadRequest(Add(this.Id+" setLeverage() leverage should be between "+ToString(minLeverage)+" and "+ToString(maxLeverage)+" for ", symbol)))
+		panic(BadRequest(Add(this.Id + " setLeverage() leverage should be between " + ToString(minLeverage) + " and " + ToString(maxLeverage) + " for ", symbol)))
 	}
 	var request map[string]any = map[string]any{
 		"market":      GetValue(market, "id"),
@@ -4605,12 +4580,7 @@ func (this *Coinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
 		var marketId *string = this.SafeString(info, "market")
 		market = this.SafeMarket(marketId, market, nil, "swap")
 		var maxNotional *float64 = this.SafeNumber(tier, "amount")
-		var curr any = func() any {
-			if IsEqual(GetValue(market, "linear"), true) {
-				return GetValue(market, "base")
-			}
-			return GetValue(market, "quote")
-		}()
+		var curr any = func() any { if (IsEqual(GetValue(market, "linear"), true)) { return GetValue(market, "base") }; return GetValue(market, "quote") }()
 		var notional any = minNotional
 		AppendToArray(&tiers, map[string]any{
 			"tier":                  this.Sum(i, 1),
@@ -4695,12 +4665,7 @@ func (this *Coinex) modifyMarginHelperBody(ch chan any, symbol any, amount any, 
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var status *string = this.SafeStringLower(response, "message")
-	var typeVar any = func() any {
-		if IsEqual(addOrReduce, "reduce") {
-			return "reduce"
-		}
-		return "add"
-	}()
+	var typeVar any = func() any { if (IsEqual(addOrReduce, "reduce")) { return "reduce" }; return "add" }()
 
 	ch <- this.Extend(this.ParseMarginModification(data, market), map[string]any{
 		"type":   typeVar,
@@ -5405,12 +5370,7 @@ func (this *Coinex) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transaction, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "created_at")
-	var typeVar any = func() any {
-		if InOp(transaction, "withdraw_id") {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar any = func() any { if (InOp(transaction, "withdraw_id")) { return "withdrawal" }; return "deposit" }()
 	var networkId *string = this.SafeString(transaction, "chain")
 	var feeCost any = DerefScalar(this.SafeString(transaction, "tx_fee"))
 	var transferMethod *string = this.SafeStringLower2(transaction, "withdraw_method", "deposit_method")
@@ -6717,20 +6677,20 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 		}, query)
 		query = this.Keysort(query)
 		var urlencoded string = this.Rawencode(query)
-		var signature any = this.Hash(this.Encode(Add(urlencoded+"&secret_key=", this.Secret)), sha256)
+		var signature any = this.Hash(this.Encode(Add(urlencoded + "&secret_key=", this.Secret)), sha256)
 		headers = map[string]any{
 			"Authorization": ToLower(signature),
 			"AccessId":      this.ApiKey,
 		}
 		if (IsEqual(method, "GET")) || (IsEqual(method, "PUT")) {
-			url = Add(url, "?"+urlencoded)
+			url = Add(url, "?" + urlencoded)
 		} else {
 			AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
 			body = urlencoded
 		}
 	} else if (IsEqual(requestUrl, "public")) || (IsEqual(requestUrl, "perpetualPublic")) {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else {
 		if IsEqual(version, "v1") {
@@ -6741,13 +6701,13 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 			}, query)
 			query = this.Keysort(query)
 			var urlencoded string = this.Rawencode(query)
-			var signature any = this.Hash(this.Encode(Add(urlencoded+"&secret_key=", this.Secret)), md5)
+			var signature any = this.Hash(this.Encode(Add(urlencoded + "&secret_key=", this.Secret)), md5)
 			headers = map[string]any{
 				"Authorization": ToUpper(signature),
 				"Content-Type":  "application/json",
 			}
 			if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) || (IsEqual(method, "PUT")) {
-				url = Add(url, "?"+urlencoded)
+				url = Add(url, "?" + urlencoded)
 			} else {
 				body = this.Json(query)
 			}
@@ -6760,7 +6720,7 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 				body = this.Json(query)
 				preparedString = Add(preparedString, body)
 			} else if urlencoded != "" {
-				preparedString = Add(preparedString, "?"+urlencoded)
+				preparedString = Add(preparedString, "?" + urlencoded)
 			}
 			preparedString = Add(preparedString, Add(nonce, this.Secret))
 			var signature any = this.Hash(this.Encode(preparedString), sha256)
@@ -6773,7 +6733,7 @@ func (this *Coinex) Sign(path any, optionalArgs ...any) any {
 			}
 			if !IsEqual(method, "POST") {
 				if urlencoded != "" {
-					url = Add(url, "?"+urlencoded)
+					url = Add(url, "?" + urlencoded)
 				}
 			}
 		}
@@ -6793,7 +6753,7 @@ func (this *Coinex) HandleErrors(httpCode any, reason any, url any, method any, 
 	var data any = this.SafeValue(response, "data")
 	var message *string = this.SafeString(response, "message", "")
 	if (code == nil || *code != "0") || ((message == nil || *message != "Success") && (message == nil || *message != "Succeeded") && (ToLower(message) != "ok") && (IsEqual(data, nil))) {
-		var feedback any = Add(this.Id+" ", message)
+		var feedback any = Add(this.Id + " ", message)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 		panic(ExchangeError(feedback))

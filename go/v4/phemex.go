@@ -2323,12 +2323,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) any {
 			if (sideId != nil && *sideId == "buy") || (sideId != nil && *sideId == "sell") {
 				side = sideId
 			} else if sideId != nil {
-				side = func() any {
-					if sideId != nil && *sideId == "1" {
-						return "buy"
-					}
-					return "sell"
-				}()
+				side = func() any { if (sideId != nil && *sideId == "1") { return "buy" }; return "sell" }()
 			}
 			var ordType *string = this.SafeString(trade, "ordType")
 			if ordType != nil && *ordType == "1" {
@@ -2448,12 +2443,7 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 		var lockedWithdraw any = this.FromEn(lockedWithdrawEv, scale)
 		var used *string = Precise.StringAdd(lockedTradingBalance, lockedWithdraw)
 		var lastUpdateTimeNs *int64 = this.SafeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001)
-		timestamp = func() any {
-			if IsEqual(timestamp, nil) {
-				return lastUpdateTimeNs
-			}
-			return mathMax(timestamp, lastUpdateTimeNs)
-		}()
+		timestamp = func() any { if (IsEqual(timestamp, nil)) { return lastUpdateTimeNs }; return mathMax(timestamp, lastUpdateTimeNs) }()
 		AddElementToObject(account, "total", total)
 		AddElementToObject(account, "used", used)
 		AddElementToObject(result, code, account)
@@ -2506,18 +2496,8 @@ func (this *Phemex) ParseSwapBalance(response any) any {
 	var accountBalanceEv *string = this.SafeString2(balance, "accountBalanceEv", "accountBalanceRv")
 	var totalUsedBalanceEv *string = this.SafeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv")
 	var needsConversion bool = (code == nil || *code != "USDT")
-	AddElementToObject(account, "total", func() any {
-		if needsConversion {
-			return this.FromEn(accountBalanceEv, valueScale)
-		}
-		return accountBalanceEv
-	}())
-	AddElementToObject(account, "used", func() any {
-		if needsConversion {
-			return this.FromEn(totalUsedBalanceEv, valueScale)
-		}
-		return totalUsedBalanceEv
-	}())
+	AddElementToObject(account, "total", func() any { if needsConversion { return this.FromEn(accountBalanceEv, valueScale) }; return accountBalanceEv }())
+	AddElementToObject(account, "used", func() any { if needsConversion { return this.FromEn(totalUsedBalanceEv, valueScale) }; return totalUsedBalanceEv }())
 	AddElementToObject(result, code, account)
 	return this.SafeBalance(result)
 }
@@ -2558,7 +2538,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var response any = nil
 	var request map[string]any = map[string]any{}
 	if (!IsEqual(typeVar, "spot")) && (!IsEqual(typeVar, "swap")) {
-		panic(BadRequest(Add(Add(this.Id+" does not support ", typeVar), " markets, only spot and swap")))
+		panic(BadRequest(Add(Add(this.Id + " does not support ", typeVar), " markets, only spot and swap")))
 	}
 	if IsEqual(typeVar, "swap") {
 		var settle any = nil
@@ -2586,7 +2566,7 @@ func (this *Phemex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			var currency *string = this.SafeString(params, "currency")
 			if currency == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" fetchBalance() requires a code parameter or a currency or settle parameter for ", typeVar), " type")))
+				panic(ArgumentsRequired(Add(Add(this.Id + " fetchBalance() requires a code parameter or a currency or settle parameter for ", typeVar), " type")))
 			}
 
 			response = (<-this.PrivateGetSpotWallets(this.Extend(request, params)))
@@ -3180,15 +3160,10 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 					var quoteAmount *string = Precise.StringMul(amountString, priceString)
 					cost = this.ParseNumber(quoteAmount)
 				} else if IsEqual(cost, nil) {
-					panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() ", qtyType), " requires a price argument or a cost parameter")))
+					panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() ", qtyType), " requires a price argument or a cost parameter")))
 				}
 			}
-			cost = func() any {
-				if IsEqual(cost, nil) {
-					return amount
-				}
-				return cost
-			}()
+			cost = func() any { if (IsEqual(cost, nil)) { return amount }; return cost }()
 			var costString any = this.CostToPrecision(symbol, cost)
 			request["quoteQtyEv"] = this.ToEv(costString, market)
 		} else {
@@ -3203,20 +3178,10 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			if hedged != nil && *hedged == true {
 				var reduceOnly *bool = this.SafeBool(params, "reduceOnly")
 				if reduceOnly != nil && *reduceOnly == true {
-					side = func() any {
-						if IsEqual(side, "buy") {
-							return "sell"
-						}
-						return "buy"
-					}()
+					side = func() any { if (IsEqual(side, "buy")) { return "sell" }; return "buy" }()
 					params = this.Omit(params, "reduceOnly")
 				}
-				posSide = func() any {
-					if IsEqual(side, "buy") {
-						return "Long"
-					}
-					return "Short"
-				}()
+				posSide = func() any { if (IsEqual(side, "buy")) { return "Long" }; return "Short" }()
 			} else {
 				posSide = "Merged"
 			}
@@ -3242,35 +3207,15 @@ func (this *Phemex) createOrderBody(ch chan any, symbol any, typeVar any, side a
 			// the flow defined per https://phemex-docs.github.io/#more-order-type-examples
 			if (IsEqual(triggerDirection, "ascending")) || (IsEqual(triggerDirection, "up")) {
 				if IsEqual(side, "sell") {
-					request["ordType"] = func() any {
-						if IsEqual(typeVar, "Market") {
-							return "MarketIfTouched"
-						}
-						return "LimitIfTouched"
-					}()
+					request["ordType"] = func() any { if (IsEqual(typeVar, "Market")) { return "MarketIfTouched" }; return "LimitIfTouched" }()
 				} else if IsEqual(side, "buy") {
-					request["ordType"] = func() any {
-						if IsEqual(typeVar, "Market") {
-							return "Stop"
-						}
-						return "StopLimit"
-					}()
+					request["ordType"] = func() any { if (IsEqual(typeVar, "Market")) { return "Stop" }; return "StopLimit" }()
 				}
 			} else if (IsEqual(triggerDirection, "descending")) || (IsEqual(triggerDirection, "down")) {
 				if IsEqual(side, "sell") {
-					request["ordType"] = func() any {
-						if IsEqual(typeVar, "Market") {
-							return "Stop"
-						}
-						return "StopLimit"
-					}()
+					request["ordType"] = func() any { if (IsEqual(typeVar, "Market")) { return "Stop" }; return "StopLimit" }()
 				} else if IsEqual(side, "buy") {
-					request["ordType"] = func() any {
-						if IsEqual(typeVar, "Market") {
-							return "MarketIfTouched"
-						}
-						return "LimitIfTouched"
-					}()
+					request["ordType"] = func() any { if (IsEqual(typeVar, "Market")) { return "MarketIfTouched" }; return "LimitIfTouched" }()
 				}
 			}
 		}
@@ -3721,9 +3666,9 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var numOrders int = GetArrayLength(data)
 		if numOrders < 1 {
 			if clientOrderId != nil {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
+				panic(OrderNotFound(Add(Add(Add(Add(this.Id + " fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
 			} else {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with id "), id), " not found")))
+				panic(OrderNotFound(Add(Add(Add(Add(this.Id + " fetchOrder() ", symbol), " order with id "), id), " not found")))
 			}
 		}
 		order = this.SafeDict(data, 0, map[string]any{})
@@ -3732,9 +3677,9 @@ func (this *Phemex) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any
 		var numRows int = GetArrayLength(rows)
 		if numRows < 1 {
 			if clientOrderId != nil {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
+				panic(OrderNotFound(Add(Add(Add(Add(this.Id + " fetchOrder() ", symbol), " order with clientOrderId "), clientOrderId), " not found")))
 			} else {
-				panic(OrderNotFound(Add(Add(Add(Add(this.Id+" fetchOrder() ", symbol), " order with id "), id), " not found")))
+				panic(OrderNotFound(Add(Add(Add(Add(this.Id + " fetchOrder() ", symbol), " order with id "), id), " not found")))
 			}
 		}
 		order = this.SafeDict(rows, 0, map[string]any{})
@@ -4615,12 +4560,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else if IsEqual(settle, "BTC") {
 		code = "BTC"
 	} else if code == nil {
-		code = func() any {
-			if IsEqual(subType, "linear") {
-				return "USD"
-			}
-			return "BTC"
-		}()
+		code = func() any { if (IsEqual(subType, "linear")) { return "USD" }; return "BTC" }()
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -4926,12 +4866,7 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 	var side any = nil
 	if rawSide != nil {
 		var isLong bool = ((rawSide != nil && *rawSide == "Buy") || (rawSide != nil && *rawSide == "1"))
-		side = func() any {
-			if isLong {
-				return "long"
-			}
-			return "short"
-		}()
+		side = func() any { if isLong { return "long" }; return "short" }()
 	}
 	// Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
 	// Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4983,17 +4918,12 @@ func (this *Phemex) ParsePosition(position any, optionalArgs ...any) any {
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode": func() any {
-			if isCross == true {
-				return "cross"
-			}
-			return "isolated"
-		}(),
-		"side":            side,
-		"hedged":          IsEqual(this.SafeString(position, "posMode"), "Hedged"),
-		"percentage":      nil,
-		"stopLossPrice":   nil,
-		"takeProfitPrice": nil,
+		"marginMode":                  func() any { if (isCross == true) { return "cross" }; return "isolated" }(),
+		"side":                        side,
+		"hedged":                      IsEqual(this.SafeString(position, "posMode"), "Hedged"),
+		"percentage":                  nil,
+		"stopLossPrice":               nil,
+		"takeProfitPrice":             nil,
 	})
 }
 
@@ -5317,12 +5247,7 @@ func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) any {
 	_ = market
 	market = this.SafeMarket(nil, market)
 	var inverse any = this.SafeValue(market, "inverse")
-	var codeCurrency any = func() any {
-		if inverse == true {
-			return "base"
-		}
-		return "quote"
-	}()
+	var codeCurrency any = func() any { if (inverse == true) { return "base" }; return "quote" }()
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(nil, market),
@@ -5384,12 +5309,7 @@ func (this *Phemex) setMarginModeBody(ch chan any, marginMode any, optionalArgs 
 		if currentLeverage == nil {
 			panic(ArgumentsRequired(this.Id + " setMarginMode() requires a \"leverage\" parameter for USDT markets"))
 		}
-		request["leverageRr"] = func() any {
-			if isCross {
-				return Precise.StringNeg(Precise.StringAbs(currentLeverage))
-			}
-			return Precise.StringAbs(currentLeverage)
-		}()
+		request["leverageRr"] = func() any { if isCross { return Precise.StringNeg(Precise.StringAbs(currentLeverage)) }; return Precise.StringAbs(currentLeverage) }()
 
 		retRes455419 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
 		PanicOnError(retRes455419)
@@ -5636,7 +5556,7 @@ func (this *Phemex) Sign(path any, optionalArgs ...any) any {
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) || (IsEqual(method, "PUT")) || (IsEqual(url, "/positions/assign")) {
 		if len(ObjectKeys(query)) > 0 {
 			queryString = this.UrlencodeWithArrayRepeat(query)
-			url = Add(url, "?"+queryString)
+			url = Add(url, "?" + queryString)
 		}
 	}
 	if IsEqual(api, "private") {
@@ -5724,18 +5644,8 @@ func (this *Phemex) setLeverageBody(ch chan any, leverage any, optionalArgs ...a
 		if (isHedged == nil || *isHedged != true) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
 		} else {
-			var longVar any = func() any {
-				if longLeverageRr != nil {
-					return longLeverageRr
-				}
-				return leverage
-			}()
-			var shortVar any = func() any {
-				if shortLeverageRr != nil {
-					return shortLeverageRr
-				}
-				return leverage
-			}()
+			var longVar any = func() any { if (longLeverageRr != nil) { return longLeverageRr }; return leverage }()
+			var shortVar any = func() any { if (shortLeverageRr != nil) { return shortLeverageRr }; return leverage }()
 			request["longLeverageRr"] = longVar
 			request["shortLeverageRr"] = shortVar
 		}
@@ -6651,12 +6561,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 	} else if IsEqual(settle, "BTC") {
 		code = "BTC"
 	} else if code == nil {
-		code = func() any {
-			if IsEqual(subType, "linear") {
-				return "USD"
-			}
-			return "BTC"
-		}()
+		code = func() any { if (IsEqual(subType, "linear")) { return "USD" }; return "BTC" }()
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -6837,7 +6742,7 @@ func (this *Phemex) HandleErrors(httpCode any, reason any, url any, method any, 
 	var errorCode *string = this.SafeString(error, "code")
 	var message *string = this.SafeString(error, "msg")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

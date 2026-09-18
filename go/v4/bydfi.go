@@ -1074,12 +1074,7 @@ func (this *Bydfi) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 		"interval": interval,
 	}
 	var startTime any = since
-	var numberOfCandles any = func() any {
-		if !IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0)) {
-			return limit
-		}
-		return maxLimit
-	}()
+	var numberOfCandles any = func() any { if (!IsEqual(limit, nil) && !IsEqual(limit, nil) && (!IsEqual(limit, 0))) { return limit }; return maxLimit }()
 	var until any = nil
 	var untilparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
@@ -1585,12 +1580,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	var isTailingStopOrder bool = (trailingPercent != nil)
 	var stopPrice any = nil
 	if isStopLossOrder || isTakeProfitOrder {
-		stopPrice = func() any {
-			if isStopLossOrder {
-				return stopLossPrice
-			}
-			return takeProfitPrice
-		}()
+		stopPrice = func() any { if isStopLossOrder { return stopLossPrice }; return takeProfitPrice }()
 		params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice"})
 		request["stopPrice"] = this.PriceToPrecision(symbol, stopPrice)
 	} else if isTailingStopOrder {
@@ -1619,7 +1609,7 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		}
 	} else {
 		if IsEqual(price, nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a price argument for a ", typeVar), " order")))
+			panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a price argument for a ", typeVar), " order")))
 		}
 		request["price"] = this.PriceToPrecision(symbol, price)
 		if isStopLossOrder {
@@ -1637,19 +1627,9 @@ func (this *Bydfi) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 	if EvalTruthy(hedged) {
 		params = this.Omit(params, "reduceOnly")
 		if IsEqual(side, "buy") {
-			request["positionSide"] = func() any {
-				if reduceOnly != nil && *reduceOnly == true {
-					return "SHORT"
-				}
-				return "LONG"
-			}()
+			request["positionSide"] = func() any { if (reduceOnly != nil && *reduceOnly == true) { return "SHORT" }; return "LONG" }()
 		} else if IsEqual(side, "sell") {
-			request["positionSide"] = func() any {
-				if reduceOnly != nil && *reduceOnly == true {
-					return "LONG"
-				}
-				return "SHORT"
-			}()
+			request["positionSide"] = func() any { if (reduceOnly != nil && *reduceOnly == true) { return "LONG" }; return "SHORT" }()
 		}
 	}
 	var closePosition *bool = this.SafeBool(params, "closePosition", false)
@@ -2392,25 +2372,15 @@ func (this *Bydfi) ParseOrder(order any, optionalArgs ...any) any {
 		"side":                this.SafeStringLower(order, "side"),
 		"price":               this.SafeString(order, "price"),
 		"triggerPrice":        stopPrice,
-		"stopLossPrice": func() any {
-			if isStopLossOrder {
-				return stopPrice
-			}
-			return nil
-		}(),
-		"takeProfitPrice": func() any {
-			if isTakeProfitOrder {
-				return stopPrice
-			}
-			return nil
-		}(),
-		"amount":    this.SafeString(order, "origQty"),
-		"filled":    this.SafeString(order, "executedQty"),
-		"remaining": nil,
-		"cost":      nil,
-		"trades":    nil,
-		"fee":       fee,
-		"average":   this.OmitZero(this.SafeString(order, "avgPrice")),
+		"stopLossPrice":       func() any { if isStopLossOrder { return stopPrice }; return nil }(),
+		"takeProfitPrice":     func() any { if isTakeProfitOrder { return stopPrice }; return nil }(),
+		"amount":              this.SafeString(order, "origQty"),
+		"filled":              this.SafeString(order, "executedQty"),
+		"remaining":           nil,
+		"cost":                nil,
+		"trades":              nil,
+		"fee":                 fee,
+		"average":             this.OmitZero(this.SafeString(order, "avgPrice")),
 	}, market)
 }
 func (this *Bydfi) ParseOrderType(typeVar any) *string {
@@ -3110,12 +3080,7 @@ func (this *Bydfi) setPositionModeBody(ch chan any, hedged any, optionalArgs ...
 		retRes244612 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes244612)
 	}
-	var positionType any = func() any {
-		if EvalTruthy(hedged) {
-			return "HEDGE"
-		}
-		return "ONEWAY"
-	}()
+	var positionType any = func() any { if EvalTruthy(hedged) { return "HEDGE" }; return "ONEWAY" }()
 	var wallet any = "W001"
 	var walletparamsVariable []any = this.HandleOptionAndParams(params, "setPositionMode", "wallet", wallet)
 	wallet = GetValue(walletparamsVariable, 0)
@@ -3636,14 +3601,9 @@ func (this *Bydfi) FetchTransactionsHelperAsync(typeVar any, code any, since any
 func (this *Bydfi) fetchTransactionsHelperBody(ch chan any, typeVar any, code any, since any, limit any, params any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var methodName any = func() any {
-		if IsEqual(typeVar, "deposit") {
-			return "fetchDeposits"
-		}
-		return "fetchWithdrawals"
-	}()
+	var methodName any = func() any { if (IsEqual(typeVar, "deposit")) { return "fetchDeposits" }; return "fetchWithdrawals" }()
 	if IsEqual(code, nil) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a code argument")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a code argument")))
 	}
 	if IsEqual(this.Markets, nil) {
 
@@ -3820,7 +3780,7 @@ func (this *Bydfi) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(method, "GET") {
 		query = this.Urlencode(sortedParams)
 		if GetLength(query) != 0 {
-			endpoint = Add(endpoint, "?"+query)
+			endpoint = Add(endpoint, "?" + query)
 		}
 	}
 	if IsEqual(api, "private") {
@@ -3867,7 +3827,7 @@ func (this *Bydfi) HandleErrors(httpCode any, reason any, url any, method any, h
 	var code *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
 	if code == nil || *code != "200" {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

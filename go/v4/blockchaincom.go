@@ -703,12 +703,7 @@ func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
 	var exchangeOrderId *string = this.SafeString(order, "exOrdId")
-	var price any = func() any {
-		if typeVar == nil || *typeVar != "market" {
-			return this.SafeString(order, "price")
-		}
-		return nil
-	}()
+	var price any = func() any { if (typeVar == nil || *typeVar != "market") { return this.SafeString(order, "price") }; return nil }()
 	var average *float64 = this.SafeNumber(order, "avgPx")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
@@ -1296,12 +1291,7 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 		typeVar = "withdrawal"
 		id = DerefScalar(this.SafeString(transaction, "withdrawalId"))
 	}
-	var feeCost any = func() any {
-		if IsEqual(typeVar, "withdrawal") {
-			return this.SafeNumber(transaction, "fee")
-		}
-		return nil
-	}()
+	var feeCost any = func() any { if (IsEqual(typeVar, "withdrawal")) { return this.SafeNumber(transaction, "fee") }; return nil }()
 	var fee any = nil
 	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
@@ -1611,7 +1601,7 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	//
 	var balances any = this.SafeValue(response, accountName)
 	if IsEqual(balances, nil) {
-		panic(ExchangeError(Add(Add(this.Id+" fetchBalance() could not find the \"", accountName), "\" account")))
+		panic(ExchangeError(Add(Add(this.Id + " fetchBalance() could not find the \"", accountName), "\" account")))
 	}
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -1703,7 +1693,7 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -1712,7 +1702,7 @@ func (this *Blockchaincom) Sign(path any, optionalArgs ...any) any {
 		}
 		if IsEqual(method, "GET") {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url = Add(url, "?" + this.Urlencode(query))
 			}
 		} else {
 			body = this.Json(query)
@@ -1734,13 +1724,13 @@ func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method an
 	var text *string = this.SafeString(response, "text")
 	if text != nil {
 		if text != nil && *text == "Insufficient Balance" {
-			panic(InsufficientFunds(Add(this.Id+" ", body)))
+			panic(InsufficientFunds(Add(this.Id + " ", body)))
 		}
 	}
 	var errorCode *string = this.SafeString(response, "status")
 	var errorMessage *string = this.SafeString(response, "error")
 	if !IsEqual(code, nil) {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback any = Add(this.Id + " ", this.Json(response))
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	}

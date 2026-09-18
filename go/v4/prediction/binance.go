@@ -699,14 +699,9 @@ func (this *Binance) ParseEvent(rawTopic any) any {
 		resolved = (status != nil && *status == "RESOLVED") || (status != nil && *status == "SETTLED")
 	}
 	return map[string]any{
-		"id":   topicId,
-		"slug": slug,
-		"event": func() any {
-			if slug != nil {
-				return this.ShortenSlug(slug)
-			}
-			return nil
-		}(),
+		"id":              topicId,
+		"slug":            slug,
+		"event":           func() any { if (slug != nil) { return this.ShortenSlug(slug) }; return nil }(),
 		"title":           title,
 		"description":     this.SafeString(rawTopic, "description"),
 		"markets":         marketsList,
@@ -792,12 +787,7 @@ func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) any {
 		var settleFractionRaw any = nil
 		if resolved && (price != nil) {
 			winnerRaw = ccxt.Precise.StringEq(price, "1")
-			settleFractionRaw = func() any {
-				if ccxt.EvalTruthy((winnerRaw)) {
-					return 1
-				}
-				return 0
-			}()
+			settleFractionRaw = func() any { if ccxt.EvalTruthy((winnerRaw)) { return 1 }; return 0 }()
 			if ccxt.EvalTruthy(winnerRaw) {
 				resolvedOutcomeRaw = outcomeHandle
 			}
@@ -1984,7 +1974,7 @@ func (this *Binance) fetchWalletBody(ch chan any, methodName any, optionalArgs .
 		}
 	}
 	if ccxt.IsEqual(cachedWallet, nil) {
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+"fetchWallet could'n find wallet ", walletAddress)))
+		panic(ccxt.NotSupported(ccxt.Add(this.Id + "fetchWallet could'n find wallet ", walletAddress)))
 	}
 	ccxt.AddElementToObject(this.Options, "wallet", cachedWallet)
 
@@ -2145,7 +2135,7 @@ func (this *Binance) createOrderBody(ch chan any, outcome any, typeVar any, side
 				feeRateBps = "0"
 			} else {
 				if ccxt.IsEqual(price, nil) {
-					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" createOrder requires price for ", side), " order")))
+					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id + " createOrder requires price for ", side), " order")))
 				}
 			}
 			var feeRate *string = ccxt.Precise.StringDiv(feeRateBps, "10000")
@@ -2336,7 +2326,7 @@ func (this *Binance) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 			}
 			failedDetails = ccxt.Add(ccxt.Add(ccxt.Add(failedDetails, failedOrderId), ": "), failedReason)
 		}
-		panic(ccxt.OrderNotFound(ccxt.Add(this.Id+" cancelOrders() failed for ", failedDetails)))
+		panic(ccxt.OrderNotFound(ccxt.Add(this.Id + " cancelOrders() failed for ", failedDetails)))
 	}
 	var orders any = []any{}
 	var canceledOrdersLength int = ccxt.GetArrayLength(canceledOrders)
@@ -2367,7 +2357,7 @@ func (this *Binance) HandleErrors(code any, reason any, url any, method any, hea
 	var errorCode *string = this.SafeString(response, "code")
 	if (errorCode != nil) && ccxt.Precise.StringLt(errorCode, "0") {
 		var message *string = this.SafeString(response, "msg", "")
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback any = ccxt.Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))
@@ -2399,12 +2389,7 @@ func (this *Binance) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := ccxt.GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsString(api) {
-			return api
-		}
-		return ccxt.GetValue(api, 0)
-	}()
+	var apiGroup any = func() any { if ccxt.IsString(api) { return api }; return ccxt.GetValue(api, 0) }()
 	var baseUrls any = ccxt.GetValue(this.Urls, "api")
 	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "sapi"))
 	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), this.ImplodeParams(path, params))

@@ -668,12 +668,7 @@ func (this *Apex) ParseCurrency(currency any) any {
 	var networkKeys []string = ObjectKeys(networks)
 	var networksLength int = len(networkKeys)
 	var emptyChains bool = (networksLength == 0) // non-functional coins
-	var valueForEmpty any = func() any {
-		if emptyChains {
-			return false
-		}
-		return nil
-	}()
+	var valueForEmpty any = func() any { if emptyChains { return false }; return nil }()
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      currency,
 		"code":      code,
@@ -799,42 +794,32 @@ func (this *Apex) ParseMarket(market any) any {
 	var takerFee any = this.ParseNumber("0.0002")
 	var makerFee any = this.ParseNumber("0.0005")
 	return this.SafeMarketStructure(map[string]any{
-		"id":           id,
-		"id2":          id2,
-		"symbol":       symbol,
-		"base":         base,
-		"quote":        quote,
-		"settle":       settle,
-		"baseId":       baseId,
-		"quoteId":      quoteId,
-		"settleId":     settleId,
-		"type":         "swap",
-		"spot":         false,
-		"margin":       nil,
-		"swap":         true,
-		"future":       false,
-		"option":       false,
-		"active":       this.SafeBool(market, "enableTrade"),
-		"contract":     true,
-		"linear":       true,
-		"inverse":      false,
-		"taker":        takerFee,
-		"maker":        makerFee,
-		"contractSize": this.SafeNumber(market, "minOrderSize"),
-		"expiry": func() any {
-			if expiry == 0 {
-				return nil
-			}
-			return expiry
-		}(),
-		"expiryDatetime": func() any {
-			if expiry == 0 {
-				return nil
-			}
-			return this.Iso8601(expiry)
-		}(),
-		"strike":     nil,
-		"optionType": nil,
+		"id":             id,
+		"id2":            id2,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           "swap",
+		"spot":           false,
+		"margin":         nil,
+		"swap":           true,
+		"future":         false,
+		"option":         false,
+		"active":         this.SafeBool(market, "enableTrade"),
+		"contract":       true,
+		"linear":         true,
+		"inverse":        false,
+		"taker":          takerFee,
+		"maker":          makerFee,
+		"contractSize":   this.SafeNumber(market, "minOrderSize"),
+		"expiry":         func() any { if (expiry == 0) { return nil }; return expiry }(),
+		"expiryDatetime": func() any { if (expiry == 0) { return nil }; return this.Iso8601(expiry) }(),
+		"strike":         nil,
+		"optionType":     nil,
 		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "stepSize"),
 			"price":  this.SafeNumber(market, "tickSize"),
@@ -1582,12 +1567,7 @@ func (this *Apex) SafeMarket(optionalArgs ...any) any {
 }
 func (this *Apex) GenerateRandomClientIdOmni(_accountId any) any {
 	var hasAccountId bool = (_accountId != nil) && (!IsEqual(_accountId, ""))
-	var accountId any = func() any {
-		if hasAccountId {
-			return _accountId
-		}
-		return ToString(this.RandNumber(12))
-	}()
+	var accountId any = func() any { if hasAccountId { return _accountId }; return ToString(this.RandNumber(12)) }()
 	return Add(Add(Add(Add(Add("apexomni-", accountId), "-"), ToString(this.Milliseconds())), "-"), ToString(this.RandNumber(6)))
 }
 func (this *Apex) AddHyphenBeforeUsdt(symbol any) any {
@@ -1683,20 +1663,10 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice")
 	if stopLossPrice != nil {
-		orderType = func() any {
-			if IsEqual(orderType, "MARKET") {
-				return "STOP_MARKET"
-			}
-			return "STOP_LIMIT"
-		}()
+		orderType = func() any { if (IsEqual(orderType, "MARKET")) { return "STOP_MARKET" }; return "STOP_LIMIT" }()
 		triggerPrice = stopLossPrice
 	} else if takeProfitPrice != nil {
-		orderType = func() any {
-			if IsEqual(orderType, "MARKET") {
-				return "TAKE_PROFIT_MARKET"
-			}
-			return "TAKE_PROFIT_LIMIT"
-		}()
+		orderType = func() any { if (IsEqual(orderType, "MARKET")) { return "TAKE_PROFIT_MARKET" }; return "TAKE_PROFIT_LIMIT" }()
 		triggerPrice = takeProfitPrice
 	}
 	var isMarket bool = (IsEqual(orderType, "MARKET"))
@@ -1751,7 +1721,7 @@ func (this *Apex) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		"size":        orderSize,
 		"price":       finalOrderPrice,
 		"limitFee":    limitFee,
-		"expiration":  MathFloor(Add(timeNow/1000, Multiply(Multiply(Multiply(30, 24), 60), 60))),
+		"expiration":  MathFloor(Add(timeNow / 1000, Multiply(Multiply(Multiply(30, 24), 60), 60))),
 		"timeInForce": timeInForce,
 		"clientId":    finalClientOrderId,
 		"brokerId":    this.SafeString(this.Options, "brokerId", "6956"),
@@ -1838,12 +1808,7 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 	}
 	var tokenId *string = this.SafeString(currency, "tokenId", "")
 	var decimalsNum *float64 = this.SafeNumber(currency, "decimals", 0)
-	var decimalsNumber any = func() any {
-		if decimalsNum == nil {
-			return 0
-		}
-		return decimalsNum
-	}()
+	var decimalsNumber any = func() any { if (decimalsNum == nil) { return 0 }; return decimalsNum }()
 	var mathPowResult float64 = (MathPow(10, decimalsNumber))
 	var amountNumber int64 = this.ParseToInt(Multiply(amount, mathPowResult))
 	var timestampSeconds int64 = this.ParseToInt(this.Milliseconds() / 1000)
@@ -2569,8 +2534,8 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	var signBody any = body
 	if ToUpper(method) != "POST" {
 		if len(ObjectKeys(params)) > 0 {
-			signPath = Add(signPath, "?"+this.Rawencode(params))
-			url = Add(url, "?"+this.Rawencode(params))
+			signPath = Add(signPath, "?" + this.Rawencode(params))
+			url = Add(url, "?" + this.Rawencode(params))
 		}
 	} else {
 		var sortedQuery map[string]any = this.Keysort(params)
@@ -2579,7 +2544,7 @@ func (this *Apex) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Milliseconds())
-		var messageString any = Add(timestamp+ToUpper(method), signPath)
+		var messageString any = Add(timestamp + ToUpper(method), signPath)
 		if signBody != nil {
 			messageString = Add(messageString, signBody)
 		}
@@ -2606,7 +2571,7 @@ func (this *Apex) HandleErrors(code any, reason any, url any, method any, header
 	}
 	var errorCode *int64 = this.SafeInteger(response, "code")
 	if (errorCode != nil) && (errorCode == nil || *errorCode != 0) {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		var message *string = this.SafeString2(response, "key", "msg")
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		var status string = ToString(code)

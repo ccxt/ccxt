@@ -1072,12 +1072,7 @@ func (this *Derive) ParseMarket(market any) any {
 		linear = true
 		inverse = false
 	}
-	var contractSize any = func() any {
-		if spot {
-			return nil
-		}
-		return 1
-	}()
+	var contractSize any = func() any { if (spot) { return nil }; return 1 }()
 	var isContract bool = (swap || option)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
@@ -1642,12 +1637,7 @@ func (this *Derive) ParseFundingRate(contract any, optionalArgs ...any) any {
 func (this *Derive) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var DOMAIN_SEPARATOR any = func() any {
-		if sandboxMode != nil && *sandboxMode == true {
-			return "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105"
-		}
-		return "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b"
-	}()
+	var DOMAIN_SEPARATOR any = func() any { if (sandboxMode != nil && *sandboxMode == true) { return "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" }; return "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b" }()
 	var binaryDomainSeparator []byte = this.Base16ToBinary(DOMAIN_SEPARATOR)
 	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
@@ -1735,15 +1725,10 @@ func (this *Derive) createOrderBody(ch chan any, symbol any, typeVar any, side a
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce int64 = this.Milliseconds()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
-	var signatureExpiry *int64 = this.SafeInteger(params, "signature_expiry_sec", this.Seconds()+7776000)
+	var signatureExpiry *int64 = this.SafeInteger(params, "signature_expiry_sec", this.Seconds() + 7776000)
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var TRADE_MODULE_ADDRESS any = func() any {
-		if sandboxMode != nil && *sandboxMode == true {
-			return "0x87F2863866D85E3192a35A73b388BD625D83f2be"
-		}
-		return "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"
-	}()
+	var TRADE_MODULE_ADDRESS any = func() any { if (sandboxMode != nil && *sandboxMode == true) { return "0x87F2863866D85E3192a35A73b388BD625D83f2be" }; return "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b" }()
 	var priceString *string = this.NumberToString(price)
 	var maxFee any = nil
 	var maxFeeparamsVariable []any = this.HandleOptionAndParams(params, "createOrder", "max_fee")
@@ -1939,16 +1924,11 @@ func (this *Derive) editOrderBody(ch chan any, id any, symbol any, typeVar any, 
 	var orderSide string = ToLower(side)
 	var orderSideIsBuy bool = (orderSide == "buy") // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
 	var nonce int64 = this.Milliseconds()
-	var signatureExpiry *float64 = this.SafeNumber(params, "signature_expiry_sec", this.Seconds()+7776000)
+	var signatureExpiry *float64 = this.SafeNumber(params, "signature_expiry_sec", this.Seconds() + 7776000)
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
-	var TRADE_MODULE_ADDRESS any = func() any {
-		if sandboxMode != nil && *sandboxMode == true {
-			return "0x87F2863866D85E3192a35A73b388BD625D83f2be"
-		}
-		return "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"
-	}()
+	var TRADE_MODULE_ADDRESS any = func() any { if (sandboxMode != nil && *sandboxMode == true) { return "0x87F2863866D85E3192a35A73b388BD625D83f2be" }; return "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b" }()
 	var priceString *string = this.NumberToString(price)
 	var maxFeeString *string = this.SafeString(params, "max_fee", "0")
 	var amountString *string = this.NumberToString(amount)
@@ -3510,7 +3490,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName any, params any) any {
 	if optionsWallet != nil {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")))
+	panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")))
 }
 func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
 	var deriveWalletAddress any = nil
@@ -3525,7 +3505,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName any, params any) any {
 	if optionsWallet != nil {
 		return []any{optionsWallet, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
+	panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")))
 }
 func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if IsEqual(response, nil) {
@@ -3534,7 +3514,7 @@ func (this *Derive) HandleErrors(httpCode any, reason any, url any, method any, 
 	var error any = this.SafeDict(response, "error")
 	if !IsEqual(error, nil) {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback any = Add(this.Id + " ", this.Json(response))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

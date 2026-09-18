@@ -131,7 +131,7 @@ func (this *Bitmex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var market any = this.Market(symbol)
-			var subscription any = ccxt.Add(name+":", ccxt.GetValue(market, "id"))
+			var subscription any = ccxt.Add(name + ":", ccxt.GetValue(market, "id"))
 			ccxt.AppendToArray(&rawSubscriptions, subscription)
 			var messageHash any = ccxt.Add("ticker:", symbol)
 			ccxt.AppendToArray(&messageHashes, messageHash)
@@ -543,7 +543,7 @@ func (this *Bitmex) HandleLiquidation(client any, message any) {
 	var symbols []string = ccxt.ObjectKeys(liquidationsBySymbol)
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = ccxt.GetValue(symbols, i).(string)
-		client.(ccxt.ClientInterface).Resolve(liquidationsBySymbol[symbol], "liquidations::"+symbol)
+		client.(ccxt.ClientInterface).Resolve(liquidationsBySymbol[symbol], "liquidations::" + symbol)
 	}
 }
 
@@ -758,7 +758,7 @@ func (this *Bitmex) HandleTrades(client any, message any) {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add(table+":", symbol)
+		var messageHash any = ccxt.Add(table + ":", symbol)
 		var trades any = this.ParseTrades(dataByMarketIds[marketId], market)
 		var stored any = this.SafeValue(this.Trades, symbol)
 		if ccxt.IsEqual(stored, nil) {
@@ -1339,7 +1339,7 @@ func (this *Bitmex) HandleOrders(client any, message any) {
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; i < len(keys); i++ {
 			var symbol string = ccxt.GetValue(keys, i).(string)
-			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash+":"+symbol)
+			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash + ":" + symbol)
 		}
 	}
 }
@@ -1613,9 +1613,9 @@ func (this *Bitmex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var topic any = ccxt.Add(table+":", ccxt.GetValue(market, "id"))
+		var topic any = ccxt.Add(table + ":", ccxt.GetValue(market, "id"))
 		ccxt.AppendToArray(&topics, topic)
-		var messageHash any = ccxt.Add(table+":", symbol)
+		var messageHash any = ccxt.Add(table + ":", symbol)
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1885,12 +1885,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			var size any = this.ConvertFromRawQuantity(symbol, this.SafeString(ccxt.GetValue(data, i), "size"))
 			var id *string = this.SafeString(ccxt.GetValue(data, i), "id")
 			var side any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(data, i), "side"))
-			side = func() any {
-				if ccxt.IsEqual(side, "Buy") {
-					return "bids"
-				}
-				return "asks"
-			}()
+			side = func() any { if (ccxt.IsEqual(side, "Buy")) { return "bids" }; return "asks" }()
 			var bookside any = ccxt.GetValue(orderbook, side)
 			bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, id})
 			var datetime *string = this.SafeString(ccxt.GetValue(data, i), "timestamp")
@@ -1914,20 +1909,10 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 			var symbol any = ccxt.GetValue(market, "symbol")
 			var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 			var price *float64 = this.SafeNumber(ccxt.GetValue(data, i), "price")
-			var size any = func() any {
-				if action != nil && *action == "delete" {
-					return 0
-				}
-				return this.ConvertFromRawQuantity(symbol, this.SafeString(ccxt.GetValue(data, i), "size", "0"))
-			}()
+			var size any = func() any { if (action != nil && *action == "delete") { return 0 }; return this.ConvertFromRawQuantity(symbol, this.SafeString(ccxt.GetValue(data, i), "size", "0")) }()
 			var id *string = this.SafeString(ccxt.GetValue(data, i), "id")
 			var side any = ccxt.DerefScalar(this.SafeString(ccxt.GetValue(data, i), "side"))
-			side = func() any {
-				if ccxt.IsEqual(side, "Buy") {
-					return "bids"
-				}
-				return "asks"
-			}()
+			side = func() any { if (ccxt.IsEqual(side, "Buy")) { return "bids" }; return "asks" }()
 			var bookside any = ccxt.GetValue(orderbook, side)
 			bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, id})
 			var datetime *string = this.SafeString(ccxt.GetValue(data, i), "timestamp")

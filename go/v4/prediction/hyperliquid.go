@@ -220,7 +220,7 @@ func (this *Hyperliquid) ParseOutcomeDescription(description any) any {
 		var colonIndex int = ccxt.GetIndexOf(part, ":")
 		if ccxt.IsGreaterThan(colonIndex, -1) {
 			var key string = ccxt.Slice(part, 0, colonIndex)
-			var value string = ccxt.Slice(part, colonIndex+1, nil)
+			var value string = ccxt.Slice(part, colonIndex + 1, nil)
 			result[key] = value
 		}
 	}
@@ -238,22 +238,12 @@ func (this *Hyperliquid) ParseOutcomeDescription(description any) any {
  * @returns {string} the outcome
  */
 func (this *Hyperliquid) BuildOutcomeSymbol(desc any, side any, outcomeId any) any {
-	var underlying *string = this.SafeString(desc, "underlying", "OUTCOME"+ccxt.ToString(outcomeId))
+	var underlying *string = this.SafeString(desc, "underlying", "OUTCOME" + ccxt.ToString(outcomeId))
 	var targetPrice *string = this.SafeString(desc, "targetPrice")
 	var expiry *string = this.SafeString(desc, "expiry", "")
 	// Parse expiry: "20260503-0600" → "20260503"
-	var expiryDate any = func() any {
-		if expiry == nil || *expiry != "" {
-			return ccxt.GetValue(ccxt.Split(expiry, "-"), 0)
-		}
-		return ""
-	}()
-	var label any = func() any {
-		if ccxt.IsEqual(side, 0) {
-			return "YES"
-		}
-		return "NO"
-	}()
+	var expiryDate any = func() any { if (expiry == nil || *expiry != "") { return ccxt.GetValue(ccxt.Split(expiry, "-"), 0) }; return "" }()
+	var label any = func() any { if (ccxt.IsEqual(side, 0)) { return "YES" }; return "NO" }()
 	var base any = ccxt.ToUpper(underlying)
 	if (targetPrice != nil) && (targetPrice == nil || *targetPrice != "") {
 		base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
@@ -284,12 +274,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 	if (underlying != nil) && (underlying == nil || *underlying != "") {
 		var targetPrice *string = this.SafeString(desc, "targetPrice")
 		var expiry *string = this.SafeString(desc, "expiry", "")
-		var expiryDate any = func() any {
-			if expiry == nil || *expiry != "" {
-				return ccxt.GetValue(ccxt.Split(expiry, "-"), 0)
-			}
-			return ""
-		}()
+		var expiryDate any = func() any { if (expiry == nil || *expiry != "") { return ccxt.GetValue(ccxt.Split(expiry, "-"), 0) }; return "" }()
 		var base any = ccxt.ToUpper(underlying)
 		if (targetPrice != nil) && (targetPrice == nil || *targetPrice != "") {
 			base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
@@ -306,12 +291,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 		if questionClass != nil && *questionClass == "pricebucket" {
 			var questionUnderlying *string = this.SafeString(questionDesc, "underlying")
 			var questionExpiry *string = this.SafeString(questionDesc, "expiry", "")
-			var expiryDate any = func() any {
-				if questionExpiry == nil || *questionExpiry != "" {
-					return ccxt.GetValue(ccxt.Split(questionExpiry, "-"), 0)
-				}
-				return ""
-			}()
+			var expiryDate any = func() any { if (questionExpiry == nil || *questionExpiry != "") { return ccxt.GetValue(ccxt.Split(questionExpiry, "-"), 0) }; return "" }()
 			var thresholdsRaw *string = this.SafeString(questionDesc, "priceThresholds", "")
 			var indexStr *string = this.SafeString(desc, "index")
 			var rawDescription *string = this.SafeStringLower(desc, "description", "")
@@ -335,9 +315,9 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc any, outcomeId any, optio
 						var lastIdx int64 = ccxt.Subtract(thresholdsLength, 1).(int64)
 						bucketLabel = ccxt.Add("ABOVE_", ccxt.GetValue(thresholds, lastIdx))
 					} else {
-						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN_", ccxt.GetValue(thresholds, index-1)), "_"), ccxt.GetValue(thresholds, index))
+						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN_", ccxt.GetValue(thresholds, index - 1)), "_"), ccxt.GetValue(thresholds, index))
 					}
-					var base any = ccxt.Add(ccxt.ToUpper(questionUnderlying)+"_", bucketLabel)
+					var base any = ccxt.Add(ccxt.ToUpper(questionUnderlying) + "_", bucketLabel)
 					if (expiryDate != nil) && (!ccxt.IsEqual(expiryDate, "")) {
 						base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 					}
@@ -520,12 +500,7 @@ func (this *Hyperliquid) ParseOutcomeMarket(outcomeInfo any, outcomeId any, opti
 		var expPartsLength int = len(expParts)
 		if (expPartsLength >= 1) && (ccxt.GetLength(ccxt.GetValue(expParts, 0)) == 8) {
 			var ymd any = ccxt.GetValue(expParts, 0)
-			var hm any = func() any {
-				if expPartsLength >= 2 {
-					return ccxt.GetValue(expParts, 1)
-				}
-				return "0000"
-			}()
+			var hm any = func() any { if (expPartsLength >= 2) { return ccxt.GetValue(expParts, 1) }; return "0000" }()
 			var isoStr any = ccxt.Slice(ymd, 0, 4) + "-" + ccxt.Slice(ymd, 4, 6) + "-" + ccxt.Slice(ymd, 6, 8) + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
 			expiryMs = this.Parse8601(isoStr)
 			expiryDatetime = isoStr
@@ -777,12 +752,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var mids any = this.SafeDict(allMids, "mids", allMids)
 	var tickers map[string]any = map[string]any{}
-	var outcomesMap any = func() any {
-		if !ccxt.IsEqual(this.Outcomes, nil) {
-			return this.Outcomes
-		}
-		return map[string]any{}
-	}()
+	var outcomesMap any = func() any { if (!ccxt.IsEqual(this.Outcomes, nil)) { return this.Outcomes }; return map[string]any{} }()
 	var outcomeHandles []string = ccxt.ObjectKeys(outcomesMap)
 	for i := 0; i < len(outcomeHandles); i++ {
 		var outcomeHandle string = ccxt.GetValue(outcomeHandles, i).(string)
@@ -841,30 +811,10 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	var rawAsks any = this.SafeList(levels, 1, []any{})
 	var topBid any = this.SafeDict(rawBids, 0)
 	var topAsk any = this.SafeDict(rawAsks, 0)
-	var bid any = func() any {
-		if !ccxt.IsEqual(topBid, nil) {
-			return this.SafeNumber(topBid, "px")
-		}
-		return nil
-	}()
-	var ask any = func() any {
-		if !ccxt.IsEqual(topAsk, nil) {
-			return this.SafeNumber(topAsk, "px")
-		}
-		return nil
-	}()
-	var bidVolume any = func() any {
-		if !ccxt.IsEqual(topBid, nil) {
-			return this.SafeNumber(topBid, "sz")
-		}
-		return nil
-	}()
-	var askVolume any = func() any {
-		if !ccxt.IsEqual(topAsk, nil) {
-			return this.SafeNumber(topAsk, "sz")
-		}
-		return nil
-	}()
+	var bid any = func() any { if (!ccxt.IsEqual(topBid, nil)) { return this.SafeNumber(topBid, "px") }; return nil }()
+	var ask any = func() any { if (!ccxt.IsEqual(topAsk, nil)) { return this.SafeNumber(topAsk, "px") }; return nil }()
+	var bidVolume any = func() any { if (!ccxt.IsEqual(topBid, nil)) { return this.SafeNumber(topBid, "sz") }; return nil }()
+	var askVolume any = func() any { if (!ccxt.IsEqual(topAsk, nil)) { return this.SafeNumber(topAsk, "sz") }; return nil }()
 	// Use synthetic mid if no l2Book
 	var mid any = ccxt.DerefScalar(this.SafeNumber(raw, "mid"))
 	if ccxt.IsEqual(mid, nil) && !ccxt.IsEqual(bid, nil) && !ccxt.IsEqual(ask, nil) {
@@ -872,18 +822,8 @@ func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) any
 	}
 	// day volume lives on the parent market's ctx; resolve it from the outcome's parent market
 	var parentSymbol *string = this.SafeString(mkt, "market")
-	var parentMarket any = func() any {
-		if parentSymbol != nil {
-			return this.SafeMarket(parentSymbol)
-		}
-		return nil
-	}()
-	var ctx any = func() any {
-		if !ccxt.IsEqual(parentMarket, nil) {
-			return this.SafeDict(this.SafeDict(parentMarket, "info", map[string]any{}), "ctx", map[string]any{})
-		}
-		return map[string]any{}
-	}()
+	var parentMarket any = func() any { if (parentSymbol != nil) { return this.SafeMarket(parentSymbol) }; return nil }()
+	var ctx any = func() any { if (!ccxt.IsEqual(parentMarket, nil)) { return this.SafeDict(this.SafeDict(parentMarket, "info", map[string]any{}), "ctx", map[string]any{}) }; return map[string]any{} }()
 	var dayVolume *float64 = this.SafeNumber(ctx, "dayNtlVlm")
 	return this.SafePredictionTicker(map[string]any{
 		"outcome":       outcome,
@@ -1019,12 +959,7 @@ func (this *Hyperliquid) fetchOHLCVBody(ch chan any, outcome any, optionalArgs .
 	var startTime any = since
 	if ccxt.IsEqual(since, nil) {
 		var tf any = this.ParseTimeframe(timeframe)
-		var candleCount any = func() any {
-			if !ccxt.IsEqual(limit, nil) {
-				return limit
-			}
-			return 100
-		}()
+		var candleCount any = func() any { if (!ccxt.IsEqual(limit, nil)) { return limit }; return 100 }()
 		var startOffset any = ccxt.Multiply(ccxt.Multiply(tf, candleCount), ccxt.OpNeg(1000))
 		startTime = this.Sum(until, startOffset)
 		if ccxt.IsEqual(startTime, nil) {
@@ -1325,12 +1260,7 @@ func (this *Hyperliquid) FindOutcomeInMarket(market any, optionalArgs ...any) an
 	sideHint := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = sideHint
 	var outcomesList any = this.SafeList(market, "outcomes", []any{})
-	var normalizedHint any = func() any {
-		if (sideHint != nil) && (!ccxt.IsEqual(sideHint, "")) {
-			return ccxt.ToUpper(sideHint)
-		}
-		return nil
-	}()
+	var normalizedHint any = func() any { if ((sideHint != nil) && (!ccxt.IsEqual(sideHint, ""))) { return ccxt.ToUpper(sideHint) }; return nil }()
 	if normalizedHint != nil {
 		for i := 0; i < ccxt.GetArrayLength(outcomesList); i++ {
 			var oc any = this.SafeDict(outcomesList, i, map[string]any{})
@@ -1356,7 +1286,7 @@ func (this *Hyperliquid) ParseOutcomeInputSideHint(outcomeInput any) any {
 	}
 	var colonIndex int = ccxt.GetIndexOf(outcomeInput, ":")
 	if ccxt.IsGreaterThan(colonIndex, -1) && ccxt.IsLessThan(colonIndex, ccxt.Subtract(ccxt.GetLength(outcomeInput), 1)) {
-		var side string = ccxt.ToUpper(ccxt.Slice(outcomeInput, colonIndex+1, nil))
+		var side string = ccxt.ToUpper(ccxt.Slice(outcomeInput, colonIndex + 1, nil))
 		if (side == "YES") || (side == "NO") {
 			return side
 		}
@@ -1380,7 +1310,7 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	var sideHint any = this.ParseOutcomeInputSideHint(outcomeInput)
 	var candidates any = []any{outcomeInput}
 	if ccxt.StartsWith(outcomeInput, "+") {
-		ccxt.AppendToArray(&candidates, "#"+ccxt.Slice(outcomeInput, 1, nil))
+		ccxt.AppendToArray(&candidates, "#" + ccxt.Slice(outcomeInput, 1, nil))
 	}
 	var digitChars string = "0123456789"
 	var inputChars []string = this.StringToCharsArray(outcomeInput)
@@ -1411,18 +1341,13 @@ func (this *Hyperliquid) ResolveOutcomeInput(outcomeInput any) any {
 	}
 	if ((!ccxt.IsEqual(this.Markets, nil)) && (ccxt.InOp(this.Markets, outcomeInput))) || ((!ccxt.IsEqual(this.Markets_by_id, nil)) && (ccxt.InOp(this.Markets_by_id, outcomeInput))) {
 		var market any = this.SafeMarket(outcomeInput)
-		var sideHintOrDefault any = func() any {
-			if sideHint != nil {
-				return sideHint
-			}
-			return "YES"
-		}()
+		var sideHintOrDefault any = func() any { if (sideHint != nil) { return sideHint }; return "YES" }()
 		var found any = this.FindOutcomeInMarket(market, sideHintOrDefault)
 		if len(ccxt.ObjectKeys(found)) > 0 {
 			return found
 		}
 	}
-	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" cannot resolve outcome from input: ", outcomeInput), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")))
+	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id + " cannot resolve outcome from input: ", outcomeInput), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")))
 }
 
 /**
@@ -1477,12 +1402,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	var postOnly *bool = this.SafeBool(params, "postOnly", false)
 	var defaultSlippage *string = this.SafeString(this.Options, "defaultSlippage", "0.05")
 	var slippage *string = this.SafeString(params, "slippage", defaultSlippage)
-	var defaultTif any = func() any {
-		if isMarket {
-			return "Ioc"
-		}
-		return "Gtc"
-	}()
+	var defaultTif any = func() any { if isMarket { return "Ioc" }; return "Gtc" }()
 	if postOnly != nil && *postOnly == true {
 		defaultTif = "Alo"
 	}
@@ -1496,12 +1416,7 @@ func (this *Hyperliquid) createOrderBody(ch chan any, outcome any, typeVar any, 
 	var px any = nil
 	if isMarket {
 		var priceStr *string = this.NumberToString(price)
-		px = func() any {
-			if isBuy {
-				return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringAdd("1", slippage))
-			}
-			return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringSub("1", slippage))
-		}()
+		px = func() any { if isBuy { return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringAdd("1", slippage)) }; return ccxt.Precise.StringMul(priceStr, ccxt.Precise.StringSub("1", slippage)) }()
 		px = this.PriceToPrecision(marketSymbol, px)
 	} else {
 		px = this.PriceToPrecision(marketSymbol, price)
@@ -1683,12 +1598,7 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		"cancels": []any{},
 	}
 	if !ccxt.IsEqual(clientOrderId, nil) {
-		var cloids any = func() any {
-			if ccxt.IsArray(clientOrderId) {
-				return clientOrderId
-			}
-			return []any{clientOrderId}
-		}()
+		var cloids any = func() any { if ccxt.IsArray(clientOrderId) { return clientOrderId }; return []any{clientOrderId} }()
 		cancelAction["type"] = "cancelByCloid"
 		for i := 0; i < ccxt.GetArrayLength(cloids); i++ {
 			ccxt.AppendToArray(&cancelReq, map[string]any{
@@ -1740,29 +1650,24 @@ func (this *Hyperliquid) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 		var status any = ccxt.GetValue(statuses, i)
 		var error *string = this.SafeString(status, "error")
 		if error != nil {
-			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
+			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " cancelOrders() failed for ", this.SafeString(requestIds, i, this.SafeString(requestIds, 0))), ": "), error)))
 		}
 		var success bool = (ccxt.IsEqual(status, "success")) || (ccxt.IsEqual(this.SafeString(status, "status"), "success"))
 		if !success {
-			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" cancelOrders() received an unexpected status: ", this.Json(status))))
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id + " cancelOrders() received an unexpected status: ", this.Json(status))))
 		}
 		var requestId *string = this.SafeString(requestIds, i, this.SafeString(requestIds, 0))
 		var order map[string]any = map[string]any{
-			"id": requestId,
-			"clientOrderId": func() any {
-				if !ccxt.IsEqual(clientOrderId, nil) {
-					return requestId
-				}
-				return nil
-			}(),
-			"info":      status,
-			"status":    "canceled",
-			"outcome":   outcomeSymbol,
-			"outcomeId": this.SafeString(outcomeObj, "id"),
-			"label":     this.SafeString(outcomeObj, "label"),
-			"market":    this.SafeString(outcomeObj, "market"),
-			"timestamp": this.Milliseconds(),
-			"datetime":  this.Iso8601(this.Milliseconds()),
+			"id":            requestId,
+			"clientOrderId": func() any { if (!ccxt.IsEqual(clientOrderId, nil)) { return requestId }; return nil }(),
+			"info":          status,
+			"status":        "canceled",
+			"outcome":       outcomeSymbol,
+			"outcomeId":     this.SafeString(outcomeObj, "id"),
+			"label":         this.SafeString(outcomeObj, "label"),
+			"market":        this.SafeString(outcomeObj, "market"),
+			"timestamp":     this.Milliseconds(),
+			"datetime":      this.Iso8601(this.Milliseconds()),
 		}
 		ccxt.AppendToArray(&orders, this.SafePredictionOrder(order))
 	}
@@ -1957,12 +1862,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		request["oid"] = clientOrderId
 	} else {
 		var isCloid bool = (ccxt.GetLength(id) >= 34)
-		request["oid"] = func() any {
-			if isCloid {
-				return id
-			}
-			return this.ParseToNumeric(id)
-		}()
+		request["oid"] = func() any { if isCloid { return id }; return this.ParseToNumeric(id) }()
 	}
 
 	response := (<-this.PublicPostInfo(this.Extend(request, params)))
@@ -1980,7 +1880,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		var outcomeObj any = this.Outcome(outcome)
 		var expected *string = this.SafeString(outcomeObj, "outcome")
 		if !ccxt.IsEqual(this.SafeString(parsed, "outcome"), expected) {
-			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" fetchOrder() order ", id), " is not in outcome "), expected)))
+			panic(ccxt.OrderNotFound(ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " fetchOrder() order ", id), " is not in outcome "), expected)))
 		}
 	}
 
@@ -2024,19 +1924,9 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 	var coin *string = this.SafeString(entry, "coin")
 	var outcomeObj any = this.SafeOutcome(coin, market)
 	var marketSymbol *string = this.SafeString(outcomeObj, "outcome")
-	var resolvedMarket any = func() any {
-		if (marketSymbol != nil) && (marketSymbol == nil || *marketSymbol != "") {
-			return this.SafeMarket(marketSymbol, market)
-		}
-		return market
-	}()
+	var resolvedMarket any = func() any { if ((marketSymbol != nil) && (marketSymbol == nil || *marketSymbol != "")) { return this.SafeMarket(marketSymbol, market) }; return market }()
 	var sideRaw *string = this.SafeString(entry, "side")
-	var side any = func() any {
-		if sideRaw != nil && *sideRaw == "B" {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side any = func() any { if (sideRaw != nil && *sideRaw == "B") { return "buy" }; return "sell" }()
 	var totalAmount *string = this.SafeString(entry, "origSz")
 	var remaining *string = this.SafeString(entry, "sz")
 	var filled any = nil
@@ -2048,12 +1938,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) an
 	var tif *string = this.ParseTimeInForce(tifRaw)
 	var postOnly bool = (tif != nil && *tif == "PO")
 	var isTrigger bool = (ccxt.IsEqual(this.SafeBool(entry, "isTrigger"), true))
-	var triggerPrice any = func() any {
-		if isTrigger {
-			return this.SafeNumber(entry, "triggerPx")
-		}
-		return nil
-	}()
+	var triggerPrice any = func() any { if isTrigger { return this.SafeNumber(entry, "triggerPx") }; return nil }()
 	return this.SafePredictionOrder(map[string]any{
 		"id":                 this.SafeString(entry, "oid"),
 		"clientOrderId":      this.SafeString(entry, "cloid"),
@@ -2107,12 +1992,7 @@ func (this *Hyperliquid) ParseOrderType(status any) *string {
 		"stop limit":  "limit",
 		"stop market": "market",
 	}
-	var statusLower any = func() any {
-		if (status != nil) && (!ccxt.IsEqual(status, "")) {
-			return ccxt.ToLower(status)
-		}
-		return nil
-	}()
+	var statusLower any = func() any { if ((status != nil) && (!ccxt.IsEqual(status, ""))) { return ccxt.ToLower(status) }; return nil }()
 	return this.SafeString(statuses, statusLower, statusLower)
 }
 func (this *Hyperliquid) ParseTimeInForce(timeInForce any) *string {
@@ -2122,12 +2002,7 @@ func (this *Hyperliquid) ParseTimeInForce(timeInForce any) *string {
 		"fok": "FOK",
 		"alo": "PO",
 	}
-	var tifLower any = func() any {
-		if (timeInForce != nil) && (!ccxt.IsEqual(timeInForce, "")) {
-			return ccxt.ToLower(timeInForce)
-		}
-		return nil
-	}()
+	var tifLower any = func() any { if ((timeInForce != nil) && (!ccxt.IsEqual(timeInForce, ""))) { return ccxt.ToLower(timeInForce) }; return nil }()
 	return this.SafeString(statuses, tifLower, timeInForce)
 }
 
@@ -2294,19 +2169,9 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 	var coin *string = this.SafeString(trade, "coin")
 	var outcomeObj any = this.SafeOutcome(coin, market)
 	var marketSymbol *string = this.SafeString(outcomeObj, "outcome")
-	var resolvedMarket any = func() any {
-		if (marketSymbol != nil) && (marketSymbol == nil || *marketSymbol != "") {
-			return this.SafeMarket(marketSymbol, market)
-		}
-		return market
-	}()
+	var resolvedMarket any = func() any { if ((marketSymbol != nil) && (marketSymbol == nil || *marketSymbol != "")) { return this.SafeMarket(marketSymbol, market) }; return market }()
 	var rawSide *string = this.SafeString(trade, "side")
-	var side any = func() any {
-		if rawSide != nil && *rawSide == "B" {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side any = func() any { if (rawSide != nil && *rawSide == "B") { return "buy" }; return "sell" }()
 	var fee *float64 = this.SafeNumber(trade, "fee")
 	var feeCurrency *string = this.SafeString(trade, "feeToken", "USDC")
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
@@ -2322,12 +2187,7 @@ func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) an
 		cost = this.ParseNumber(ccxt.Precise.StringMul(price, amount))
 	}
 	var crossed bool = (ccxt.IsEqual(this.SafeBool(trade, "crossed"), true))
-	var takerOrMaker any = func() any {
-		if crossed {
-			return "taker"
-		}
-		return "maker"
-	}()
+	var takerOrMaker any = func() any { if crossed { return "taker" }; return "maker" }()
 	return this.SafePredictionTrade(map[string]any{
 		"id":           this.SafeString(trade, "tid"),
 		"info":         trade,
@@ -2398,12 +2258,7 @@ func (this *Hyperliquid) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 		// Apply query filter
 		if lowerQueriesLength > 0 {
 			var description string = ccxt.ToLower(this.SafeString(info, "description", ""))
-			var parentSymbolOrEmpty any = func() any {
-				if parentSymbol != nil {
-					return parentSymbol
-				}
-				return ""
-			}()
+			var parentSymbolOrEmpty any = func() any { if (parentSymbol != nil) { return parentSymbol }; return "" }()
 			var symLower string = ccxt.ToLower(parentSymbolOrEmpty)
 			// the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
 			// and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
@@ -2478,12 +2333,7 @@ func (this *Hyperliquid) ParseEvent(raw any) any {
 	var markets any = this.SafeList(raw, "markets", []any{})
 	// Extract info from first market
 	var marketsLength int = ccxt.GetArrayLength(markets)
-	var firstMarket any = func() any {
-		if marketsLength > 0 {
-			return ccxt.GetValue(markets, 0)
-		}
-		return map[string]any{}
-	}()
+	var firstMarket any = func() any { if (marketsLength > 0) { return ccxt.GetValue(markets, 0) }; return map[string]any{} }()
 	var firstInfo any = this.SafeDict(firstMarket, "info", map[string]any{})
 	var desc any = this.SafeDict(firstInfo, "parsedDescription", map[string]any{})
 	var underlying *string = this.SafeString(desc, "underlying")
@@ -2496,12 +2346,7 @@ func (this *Hyperliquid) ParseEvent(raw any) any {
 		var partsLength int = len(parts)
 		if (partsLength >= 1) && (ccxt.GetLength(ccxt.GetValue(parts, 0)) == 8) {
 			var ymd any = ccxt.GetValue(parts, 0)
-			var hm any = func() any {
-				if partsLength >= 2 {
-					return ccxt.GetValue(parts, 1)
-				}
-				return "0000"
-			}()
+			var hm any = func() any { if (partsLength >= 2) { return ccxt.GetValue(parts, 1) }; return "0000" }()
 			var isoStr any = ccxt.Slice(ymd, 0, 4) + "-" + ccxt.Slice(ymd, 4, 6) + "-" + ccxt.Slice(ymd, 6, 8) + "T" + ccxt.Slice(hm, 0, 2) + ":" + ccxt.Slice(hm, 2, 4) + ":00Z"
 			expiryMs = ccxt.DerefScalar(this.Parse8601(isoStr))
 			expiryDatetime = isoStr
@@ -2519,12 +2364,7 @@ func (this *Hyperliquid) ParseEvent(raw any) any {
 		}
 		title = ccxt.Add(underlying, titleSuffix)
 	}
-	var endValue any = func() any {
-		if !ccxt.IsEqual(expiryMs, nil) {
-			return expiryMs
-		}
-		return firstExpiry
-	}()
+	var endValue any = func() any { if (!ccxt.IsEqual(expiryMs, nil)) { return expiryMs }; return firstExpiry }()
 	return this.Extend(map[string]any{
 		"id":               parentSymbol,
 		"slug":             parentSymbol,
@@ -2596,12 +2436,7 @@ func (this *Hyperliquid) SignMessage(message any, privateKey any) any {
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) any {
 	isTestnet := ccxt.GetArg(optionalArgs, 0, true)
 	_ = isTestnet
-	var source any = func() any {
-		if ccxt.EvalTruthy(isTestnet) {
-			return "b"
-		}
-		return "a"
-	}()
+	var source any = func() any { if ccxt.EvalTruthy(isTestnet) { return "b" }; return "a" }()
 	return map[string]any{
 		"source":       source,
 		"connectionId": hash,
@@ -2611,7 +2446,7 @@ func (this *Hyperliquid) ActionHash(action any, vaultAddress any, nonce any) any
 	var dataBinary any = this.Packb(action)
 	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data any = dataHex
-	data = ccxt.Add(data, "00000"+this.IntToBase16(nonce))
+	data = ccxt.Add(data, "00000" + this.IntToBase16(nonce))
 	if vaultAddress == nil {
 		data = ccxt.Add(data, "00")
 	} else {
@@ -2698,15 +2533,10 @@ func (this *Hyperliquid) approveBuilderFeeBody(ch chan any, builder any, maxFeeR
 	var nonce int64 = this.Milliseconds()
 	var isSandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var payload map[string]any = map[string]any{
-		"hyperliquidChain": func() any {
-			if isSandboxMode != nil && *isSandboxMode == true {
-				return "Testnet"
-			}
-			return "Mainnet"
-		}(),
-		"maxFeeRate": maxFeeRate,
-		"builder":    builder,
-		"nonce":      nonce,
+		"hyperliquidChain": func() any { if (isSandboxMode != nil && *isSandboxMode == true) { return "Testnet" }; return "Mainnet" }(),
+		"maxFeeRate":       maxFeeRate,
+		"builder":          builder,
+		"nonce":            nonce,
 	}
 	var sig any = this.BuildApproveBuilderFeeSig(payload)
 	var action map[string]any = map[string]any{
@@ -2799,7 +2629,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName any, params any) any {
 	if !ccxt.IsEqual(this.WalletAddress, nil) && (this.WalletAddress != "") {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() requires a user parameter or walletAddress to be set")))
+	panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id + " ", methodName), "() requires a user parameter or walletAddress to be set")))
 }
 func (this *Hyperliquid) FormatVaultAddress(optionalArgs ...any) any {
 	address := ccxt.GetArg(optionalArgs, 0, nil)
@@ -2824,12 +2654,7 @@ func (this *Hyperliquid) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := ccxt.GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiGroup any = func() any {
-		if ccxt.IsArray(api) {
-			return ccxt.GetValue(api, 0)
-		}
-		return api
-	}()
+	var apiGroup any = func() any { if ccxt.IsArray(api) { return ccxt.GetValue(api, 0) }; return api }()
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseUrl any = nil
 	if sandboxMode != nil && *sandboxMode == true {
@@ -2860,7 +2685,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	var status *string = this.SafeString(response, "status", "")
 	if status != nil && *status == "err" {
 		var message *string = this.SafeString(response, "response", body)
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback any = ccxt.Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ccxt.ExchangeError(feedback))
@@ -2872,7 +2697,7 @@ func (this *Hyperliquid) HandleErrors(code any, reason any, url any, method any,
 	for i := 0; i < ccxt.GetArrayLength(statuses); i++ {
 		var message *string = this.SafeString(ccxt.GetValue(statuses, i), "error")
 		if message != nil {
-			var feedback any = ccxt.Add(this.Id+" ", body)
+			var feedback any = ccxt.Add(this.Id + " ", body)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ccxt.ExchangeError(feedback))

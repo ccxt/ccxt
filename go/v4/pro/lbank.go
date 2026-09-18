@@ -74,7 +74,7 @@ func (this *Lbank) CheckContractMarket(market any, methodName any) {
 	// the spot ws rejects futures ids and lbank's contract ws protocol is not published,
 	// see https://github.com/ccxt/ccxt/issues/26864
 	if (!ccxt.IsEqual(market, nil)) && (ccxt.IsEqual(ccxt.GetValue(market, "contract"), true)) {
-		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", methodName), "() does not support "), ccxt.GetValue(market, "type")), " markets yet")))
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " ", methodName), "() does not support "), ccxt.GetValue(market, "type")), " markets yet")))
 	}
 }
 
@@ -618,12 +618,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, 0)
-	var datetime any = func() any {
-		if timestamp != nil {
-			return (this.Iso8601(timestamp))
-		}
-		return (this.SafeString(trade, "TS"))
-	}()
+	var datetime any = func() any { if (timestamp != nil) { return (this.Iso8601(timestamp)) }; return (this.SafeString(trade, "TS")) }()
 	if timestamp == nil {
 		timestamp = this.Parse8601(datetime)
 	}
@@ -634,12 +629,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var side any = firstPart
 	// reverse if it was 'maker'
 	if secondPart != nil && *secondPart == "maker" {
-		side = func() any {
-			if ccxt.IsEqual(side, "buy") {
-				return "sell"
-			}
-			return "buy"
-		}()
+		side = func() any { if (ccxt.IsEqual(side, "buy")) { return "sell" }; return "buy" }()
 	}
 	return this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,
@@ -805,12 +795,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) any {
 	var exchangeType *string = this.SafeString(typeParts, 1)
 	var typeVar any = nil
 	if (rawType == nil || *rawType != "buy") && (rawType == nil || *rawType != "sell") {
-		typeVar = func() any {
-			if exchangeType != nil && *exchangeType == "market" {
-				return "market"
-			}
-			return "limit"
-		}()
+		typeVar = func() any { if (exchangeType != nil && *exchangeType == "market") { return "market" }; return "limit" }()
 	}
 	var marketId *string = this.SafeString(order, "pair")
 	var symbol *string = this.SafeSymbol(marketId, market, "_")
@@ -1112,7 +1097,7 @@ func (this *Lbank) HandleErrorMessage(client any, message any) {
 	//    }
 	//
 	var errMsg *string = this.SafeString(message, "message", "")
-	error := ccxt.ExchangeError(ccxt.Add(this.Id+" ", errMsg))
+	error := ccxt.ExchangeError(ccxt.Add(this.Id + " ", errMsg))
 	client.(ccxt.ClientInterface).Reject(error)
 }
 func (this *Lbank) HandlePingAsync(client any, message any) <-chan any {

@@ -789,12 +789,7 @@ func (this *Hibachi) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	return nil
 }
 func (this *Hibachi) ParseOrderStatus(status any) *string {
-	var uppercaseStatus any = func() any {
-		if status == nil {
-			return nil
-		}
-		return ToUpper(status)
-	}()
+	var uppercaseStatus any = func() any { if (status == nil) { return nil }; return ToUpper(status) }()
 	var statuses map[string]any = map[string]any{
 		"PENDING":           "open",
 		"CHILD_PENDING":     "open",
@@ -1044,18 +1039,8 @@ func (this *Hibachi) CreateOrderRequest(nonce any, symbol any, typeVar any, side
 	var market any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee *float64 = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
-	var takerFeeValue any = func() any {
-		if takerFee == nil {
-			return 0
-		}
-		return takerFee
-	}()
-	var makerFeeValue any = func() any {
-		if makerFee == nil {
-			return 0
-		}
-		return makerFee
-	}()
+	var takerFeeValue any = func() any { if (takerFee == nil) { return 0 }; return takerFee }()
+	var makerFeeValue any = func() any { if (makerFee == nil) { return 0 }; return makerFee }()
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var sideInternal string = ""
 	if IsEqual(side, "sell") {
@@ -1224,18 +1209,8 @@ func (this *Hibachi) EditOrderRequest(nonce any, id any, symbol any, typeVar any
 	var market any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
-	var takerFeeValue any = func() any {
-		if takerFee == nil {
-			return 0
-		}
-		return takerFee
-	}()
-	var makerFeeValue any = func() any {
-		if makerFee == nil {
-			return 0
-		}
-		return makerFee
-	}()
+	var takerFeeValue any = func() any { if (takerFee == nil) { return 0 }; return takerFee }()
+	var makerFeeValue any = func() any { if (makerFee == nil) { return 0 }; return makerFee }()
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature any = this.SignMessage(message, this.PrivateKey)
@@ -2289,7 +2264,7 @@ func (this *Hibachi) Sign(path any, optionalArgs ...any) any {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query string = this.Urlencode(request)
 		if GetLength(query) != 0 {
-			url = Add(url, "?"+query)
+			url = Add(url, "?" + query)
 		}
 	}
 	if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) || (IsEqual(method, "DELETE")) {
@@ -2318,7 +2293,7 @@ func (this *Hibachi) HandleErrors(httpCode any, reason any, url any, method any,
 		var status *string = this.SafeString(response, "status")
 		if status != nil && *status == "failed" {
 			var code *string = this.SafeString(response, "errorCode")
-			var feedback any = Add(this.Id+" ", body)
+			var feedback any = Add(this.Id + " ", body)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 			var message *string = this.SafeString(response, "message")
@@ -2379,12 +2354,7 @@ func (this *Hibachi) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)
 		amount = DerefScalar(this.SafeNumber(item, "quantity"))
-		direction = func() any {
-			if (transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in") {
-				return "in"
-			}
-			return "out"
-		}()
+		direction = func() any { if ((transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in")) { return "in" }; return "out" }()
 		typeVar = this.ParseTransactionType(transactionType)
 		status = this.ParseTransactionStatus(this.SafeString(item, "status"))
 		if transactionType != nil && *transactionType == "transfer-in" {

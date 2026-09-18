@@ -1139,12 +1139,7 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 	var low any = nil
 	var open any = nil
 	var volume any = nil
-	var symbol any = func() any {
-		if IsEqual(market, nil) {
-			return nil
-		}
-		return GetValue(market, "symbol")
-	}()
+	var symbol any = func() any { if (IsEqual(market, nil)) { return nil }; return GetValue(market, "symbol") }()
 	if IsArray(ticker) {
 		last = DerefScalar(this.SafeString(ticker, 4))
 		timestamp = this.Milliseconds()
@@ -1352,12 +1347,7 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		cost = DerefScalar(this.SafeString(trade, costField))
 		var liquidity *string = this.SafeString(trade, "liquidity")
 		if liquidity != nil {
-			takerOrMaker = func() any {
-				if liquidity != nil && *liquidity == "T" {
-					return "taker"
-				}
-				return "maker"
-			}()
+			takerOrMaker = func() any { if (liquidity != nil && *liquidity == "T") { return "taker" }; return "maker" }()
 			feeRate = DerefScalar(this.SafeString(market, takerOrMaker))
 		}
 	}
@@ -1368,23 +1358,13 @@ func (this *Coinbaseexchange) ParseTrade(trade any, optionalArgs ...any) any {
 		"rate":     feeRate,
 	}
 	var id *string = this.SafeString(trade, "trade_id")
-	var side any = func() any {
-		if IsEqual(GetValue(trade, "side"), "buy") {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side any = func() any { if (IsEqual(GetValue(trade, "side"), "buy")) { return "sell" }; return "buy" }()
 	var orderId *string = this.SafeString(trade, "order_id")
 	// Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
 	var makerOrderId *string = this.SafeString(trade, "maker_order_id")
 	var takerOrderId *string = this.SafeString(trade, "taker_order_id")
 	if (orderId != nil) || ((makerOrderId != nil) && (takerOrderId != nil)) {
-		side = func() any {
-			if IsEqual(GetValue(trade, "side"), "buy") {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (IsEqual(GetValue(trade, "side"), "buy")) { return "buy" }; return "sell" }()
 	}
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "size")
@@ -2321,7 +2301,7 @@ func (this *Coinbaseexchange) withdrawBody(ch chan any, code any, amount any, ad
 		PanicOnError(response)
 	}
 	if IsEqual(response, nil) {
-		panic(ExchangeError(Add(this.Id+" withdraw() error: ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id + " withdraw() error: ", this.Json(response))))
 	}
 
 	ch <- this.ParseTransaction(response, currency)
@@ -2456,7 +2436,7 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan any, optionalArgs ...any) 
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account any = this.SafeValue(accountsByCurrencyCode, code)
 	if IsEqual(account, nil) {
-		panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
+		panic(ExchangeError(Add(this.Id + " fetchLedger() could not find account id for ", code)))
 	}
 	var request map[string]any = map[string]any{
 		"id": GetValue(account, "id"),
@@ -2529,7 +2509,7 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan any, optional
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 			var account any = this.SafeValue(accountsByCurrencyCode, code)
 			if IsEqual(account, nil) {
-				panic(ExchangeError(Add(this.Id+" fetchDepositsWithdrawals() could not find account id for ", code)))
+				panic(ExchangeError(Add(this.Id + " fetchDepositsWithdrawals() could not find account id for ", code)))
 			}
 			id = GetValue(account, "id")
 		}
@@ -2828,7 +2808,7 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan any, code any, op
 	var currencyId any = GetValue(currency, "id")
 	var account any = this.SafeValue(GetValue(this.Options, "coinbaseAccountsByCurrencyId"), currencyId)
 	if IsEqual(account, nil) {
-		panic(InvalidAddress(Add(Add(Add(Add(this.Id+" createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
+		panic(InvalidAddress(Add(Add(Add(Add(this.Id + " createDepositAddress() could not find currency code ", code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
 	}
 	var request map[string]any = map[string]any{
 		"id": GetValue(account, "id"),
@@ -2863,7 +2843,7 @@ func (this *Coinbaseexchange) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(query)) > 0 {
-			request = Add(request, "?"+this.Urlencode(query))
+			request = Add(request, "?" + this.Urlencode(query))
 		}
 	}
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), request)
@@ -2920,12 +2900,12 @@ func (this *Coinbaseexchange) HandleErrors(code any, reason any, url any, method
 	if (IsEqual(code, 400)) || (IsEqual(code, 404)) {
 		if GetValue(body, 0) == "{" {
 			var message *string = this.SafeString(response, "message")
-			var feedback any = Add(this.Id+" ", message)
+			var feedback any = Add(this.Id + " ", message)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 			panic(ExchangeError(feedback))
 		}
-		panic(ExchangeError(Add(this.Id+" ", body)))
+		panic(ExchangeError(Add(this.Id + " ", body)))
 	}
 	return nil
 }
@@ -2954,7 +2934,7 @@ func (this *Coinbaseexchange) requestBody(ch chan any, path any, optionalArgs ..
 	PanicOnError(response)
 	if !IsString(response) {
 		if InOp(response, "message") {
-			panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+			panic(ExchangeError(Add(this.Id + " ", this.Json(response))))
 		}
 	}
 

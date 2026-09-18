@@ -270,7 +270,7 @@ func (this *Bydfi) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var channels any = []any{}
 	var channel string = "@ticker"
 	if ccxt.IsEqual(symbols, nil) {
-		ccxt.AppendToArray(&messageHashes, messageHash+"all")
+		ccxt.AppendToArray(&messageHashes, messageHash + "all")
 		ccxt.AppendToArray(&channels, "!ticker@arr")
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -916,7 +916,7 @@ func (this *Bydfi) HandleOrder(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash string = "orders"
-	var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+	var symbolMessageHash any = ccxt.Add(messageHash + "::", symbol)
 	if ccxt.IsEqual(this.Orders, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1036,7 +1036,7 @@ func (this *Bydfi) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+"::", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash + "::", symbol))
 		}
 	}
 
@@ -1099,7 +1099,7 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash string = "positions"
-	var symbolMessageHash any = ccxt.Add(messageHash+"::", symbol)
+	var symbolMessageHash any = ccxt.Add(messageHash + "::", symbol)
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
@@ -1361,7 +1361,7 @@ func (this *Bydfi) HandleErrorMessage(client any, message any) {
 	//
 	var code *string = this.SafeString(message, "code")
 	var msg *string = this.SafeString(message, "msg")
-	var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+	var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], msg, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

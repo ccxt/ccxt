@@ -442,12 +442,7 @@ func TestCacheSafeCalls() {
 	arrayCacheByTimestamp := ccxt.NewArrayCacheByTimestamp(100)
 	arrayCacheByTimestamp.Append([]any{1000, 50000, 1, 2, 3})
 	var arrayCacheByTimestampData any = exchange.SafeValue(arrayCacheByTimestamp, "Data")
-	var cacheByTimestampData any = func() any {
-		if !ccxt.IsEqual(arrayCacheByTimestampData, nil) {
-			return arrayCacheByTimestampData
-		}
-		return arrayCacheByTimestamp
-	}()
+	var cacheByTimestampData any = func() any { if !ccxt.IsEqual(arrayCacheByTimestampData, nil) { return arrayCacheByTimestampData }; return arrayCacheByTimestamp }()
 	Assert((ccxt.GetArrayLength(cacheByTimestampData) > 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolById
 	arrayCacheBySymbolById := ccxt.NewArrayCacheBySymbolById(100)
@@ -461,12 +456,7 @@ func TestCacheSafeCalls() {
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), nil))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), nil))
 	var arrayCacheBySymbolByIdData any = exchange.SafeValue(arrayCacheBySymbolById, "Data")
-	var cacheBySymbolByIdData any = func() any {
-		if !ccxt.IsEqual(arrayCacheBySymbolByIdData, nil) {
-			return arrayCacheBySymbolByIdData
-		}
-		return arrayCacheBySymbolById
-	}()
+	var cacheBySymbolByIdData any = func() any { if !ccxt.IsEqual(arrayCacheBySymbolByIdData, nil) { return arrayCacheBySymbolByIdData }; return arrayCacheBySymbolById }()
 	Assert((ccxt.GetArrayLength(cacheBySymbolByIdData) > 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolBySide
 	arrayCacheBySymbolBySide := ccxt.NewArrayCacheBySymbolBySide()
@@ -479,12 +469,7 @@ func TestCacheSafeCalls() {
 	var arrayCacheBySymbolBySideHashmap any = arrayCacheBySymbolBySide.Hashmap
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), nil))
 	var arrayCacheBySymbolBySideData any = exchange.SafeValue(arrayCacheBySymbolBySide, "Data")
-	var cacheBySymbolBySideData any = func() any {
-		if !ccxt.IsEqual(arrayCacheBySymbolBySideData, nil) {
-			return arrayCacheBySymbolBySideData
-		}
-		return arrayCacheBySymbolBySide
-	}()
+	var cacheBySymbolBySideData any = func() any { if !ccxt.IsEqual(arrayCacheBySymbolBySideData, nil) { return arrayCacheBySymbolBySideData }; return arrayCacheBySymbolBySide }()
 	Assert((ccxt.GetArrayLength(cacheBySymbolBySideData) > 0))
 	// Test map[string]map[string]interface{} (ccxt.ArrayCache.hashmap)
 	// Use direct property access for object attributes

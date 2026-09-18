@@ -1227,42 +1227,27 @@ func (this *Bitstamp) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		var isSpot bool = (IsEqual(typeVar, "spot"))
-		var settle any = func() any {
-			if (settleId != nil) && (!IsEqual(settleId, "")) {
-				return this.SafeCurrencyCode(settleId)
-			}
-			return nil
-		}()
+		var settle any = func() any { if ((settleId != nil) && (!IsEqual(settleId, ""))) { return this.SafeCurrencyCode(settleId) }; return nil }()
 		AppendToArray(&result, map[string]any{
-			"id":       this.SafeString(market, "market_symbol"),
-			"symbol":   symbol,
-			"base":     base,
-			"quote":    quote,
-			"settle":   settle,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": settleId,
-			"type":     typeVar,
-			"subType":  subType,
-			"spot":     isSpot,
-			"margin":   false,
-			"future":   false,
-			"swap":     !isSpot,
-			"option":   false,
-			"active":   (IsEqual(this.SafeString(market, "trading"), "Enabled")),
-			"contract": !isSpot,
-			"linear": func() any {
-				if isSpot {
-					return nil
-				}
-				return true
-			}(),
-			"inverse": func() any {
-				if isSpot {
-					return nil
-				}
-				return false
-			}(),
+			"id":             this.SafeString(market, "market_symbol"),
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"subType":        subType,
+			"spot":           isSpot,
+			"margin":         false,
+			"future":         false,
+			"swap":           !isSpot,
+			"option":         false,
+			"active":         (IsEqual(this.SafeString(market, "trading"), "Enabled")),
+			"contract":       !isSpot,
+			"linear":         func() any { if isSpot { return nil }; return true }(),
+			"inverse":        func() any { if isSpot { return nil }; return false }(),
 			"contractSize":   nil,
 			"expiry":         nil,
 			"expiryDatetime": nil,
@@ -1709,7 +1694,7 @@ func (this *Bitstamp) GetMarketFromTrade(trade any) any {
 	var currencyIds []string = ObjectKeys(trade)
 	var numCurrencyIds int = len(currencyIds)
 	if numCurrencyIds > 2 {
-		panic(ExchangeError(Add(Add(Add(this.Id+" getMarketFromTrade() too many keys: ", this.Json(currencyIds)), " in the trade: "), this.Json(trade))))
+		panic(ExchangeError(Add(Add(Add(this.Id + " getMarketFromTrade() too many keys: ", this.Json(currencyIds)), " in the trade: "), this.Json(trade))))
 	}
 	if numCurrencyIds == 2 {
 		var marketId any = Add(GetValue(currencyIds, 0), GetValue(currencyIds, 1))
@@ -1791,12 +1776,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var feeCurrency *string = this.SafeString(market, "quote")
-	var priceId any = func() any {
-		if rawMarketId != nil {
-			return rawMarketId
-		}
-		return this.SafeString(market, "id")
-	}()
+	var priceId any = func() any { if (rawMarketId != nil) { return rawMarketId }; return this.SafeString(market, "id") }()
 	priceString = this.SafeString(trade, priceId, priceString)
 	amountString = this.SafeString(trade, this.SafeString(market, "baseId"), amountString)
 	costString = this.SafeString(trade, this.SafeString(market, "quoteId"), costString)
@@ -2443,12 +2423,7 @@ func (this *Bitstamp) createOrderBody(ch chan any, symbol any, typeVar any, side
 			PanicOnError(response)
 		}
 	}
-	var orderResponse any = func() any {
-		if IsEqual(response, nil) {
-			return map[string]any{}
-		}
-		return response
-	}()
+	var orderResponse any = func() any { if (IsEqual(response, nil)) { return map[string]any{} }; return response }()
 	var order any = this.ParseOrder(orderResponse, market)
 	AddElementToObject(order, "type", typeVar)
 
@@ -3239,12 +3214,7 @@ func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId *string = this.SafeString2(order, "client_order_id", "orig_client_order_id")
 	var side any = DerefScalar(this.SafeString2(order, "type", "order_type"))
 	if side != nil {
-		side = func() any {
-			if IsEqual(side, "1") {
-				return "sell"
-			}
-			return "buy"
-		}()
+		side = func() any { if (IsEqual(side, "1")) { return "sell" }; return "buy" }()
 	}
 	// there is no timestamp from fetchOrder
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "datetime"))
@@ -3332,12 +3302,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		if IsEqual(market, nil) {
 			market = this.GetMarketFromTrade(item)
 		}
-		var direction any = func() any {
-			if IsEqual(GetValue(parsedTrade, "side"), "buy") {
-				return "in"
-			}
-			return "out"
-		}()
+		var direction any = func() any { if (IsEqual(GetValue(parsedTrade, "side"), "buy")) { return "in" }; return "out" }()
 		return this.SafeLedgerEntry(map[string]any{
 			"info":             item,
 			"id":               GetValue(parsedTrade, "id"),
@@ -3360,22 +3325,12 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		var direction any = nil
 		if InOp(item, "amount") {
 			var amount *string = this.SafeString(item, "amount")
-			direction = func() any {
-				if Precise.StringGt(amount, "0") {
-					return "in"
-				}
-				return "out"
-			}()
+			direction = func() any { if Precise.StringGt(amount, "0") { return "in" }; return "out" }()
 		} else if (InOp(parsedTransaction, "currency")) && !IsEqual(GetValue(parsedTransaction, "currency"), nil) {
 			var currencyCode *string = this.SafeString(parsedTransaction, "currency")
 			currency = this.Currency(currencyCode)
 			var amount *string = this.SafeString(item, GetValue(currency, "id"))
-			direction = func() any {
-				if Precise.StringGt(amount, "0") {
-					return "in"
-				}
-				return "out"
-			}()
+			direction = func() any { if Precise.StringGt(amount, "0") { return "in" }; return "out" }()
 		}
 		return this.SafeLedgerEntry(map[string]any{
 			"info":             item,
@@ -3619,7 +3574,7 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	if EvalTruthy(this.IsFiat(code)) {
-		panic(NotSupported(Add(Add(this.Id+" fiat fetchDepositAddress() for ", code), " is not supported!")))
+		panic(NotSupported(Add(Add(this.Id + " fiat fetchDepositAddress() for ", code), " is not supported!")))
 	}
 	var name any = this.GetCurrencyName(code)
 	// the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -3820,7 +3775,7 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -3852,12 +3807,7 @@ func (this *Bitstamp) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "Content-Type", contentType)
 			}
 		}
-		var authBody any = func() any {
-			if (body != nil) && (!IsEqual(body, "")) {
-				return body
-			}
-			return ""
-		}()
+		var authBody any = func() any { if ((body != nil) && (!IsEqual(body, ""))) { return body }; return "" }()
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "X-Auth-Signature", signature)
@@ -3909,7 +3859,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		if code != nil && *code == "API0005" {
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		for i := 0; i < GetArrayLength(errors); i++ {
 			var value any = GetValue(errors, i)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], value, feedback)

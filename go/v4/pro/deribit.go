@@ -1163,12 +1163,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan any, channelName any, chan
 	var rawSubscriptions any = []any{}
 	var messageHashes any = []any{}
 	var isOHLCV bool = (ccxt.IsEqual(channelName, "chart.trades"))
-	var symbols any = func() any {
-		if isOHLCV {
-			return this.GetListFromObjectValues(symbolsArray, 0)
-		}
-		return symbolsArray
-	}()
+	var symbols any = func() any { if isOHLCV { return this.GetListFromObjectValues(symbolsArray, 0) }; return symbolsArray }()
 	this.MarketSymbols(symbols, nil, false)
 	if ccxt.IsEqual(symbolsArray, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMultipleWrapper() symbolsArray is required"))
@@ -1273,7 +1268,7 @@ func (this *Deribit) HandleMessage(client any, message any) {
 	//
 	var error any = this.SafeValue(message, "error")
 	if !ccxt.IsEqual(error, nil) {
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(error))))
+		panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", this.Json(error))))
 	}
 	var params any = this.SafeValue(message, "params")
 	var channel *string = this.SafeString(params, "channel")
@@ -1298,7 +1293,7 @@ func (this *Deribit) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(handler, client, message)
 			return
 		}
-		panic(ccxt.NotSupported(ccxt.Add(this.Id+" no handler found for this message ", this.Json(message))))
+		panic(ccxt.NotSupported(ccxt.Add(this.Id + " no handler found for this message ", this.Json(message))))
 	}
 	var result any = this.SafeValue(message, "result", map[string]any{})
 	var accessToken *string = this.SafeString(result, "access_token")

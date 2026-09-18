@@ -1063,7 +1063,7 @@ func (this *Dydx) HandlePublicAddress(methodName any, params any) any {
 	if (!IsEqual(this.WalletAddress, nil)) && (this.WalletAddress != "") {
 		return []any{this.WalletAddress, params}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
+	panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
 }
 func (this *Dydx) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1746,12 +1746,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 		}
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSeconds)
 	}
-	var sideNumber any = func() any {
-		if orderSide == "BUY" {
-			return 1
-		}
-		return 2
-	}()
+	var sideNumber any = func() any { if (orderSide == "BUY") { return 1 }; return 2 }()
 	var defaultClientOrderId int64 = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
 	var clientOrderId *int64 = this.SafeInteger(params, "clientOrderId", defaultClientOrderId)
 	var orderPayload map[string]any = map[string]any{
@@ -1785,30 +1780,10 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"})
 	var walletAddress any = this.GetWalletAddress()
 	var clobPairId *int64 = this.SafeInteger(marketInfo, "clobPairId", 0)
-	var subaccountIdValue any = func() any {
-		if IsEqual(subaccountId, nil) {
-			return 0
-		}
-		return subaccountId
-	}()
-	var clientOrderIdValue any = func() any {
-		if clientOrderId == nil {
-			return 0
-		}
-		return clientOrderId
-	}()
-	var orderFlagValue any = func() any {
-		if IsEqual(orderFlag, nil) {
-			return 0
-		}
-		return orderFlag
-	}()
-	var clobPairIdValue any = func() any {
-		if clobPairId == nil {
-			return 0
-		}
-		return clobPairId
-	}()
+	var subaccountIdValue any = func() any { if (IsEqual(subaccountId, nil)) { return 0 }; return subaccountId }()
+	var clientOrderIdValue any = func() any { if (clientOrderId == nil) { return 0 }; return clientOrderId }()
+	var orderFlagValue any = func() any { if (IsEqual(orderFlag, nil)) { return 0 }; return orderFlag }()
+	var clobPairIdValue any = func() any { if (clobPairId == nil) { return 0 }; return clobPairId }()
 	var orderId any = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, params)}
 }
@@ -1816,7 +1791,7 @@ func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clie
 	var nameSp *string = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var prefixAddress any = Add(Add(address, "-"), ToString(subAccountNumber))
 	var prefix string = this.Uuid5(nameSp, prefixAddress)
-	var orderInfo any = Add(Add(Add(Add(Add(prefix+"-", this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
+	var orderInfo any = Add(Add(Add(Add(Add(prefix + "-", this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
 	return this.Uuid5(nameSp, orderInfo)
 }
 func (this *Dydx) FetchLatestBlockHeightAsync(optionalArgs ...any) <-chan any {
@@ -1995,12 +1970,7 @@ func (this *Dydx) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
-	var defaultOrderFlags any = func() any {
-		if isTrigger != nil && *isTrigger == true {
-			return 32
-		}
-		return 64
-	}()
+	var defaultOrderFlags any = func() any { if (isTrigger != nil && *isTrigger == true) { return 32 }; return 64 }()
 	var orderFlags *int64 = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
 	var subAccountId any = 0
 	var subAccountIdparamsVariable []any = this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
@@ -3202,7 +3172,7 @@ func (this *Dydx) Sign(path any, optionalArgs ...any) any {
 	url = Add(url, Add("/", pathWithParams))
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+			url = Add(url, "?" + this.Urlencode(params))
 		}
 	} else {
 		body = this.Json(params)
@@ -3236,7 +3206,7 @@ func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, he
 	if (errorCode != nil) && (errorCode == nil || *errorCode != "") {
 		var errorCodeNum any = this.ParseToNumeric(errorCode)
 		if IsGreaterThan(errorCodeNum, 0) {
-			var feedback any = Add(this.Id+" ", this.Json(response))
+			var feedback any = Add(this.Id + " ", this.Json(response))
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)
 			panic(ExchangeError(feedback))

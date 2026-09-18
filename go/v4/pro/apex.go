@@ -193,7 +193,7 @@ func (this *Apex) HandleTrades(client any, message any) {
 		var parsed any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = ccxt.Add("trade"+":", symbol)
+	var messageHash any = ccxt.Add("trade" + ":", symbol)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Apex) ParseWsTrade(trade any, optionalArgs ...any) any {
@@ -307,7 +307,7 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 		if ccxt.IsEqual(limit, nil) {
 			limit = 25
 		}
-		var topic any = ccxt.Add("orderBook"+ccxt.ToString(limit)+".H.", ccxt.GetValue(market, "id2"))
+		var topic any = ccxt.Add("orderBook" + ccxt.ToString(limit) + ".H.", ccxt.GetValue(market, "id2"))
 		ccxt.AppendToArray(&topics, topic)
 		var messageHash any = ccxt.Add("orderbook:", symbol)
 		ccxt.AppendToArray(&messageHashes, messageHash)
@@ -435,7 +435,7 @@ func (this *Apex) HandleOrderBook(client any, message any) {
 		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 		ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	}
-	var messageHash any = ccxt.Add("orderbook"+":", symbol)
+	var messageHash any = ccxt.Add("orderbook" + ":", symbol)
 	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
@@ -477,7 +477,7 @@ func (this *Apex) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	symbol = ccxt.GetValue(market, "symbol")
 	var url any = this.GetWsPublicUrl()
 	var messageHash any = ccxt.Add("ticker:", symbol)
-	var topic any = ccxt.Add("instrumentInfo"+".H.", ccxt.GetValue(market, "id2"))
+	var topic any = ccxt.Add("instrumentInfo" + ".H.", ccxt.GetValue(market, "id2"))
 	var topics []any = []any{topic}
 
 	retRes38715 := (<-this.WatchTopicsAsync(url, []any{messageHash}, topics, params))
@@ -519,7 +519,7 @@ func (this *Apex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var topic any = ccxt.Add("instrumentInfo"+".H.", ccxt.GetValue(market, "id2"))
+		var topic any = ccxt.Add("instrumentInfo" + ".H.", ccxt.GetValue(market, "id2"))
 		ccxt.AppendToArray(&topics, topic)
 		var messageHash any = ccxt.Add("ticker:", symbol)
 		ccxt.AppendToArray(&messageHashes, messageHash)
@@ -710,12 +710,7 @@ func (this *Apex) HandleOHLCV(client any, message any) {
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
-	var marketType any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var marketType any = func() any { if isSpot { return "spot" }; return "contract" }()
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
@@ -1236,7 +1231,7 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if (code != nil) && (code == nil || *code != "0") {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				var msg *string = this.SafeString2(message, "retMsg", "ret_msg")
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], msg, feedback)
@@ -1259,7 +1254,7 @@ func (this *Apex) HandleErrorMessage(client any, message any) any {
 				if op != nil && *op == "auth" {
 					panic(ccxt.AuthenticationError(ccxt.Add("Authentication failed: ", ret_msg)))
 				} else {
-					panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", ret_msg)))
+					panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", ret_msg)))
 				}
 			}
 			return false
@@ -1414,7 +1409,7 @@ func (this *Apex) HandleAuthenticate(client any, message any) any {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(ccxt.Add(this.Id + " ", this.Json(message)))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

@@ -492,7 +492,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 			return nil
 		}
 	}
-	panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")))
+	panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")))
 }
 func (this *Coinbaseinternational) HandleNetworkIdAndParamsAsync(currencyCode any, methodName any, optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -517,7 +517,7 @@ func (this *Coinbaseinternational) handleNetworkIdAndParamsBody(ch chan any, cur
 		if network == nil {
 			// find default network
 			if EvalTruthy(this.IsEmpty(networks)) {
-				panic(BadRequest(Add(Add(this.Id+" createDepositAddress network not found for currency ", currencyCode), " please specify networkId in params")))
+				panic(BadRequest(Add(Add(this.Id + " createDepositAddress network not found for currency ", currencyCode), " please specify networkId in params")))
 			}
 			var defaultNetwork any = this.FindDefaultNetwork(networks)
 			networkId = GetValue(defaultNetwork, "id")
@@ -1892,54 +1892,34 @@ func (this *Coinbaseinternational) ParseMarket(market any) any {
 		settleId = quoteId
 		symbol = Add(symbol, Add(":", quoteId))
 	}
-	var isLinear any = func() any {
-		if isSpot {
-			return nil
-		}
-		return (IsEqual(settleId, quoteId))
-	}()
-	var isInverse any = func() any {
-		if isSpot {
-			return nil
-		}
-		return (!IsEqual(settleId, quoteId))
-	}()
+	var isLinear any = func() any { if isSpot { return nil }; return (IsEqual(settleId, quoteId)) }()
+	var isInverse any = func() any { if isSpot { return nil }; return (!IsEqual(settleId, quoteId)) }()
 	if marketId == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing marketId"))
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":          marketId,
-		"lowercaseId": ToLower(marketId),
-		"symbol":      symbol,
-		"base":        baseId,
-		"quote":       quoteId,
-		"settle":      settleId,
-		"baseId":      baseId,
-		"quoteId":     quoteId,
-		"settleId":    settleId,
-		"type": func() any {
-			if isSpot {
-				return "spot"
-			}
-			return "swap"
-		}(),
-		"spot":     isSpot,
-		"margin":   false,
-		"swap":     !isSpot,
-		"future":   false,
-		"option":   false,
-		"active":   IsEqual(this.SafeString(market, "trading_state"), "TRADING"),
-		"contract": !isSpot,
-		"linear":   isLinear,
-		"inverse":  isInverse,
-		"taker":    GetValue(GetValue(fees, "trading"), "taker"),
-		"maker":    GetValue(GetValue(fees, "trading"), "maker"),
-		"contractSize": func() any {
-			if isSpot {
-				return nil
-			}
-			return 1
-		}(),
+		"id":             marketId,
+		"lowercaseId":    ToLower(marketId),
+		"symbol":         symbol,
+		"base":           baseId,
+		"quote":          quoteId,
+		"settle":         settleId,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           func() any { if isSpot { return "spot" }; return "swap" }(),
+		"spot":           isSpot,
+		"margin":         false,
+		"swap":           !isSpot,
+		"future":         false,
+		"option":         false,
+		"active":         IsEqual(this.SafeString(market, "trading_state"), "TRADING"),
+		"contract":       !isSpot,
+		"linear":         isLinear,
+		"inverse":        isInverse,
+		"taker":          GetValue(GetValue(fees, "trading"), "taker"),
+		"maker":          GetValue(GetValue(fees, "trading"), "maker"),
+		"contractSize":   func() any { if isSpot { return nil }; return 1 }(),
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -1956,12 +1936,7 @@ func (this *Coinbaseinternational) ParseMarket(market any) any {
 			},
 			"amount": map[string]any{
 				"min": nil,
-				"max": func() any {
-					if isSpot {
-						return nil
-					}
-					return this.SafeNumber(market, "position_limit_qty")
-				}(),
+				"max": func() any { if isSpot { return nil }; return this.SafeNumber(market, "position_limit_qty") }(),
 			},
 			"price": map[string]any{
 				"min": nil,
@@ -2310,12 +2285,7 @@ func (this *Coinbaseinternational) transferBody(ch chan any, code any, amount an
 		"amount":      amount,
 		"fromAccount": fromAccount,
 		"toAccount":   toAccount,
-		"status": func() any {
-			if success != nil && *success == true {
-				return "ok"
-			}
-			return "failed"
-		}(),
+		"status":      func() any { if (success != nil && *success == true) { return "ok" }; return "failed" }(),
 	}
 	return nil
 }
@@ -2403,12 +2373,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan any, symbol any, type
 		}
 		tif = "IOC"
 	} else {
-		tif = func() any {
-			if tif == nil {
-				return "GTC"
-			}
-			return tif
-		}()
+		tif = func() any { if (tif == nil) { return "GTC" }; return tif }()
 	}
 	if postOnly != nil {
 		request["post_only"] = postOnly
@@ -3125,7 +3090,7 @@ func (this *Coinbaseinternational) Sign(path any, optionalArgs ...any) any {
 	var savedPath any = Add("/api", fullPath)
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if len(ObjectKeys(query)) > 0 {
-			fullPath = Add(fullPath, "?"+this.UrlencodeWithArrayRepeat(query))
+			fullPath = Add(fullPath, "?" + this.UrlencodeWithArrayRepeat(query))
 		}
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), fullPath)
@@ -3165,7 +3130,7 @@ func (this *Coinbaseinternational) HandleErrors(code any, reason any, url any, m
 	if IsEqual(response, nil) {
 		return nil // fallback to default error handler
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	var errMsg *string = this.SafeString(response, "title")
 	if errMsg != nil {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errMsg, feedback)

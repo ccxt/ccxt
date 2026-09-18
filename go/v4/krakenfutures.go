@@ -559,12 +559,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 			linear = (GetIndexOf(marketType, "_vanilla") >= 0)
 			inverse = !EvalTruthy(linear)
 			var settleTime *string = this.SafeString(market, "lastTradingTime")
-			typeVar = func() any {
-				if settleTime == nil {
-					return "swap"
-				}
-				return "future"
-			}()
+			typeVar = func() any { if (settleTime == nil) { return "swap" }; return "future" }()
 			expiry = DerefScalar(this.Parse8601(settleTime))
 		} else {
 			typeVar = "index"
@@ -1494,14 +1489,9 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 		"side":         side,
 		"takerOrMaker": takerOrMaker,
 		"price":        price,
-		"amount": func() any {
-			if linear != nil && *linear == true {
-				return amount
-			}
-			return nil
-		}(),
-		"cost": cost,
-		"fee":  fee,
+		"amount":       func() any { if (linear != nil && *linear == true) { return amount }; return nil }(),
+		"cost":         cost,
+		"fee":          fee,
 	})
 }
 func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -1574,7 +1564,7 @@ func (this *Krakenfutures) CreateOrderRequest(symbol any, typeVar any, side any,
 	var isLimitOrder bool = (IsEqual(typeVar, "lmt")) || (IsEqual(typeVar, "post")) || (IsEqual(typeVar, "ioc"))
 	var limitPriceParam *string = this.SafeString(params, "limitPrice") // the venue's own field name, forwarded as-is by this.extend below
 	if isLimitOrder && (IsEqual(price, nil)) && (limitPriceParam == nil) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder () requires a price argument for ", typeVar), " orders")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " createOrder () requires a price argument for ", typeVar), " orders")))
 	}
 	var isMarketOrder bool = (IsEqual(typeVar, "mkt"))
 	if (!IsEqual(price, nil)) && !isMarketOrder {
@@ -2055,12 +2045,7 @@ func (this *Krakenfutures) cancelAllOrdersAfterBody(ch chan any, timeout any, op
 		PanicOnError(retRes169012)
 	}
 	var request map[string]any = map[string]any{
-		"timeout": func() any {
-			if IsGreaterThan(timeout, 0) {
-				return (this.ParseToInt(Divide(timeout, 1000)))
-			}
-			return 0
-		}(),
+		"timeout": func() any { if (IsGreaterThan(timeout, 0)) { return (this.ParseToInt(Divide(timeout, 1000))) }; return 0 }(),
 	}
 
 	response := (<-this.PrivatePostCancelallordersafter(this.Extend(request, params)))
@@ -2205,7 +2190,7 @@ func (this *Krakenfutures) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	PanicOnError(orders)
 	var order any = this.SafeDict(orders, 0)
 	if IsEqual(order, nil) {
-		panic(OrderNotFound(Add(this.Id+" fetchOrder could not find order id ", id)))
+		panic(OrderNotFound(Add(this.Id + " fetchOrder could not find order id ", id)))
 	}
 
 	ch <- order
@@ -2420,7 +2405,7 @@ func (this *Krakenfutures) VerifyOrderActionSuccess(status any, method any, opti
 		"notFound":                   OrderNotFound,
 	}
 	if (InOp(errors, status)) && !this.InArray(status, omit) {
-		ThrowDynamicException(GetValue(errors, status), Add(Add(Add(this.Id+": ", method), " failed due to "), status))
+		ThrowDynamicException(GetValue(errors, status), Add(Add(Add(this.Id + ": ", method), " failed due to "), status))
 	}
 }
 func (this *Krakenfutures) ParseOrderStatus(status any) *string {
@@ -2902,12 +2887,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var cost any = nil
 	if (filled != nil) && (!IsEqual(market, nil)) {
-		var whichPrice any = func() any {
-			if average != nil {
-				return average
-			}
-			return price
-		}()
+		var whichPrice any = func() any { if (average != nil) { return average }; return price }()
 		if whichPrice != nil {
 			if IsEqual(GetValue(market, "linear"), true) {
 				cost = Precise.StringMul(filled, whichPrice) // in quote
@@ -3469,30 +3449,15 @@ func (this *Krakenfutures) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 		typeVar = symbol
 	}
 	if typeVar == nil {
-		typeVar = func() any {
-			if symbol == nil {
-				return "flex"
-			}
-			return symbol
-		}()
+		typeVar = func() any { if (symbol == nil) { return "flex" }; return symbol }()
 	}
 	var accountName any = this.ParseAccount(typeVar)
 	var accounts any = this.SafeValue(response, "accounts")
 	var account any = this.SafeValue(accounts, accountName)
 	if IsEqual(account, nil) {
-		typeVar = func() any {
-			if typeVar == nil {
-				return ""
-			}
-			return typeVar
-		}()
-		symbol = func() any {
-			if symbol == nil {
-				return ""
-			}
-			return symbol
-		}()
-		panic(BadRequest(Add(this.Id+" fetchBalance has no account for ", typeVar)))
+		typeVar = func() any { if (typeVar == nil) { return "" }; return typeVar }()
+		symbol = func() any { if (symbol == nil) { return "" }; return symbol }()
+		panic(BadRequest(Add(this.Id + " fetchBalance has no account for ", typeVar)))
 	}
 	var balance any = this.ParseBalance(account)
 	AddElementToObject(balance, "info", response)
@@ -4192,7 +4157,7 @@ func (this *Krakenfutures) transferBody(ch chan any, code any, amount any, fromA
 	var response any = nil
 	if IsEqual(toAccount, "spot") {
 		if !IsEqual(this.ParseAccount(fromAccount), "cash") {
-			panic(BadRequest(Add(Add(Add(this.Id+" transfer cannot transfer from ", fromAccount), " to "), toAccount)))
+			panic(BadRequest(Add(Add(Add(this.Id + " transfer cannot transfer from ", fromAccount), " to "), toAccount)))
 		}
 		request["currency"] = GetValue(currency, "id")
 
@@ -4386,7 +4351,7 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 		return nil
 	}
 	if IsEqual(code, 429) {
-		panic(DDoSProtection(Add(this.Id+" ", body)))
+		panic(DDoSProtection(Add(this.Id + " ", body)))
 	}
 	var errors any = this.SafeValue(response, "errors")
 	var firstError any = this.SafeValue(errors, 0)
@@ -4395,7 +4360,7 @@ func (this *Krakenfutures) HandleErrors(code any, reason any, url any, method an
 	if message == nil {
 		return nil
 	}
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 	if IsEqual(code, 400) {

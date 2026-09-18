@@ -1138,12 +1138,7 @@ func (this *Cex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	symbol = ccxt.GetValue(market, "symbol")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = ccxt.Add("orderbook:", symbol)
-	var depth any = func() any {
-		if ccxt.IsEqual(limit, nil) {
-			return 0
-		}
-		return limit
-	}()
+	var depth any = func() any { if (ccxt.IsEqual(limit, nil)) { return 0 }; return limit }()
 	var subscribe map[string]any = map[string]any{
 		"e": "order-book-subscribe",
 		"data": map[string]any{
@@ -1232,7 +1227,7 @@ func (this *Cex) HandleOrderBookUpdate(client any, message any) {
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	if !ccxt.IsEqual(incrementalId, ccxt.Add(ccxt.GetValue(storedOrderBook, "nonce"), 1)) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		client.(ccxt.ClientInterface).Reject(this.Id+" watchOrderBook() skipped a message", messageHash)
+		client.(ccxt.ClientInterface).Reject(this.Id + " watchOrderBook() skipped a message", messageHash)
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(data, "time")
@@ -1814,7 +1809,7 @@ func (this *Cex) HandleErrorMessage(client any, message any) any {
 			var data any = this.SafeValue(message, "data", map[string]any{})
 			var error *string = this.SafeString(data, "error")
 			var event *string = this.SafeString(message, "e", "")
-			var feedback any = ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" ", event), " "), error)
+			var feedback any = ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " ", event), " "), error)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 			panic(ccxt.ExchangeError(feedback))

@@ -146,12 +146,7 @@ func (this *Toobit) HandleMessage(client any, message any) {
 		"ticketInfo":                   this.HandleMyTrade,
 		"outboundContractPositionInfo": this.HandlePositions,
 	}
-	var method any = func() any {
-		if topic == nil {
-			return nil
-		}
-		return this.SafeValue(methods, topic)
-	}()
+	var method any = func() any { if (topic == nil) { return nil }; return this.SafeValue(methods, topic) }()
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 	} else {
@@ -159,12 +154,7 @@ func (this *Toobit) HandleMessage(client any, message any) {
 		for i := 0; i < ccxt.GetArrayLength(message); i++ {
 			var item any = ccxt.GetValue(message, i)
 			var event *string = this.SafeString(item, "e")
-			var method2 any = func() any {
-				if event == nil {
-					return nil
-				}
-				return this.SafeValue(methods, event)
-			}()
+			var method2 any = func() any { if (event == nil) { return nil }; return this.SafeValue(methods, event) }()
 			if !ccxt.IsEqual(method2, nil) {
 				ccxt.CallDynamically(method2, client, item)
 			}
@@ -870,28 +860,13 @@ func (this *Toobit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
-	var typeVar any = func() any {
-		if isSpot {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar any = func() any { if isSpot { return "spot" }; return "contract" }()
 	var spotSubHash string = "spot:balance"
 	var swapSubHash string = "contract:private"
 	var spotMessageHash string = "spot:balance"
 	var swapMessageHash string = "contract:balance"
-	var messageHash any = func() any {
-		if isSpot {
-			return spotMessageHash
-		}
-		return swapMessageHash
-	}()
-	var subscriptionHash any = func() any {
-		if isSpot {
-			return spotSubHash
-		}
-		return swapSubHash
-	}()
+	var messageHash any = func() any { if isSpot { return spotMessageHash }; return swapMessageHash }()
+	var subscriptionHash any = func() any { if isSpot { return spotSubHash }; return swapSubHash }()
 	if subscriptionHash == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a subscription hash"))
 	}
@@ -913,12 +888,7 @@ func (this *Toobit) SetBalanceCache(client any, marketType any, optionalArgs ...
 	if (subscriptionHash == nil) || (ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
 		return
 	}
-	var typeVar any = func() any {
-		if ccxt.IsEqual(marketType, "spot") {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar any = func() any { if (ccxt.IsEqual(marketType, "spot")) { return "spot" }; return "contract" }()
 	var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 	if !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		client.(ccxt.ClientInterface).Future(messageHash)
@@ -962,12 +932,7 @@ func (this *Toobit) HandleBalance(client any, message any) {
 	var channel *string = this.SafeString(message, "e")
 	var data any = this.SafeList(message, "B", []any{})
 	var timestamp *int64 = this.SafeInteger(message, "E")
-	var typeVar any = func() any {
-		if channel != nil && *channel == "outboundContractAccountInfo" {
-			return "contract"
-		}
-		return "spot"
-	}()
+	var typeVar any = func() any { if (channel != nil && *channel == "outboundContractAccountInfo") { return "contract" }; return "spot" }()
 	if !(ccxt.InOp(this.Balance, typeVar)) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
@@ -1002,12 +967,7 @@ func (this *Toobit) loadBalanceSnapshotBody(ch chan any, client any, messageHash
 		"type": marketType,
 	}))
 	ccxt.PanicOnError(response)
-	var typeVar any = func() any {
-		if ccxt.IsEqual(marketType, "spot") {
-			return "spot"
-		}
-		return "contract"
-	}()
+	var typeVar any = func() any { if (ccxt.IsEqual(marketType, "spot")) { return "spot" }; return "contract" }()
 	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
 	// don't remove the future from the .futures cache
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
@@ -1253,12 +1213,7 @@ func (this *Toobit) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(trade, "s")
 	var ts *string = this.SafeString(trade, "t")
 	var isMaker bool = (ccxt.IsEqual(this.SafeBool(trade, "m"), true))
-	var takerOrMaker any = func() any {
-		if isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker any = func() any { if isMaker { return "maker" }; return "taker" }()
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "T"),
@@ -1320,7 +1275,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		}
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
-	messageHash = ccxt.Add(typeVar+":positions", messageHash)
+	messageHash = ccxt.Add(typeVar + ":positions", messageHash)
 	var url any = this.GetUserStreamUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, typeVar, symbols)
@@ -1447,7 +1402,7 @@ func (this *Toobit) HandlePositions(client any, message any) {
 	// appends `$` to every local name wherever it appears, string literals
 	// included, so a local `positions` rewrites the hash prefix below to
 	// ':$positions::' and find_message_hashes () matches nothing in PHP
-	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), accountType+":positions::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), accountType + ":positions::")
 	for i := 0; i < ccxt.GetArrayLength(messageHashes); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts []string = ccxt.Split(messageHash, "::")
@@ -1458,7 +1413,7 @@ func (this *Toobit) HandlePositions(client any, message any) {
 			client.(ccxt.ClientInterface).Resolve(filtered, messageHash)
 		}
 	}
-	client.(ccxt.ClientInterface).Resolve(newPositions, accountType+":positions")
+	client.(ccxt.ClientInterface).Resolve(newPositions, accountType + ":positions")
 }
 func (this *Toobit) ParseWsPosition(position any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1639,7 +1594,7 @@ func (this *Toobit) HandleErrorMessage(client any, message any) any {
 	var code *string = this.SafeString(message, "code")
 	if code != nil {
 		var desc *string = this.SafeString(message, "desc")
-		var msg any = ccxt.Add(ccxt.Add(ccxt.Add(this.Id+" code: ", code), " message: "), desc)
+		var msg any = ccxt.Add(ccxt.Add(ccxt.Add(this.Id + " code: ", code), " message: "), desc)
 		exception := ccxt.ExchangeError(msg) // c# fix
 		client.(ccxt.ClientInterface).Reject(exception)
 		return true

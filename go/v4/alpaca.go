@@ -920,7 +920,7 @@ func (this *Alpaca) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		var symbolTrade any = this.SafeDict(trades, marketId, map[string]any{})
 		symbolTrades = []any{symbolTrade}
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchTrades() does not support ", method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
+		panic(NotSupported(Add(Add(this.Id + " fetchTrades() does not support ", method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")))
 	}
 	var symbolTradesList any = []any{}
 	if !IsEqual(symbolTrades, nil) {
@@ -1164,7 +1164,7 @@ func (this *Alpaca) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		var bar any = this.SafeDict(bars, marketId, map[string]any{})
 		ohlcvs = []any{bar}
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchOHLCV() does not support ", method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
+		panic(NotSupported(Add(Add(this.Id + " fetchOHLCV() does not support ", method), ", marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported")))
 	}
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -1523,7 +1523,7 @@ func (this *Alpaca) createOrderBody(ch chan any, symbol any, typeVar any, side a
 		if GetIndexOf(typeVar, "limit") >= 0 {
 			newType = "stop_limit"
 		} else {
-			panic(NotSupported(Add(Add(this.Id+" createOrder() does not support stop orders for ", typeVar), " orders, only stop_limit orders are supported")))
+			panic(NotSupported(Add(Add(this.Id + " createOrder() does not support stop orders for ", typeVar), " orders, only stop_limit orders are supported")))
 		}
 		request["stop_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["type"] = newType
@@ -2418,12 +2418,7 @@ func (this *Alpaca) fetchTransactionsHelperBody(ch chan any, typeVar any, code a
 			var activityType *string = this.SafeString(entry, "activity_type")
 			var amount *string = this.SafeString(entry, "net_amount")
 			var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(amount, "0"))
-			var entryDirection any = func() any {
-				if isIncoming {
-					return "INCOMING"
-				}
-				return "OUTGOING"
-			}()
+			var entryDirection any = func() any { if isIncoming { return "INCOMING" }; return "OUTGOING" }()
 			if (IsEqual(typeVar, "BOTH")) || (IsEqual(entryDirection, typeVar)) {
 				AppendToArray(&filtered, entry)
 			}
@@ -2624,12 +2619,7 @@ func (this *Alpaca) ParseTransaction(transaction any, optionalArgs ...any) any {
 		var isIncoming bool = (activityType != nil && *activityType == "CSD") || ((activityType != nil && *activityType == "TRANS") && !Precise.StringLt(netAmount, "0"))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
 		datetime = DerefScalar(this.Iso8601(timestamp))
-		typeVar = func() any {
-			if isIncoming {
-				return "deposit"
-			}
-			return "withdrawal"
-		}()
+		typeVar = func() any { if isIncoming { return "deposit" }; return "withdrawal" }()
 		amount = this.ParseNumber(Precise.StringAbs(netAmount))
 		// cash ledger rows carry no per-entry asset field and are USD, while crypto
 		// TRANS entries may carry symbol/asset - never blindly adopt the caller's
@@ -2813,12 +2803,7 @@ func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
 	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
-	headers = func() any {
-		if !IsEqual(headers, nil) {
-			return headers
-		}
-		return map[string]any{}
-	}()
+	headers = func() any { if (!IsEqual(headers, nil)) { return headers }; return map[string]any{} }()
 	if IsEqual(GetValue(api, 1), "private") {
 		this.CheckRequiredCredentials()
 		AddElementToObject(headers, "APCA-API-KEY-ID", this.ApiKey)
@@ -2827,7 +2812,7 @@ func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if len(ObjectKeys(query)) > 0 {
 		if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
-			endpoint = Add(endpoint, "?"+this.Urlencode(query))
+			endpoint = Add(endpoint, "?" + this.Urlencode(query))
 		} else {
 			body = this.Json(query)
 			AddElementToObject(headers, "Content-Type", "application/json")
@@ -2849,7 +2834,7 @@ func (this *Alpaca) HandleErrors(code any, reason any, url any, method any, head
 	//     "code": 40110000,
 	//     "message": "request is not authorized"
 	// }
-	var feedback any = Add(this.Id+" ", body)
+	var feedback any = Add(this.Id + " ", body)
 	var errorCode *string = this.SafeString(response, "code")
 	if !IsEqual(code, nil) {
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)

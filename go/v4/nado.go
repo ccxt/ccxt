@@ -517,12 +517,7 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 		triggerDirectionparamsVariable := this.HandleTriggerDirectionAndParams(params)
 		triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
 		params = GetValue(triggerDirectionparamsVariable, 1)
-		var directionSuffix any = func() any {
-			if IsEqual(triggerDirection, "ascending") {
-				return "above"
-			}
-			return "below"
-		}()
+		var directionSuffix any = func() any { if (IsEqual(triggerDirection, "ascending")) { return "above" }; return "below" }()
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
 		AddElementToObject(priceRequirement, Add("oracle_price_", directionSuffix), triggerPriceX18)
@@ -535,26 +530,11 @@ func (this *Nado) createOrderRequestBody(ch chan any, symbol any, typeVar any, s
 	} else if isStopLossOrder || isTakeProfitOrder {
 		var triggerDirection any = ""
 		if isBuy {
-			triggerDirection = func() any {
-				if isStopLossOrder {
-					return "above"
-				}
-				return "below"
-			}()
+			triggerDirection = func() any { if isStopLossOrder { return "above" }; return "below" }()
 		} else {
-			triggerDirection = func() any {
-				if isStopLossOrder {
-					return "below"
-				}
-				return "above"
-			}()
+			triggerDirection = func() any { if isStopLossOrder { return "below" }; return "above" }()
 		}
-		triggerPrice = func() any {
-			if isStopLossOrder {
-				return stopLossTriggerPrice
-			}
-			return takeProfitTriggerPrice
-		}()
+		triggerPrice = func() any { if isStopLossOrder { return stopLossTriggerPrice }; return takeProfitTriggerPrice }()
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
 		AddElementToObject(priceRequirement, Add("oracle_price_", triggerDirection), triggerPriceX18)
@@ -1782,7 +1762,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	if IsEqual(this.WalletAddress, nil) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires walletAddress")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires walletAddress")))
 	}
 
 	retRes13858 := (<-this.LoadMarketsAsync())
@@ -1799,12 +1779,7 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan any, eventType any, t
 		"subaccounts": []any{this.CreateSubaccount(this.WalletAddress, subaccount)},
 		"event_types": []any{eventType},
 		"limit": map[string]any{
-			"raw": func() any {
-				if IsEqual(limit, nil) {
-					return 100
-				}
-				return mathMin(limit, 500)
-			}(),
+			"raw": func() any { if (IsEqual(limit, nil)) { return 100 }; return mathMin(limit, 500) }(),
 		},
 	}
 	if !IsEqual(currency, nil) {
@@ -2044,12 +2019,7 @@ func (this *Nado) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var status *string = this.SafeString(response, "data")
 
 	ch <- map[string]any{
-		"status": func() any {
-			if status != nil && *status == "active" {
-				return "ok"
-			}
-			return "error"
-		}(),
+		"status":  func() any { if (status != nil && *status == "active") { return "ok" }; return "error" }(),
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -2133,12 +2103,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var pair any = this.SafeDict(pairsById, id, map[string]any{})
 		var asset any = this.SafeDict(assetsById, id, map[string]any{})
 		var rawType *string = this.SafeString(market, "type")
-		var typeVar any = func() any {
-			if rawType != nil && *rawType == "perp" {
-				return "swap"
-			}
-			return rawType
-		}()
+		var typeVar any = func() any { if (rawType != nil && *rawType == "perp") { return "swap" }; return rawType }()
 		var contract bool = (IsEqual(typeVar, "swap"))
 		var tickerId *string = this.SafeString2(pair, "ticker_id", "tickerId")
 		if tickerId == nil {
@@ -2152,18 +2117,8 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteAsset any = this.SafeDict(assetsByCode, quote)
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
 		var quoteId *string = this.SafeString(quoteAsset, "product_id", rawQuoteId)
-		var settleId any = func() any {
-			if contract {
-				return quoteId
-			}
-			return nil
-		}()
-		var settle any = func() any {
-			if contract {
-				return quote
-			}
-			return nil
-		}()
+		var settleId any = func() any { if contract { return quoteId }; return nil }()
+		var settle any = func() any { if contract { return quote }; return nil }()
 		var symbol any = Add(Add(base, "/"), quote)
 		if contract {
 			symbol = Add(symbol, Add(":", settle))
@@ -2174,43 +2129,28 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var amountIncrement any = this.ParseX18(this.SafeString(market, "size_increment"))
 		var minCost any = this.ParseX18(this.SafeString(market, "min_size"))
 		AppendToArray(&markets, this.SafeMarketStructure(map[string]any{
-			"id":          id,
-			"lowercaseId": nil,
-			"symbol":      symbol,
-			"base":        base,
-			"quote":       quote,
-			"settle":      settle,
-			"baseId":      baseId,
-			"quoteId":     quoteId,
-			"settleId":    settleId,
-			"type":        typeVar,
-			"spot":        (IsEqual(typeVar, "spot")),
-			"margin":      nil,
-			"swap":        contract,
-			"future":      false,
-			"option":      false,
-			"active":      active,
-			"contract":    contract,
-			"linear": func() any {
-				if contract {
-					return true
-				}
-				return nil
-			}(),
-			"inverse": func() any {
-				if contract {
-					return false
-				}
-				return nil
-			}(),
-			"taker": this.ParseX18(this.SafeString(market, "taker_fee_rate_x18")),
-			"maker": this.ParseX18(this.SafeString(market, "maker_fee_rate_x18")),
-			"contractSize": func() any {
-				if contract {
-					return 1
-				}
-				return nil
-			}(),
+			"id":             id,
+			"lowercaseId":    nil,
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           (IsEqual(typeVar, "spot")),
+			"margin":         nil,
+			"swap":           contract,
+			"future":         false,
+			"option":         false,
+			"active":         active,
+			"contract":       contract,
+			"linear":         func() any { if contract { return true }; return nil }(),
+			"inverse":        func() any { if contract { return false }; return nil }(),
+			"taker":          this.ParseX18(this.SafeString(market, "taker_fee_rate_x18")),
+			"maker":          this.ParseX18(this.SafeString(market, "maker_fee_rate_x18")),
+			"contractSize":   func() any { if contract { return 1 }; return nil }(),
 			"expiry":         nil,
 			"expiryDatetime": nil,
 			"strike":         nil,
@@ -2376,7 +2316,7 @@ func (this *Nado) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) 
 	PanicOnError(tickers)
 	var ticker any = this.SafeDict(tickers, symbol)
 	if IsEqual(ticker, nil) {
-		panic(BadSymbol(Add(this.Id+" fetchTicker() ticker not found for ", symbol)))
+		panic(BadSymbol(Add(this.Id + " fetchTicker() ticker not found for ", symbol)))
 	}
 
 	ch <- ticker
@@ -2492,12 +2432,7 @@ func (this *Nado) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 		"interest_and_funding": map[string]any{
 			"subaccount":  this.CreateSubaccount(this.WalletAddress, subaccount),
 			"product_ids": []any{this.ParseToInt(GetValue(market, "id"))},
-			"limit": func() any {
-				if IsEqual(limit, nil) {
-					return 100
-				}
-				return mathMin(limit, 100)
-			}(),
+			"limit":       func() any { if (IsEqual(limit, nil)) { return 100 }; return mathMin(limit, 100) }(),
 		},
 	}
 
@@ -2746,12 +2681,7 @@ func (this *Nado) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...an
 	var tickerId *string = this.SafeString(GetValue(market, "info"), "ticker_id")
 	var request map[string]any = map[string]any{
 		"ticker_id": tickerId,
-		"depth": func() any {
-			if IsEqual(limit, nil) {
-				return 100
-			}
-			return limit
-		}(),
+		"depth":     func() any { if (IsEqual(limit, nil)) { return 100 }; return limit }(),
 	}
 
 	response := (<-this.GatewayV2PublicGetOrderbook(this.Extend(request, params)))
@@ -2963,12 +2893,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
 	var rawOrder any = this.SafeDict(trade, "order")
 	var isArchiveMatch bool = !IsEqual(rawOrder, nil)
-	var order any = func() any {
-		if IsEqual(rawOrder, nil) {
-			return map[string]any{}
-		}
-		return rawOrder
-	}()
+	var order any = func() any { if (IsEqual(rawOrder, nil)) { return map[string]any{} }; return rawOrder }()
 	var amountString *string = this.SafeString(trade, "base_filled")
 	var costString *string = this.SafeString(trade, "quote_filled")
 	var rawOrderAmount *string = this.SafeString(order, "amount")
@@ -2983,12 +2908,7 @@ func (this *Nado) ParseTrade(trade any, optionalArgs ...any) any {
 	var price any = DerefScalar(this.SafeString(trade, "price"))
 	if price == nil {
 		var parsedPrice any = this.ParseX18(this.SafeString(order, "priceX18"))
-		price = func() any {
-			if IsEqual(parsedPrice, nil) {
-				return nil
-			}
-			return this.NumberToString(parsedPrice)
-		}()
+		price = func() any { if (IsEqual(parsedPrice, nil)) { return nil }; return this.NumberToString(parsedPrice) }()
 	}
 	var takerOrMaker any = nil
 	var isTaker *bool = this.SafeBool(trade, "is_taker")
@@ -3500,22 +3420,12 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		var amountString *string = this.SafeString(order, "amount")
 		if amountString != nil {
-			side = func() any {
-				if Precise.StringLt(amountString, "0") {
-					return "sell"
-				}
-				return "buy"
-			}()
+			side = func() any { if Precise.StringLt(amountString, "0") { return "sell" }; return "buy" }()
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		filled = this.ParseX18(Precise.StringAbs(archiveFilled))
 		var costString *string = this.SafeString(order, "quote_filled")
-		cost = func() any {
-			if costString == nil {
-				return nil
-			}
-			return this.ParseX18(Precise.StringAbs(costString))
-		}()
+		cost = func() any { if (costString == nil) { return nil }; return this.ParseX18(Precise.StringAbs(costString)) }()
 		if (!IsEqual(filled, nil)) && (!IsEqual(cost, nil)) {
 			average = Precise.StringDiv(this.NumberToString(cost), this.NumberToString(filled))
 		}
@@ -3544,12 +3454,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		var amountString *string = this.SafeString(order, "amount")
 		if amountString != nil {
-			side = func() any {
-				if Precise.StringLt(amountString, "0") {
-					return "sell"
-				}
-				return "buy"
-			}()
+			side = func() any { if Precise.StringLt(amountString, "0") { return "sell" }; return "buy" }()
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		var unfilledAmount *string = this.SafeString(order, "unfilled_amount")
@@ -3576,12 +3481,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		}
 		var amountString *string = this.SafeString(rawOrder, "amount")
 		if amountString != nil {
-			side = func() any {
-				if Precise.StringLt(amountString, "0") {
-					return "sell"
-				}
-				return "buy"
-			}()
+			side = func() any { if Precise.StringLt(amountString, "0") { return "sell" }; return "buy" }()
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
 		var triggerStatus any = this.SafeDict(order, "status")
@@ -3711,7 +3611,7 @@ func (this *Nado) CreateSubaccount(walletAddress any, optionalArgs ...any) any {
 	if GetArrayLength(encoded) > 24 {
 		panic(BadRequest(this.Id + " createOrder() subaccount must fit in 12 bytes"))
 	}
-	return Add("0x"+address, this.PadHex(encoded, 24, false))
+	return Add("0x" + address, this.PadHex(encoded, 24, false))
 }
 func (this *Nado) QueryContractsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any, 1)
@@ -3751,12 +3651,7 @@ func (this *Nado) PadHex(value any, length any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(this.Id + " padHex() requires length"))
 	}
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-	var padded any = func() any {
-		if EvalTruthy(left) {
-			return (Add(zeros, value))
-		}
-		return (Add(value, zeros))
-	}()
+	var padded any = func() any { if EvalTruthy(left) { return (Add(zeros, value)) }; return (Add(value, zeros)) }()
 	if EvalTruthy(left) {
 		var start any = Subtract(GetLength(padded), length)
 		return Slice(padded, start, GetLength(padded))
@@ -3909,7 +3804,7 @@ func (this *Nado) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else {
 		AddElementToObject(headers, "Content-Type", "application/json")
@@ -3939,7 +3834,7 @@ func (this *Nado) HandleErrors(httpCode any, reason any, url any, method any, he
 	var errorCode *string = this.SafeString(response, "error_code")
 	var error *string = this.SafeString(response, "error")
 	if (status != nil && *status == "failure") || (errorCode != nil) || (error != nil) {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, feedback)
 		panic(ExchangeError(feedback))

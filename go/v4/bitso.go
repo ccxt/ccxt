@@ -1766,7 +1766,7 @@ func (this *Bitso) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 			return nil
 		}
 	}
-	panic(OrderNotFound(Add(Add(this.Id+": The order ", id), " not found.")))
+	panic(OrderNotFound(Add(Add(this.Id + ": The order ", id), " not found.")))
 }
 
 /**
@@ -2317,14 +2317,9 @@ func (this *Bitso) withdrawBody(ch chan any, code any, amount any, address any, 
 		"LTC": "Litecoin",
 	}
 	var currency any = this.Currency(code)
-	var method any = func() any {
-		if InOp(methods, code) {
-			return GetValue(methods, code)
-		}
-		return nil
-	}()
+	var method any = func() any { if (InOp(methods, code)) { return GetValue(methods, code) }; return nil }()
 	if IsEqual(method, nil) {
-		panic(ExchangeError(Add(this.Id+" not valid withdraw coin: ", code)))
+		panic(ExchangeError(Add(this.Id + " not valid withdraw coin: ", code)))
 	}
 	var request map[string]any = map[string]any{
 		"amount":          amount,
@@ -2409,12 +2404,7 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var status *string = this.SafeString(transaction, "status")
 	var withdrawId *string = this.SafeString(transaction, "wid")
 	var networkCode any = this.NetworkIdToCode(networkId, GetValue(currency, "code"))
-	var networkCodeUpper any = func() any {
-		if networkCode != nil {
-			return ToUpper(networkCode)
-		}
-		return nil
-	}()
+	var networkCodeUpper any = func() any { if (networkCode != nil) { return ToUpper(networkCode) }; return nil }()
 	return map[string]any{
 		"id":          this.SafeString2(transaction, "wid", "fid"),
 		"txid":        this.SafeString(details, "tx_hash"),
@@ -2422,30 +2412,20 @@ func (this *Bitso) ParseTransaction(transaction any, optionalArgs ...any) any {
 		"datetime":    datetime,
 		"network":     networkCodeUpper,
 		"addressFrom": receivingAddress,
-		"address": func() any {
-			if withdrawalAddress != nil {
-				return withdrawalAddress
-			}
-			return receivingAddress
-		}(),
-		"addressTo": withdrawalAddress,
-		"amount":    this.SafeNumber(transaction, "amount"),
-		"type": func() any {
-			if withdrawId == nil {
-				return "deposit"
-			}
-			return "withdrawal"
-		}(),
-		"currency": this.SafeCurrencyCode(currencyId, currency),
-		"status":   this.ParseTransactionStatus(status),
-		"updated":  nil,
-		"tagFrom":  nil,
-		"tag":      nil,
-		"tagTo":    nil,
-		"comment":  nil,
-		"internal": nil,
-		"fee":      nil,
-		"info":     transaction,
+		"address":     func() any { if (withdrawalAddress != nil) { return withdrawalAddress }; return receivingAddress }(),
+		"addressTo":   withdrawalAddress,
+		"amount":      this.SafeNumber(transaction, "amount"),
+		"type":        func() any { if (withdrawId == nil) { return "deposit" }; return "withdrawal" }(),
+		"currency":    this.SafeCurrencyCode(currencyId, currency),
+		"status":      this.ParseTransactionStatus(status),
+		"updated":     nil,
+		"tagFrom":     nil,
+		"tag":         nil,
+		"tagTo":       nil,
+		"comment":     nil,
+		"internal":    nil,
+		"fee":         nil,
+		"info":        transaction,
 	}
 }
 func (this *Bitso) ParseTransactionStatus(status any) *string {
@@ -2475,7 +2455,7 @@ func (this *Bitso) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if (IsEqual(method, "GET")) || (IsEqual(method, "DELETE")) {
 		if len(ObjectKeys(query)) > 0 {
-			endpoint = Add(endpoint, "?"+this.Urlencode(query))
+			endpoint = Add(endpoint, "?" + this.Urlencode(query))
 		}
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), endpoint)
@@ -2521,7 +2501,7 @@ func (this *Bitso) HandleErrors(httpCode any, reason any, url any, method any, h
 			}
 		}
 		if success != true {
-			var feedback any = Add(this.Id+" ", this.Json(response))
+			var feedback any = Add(this.Id + " ", this.Json(response))
 			var error any = this.SafeValue(response, "error")
 			if IsEqual(error, nil) {
 				panic(ExchangeError(feedback))

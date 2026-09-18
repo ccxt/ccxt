@@ -1227,12 +1227,7 @@ func (this *Backpack) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			limit = defaultLimit
 		}
 		var duration any = this.ParseTimeframe(timeframe)
-		var endTime any = func() any {
-			if !IsEqual(until, nil) && !IsEqual(until, nil) && (!IsEqual(until, 0)) {
-				return this.ParseToInt(Divide(until, 1000))
-			}
-			return this.Seconds()
-		}()
+		var endTime any = func() any { if (!IsEqual(until, nil) && !IsEqual(until, nil) && (!IsEqual(until, 0))) { return this.ParseToInt(Divide(until, 1000)) }; return this.Seconds() }()
 		var startTime any = Subtract(endTime, (Multiply(limit, duration)))
 		request["startTime"] = startTime
 	} else {
@@ -1299,7 +1294,7 @@ func (this *Backpack) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	}
 	var market any = this.Market(symbol)
 	if IsEqual(GetValue(market, "spot"), true) {
-		panic(BadRequest(Add(this.Id+" fetchFundingRate() symbol does not support market ", symbol)))
+		panic(BadRequest(Add(this.Id + " fetchFundingRate() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -1376,7 +1371,7 @@ func (this *Backpack) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	}
 	var market any = this.Market(symbol)
 	if IsEqual(GetValue(market, "spot"), true) {
-		panic(BadRequest(Add(this.Id+" fetchOpenInterest() symbol does not support market ", symbol)))
+		panic(BadRequest(Add(this.Id + " fetchOpenInterest() symbol does not support market ", symbol)))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -1646,20 +1641,10 @@ func (this *Backpack) ParseTrade(trade any, optionalArgs ...any) any {
 	var isMaker *bool = this.SafeBool(trade, "isMaker")
 	var takerOrMaker any = nil
 	if isMaker != nil {
-		takerOrMaker = func() any {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (isMaker != nil && *isMaker) { return "maker" }; return "taker" }()
 	} else if isBuyerMaker != nil {
 		takerOrMaker = "taker"
-		side = func() any {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		side = func() any { if (isBuyerMaker != nil && *isBuyerMaker) { return "sell" }; return "buy" }()
 	}
 	var orderId *string = this.SafeString(trade, "orderId")
 	var fee any = nil
@@ -2313,12 +2298,7 @@ func (this *Backpack) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	var triggerPrice *string = this.SafeString(params, "triggerPrice")
 	var isTriggerOrder bool = (triggerPrice != nil)
-	var quantityKey any = func() any {
-		if isTriggerOrder {
-			return "triggerQuantity"
-		}
-		return "quantity"
-	}()
+	var quantityKey any = func() any { if isTriggerOrder { return "triggerQuantity" }; return "quantity" }()
 	// handle basic limit/market order types
 	if IsEqual(typeVar, "limit") {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -3003,12 +2983,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var endpoint any = Add("/", path)
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
-	var sortedParams any = func() any {
-		if IsArray(params) {
-			return params
-		}
-		return this.Keysort(params)
-	}()
+	var sortedParams any = func() any { if IsArray(params) { return params }; return this.Keysort(params) }()
 	if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var ts string = ToString(this.Nonce())
@@ -3044,7 +3019,7 @@ func (this *Backpack) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(method, "GET") {
 		var query string = this.Urlencode(sortedParams)
 		if GetLength(query) != 0 {
-			endpoint = Add(endpoint, "?"+query)
+			endpoint = Add(endpoint, "?" + query)
 		}
 	}
 	url = Add(url, endpoint)
@@ -3079,7 +3054,7 @@ func (this *Backpack) HandleErrors(code any, reason any, url any, method any, he
 	var errorCode *string = this.SafeString(response, "code")
 	var message *string = this.SafeString(response, "message")
 	if errorCode != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)

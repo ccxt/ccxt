@@ -402,12 +402,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isSellerMaker any = this.SafeValue(trade, "is_seller_maker")
 	var side any = nil
 	if !ccxt.IsEqual(isSellerMaker, nil) {
-		side = func() any {
-			if isSellerMaker == true {
-				return "sell"
-			}
-			return "buy"
-		}()
+		side = func() any { if (isSellerMaker == true) { return "sell" }; return "buy" }()
 	}
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "qty")

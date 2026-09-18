@@ -853,13 +853,8 @@ func (this *Deribit) CreateExpiredOptionMarket(symbol any) any {
 		"contractSize":   nil,
 		"expiry":         timestamp,
 		"expiryDatetime": datetime,
-		"optionType": func() any {
-			if optionType != nil && *optionType == "C" {
-				return "call"
-			}
-			return "put"
-		}(),
-		"strike": this.ParseNumber(strike),
+		"optionType":     func() any { if (optionType != nil && *optionType == "C") { return "call" }; return "put" }(),
+		"strike":         this.ParseNumber(strike),
 		"precision": map[string]any{
 			"amount": nil,
 			"price":  nil,
@@ -1062,12 +1057,7 @@ func (this *Deribit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var updateTime *int64 = this.SafeIntegerProduct(response, "usIn", 0.001, this.Milliseconds())
 
 	ch <- map[string]any{
-		"status": func() any {
-			if locked != nil && *locked == "false" {
-				return "ok"
-			}
-			return "maintenance"
-		}(),
+		"status":  func() any { if (locked != nil && *locked == "false") { return "ok" }; return "maintenance" }(),
 		"updated": updateTime,
 		"eta":     nil,
 		"url":     nil,
@@ -1358,12 +1348,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 					if option {
 						strike = this.SafeNumber(market, "strike")
 						optionType = DerefScalar(this.SafeString(market, "option_type"))
-						var letter any = func() any {
-							if IsEqual(optionType, "call") {
-								return "C"
-							}
-							return "P"
-						}()
+						var letter any = func() any { if (IsEqual(optionType, "call")) { return "C" }; return "P" }()
 						symbol = Add(Add(Add(Add(symbol, "-"), this.NumberToString(strike)), "-"), letter)
 					}
 				}
@@ -2087,12 +2072,7 @@ func (this *Deribit) ParseTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	if liquidity != nil {
 		// M = maker, T = taker, MT = both
-		takerOrMaker = func() any {
-			if liquidity != nil && *liquidity == "M" {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (liquidity != nil && *liquidity == "M") { return "maker" }; return "taker" }()
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
 	var fee any = nil
@@ -2702,12 +2682,7 @@ func (this *Deribit) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		request["type"] = "trailing_stop"
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
 	} else if isStopOrder {
-		var triggerPrice any = func() any {
-			if !IsEqual(stopLossPrice, nil) {
-				return stopLossPrice
-			}
-			return takeProfitPrice
-		}()
+		var triggerPrice any = func() any { if (!IsEqual(stopLossPrice, nil)) { return stopLossPrice }; return takeProfitPrice }()
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["trigger"] = trigger
 		if isStopLossOrder {
@@ -3539,12 +3514,7 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) any {
 	var contract *string = this.SafeString(position, "instrument_name")
 	market = this.SafeMarket(contract, market)
 	var side any = DerefScalar(this.SafeString(position, "direction"))
-	side = func() any {
-		if IsEqual(side, "buy") {
-			return "long"
-		}
-		return "short"
-	}()
+	side = func() any { if (IsEqual(side, "buy")) { return "long" }; return "short" }()
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")
@@ -3977,25 +3947,15 @@ func (this *Deribit) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var direction *string = this.SafeString(transfer, "direction")
 	var currencyId *string = this.SafeString(transfer, "currency")
 	return map[string]any{
-		"info":     transfer,
-		"id":       this.SafeString(transfer, "id"),
-		"status":   this.ParseTransferStatus(status),
-		"amount":   this.SafeNumber(transfer, "amount"),
-		"currency": this.SafeCurrencyCode(currencyId, currency),
-		"fromAccount": func() any {
-			if direction == nil || *direction != "payment" {
-				return account
-			}
-			return nil
-		}(),
-		"toAccount": func() any {
-			if direction != nil && *direction == "payment" {
-				return account
-			}
-			return nil
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"info":        transfer,
+		"id":          this.SafeString(transfer, "id"),
+		"status":      this.ParseTransferStatus(status),
+		"amount":      this.SafeNumber(transfer, "amount"),
+		"currency":    this.SafeCurrencyCode(currencyId, currency),
+		"fromAccount": func() any { if (direction == nil || *direction != "payment") { return account }; return nil }(),
+		"toAccount":   func() any { if (direction != nil && *direction == "payment") { return account }; return nil }(),
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
 	}
 }
 func (this *Deribit) ParseTransferStatus(status any) *string {
@@ -4392,7 +4352,7 @@ func (this *Deribit) fetchLiquidationsBody(ch chan any, symbol any, optionalArgs
 	}
 	var market any = this.Market(symbol)
 	if IsEqual(GetValue(market, "spot"), true) {
-		panic(NotSupported(Add(Add(this.Id+" fetchLiquidations() does not support ", GetValue(market, "type")), " markets")))
+		panic(NotSupported(Add(Add(this.Id + " fetchLiquidations() does not support ", GetValue(market, "type")), " markets")))
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
@@ -4491,7 +4451,7 @@ func (this *Deribit) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) a
 	}
 	var market any = this.Market(symbol)
 	if IsEqual(GetValue(market, "spot"), true) {
-		panic(NotSupported(Add(Add(this.Id+" fetchMyLiquidations() does not support ", GetValue(market, "type")), " markets")))
+		panic(NotSupported(Add(Add(this.Id + " fetchMyLiquidations() does not support ", GetValue(market, "type")), " markets")))
 	}
 	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
@@ -5041,10 +5001,10 @@ func (this *Deribit) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var request any = Add(Add(Add(Add(Add("/"+"api/", this.Version), "/"), api), "/"), path)
+	var request any = Add(Add(Add(Add(Add("/" + "api/", this.Version), "/"), api), "/"), path)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?"+this.Urlencode(params))
+			request = Add(request, "?" + this.Urlencode(params))
 		}
 	}
 	if IsEqual(api, "private") {
@@ -5053,10 +5013,10 @@ func (this *Deribit) Sign(path any, optionalArgs ...any) any {
 		var timestamp string = ToString(this.Milliseconds())
 		var requestBody string = ""
 		if len(ObjectKeys(params)) > 0 {
-			request = Add(request, "?"+this.Urlencode(params))
+			request = Add(request, "?" + this.Urlencode(params))
 		}
 		var requestData any = Add(Add(Add(Add(Add(method, "\n"), request), "\n"), requestBody), "\n") // eslint-disable-line quotes
-		var auth any = Add(timestamp+"\n"+nonce+"\n", requestData)                                    // eslint-disable-line quotes
+		var auth any = Add(timestamp + "\n" + nonce + "\n", requestData)                              // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		headers = map[string]any{
 			"Authorization": Add(Add(Add(Add(Add(Add(Add(Add("deri-hmac-sha256 id=", this.ApiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce),
@@ -5091,7 +5051,7 @@ func (this *Deribit) HandleErrors(httpCode any, reason any, url any, method any,
 	var error any = this.SafeValue(response, "error")
 	if !IsEqual(error, nil) {
 		var errorCode *string = this.SafeString(error, "code")
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))
 	}

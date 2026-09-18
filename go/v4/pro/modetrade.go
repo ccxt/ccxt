@@ -691,12 +691,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var takerOrMaker any = nil
 	var maker *bool = this.SafeBool(trade, "maker")
 	if maker != nil {
-		takerOrMaker = func() any {
-			if maker != nil && *maker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (maker != nil && *maker) { return "maker" }; return "taker" }()
 	}
 	var fee map[string]any = map[string]any{}
 	var feeValue *string = this.SafeString(trade, "fee")
@@ -874,12 +869,7 @@ func (this *Modetrade) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes69412)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreport"
-		}
-		return "executionreport"
-	}()
+	var topic any = func() any { if (trigger != nil && *trigger == true) { return "algoexecutionreport" }; return "executionreport" }()
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	if symbol != nil {
@@ -938,12 +928,7 @@ func (this *Modetrade) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes73212)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreport"
-		}
-		return "executionreport"
-	}()
+	var topic any = func() any { if (trigger != nil && *trigger == true) { return "algoexecutionreport" }; return "executionreport" }()
 	params = this.Omit(params, "stop")
 	var messageHash any = "myTrades"
 	if symbol != nil {
@@ -1124,12 +1109,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message any) {
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var order any = ccxt.GetValue(data, i)
 			var tradeIdStr *string = this.SafeString(data, "tradeId")
-			var tradeId any = func() any {
-				if tradeIdStr == nil {
-					return nil
-				}
-				return this.OmitZero(tradeIdStr)
-			}()
+			var tradeId any = func() any { if (tradeIdStr == nil) { return nil }; return this.OmitZero(tradeIdStr) }()
 			if tradeId != nil {
 				this.HandleMyTrade(client, order)
 			}
@@ -1138,12 +1118,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message any) {
 	} else {
 		// executionreport
 		var tradeIdStr *string = this.SafeString(data, "tradeId")
-		var tradeId any = func() any {
-			if tradeIdStr == nil {
-				return nil
-			}
-			return this.OmitZero(tradeIdStr)
-		}()
+		var tradeId any = func() any { if (tradeIdStr == nil) { return nil }; return this.OmitZero(tradeIdStr) }()
 		if tradeId != nil {
 			this.HandleMyTrade(client, data)
 		}
@@ -1161,12 +1136,7 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 		}
 		var cachedOrders any = this.Orders
 		var orders any = this.SafeDict(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
-		var order any = func() any {
-			if orderId == nil {
-				return nil
-			}
-			return this.SafeDict(orders, orderId)
-		}()
+		var order any = func() any { if (orderId == nil) { return nil }; return this.SafeDict(orders, orderId) }()
 		if !ccxt.IsEqual(order, nil) {
 			var fee any = this.SafeValue(order, "fee")
 			if !ccxt.IsEqual(fee, nil) {
@@ -1228,7 +1198,7 @@ func (this *Modetrade) HandleMyTrade(client any, message any) {
 	}
 	trades.(ccxt.Appender).Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
-	var symbolSpecificMessageHash any = ccxt.Add(messageHash+":", symbol)
+	var symbolSpecificMessageHash any = ccxt.Add(messageHash + ":", symbol)
 	client.(ccxt.ClientInterface).Resolve(trades, symbolSpecificMessageHash)
 }
 
@@ -1601,7 +1571,7 @@ func (this *Modetrade) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorMessage != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false
@@ -1634,12 +1604,7 @@ func (this *Modetrade) HandleMessage(client any, message any) {
 		"bbos":                this.HandleBidAsk,
 	}
 	var event *string = this.SafeString(message, "event")
-	var method any = func() any {
-		if event == nil {
-			return nil
-		}
-		return this.SafeValue(methods, event)
-	}()
+	var method any = func() any { if (event == nil) { return nil }; return this.SafeValue(methods, event) }()
 	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 		return
@@ -1667,12 +1632,7 @@ func (this *Modetrade) HandleMessage(client any, message any) {
 			var splitNameLength int = len(splitTopic)
 			if splitNameLength == 2 {
 				var splitNameFirst *string = this.SafeString(splitName, 0)
-				method = func() any {
-					if splitNameFirst == nil {
-						return nil
-					}
-					return this.SafeValue(methods, splitNameFirst)
-				}()
+				method = func() any { if (splitNameFirst == nil) { return nil }; return this.SafeValue(methods, splitNameFirst) }()
 				if !ccxt.IsEqual(method, nil) {
 					ccxt.CallDynamically(method, client, message)
 				}

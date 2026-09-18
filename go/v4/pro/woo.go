@@ -98,12 +98,7 @@ func (this *Woo) WatchPublicAsync(messageHash any, message any) <-chan any {
 func (this *Woo) watchPublicBody(ch chan any, messageHash any, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var urlUid any = func() any {
-		if this.Uid != "" {
-			return ccxt.Add("/", this.Uid)
-		}
-		return ""
-	}()
+	var urlUid any = func() any { if (this.Uid != "") { return ccxt.Add("/", this.Uid) }; return "" }()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId any = this.RequestId(url)
 	var subscribe map[string]any = map[string]any{
@@ -126,12 +121,7 @@ func (this *Woo) unwatchPublicBody(ch chan any, subHash any, symbol any, topic a
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var urlUid any = func() any {
-		if this.Uid != "" {
-			return ccxt.Add("/", this.Uid)
-		}
-		return ""
-	}()
+	var urlUid any = func() any { if (this.Uid != "") { return ccxt.Add("/", this.Uid) }; return "" }()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId any = this.RequestId(url)
 	var unsubHash any = ccxt.Add("unsubscribe::", subHash)
@@ -195,12 +185,7 @@ func (this *Woo) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any
 	params = ccxt.GetValue(methodparamsVariable, 1)
 	var market any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), method)
-	var urlUid any = func() any {
-		if this.Uid != "" {
-			return ccxt.Add("/", this.Uid)
-		}
-		return ""
-	}()
+	var urlUid any = func() any { if (this.Uid != "") { return ccxt.Add("/", this.Uid) }; return "" }()
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), urlUid)
 	var requestId any = this.RequestId(url)
 	var request map[string]any = map[string]any{
@@ -1160,12 +1145,7 @@ func (this *Woo) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var maker *bool = this.SafeBool(trade, "maker")
 	var takerOrMaker any = nil
 	if maker != nil {
-		takerOrMaker = func() any {
-			if maker != nil && *maker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (maker != nil && *maker) { return "maker" }; return "taker" }()
 	}
 	var typeVar *string = this.SafeStringLower(trade, "type")
 	var fee any = nil
@@ -1328,12 +1308,7 @@ func (this *Woo) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes97912)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreportv2"
-		}
-		return "executionreport"
-	}()
+	var topic any = func() any { if (trigger != nil && *trigger == true) { return "algoexecutionreportv2" }; return "executionreport" }()
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = topic
 	if symbol != nil {
@@ -1392,12 +1367,7 @@ func (this *Woo) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes101712)
 	}
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger", false)
-	var topic any = func() any {
-		if trigger != nil && *trigger == true {
-			return "algoexecutionreportv2"
-		}
-		return "executionreport"
-	}()
+	var topic any = func() any { if (trigger != nil && *trigger == true) { return "algoexecutionreportv2" }; return "executionreport" }()
 	params = this.Omit(params, []any{"stop", "trigger"})
 	var messageHash any = "myTrades"
 	if symbol != nil {
@@ -2022,7 +1992,7 @@ func (this *Woo) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if errorMessage != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorMessage, feedback)
 			}
 			return false

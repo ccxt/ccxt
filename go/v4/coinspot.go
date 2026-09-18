@@ -1192,7 +1192,7 @@ func (this *Coinspot) HandleErrors(httpCode any, reason any, url any, method any
 	}
 	var status *string = this.SafeString(response, "status")
 	if status != nil && *status == "error" {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback any = Add(this.Id + " ", this.Json(response))
 		panic(ExchangeError(feedback))
 	}
 	return nil
@@ -1209,25 +1209,10 @@ func (this *Coinspot) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var isVersionedApi bool = IsArray(api)
-	var version any = func() any {
-		if isVersionedApi {
-			return GetValue(api, 0)
-		}
-		return nil
-	}()
-	var accessType any = func() any {
-		if isVersionedApi {
-			return GetValue(api, 1)
-		}
-		return api
-	}()
+	var version any = func() any { if isVersionedApi { return GetValue(api, 0) }; return nil }()
+	var accessType any = func() any { if isVersionedApi { return GetValue(api, 1) }; return api }()
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
-	var fullPath any = func() any {
-		if !IsEqual(version, nil) {
-			return Add(Add("/", version), endpoint)
-		}
-		return endpoint
-	}()
+	var fullPath any = func() any { if (!IsEqual(version, nil)) { return Add(Add("/", version), endpoint) }; return endpoint }()
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), accessType), fullPath)
 	if IsEqual(accessType, "private") {
 		this.CheckRequiredCredentials()

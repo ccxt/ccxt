@@ -88,7 +88,7 @@ func (this *Extended) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbooks/"), ccxt.GetValue(market, "id"))
 	if ccxt.GetLength(query) > 0 {
-		url = ccxt.Add(url, "?"+query)
+		url = ccxt.Add(url, "?" + query)
 	}
 
 	orderbook := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
@@ -491,7 +491,7 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var messageHash any = "positions"
 	if !ccxt.IsEqual(symbols, nil) {
-		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
+		messageHash = ccxt.Add(messageHash, "::" + ccxt.Join(symbols, ","))
 	}
 
 	positions := (<-this.WatchPrivateAsync(messageHash, map[string]any{
@@ -660,7 +660,7 @@ func (this *Extended) watchFundingRateBody(ch chan any, symbol any, optionalArgs
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/funding/"), ccxt.GetValue(market, "id"))
 	if ccxt.GetLength(query) > 0 {
-		url = ccxt.Add(url, "?"+query)
+		url = ccxt.Add(url, "?" + query)
 	}
 
 	retRes54115 := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
@@ -751,7 +751,7 @@ func (this *Extended) watchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/prices/mark/"), ccxt.GetValue(market, "id"))
 	if ccxt.GetLength(query) > 0 {
-		url = ccxt.Add(url, "?"+query)
+		url = ccxt.Add(url, "?" + query)
 	}
 
 	retRes61515 := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
@@ -832,7 +832,7 @@ func (this *Extended) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/publicTrades/"), ccxt.GetValue(market, "id"))
 	if ccxt.GetLength(query) > 0 {
-		url = ccxt.Add(url, "?"+query)
+		url = ccxt.Add(url, "?" + query)
 	}
 
 	trades := (<-this.Watch(url, messageHash, nil, messageHash, map[string]any{
@@ -991,12 +991,7 @@ func (this *Extended) HandleOHLCV(client any, message any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	var timeframe *string = this.SafeString(subscription, "timeframe")
 	var candleType *string = this.SafeString(subscription, "candleType")
-	var cacheKey any = func() any {
-		if candleType != nil && *candleType == "trades" {
-			return timeframe
-		}
-		return ccxt.Add(ccxt.Add(timeframe, ":"), candleType)
-	}()
+	var cacheKey any = func() any { if (candleType != nil && *candleType == "trades") { return timeframe }; return ccxt.Add(ccxt.Add(timeframe, ":"), candleType) }()
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), cacheKey)
@@ -1039,7 +1034,7 @@ func (this *Extended) HandleErrorMessage(client any, message any) any {
 	if ccxt.IsEqual(error, nil) {
 		return false
 	}
-	var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+	var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 	var errorCode *string = this.SafeString(error, "code")
 	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 	var errorMessage *string = this.SafeString(error, "message")

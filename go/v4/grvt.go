@@ -786,7 +786,7 @@ func (this *Grvt) signInWithApiKeyBody(ch chan any, optionalArgs ...any) any {
 	// expires in 24 hours as CS suggested
 	var expires *int64 = this.SafeInteger(this.Options, "signInExpiration", 0)
 	// if previous sign-in not expired (give 10 seconds margin)
-	if (expires != nil) && IsGreaterThan(expires, now+10000) {
+	if (expires != nil) && IsGreaterThan(expires, now + 10000) {
 
 		ch <- map[string]any{}
 		return nil
@@ -803,7 +803,7 @@ func (this *Grvt) signInWithApiKeyBody(ch chan any, optionalArgs ...any) any {
 	//        "status": "success"
 	//    }
 	//
-	AddElementToObject(this.Options, "signInExpiration", now+86400000) // 24 hours
+	AddElementToObject(this.Options, "signInExpiration", now + 86400000) // 24 hours
 
 	ch <- response
 	return nil
@@ -823,7 +823,7 @@ func (this *Grvt) signInWithPrivateKeyBody(ch chan any, optionalArgs ...any) any
 	// expires in 24 hours as CS suggested
 	var expires *int64 = this.SafeInteger(this.Options, "signInExpiration", 0)
 	// if previous sign-in not expired (give 10 seconds margin)
-	if (expires != nil) && IsGreaterThan(expires, now+10000) {
+	if (expires != nil) && IsGreaterThan(expires, now + 10000) {
 
 		ch <- map[string]any{}
 		return nil
@@ -843,7 +843,7 @@ func (this *Grvt) signInWithPrivateKeyBody(ch chan any, optionalArgs ...any) any
 	//        "status": "success"
 	//    }
 	//
-	AddElementToObject(this.Options, "signInExpiration", now+86400000) // 24 hours
+	AddElementToObject(this.Options, "signInExpiration", now + 86400000) // 24 hours
 
 	ch <- response
 	return nil
@@ -1050,34 +1050,24 @@ func (this *Grvt) ParseMarket(market any) any {
 	var isFuture bool = (IsEqual(typeVar, "future"))
 	var isContract bool = isSwap || isFuture
 	return map[string]any{
-		"id":       marketId,
-		"symbol":   symbol,
-		"base":     base,
-		"quote":    quote,
-		"settle":   settle,
-		"baseId":   baseId,
-		"quoteId":  quoteId,
-		"settleId": settleId,
-		"type":     typeVar,
-		"spot":     isSpot,
-		"margin":   false,
-		"swap":     isSwap,
-		"future":   isFuture,
-		"option":   false,
-		"active":   nil,
-		"contract": isContract,
-		"linear": func() any {
-			if isSwap {
-				return true
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if isSwap {
-				return false
-			}
-			return nil
-		}(),
+		"id":             marketId,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         settle,
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       settleId,
+		"type":           typeVar,
+		"spot":           isSpot,
+		"margin":         false,
+		"swap":           isSwap,
+		"future":         isFuture,
+		"option":         false,
+		"active":         nil,
+		"contract":       isContract,
+		"linear":         func() any { if isSwap { return true }; return nil }(),
+		"inverse":        func() any { if isSwap { return false }; return nil }(),
 		"contractSize":   this.ParseNumber("1"),
 		"expiry":         nil,
 		"expiryDatetime": nil,
@@ -1511,28 +1501,13 @@ func (this *Grvt) ParseTrade(trade any, optionalArgs ...any) any {
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side any = nil
 	if isTakerBuyer != nil {
-		side = func() any {
-			if isTakerBuyer != nil && *isTakerBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (isTakerBuyer != nil && *isTakerBuyer) { return "buy" }; return "sell" }()
 		takerOrMaker = "taker"
 	} else {
 		var isTaker bool = (IsEqual(this.SafeBool(trade, "is_taker"), true))
 		var isBuyer bool = (IsEqual(this.SafeBool(trade, "is_buyer"), true))
-		takerOrMaker = func() any {
-			if isTaker {
-				return "taker"
-			}
-			return "maker"
-		}()
-		side = func() any {
-			if isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		takerOrMaker = func() any { if isTaker { return "taker" }; return "maker" }()
+		side = func() any { if isBuyer { return "buy" }; return "sell" }()
 	}
 	var fee any = nil
 	var feeString *string = this.SafeString(trade, "fee")
@@ -2403,18 +2378,8 @@ func (this *Grvt) transferBody(ch chan any, code any, amount any, fromAccount an
 		if (tradingAccountId == nil) || (fundingAccountId == nil) {
 			panic(ArgumentsRequired(this.Id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)"))
 		}
-		fromAccount = func() any {
-			if IsEqual(fromAccount, "trading") {
-				return tradingAccountId
-			}
-			return fundingAccountId
-		}()
-		toAccount = func() any {
-			if IsEqual(toAccount, "trading") {
-				return tradingAccountId
-			}
-			return fundingAccountId
-		}()
+		fromAccount = func() any { if (IsEqual(fromAccount, "trading")) { return tradingAccountId }; return fundingAccountId }()
+		toAccount = func() any { if (IsEqual(toAccount, "trading")) { return tradingAccountId }; return fundingAccountId }()
 	}
 	var request any = map[string]any{
 		"from_account_id":     this.SafeString(params, "from_account_id", defaultFromAccountId),
@@ -2581,7 +2546,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 			panic(ArgumentsRequired(this.Id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website"))
 		}
 		if length > 1 {
-			panic(ArgumentsRequired(Add(this.Id+" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ", this.Json(subAccountIds))))
+			panic(ArgumentsRequired(Add(this.Id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ", this.Json(subAccountIds))))
 		}
 		var subAccountId *string = this.SafeString(subAccountIds, 0)
 		AddElementToObject(this.Options, "accountId", subAccountId)
@@ -2773,19 +2738,9 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 		var selectedType any = nil
 		var isBuy bool = (IsEqual(side, "buy"))
 		if stopLossPrice != nil {
-			selectedType = func() any {
-				if isBuy {
-					return "STOP_LOSS"
-				}
-				return "TAKE_PROFIT"
-			}()
+			selectedType = func() any { if isBuy { return "STOP_LOSS" }; return "TAKE_PROFIT" }()
 		} else if takeProfitPrice != nil {
-			selectedType = func() any {
-				if isBuy {
-					return "TAKE_PROFIT"
-				}
-				return "STOP_LOSS"
-			}()
+			selectedType = func() any { if isBuy { return "TAKE_PROFIT" }; return "STOP_LOSS" }()
 		} else {
 			var triggerDirection *string = this.SafeString(params, "triggerDirection")
 			if triggerDirection == nil {
@@ -2793,19 +2748,9 @@ func (this *Grvt) createOrderBody(ch chan any, symbol any, typeVar any, side any
 			}
 			if triggerDirection != nil {
 				if triggerDirection != nil && *triggerDirection == "ascending" {
-					selectedType = func() any {
-						if isBuy {
-							return "STOP_LOSS"
-						}
-						return "TAKE_PROFIT"
-					}()
+					selectedType = func() any { if isBuy { return "STOP_LOSS" }; return "TAKE_PROFIT" }()
 				} else if triggerDirection != nil && *triggerDirection == "descending" {
-					selectedType = func() any {
-						if isBuy {
-							return "TAKE_PROFIT"
-						}
-						return "STOP_LOSS"
-					}()
+					selectedType = func() any { if isBuy { return "TAKE_PROFIT" }; return "STOP_LOSS" }()
 				}
 			}
 		}
@@ -2933,12 +2878,7 @@ func (this *Grvt) EipMessageForOrder(order any, structureType any) any {
 			var limitDec *string = this.SafeString(limitParts, 1, "")
 			var limitDecLength any = GetLength(limitDec) + 0 // php tr
 			var limitDecLengthStr string = ToString(limitDecLength)
-			var powerNum any = func() any {
-				if limitDecLengthStr == "0" {
-					return 0
-				}
-				return this.ConvertToBigIntCustom(limitDecLengthStr)
-			}()
+			var powerNum any = func() any { if (limitDecLengthStr == "0") { return 0 }; return this.ConvertToBigIntCustom(limitDecLengthStr) }()
 			var priceInteger any = (Divide(Multiply(this.ConvertToBigIntCustom(Replace(price, ".", "")), this.ConvertToBigIntCustom(priceMultiplier)), (MathPow(bigInt10, powerNum))))
 			legOrder["limitPrice"] = this.ParseToInt(priceInteger)
 		} else {
@@ -3172,12 +3112,7 @@ func (this *Grvt) ParsePosition(position any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerProduct(position, "event_time", 0.000001)
 	var sizeRaw *string = this.SafeString(position, "size")
 	var isLong bool = (Precise.StringGe(sizeRaw, "0"))
-	var side any = func() any {
-		if isLong {
-			return "long"
-		}
-		return "short"
-	}()
+	var side any = func() any { if isLong { return "long" }; return "short" }()
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -3924,21 +3859,11 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		})
 	}
 	var isMarket *bool = this.SafeBool(order, "is_market")
-	var orderType any = func() any {
-		if isMarket != nil && *isMarket == true {
-			return "market"
-		}
-		return "limit"
-	}()
+	var orderType any = func() any { if (isMarket != nil && *isMarket == true) { return "market" }; return "limit" }()
 	var isPostOnly *bool = this.SafeBool(order, "post_only")
 	var isReduceOnly *bool = this.SafeBool(order, "reduce_only")
 	var timeInForceRaw *string = this.SafeString(order, "time_in_force")
-	var timeInForce any = func() any {
-		if isPostOnly != nil && *isPostOnly == true {
-			return "PO"
-		}
-		return this.ParseTimeInForce(timeInForceRaw)
-	}()
+	var timeInForce any = func() any { if (isPostOnly != nil && *isPostOnly == true) { return "PO" }; return this.ParseTimeInForce(timeInForceRaw) }()
 	var size any = nil
 	var side any = nil
 	var price any = nil
@@ -3956,12 +3881,7 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(marketId, market)
 		size = DerefScalar(this.SafeString(firstLeg, "size"))
 		var isBuyingAsset bool = (IsEqual(this.SafeBool(firstLeg, "is_buying_asset"), true))
-		side = func() any {
-			if isBuyingAsset {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if isBuyingAsset { return "buy" }; return "sell" }()
 		price = DerefScalar(this.SafeString(firstLeg, "limit_price"))
 		filled = DerefScalar(this.SafeString(filledAmounts, primaryOrderIndex))
 		avgPrice = DerefScalar(this.SafeString(avgPrices, primaryOrderIndex))
@@ -4139,12 +4059,7 @@ func (this *Grvt) EipDomainData() any {
 	return map[string]any{
 		"name":    "GRVT Exchange",
 		"version": "0",
-		"chainId": func() any {
-			if this.IsSandboxModeEnabled {
-				return 326
-			}
-			return 325
-		}(),
+		"chainId": func() any { if this.IsSandboxModeEnabled { return 326 }; return 325 }(),
 	}
 }
 func (this *Grvt) FeeAmountMultiplier() any {
@@ -4209,23 +4124,13 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 	var ethEncodedMessage any = this.EthEncodeStructuredData(domainData, GetValue(definitions, structureType), messageData)
 	var ethEncodedMessageHashed any = Add("0x", this.Hash(ethEncodedMessage, keccak, "hex"))
 	var usesPrivKey bool = this.UsesPrivateKey() // py transpiler needs this line separated
-	var secretOrPrivkey any = func() any {
-		if usesPrivKey {
-			return this.PrivateKey
-		}
-		return this.Secret
-	}()
+	var secretOrPrivkey any = func() any { if usesPrivKey { return this.PrivateKey }; return this.Secret }()
 	var privateKeyWithoutZero string = this.Remove0xPrefix(secretOrPrivkey)
 	var signature map[string]any = Ecdsa(this.Remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, nil)
 	AddElementToObject(GetValue(request, "signature"), "r", this.FormatSignatureRS(signature["r"]))
 	AddElementToObject(GetValue(request, "signature"), "s", this.FormatSignatureRS(signature["s"]))
 	AddElementToObject(GetValue(request, "signature"), "v", this.Sum(27, signature["v"]))
-	AddElementToObject(GetValue(request, "signature"), "signer", func() any {
-		if signerAddress == nil {
-			return this.EthGetAddressFromPrivateKey("0x" + privateKeyWithoutZero)
-		}
-		return signerAddress
-	}())
+	AddElementToObject(GetValue(request, "signature"), "signer", func() any { if (signerAddress == nil) { return this.EthGetAddressFromPrivateKey("0x" + privateKeyWithoutZero) }; return signerAddress }())
 	return request
 }
 func (this *Grvt) FormatSignatureRS(value any) any {
@@ -4237,7 +4142,7 @@ func (this *Grvt) FormatSignatureRS(value any) any {
 	}
 }
 func (this *Grvt) DefaultSignature() any {
-	var expiration any = Add(this.Milliseconds()*1000000, Multiply(Multiply(1000000, this.SafeInteger(this.Options, "expirationSeconds", 30)), 1000))
+	var expiration any = Add(this.Milliseconds() * 1000000, Multiply(Multiply(1000000, this.SafeInteger(this.Options, "expirationSeconds", 30)), 1000))
 	return map[string]any{
 		"signer":     "",
 		"r":          "",
@@ -4245,12 +4150,7 @@ func (this *Grvt) DefaultSignature() any {
 		"v":          0,
 		"expiration": ToString(expiration),
 		"nonce":      this.Nonce(),
-		"chain_id": func() any {
-			if this.IsSandboxModeEnabled {
-				return "326"
-			}
-			return "325"
-		}(),
+		"chain_id":   func() any { if this.IsSandboxModeEnabled { return "326" }; return "325" }(),
 	}
 }
 func (this *Grvt) HandleUntilOptionString(key any, request any, params any, optionalArgs ...any) any {
@@ -4285,7 +4185,7 @@ func (this *Grvt) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(method, "GET") {
 		if len(ObjectKeys(query)) > 0 {
 			queryString = this.Urlencode(query)
-			url = Add(url, "?"+queryString)
+			url = Add(url, "?" + queryString)
 		}
 	} else if IsEqual(method, "POST") {
 		// the venue rejects json POSTs without an explicit content type with 1003 malformed syntax,
@@ -4346,19 +4246,19 @@ func (this *Grvt) HandleErrors(code any, reason any, url any, method any, header
 	} else {
 		var errorCode *string = this.SafeString(response, "code")
 		if errorCode != nil {
-			var feedback any = Add(this.Id+" ", body)
+			var feedback any = Add(this.Id + " ", body)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 			panic(ExchangeError(feedback))
 		} else {
 			var message *string = this.SafeString(response, "message")
 			if message != nil {
-				var feedback any = Add(this.Id+" ", body)
+				var feedback any = Add(this.Id + " ", body)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 				panic(ExchangeError(feedback))
 			} else {
 				var status *string = this.SafeString(response, "status")
 				if (status != nil) && (status == nil || *status != "success") {
-					var feedback any = Add(this.Id+" ", body)
+					var feedback any = Add(this.Id + " ", body)
 					panic(ExchangeError(feedback))
 				}
 			}

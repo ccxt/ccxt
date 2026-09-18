@@ -112,12 +112,7 @@ func (this *Hitbtc) authenticateBody(ch chan any) any {
 	if ccxt.IsEqual(authenticated, nil) {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
-		var timestampEncoded any = func() any {
-			if timestampString == nil {
-				return ""
-			}
-			return timestampString
-		}()
+		var timestampEncoded any = func() any { if (timestampString == nil) { return "" }; return timestampString }()
 		var signature string = this.Hmac(this.Encode(timestampEncoded), this.Encode(this.Secret), ccxt.Sha256, "hex")
 		var request map[string]any = map[string]any{
 			"method": "login",
@@ -347,12 +342,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 	//
 	var snapshot any = this.SafeDict(message, "snapshot")
 	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
-	var typeVar any = func() any {
-		if !ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil) {
-			return "snapshot"
-		}
-		return "update"
-	}()
+	var typeVar any = func() any { if (!ccxt.IsEqual(snapshot, nil) && !ccxt.IsEqual(snapshot, nil)) { return "snapshot" }; return "update" }()
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
@@ -546,7 +536,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 		var ticker any = this.ParseWsTicker(ccxt.GetValue(data, marketId), market)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AppendToArray(&result, ticker)
-		var messageHash any = ccxt.Add(topic+"::", symbol)
+		var messageHash any = ccxt.Add(topic + "::", symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
@@ -694,7 +684,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message any) {
 		var ticker any = this.ParseWsBidAsk(ccxt.GetValue(data, marketId), market)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		ccxt.AppendToArray(&result, ticker)
-		var messageHash any = ccxt.Add(topic+"::", symbol)
+		var messageHash any = ccxt.Add(topic + "::", symbol)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
@@ -703,12 +693,7 @@ func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
-	var bidAskSymbol any = func() any {
-		if !ccxt.IsEqual(market, nil) {
-			return ccxt.GetValue(market, "symbol")
-		}
-		return nil
-	}()
+	var bidAskSymbol any = func() any { if (!ccxt.IsEqual(market, nil)) { return ccxt.GetValue(market, "symbol") }; return nil }()
 	return this.SafeTicker(map[string]any{
 		"symbol":    bidAskSymbol,
 		"timestamp": timestamp,
@@ -1698,12 +1683,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 			"spot_balance":    this.HandleBalance,
 			"futures_balance": this.HandleBalance,
 		}
-		var method any = func() any {
-			if channel == nil {
-				return nil
-			}
-			return this.SafeValue(methods, channel)
-		}()
+		var method any = func() any { if (channel == nil) { return nil }; return this.SafeValue(methods, channel) }()
 		if !ccxt.IsEqual(method, nil) {
 			ccxt.CallDynamically(method, client, message)
 		}
@@ -1739,7 +1719,7 @@ func (this *Hitbtc) HandleAuthenticate(client any, message any) any {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)
 	} else {
-		error := ccxt.AuthenticationError(ccxt.Add(this.Id+" ", this.Json(message)))
+		error := ccxt.AuthenticationError(ccxt.Add(this.Id + " ", this.Json(message)))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
 		if ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash) {
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1790,7 +1770,7 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 				var code any = this.SafeValue(error, "code")
 				var errorMessage *string = this.SafeString(error, "message")
 				var description *string = this.SafeString(error, "description")
-				var feedback any = ccxt.Add(this.Id+" ", description)
+				var feedback any = ccxt.Add(this.Id + " ", description)
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 				this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 				panic(ccxt.ExchangeError(feedback))

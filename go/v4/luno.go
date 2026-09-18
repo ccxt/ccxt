@@ -904,12 +904,7 @@ func (this *Luno) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "creation_timestamp")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
-	status = func() any {
-		if IsEqual(status, "open") {
-			return status
-		}
-		return status
-	}()
+	status = func() any { if (IsEqual(status, "open")) { return status }; return status }()
 	var side any = nil
 	var orderType *string = this.SafeString(order, "type")
 	if (orderType != nil && *orderType == "ASK") || (orderType != nil && *orderType == "SELL") {
@@ -1324,12 +1319,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 			takerOrMaker = "taker"
 		}
 	} else {
-		side = func() any {
-			if IsEqual(GetValue(trade, "is_buy"), true) {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (IsEqual(GetValue(trade, "is_buy"), true)) { return "buy" }; return "sell" }()
 	}
 	var feeBaseString *string = this.SafeString(trade, "fee_base")
 	var feeCounterString *string = this.SafeString(trade, "fee_counter")
@@ -1686,12 +1676,7 @@ func (this *Luno) createOrderBody(ch chan any, symbol any, typeVar any, side any
 	} else {
 		request["volume"] = this.AmountToPrecision(GetValue(market, "symbol"), amount)
 		request["price"] = this.PriceToPrecision(GetValue(market, "symbol"), price)
-		request["type"] = func() any {
-			if IsEqual(side, "buy") {
-				return "BID"
-			}
-			return "ASK"
-		}()
+		request["type"] = func() any { if (IsEqual(side, "buy")) { return "BID" }; return "ASK" }()
 
 		response = (<-this.PrivatePostPostorder(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1833,7 +1818,7 @@ func (this *Luno) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
 		var account any = this.SafeValue(accountsByCurrencyCode, code)
 		if IsEqual(account, nil) {
-			panic(ExchangeError(Add(this.Id+" fetchLedger() could not find account id for ", code)))
+			panic(ExchangeError(Add(this.Id + " fetchLedger() could not find account id for ", code)))
 		}
 		id = GetValue(account, "id")
 	}
@@ -2164,7 +2149,7 @@ func (this *Luno) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if len(ObjectKeys(query)) > 0 {
-		url = Add(url, "?"+this.Urlencode(query))
+		url = Add(url, "?" + this.Urlencode(query))
 	}
 	if (IsEqual(api, "private")) || (IsEqual(api, "exchangePrivate")) {
 		this.CheckRequiredCredentials()
@@ -2186,7 +2171,7 @@ func (this *Luno) HandleErrors(httpCode any, reason any, url any, method any, he
 	}
 	var error any = this.SafeValue(response, "error")
 	if !IsEqual(error, nil) {
-		var feedback any = Add(this.Id+" ", this.Json(response))
+		var feedback any = Add(this.Id + " ", this.Json(response))
 		var errorCode *string = this.SafeString(response, "error_code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		panic(ExchangeError(feedback))

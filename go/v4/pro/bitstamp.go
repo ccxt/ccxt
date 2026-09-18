@@ -391,12 +391,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var sideRaw *int64 = this.SafeInteger(trade, "type")
-	var side any = func() any {
-		if sideRaw != nil && *sideRaw == 0 {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side any = func() any { if (sideRaw != nil && *sideRaw == 0) { return "buy" }; return "sell" }()
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
@@ -563,7 +558,7 @@ func (this *Bitstamp) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var channel string = "private-my_orders"
-	var messageHash any = ccxt.Add(channel+"_", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(channel + "_", ccxt.GetValue(market, "id"))
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
@@ -661,7 +656,7 @@ func (this *Bitstamp) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var channel string = "private-my_trades"
-	var messageHash any = ccxt.Add(channel+"_", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(channel + "_", ccxt.GetValue(market, "id"))
 	var subscription map[string]any = map[string]any{
 		"symbol": symbol,
 		"limit":  limit,
@@ -740,12 +735,7 @@ func (this *Bitstamp) HandleMyTrades(client any, message any) {
 	//
 	var channel *string = this.SafeString(message, "channel")
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var subscription any = func() any {
-		if channel == nil {
-			return nil
-		}
-		return this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
-	}()
+	var subscription any = func() any { if (channel == nil) { return nil }; return this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel) }()
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
 		// cleanUnsubscription deletes the subscription, so a trade frame
@@ -839,12 +829,7 @@ func (this *Bitstamp) HandleOrders(client any, message any) {
 	//
 	var channel *string = this.SafeString(message, "channel")
 	var order any = this.SafeDict(message, "data", map[string]any{})
-	var subscription any = func() any {
-		if channel == nil {
-			return nil
-		}
-		return this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel)
-	}()
+	var subscription any = func() any { if (channel == nil) { return nil }; return this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), channel) }()
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
 		// cleanUnsubscription deletes the subscription, so an order frame
@@ -889,12 +874,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var id *string = this.SafeString(order, "id_str")
 	var orderTypeRaw *string = this.SafeStringLower(order, "order_type")
-	var side any = func() any {
-		if orderTypeRaw != nil && *orderTypeRaw == "1" {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side any = func() any { if (orderTypeRaw != nil && *orderTypeRaw == "1") { return "sell" }; return "buy" }()
 	var orderSubTypeRaw *string = this.SafeStringLower(order, "order_subtype") // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
 	var orderType any = nil
 	var timeInForce any = nil
@@ -1116,7 +1096,7 @@ func (this *Bitstamp) HandleErrorMessage(client any, message any) any {
 	// }
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "bts:error" {
-		var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+		var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 		var data any = this.SafeValue(message, "data", map[string]any{})
 		var code *float64 = this.SafeNumber(data, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)

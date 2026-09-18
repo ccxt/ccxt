@@ -811,7 +811,7 @@ func (this *Bitfinex) GetCurrencyName(code any) any {
 	if InOp(GetValue(this.Options, "currencyNames"), code) {
 		return GetValue(GetValue(this.Options, "currencyNames"), code)
 	}
-	panic(NotSupported(Add(Add(this.Id+" ", code), " not supported for withdrawal")))
+	panic(NotSupported(Add(Add(this.Id + " ", code), " not supported for withdrawal")))
 }
 func (this *Bitfinex) AmountToPrecision(symbol any, amount any) any {
 	// https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -946,41 +946,26 @@ func (this *Bitfinex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var minOrderSizeString *string = this.SafeString(market, 3)
 		var maxOrderSizeString *string = this.SafeString(market, 4)
 		AppendToArray(&result, map[string]any{
-			"id":       Add("t", id),
-			"symbol":   symbol,
-			"base":     base,
-			"quote":    quote,
-			"settle":   settle,
-			"baseId":   baseId,
-			"quoteId":  quoteId,
-			"settleId": settleId,
-			"type":     typeVar,
-			"spot":     spot,
-			"tradfi":   this.InArray(id, securitiesMarketsIds),
-			"margin":   (spot && this.InArray(id, marginIds)),
-			"swap":     swap,
-			"future":   false,
-			"option":   false,
-			"active":   true,
-			"contract": !spot,
-			"linear": func() any {
-				if swap {
-					return true
-				}
-				return nil
-			}(),
-			"inverse": func() any {
-				if swap {
-					return false
-				}
-				return nil
-			}(),
-			"contractSize": func() any {
-				if swap {
-					return this.ParseNumber("1")
-				}
-				return nil
-			}(),
+			"id":             Add("t", id),
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"spot":           spot,
+			"tradfi":         this.InArray(id, securitiesMarketsIds),
+			"margin":         (spot && this.InArray(id, marginIds)),
+			"swap":           swap,
+			"future":         false,
+			"option":         false,
+			"active":         true,
+			"contract":       !spot,
+			"linear":         func() any { if swap { return true }; return nil }(),
+			"inverse":        func() any { if swap { return false }; return nil }(),
+			"contractSize":   func() any { if swap { return this.ParseNumber("1") }; return nil }(),
 			"expiry":         nil,
 			"expiryDatetime": nil,
 			"strike":         nil,
@@ -1178,12 +1163,7 @@ func (this *Bitfinex) ParseCurrencyCustom(id any, indexed any, indexedNetworks a
 	var pool any = this.SafeList(GetValue(indexed, "pool"), id, []any{})
 	var rawType *string = this.SafeString(pool, 1)
 	var isCryptoCoin bool = (rawType != nil) || (InOp(GetValue(indexed, "explorer"), id)) // "hacky" solution
-	var typeVar any = func() any {
-		if isCryptoCoin {
-			return "crypto"
-		}
-		return nil
-	}()
+	var typeVar any = func() any { if isCryptoCoin { return "crypto" }; return nil }()
 	var feeValues any = this.SafeList(GetValue(indexed, "fees"), id, []any{})
 	var fees any = this.SafeList(feeValues, 1, []any{})
 	var fee *float64 = this.SafeNumber(fees, 1)
@@ -1398,8 +1378,8 @@ func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccoun
 	if error != nil && *error == "error" {
 		var message *string = this.SafeString(response, 2, "")
 		// same message as in v1
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id+" ", message))
-		panic(ExchangeError(Add(this.Id+" ", message)))
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, Add(this.Id + " ", message))
+		panic(ExchangeError(Add(this.Id + " ", message)))
 	}
 
 	ch <- this.ParseTransfer(map[string]any{
@@ -1534,24 +1514,14 @@ func (this *Bitfinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"datetime":  this.Iso8601(timestamp),
 		"nonce":     nil,
 	}
-	var priceIndex any = func() any {
-		if IsEqual(fullRequest["precision"], "R0") {
-			return 1
-		}
-		return 0
-	}()
+	var priceIndex any = func() any { if (IsEqual(fullRequest["precision"], "R0")) { return 1 }; return 0 }()
 	var orders []any = this.ToArray(orderbook)
 	for i := 0; i < len(orders); i++ {
 		var order any = GetValue(orders, i)
 		var price *float64 = this.SafeNumber(order, priceIndex)
 		var signedAmount *string = this.SafeString(order, 2)
 		var amount *string = Precise.StringAbs(signedAmount)
-		var side any = func() any {
-			if Precise.StringGt(signedAmount, "0") {
-				return "bids"
-			}
-			return "asks"
-		}()
+		var side any = func() any { if Precise.StringGt(signedAmount, "0") { return "bids" }; return "asks" }()
 		retRes121912 := GetValue(result, side)
 		AppendToArray(&retRes121912, []any{price, this.ParseNumber(amount)})
 	}
@@ -1828,20 +1798,10 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var tradeLength int = GetArrayLength(tradeList)
 	var isPrivate bool = (tradeLength > 5)
 	var id *string = this.SafeString(tradeList, 0)
-	var amountIndex any = func() any {
-		if isPrivate {
-			return 4
-		}
-		return 2
-	}()
+	var amountIndex any = func() any { if isPrivate { return 4 }; return 2 }()
 	var side string
 	var amountString *string = this.SafeString(tradeList, amountIndex)
-	var priceIndex any = func() any {
-		if isPrivate {
-			return 5
-		}
-		return 3
-	}()
+	var priceIndex any = func() any { if isPrivate { return 5 }; return 3 }()
 	var priceString *string = this.SafeString(tradeList, priceIndex)
 	if GetValue(amountString, 0) == "-" {
 		side = "sell"
@@ -1854,24 +1814,14 @@ func (this *Bitfinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var fee any = nil
 	var symbol *string = this.SafeSymbol(nil, market)
-	var timestampIndex any = func() any {
-		if isPrivate {
-			return 2
-		}
-		return 1
-	}()
+	var timestampIndex any = func() any { if isPrivate { return 2 }; return 1 }()
 	var timestamp *int64 = this.SafeInteger(tradeList, timestampIndex)
 	if isPrivate {
 		var marketId any = GetValue(tradeList, 1)
 		symbol = this.SafeSymbol(marketId)
 		orderId = DerefScalar(this.SafeString(tradeList, 3))
 		var maker *int64 = this.SafeInteger(tradeList, 8)
-		takerOrMaker = func() any {
-			if maker != nil && *maker == 1 {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (maker != nil && *maker == 1) { return "maker" }; return "taker" }()
 		var feeCostString *string = this.SafeString(tradeList, 9)
 		feeCostString = Precise.StringNeg(feeCostString)
 		var feeCurrencyId *string = this.SafeString(tradeList, 10)
@@ -2129,12 +2079,7 @@ func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) any {
 	var remaining *string = Precise.StringAbs(this.SafeString(orderList, 6))
 	var signedAmount *string = this.SafeString(orderList, 7)
 	var amount *string = Precise.StringAbs(signedAmount)
-	var side any = func() any {
-		if Precise.StringLt(signedAmount, "0") {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side any = func() any { if Precise.StringLt(signedAmount, "0") { return "sell" }; return "buy" }()
 	var orderType *string = this.SafeString(orderList, 8)
 	var typeVar *string = this.SafeString(this.SafeValue(this.Options, "exchangeTypes"), orderType)
 	var timeInForce *string = this.ParseTimeInForce(orderType)
@@ -2224,12 +2169,7 @@ func (this *Bitfinex) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	 */
 	var market any = this.Market(symbol)
 	var amountString any = this.AmountToPrecision(symbol, amount)
-	amountString = func() any {
-		if IsEqual(side, "buy") {
-			return amountString
-		}
-		return Precise.StringNeg(amountString)
-	}()
+	amountString = func() any { if (IsEqual(side, "buy")) { return amountString }; return Precise.StringNeg(amountString) }()
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"amount": amountString,
@@ -2393,7 +2333,7 @@ func (this *Bitfinex) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if status == nil || *status != "SUCCESS" {
 		var errorCode *string = this.SafeString(response, 5)
 		var errorText *string = this.SafeString(response, 7)
-		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id+" ", status), ": "), errorText), " (#"), errorCode), ")")))
+		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id + " ", status), ": "), errorText), " (#"), errorCode), ")")))
 	}
 	var orders any = this.SafeList(response, 4, []any{})
 	var order any = this.SafeList(orders, 0)
@@ -2725,7 +2665,7 @@ func (this *Bitfinex) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...an
 	PanicOnError(orders)
 	var order any = this.SafeValue(orders, 0)
 	if IsEqual(order, nil) {
-		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
+		panic(OrderNotFound(Add(Add(this.Id + " order ", id), " not found")))
 	}
 
 	ch <- order
@@ -2763,7 +2703,7 @@ func (this *Bitfinex) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...
 	PanicOnError(orders)
 	var order any = this.SafeValue(orders, 0)
 	if IsEqual(order, nil) {
-		panic(OrderNotFound(Add(Add(this.Id+" order ", id), " not found")))
+		panic(OrderNotFound(Add(Add(this.Id + " order ", id), " not found")))
 	}
 
 	ch <- order
@@ -3174,7 +3114,7 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	var currencyNetwork any = this.SafeValue(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" fetchDepositAddress() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " fetchDepositAddress() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
 	}
 	var wallet *string = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
 	params = this.Omit(params, "network", "wallet")
@@ -3207,18 +3147,8 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan any, code any, optionalArg
 	//
 	var result any = this.SafeValue(response, 4, []any{})
 	var poolAddress *string = this.SafeString(result, 5)
-	var address any = func() any {
-		if poolAddress == nil {
-			return this.SafeString(result, 4)
-		}
-		return poolAddress
-	}()
-	var tag any = func() any {
-		if poolAddress == nil {
-			return nil
-		}
-		return this.SafeString(result, 4)
-	}()
+	var address any = func() any { if (poolAddress == nil) { return this.SafeString(result, 4) }; return poolAddress }()
+	var tag any = func() any { if (poolAddress == nil) { return nil }; return this.SafeString(result, 4) }()
 	this.CheckAddress(address)
 
 	ch <- map[string]any{
@@ -3645,7 +3575,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	var currencyNetwork any = this.SafeValue(currencyNetworks, network)
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" withdraw() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " withdraw() could not find a network for '", code), "'. You can specify it by providing the 'network' value inside params")))
 	}
 	var wallet *string = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
 	params = this.Omit(params, "network", "wallet")
@@ -3698,7 +3628,7 @@ func (this *Bitfinex) withdrawBody(ch chan any, code any, amount any, address an
 	//
 	var statusMessage *string = this.SafeString(response, 0)
 	if statusMessage != nil && *statusMessage == "error" {
-		var feedback any = Add(this.Id+" ", response)
+		var feedback any = Add(this.Id + " ", response)
 		var message *string = this.SafeString(response, 2, "")
 		// same message as in v1
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
@@ -3832,25 +3762,20 @@ func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) any {
 	var tradePrice *string = this.SafeString(meta, "trade_price")
 	var tradeAmount *string = this.SafeString(meta, "trade_amount")
 	return this.SafePosition(map[string]any{
-		"info":             positionList,
-		"id":               this.SafeString(positionList, 11),
-		"symbol":           this.SafeSymbol(marketId, market),
-		"notional":         this.ParseNumber(amount),
-		"marginMode":       "isolated",
-		"liquidationPrice": this.SafeNumber(positionList, 8),
-		"entryPrice":       this.SafeNumber(positionList, 3),
-		"unrealizedPnl":    this.SafeNumber(positionList, 6),
-		"percentage":       this.SafeNumber(positionList, 7),
-		"contracts":        nil,
-		"contractSize":     nil,
-		"markPrice":        nil,
-		"lastPrice":        nil,
-		"side": func() any {
-			if Precise.StringGt(amount, "0") {
-				return "long"
-			}
-			return "short"
-		}(),
+		"info":                        positionList,
+		"id":                          this.SafeString(positionList, 11),
+		"symbol":                      this.SafeSymbol(marketId, market),
+		"notional":                    this.ParseNumber(amount),
+		"marginMode":                  "isolated",
+		"liquidationPrice":            this.SafeNumber(positionList, 8),
+		"entryPrice":                  this.SafeNumber(positionList, 3),
+		"unrealizedPnl":               this.SafeNumber(positionList, 6),
+		"percentage":                  this.SafeNumber(positionList, 7),
+		"contracts":                   nil,
+		"contractSize":                nil,
+		"markPrice":                   nil,
+		"lastPrice":                   nil,
+		"side":                        func() any { if Precise.StringGt(amount, "0") { return "long" }; return "short" }(),
 		"hedged":                      nil,
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
@@ -3890,7 +3815,7 @@ func (this *Bitfinex) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), request)
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	}
 	if IsEqual(api, "private") {
@@ -3918,26 +3843,26 @@ func (this *Bitfinex) HandleErrors(statusCode any, statusText any, url any, meth
 	if !IsEqual(response, nil) {
 		if !IsArray(response) {
 			var message *string = this.SafeString2(response, "message", "error")
-			var feedback any = Add(this.Id+" ", body)
+			var feedback any = Add(this.Id + " ", body)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-			panic(ExchangeError(Add(this.Id+" ", body)))
+			panic(ExchangeError(Add(this.Id + " ", body)))
 		}
 	} else if IsEqual(response, "") {
 		panic(ExchangeError(this.Id + " returned empty response"))
 	}
 	if IsEqual(statusCode, 429) {
-		panic(RateLimitExceeded(Add(this.Id+" ", body)))
+		panic(RateLimitExceeded(Add(this.Id + " ", body)))
 	}
 	if IsEqual(statusCode, 500) {
 		// See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
 		var errorCode *string = this.SafeString(response, 1, "")
 		var errorText *string = this.SafeString(response, 2, "")
-		var feedback any = Add(this.Id+" ", errorText)
+		var feedback any = Add(this.Id + " ", errorText)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorText, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorText, feedback)
-		panic(ExchangeError(Add(Add(Add(Add(this.Id+" ", errorText), " (#"), errorCode), ")")))
+		panic(ExchangeError(Add(Add(Add(Add(this.Id + " ", errorText), " (#"), errorCode), ")")))
 	}
 	return response
 }
@@ -4692,12 +4617,7 @@ func (this *Bitfinex) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var interestLength int = GetArrayLength(interest)
-	var openInterestIndex any = func() any {
-		if IsEqual(interestLength, 23) {
-			return 17
-		}
-		return 18
-	}()
+	var openInterestIndex any = func() any { if (IsEqual(interestLength, 23)) { return 17 }; return 18 }()
 	var timestamp *int64 = this.SafeInteger(interest, 1)
 	var marketId *string = this.SafeString(interest, 0)
 	return this.SafeOpenInterest(map[string]any{
@@ -4820,12 +4740,7 @@ func (this *Bitfinex) ParseLiquidation(liquidation any, optionalArgs ...any) any
 	var baseValue *string = Precise.StringMul(contracts, contractSize)
 	var price *string = this.SafeString(entry, 11)
 	var sideFlag *int64 = this.SafeInteger(entry, 8)
-	var side any = func() any {
-		if sideFlag != nil && *sideFlag == 1 {
-			return "buy"
-		}
-		return "sell"
-	}()
+	var side any = func() any { if (sideFlag != nil && *sideFlag == 1) { return "buy" }; return "sell" }()
 	return this.SafeLiquidation(map[string]any{
 		"info":         entry,
 		"symbol":       this.SafeSymbol(marketId, market, nil, "contract"),
@@ -4901,12 +4816,7 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) any
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marginStatusRaw any = GetValue(data, 0)
-	var marginStatus any = func() any {
-		if IsEqual(marginStatusRaw, 1) {
-			return "ok"
-		}
-		return "failed"
-	}()
+	var marginStatus any = func() any { if (IsEqual(marginStatusRaw, 1)) { return "ok" }; return "failed" }()
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
@@ -5058,12 +4968,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	}
 	if !IsEqual(amount, nil) {
 		var amountString any = this.AmountToPrecision(symbol, amount)
-		amountString = func() any {
-			if IsEqual(side, "buy") {
-				return amountString
-			}
-			return Precise.StringNeg(amountString)
-		}()
+		amountString = func() any { if (IsEqual(side, "buy")) { return amountString }; return Precise.StringNeg(amountString) }()
 		request["amount"] = amountString
 	}
 	var triggerPrice *string = this.SafeString2(params, "stopPrice", "triggerPrice")
@@ -5156,7 +5061,7 @@ func (this *Bitfinex) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	if status == nil || *status != "SUCCESS" {
 		var errorCode *string = this.SafeString(response, 5)
 		var errorText *string = this.SafeString(response, 7)
-		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id+" ", status), ": "), errorText), " (#"), errorCode), ")")))
+		panic(ExchangeError(Add(Add(Add(Add(Add(Add(this.Id + " ", status), ": "), errorText), " (#"), errorCode), ")")))
 	}
 	var order any = this.SafeList(response, 4, []any{})
 	var newOrder map[string]any = map[string]any{

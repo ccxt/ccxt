@@ -1812,12 +1812,7 @@ func (this *Nado) watchPublicMultipleBody(ch chan any, streamType any, markets a
 		if ccxt.IsEqual(clientSubscription, nil) {
 			var market any = ccxt.GetValue(markets, i)
 			var id any = this.RequestId()
-			var requestParams any = func() any {
-				if ccxt.IsEqual(subscriptionParams, nil) {
-					return params
-				}
-				return ccxt.GetValue(subscriptionParams, i)
-			}()
+			var requestParams any = func() any { if (ccxt.IsEqual(subscriptionParams, nil)) { return params }; return ccxt.GetValue(subscriptionParams, i) }()
 			var request any = this.CreatePublicSubscriptionRequest("subscribe", streamType, market, id, requestParams)
 			var subscribeHash any = ccxt.Add("subscribe:", this.Json(ccxt.GetValue(request, "stream")))
 			var streamSubscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
@@ -1887,12 +1882,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan any, streamType any, markets
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var id any = this.RequestId()
 		var unsubscribeHash any = ccxt.Add("unsubscribe:", messageHash)
-		var requestParams any = func() any {
-			if ccxt.IsEqual(subscriptionParams, nil) {
-				return params
-			}
-			return ccxt.GetValue(subscriptionParams, i)
-		}()
+		var requestParams any = func() any { if (ccxt.IsEqual(subscriptionParams, nil)) { return params }; return ccxt.GetValue(subscriptionParams, i) }()
 		var request any = this.CreatePublicSubscriptionRequest("unsubscribe", streamType, ccxt.GetValue(markets, i), id, requestParams)
 		var subscription map[string]any = map[string]any{
 			"id":          id,
@@ -1941,12 +1931,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side any = nil
 	if isTakerBuyer != nil {
-		side = func() any {
-			if isTakerBuyer != nil && *isTakerBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (isTakerBuyer != nil && *isTakerBuyer) { return "buy" }; return "sell" }()
 	}
 	return this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -1992,22 +1977,12 @@ func (this *Nado) ParseWsMyTrade(trade any, optionalArgs ...any) any {
 	var isBid *bool = this.SafeBool(trade, "is_bid")
 	var side any = nil
 	if isBid != nil {
-		side = func() any {
-			if isBid != nil && *isBid {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (isBid != nil && *isBid) { return "buy" }; return "sell" }()
 	}
 	var isTaker *bool = this.SafeBool(trade, "is_taker")
 	var takerOrMaker any = nil
 	if isTaker != nil {
-		takerOrMaker = func() any {
-			if isTaker != nil && *isTaker {
-				return "taker"
-			}
-			return "maker"
-		}()
+		takerOrMaker = func() any { if (isTaker != nil && *isTaker) { return "taker" }; return "maker" }()
 	}
 	var feeCost any = this.ParseX18(this.SafeString(trade, "fee"))
 	var fee any = nil
@@ -2136,17 +2111,12 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) any {
 		status = "canceled"
 	}
 	return this.SafeOrder(map[string]any{
-		"info":          order,
-		"id":            id,
-		"clientOrderId": nil,
-		"timestamp":     timestamp,
-		"datetime":      this.Iso8601(timestamp),
-		"lastTradeTimestamp": func() any {
-			if ccxt.IsEqual(filled, nil) {
-				return nil
-			}
-			return timestamp
-		}(),
+		"info":                order,
+		"id":                  id,
+		"clientOrderId":       nil,
+		"timestamp":           timestamp,
+		"datetime":            this.Iso8601(timestamp),
+		"lastTradeTimestamp":  func() any { if (ccxt.IsEqual(filled, nil)) { return nil }; return timestamp }(),
 		"lastUpdateTimestamp": timestamp,
 		"symbol":              ccxt.GetValue(market, "symbol"),
 		"type":                nil,
@@ -2353,8 +2323,8 @@ func (this *Nado) HandleAllBidsAsks(client any, message any) {
 		var ticker any = ccxt.GetValue(tickers, symbol)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-		client.(ccxt.ClientInterface).Resolve(ticker, "bidask:"+symbol)
-		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+symbol)
+		client.(ccxt.ClientInterface).Resolve(ticker, "bidask:" + symbol)
+		client.(ccxt.ClientInterface).Resolve(ticker, "ticker:" + symbol)
 	}
 	client.(ccxt.ClientInterface).Resolve(tickers, "bidask")
 	client.(ccxt.ClientInterface).Resolve(tickers, "ticker")
@@ -2571,7 +2541,7 @@ func (this *Nado) HandleErrorMessage(client any, message any) any {
 	if (ccxt.IsEqual(error, nil)) && (status == nil || *status != "failure") {
 		return false
 	}
-	feedback := ccxt.ExchangeError(ccxt.Add(this.Id+" ", this.Json(message)))
+	feedback := ccxt.ExchangeError(ccxt.Add(this.Id + " ", this.Json(message)))
 	var id *string = this.SafeString(message, "id")
 	if id != nil {
 		var executeHash any = ccxt.Add("execute:", id)

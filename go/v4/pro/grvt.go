@@ -134,12 +134,7 @@ func (this *Grvt) subscribeMultipleBody(ch chan any, messageHashes any, request 
 		"params":  request,
 		"id":      this.RequestId(),
 	}
-	var apiPart any = func() any {
-		if ccxt.EvalTruthy(publicOrPrivate) {
-			return "publicMarket"
-		}
-		return "privateTrading"
-	}()
+	var apiPart any = func() any { if ccxt.EvalTruthy(publicOrPrivate) { return "publicMarket" }; return "privateTrading" }()
 
 	retRes12115 := (<-this.WatchMultiple(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes))
 	ccxt.PanicOnError(retRes12115)
@@ -716,12 +711,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan any, symbols any, optiona
 	interval = ccxt.GetValue(intervalparamsVariable, 0)
 	params = ccxt.GetValue(intervalparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols)
-	var extraPart any = func() any {
-		if isSnapshot {
-			return (ccxt.ToString(interval) + "-" + ccxt.ToString(limit))
-		}
-		return ccxt.ToString(interval)
-	}()
+	var extraPart any = func() any { if isSnapshot { return (ccxt.ToString(interval) + "-" + ccxt.ToString(limit)) }; return ccxt.ToString(interval) }()
 	var rawHashes any = []any{}
 	var messageHashes any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1230,12 +1220,12 @@ func (this *Grvt) HandleErrorMessage(client any, response any) any {
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
 		var body any = this.Json(response)
-		var feedback any = ccxt.Add(this.Id+" ", body)
+		var feedback any = ccxt.Add(this.Id + " ", body)
 		var message *string = this.SafeString(error, "message")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" ", body)))
+		panic(ccxt.ExchangeError(ccxt.Add(this.Id + " ", body)))
 	}
 	return false
 }

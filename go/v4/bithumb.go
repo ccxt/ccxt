@@ -1150,12 +1150,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		// Bithumb v2 ticker payloads are inconsistent for all-market calls,
 		// so we aggregate 300 markets per request only when symbols are not provided.
 		var marketIds any = []any{}
-		var symbolsForMarketIds any = func() any {
-			if IsEqual(symbols, nil) {
-				return this.Symbols
-			}
-			return symbols
-		}()
+		var symbolsForMarketIds any = func() any { if (IsEqual(symbols, nil)) { return this.Symbols }; return symbols }()
 		var symbolsForMarketIdsLength int = GetArrayLength(symbolsForMarketIds)
 		for i := 0; i < symbolsForMarketIdsLength; i++ {
 			var market any = this.Market(GetValue(symbolsForMarketIds, i))
@@ -1529,7 +1524,7 @@ func (this *Bithumb) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		} else {
 			var timeframeInteger *int64 = this.SafeInteger(this.Timeframes, timeframe)
 			if timeframeInteger == nil {
-				panic(BadRequest(Add(this.Id+" fetchOHLCV() unsupported timeframe ", timeframe)))
+				panic(BadRequest(Add(this.Id + " fetchOHLCV() unsupported timeframe ", timeframe)))
 			}
 			request["unit"] = timeframeInteger
 
@@ -1937,7 +1932,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	} else if IsEqual(side, "sell") {
 		sideRequest = "ask"
 	} else {
-		panic(InvalidOrder(Add(this.Id+" createOrder() invalid side ", side)))
+		panic(InvalidOrder(Add(this.Id + " createOrder() invalid side ", side)))
 	}
 	request["side"] = sideRequest
 	var timeInForce any = DerefScalar(this.SafeString2(params, "timeInForce", "time_in_force"))
@@ -1982,12 +1977,7 @@ func (this *Bithumb) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 					cost = Precise.StringMul(amountString, priceString)
 				}
 			} else {
-				cost = func() any {
-					if cost == nil {
-						return this.NumberToString(amount)
-					}
-					return cost
-				}()
+				cost = func() any { if (cost == nil) { return this.NumberToString(amount) }; return cost }()
 			}
 			request["price"] = this.PriceToPrecision(symbol, cost)
 		} else {
@@ -3146,7 +3136,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 		var destination *string = this.SafeString2(params, "destination", "secondary_address")
 		params = this.Omit(params, []any{"destination", "secondary_address"})
 		if (tag == nil) && (destination == nil) {
-			panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a tag argument or an extra destination param")))
+			panic(ArgumentsRequired(Add(Add(this.Id + " ", code), " withdraw() requires a tag argument or an extra destination param")))
 		} else if tag != nil {
 			destinationRequest = tag
 		} else {
@@ -3159,7 +3149,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 		if IsEqual(code, "KRW") {
 			var twoFactorType *string = this.SafeString(params, "two_factor_type")
 			if twoFactorType == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")))
+				panic(ArgumentsRequired(Add(Add(this.Id + " ", code), " withdraw() requires a two_factor_type parameter for withdrawing KRW")))
 			}
 			var krwRequest map[string]any = map[string]any{
 				"amount": this.NumberToString(amount),
@@ -3169,7 +3159,7 @@ func (this *Bithumb) withdrawBody(ch chan any, code any, amount any, address any
 			PanicOnError(response)
 		} else {
 			if network == nil {
-				panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " withdraw() requires a network parameter")))
+				panic(ArgumentsRequired(Add(Add(this.Id + " ", code), " withdraw() requires a network parameter")))
 			}
 			request["address"] = address
 			request["currency"] = GetValue(currency, "id")
@@ -3711,7 +3701,7 @@ func (this *Bithumb) createDepositAddressBody(ch chan any, code any, optionalArg
 	var network *string = this.SafeString2(params, "network", "net_type")
 	params = this.Omit(params, "network")
 	if network == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " createDepositAddress() requires a network parameter")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", code), " createDepositAddress() requires a network parameter")))
 	}
 	request["net_type"] = network
 
@@ -3770,7 +3760,7 @@ func (this *Bithumb) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	var network *string = this.SafeString2(params, "network", "net_type")
 	params = this.Omit(params, "network")
 	if network == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", code), " fetchDepositAddress() requires a network parameter")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", code), " fetchDepositAddress() requires a network parameter")))
 	}
 	request["net_type"] = network
 
@@ -3908,7 +3898,7 @@ func (this *Bithumb) UrlencodeWithArrayBrackets(query any) any {
 			var encodedKey string = this.EncodeURIComponent(key)
 			var valueString any = DerefScalar(this.SafeString(query, key))
 			var encodedValue string = this.EncodeURIComponent(valueString)
-			result = Add(result, encodedKey+"="+encodedValue)
+			result = Add(result, encodedKey + "=" + encodedValue)
 		}
 	}
 	return result
@@ -3935,7 +3925,7 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 			"OPEN-API-PARTNER": "CCXT",
 		}
 		if hasQuery {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -3962,17 +3952,12 @@ func (this *Bithumb) Sign(path any, optionalArgs ...any) any {
 				url = Add(url, Add("?", auth))
 			}
 			if hasQuery {
-				var authString any = func() any {
-					if auth == nil {
-						return ""
-					}
-					return auth
-				}()
+				var authString any = func() any { if (auth == nil) { return "" }; return auth }()
 				request["query_hash"] = this.Hash(this.Encode(authString), sha512)
 				request["query_hash_alg"] = "SHA512"
 			}
 			var token string = Jwt(request, this.Encode(this.Secret), sha256)
-			AddElementToObject(headers, "Authorization", "Bearer "+token)
+			AddElementToObject(headers, "Authorization", "Bearer " + token)
 		} else {
 			body = this.Urlencode(this.Extend(map[string]any{
 				"endpoint": endpoint,
@@ -4013,7 +3998,7 @@ func (this *Bithumb) HandleErrors(httpCode any, reason any, url any, method any,
 	if !IsEqual(error, nil) {
 		var errorName *string = this.SafeString(error, "name")
 		var message *string = this.SafeString(error, "message")
-		var feedback any = Add(this.Id+" ", message)
+		var feedback any = Add(this.Id + " ", message)
 		if errorName != nil {
 			this.ThrowExactlyMatchedException(this.Exceptions, errorName, feedback)
 		}
@@ -4036,7 +4021,7 @@ func (this *Bithumb) HandleErrors(httpCode any, reason any, url any, method any,
 				// https://github.com/ccxt/ccxt/issues/9017
 				return nil // no error
 			}
-			var feedback any = Add(this.Id+" ", message)
+			var feedback any = Add(this.Id + " ", message)
 			this.ThrowExactlyMatchedException(this.Exceptions, status, feedback)
 			this.ThrowExactlyMatchedException(this.Exceptions, message, feedback)
 			panic(ExchangeError(feedback))

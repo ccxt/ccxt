@@ -885,12 +885,7 @@ func (this *Mercado) ParseOrder(order any, optionalArgs ...any) any {
 	var order_type *string = this.SafeString(order, "order_type")
 	var side any = nil
 	if InOp(order, "order_type") {
-		side = func() any {
-			if order_type != nil && *order_type == "1" {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (order_type != nil && *order_type == "1") { return "buy" }; return "sell" }()
 	}
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var marketId *string = this.SafeString(order, "coin_pair")
@@ -1018,17 +1013,17 @@ func (this *Mercado) withdrawBody(ch chan any, code any, amount any, address any
 	if IsEqual(code, "BRL") {
 		var account_ref bool = (InOp(params, "account_ref"))
 		if !account_ref {
-			panic(ArgumentsRequired(Add(this.Id+" withdraw() requires account_ref parameter to withdraw ", code)))
+			panic(ArgumentsRequired(Add(this.Id + " withdraw() requires account_ref parameter to withdraw ", code)))
 		}
 	} else if !IsEqual(code, "LTC") {
 		var tx_fee bool = (InOp(params, "tx_fee"))
 		if !tx_fee {
-			panic(ArgumentsRequired(Add(this.Id+" withdraw() requires tx_fee parameter to withdraw ", code)))
+			panic(ArgumentsRequired(Add(this.Id + " withdraw() requires tx_fee parameter to withdraw ", code)))
 		}
 		if IsEqual(code, "XRP") {
 			if tag == nil {
 				if !(InOp(params, "destination_tag")) {
-					panic(ArgumentsRequired(Add(this.Id+" withdraw() requires a tag argument or destination_tag parameter to withdraw ", code)))
+					panic(ArgumentsRequired(Add(this.Id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ", code)))
 				}
 			} else {
 				request["destination_tag"] = tag
@@ -1339,7 +1334,7 @@ func (this *Mercado) Sign(path any, optionalArgs ...any) any {
 	if (IsEqual(api, "public")) || (IsEqual(api, "v4Public")) || (IsEqual(api, "v4PublicNet")) {
 		url = Add(url, this.ImplodeParams(path, params))
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else {
 		this.CheckRequiredCredentials()
@@ -1374,7 +1369,7 @@ func (this *Mercado) HandleErrors(httpCode any, reason any, url any, method any,
 	//
 	var errorMessage any = this.SafeValue(response, "error_message")
 	if !IsEqual(errorMessage, nil) {
-		panic(ExchangeError(Add(this.Id+" ", this.Json(response))))
+		panic(ExchangeError(Add(this.Id + " ", this.Json(response))))
 	}
 	return nil
 }

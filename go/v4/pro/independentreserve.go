@@ -281,7 +281,7 @@ func (this *Independentreserve) HandleOrderBook(client any, message any) {
 		var calculatedChecksum int64 = this.Crc32(payload, false)
 		var responseChecksum *int64 = this.SafeInteger(orderBook, "Crc32")
 		if responseChecksum == nil || *responseChecksum != calculatedChecksum {
-			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
+			error := ccxt.ChecksumError(ccxt.Add(this.Id + " ", this.OrderbookChecksumMessage(symbol)))
 			ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			ccxt.Remove(this.Orderbooks, symbol)
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -340,17 +340,12 @@ func (this *Independentreserve) HandleMessage(client any, message any) {
 		"OrderBookSnapshot": this.HandleOrderBook,
 		"OrderBookChange":   this.HandleOrderBook,
 	}
-	var handler any = func() any {
-		if event == nil {
-			return nil
-		}
-		return this.SafeValue(handlers, event)
-	}()
+	var handler any = func() any { if (event == nil) { return nil }; return this.SafeValue(handlers, event) }()
 	if !ccxt.IsEqual(handler, nil) {
 		ccxt.CallDynamically(handler, client, message)
 		return
 	}
-	panic(ccxt.NotSupported(ccxt.Add(this.Id+" received an unsupported message: ", this.Json(message))))
+	panic(ccxt.NotSupported(ccxt.Add(this.Id + " received an unsupported message: ", this.Json(message))))
 }
 
 func NewIndependentreserve(userConfig map[string]any) *Independentreserve {

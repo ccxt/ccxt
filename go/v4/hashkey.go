@@ -1230,12 +1230,7 @@ func (this *Hashkey) ParseMarket(market any) any {
 		}
 	}
 	var tradingFees any = this.SafeDict(this.Fees, "trading")
-	var fees any = func() any {
-		if isSpot {
-			return this.SafeDict(tradingFees, "spot")
-		}
-		return this.SafeDict(tradingFees, "swap")
-	}()
+	var fees any = func() any { if isSpot { return this.SafeDict(tradingFees, "spot") }; return this.SafeDict(tradingFees, "swap") }()
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1379,12 +1374,7 @@ func (this *Hashkey) ParseCurrency(rawCurrency any) any {
 		}
 	}
 	var rawType *string = this.SafeString(rawCurrency, "tokenType")
-	var typeVar any = func() any {
-		if rawType != nil && *rawType == "REAL_MONEY" {
-			return "fiat"
-		}
-		return "crypto"
-	}()
+	var typeVar any = func() any { if (rawType != nil && *rawType == "REAL_MONEY") { return "fiat" }; return "crypto" }()
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
@@ -1618,7 +1608,7 @@ func (this *Hashkey) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			PanicOnError(response)
 		}
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 
 	ch <- this.ParseTrades(response, market, since, limit)
@@ -1689,33 +1679,18 @@ func (this *Hashkey) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var isBuyer *bool = this.SafeBool(trade, "isBuyer")
 	if isBuyer != nil {
-		side = func() any {
-			if isBuyer != nil && *isBuyer {
-				return "buy"
-			}
-			return "sell"
-		}()
+		side = func() any { if (isBuyer != nil && *isBuyer) { return "buy" }; return "sell" }()
 	}
 	var takerOrMaker any = nil
 	var isMaker *bool = this.SafeBool2(trade, "isMaker", "isMarker")
 	if isMaker != nil {
-		takerOrMaker = func() any {
-			if isMaker != nil && *isMaker {
-				return "maker"
-			}
-			return "taker"
-		}()
+		takerOrMaker = func() any { if (isMaker != nil && *isMaker) { return "maker" }; return "taker" }()
 	}
 	var isBuyerMaker *bool = this.SafeBool(trade, "ibm")
 	// if public trade
 	if isBuyerMaker != nil {
 		takerOrMaker = "taker"
-		side = func() any {
-			if isBuyerMaker != nil && *isBuyerMaker {
-				return "sell"
-			}
-			return "buy"
-		}()
+		side = func() any { if (isBuyerMaker != nil && *isBuyerMaker) { return "sell" }; return "buy" }()
 	}
 	var feeCost *string = this.SafeString(trade, "commission")
 	var feeCurrncyId *string = this.SafeString(trade, "commissionAsset")
@@ -2130,7 +2105,7 @@ func (this *Hashkey) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ParseBalance(response)
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 }
 func (this *Hashkey) ParseBalance(balance any) any {
@@ -2746,7 +2721,7 @@ func (this *Hashkey) ParseAccount(account any) any {
 		label = "sub"
 	}
 	var accountType *string = this.ParseAccountType(this.SafeString(account, "accountType"))
-	var typeVar any = Add(label+" ", accountType)
+	var typeVar any = Add(label + " ", accountType)
 	return map[string]any{
 		"id":   this.SafeString(account, "accountId"),
 		"type": typeVar,
@@ -2990,7 +2965,7 @@ func (this *Hashkey) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		ch <- retRes253519
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" createOrder() is not supported for ", GetValue(market, "type")), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " createOrder() is not supported for ", GetValue(market, "type")), " type of markets")))
 	}
 }
 
@@ -3116,7 +3091,7 @@ func (this *Hashkey) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	} else if IsEqual(GetValue(market, "swap"), true) {
 		return this.CreateSwapOrderRequest(symbol, typeVar, side, amount, price, params)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", GetValue(market, "type")), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + "createOrderRequest() is not supported for ", GetValue(market, "type")), " type of markets")))
 	}
 }
 func (this *Hashkey) CreateSpotOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
@@ -3380,7 +3355,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 		response = (<-this.PrivatePostApiV1FuturesBatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+"createOrderRequest() is not supported for ", GetValue(market, "type")), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + "createOrderRequest() is not supported for ", GetValue(market, "type")), " type of markets")))
 	}
 	var result any = this.SafeList(response, "result", []any{})
 	var responseOrders any = []any{}
@@ -3463,7 +3438,7 @@ func (this *Hashkey) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 		response = (<-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 
 	ch <- this.ParseOrder(response)
@@ -3521,7 +3496,7 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateDeleteApiV1FuturesBatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", GetValue(market, "type")), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", GetValue(market, "type")), " type of markets")))
 	}
 	var order any = this.SafeOrder(response)
 	AddElementToObject(order, "info", response)
@@ -3581,7 +3556,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 		response = (<-this.PrivateDeleteApiV1FuturesCancelOrderByIds(request))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 	var order any = this.SafeOrder(response)
 	AddElementToObject(order, "info", response)
@@ -3661,7 +3636,7 @@ func (this *Hashkey) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 		response = (<-this.PrivateGetApiV1FuturesOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 
 	ch <- this.ParseOrder(response)
@@ -3736,7 +3711,7 @@ func (this *Hashkey) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes331519
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 }
 
@@ -3848,7 +3823,7 @@ func (this *Hashkey) fetchOpenSwapOrdersBody(ch chan any, optionalArgs ...any) a
 	methodName = GetValue(methodNameparamsVariable, 0)
 	params = GetValue(methodNameparamsVariable, 1)
 	if symbol == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", methodName), "() requires a symbol argument for swap market orders")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", methodName), "() requires a symbol argument for swap market orders")))
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -3992,7 +3967,7 @@ func (this *Hashkey) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs 
 			PanicOnError(response)
 		}
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", marketType), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", marketType), " type of markets")))
 	}
 
 	ch <- this.ParseOrders(response, market, since, limit)
@@ -4004,7 +3979,7 @@ func (this *Hashkey) CheckTypeParam(methodName any, params any) {
 	// current method warns user if he provides the exchange specific value in type parameter
 	var paramsType *string = this.SafeString(params, "type")
 	if (paramsType != nil) && (paramsType == nil || *paramsType != "spot") && (paramsType == nil || *paramsType != "swap") {
-		panic(BadRequest(Add(Add(Add(Add(this.Id+" ", methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")))
+		panic(BadRequest(Add(Add(Add(Add(this.Id + " ", methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")))
 	}
 }
 func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) any {
@@ -4521,7 +4496,7 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan any, symbol any, option
 	methodName = GetValue(methodNameparamsVariable, 0)
 	params = GetValue(methodNameparamsVariable, 1)
 	if !IsEqual(GetValue(market, "swap"), true) {
-		panic(NotSupported(Add(Add(this.Id+" ", methodName), "() supports swap markets only")))
+		panic(NotSupported(Add(Add(this.Id + " ", methodName), "() supports swap markets only")))
 	}
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -4832,11 +4807,11 @@ func (this *Hashkey) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 	side = GetValue(sideparamsVariable, 0)
 	params = GetValue(sideparamsVariable, 1)
 	if side == nil {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", typeVar), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", typeVar), "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")))
 	}
 	side = ToUpper(side)
 	if (!IsEqual(side, "LONG")) && (!IsEqual(side, "SHORT")) {
-		panic(ArgumentsRequired(Add(Add(this.Id+" ", typeVar), "Margin() params[\"side\"] must be either long or short")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " ", typeVar), "Margin() params[\"side\"] must be either long or short")))
 	}
 	var amountString *string = this.NumberToString(amount)
 	if IsEqual(typeVar, "reduce") {
@@ -4881,14 +4856,9 @@ func (this *Hashkey) ParseMarginModification(data any, optionalArgs ...any) any 
 		"amount":     nil,
 		"total":      this.SafeNumber(data, "margin"),
 		"code":       GetValue(market, "settle"),
-		"status": func() any {
-			if success {
-				return "ok"
-			}
-			return "failed"
-		}(),
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"status":     func() any { if (success) { return "ok" }; return "failed" }(),
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 
@@ -5074,7 +5044,7 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		ch <- this.ParseTradingFee(response, market)
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" "+methodName+"() is not supported for ", GetValue(market, "type")), " type of markets")))
+		panic(NotSupported(Add(Add(this.Id + " " + methodName + "() is not supported for ", GetValue(market, "type")), " type of markets")))
 	}
 }
 
@@ -5260,7 +5230,7 @@ func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, hea
 		}
 	}
 	if (!IsEqual(code, 200)) || errorInArray {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], responseCodeString, feedback)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCodeString, feedback)
 		panic(ExchangeError(feedback))

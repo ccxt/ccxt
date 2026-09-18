@@ -87,7 +87,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		ccxt.PanicOnError(retRes7012)
 	}
 	var market any = this.Market(symbol)
-	var messageHash any = ccxt.Add("orderbook"+":", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add("orderbook" + ":", ccxt.GetValue(market, "id"))
 
 	orderbook := (<-this.WatchPublicAsync(messageHash, params))
 	ccxt.PanicOnError(orderbook)
@@ -175,7 +175,7 @@ func (this *Hollaex) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var messageHash any = ccxt.Add("trade"+":", ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add("trade" + ":", ccxt.GetValue(market, "id"))
 
 	trades := (<-this.WatchPublicAsync(messageHash, params))
 	ccxt.PanicOnError(trades)
@@ -539,12 +539,7 @@ func (this *Hollaex) HandleBalance(client any, message any) {
 			account = ccxt.GetValue(this.Balance, code)
 		}
 		var second *string = this.SafeString(parts, 1)
-		var freeOrTotal any = func() any {
-			if second != nil && *second == "available" {
-				return "free"
-			}
-			return "total"
-		}()
+		var freeOrTotal any = func() any { if (second != nil && *second == "available") { return "free" }; return "total" }()
 		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
 		if code != nil {
 			ccxt.AddElementToObject(this.Balance, code, account)
@@ -599,7 +594,7 @@ func (this *Hollaex) watchPrivateBody(ch chan any, messageHash any, optionalArgs
 		ccxt.AddElementToObject(this.Options, "ws-expires", expires)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var auth any = ccxt.Add("CONNECT"+"/stream", expires)
+	var auth any = ccxt.Add("CONNECT" + "/stream", expires)
 	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 	var authParams map[string]any = map[string]any{
 		"api-key":       this.ApiKey,
@@ -643,7 +638,7 @@ func (this *Hollaex) HandleErrorMessage(client any, message any) any {
 			}()
 			// try block:
 			if error != nil {
-				var feedback any = ccxt.Add(this.Id+" ", this.Json(message))
+				var feedback any = ccxt.Add(this.Id + " ", this.Json(message))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), error, feedback)
 			}
 			return nil

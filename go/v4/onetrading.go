@@ -635,55 +635,25 @@ func (this *Onetrading) ParseMarket(market any) any {
 		symbol = Add(Add(symbol, ":"), quote)
 	}
 	return this.SafeMarketStructure(map[string]any{
-		"id":     id,
-		"symbol": symbol,
-		"base":   base,
-		"quote":  quote,
-		"settle": func() any {
-			if isPerp {
-				return quote
-			}
-			return nil
-		}(),
-		"baseId":  baseId,
-		"quoteId": quoteId,
-		"settleId": func() any {
-			if isPerp {
-				return quoteId
-			}
-			return nil
-		}(),
-		"type": func() any {
-			if isPerp {
-				return "swap"
-			}
-			return "spot"
-		}(),
-		"spot":     !isPerp,
-		"margin":   false,
-		"swap":     isPerp,
-		"future":   false,
-		"option":   false,
-		"active":   (state != nil && *state == "ACTIVE"),
-		"contract": isPerp,
-		"linear": func() any {
-			if isPerp {
-				return true
-			}
-			return nil
-		}(),
-		"inverse": func() any {
-			if isPerp {
-				return false
-			}
-			return nil
-		}(),
-		"contractSize": func() any {
-			if isPerp {
-				return this.ParseNumber("1")
-			}
-			return nil
-		}(),
+		"id":             id,
+		"symbol":         symbol,
+		"base":           base,
+		"quote":          quote,
+		"settle":         func() any { if isPerp { return quote }; return nil }(),
+		"baseId":         baseId,
+		"quoteId":        quoteId,
+		"settleId":       func() any { if isPerp { return quoteId }; return nil }(),
+		"type":           func() any { if isPerp { return "swap" }; return "spot" }(),
+		"spot":           !isPerp,
+		"margin":         false,
+		"swap":           isPerp,
+		"future":         false,
+		"option":         false,
+		"active":         (state != nil && *state == "ACTIVE"),
+		"contract":       isPerp,
+		"linear":         func() any { if isPerp { return true }; return nil }(),
+		"inverse":        func() any { if isPerp { return false }; return nil }(),
+		"contractSize":   func() any { if isPerp { return this.ParseNumber("1") }; return nil }(),
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -754,7 +724,7 @@ func (this *Onetrading) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 		ch <- retRes62719
 		return nil
 	} else {
-		panic(NotSupported(Add(Add(this.Id+" fetchTradingFees() does not support ", method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
+		panic(NotSupported(Add(Add(this.Id + " fetchTradingFees() does not support ", method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")))
 	}
 }
 func (this *Onetrading) FetchPublicTradingFeesAsync(optionalArgs ...any) <-chan any {
@@ -830,12 +800,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var tierObject any = func() any {
-			if IsEqual(GetValue(market, "spot"), true) {
-				return firstSpotTier
-			}
-			return firstFuturesTier
-		}()
+		var tierObject any = func() any { if (IsEqual(GetValue(market, "spot"), true)) { return firstSpotTier }; return firstFuturesTier }()
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       spotFees,
 			"symbol":     symbol,
@@ -917,18 +882,8 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	for i := 0; i < GetArrayLength(symbols); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = this.Market(symbol)
-		var makerFee any = func() any {
-			if IsEqual(GetValue(market, "spot"), true) {
-				return spotMakerFee
-			}
-			return futuresMakerFee
-		}()
-		var takerFee any = func() any {
-			if IsEqual(GetValue(market, "spot"), true) {
-				return spotTakerFee
-			}
-			return futuresTakerFee
-		}()
+		var makerFee any = func() any { if (IsEqual(GetValue(market, "spot"), true)) { return spotMakerFee }; return futuresMakerFee }()
+		var takerFee any = func() any { if (IsEqual(GetValue(market, "spot"), true)) { return spotTakerFee }; return futuresTakerFee }()
 		AddElementToObject(result, symbol, map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1688,7 +1643,7 @@ func (this *Onetrading) createOrderBody(ch chan any, symbol any, typeVar any, si
 		request["type"] = "STOP"
 		params = this.Omit(params, []any{"triggerPrice", "trigger_price", "stopPrice"})
 	} else if uppercaseType == "STOP" {
-		panic(ArgumentsRequired(Add(Add(this.Id+" createOrder() requires a triggerPrice param for ", typeVar), " orders")))
+		panic(ArgumentsRequired(Add(Add(this.Id + " createOrder() requires a triggerPrice param for ", typeVar), " orders")))
 	}
 	if priceIsRequired {
 		request["price"] = this.PriceToPrecision(symbol, price)
@@ -2312,7 +2267,7 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsEqual(api, "public") {
 		if len(ObjectKeys(query)) > 0 {
-			url = Add(url, "?"+this.Urlencode(query))
+			url = Add(url, "?" + this.Urlencode(query))
 		}
 	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
@@ -2325,7 +2280,7 @@ func (this *Onetrading) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
 			if len(ObjectKeys(query)) > 0 {
-				url = Add(url, "?"+this.Urlencode(query))
+				url = Add(url, "?" + this.Urlencode(query))
 			}
 		}
 	}
@@ -2347,7 +2302,7 @@ func (this *Onetrading) HandleErrors(code any, reason any, url any, method any, 
 	//
 	var message *string = this.SafeString(response, "error")
 	if message != nil {
-		var feedback any = Add(this.Id+" ", body)
+		var feedback any = Add(this.Id + " ", body)
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], message, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
 		panic(ExchangeError(feedback))

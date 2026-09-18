@@ -140,7 +140,7 @@ func (this *P2b) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any{})
 	var channel *int64 = this.SafeInteger(timeframes, timeframe)
 	if channel == nil {
-		panic(ccxt.BadRequest(ccxt.Add(this.Id+" watchOHLCV cannot take a timeframe of ", timeframe)))
+		panic(ccxt.BadRequest(ccxt.Add(this.Id + " watchOHLCV cannot take a timeframe of ", timeframe)))
 	}
 	var market any = this.Market(symbol)
 	var request []any = []any{ccxt.GetValue(market, "id"), channel}
@@ -617,7 +617,7 @@ func (this *P2b) HandleMessage(client any, message any) {
 func (this *P2b) HandleErrorMessage(client any, message any) any {
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
-		panic(ccxt.ExchangeError(ccxt.Add(this.Id+" error: ", this.Json(error))))
+		panic(ccxt.ExchangeError(ccxt.Add(this.Id + " error: ", this.Json(error))))
 	}
 	return false
 }
