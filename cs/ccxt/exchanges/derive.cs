@@ -1536,10 +1536,10 @@ public partial class derive : Exchange
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex");
     }
 
-    public virtual object signOrder(object order, object privateKey)
+    public virtual string? signOrder(object order, object privateKey)
     {
         object hashOrder = this.hashOrderMessage(order);
-        return this.signHash(slice(hashOrder, -64, null), slice(privateKey, -64, null));
+        return ((string?)((object)(this.signHash(slice(hashOrder, -64, null), slice(privateKey, -64, null)))));
     }
 
     public virtual object hashMessage(object message)
@@ -1638,7 +1638,7 @@ public partial class derive : Exchange
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("createOrder", parameters);
         deriveWalletAddress = deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
-        object signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
+        string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
             { "direction", orderSide },
@@ -1823,7 +1823,7 @@ public partial class derive : Exchange
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleDeriveWalletAddress("editOrder", parameters);
         deriveWalletAddress = deriveWalletAddressparametersVariable[0];
         parameters = deriveWalletAddressparametersVariable[1];
-        object signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
+        string? signature = this.signOrder(new List<object>() {ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress}, this.privateKey);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
             { "order_id_to_cancel", id },

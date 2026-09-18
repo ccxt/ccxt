@@ -1988,7 +1988,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))

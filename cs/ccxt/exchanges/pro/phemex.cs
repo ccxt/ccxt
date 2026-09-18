@@ -55,31 +55,31 @@ public partial class phemex : ccxt.phemex
         return ((object)precise).ToString();
     }
 
-    public override object fromEp(object ep, object market = null)
+    public override string? fromEp(object ep, object market = null)
     {
         if ((isEqual(ep, null)) || (isEqual(market, null)))
         {
-            return ep;
+            return ((string?)((object)(ep)));
         }
-        return this.fromEn(ep, this.safeInteger(market, "priceScale"));
+        return ((string?)((object)(this.fromEn(ep, this.safeInteger(market, "priceScale")))));
     }
 
-    public override object fromEv(object ev, object market = null)
+    public override string? fromEv(object ev, object market = null)
     {
         if ((isEqual(ev, null)) || (isEqual(market, null)))
         {
-            return ev;
+            return ((string?)((object)(ev)));
         }
-        return this.fromEn(ev, this.safeInteger(market, "valueScale"));
+        return ((string?)((object)(this.fromEn(ev, this.safeInteger(market, "valueScale")))));
     }
 
-    public override object fromEr(object er, object market = null)
+    public override string? fromEr(object er, object market = null)
     {
         if ((isEqual(er, null)) || (isEqual(market, null)))
         {
-            return er;
+            return ((string?)((object)(er)));
         }
-        return this.fromEn(er, this.safeInteger(market, "ratioScale"));
+        return ((string?)((object)(this.fromEn(er, this.safeInteger(market, "ratioScale")))));
     }
 
     public virtual Int64 requestId()
@@ -114,14 +114,14 @@ public partial class phemex : ccxt.phemex
         market = marketResolved;
         object symbol = GetValue(marketResolved, "symbol");
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
-        object lastString = this.fromEp(this.safeString(ticker, "close"), market);
+        string? lastString = this.fromEp(this.safeString(ticker, "close"), market);
         double? last = this.parseNumber(lastString);
         double? quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "turnover"), market));
         double? baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, "volume"), market));
         double? change = null;
         double? percentage = null;
         double? average = null;
-        object openString = this.omitZero(this.fromEp(this.safeString(ticker, "open"), market));
+        string? openString = this.omitZero(this.fromEp(this.safeString(ticker, "open"), market));
         double? open = this.parseNumber(openString);
         if (((openString != null)) && ((lastString != null)))
         {
@@ -177,14 +177,14 @@ public partial class phemex : ccxt.phemex
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         market = marketResolved;
         object symbol = GetValue(marketResolved, "symbol");
-        object lastString = this.fromEp(this.safeString(ticker, 4), market);
+        string? lastString = this.fromEp(this.safeString(ticker, 4), market);
         double? last = this.parseNumber(lastString);
         double? quoteVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 6), market));
         double? baseVolume = this.parseNumber(this.fromEv(this.safeString(ticker, 5), market));
         double? change = null;
         double? percentage = null;
         double? average = null;
-        object openString = this.omitZero(this.fromEp(this.safeString(ticker, 1), market));
+        string? openString = this.omitZero(this.fromEp(this.safeString(ticker, 1), market));
         double? open = this.parseNumber(openString);
         if (((openString != null)) && ((lastString != null)))
         {

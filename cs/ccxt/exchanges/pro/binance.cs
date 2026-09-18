@@ -513,7 +513,7 @@ public partial class binance : ccxt.binance
             Int64? limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(limit);
         }
-        object cache = this.liquidations;
+        ccxt.pro.ArrayCache cache = this.liquidations;
         callDynamically(cache, "append", new object[] {liquidation});
         callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
         callDynamically(client, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});

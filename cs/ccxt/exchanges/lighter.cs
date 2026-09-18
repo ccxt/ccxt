@@ -901,7 +901,7 @@ public partial class lighter : Exchange
         ((IDictionary<string,object>)this.options)["chainId"] = isTrue(enable) ? 300 : 304;
     }
 
-    public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
@@ -1153,8 +1153,8 @@ public partial class lighter : Exchange
         IList<object> groupingTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, method, "groupingType", 3);
         groupingType = groupingTypeparametersVariable[0];
         parameters = groupingTypeparametersVariable[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-        object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        int totalOrderRequests = getArrayLength(orderRequests);
+        List<object> orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        int totalOrderRequests = orderRequests?.Count ?? 0;
         object apiKeyIndex = null;
         object order = null;
         if (isGreaterThan(totalOrderRequests, 0))

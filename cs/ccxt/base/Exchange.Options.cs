@@ -192,7 +192,7 @@ public partial class BaseExchange
     public bool newUpdates;
 
     public object positions;
-    public object liquidations;
+    public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
     public object trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();

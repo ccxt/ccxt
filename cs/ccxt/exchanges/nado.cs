@@ -526,7 +526,7 @@ public partial class nado : Exchange
         order["appendix"] = appendix;
         object contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
-        object signature = this.signOrder(order, productId, chainId);
+        string? signature = this.signOrder(order, productId, chainId);
         placeOrder["order"] = order;
         placeOrder["signature"] = signature;
         parameters = this.omit(parameters, new List<object>() {"expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice"});
@@ -674,7 +674,7 @@ public partial class nado : Exchange
             throw new ExchangeError (add(this.id, " editOrder() requires endpoint_addr from contracts query")) ;
         }
         object cancelSignature = this.signCancellation(cancelTx, chainId, endpointAddress);
-        object orderSignature = this.signOrder(order, productId, chainId);
+        string? orderSignature = this.signOrder(order, productId, chainId);
         Dictionary<string, object> placeOrder = new Dictionary<string, object>() {
             { "product_id", productId },
             { "order", order },
@@ -3252,7 +3252,7 @@ public partial class nado : Exchange
         return slice(padded, 0, length);
     }
 
-    public virtual object signOrder(object order, object productId, object chainId)
+    public virtual string? signOrder(object order, object productId, object chainId)
     {
         Dictionary<string, object> domain = new Dictionary<string, object>() {
             { "name", "Nado" },
@@ -3283,7 +3283,7 @@ public partial class nado : Exchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         string hash = add("0x", this.hash(encoded, keccak, "hex"));
-        return this.signHash(hash, this.privateKey);
+        return ((string?)((object)(this.signHash(hash, this.privateKey))));
     }
 
     public virtual object signCancellation(object cancellation, object chainId, object endpointAddress)
