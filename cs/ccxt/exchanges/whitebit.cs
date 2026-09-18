@@ -2447,7 +2447,7 @@ public partial class whitebit : Exchange
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         if ((clientOrderId == null))
         {
-            object brokerId = this.safeString(this.options, "brokerId");
+            string? brokerId = this.safeString(this.options, "brokerId");
             if ((brokerId != null))
             {
                 request["clientOrderId"] = add(brokerId, this.uuid16());

@@ -920,9 +920,9 @@ public partial class cex : ccxt.cex
             baseId = this.safeString(order, "symbol1");
             quoteId = this.safeString(order, "symbol2");
         }
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = null;
+        string? symbol = null;
         if ((bs != null) && (quote != null))
         {
             symbol = add(add(bs, "/"), quote);

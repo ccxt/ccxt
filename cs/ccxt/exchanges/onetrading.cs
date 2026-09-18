@@ -1104,7 +1104,7 @@ public partial class onetrading : Exchange
         //
         object granularity = this.safeValue(ohlcv, "granularity");
         string? unit = this.safeString(granularity, "unit");
-        object period = this.safeString(granularity, "period");
+        string? period = this.safeString(granularity, "period");
         Dictionary<string, object> units = new Dictionary<string, object>() {
             { "MINUTES", "m" },
             { "HOURS", "h" },
@@ -1117,7 +1117,7 @@ public partial class onetrading : Exchange
         {
             throw new ExchangeError (add(this.id, " parseOHLCV() missing period/unit")) ;
         }
-        object timeframe = add(period, lowercaseUnit);
+        string timeframe = add(period, lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
         Int64 duration = multiply(durationInSeconds, 1000);
         Int64? timestamp = this.parse8601(this.safeString(ohlcv, "time"));

@@ -535,7 +535,7 @@ public partial class latoken : Exchange
             IDictionary<string, object> quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
             if ((baseCurrencyInfo != null) && (quoteCurrencyInfo != null))
             {
-                object bs = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
+                string? bs = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
                 string? quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
                 if (((bs == null)) || ((quote == null)))
                 {
@@ -1315,9 +1315,9 @@ public partial class latoken : Exchange
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? baseId = this.safeString(order, "baseCurrency");
         string? quoteId = this.safeString(order, "quoteCurrency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = null;
+        string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
             symbol = add(add(bs, "/"), quote);

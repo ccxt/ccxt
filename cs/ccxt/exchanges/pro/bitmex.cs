@@ -1695,7 +1695,7 @@ public partial class bitmex : ccxt.bitmex
         //     }
         //
         string? action = this.safeString(message, "action");
-        object table = this.safeString(message, "table");
+        string? table = this.safeString(message, "table");
         if ((table == null))
         {
             return;  // protecting from weird updates
@@ -1712,13 +1712,13 @@ public partial class bitmex : ccxt.bitmex
             }
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)getValue(market, "symbol"));
-            if (isEqual(table, "orderBookL2"))
+            if (table == "orderBookL2")
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook();
-            } else if (isEqual(table, "orderBookL2_25"))
+            } else if (table == "orderBookL2_25")
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {}, 25);
-            } else if (isEqual(table, "orderBook10"))
+            } else if (table == "orderBook10")
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(new Dictionary<string, object>() {}, 10);
             }
@@ -1737,7 +1737,7 @@ public partial class bitmex : ccxt.bitmex
                 ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
                 ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
             }
-            object messageHash = add(add(table, ":"), symbol);
+            string messageHash = add(add(table, ":"), symbol);
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
         } else
         {
@@ -1774,7 +1774,7 @@ public partial class bitmex : ccxt.bitmex
                 string? marketId = ((string)getValue(marketIds, i));
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)getValue(market, "symbol"));
-                object messageHash = add(add(table, ":"), symbol);
+                string messageHash = add(add(table, ":"), symbol);
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
                 callDynamically(client, "resolve", new object[] {orderbook, messageHash});
             }

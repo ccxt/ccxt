@@ -2017,7 +2017,7 @@ public partial class tokocrypto : Exchange
             object broker = this.safeValue(this.options, "broker");
             if ((broker != null))
             {
-                object brokerId = this.safeString(broker, "marketType");
+                string? brokerId = this.safeString(broker, "marketType");
                 if ((brokerId != null))
                 {
                     request["clientId"] = add(brokerId, this.uuid22());

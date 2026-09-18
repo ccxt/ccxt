@@ -1168,7 +1168,7 @@ public partial class coinone : Exchange
         string? id = this.safeString2(order, "orderId", "order_id");
         string? baseId = this.safeString2(order, "baseCurrency", "target_currency");
         string? quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
-        object bs = null;
+        string? bs = null;
         string? quote = null;
         if ((baseId != null))
         {
@@ -1178,7 +1178,7 @@ public partial class coinone : Exchange
         {
             quote = this.safeCurrencyCode(quoteId);
         }
-        object symbol = null;
+        string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
             symbol = add(add(bs, "/"), quote);
@@ -1221,7 +1221,7 @@ public partial class coinone : Exchange
         string? feeCostString = this.safeString(order, "fee");
         if ((feeCostString != null))
         {
-            object feeCurrencyCode = (side == "sell") ? quote : bs;
+            string? feeCurrencyCode = (side == "sell") ? quote : bs;
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "rate", this.safeString2(order, "feeRate", "fee_rate") },

@@ -1341,7 +1341,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        object channel = this.safeString(arg, "channel");
+        string? channel = this.safeString(arg, "channel");
         if ((channel == null))
         {
             return;
@@ -1350,7 +1350,7 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        string interval = ((string)channel).Replace((string)"candle", (string)"");
+        string interval = channel.Replace((string)"candle", (string)"");
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
@@ -1368,7 +1368,7 @@ public partial class okx : ccxt.okx
                 }
             }
             callDynamically(stored, "append", new object[] {parsed});
-            object messageHash = add(add(channel, ":"), GetValue(market, "id"));
+            string messageHash = add(add(channel, ":"), GetValue(market, "id"));
             callDynamically(client, "resolve", new object[] {stored, messageHash});
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol

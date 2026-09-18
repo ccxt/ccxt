@@ -2222,8 +2222,8 @@ public partial class aster : Exchange
         string? marketId = this.safeString(contract, "symbol");
         Int64? nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Int64? timestamp = this.safeInteger(contract, "time");
-        object interval = this.safeString(contract, "fundingIntervalHours");
-        object intervalString = null;
+        string? interval = this.safeString(contract, "fundingIntervalHours");
+        string? intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");

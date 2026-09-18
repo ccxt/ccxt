@@ -585,7 +585,7 @@ public partial class bithumb : Exchange
                 string? marketId = this.safeString(entry, "market");
                 object baseId = null;
                 object quoteId = null;
-                object bs = null;
+                string? bs = null;
                 string? quote = null;
                 if ((marketId != null))
                 {
@@ -2479,7 +2479,7 @@ public partial class bithumb : Exchange
         object symbol = null;
         string? baseId = this.safeString(order, "order_currency");
         string? quoteId = this.safeString(order, "payment_currency");
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs != null)) && ((quote != null)))
         {

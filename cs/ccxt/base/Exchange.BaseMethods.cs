@@ -4747,7 +4747,7 @@ public partial class BaseExchange
                 {
                     string? baseId = this.safeString(parts, 0);
                     string? quoteId = this.safeString(parts, 1);
-                    object bs = this.safeCurrencyCode(baseId);
+                    string? bs = this.safeCurrencyCode(baseId);
                     string? quote = this.safeCurrencyCode(quoteId);
                     result["baseId"] = baseId;
                     result["quoteId"] = quoteId;

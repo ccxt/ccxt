@@ -2973,7 +2973,7 @@ public partial class htx : ccxt.htx
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache cachedTrades = this.myTrades;
-        object messageHash = this.safeString2(message, "ch", "topic");
+        string? messageHash = this.safeString2(message, "ch", "topic");
         if ((messageHash != null))
         {
             object data = this.safeValue(message, "data");
@@ -3002,9 +3002,9 @@ public partial class htx : ccxt.htx
                     }
                 }
                 callDynamically(client, "resolve", new object[] {this.myTrades, messageHash});
-                if ((isEqual(messageHash, "trade")) && ((contractCode != null)))
+                if ((messageHash == "trade") && ((contractCode != null)))
                 {
-                    object specificMessageHash = add(add(messageHash, "."), contractCode.ToLower());
+                    string specificMessageHash = add(add(messageHash, "."), contractCode.ToLower());
                     callDynamically(client, "resolve", new object[] {this.myTrades, specificMessageHash});
                 }
             } else
@@ -3024,14 +3024,14 @@ public partial class htx : ccxt.htx
                 }
                 // messageHash here is the orders one, so
                 // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
-                object tradesHash = add(add(messageHash, ":"), "trade");
+                string tradesHash = add(add(messageHash, ":"), "trade");
                 callDynamically(client, "resolve", new object[] {this.myTrades, tradesHash});
                 // when we make an global order sub we have to send the channel like this
                 // ch = orders_cross.* and we store messageHash = 'orders_cross'
                 // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
-                string genericOrderHash = ((string)messageHash).Replace(add(".", getValue(market, "lowercaseId")), (string)"");
+                string genericOrderHash = messageHash.Replace(add(".", getValue(market, "lowercaseId")), (string)"");
                 string? lowerCaseBaseId = this.safeStringLower(market, "baseId");
                 genericOrderHash = genericOrderHash.Replace(add(".", lowerCaseBaseId), (string)"");
                 string genericTradesHash = add(add(genericOrderHash, ":"), "trade");

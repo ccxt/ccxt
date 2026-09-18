@@ -2725,7 +2725,7 @@ public partial class binance : ccxt.binance
         {
             if (isEqual(marketType, "option"))
             {
-                object underlying = this.safeStringLower(parameters, "underlying");
+                string? underlying = this.safeStringLower(parameters, "underlying");
                 if ((underlying == null))
                 {
                     throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")) ;
@@ -4938,13 +4938,13 @@ public partial class binance : ccxt.binance
                 { "type", "stock" },
             }));
             IDictionary<string, object> stockOptions = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
-            object stockListenKey = this.safeString(stockOptions, "listenKey");
+            string? stockListenKey = this.safeString(stockOptions, "listenKey");
             if ((stockListenKey == null))
             {
                 throw new BadRequest (add(this.id, " watchOrders() failed to initialize stock listenKey")) ;
             }
             object stockUrl = this.getStockWsUrl("user");
-            object stockStreamName = add(stockListenKey, "@orderReport");
+            string stockStreamName = add(stockListenKey, "@orderReport");
             Int64 stockRequestId = ((Int64)this.requestId(stockUrl));
             string stockMessageHash = "orders";
             if (!isEqual(symbolVar, null))

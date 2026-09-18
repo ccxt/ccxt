@@ -1359,9 +1359,9 @@ public partial class cex : Exchange
         //                "expireTime": null,
         //                "effectiveTime": null
         //
-        object currency1 = this.safeString(order, "currency1");
+        string? currency1 = this.safeString(order, "currency1");
         string? currency2 = this.safeString(order, "currency2");
-        object marketId = null;
+        string? marketId = null;
         if ((currency1 != null) && (currency2 != null))
         {
             marketId = add(add(currency1, "-"), currency2);

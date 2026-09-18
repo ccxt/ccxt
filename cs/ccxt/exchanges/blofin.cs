@@ -2345,12 +2345,12 @@ public partial class blofin : Exchange
             return direct;
         }
         IDictionary<string, object> prefixes = this.safeDict(this.options, "networkPrefixes", new Dictionary<string, object>() {});
-        object prefix = this.safeString(prefixes, networkCode);
+        string? prefix = this.safeString(prefixes, networkCode);
         if ((prefix != null))
         {
             IDictionary<string, object> suffixes = this.safeDict(this.options, "networkSuffixes", new Dictionary<string, object>() {});
             string? suffix = this.safeString(suffixes, networkCode, networkCode);
-            return ((string?)((object)(add(add(add(add(prefix, " "), "("), suffix), ")"))));
+            return add(add(add(add(prefix, " "), "("), suffix), ")");
         }
         return ((string?)((object)(networkCode)));
     }

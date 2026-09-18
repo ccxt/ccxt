@@ -4596,7 +4596,7 @@ public partial class okx : Exchange
         }
         if ((clientOrderId == null))
         {
-            object brokerId = this.safeString(this.options, "brokerId");
+            string? brokerId = this.safeString(this.options, "brokerId");
             if ((brokerId != null))
             {
                 request["clOrdId"] = add(brokerId, this.uuid16());

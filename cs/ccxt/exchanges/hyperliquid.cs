@@ -1032,12 +1032,12 @@ public partial class hyperliquid : Exchange
         string? quoteId = ((collateralTokenCode == null)) ? "USDC" : collateralTokenCode;
         string? settleId = ((collateralTokenCode == null)) ? "USDC" : collateralTokenCode;
         string? baseName = this.safeString(market, "name");
-        object bs = this.safeCurrencyCode(baseName);
+        string? bs = this.safeCurrencyCode(baseName);
         if ((bs == null))
         {
             throw new ExchangeError (add(this.id, " parseMarket() missing base currency")) ;
         }
-        bs = ((string)bs).Replace((string)":", (string)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
+        bs = bs.Replace((string)":", (string)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
         string? quote = this.safeCurrencyCode(quoteId);
         string? baseId = this.safeString(market, "baseId");
         string? settle = this.safeCurrencyCode(settleId);

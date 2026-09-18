@@ -787,7 +787,7 @@ public partial class bittrade : Exchange
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object baseId = this.safeString(market, "base-currency");
+            string? baseId = this.safeString(market, "base-currency");
             string? quoteId = this.safeString(market, "quote-currency");
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);

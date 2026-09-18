@@ -7598,7 +7598,7 @@ public partial class binance : Exchange
             IDictionary<string, object> broker = this.safeDict(this.options, "broker");
             if ((broker != null))
             {
-                object brokerId = this.safeString(broker, "spot");
+                string? brokerId = this.safeString(broker, "spot");
                 if ((brokerId != null))
                 {
                     request["newClientOrderId"] = add(brokerId, this.uuid22());
@@ -13255,8 +13255,8 @@ public partial class binance : Exchange
         double? estimatedSettlePrice = this.safeNumber(contract, "estimatedSettlePrice");
         double? fundingRate = this.safeNumber(contract, "lastFundingRate");
         Int64? fundingTime = this.safeInteger(contract, "nextFundingTime");
-        object interval = this.safeString(contract, "fundingIntervalHours");
-        object intervalString = null;
+        string? interval = this.safeString(contract, "fundingIntervalHours");
+        string? intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");
@@ -15514,7 +15514,7 @@ public partial class binance : Exchange
             return null;
         }
         List<object> urlParts = ((string)url).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        object scheme = this.safeString(urlParts, 0);
+        string? scheme = this.safeString(urlParts, 0);
         if ((scheme == null))
         {
             return null;
@@ -15524,7 +15524,7 @@ public partial class binance : Exchange
         {
             return null;
         }
-        return ((string?)((object)(add(add(add(scheme, "//"), domain), "/"))));
+        return add(add(add(scheme, "//"), domain), "/");
     }
 
     public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -4946,8 +4946,8 @@ public partial class mexc : Exchange
         string? marketId = this.safeString(contract, "symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "contract");
         Int64? timestamp = this.safeInteger(contract, "timestamp");
-        object interval = this.safeString(contract, "collectCycle");
-        object intervalString = null;
+        string? interval = this.safeString(contract, "collectCycle");
+        string? intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");
