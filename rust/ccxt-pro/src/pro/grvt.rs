@@ -1150,7 +1150,7 @@ impl GrvtCore {
         //        "prev_sequence_number": "0"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "feed", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1262,7 +1262,7 @@ impl GrvtCore {
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[]);
+        let mut data: Value = self.safe_dict_k(message, "feed", &[]);
         let mut position: Value = self.parse_ws_position(data.clone(), &[]);
         let mut symbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         self.positions.append(position.clone());
@@ -1394,7 +1394,7 @@ impl GrvtCore {
         //        "prev_sequence_number": "16"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "feed", &[]);
+        let mut data: Value = self.safe_dict_k(message, "feed", &[]);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());

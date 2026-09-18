@@ -1314,7 +1314,7 @@ impl BydfiCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut positionsData: Value = self.safe_list_k(data.clone(), "p", &[Value::List(vec![])]);
+        let mut positionsData: Value = self.safe_list_k(data, "p", &[Value::List(vec![])]);
         let mut rawPosition: Value = self.safe_dict(positionsData.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1430,7 +1430,7 @@ impl BydfiCore {
         self.fetch_balance_snapshot(client.clone());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "awaitBalanceSnapshot", &[Value::Bool(true)]);
+        let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
         if is_true(&(Value::Bool(fetchBalanceSnapshot.as_bool() == Some(true)))) && is_true(&(Value::Bool(awaitBalanceSnapshot.as_bool() == Some(true)))) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchBalanceSnapshot".to_string())])).await;
         }
@@ -1442,7 +1442,7 @@ impl BydfiCore {
 
     pub fn fetch_balance_snapshot(&mut self, mut client: Value) {
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
+        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if (fetchBalanceSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = Value::Str("fetchBalanceSnapshot".to_string());
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
@@ -1515,7 +1515,7 @@ impl BydfiCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut balances: Value = self.safe_list_k(data.clone(), "B", &[Value::List(vec![])]);
+            let mut balances: Value = self.safe_list_k(data, "B", &[Value::List(vec![])]);
             let mut timestamp: Value = self.safe_integer_k(message.clone(), "T", &[]);
             let mut result: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1643,7 +1643,7 @@ impl BydfiCore {
                 if balancesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     self.handle_balance(client.clone(), message.clone());
                 }
-                let mut positions: Value = self.safe_list_k(account.clone(), "p", &[Value::List(vec![])]);
+                let mut positions: Value = self.safe_list_k(account, "p", &[Value::List(vec![])]);
                 let mut positionsLength: Value = Value::Int(positions.len() as i64);
                 if positionsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                     self.handle_positions(client.clone(), message.clone());

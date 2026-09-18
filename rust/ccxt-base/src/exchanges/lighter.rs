@@ -849,7 +849,7 @@ impl LighterCore {
 }));
         self.init_auth_object(accountIndex.clone(), apiKeyIndex.clone());
         let mut cachedAuths: Value = self.safe_dict(get_value(&self.options.as_map().and_then(|__m| __m.get("auths")).cloned().unwrap_or(Value::Null), &accountIndex), apiKeyIndex.clone(), &[]);
-        let mut signer: Value = self.safe_value_k(cachedAuths.clone(), "signer", &[]);
+        let mut signer: Value = self.safe_value_k(cachedAuths, "signer", &[]);
         if (signer != Value::Null) {
             return signer;
         }
@@ -1012,7 +1012,7 @@ impl LighterCore {
             //     ]
             // }
             //
-            let mut subAccounts: Value = self.safe_list_k(res.clone(), "sub_accounts", &[]);
+            let mut subAccounts: Value = self.safe_list_k(res, "sub_accounts", &[]);
             if is_true(&Value::Bool(is_array(&subAccounts))) {
                 let mut account: Value = self.safe_dict(subAccounts.clone(), Value::Int(0), &[]);
                 if (account == Value::Null) {
@@ -1385,7 +1385,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
         }
-        let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
+        let mut marketInfo: Value = self.safe_dict_k(market, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1840,7 +1840,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //    }
         //
         let mut spotMarkets: Value = self.safe_list_k(response.clone(), "spot_order_book_details", &[Value::List(vec![])]);
-        let mut swapMarkets: Value = self.safe_list_k(response.clone(), "order_book_details", &[Value::List(vec![])]);
+        let mut swapMarkets: Value = self.safe_list_k(response, "order_book_details", &[Value::List(vec![])]);
         let mut markets: Value = self.array_concat(spotMarkets.clone(), swapMarkets.clone());
         let mut result: Value = Value::List(vec![]);
         {
@@ -1977,7 +1977,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "asset_details", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "asset_details", &[Value::List(vec![])]);
         return self.parse_currencies(data.clone());
 
     Value::Null
@@ -2277,7 +2277,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut spotTickers: Value = self.safe_list_k(response.clone(), "spot_order_book_details", &[Value::List(vec![])]);
-        let mut swapTickers: Value = self.safe_list_k(response.clone(), "order_book_details", &[Value::List(vec![])]);
+        let mut swapTickers: Value = self.safe_list_k(response, "order_book_details", &[Value::List(vec![])]);
         let mut tickers: Value = self.array_concat(spotTickers.clone(), swapTickers.clone());
         let mut first: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2309,7 +2309,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         symbols = self.market_symbols(&[symbols.clone()]);
         let mut response: Value = self.public_get_order_book_details(&[params.clone()]).await;
         let mut spotTickers: Value = self.safe_list_k(response.clone(), "spot_order_book_details", &[Value::List(vec![])]);
-        let mut swapTickers: Value = self.safe_list_k(response.clone(), "order_book_details", &[Value::List(vec![])]);
+        let mut swapTickers: Value = self.safe_list_k(response, "order_book_details", &[Value::List(vec![])]);
         let mut tickers: Value = self.array_concat(spotTickers.clone(), swapTickers.clone());
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
@@ -2318,7 +2318,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -2408,7 +2408,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     ]
         // }
         //
-        let mut ohlcvs: Value = self.safe_list_k(response.clone(), "c", &[Value::List(vec![])]);
+        let mut ohlcvs: Value = self.safe_list_k(response, "c", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2435,7 +2435,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -2484,7 +2484,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "funding_rates", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "funding_rates", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2581,7 +2581,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_925: bool = true;
@@ -2728,14 +2728,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut allPositions: Value = Value::List(vec![]);
-        let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_927: bool = true;
             while { if !__for_first_927 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_927 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
-            let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
+            let mut positions: Value = self.safe_list_k(account, "positions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_926: bool = true;
@@ -2813,7 +2813,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("percentage".to_string(), Value::Null);
     m
@@ -2881,7 +2881,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(response.clone(), "accounts", &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::List(vec![])]);
         return self.parse_accounts(accounts.clone(), &[params.clone()]);
 
     Value::Null
@@ -3010,7 +3010,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3104,7 +3104,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "orders", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3722,7 +3722,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), type_var.clone());
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(transaction.clone(), "asset_id", &[]), &[currency.clone()]));
         m.insert("network".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "amount", &[]));
         m.insert("status".to_string(), self.parse_transaction_status(status.clone()));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));

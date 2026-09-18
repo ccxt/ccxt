@@ -569,7 +569,7 @@ impl ToobitCore {
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut stored: Value = get_value(&self.trades, &symbol);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut parsed: Value = self.parse_ws_trades(data.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
@@ -740,7 +740,7 @@ impl ToobitCore {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
             }
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_616: bool = true;
@@ -894,7 +894,7 @@ impl ToobitCore {
         //        "shared": false
         //    }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         if (data == Value::Null) {
             return;
         }
@@ -1039,7 +1039,7 @@ impl ToobitCore {
         let mut marketId: Value = self.safe_string_k(message.clone(), "symbol", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_620: bool = true;
@@ -1057,7 +1057,7 @@ impl ToobitCore {
             let mut orderBook: Value = get_value(&self.orderbooks, &symbol);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "t", &[]);
             let mut bids: Value = self.safe_list_k(entry.clone(), "b", &[Value::List(vec![])]);
-            let mut asks: Value = self.safe_list_k(entry.clone(), "a", &[Value::List(vec![])]);
+            let mut asks: Value = self.safe_list_k(entry, "a", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderBook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderBook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderBook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1099,7 +1099,7 @@ impl ToobitCore {
 }
 
     pub fn set_order_book_snapshot(&mut self, mut client: Value, mut message: Value, mut channel: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut length: Value = Value::Int(data.len() as i64);
         if (length.as_f64() == Some(0.0)) {
             return;

@@ -770,7 +770,7 @@ impl BitmexCore {
         //        ]
         //    }
         //
-        let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawLiquidations: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut newLiquidations: Value = Value::List(vec![]);
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
@@ -1000,7 +1000,7 @@ impl BitmexCore {
         //     }
         //
         let mut table: Value = Value::Str("trade".to_string());
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         let mut dataByMarketIds: Value = self.group_by(data.clone(), Value::Str("symbol".to_string()), &[]);
         let mut marketIds: Value = object_keys(&dataByMarketIds);
         {
@@ -1297,7 +1297,7 @@ impl BitmexCore {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1546,7 +1546,7 @@ impl BitmexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut messageHash: Value = Value::Str("order".to_string());
         // initial subscription response with multiple orders
         let mut dataLength: Value = Value::Int(data.len() as i64);
@@ -1697,9 +1697,9 @@ impl BitmexCore {
         //     }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "table", &[]);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::List(vec![])]);
         let mut dataByExecType: Value = self.group_by(data.clone(), Value::Str("execType".to_string()), &[]);
-        let mut rawTrades: Value = self.safe_value_k(dataByExecType.clone(), "Trade", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_value_k(dataByExecType, "Trade", &[Value::List(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades.clone(), &[]);
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1986,7 +1986,7 @@ impl BitmexCore {
         let mut interval: Value = replace_str(&table, &Value::Str("tradeBin".to_string()), &Value::Str("".to_string()));
         let mut timeframe: Value = self.find_timeframe(interval.clone(), &[]);
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
-        let mut candles: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut candles: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut results: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2101,11 +2101,11 @@ impl BitmexCore {
         let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         // if it's an initial snapshot
         if (action.as_str() == Some("partial")) {
-            let mut filter: Value = self.safe_dict_k(message.clone(), "filter", &[Value::Map({
+            let mut filter: Value = self.safe_dict_k(message, "filter", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut marketId: Value = self.safe_value_k(filter.clone(), "symbol", &[]);
+            let mut marketId: Value = self.safe_value_k(filter, "symbol", &[]);
             if (marketId == Value::Null) {
                 return;
             }
@@ -2226,11 +2226,11 @@ impl BitmexCore {
         //
         let mut error: Value = self.safe_string_k(message.clone(), "error", &[]);
         if (error != Value::Null) {
-            let mut request: Value = self.safe_value_k(message.clone(), "request", &[Value::Map({
+            let mut request: Value = self.safe_value_k(message, "request", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut args: Value = self.safe_list_k(request.clone(), "args", &[Value::List(vec![])]);
+            let mut args: Value = self.safe_list_k(request, "args", &[Value::List(vec![])]);
             let mut numArgs: Value = Value::Int(args.len() as i64);
             if numArgs.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
                 let mut messageHash: Value = args.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -2312,7 +2312,7 @@ impl BitmexCore {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut op: Value = self.safe_value_k(request.clone(), "op", &[]);
+                let mut op: Value = self.safe_value_k(request, "op", &[]);
                 if (op.as_str() == Some("authKeyExpires")) {
                     self.handle_authentication_message(client.clone(), message.clone());
                 }

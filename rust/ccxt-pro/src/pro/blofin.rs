@@ -428,7 +428,7 @@ impl BlofinCore {
         //
         let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
         let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         if (data == Value::Null) {
             return;
         }
@@ -552,7 +552,7 @@ impl BlofinCore {
             orderbook.reset(orderBookSnapshot.clone());
         }  else {
             let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(data, "bids", &[Value::List(vec![])]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone(), &[]);
             self.handle_deltas_with_keys(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone(), &[]);
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -634,7 +634,7 @@ impl BlofinCore {
         self.handle_bid_ask(client.clone(), message.clone());
         let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
         let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_187: bool = true;
@@ -713,7 +713,7 @@ impl BlofinCore {
 }
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_189: bool = true;
@@ -829,7 +829,7 @@ impl BlofinCore {
         //
         let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
         let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         let mut marketId: Value = self.safe_string_k(arg.clone(), "instId", &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1006,7 +1006,7 @@ impl BlofinCore {
         let mut orders: Value = self.orders.clone();
         let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
         let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_191: bool = true;
@@ -1075,7 +1075,7 @@ impl BlofinCore {
         let mut cache: Value = self.positions.clone();
         let mut arg: Value = self.safe_dict_k(message.clone(), "arg", &[]);
         let mut channelName: Value = self.safe_string_k(arg.clone(), "channel", &[]);
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(message, "data", &[]);
         let mut newPositions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1148,7 +1148,7 @@ impl BlofinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

@@ -1542,7 +1542,7 @@ impl WhitebitCore {
     m
 })]);
         let mut depositsNetworks: Value = self.safe_list_k(rawNetworks.clone(), "deposits", &[Value::List(vec![])]);
-        let mut withdrawsNetworks: Value = self.safe_list_k(rawNetworks.clone(), "withdraws", &[Value::List(vec![])]);
+        let mut withdrawsNetworks: Value = self.safe_list_k(rawNetworks, "withdraws", &[Value::List(vec![])]);
         let mut networkLimits: Value = self.safe_dict_k(rawCurrency.clone(), "limits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1551,7 +1551,7 @@ impl WhitebitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut withdrawLimits: Value = self.safe_dict_k(networkLimits.clone(), "withdraw", &[Value::Map({
+        let mut withdrawLimits: Value = self.safe_dict_k(networkLimits, "withdraw", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1586,13 +1586,13 @@ impl WhitebitCore {
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(networkDepositLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkDepositLimits.clone(), "max", &[]));
+        m.insert("max".to_string(), self.safe_number_k(networkDepositLimits, "max", &[]));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(networkWithdrawLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkWithdrawLimits.clone(), "max", &[]));
+        m.insert("max".to_string(), self.safe_number_k(networkWithdrawLimits, "max", &[]));
     m
 }));
     m
@@ -1632,7 +1632,7 @@ impl WhitebitCore {
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "min_deposit", &[]));
-        m.insert("max".to_string(), self.safe_number_k(rawCurrency.clone(), "max_deposit", &[]));
+        m.insert("max".to_string(), self.safe_number_k(rawCurrency, "max_deposit", &[]));
     m
 }));
     m
@@ -1715,7 +1715,7 @@ impl WhitebitCore {
             if (code != Value::Null) {
                 add_element_to_object(&mut withdrawFees, &code, self.safe_string_k(withdraw.clone(), "fixed", &[]));
             }
-            let mut deposit: Value = self.safe_value_k(data.clone(), "deposit", &[Value::Map({
+            let mut deposit: Value = self.safe_value_k(data, "deposit", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2073,19 +2073,19 @@ impl WhitebitCore {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(amountLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(amountLimits.clone(), "max", &[]));
+        m.insert("max".to_string(), self.safe_number_k(amountLimits, "max", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(priceLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceLimits.clone(), "max", &[]));
+        m.insert("max".to_string(), self.safe_number_k(priceLimits, "max", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(costLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(costLimits.clone(), "max", &[]));
+        m.insert("max".to_string(), self.safe_number_k(costLimits, "max", &[]));
     m
 }));
     m
@@ -2333,7 +2333,7 @@ impl WhitebitCore {
         //         },
         //     }
         //
-        let mut ticker: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut ticker: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3031,7 +3031,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(result.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -5065,7 +5065,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(contract.clone(), "fundingAmount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(contract, "fundingAmount", &[]));
     m
 });
 
@@ -5390,7 +5390,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("fromAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("give".to_string()), Value::Str("finalGive".to_string()), &[]));
         m.insert("toCurrency".to_string(), toCode.clone());
         m.insert("toAmount".to_string(), self.safe_number2(conversion.clone(), Value::Str("receive".to_string()), Value::Str("finalReceive".to_string()), &[]));
-        m.insert("price".to_string(), self.safe_number_k(conversion.clone(), "rate", &[]));
+        m.insert("price".to_string(), self.safe_number_k(conversion, "rate", &[]));
         m.insert("fee".to_string(), Value::Null);
     m
 });
@@ -5609,7 +5609,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidationPrice", &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "basePrice", &[]));
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "pnl", &[]));
-        m.insert("realizedPnl".to_string(), self.safe_number_k(orderDetail.clone(), "realizedPnl", &[]));
+        m.insert("realizedPnl".to_string(), self.safe_number_k(orderDetail, "realizedPnl", &[]));
         m.insert("percentage".to_string(), self.safe_number_k(position.clone(), "pnlPercent", &[]));
         m.insert("contracts".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
@@ -5622,13 +5622,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         m.insert("lastUpdateTimestamp".to_string(), self.safe_timestamp(position.clone(), Value::Str("modifyDate".to_string()), &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
+        m.insert("collateral".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("initialMargin".to_string(), Value::Null);
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), self.safe_number_k(tpsl.clone(), "stopLoss", &[]));
-        m.insert("takeProfitPrice".to_string(), self.safe_number_k(tpsl.clone(), "takeProfit", &[]));
+        m.insert("takeProfitPrice".to_string(), self.safe_number_k(tpsl, "takeProfit", &[]));
     m
 }));
 

@@ -684,7 +684,7 @@ impl HollaexCore {
         //         "status": true
         //     }
         //
-        let mut pairs: Value = self.safe_dict_k(response.clone(), "pairs", &[Value::Map({
+        let mut pairs: Value = self.safe_dict_k(response, "pairs", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -852,7 +852,7 @@ impl HollaexCore {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        let mut coins: Value = self.safe_dict_k(response.clone(), "coins", &[Value::Map({
+        let mut coins: Value = self.safe_dict_k(response, "coins", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -928,7 +928,7 @@ impl HollaexCore {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(rawCurrency.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(rawCurrency.clone(), "max", &[]));
+        m.insert("max".to_string(), self.safe_number_k(rawCurrency, "max", &[]));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
@@ -1351,11 +1351,11 @@ impl HollaexCore {
         //         ...
         //     }
         //
-        let mut firstTier: Value = self.safe_value_k(response.clone(), "1", &[Value::Map({
+        let mut firstTier: Value = self.safe_value_k(response, "1", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut fees: Value = self.safe_value_k(firstTier.clone(), "fees", &[Value::Map({
+        let mut fees: Value = self.safe_value_k(firstTier, "fees", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1455,7 +1455,7 @@ impl HollaexCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "time", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1732,7 +1732,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1796,7 +1796,7 @@ impl HollaexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut postOnly: Value = self.safe_bool_k(meta.clone(), "post_only", &[Value::Bool(false)]);
+        let mut postOnly: Value = self.safe_bool_k(meta, "post_only", &[Value::Bool(false)]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -2008,7 +2008,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2116,7 +2116,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut wallet: Value = self.safe_value_k(response.clone(), "wallet", &[Value::List(vec![])]);
+        let mut wallet: Value = self.safe_value_k(response, "wallet", &[Value::List(vec![])]);
         let mut addresses: Value = (if is_true(&(Value::Bool(network == Value::Null))) { wallet.clone() } else { self.filter_by(wallet.clone(), Value::Str("network".to_string()), network.clone(), &[]) });
         return self.parse_deposit_addresses(addresses.clone(), &[codes.clone(), Value::Bool(false)]);
 
@@ -2185,7 +2185,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2245,7 +2245,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
         let mut transaction: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2317,7 +2317,7 @@ impl HollaexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2538,7 +2538,7 @@ impl HollaexCore {
     m
 }));
         }
-        let mut withdrawalFees: Value = self.safe_value_k(fee.clone(), "withdrawal_fees", &[]);
+        let mut withdrawalFees: Value = self.safe_value_k(fee, "withdrawal_fees", &[]);
         if (withdrawalFees != Value::Null) {
             let mut keys: Value = object_keys(&withdrawalFees);
             let mut keysLength: Value = Value::Int(keys.len() as i64);
@@ -2623,7 +2623,7 @@ impl HollaexCore {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        let mut coins: Value = self.safe_dict_k(response.clone(), "coins", &[Value::Map({
+        let mut coins: Value = self.safe_dict_k(response, "coins", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

@@ -468,7 +468,7 @@ impl BittradeCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(tick.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(tick, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -596,7 +596,7 @@ impl BittradeCore {
             stored = ArrayCacheByTimestamp::new(limit.clone());
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
         }
-        let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[]);
+        let mut tick: Value = self.safe_value_k(message, "tick", &[]);
         let mut parsed: Value = self.parse_ohlcv(tick.clone(), &[market.clone()]);
         stored.append(parsed.clone());
         client.resolve(&[stored.clone(), ch.clone()]);
@@ -685,7 +685,7 @@ impl BittradeCore {
         let mut messageHash: Value = self.safe_string_k(subscription.clone(), "messageHash", &[]);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_value_k(message, "data", &[]);
         let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[]);
         add_element_to_object(&mut snapshot, &Value::Str("nonce".to_string()), self.safe_integer_k(data.clone(), "seqNum", &[]));
         add_element_to_object(&mut snapshot, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -796,7 +796,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         if (is_less_than_or_equal(&prevSeqNum, &crate::value::get_value_k(&orderbook, "nonce"))) && (is_greater_than(&seqNum, &crate::value::get_value_k(&orderbook, "nonce"))) {
             let mut asks: Value = self.safe_value_k(tick.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_value_k(tick.clone(), "bids", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_value_k(tick, "bids", &[Value::List(vec![])]);
             self.handle_deltas(crate::value::get_value_k(&orderbook, "asks"), asks.clone());
             self.handle_deltas(crate::value::get_value_k(&orderbook, "bids"), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), seqNum.clone());

@@ -1624,7 +1624,7 @@ impl HitbtcCore {
         m.insert("fee".to_string(), self.safe_number_k(rawNetwork.clone(), "payout_fee", &[]));
         m.insert("deposit".to_string(), self.safe_bool_k(rawNetwork.clone(), "payin_enabled", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawNetwork.clone(), "payout_enabled", &[]));
-        m.insert("precision".to_string(), self.safe_number_k(rawNetwork.clone(), "precision_payout", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(rawNetwork, "precision_payout", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
@@ -1649,7 +1649,7 @@ impl HitbtcCore {
         m.insert("name".to_string(), self.safe_string_k(entry.clone(), "full_name", &[]));
         m.insert("active".to_string(), Value::Bool(self.safe_bool_k(entry.clone(), "delisted", &[]).as_bool() != Some(true)));
         m.insert("deposit".to_string(), self.safe_bool_k(entry.clone(), "payin_enabled", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(entry.clone(), "payout_enabled", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(entry, "payout_enabled", &[]));
         m.insert("networks".to_string(), networks.clone());
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -2352,7 +2352,7 @@ impl HitbtcCore {
                 m.insert("rate".to_string(), Value::Null);
             m
         });
-        let mut feeCost: Value = self.safe_number_k(native.clone(), "fee", &[]);
+        let mut feeCost: Value = self.safe_number_k(native, "fee", &[]);
         if (feeCost != Value::Null) {
             add_element_to_object(&mut fee, &Value::Str("currency".to_string()), code.clone());
             add_element_to_object(&mut fee, &Value::Str("cost".to_string()), feeCost.clone());
@@ -2772,7 +2772,7 @@ impl HitbtcCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "max", &[]), self.safe_number_k(ohlcv.clone(), "min", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "timestamp", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "max", &[]), self.safe_number_k(ohlcv.clone(), "min", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -3766,7 +3766,7 @@ impl HitbtcCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut includeFee: Value = self.safe_bool_k(withdrawOptions.clone(), "includeFee", &[Value::Bool(false)]);
+        let mut includeFee: Value = self.safe_bool_k(withdrawOptions, "includeFee", &[Value::Bool(false)]);
         if (includeFee.as_bool() == Some(true)) {
             add_element_to_object(&mut request, &Value::Str("include_fee".to_string()), Value::Bool(true));
         }
@@ -4160,7 +4160,7 @@ impl HitbtcCore {
             while { if !__for_first_752 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_752 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencies.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = get_value(&currencies, &i);
             let mut entry: Value = get_value(&currencies, &i);
-            collateral = self.safe_number_k(entry.clone(), "margin_balance", &[]);
+            collateral = self.safe_number_k(entry, "margin_balance", &[]);
         }
         }
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[]);
@@ -4401,7 +4401,7 @@ impl HitbtcCore {
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), self.parse8601(fundingDateTime.clone()));
         m.insert("fundingDatetime".to_string(), fundingDateTime.clone());
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract.clone(), "indicative_funding_rate", &[]));
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "indicative_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -4758,7 +4758,7 @@ impl HitbtcCore {
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             networkCode = (if is_true(&(Value::Bool(networkCode != Value::Null))) { to_upper(&networkCode) } else { Value::Null });
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "payout_fee", &[]);
-            let mut isDefault: Value = self.safe_value_k(networkEntry.clone(), "default", &[]);
+            let mut isDefault: Value = self.safe_value_k(networkEntry, "default", &[]);
             let mut withdrawResult: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("fee".to_string(), withdrawFee.clone());

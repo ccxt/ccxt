@@ -402,7 +402,7 @@ impl DeriveCore {
         //     }
         // }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
+        let mut params: Value = self.safe_dict_k(message, "params", &[]);
         let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -728,7 +728,7 @@ impl DeriveCore {
         // }
         //
         let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
-        let mut status: Value = self.safe_dict_k(result.clone(), "status", &[]);
+        let mut status: Value = self.safe_dict_k(result, "status", &[]);
         if (status != Value::Null) {
             let mut topics: Value = object_keys(&status);
             {
@@ -802,7 +802,7 @@ impl DeriveCore {
     pub fn handle_trade(&mut self, mut client: Value, mut message: Value) {
         //
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
+        let mut params: Value = self.safe_dict_k(message, "params", &[]);
         let mut data: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -991,7 +991,7 @@ impl DeriveCore {
         //     }
         // }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[]);
+        let mut params: Value = self.safe_dict_k(message, "params", &[]);
         let mut topic: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut rawOrders: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
         {

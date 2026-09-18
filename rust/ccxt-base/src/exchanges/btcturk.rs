@@ -568,11 +568,11 @@ impl BtcturkCore {
         //        ],
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut markets: Value = self.safe_list_k(data.clone(), "symbols", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(data, "symbols", &[Value::List(vec![])]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -602,7 +602,7 @@ impl BtcturkCore {
                 maxPrice = self.safe_number_k(filter.clone(), "maxPrice", &[]);
                 minAmount = self.safe_number_k(filter.clone(), "minAmount", &[]);
                 maxAmount = self.safe_number_k(filter.clone(), "maxAmount", &[]);
-                minCost = self.safe_number_k(filter.clone(), "minExchangeValue", &[]);
+                minCost = self.safe_number_k(filter, "minExchangeValue", &[]);
             }
         }
         }
@@ -765,7 +765,7 @@ impl BtcturkCore {
         //         ]
         //       }
         //     }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -849,7 +849,7 @@ impl BtcturkCore {
             self.load_markets(&[]).await;
         }
         let mut response: Value = self.public_get_ticker(&[params.clone()]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -998,7 +998,7 @@ impl BtcturkCore {
         //       ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(response, "data", &[]);
         let mut dataList: Value = Value::List(vec![]);
         if (data != Value::Null) {
             dataList = data.clone();
@@ -1010,7 +1010,7 @@ impl BtcturkCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1086,7 +1086,7 @@ impl BtcturkCore {
         let mut open: Value = self.safe_list_k(ohlcvs.clone(), "o", &[Value::List(vec![])]);
         let mut low: Value = self.safe_list_k(ohlcvs.clone(), "l", &[Value::List(vec![])]);
         let mut close: Value = self.safe_list_k(ohlcvs.clone(), "c", &[Value::List(vec![])]);
-        let mut volume: Value = self.safe_list_k(ohlcvs.clone(), "v", &[Value::List(vec![])]);
+        let mut volume: Value = self.safe_list_k(ohlcvs, "v", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_457: bool = true;
@@ -1151,7 +1151,7 @@ impl BtcturkCore {
         }
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_order(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1225,12 +1225,12 @@ impl BtcturkCore {
         }
         let __ws_arg_5 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_open_orders(&[__ws_arg_5]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(data, "asks", &[Value::List(vec![])]);
         return self.parse_orders(self.array_concat(bids.clone(), asks.clone()), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1293,7 +1293,7 @@ impl BtcturkCore {
         //     }
         //   ]
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(response, "data", &[]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1433,7 +1433,7 @@ impl BtcturkCore {
         //       "code": "0"
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_list_k(response, "data", &[]);
         let mut dataList: Value = Value::List(vec![]);
         if (data != Value::Null) {
             dataList = data.clone();

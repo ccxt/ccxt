@@ -1015,7 +1015,7 @@ impl OnetradingCore {
     m
 })]);
         let mut spotFeeTiers: Value = self.safe_list_k(spotFees.clone(), "fee_tiers", &[Value::List(vec![])]);
-        let mut futuresFeeTiers: Value = self.safe_list_k(futuresFees.clone(), "fee_tiers", &[Value::List(vec![])]);
+        let mut futuresFeeTiers: Value = self.safe_list_k(futuresFees, "fee_tiers", &[Value::List(vec![])]);
         let mut spotTiers: Value = self.parse_fee_tiers(spotFeeTiers.clone(), &[]);
         let mut futuresTiers: Value = self.parse_fee_tiers(futuresFeeTiers.clone(), &[]);
         let mut firstSpotTier: Value = self.safe_dict(spotTiers.clone(), Value::Int(0), &[Value::Map({
@@ -1044,7 +1044,7 @@ impl OnetradingCore {
         m.insert("info".to_string(), spotFees.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(tierObject.clone(), "maker_fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(tierObject.clone(), "taker_fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(tierObject, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), spotTiers.clone());
@@ -1527,7 +1527,7 @@ impl OnetradingCore {
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        let mut ohlcv: Value = self.safe_list_k(response.clone(), "candlesticks", &[]);
+        let mut ohlcv: Value = self.safe_list_k(response, "candlesticks", &[]);
         return self.parse_ohlc_vs(ohlcv.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1793,7 +1793,7 @@ impl OnetradingCore {
         m.insert("postOnly".to_string(), postOnly.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number_k(rawOrder.clone(), "trigger_price", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(rawOrder, "trigger_price", &[]));
         m.insert("amount".to_string(), amount.clone());
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
@@ -2170,7 +2170,7 @@ impl OnetradingCore {
         //         "max_page_size": 100
         //     }
         //
-        let mut orderHistory: Value = self.safe_list_k(response.clone(), "order_history", &[Value::List(vec![])]);
+        let mut orderHistory: Value = self.safe_list_k(response, "order_history", &[Value::List(vec![])]);
         return self.parse_orders(orderHistory.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2270,7 +2270,7 @@ impl OnetradingCore {
         //         "cursor": "string"
         //     }
         //
-        let mut tradeHistory: Value = self.safe_value_k(response.clone(), "trade_history", &[Value::List(vec![])]);
+        let mut tradeHistory: Value = self.safe_value_k(response, "trade_history", &[Value::List(vec![])]);
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = self.market(symbol);
@@ -2355,7 +2355,7 @@ impl OnetradingCore {
         //         "cursor": "string"
         //     }
         //
-        let mut tradeHistory: Value = self.safe_list_k(response.clone(), "trade_history", &[Value::List(vec![])]);
+        let mut tradeHistory: Value = self.safe_list_k(response, "trade_history", &[Value::List(vec![])]);
         return self.parse_trades(tradeHistory.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null

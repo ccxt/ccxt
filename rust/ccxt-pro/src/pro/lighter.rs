@@ -1239,7 +1239,7 @@ impl LighterCore {
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&channel, &Value::Str(":".to_string()));
         let mut accountIndex: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut data: Value = self.safe_dict_k(message.clone(), "trades", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "trades", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1952,7 +1952,7 @@ impl LighterCore {
         //        "type": "update/account_all_orders"
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "orders", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "orders", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2166,7 +2166,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut subscriptionHash: Value = get_value(&subscriptionHashes, &i);
                 if is_true(&Value::Bool(starts_with(&subscriptionHash, &Value::Str("ticker".to_string())))) {
                     let mut subscription: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), subscriptionHash.clone(), &[]);
-                    let mut subscriptionParams: Value = self.safe_dict_k(subscription.clone(), "params", &[]);
+                    let mut subscriptionParams: Value = self.safe_dict_k(subscription, "params", &[]);
                     let mut subscribedChannel: Value = self.safe_string_k(subscriptionParams.clone(), "channel", &[]);
                     if (subscribedChannel.as_str() == Some("market_stats/all")) {
                         remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &subscriptionHash);

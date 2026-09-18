@@ -2071,7 +2071,7 @@ impl CoinexCore {
         //         "message": "OK"
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_currencies(data.clone());
 
     Value::Null
@@ -2147,7 +2147,7 @@ impl CoinexCore {
         m.insert("name".to_string(), Value::Null);
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(asset.clone(), "deposit_enabled", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(asset.clone(), "withdraw_enabled", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(asset, "withdraw_enabled", &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -2228,7 +2228,7 @@ impl CoinexCore {
         //         "message": "OK"
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2337,7 +2337,7 @@ impl CoinexCore {
         //         "message": "OK"
         //     }
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2756,7 +2756,7 @@ impl CoinexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut depth: Value = self.safe_dict_k(data.clone(), "depth", &[Value::Map({
+        let mut depth: Value = self.safe_dict_k(data, "depth", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2989,7 +2989,7 @@ impl CoinexCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "maker_fee_rate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker_fee_rate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker_fee_rate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -3000,7 +3000,7 @@ impl CoinexCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "created_at", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "value", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "created_at", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "value", &[])]);
 
     Value::Null
 }
@@ -3899,7 +3899,7 @@ impl CoinexCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -4190,7 +4190,7 @@ impl CoinexCore {
             let mut id: Value = self.safe_string_k(rawOrder.clone(), "id", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -5435,7 +5435,7 @@ impl CoinexCore {
         m.insert("type".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("amount".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&change), &[]));
-        m.insert("total".to_string(), self.safe_number_k(data.clone(), "margin_avbl", &[]));
+        m.insert("total".to_string(), self.safe_number_k(data, "margin_avbl", &[]));
         m.insert("code".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -5687,7 +5687,7 @@ impl CoinexCore {
         m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "latest_funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), currentFundingTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(currentFundingTimestamp.clone()));
-        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract.clone(), "next_funding_rate", &[]));
+        m.insert("nextFundingRate".to_string(), self.safe_number_k(contract, "next_funding_rate", &[]));
         m.insert("nextFundingTimestamp".to_string(), futureFundingTimestamp.clone());
         m.insert("nextFundingDatetime".to_string(), self.iso8601(futureFundingTimestamp.clone()));
         m.insert("previousFundingRate".to_string(), Value::Null);
@@ -6592,7 +6592,7 @@ impl CoinexCore {
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "ccy", &[]), &[]));
         m.insert("interest".to_string(), self.safe_number_k(info.clone(), "to_repaied_amount", &[]));
         m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "daily_interest_rate", &[]));
-        m.insert("amountBorrowed".to_string(), self.safe_number_k(info.clone(), "borrow_amount", &[]));
+        m.insert("amountBorrowed".to_string(), self.safe_number_k(info, "borrow_amount", &[]));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));

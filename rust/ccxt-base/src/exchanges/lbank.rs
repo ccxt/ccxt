@@ -918,7 +918,7 @@ impl LbankCore {
         //        "ts": "1747973911431"
         //    }
         //
-        let mut currenciesData: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut currenciesData: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut grouped: Value = self.group_by(currenciesData.clone(), Value::Str("assetCode".to_string()), &[]);
         let mut values: Value = object_values(&grouped);
         return self.parse_currencies(values.clone());
@@ -1054,7 +1054,7 @@ impl LbankCore {
         //         "ts": 1691560288484
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1179,7 +1179,7 @@ impl LbankCore {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1388,7 +1388,7 @@ impl LbankCore {
         //         "ts": :1692064276872
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1486,7 +1486,7 @@ impl LbankCore {
         //         "success": true
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_tickers(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1581,7 +1581,7 @@ impl LbankCore {
         //         "success": true
         //     }
         //
-        let mut orderbook: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut orderbook: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1772,7 +1772,7 @@ impl LbankCore {
         //           "ts":1647021999308
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1831,7 +1831,7 @@ impl LbankCore {
         });
         let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.spot_public_get_kline(&[__ws_arg_8]).await;
-        let mut ohlcvs: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut ohlcvs: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(ohlcvs.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1923,7 +1923,7 @@ impl LbankCore {
                 m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_value_k(response, "data", &[]);
         // from spotPrivatePostUserInfo
         let mut toBtc: Value = self.safe_value_k(data.clone(), "toBtc", &[]);
         if (toBtc != Value::Null) {
@@ -2126,7 +2126,7 @@ impl LbankCore {
         //     "result": "true",
         //     "success": True,
         // }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_funding_rates(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2223,7 +2223,7 @@ impl LbankCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommission", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "takerCommission", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommission", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -2280,7 +2280,7 @@ impl LbankCore {
         });
         let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.spot_private_post_supplement_customer_trade_fee(&[__ws_arg_11]).await;
-        let mut fees: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut fees: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2436,7 +2436,7 @@ impl LbankCore {
         //          "ts":1648162321043
         //      }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -2695,7 +2695,7 @@ impl LbankCore {
         //          "ts":1648164471827
         //      }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2746,7 +2746,7 @@ impl LbankCore {
         //          "ts":1647455270776
         //      }
         //
-        let mut result: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut numOrders: Value = Value::Int(result.len() as i64);
         if (numOrders.as_f64() == Some(1.0)) {
             return self.parse_order(result.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), &[]);
@@ -2819,7 +2819,7 @@ impl LbankCore {
         //          "ts":1648509742164
         //      }
         //
-        let mut trades: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2892,11 +2892,11 @@ impl LbankCore {
         //          "ts":1648505706348
         //      }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(result, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2967,11 +2967,11 @@ impl LbankCore {
         //         "ts":1648506110196
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(result, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3026,7 +3026,7 @@ impl LbankCore {
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3081,7 +3081,7 @@ impl LbankCore {
         //          "ts":1648506641468
         //      }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[]);
 
     Value::Null
@@ -3298,7 +3298,7 @@ impl LbankCore {
         //          "ts":1648992501414
         //      }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -3491,11 +3491,11 @@ impl LbankCore {
         //          "ts":1649719721758
         //      }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut deposits: Value = self.safe_list_k(data.clone(), "depositOrders", &[Value::List(vec![])]);
+        let mut deposits: Value = self.safe_list_k(data, "depositOrders", &[Value::List(vec![])]);
         return self.parse_transactions(deposits.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3563,11 +3563,11 @@ impl LbankCore {
         //          "ts":1649720362362
         //      }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut withdraws: Value = self.safe_list_k(data.clone(), "withdraws", &[Value::List(vec![])]);
+        let mut withdraws: Value = self.safe_list_k(data, "withdraws", &[Value::List(vec![])]);
         return self.parse_transactions(withdraws.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3669,7 +3669,7 @@ impl LbankCore {
             let mut entry: Value = get_value(&result, &i);
             let mut currencyId: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
-            let mut networkList: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
+            let mut networkList: Value = self.safe_list_k(entry, "networkList", &[Value::List(vec![])]);
             if (code != Value::Null) {
                 add_element_to_object(&mut withdrawFees, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3884,7 +3884,7 @@ impl LbankCore {
         //        "code": 0
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_deposit_withdraw_fees(data.clone(), &[codes.clone(), Value::Str("coin".to_string())]);
 
     Value::Null
@@ -3928,7 +3928,7 @@ impl LbankCore {
         //        "ts": "1663364435973"
         //    }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
         return self.parse_public_deposit_withdraw_fees(data.clone(), &[codes.clone()]);
 
     Value::Null
@@ -4051,7 +4051,7 @@ impl LbankCore {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "name", &[]), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
-            let mut isDefault: Value = self.safe_value_k(networkEntry.clone(), "isDefault", &[]);
+            let mut isDefault: Value = self.safe_value_k(networkEntry, "isDefault", &[]);
             if (withdrawFee != Value::Null) {
                 if is_equal(&isDefault, &Value::Bool(true)) {
                     add_element_to_object(&mut result, &Value::Str("withdraw".to_string()), Value::Map({

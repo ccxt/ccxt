@@ -2469,7 +2469,7 @@ impl MexcCore {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "symbols", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2626,7 +2626,7 @@ impl MexcCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3956,7 +3956,7 @@ impl MexcCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -4372,7 +4372,7 @@ impl MexcCore {
             }
             let __ws_arg_28 = self.extend(request.clone(), &[params.clone()]);
             let mut swapResponse: Value = self.contract_private_get_order_list_open_orders(&[__ws_arg_28]).await;
-            let mut data: Value = self.safe_list_k(swapResponse.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(swapResponse, "data", &[Value::List(vec![])]);
             return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone(), params.clone()]);
         }
 
@@ -5704,7 +5704,7 @@ impl MexcCore {
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                     m.insert("id".to_string(), self.safe_number_k(entry.clone(), "id", &[]));
-                    m.insert("amount".to_string(), self.safe_number_k(entry.clone(), "funding", &[]));
+                    m.insert("amount".to_string(), self.safe_number_k(entry, "funding", &[]));
                 m
             }));
         }
@@ -5915,7 +5915,7 @@ impl MexcCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
                     m.insert("symbol".to_string(), symbolInner.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -6144,7 +6144,7 @@ impl MexcCore {
         if (networkCode != Value::Null) {
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             let mut networkUnified: Value = self.network_id_to_code(&[networkCode.clone(), code.clone()]);
-            let mut networks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
+            let mut networks: Value = self.safe_dict_k(currency, "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -7334,7 +7334,7 @@ impl MexcCore {
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_list_k(transaction.clone(), "networkList", &[Value::List(vec![])]);
+        let mut networkList: Value = self.safe_list_k(transaction, "networkList", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -7347,7 +7347,7 @@ impl MexcCore {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.safe_string(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), networkId.clone(), &[networkId.clone()]);
-            let mut fee: Value = self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]);
+            let mut fee: Value = self.safe_number_k(networkEntry, "withdrawFee", &[]);
             add_element_to_object(&mut result, &networkCode, fee.clone());
         }
         }
@@ -7423,7 +7423,7 @@ impl MexcCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.safe_number_k(networkEntry.clone(), "withdrawFee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(networkEntry, "withdrawFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
     m
 }));

@@ -903,7 +903,7 @@ impl IndodaxCore {
         //         }
         //     }
         //
-        let mut ticker: Value = self.safe_dict_k(response.clone(), "ticker", &[Value::Map({
+        let mut ticker: Value = self.safe_dict_k(response, "ticker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -947,7 +947,7 @@ impl IndodaxCore {
         // }
         //
         let mut response: Value = self.public_get_api_ticker_all(&[params.clone()]).await;
-        let mut tickers: Value = self.safe_dict_k(response.clone(), "tickers", &[Value::Map({
+        let mut tickers: Value = self.safe_dict_k(response, "tickers", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1035,7 +1035,7 @@ impl IndodaxCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("Time".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "Open", &[]), self.safe_number_k(ohlcv.clone(), "High", &[]), self.safe_number_k(ohlcv.clone(), "Low", &[]), self.safe_number_k(ohlcv.clone(), "Close", &[]), self.safe_number_k(ohlcv.clone(), "Volume", &[])]);
+        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("Time".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "Open", &[]), self.safe_number_k(ohlcv.clone(), "High", &[]), self.safe_number_k(ohlcv.clone(), "Low", &[]), self.safe_number_k(ohlcv.clone(), "Close", &[]), self.safe_number_k(ohlcv, "Volume", &[])]);
 
     Value::Null
 }
@@ -1289,7 +1289,7 @@ impl IndodaxCore {
         }
         let __ws_arg_6 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_open_orders(&[__ws_arg_6]).await;
-        let mut openOrdersResult: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut openOrdersResult: Value = self.safe_dict_k(response, "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1356,7 +1356,7 @@ impl IndodaxCore {
         });
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_order_history(&[__ws_arg_7]).await;
-        let mut historyResult: Value = self.safe_dict_k(response.clone(), "return", &[Value::Map({
+        let mut historyResult: Value = self.safe_dict_k(response, "return", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1507,7 +1507,7 @@ impl IndodaxCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[]);
+        let mut data: Value = self.safe_dict_k(response, "return", &[]);
         return self.parse_order(data.clone(), &[]);
 
     Value::Null
@@ -1556,7 +1556,7 @@ impl IndodaxCore {
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
-        m.insert("rate".to_string(), self.safe_number_k(data.clone(), "withdraw_fee", &[]));
+        m.insert("rate".to_string(), self.safe_number_k(data, "withdraw_fee", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
     m
 });
@@ -1602,7 +1602,7 @@ impl IndodaxCore {
     m
 })]);
         let mut result: Value = self.deposit_withdraw_fee(response.clone());
-        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(data.clone(), "withdraw_fee", &[]));
+        add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(data, "withdraw_fee", &[]));
         add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
         add_element_to_object(get_value_mut(&mut result, &Value::Str("deposit".to_string())), &Value::Str("fee".to_string()), Value::Int(0));
         add_element_to_object(get_value_mut(&mut result, &Value::Str("deposit".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
@@ -1701,7 +1701,7 @@ impl IndodaxCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "return", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "return", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1709,7 +1709,7 @@ impl IndodaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut deposit: Value = self.safe_dict_k(data.clone(), "deposit", &[Value::Map({
+        let mut deposit: Value = self.safe_dict_k(data, "deposit", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1946,7 +1946,7 @@ impl IndodaxCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "return", &[]);
+        let mut data: Value = self.safe_dict_k(response, "return", &[]);
         let mut addresses: Value = self.safe_dict_k(data.clone(), "address", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

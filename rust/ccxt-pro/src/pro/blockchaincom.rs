@@ -369,7 +369,7 @@ impl BlockchaincomCore {
                 m.insert("info".to_string(), message.clone());
             m
         });
-        let mut balances: Value = self.safe_list_k(message.clone(), "balances", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(message, "balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_183: bool = true;
@@ -603,7 +603,7 @@ impl BlockchaincomCore {
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_string_k(lastTicker.clone(), "baseVolume", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);
-        let __ws_arg_0 = self.safe_value_k(lastTicker.clone(), "info", &[Value::Map({
+        let __ws_arg_0 = self.safe_value_k(lastTicker, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1075,7 +1075,7 @@ impl BlockchaincomCore {
             orderbook.reset(snapshot.clone());
         }  else if (event.as_str() == Some("updated")) {
             let mut asks: Value = self.safe_list_k(message.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(message.clone(), "bids", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(message, "bids", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());

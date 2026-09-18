@@ -664,11 +664,11 @@ impl MudrexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut assetTicks: Value = self.safe_dict_k(data.clone(), "asset_ticks", &[Value::Map({
+        let mut assetTicks: Value = self.safe_dict_k(data, "asset_ticks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -734,7 +734,7 @@ impl MudrexCore {
         });
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures_asset_id(&[__ws_arg_3]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -767,8 +767,8 @@ impl MudrexCore {
         });
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_futures(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]) });
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
+        let mut rows: Value = (if is_true(&Value::Bool(is_array(&data))) { data.clone() } else { self.safe_list_k(data, "items", &[Value::List(vec![])]) });
         let mut resultTickers: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -855,7 +855,7 @@ impl MudrexCore {
                 m
             }), &[params.clone()]);
             let mut response: Value = self.private_get_futures(&[q.clone()]).await;
-            let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
             let mut items: Value = Value::List(vec![]);
             if is_object(&data) && !is_true(&Value::Bool(is_array(&data))) {
                 items = self.safe_list_k(data.clone(), "items", &[Value::List(vec![])]);
@@ -1501,7 +1501,7 @@ impl MudrexCore {
         }  else {
             response = self.private_get_futures_orders(&[request.clone()]).await;
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
         let mut rows: Value = self.to_array(data.clone());
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
@@ -1617,7 +1617,7 @@ impl MudrexCore {
         });
         let __ws_arg_14 = self.extend(q, &[params.clone()]);
         let mut response: Value = self.private_get_futures_positions(&[__ws_arg_14]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::List(vec![])]);
         if (data == Value::Null) {
             return Value::List(vec![]);
         }
@@ -1694,7 +1694,7 @@ impl MudrexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut positions: Value = self.parse_positions(data.clone(), &[symbols.clone()]);
         return self.filter_by_since_limit(positions.clone(), &[since.clone(), limit.clone()]);
 
@@ -1750,7 +1750,7 @@ impl MudrexCore {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "pnl", &[]));
-        m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liquidation_price", &[]));
+        m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
         m.insert("marginMode".to_string(), Value::Str("isolated".to_string()));
         m.insert("percentage".to_string(), Value::Null);
     m
@@ -1953,7 +1953,7 @@ impl MudrexCore {
             }
             let __ws_arg_19 = self.extend(request, &[params.clone()]);
             let mut response: Value = self.private_get_futures_fee_history(&[__ws_arg_19]).await;
-            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
             let mut dataLength: Value = Value::Int(data.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);

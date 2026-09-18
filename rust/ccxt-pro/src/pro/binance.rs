@@ -965,7 +965,7 @@ impl BinanceCore {
         //        }
         //    }
         //
-        let mut rawLiquidation: Value = self.safe_value_k(message.clone(), "o", &[Value::Map({
+        let mut rawLiquidation: Value = self.safe_value_k(message, "o", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1067,7 +1067,7 @@ impl BinanceCore {
         m.insert("info".to_string(), liquidation.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("contracts".to_string(), self.safe_number_k(liquidation.clone(), "l", &[]));
-        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
+        m.insert("contractSize".to_string(), self.safe_number_k(market, "contractSize", &[]));
         m.insert("price".to_string(), self.safe_number_k(liquidation.clone(), "ap", &[]));
         m.insert("side".to_string(), self.safe_string_lower(liquidation.clone(), Value::Str("S".to_string()), &[]));
         m.insert("baseValue".to_string(), Value::Null);
@@ -1543,7 +1543,7 @@ impl BinanceCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "id", &[]);
-        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[]);
+        let mut result: Value = self.safe_dict_k(message, "result", &[]);
         let mut timestamp: Value = self.safe_integer_k(result.clone(), "T", &[]);
         let mut orderbook: Value = self.parse_order_book(result.clone(), Value::Null, &[timestamp.clone()]);
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer2(result.clone(), Value::Str("lastUpdateId".to_string()), Value::Str("u".to_string()), &[]));
@@ -1557,7 +1557,7 @@ impl BinanceCore {
             let mut defaultLimit: Value = self.safe_integer_k(self.options.clone(), "watchOrderBookLimit", &[Value::Int(1000)]);
             let mut type_var: Value = self.safe_value_k(subscription.clone(), "type", &[]);
             let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[defaultLimit.clone()]);
-            let mut params: Value = self.safe_value_k(subscription.clone(), "params", &[]);
+            let mut params: Value = self.safe_value_k(subscription, "params", &[]);
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
@@ -2318,7 +2318,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         }
         let mut market: Value = self.market(symbol.clone());
         symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut stock: Value = self.safe_bool_k(market.clone(), "stock", &[Value::Bool(false)]);
+        let mut stock: Value = self.safe_bool_k(market, "stock", &[Value::Bool(false)]);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOHLCV".to_string()), Value::Str("stock".to_string()), &[]); stock = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         if (stock.as_bool() == Some(true)) {
             if is_true(&(Value::Bool(timeframe.as_str() != Some("5m")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1h")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1d")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1w")))) && is_true(&(Value::Bool(timeframe.as_str() != Some("1M")))) {
@@ -4225,7 +4225,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             return;
         }
         let mut options: Value = self.safe_value_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
+        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if (fetchBalanceSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
@@ -4335,7 +4335,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            rawBalance = self.safe_list_k(result.clone(), "assets", &[Value::List(vec![])]);
+            rawBalance = self.safe_list_k(result, "assets", &[Value::List(vec![])]);
         }
         let mut parsedBalances: Value = self.parent.parse_balance_custom(rawBalance.clone(), &[]);
         client.resolve(&[parsedBalances.clone(), messageHash.clone()]);
@@ -4588,7 +4588,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         self.set_positions_cache(client.clone(), type_var.clone(), &[Value::Null, isPortfolioMargin.clone()]);
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "awaitBalanceSnapshot", &[Value::Bool(true)]);
+        let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
         if is_true(&(Value::Bool(fetchBalanceSnapshot.as_bool() == Some(true)))) && is_true(&(Value::Bool(awaitBalanceSnapshot.as_bool() == Some(true)))) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".to_string())))])).await;
         }
@@ -6495,7 +6495,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("marginMode".to_string(), self.safe_string_k(position.clone(), "mt", &[]));
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "ep", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "up", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "up", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(contractsAbs, &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -6547,7 +6547,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("notional".to_string(), self.safe_string_k(position.clone(), "p", &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "a", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position, "a", &[]));
         m.insert("unrealizedPnl".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(contractsAbs, &[]));
@@ -7183,7 +7183,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // user subscription wraps message in subscriptionId and event
         let mut id: Value = self.safe_string_k(message.clone(), "id", &[]);
         let mut subscriptions: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), id.clone(), &[]);
-        let mut method: Value = self.safe_value_k(subscriptions.clone(), "method", &[]);
+        let mut method: Value = self.safe_value_k(subscriptions, "method", &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;

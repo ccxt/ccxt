@@ -428,7 +428,7 @@ impl BitrueCore {
         //      "u": 2285311
         //    }
         //
-        let mut balances: Value = self.safe_value_k(message.clone(), "B", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_value_k(message, "B", &[Value::List(vec![])]);
         self.parse_ws_balances(balances.clone());
         let mut messageHash: Value = Value::Str("balance".to_string());
         client.resolve(&[self.balance.clone(), messageHash.clone()]);
@@ -624,7 +624,7 @@ impl BitrueCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone(), &[]));
-        m.insert("cost".to_string(), self.safe_number_k(order.clone(), "n", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(order, "n", &[]));
     m
 }));
     m
@@ -725,14 +725,14 @@ impl BitrueCore {
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "ts", &[]);
-        let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[Value::Map({
+        let mut tick: Value = self.safe_value_k(message, "tick", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut parseable: Value = tick.clone();
         if isFutures {
             let mut rawAsks: Value = self.safe_list_k(tick.clone(), "asks", &[Value::List(vec![])]);
-            let mut rawBuys: Value = self.safe_list_k(tick.clone(), "buys", &[Value::List(vec![])]);
+            let mut rawBuys: Value = self.safe_list_k(tick, "buys", &[Value::List(vec![])]);
             parseable = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("asks".to_string(), self.parse_contract_bids_asks(rawAsks.clone(), symbol.clone()));
@@ -891,11 +891,11 @@ impl BitrueCore {
             return;
         }
         let mut symbol: Value = crate::value::get_value_k(&market, "symbol");
-        let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[Value::Map({
+        let mut tick: Value = self.safe_value_k(message, "tick", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_list_k(tick.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(tick, "data", &[Value::List(vec![])]);
         let mut appended: bool = false;
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         {
@@ -1043,7 +1043,7 @@ impl BitrueCore {
             m
         })]);
         let mut timeframe: Value = self.find_timeframe(wsInterval.clone(), &[futuresTimeframes.clone()]);
-        let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[]);
+        let mut tick: Value = self.safe_value_k(message, "tick", &[]);
         if (tick == Value::Null) {
             return;
         }
@@ -1073,7 +1073,7 @@ impl BitrueCore {
         let mut high: Value = self.safe_number_k(tick.clone(), "high", &[]);
         let mut low: Value = self.safe_number_k(tick.clone(), "low", &[]);
         let mut close: Value = self.safe_number_k(tick.clone(), "close", &[]);
-        let mut rawVol: Value = self.safe_number_k(tick.clone(), "vol", &[]);
+        let mut rawVol: Value = self.safe_number_k(tick, "vol", &[]);
         let mut baseVolume: Value = self.convert_from_raw_quantity(symbol.clone(), rawVol.clone());
         return Value::List(vec![timestamp.clone(), open.clone(), high.clone(), low.clone(), close.clone(), baseVolume.clone()]);
 
@@ -1184,7 +1184,7 @@ impl BitrueCore {
         m.insert("ask".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
         m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), self.safe_number_k(tick.clone(), "open", &[]));
+        m.insert("open".to_string(), self.safe_number_k(tick, "open", &[]));
         m.insert("close".to_string(), close.clone());
         m.insert("last".to_string(), close.clone());
         m.insert("previousClose".to_string(), Value::Null);
@@ -1315,7 +1315,7 @@ impl BitrueCore {
                 //         }
                 //     }
                 //
-                let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+                let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);

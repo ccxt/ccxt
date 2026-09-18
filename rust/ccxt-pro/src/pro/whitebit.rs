@@ -509,7 +509,7 @@ impl WhitebitCore {
         //     "id":null
         //  }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::List(vec![])]);
         let mut isSnapshot: Value = self.safe_value(params.clone(), Value::Int(0), &[]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -528,7 +528,7 @@ impl WhitebitCore {
             orderbook.reset(snapshot.clone());
         }  else {
             let mut asks: Value = self.safe_value_k(data.clone(), "asks", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_value_k(data.clone(), "bids", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_value_k(data, "bids", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
         }
@@ -745,7 +745,7 @@ impl WhitebitCore {
         //        ]
         //    }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string(params.clone(), Value::Int(0), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -828,7 +828,7 @@ impl WhitebitCore {
         //       "id": null
         //   }
         //
-        let mut trade: Value = self.safe_value_k(message.clone(), "params", &[]);
+        let mut trade: Value = self.safe_value_k(message, "params", &[]);
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             self.myTrades = ArrayCache::new(limit.clone());
@@ -979,7 +979,7 @@ impl WhitebitCore {
         //     "id": null
         // }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::List(vec![])]);
         let mut data: Value = self.safe_value(params.clone(), Value::Int(1), &[]);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
@@ -1236,7 +1236,7 @@ impl WhitebitCore {
             return;
         }
         let mut isMargin: bool = get_index_of(&method, &Value::Str("Margin".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
-        let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "params", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_661: bool = true;
@@ -1601,7 +1601,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_equal(&subscription, &Value::Bool(true)) {
                 let mut subId: Value = self.safe_integer_k(subscription.clone(), "id", &[]);
                 if is_true(&(Value::Bool(subId != Value::Null))) && (is_equal(&subId, &id)) {
-                    let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
+                    let mut method: Value = self.safe_value_k(subscription, "method", &[]);
                     if (method != Value::Null) {
                         self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                         return;

@@ -821,7 +821,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_markets(data.clone());
 
     Value::Null
@@ -926,7 +926,7 @@ impl CexCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
         return timestamp;
 
@@ -1012,7 +1012,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1108,11 +1108,11 @@ impl CexCore {
         //                },
         //                ... followed by older trades
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1200,7 +1200,7 @@ impl CexCore {
         //                ],
         //                ...
         //
-        let mut orderBook: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut orderBook: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1285,7 +1285,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1293,7 +1293,7 @@ impl CexCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "timestamp", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1325,11 +1325,11 @@ impl CexCore {
         //                },
         //                ...
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fees: Value = self.safe_dict_k(data.clone(), "tradingFee", &[Value::Map({
+        let mut fees: Value = self.safe_dict_k(data, "tradingFee", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1386,7 +1386,7 @@ impl CexCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "percent", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "percent", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "percent", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -1424,11 +1424,11 @@ impl CexCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_dict_k(data.clone(), "balancesPerAccounts", &[Value::Map({
+        let mut balances: Value = self.safe_dict_k(data, "balancesPerAccounts", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1512,7 +1512,7 @@ impl CexCore {
             //            },
             //            ...
             //
-            accountBalance = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            accountBalance = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1649,7 +1649,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1979,7 +1979,7 @@ impl CexCore {
         //             "rejectCode": 405,
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2019,7 +2019,7 @@ impl CexCore {
         //
         //      {"ok":"ok","data":{}}
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2057,11 +2057,11 @@ impl CexCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ids: Value = self.safe_list_k(data.clone(), "clientOrderIds", &[Value::List(vec![])]);
+        let mut ids: Value = self.safe_list_k(data, "clientOrderIds", &[Value::List(vec![])]);
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2141,7 +2141,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2260,7 +2260,7 @@ impl CexCore {
         //            },
         //            ...
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_transactions(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2297,7 +2297,7 @@ impl CexCore {
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code.clone());
-        m.insert("cost".to_string(), self.safe_number_k(transaction.clone(), "commissionAmount", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(transaction, "commissionAmount", &[]));
     m
 }));
         m.insert("internal".to_string(), Value::Null);
@@ -2394,7 +2394,7 @@ impl CexCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2430,7 +2430,7 @@ impl CexCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2528,7 +2528,7 @@ impl CexCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2630,7 +2630,7 @@ impl CexCore {
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if get_index_of(&url, &Value::Str("do_my_new_order".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

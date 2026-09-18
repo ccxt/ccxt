@@ -3967,7 +3967,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4029,7 +4029,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4080,7 +4080,7 @@ impl OkxCore {
         let mut types: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("future".to_string()), Value::Str("swap".to_string()), Value::Str("option".to_string())]);
         let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if (fetchMarketsOption != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOption.clone(), "types", &[types.clone()]);
+            types = self.safe_list_k(fetchMarketsOption, "types", &[types.clone()]);
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
@@ -4345,7 +4345,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut options: Value = self.safe_list_k(res.clone(), "data", &[Value::List(vec![])]);
+                let mut options: Value = self.safe_list_k(res, "data", &[Value::List(vec![])]);
                 markets = self.array_concat(markets.clone(), options.clone());
             }
             }
@@ -4386,7 +4386,7 @@ impl OkxCore {
         //         "msg": ""
         //     }
         //
-        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut dataResponse: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut marketsWithoutTest: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4485,7 +4485,7 @@ impl OkxCore {
         //        "msg": ""
         //    }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut dataByCurrencyId: Value = self.group_by(data.clone(), Value::Str("ccy".to_string()), &[]);
         let mut currencies: Value = object_values(&dataByCurrencyId);
         return self.parse_currencies(currencies.clone());
@@ -5405,7 +5405,7 @@ impl OkxCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
                     m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(rate.clone(), "instId", &[]), &[]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(rate.clone(), "realizedRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(rate, "realizedRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
                 m
@@ -5440,7 +5440,7 @@ impl OkxCore {
     m
 })]);
         let mut timestamp: Value = self.safe_integer_k(first.clone(), "uTime", &[]);
-        let mut details: Value = self.safe_list_k(first.clone(), "details", &[Value::List(vec![])]);
+        let mut details: Value = self.safe_list_k(first, "details", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_999: bool = true;
@@ -6101,7 +6101,7 @@ impl OkxCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -8072,7 +8072,7 @@ impl OkxCore {
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("amount".to_string(), self.safe_number_k(item.clone(), "balChg", &[]));
         m.insert("before".to_string(), Value::Null);
-        m.insert("after".to_string(), self.safe_number_k(item.clone(), "bal", &[]));
+        m.insert("after".to_string(), self.safe_number_k(item, "bal", &[]));
         m.insert("status".to_string(), Value::Str("ok".to_string()));
         m.insert("fee".to_string(), fee.clone());
     m
@@ -11593,7 +11593,7 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "px", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement, "px", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
     m

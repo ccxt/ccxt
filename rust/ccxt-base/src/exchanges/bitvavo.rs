@@ -1373,7 +1373,7 @@ impl BitvavoCore {
         //
         let mut feesValue: Value = self.safe_value_k(fees.clone(), "fees", &[]);
         let mut maker: Value = self.safe_number_k(feesValue.clone(), "maker", &[]);
-        let mut taker: Value = self.safe_number_k(feesValue.clone(), "taker", &[]);
+        let mut taker: Value = self.safe_number_k(feesValue, "taker", &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1437,7 +1437,7 @@ impl BitvavoCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, &[market.clone()]));
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "maker", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "taker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "taker", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -1662,7 +1662,7 @@ impl BitvavoCore {
         //         "maxItems": 0
         //     }
         //
-        let mut accounts: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_list_k(response, "items", &[Value::List(vec![])]);
         return self.parse_accounts(accounts.clone(), &[]);
 
     Value::Null
@@ -1805,7 +1805,7 @@ impl BitvavoCore {
         //         "limit": 25
         //     }
         //
-        let mut items: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(response, "items", &[Value::List(vec![])]);
         return self.parse_transfers(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2555,7 +2555,7 @@ impl BitvavoCore {
         m.insert("postOnly".to_string(), postOnly.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "triggerPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("amount".to_string(), amount.clone());
         m.insert("cost".to_string(), cost.clone());
         m.insert("average".to_string(), Value::Null);
@@ -2700,7 +2700,7 @@ impl BitvavoCore {
         //         "maxItems": 100
         //     }
         //
-        let mut items: Value = self.safe_list_k(response.clone(), "items", &[Value::List(vec![])]);
+        let mut items: Value = self.safe_list_k(response, "items", &[Value::List(vec![])]);
         return self.parse_ledger(items.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3103,7 +3103,7 @@ impl BitvavoCore {
 }));
             m
         });
-        let mut networks: Value = self.safe_value_k(fee.clone(), "networks", &[]);
+        let mut networks: Value = self.safe_value_k(fee, "networks", &[]);
         let mut networkId: Value = self.safe_value(networks.clone(), Value::Int(0), &[]); // Bitvavo currently only supports one network per currency
         let mut currencyCode: Value = self.safe_string_k(currency.clone(), "code", &[]);
         if (networkId.as_str() == Some("Mainnet")) {
@@ -3232,7 +3232,7 @@ impl BitvavoCore {
         if is_true(&(Value::Bool(matches!(&config, Value::Dict(__d) if __d.contains_key("noMarket"))))) && !is_true(&(Value::Bool(in_op(&params, &Value::Str("market".to_string()))))) {
             return crate::value::get_value_k(&config, "noMarket");
         }
-        return self.safe_value_k(config.clone(), "cost", &[Value::Int(1)]);
+        return self.safe_value_k(config, "cost", &[Value::Int(1)]);
 
     Value::Null
 }

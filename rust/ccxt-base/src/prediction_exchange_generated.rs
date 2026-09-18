@@ -104,7 +104,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (singleQuery != Value::Null) {
             return Value::List(vec![singleQuery.clone()]);
         }
-        return self.safe_list_k(params.clone(), "queries", &[Value::List(vec![])]);
+        return self.safe_list_k(params, "queries", &[Value::List(vec![])]);
 
     Value::Null
 }
@@ -1883,7 +1883,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         lastTradeTimestamp = tradeTimestamp.clone();
                     }
                 }
-                let mut tradeFee: Value = self.safe_dict_k(trade.clone(), "fee", &[]);
+                let mut tradeFee: Value = self.safe_dict_k(trade, "fee", &[]);
                 if (tradeFee != Value::Null) {
                     append_to_array(&mut feeList, tradeFee.clone());
                 }
@@ -2470,7 +2470,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (rpcError != Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" rpc ".to_string()))), method)), Value::Str(" error: ".to_string()))), self.json(rpcError.clone()))));
         }
-        return self.safe_value_k(response.clone(), "result", &[]);
+        return self.safe_value_k(response, "result", &[]);
 
     Value::Null
 } }

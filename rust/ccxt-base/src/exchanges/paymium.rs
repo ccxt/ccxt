@@ -907,7 +907,7 @@ impl PaymiumCore {
         m.insert("timestamp".to_string(), timetstamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timetstamp.clone()));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.clone(), &[currency.clone()]));
-        m.insert("amount".to_string(), self.safe_number_k(transfer.clone(), "amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transfer, "amount", &[]));
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), self.safe_string_k(firstOperation.clone(), "address", &[]));
         m.insert("status".to_string(), self.parse_transfer_status(status.clone()));

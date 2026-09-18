@@ -1160,7 +1160,7 @@ impl GeminiCore {
         //    }
         //
         { let __be_tmp = self.safe_list_k(data.clone(), "tradingPairs", &[]); add_element_to_object(&mut self.options, &Value::Str("tradingPairs".to_string()), __be_tmp); };
-        let mut currenciesArray: Value = self.safe_value_k(data.clone(), "currencies", &[Value::List(vec![])]);
+        let mut currenciesArray: Value = self.safe_value_k(data, "currencies", &[Value::List(vec![])]);
         return self.parse_currencies(currenciesArray.clone());
 
     Value::Null

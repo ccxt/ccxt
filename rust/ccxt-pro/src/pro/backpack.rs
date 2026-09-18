@@ -632,7 +632,7 @@ impl BackpackCore {
         //         stream: 'bookTicker.ETH_USDC'
         //     }
         //
-        let mut ticker: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut ticker: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -786,7 +786,7 @@ impl BackpackCore {
         //         },
         //         stream: 'bookTicker.ETH_USDC'
         //     }
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1032,7 +1032,7 @@ impl BackpackCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "T", &[])), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "T", &[])), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1188,7 +1188,7 @@ impl BackpackCore {
         //         stream: 'trade.ETH_USDC_PERP'
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1414,7 +1414,7 @@ impl BackpackCore {
         //         "stream": "depth.ETH_USDC"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1453,7 +1453,7 @@ impl BackpackCore {
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(delta.clone(), "u", &[]));
         let mut bids: Value = self.safe_list_k(delta.clone(), "b", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_list_k(delta.clone(), "a", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_list_k(delta, "a", &[Value::List(vec![])]);
         let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
         self.handle_bid_asks(storedBids.clone(), bids.clone());
@@ -1609,7 +1609,7 @@ impl BackpackCore {
         //     }
         //
         let mut messageHash: Value = Value::Str("orders".to_string());
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1857,7 +1857,7 @@ impl BackpackCore {
         //     }
         //
         let mut messageHash: Value = Value::Str("positions".to_string());
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

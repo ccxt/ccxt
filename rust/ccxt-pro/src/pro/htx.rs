@@ -701,7 +701,7 @@ impl HtxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(tick.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(tick, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -843,7 +843,7 @@ impl HtxCore {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
             }
         }
-        let mut tick: Value = self.safe_value_k(message.clone(), "tick", &[]);
+        let mut tick: Value = self.safe_value_k(message, "tick", &[]);
         let mut parsed: Value = self.parse_ohlcv(tick.clone(), &[market.clone()]);
         stored.append(parsed.clone());
         client.resolve(&[stored.clone(), ch.clone()]);
@@ -985,7 +985,7 @@ impl HtxCore {
                 m
             })]);
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[]);
-            let mut tick: Value = self.safe_value_k(firstMessage.clone(), "tick", &[]);
+            let mut tick: Value = self.safe_value_k(firstMessage, "tick", &[]);
             let mut sequence: Value = self.safe_integer_k(tick.clone(), "prevSeqNum", &[]);
             let mut nonce: Value = self.safe_integer_k(data.clone(), "seqNum", &[]);
             if (nonce == Value::Null) {
@@ -2607,7 +2607,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
-                let mut details: Value = self.safe_list_k(accountData.clone(), "details", &[Value::List(vec![])]);
+                let mut details: Value = self.safe_list_k(accountData, "details", &[Value::List(vec![])]);
                 let mut detailsLength: Value = Value::Int(details.len() as i64);
                 {
                                         let mut i: Value = Value::Int(0);
@@ -3597,7 +3597,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
         }
         let mut isLinear: Value = Value::Bool(subtype.as_str() == Some("linear"));
-        let mut isV5: Value = self.safe_bool_k(subscriptionParams.clone(), "isV5", &[Value::Bool(false)]);
+        let mut isV5: Value = self.safe_bool_k(subscriptionParams, "isV5", &[Value::Bool(false)]);
         let mut url: Value = self.get_url_by_market_type(type_var.clone(), &[isLinear.clone(), Value::Bool(true), Value::Bool(false), isV5.clone()]);
         let mut hostname: Value = (if is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), "spot") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("hostnames")).cloned().unwrap_or(Value::Null), "contract") });
         let mut authParams: Value = Value::Map({

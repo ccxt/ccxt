@@ -472,14 +472,14 @@ impl BullishCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.market(symbol.clone());
-        let mut rawTrades: Value = self.safe_list_k(data.clone(), "trades", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::List(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades.clone(), &[market.clone()]);
         if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -571,7 +571,7 @@ impl BullishCore {
         //     }
         //
         let mut updateType: Value = self.safe_string_k(message.clone(), "type", &[Value::Str("".to_string())]);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -653,7 +653,7 @@ impl BullishCore {
         //     }
         //
         // current channel is 'l2Orderbook' which returns only snapshots
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -674,7 +674,7 @@ impl BullishCore {
             m
         });
         let mut parsed: Value = self.parse_order_book(snapshot.clone(), symbol.clone(), &[timestamp.clone()]);
-        let mut sequenceNumberRange: Value = self.safe_list_k(data.clone(), "sequenceNumberRange", &[Value::List(vec![])]);
+        let mut sequenceNumberRange: Value = self.safe_list_k(data, "sequenceNumberRange", &[Value::List(vec![])]);
         if Value::Int(sequenceNumberRange.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             add_element_to_object(&mut parsed, &Value::Str("nonce".to_string()), self.safe_integer(sequenceNumberRange.clone(), lastIndex.clone(), &[]));
@@ -805,7 +805,7 @@ impl BullishCore {
             })]);
             append_to_array(&mut rawOrders, data.clone()); // update is a single order
         }  else {
-            rawOrders = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]); // snapshot is a list of orders
+            rawOrders = self.safe_list_k(message, "data", &[Value::List(vec![])]); // snapshot is a list of orders
         }
         let mut numRawOrders: Value = Value::Int(rawOrders.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if numRawOrders.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -943,7 +943,7 @@ impl BullishCore {
             })]);
             append_to_array(&mut rawTrades, data.clone()); // update is a single trade
         }  else {
-            rawTrades = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]); // snapshot is a list of trades
+            rawTrades = self.safe_list_k(message, "data", &[Value::List(vec![])]); // snapshot is a list of trades
         }
         let mut numRawTrades: Value = Value::Int(rawTrades.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if numRawTrades.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -1153,7 +1153,7 @@ impl BullishCore {
             })]);
             append_to_array(&mut rawPositions, data.clone());
         }  else {
-            rawPositions = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
+            rawPositions = self.safe_list_k(message, "data", &[Value::List(vec![])]);
         }
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -1202,7 +1202,7 @@ impl BullishCore {
         //         "type": "error"
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

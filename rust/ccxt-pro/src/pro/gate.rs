@@ -1002,7 +1002,7 @@ impl GateCore {
         //      "time_ms":1777275365214,
         //      "event":"update"
         //   }
-        let mut result: Value = self.safe_dict_k(message.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(message, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1101,7 +1101,7 @@ impl GateCore {
         let mut rawMarketType: Value = self.safe_string(channelParts.clone(), Value::Int(0), &[]);
         let mut isSpot: bool = rawMarketType.as_str() == Some("spot");
         let mut marketType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
-        let mut delta: Value = self.safe_value_k(message.clone(), "result", &[]);
+        let mut delta: Value = self.safe_value_k(message, "result", &[]);
         let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
         let mut deltaEnd: Value = self.safe_integer_k(delta.clone(), "u", &[]);
         let mut marketId: Value = self.safe_string_k(delta.clone(), "s", &[]);
@@ -1195,7 +1195,7 @@ impl GateCore {
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(delta.clone(), "u", &[]));
         let mut bids: Value = self.safe_value_k(delta.clone(), "b", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_value_k(delta.clone(), "a", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_value_k(delta, "a", &[Value::List(vec![])]);
         let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
         self.handle_bid_asks(storedBids.clone(), bids.clone());
@@ -1386,7 +1386,7 @@ impl GateCore {
         if is_true(&Value::Bool(is_array(&result))) {
             results = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
         }  else {
-            let mut rawTicker: Value = self.safe_dict_k(message.clone(), "result", &[Value::Map({
+            let mut rawTicker: Value = self.safe_dict_k(message, "result", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1569,7 +1569,7 @@ impl GateCore {
         //     }]
         // }
         //
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
+        let mut result: Value = self.safe_value_k(message, "result", &[]);
         if !is_true(&Value::Bool(is_array(&result))) {
             result = Value::List(vec![result.clone()]);
         }
@@ -1661,7 +1661,7 @@ impl GateCore {
         let mut channelParts: Value = split(&channel, &Value::Str(".".to_string()));
         let mut rawMarketType: Value = self.safe_string(channelParts.clone(), Value::Int(0), &[]);
         let mut marketType: Value = (if is_true(&(Value::Bool(rawMarketType.as_str() == Some("spot")))) { Value::Str("spot".to_string()) } else { Value::Str("contract".to_string()) });
-        let mut result: Value = self.safe_value_k(message.clone(), "result", &[]);
+        let mut result: Value = self.safe_value_k(message, "result", &[]);
         if !is_true(&Value::Bool(is_array(&result))) {
             result = Value::List(vec![result.clone()]);
         }
@@ -1800,7 +1800,7 @@ impl GateCore {
         //     ]
         // }
         //
-        let mut result: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_list_k(message, "result", &[Value::List(vec![])]);
         let mut tradesLength: Value = Value::Int(result.len() as i64);
         if (tradesLength.as_f64() == Some(0.0)) {
             return;
@@ -2145,7 +2145,7 @@ impl GateCore {
         //    }
         //
         let mut type_var: Value = self.get_market_type_by_url(get_value(&client, &Value::Str("url".to_string())));
-        let mut data: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "result", &[Value::List(vec![])]);
         let mut cache: Value = get_value(&self.positions, &type_var);
         let mut newPositions: Value = Value::List(vec![]);
         {
@@ -2515,7 +2515,7 @@ impl GateCore {
         //        ]
         //    }
         //
-        let mut rawLiquidations: Value = self.safe_list_k(message.clone(), "result", &[Value::List(vec![])]);
+        let mut rawLiquidations: Value = self.safe_list_k(message, "result", &[Value::List(vec![])]);
         let mut newLiquidations: Value = Value::List(vec![]);
         if (self.liquidations.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)]);
@@ -2580,7 +2580,7 @@ impl GateCore {
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("contracts".to_string(), self.parse_number(amount, &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
-        m.insert("price".to_string(), self.safe_number_k(liquidation.clone(), "fill_price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(liquidation, "fill_price", &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -2644,7 +2644,7 @@ impl GateCore {
         //     }
         //
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
-        let mut errs: Value = self.safe_dict_k(data.clone(), "errs", &[]);
+        let mut errs: Value = self.safe_dict_k(data, "errs", &[]);
         let mut error: Value = self.safe_dict_k(message.clone(), "error", &[errs.clone()]);
         let mut code: Value = self.safe_string2(error.clone(), Value::Str("code".to_string()), Value::Str("label".to_string()), &[]);
         let mut id: Value = self.safe_string_n(message.clone(), Value::List(vec![Value::Str("id".to_string()), Value::Str("requestId".to_string()), Value::Str("request_id".to_string())]), &[]);
@@ -2920,7 +2920,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (requestId != Value::Null) {
             let mut data: Value = self.safe_dict_k(message.clone(), "data", &[]);
             // use safeValue as result may be Array or an Object
-            let mut result: Value = self.safe_value_k(data.clone(), "result", &[]);
+            let mut result: Value = self.safe_value_k(data, "result", &[]);
             let mut ack: Value = self.safe_bool_k(message.clone(), "ack", &[]);
             if (ack.as_bool() != Some(true)) {
                 client.resolve(&[result.clone(), requestId.clone()]);

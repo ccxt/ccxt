@@ -1331,14 +1331,14 @@ impl BackpackCore {
 })]);
         let mut maxPrice: Value = self.safe_number_k(priceFilter.clone(), "maxPrice", &[]);
         let mut minPrice: Value = self.safe_number_k(priceFilter.clone(), "minPrice", &[]);
-        let mut pricePrecision: Value = self.safe_number_k(priceFilter.clone(), "tickSize", &[]);
-        let mut quantityFilter: Value = self.safe_dict_k(filters.clone(), "quantity", &[Value::Map({
+        let mut pricePrecision: Value = self.safe_number_k(priceFilter, "tickSize", &[]);
+        let mut quantityFilter: Value = self.safe_dict_k(filters, "quantity", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
         let mut maxQuantity: Value = self.safe_number_k(quantityFilter.clone(), "maxQuantity", &[]);
         let mut minQuantity: Value = self.safe_number_k(quantityFilter.clone(), "minQuantity", &[]);
-        let mut amountPrecision: Value = self.safe_number_k(quantityFilter.clone(), "stepSize", &[]);
+        let mut amountPrecision: Value = self.safe_number_k(quantityFilter, "stepSize", &[]);
         let mut type_var: Value = Value::Null;
         let mut typeOfMarket: Value = self.parse_market_type(self.safe_string_k(market.clone(), "marketType", &[]));
         let mut linear: Value = Value::Null;
@@ -1680,7 +1680,7 @@ impl BackpackCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "start", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.parse8601(self.safe_string_k(ohlcv.clone(), "start", &[])), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -1747,7 +1747,7 @@ impl BackpackCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -1886,7 +1886,7 @@ impl BackpackCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(rate.clone(), "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(rate, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), datetime.clone());
                 m
@@ -2628,7 +2628,7 @@ impl BackpackCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

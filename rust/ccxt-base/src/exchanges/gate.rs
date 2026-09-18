@@ -3310,7 +3310,7 @@ impl GateCore {
                 //     }
                 //
                 let mut response: Value = self.private_account_get_detail(&[params.clone()]).await;
-                let mut result: Value = self.safe_dict_k(response.clone(), "key", &[Value::Map({
+                let mut result: Value = self.safe_dict_k(response, "key", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3473,7 +3473,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut rawPromises: Value = Value::List(vec![]);
         let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        let mut types: Value = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])]);
+        let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string()), Value::Str("future".to_string()), Value::Str("option".to_string())])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_678: bool = true;
@@ -3618,7 +3618,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(spotMarket.clone(), "min_base_amount", &[amountPrecision.clone()]));
+        m.insert("min".to_string(), self.safe_number_k(spotMarket, "min_base_amount", &[amountPrecision.clone()]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -4258,7 +4258,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         let mut defaultSettle: Value = (if is_true(&(Value::Bool(type_var.as_str() == Some("swap")))) { Value::List(vec![Value::Str("usdt".to_string())]) } else { Value::List(vec![Value::Str("btc".to_string())]) });
-        return self.safe_value_k(fetchMarketsContractOptions.clone(), "settlementCurrencies", &[defaultSettle.clone()]);
+        return self.safe_value_k(fetchMarketsContractOptions, "settlementCurrencies", &[defaultSettle.clone()]);
 
     Value::Null
 }
@@ -4316,7 +4316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Bool(self.safe_bool_k(chain.clone(), "deposit_disabled", &[]).as_bool() != Some(true)));
-        m.insert("withdraw".to_string(), Value::Bool(self.safe_bool_k(chain.clone(), "withdraw_disabled", &[]).as_bool() != Some(true)));
+        m.insert("withdraw".to_string(), Value::Bool(self.safe_bool_k(chain, "withdraw_disabled", &[]).as_bool() != Some(true)));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), self.parse_number(Value::Str("0.0001".to_string()), &[]));
         m.insert("limits".to_string(), Value::Map({
@@ -5071,7 +5071,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number_k(info.clone(), "change", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(info, "change", &[]));
     m
 });
 
@@ -6043,7 +6043,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if is_true(&Value::Bool(is_array(&ohlcv))) {
             return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(5), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(6), &[])]);
         }  else {
-            return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+            return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("t".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
         }
 
     Value::Null
@@ -6886,7 +6886,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_value_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_value_k(rawOrder, "params", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -8217,7 +8217,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut ordersInner: Value = self.safe_value_k(responseEntry.clone(), "orders", &[]);
+                let mut ordersInner: Value = self.safe_value_k(responseEntry, "orders", &[]);
                 spotResult = self.array_concat(spotResult.clone(), ordersInner.clone());
             }
             }
@@ -8772,7 +8772,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contractSize", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liq_price", &[]));
-        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(position, "mark_price", &[]));
         m.insert("lastPrice".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("marginMode".to_string(), marginMode.clone());
@@ -9502,7 +9502,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(info.clone(), "currency", &[]), &[]));
         m.insert("interest".to_string(), self.safe_number_k(info.clone(), "interest", &[]));
-        m.insert("interestRate".to_string(), self.safe_number_k(info.clone(), "actual_rate", &[]));
+        m.insert("interestRate".to_string(), self.safe_number_k(info, "actual_rate", &[]));
         m.insert("amountBorrowed".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -10011,7 +10011,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(result.clone(), "list", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(result, "list", &[Value::List(vec![])]);
         let mut settlements: Value = self.parse_settlements(data.clone(), market.clone());
         let mut sorted: Value = self.sort_by(settlements.clone(), Value::Str("timestamp".to_string()), &[]);
         return self.filter_by_symbol_since_limit(sorted.clone(), &[symbol.clone(), since.clone(), limit.clone()]);
@@ -10065,7 +10065,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), settlement.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("price".to_string(), self.safe_number_k(settlement.clone(), "settle_price", &[]));
+        m.insert("price".to_string(), self.safe_number_k(settlement, "settle_price", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -10280,7 +10280,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("before".to_string(), before.clone());
-        m.insert("after".to_string(), self.safe_number_k(item.clone(), "balance", &[]));
+        m.insert("after".to_string(), self.safe_number_k(item, "balance", &[]));
         m.insert("status".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -10994,7 +10994,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("midPrice".to_string(), Value::Null);
         m.insert("markPrice".to_string(), self.parse_number(self.safe_number_k(chain.clone(), "mark_price", &[]), &[]));
         m.insert("lastPrice".to_string(), self.parse_number(self.safe_number_k(chain.clone(), "last_price", &[]), &[]));
-        m.insert("underlyingPrice".to_string(), self.parse_number(self.safe_number_k(chain.clone(), "underlying_price", &[]), &[]));
+        m.insert("underlyingPrice".to_string(), self.parse_number(self.safe_number_k(chain, "underlying_price", &[]), &[]));
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), Value::Null);

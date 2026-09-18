@@ -632,7 +632,7 @@ impl HitbtcCore {
                 orderbook.reset(parsedSnapshot.clone());
             }  else {
                 let mut asks: Value = self.safe_list_k(item.clone(), "a", &[Value::List(vec![])]);
-                let mut bids: Value = self.safe_list_k(item.clone(), "b", &[Value::List(vec![])]);
+                let mut bids: Value = self.safe_list_k(item, "b", &[Value::List(vec![])]);
                 self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
                 self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             }
@@ -796,7 +796,7 @@ impl HitbtcCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -954,7 +954,7 @@ impl HitbtcCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1305,7 +1305,7 @@ impl HitbtcCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1575,7 +1575,7 @@ impl HitbtcCore {
         m.insert("side".to_string(), self.safe_string_upper(order.clone(), Value::Str("side".to_string()), &[]));
         m.insert("timeInForce".to_string(), self.safe_string_k(order.clone(), "time_in_force", &[]));
         m.insert("postOnly".to_string(), self.safe_string_k(order.clone(), "post_only", &[]));
-        m.insert("reduceOnly".to_string(), self.safe_value_k(order.clone(), "reduce_only", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_value_k(order, "reduce_only", &[]));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), Value::Null);
         m.insert("cost".to_string(), Value::Null);
@@ -1839,7 +1839,7 @@ impl HitbtcCore {
         //    }
         //
         let mut messageHash: Value = self.safe_string_k(message.clone(), "method", &[]);
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[]);
+        let mut params: Value = self.safe_value_k(message, "params", &[]);
         let mut balance: Value = self.parse_balance(params.clone());
         { let __t = self.deep_extend(self.balance.clone(), &[balance.clone()]); self.balance = __t; }
         client.resolve(&[self.balance.clone(), messageHash.clone()]);

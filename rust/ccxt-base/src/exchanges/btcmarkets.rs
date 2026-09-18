@@ -1510,7 +1510,7 @@ impl BtcmarketsCore {
         //    }
         //
         let mut cancelOrders: Value = self.safe_list_k(response.clone(), "cancelOrders", &[Value::List(vec![])]);
-        let mut unprocessedRequests: Value = self.safe_list_k(response.clone(), "unprocessedRequests", &[Value::List(vec![])]);
+        let mut unprocessedRequests: Value = self.safe_list_k(response, "unprocessedRequests", &[Value::List(vec![])]);
         let mut orders: Value = self.array_concat(cancelOrders.clone(), unprocessedRequests.clone());
         return self.parse_orders(orders.clone(), &[]);
 
@@ -1669,7 +1669,7 @@ impl BtcmarketsCore {
         m.insert("postOnly".to_string(), postOnly.clone());
         m.insert("side".to_string(), side.clone());
         m.insert("price".to_string(), price.clone());
-        m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "triggerPrice", &[]));
+        m.insert("triggerPrice".to_string(), self.safe_number_k(order, "triggerPrice", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.clone());
         m.insert("filled".to_string(), Value::Null);

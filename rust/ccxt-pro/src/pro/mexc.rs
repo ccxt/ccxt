@@ -827,7 +827,7 @@ impl MexcCore {
         m.insert("ask".to_string(), self.safe_number_k(data.clone(), "a", &[]));
         m.insert("askVolume".to_string(), self.safe_number_k(data.clone(), "A", &[]));
         m.insert("bid".to_string(), self.safe_number_k(data.clone(), "b", &[]));
-        m.insert("bidVolume".to_string(), self.safe_number_k(data.clone(), "B", &[]));
+        m.insert("bidVolume".to_string(), self.safe_number_k(data, "B", &[]));
         m.insert("info".to_string(), ticker.clone());
     m
 }), &[market.clone()]);
@@ -1371,7 +1371,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), deltaNonce.clone());
         let mut asks: Value = self.safe_list_k(delta.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(delta.clone(), "bids", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_list_k(delta, "bids", &[Value::List(vec![])]);
         let mut asksOrderSide: Value = crate::value::get_value_k(&orderbook, "asks");
         let mut bidsOrderSide: Value = crate::value::get_value_k(&orderbook, "bids");
         self.handle_bookside_delta(asksOrderSide.clone(), asks.clone());

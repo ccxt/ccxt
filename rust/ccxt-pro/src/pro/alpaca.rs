@@ -567,7 +567,7 @@ impl AlpacaCore {
             orderbook.reset(snapshot.clone());
         }  else {
             let mut asks: Value = self.safe_list_k(message.clone(), "a", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(message.clone(), "b", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(message, "b", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -811,11 +811,11 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut rawOrder: Value = self.safe_value_k(data.clone(), "order", &[Value::Map({
+        let mut rawOrder: Value = self.safe_value_k(data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -878,7 +878,7 @@ impl AlpacaCore {
         //        }
         //      }
         //
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -886,7 +886,7 @@ impl AlpacaCore {
         if (event.as_str() != Some("fill")) && (event.as_str() != Some("partial_fill")) {
             return;
         }
-        let mut rawOrder: Value = self.safe_value_k(data.clone(), "order", &[Value::Map({
+        let mut rawOrder: Value = self.safe_value_k(data, "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

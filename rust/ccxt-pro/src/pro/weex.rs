@@ -725,7 +725,7 @@ impl WeexCore {
         if (market == Value::Null) {
             return;
         }
-        let mut tickers: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
         let mut data: Value = self.safe_dict(tickers.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -969,7 +969,7 @@ impl WeexCore {
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
         }
         let mut tradesArray: Value = get_value(&self.trades, &symbol);
-        let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
         let mut newTrades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1263,7 +1263,7 @@ impl WeexCore {
     m
 }));
         }
-        let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
         let mut firstEntry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1297,7 +1297,7 @@ impl WeexCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1512,7 +1512,7 @@ impl WeexCore {
             orderbook.reset(parsed.clone());
         }  else {
             let mut asks: Value = self.safe_list_k(message.clone(), "a", &[Value::List(vec![])]);
-            let mut bids: Value = self.safe_list_k(message.clone(), "b", &[Value::List(vec![])]);
+            let mut bids: Value = self.safe_list_k(message, "b", &[Value::List(vec![])]);
             self.handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone());
             self.handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone());
             add_element_to_object(&mut orderbook, &Value::Str("timestamp".to_string()), timestamp.clone());
@@ -1819,7 +1819,7 @@ impl WeexCore {
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut trades: Value = self.myTrades.clone();
-        let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2062,7 +2062,7 @@ impl WeexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
         let mut symbols: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2294,7 +2294,7 @@ impl WeexCore {
         self.set_balance_cache(client.clone(), type_var.clone());
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
         let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
-        let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "awaitBalanceSnapshot", &[Value::Bool(true)]);
+        let mut awaitBalanceSnapshot: Value = self.safe_bool_k(options, "awaitBalanceSnapshot", &[Value::Bool(true)]);
         if is_true(&(Value::Bool(fetchBalanceSnapshot.as_bool() == Some(true)))) && is_true(&(Value::Bool(awaitBalanceSnapshot.as_bool() == Some(true)))) {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".to_string())))])).await;
         }
@@ -2309,7 +2309,7 @@ impl WeexCore {
             return;
         }
         let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
-        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options.clone(), "fetchBalanceSnapshot", &[Value::Bool(false)]);
+        let mut fetchBalanceSnapshot: Value = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]);
         if (fetchBalanceSnapshot.as_bool() == Some(true)) {
             let mut messageHash: Value = add(&type_var, &Value::Str(":fetchBalanceSnapshot".to_string()));
             if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)))) {
@@ -2607,7 +2607,7 @@ impl WeexCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::List(vec![]);
-        let mut data: Value = self.safe_list_k(message.clone(), "d", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "d", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_652: bool = true;

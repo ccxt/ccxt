@@ -862,7 +862,7 @@ impl RevolutxCore {
         //     }
         //
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut metadata: Value = self.safe_dict_k(response.clone(), "metadata", &[Value::Map({
+        let mut metadata: Value = self.safe_dict_k(response, "metadata", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -987,7 +987,7 @@ impl RevolutxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut metadata: Value = self.safe_dict_k(response.clone(), "metadata", &[Value::Map({
+        let mut metadata: Value = self.safe_dict_k(response, "metadata", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1013,7 +1013,7 @@ impl RevolutxCore {
         let mut high: Value = self.safe_number_k(ohlcv.clone(), "high", &[]);
         let mut low: Value = self.safe_number_k(ohlcv.clone(), "low", &[]);
         let mut close: Value = self.safe_number_k(ohlcv.clone(), "close", &[]);
-        let mut volume: Value = self.safe_number_k(ohlcv.clone(), "volume", &[]);
+        let mut volume: Value = self.safe_number_k(ohlcv, "volume", &[]);
         return Value::List(vec![timestamp.clone(), open.clone(), high.clone(), low.clone(), close.clone(), volume.clone()]);
 
     Value::Null
@@ -1075,7 +1075,7 @@ impl RevolutxCore {
         //         "metadata": { "region": "EEA", "timestamp": 1785313433816 }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1186,7 +1186,7 @@ impl RevolutxCore {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1467,7 +1467,7 @@ impl RevolutxCore {
         let mut orderData: Value = (if is_true(&Value::Bool(is_array(&data))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) } else { self.safe_dict_k(response.clone(), "data", &[Value::Map({
+})]) } else { self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -1588,7 +1588,7 @@ impl RevolutxCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1662,7 +1662,7 @@ impl RevolutxCore {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1745,7 +1745,7 @@ impl RevolutxCore {
         }
         let __ws_arg_11 = self.extend(request, &[self.omit(params, Value::List(vec![Value::Str("until".to_string()), Value::Str("cursor".to_string()), Value::Str("orderStates".to_string()), Value::Str("order_states".to_string()), Value::Str("orderTypes".to_string()), Value::Str("order_types".to_string())]), &[])]);
         let mut response: Value = self.private_get10_orders_historical(&[__ws_arg_11]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1906,7 +1906,7 @@ impl RevolutxCore {
         //         "metadata": { "timestamp": 1785313433816, "next_cursor": "..." }
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1994,7 +1994,7 @@ impl RevolutxCore {
         let mut orderData: Value = (if is_true(&Value::Bool(is_array(&data))) { self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]) } else { self.safe_dict_k(response.clone(), "data", &[Value::Map({
+})]) } else { self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });

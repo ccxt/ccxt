@@ -594,8 +594,8 @@ impl BitbankCore {
         //       }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
-        let mut pairs: Value = self.safe_value_k(data.clone(), "pairs", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_value_k(response, "data", &[]);
+        let mut pairs: Value = self.safe_value_k(data, "pairs", &[Value::List(vec![])]);
         return self.parse_markets(pairs.clone());
 
     Value::Null
@@ -734,7 +734,7 @@ impl BitbankCore {
         });
         let __ws_arg_0 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_pair_ticker(&[__ws_arg_0]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -770,7 +770,7 @@ impl BitbankCore {
         });
         let __ws_arg_1 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_pair_depth(&[__ws_arg_1]).await;
-        let mut orderbook: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut orderbook: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -862,11 +862,11 @@ impl BitbankCore {
         });
         let __ws_arg_2 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_pair_transactions(&[__ws_arg_2]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "transactions", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data, "transactions", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -917,11 +917,11 @@ impl BitbankCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut pairs: Value = self.safe_list_k(data.clone(), "pairs", &[Value::List(vec![])]);
+        let mut pairs: Value = self.safe_list_k(data, "pairs", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -940,7 +940,7 @@ impl BitbankCore {
         m.insert("info".to_string(), pair.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(pair.clone(), "maker_fee_rate_quote", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(pair.clone(), "taker_fee_rate_quote", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(pair, "taker_fee_rate_quote", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -1017,16 +1017,16 @@ impl BitbankCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut candlestick: Value = self.safe_value_k(data.clone(), "candlestick", &[Value::List(vec![])]);
+        let mut candlestick: Value = self.safe_value_k(data, "candlestick", &[Value::List(vec![])]);
         let mut first: Value = self.safe_value(candlestick.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ohlcv: Value = self.safe_list_k(first.clone(), "ohlcv", &[Value::List(vec![])]);
+        let mut ohlcv: Value = self.safe_list_k(first, "ohlcv", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(ohlcv.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1040,11 +1040,11 @@ impl BitbankCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut assets: Value = self.safe_list_k(data.clone(), "assets", &[Value::List(vec![])]);
+        let mut assets: Value = self.safe_list_k(data, "assets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_312: bool = true;
@@ -1183,7 +1183,7 @@ impl BitbankCore {
         }
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_user_spot_order(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -1240,7 +1240,7 @@ impl BitbankCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_value_k(response, "data", &[]);
         return self.parse_order(data.clone(), &[]);
 
     Value::Null
@@ -1296,7 +1296,7 @@ impl BitbankCore {
         //        }
         //    }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
+        let mut data: Value = self.safe_dict_k(response, "data", &[]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -1338,11 +1338,11 @@ impl BitbankCore {
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_user_spot_active_orders(&[__ws_arg_7]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "orders", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1387,11 +1387,11 @@ impl BitbankCore {
         }
         let __ws_arg_8 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_user_spot_trade_history(&[__ws_arg_8]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "trades", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data, "trades", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1427,7 +1427,7 @@ impl BitbankCore {
             m
         })]);
         // Not sure about this if there could be more than one account...
-        let mut accounts: Value = self.safe_value_k(data.clone(), "accounts", &[Value::List(vec![])]);
+        let mut accounts: Value = self.safe_value_k(data, "accounts", &[Value::List(vec![])]);
         let mut firstAccount: Value = self.safe_value(accounts.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1497,7 +1497,7 @@ impl BitbankCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

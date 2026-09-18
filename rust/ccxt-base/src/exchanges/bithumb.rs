@@ -1051,7 +1051,7 @@ impl BithumbCore {
                 let mut quoteId: Value = quote.clone();
                 let mut response: Value = get_value(&results, &i);
                 let mut response: Value = get_value(&results, &i);
-                let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+                let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1319,7 +1319,7 @@ impl BithumbCore {
     m
 })]);
             timestamp = self.safe_integer_k(result.clone(), "timestamp", &[]);
-            let mut orderBookUnits: Value = self.safe_list_k(result.clone(), "orderbook_units", &[Value::List(vec![])]);
+            let mut orderBookUnits: Value = self.safe_list_k(result, "orderbook_units", &[Value::List(vec![])]);
             let mut bids: Value = Value::List(vec![]);
             let mut asks: Value = Value::List(vec![]);
             {
@@ -1376,7 +1376,7 @@ impl BithumbCore {
             //         }
             //     }
             //
-            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            data = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2318,7 +2318,7 @@ impl BithumbCore {
             }
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3012,7 +3012,7 @@ impl BithumbCore {
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("amount".to_string(), amount.clone());
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), self.safe_number_k(order.clone(), "avg_trade_price", &[]));
+        m.insert("average".to_string(), self.safe_number_k(order, "avg_trade_price", &[]));
         m.insert("filled".to_string(), Value::Null);
         m.insert("remaining".to_string(), remaining.clone());
         m.insert("status".to_string(), status.clone());

@@ -452,7 +452,7 @@ impl BitstampCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut storedOrderBook: Value = self.safe_value(self.orderbooks.clone(), symbol.clone(), &[]);
         let mut nonce: Value = self.safe_value_k(storedOrderBook.clone(), "nonce", &[]);
-        let mut delta: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut delta: Value = self.safe_value_k(message, "data", &[]);
         let mut deltaNonce: Value = self.safe_integer_k(delta.clone(), "microtimestamp", &[]);
         if (deltaNonce == Value::Null) {
             return;
@@ -484,7 +484,7 @@ impl BitstampCore {
         add_element_to_object(&mut orderbook, &Value::Str("datetime".to_string()), self.iso8601(timestamp.clone()));
         add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
         let mut bids: Value = self.safe_value_k(delta.clone(), "bids", &[Value::List(vec![])]);
-        let mut asks: Value = self.safe_value_k(delta.clone(), "asks", &[Value::List(vec![])]);
+        let mut asks: Value = self.safe_value_k(delta, "asks", &[Value::List(vec![])]);
         let mut storedBids: Value = crate::value::get_value_k(&orderbook, "bids");
         let mut storedAsks: Value = crate::value::get_value_k(&orderbook, "asks");
         self.handle_bid_asks(storedBids.clone(), bids.clone());
@@ -679,7 +679,7 @@ impl BitstampCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".to_string()), symbol));
-        let mut data: Value = self.safe_value_k(message.clone(), "data", &[]);
+        let mut data: Value = self.safe_value_k(message, "data", &[]);
         let mut trade: Value = self.parse_ws_trade(data.clone(), &[market.clone()]);
         let mut tradesArray: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (tradesArray == Value::Null) {
@@ -752,7 +752,7 @@ impl BitstampCore {
         let mut marketId: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -931,7 +931,7 @@ impl BitstampCore {
         //     }
         //
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[]);
-        let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(message, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1325,11 +1325,11 @@ impl BitstampCore {
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
         if (event.as_str() == Some("bts:error")) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone())));
-            let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_value_k(message, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut code: Value = self.safe_number_k(data.clone(), "code", &[]);
+            let mut code: Value = self.safe_number_k(data, "code", &[]);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone(), feedback.clone());
         }
         return Value::Bool(true);

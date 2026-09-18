@@ -1511,7 +1511,7 @@ impl WeexCore {
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "depositDust", &[]));
+        m.insert("min".to_string(), self.safe_number_k(chain, "depositDust", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1588,8 +1588,8 @@ impl WeexCore {
         let mut spotResponsecontractResponseVariable = promise_all(&promises).await;
         let mut spotResponse: Value = spotResponsecontractResponseVariable.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut contractResponse: Value = spotResponsecontractResponseVariable.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let mut spotArray: Value = self.safe_list_k(spotResponse.clone(), "symbols", &[Value::List(vec![])]);
-        let mut contractArray: Value = self.safe_list_k(contractResponse.clone(), "symbols", &[Value::List(vec![])]);
+        let mut spotArray: Value = self.safe_list_k(spotResponse, "symbols", &[Value::List(vec![])]);
+        let mut contractArray: Value = self.safe_list_k(contractResponse, "symbols", &[Value::List(vec![])]);
         let mut result: Value = self.array_concat(spotArray.clone(), contractArray.clone());
         return self.parse_markets(result.clone());
 
@@ -2331,7 +2331,7 @@ impl WeexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut contractTimeframes: Value = self.safe_dict_k(timeframeOption.clone(), "contract", &[Value::Map({
+        let mut contractTimeframes: Value = self.safe_dict_k(timeframeOption, "contract", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3199,7 +3199,7 @@ impl WeexCore {
         if isTrigger && (isStopLoss || isTakeProfit) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters".to_string()))));
         }
-        let mut reduceOnly: Value = self.safe_bool_k(query.clone(), "reduceOnly", &[]);
+        let mut reduceOnly: Value = self.safe_bool_k(query, "reduceOnly", &[]);
         if isStopLoss || isTakeProfit {
             reduceOnly = Value::Bool(true);
         }
@@ -4427,7 +4427,7 @@ impl WeexCore {
             { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
             let mut contractResponse: Value = self.contract_private_post_capi_v3_account_income(&[__ws_arg_35]).await;
-            items = self.safe_list_k(contractResponse.clone(), "items", &[Value::List(vec![])]);
+            items = self.safe_list_k(contractResponse, "items", &[Value::List(vec![])]);
         }  else if (accountType.as_str() == Some("funding")) {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -4438,7 +4438,7 @@ impl WeexCore {
             { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
             let __ws_arg_36 = self.extend(request.clone(), &[params.clone()]);
             let mut fundingResponse: Value = self.private_post_api_v3_account_funding_bills(&[__ws_arg_36]).await;
-            items = self.safe_list_k(fundingResponse.clone(), "items", &[Value::List(vec![])]);
+            items = self.safe_list_k(fundingResponse, "items", &[Value::List(vec![])]);
         }  else {
             if (since != Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("after".to_string()), since.clone());
@@ -5003,7 +5003,7 @@ impl WeexCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone(), Value::Null, Value::Str("contract".to_string())]));
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommissionRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "takerCommissionRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m

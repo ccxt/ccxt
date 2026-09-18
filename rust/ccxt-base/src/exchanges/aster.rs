@@ -1835,7 +1835,7 @@ impl AsterCore {
     m
 }));
         let mut sapiResult: Value = self.sapi_public_get_v3_exchange_info(&[params.clone()]).await;
-        let mut sapiRows: Value = self.safe_list_k(sapiResult.clone(), "assets", &[Value::List(vec![])]);
+        let mut sapiRows: Value = self.safe_list_k(sapiResult, "assets", &[Value::List(vec![])]);
         return self.parse_currencies(sapiRows.clone());
 
     Value::Null
@@ -1855,7 +1855,7 @@ impl AsterCore {
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
-        m.insert("margin".to_string(), self.safe_bool_k(rawCurrency.clone(), "marginAvailable", &[]));
+        m.insert("margin".to_string(), self.safe_bool_k(rawCurrency, "marginAvailable", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
@@ -1907,12 +1907,12 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut sapiRows: Value = self.safe_list_k(sapiResult.clone(), "symbols", &[Value::List(vec![])]);
+        let mut sapiRows: Value = self.safe_list_k(sapiResult, "symbols", &[Value::List(vec![])]);
         let mut fapiResult: Value = self.safe_dict(results.clone(), Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fapiRows: Value = self.safe_list_k(fapiResult.clone(), "symbols", &[Value::List(vec![])]);
+        let mut fapiRows: Value = self.safe_list_k(fapiResult, "symbols", &[Value::List(vec![])]);
         //
         // example:
         //
@@ -2064,7 +2064,7 @@ impl AsterCore {
         let mut filterNotional: Value = self.safe_dict2(filtersByType.clone(), Value::Str("MIN_NOTIONAL".to_string()), Value::Str("NOTIONAL".to_string()), &[]);
         let mut filterPrice: Value = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[]);
         let mut filterLotSize: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[]);
-        let mut filterMarketLotSize: Value = self.safe_dict_k(filtersByType.clone(), "MARKET_LOT_SIZE", &[Value::Map({
+        let mut filterMarketLotSize: Value = self.safe_dict_k(filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2119,13 +2119,13 @@ impl AsterCore {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filterLotSize.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filterLotSize.clone(), "maxQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(filterLotSize, "maxQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filterPrice.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filterPrice.clone(), "maxPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(filterPrice, "maxPrice", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
@@ -2137,7 +2137,7 @@ impl AsterCore {
         m.insert("market".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(filterMarketLotSize.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filterMarketLotSize.clone(), "maxQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(filterMarketLotSize, "maxQty", &[]));
     m
 }));
     m
@@ -2872,7 +2872,7 @@ impl AsterCore {
         m.insert("estimatedSettlePrice".to_string(), self.safe_number_k(contract.clone(), "estimatedSettlePrice", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "lastFundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "lastFundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -3034,7 +3034,7 @@ impl AsterCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(self.safe_string_k(contract.clone(), "symbol", &[]), &[Value::Null, Value::Null, Value::Str("swap".to_string())]));
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -3208,7 +3208,7 @@ impl AsterCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerCommissionRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee.clone(), "takerCommissionRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fee, "takerCommissionRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(false));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -3659,7 +3659,7 @@ impl AsterCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4824,7 +4824,7 @@ impl AsterCore {
     pub fn parse_account_positions(&self, mut account: Value, optional_args: &[Value]) -> Value {
         let mut filterClosed = get_arg(optional_args, 0, Value::Bool(false));
         let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
-        let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::List(vec![])]);
+        let mut assets: Value = self.safe_list_k(account, "assets", &[Value::List(vec![])]);
         let mut balances: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

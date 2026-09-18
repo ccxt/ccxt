@@ -771,7 +771,7 @@ impl CoinbaseinternationalCore {
         m.insert("bid".to_string(), self.safe_number_k(ticker.clone(), "bid_price", &[]));
         m.insert("bidVolume".to_string(), self.safe_number_k(ticker.clone(), "bid_qty", &[]));
         m.insert("ask".to_string(), self.safe_number_k(ticker.clone(), "ask_price", &[]));
-        m.insert("askVolume".to_string(), self.safe_number_k(ticker.clone(), "ask_qty", &[]));
+        m.insert("askVolume".to_string(), self.safe_number_k(ticker, "ask_qty", &[]));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
@@ -862,7 +862,7 @@ impl CoinbaseinternationalCore {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &timeframe);
-        let mut data: Value = self.safe_list_k(message.clone(), "candles", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(message, "candles", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_274: bool = true;

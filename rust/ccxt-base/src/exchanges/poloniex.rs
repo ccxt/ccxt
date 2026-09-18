@@ -1550,7 +1550,7 @@ impl PoloniexCore {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        let mut markets: Value = self.safe_list_k(response.clone(), "data", &[]);
+        let mut markets: Value = self.safe_list_k(response, "data", &[]);
         return self.parse_markets(markets.clone());
 
     Value::Null
@@ -1622,7 +1622,7 @@ impl PoloniexCore {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(symbolTradeLimit.clone(), "minAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(symbolTradeLimit, "minAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1996,7 +1996,7 @@ impl PoloniexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(chain.clone(), "withdrawMin", &[]));
+        m.insert("min".to_string(), self.safe_number_k(chain, "withdrawMin", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2027,7 +2027,7 @@ impl PoloniexCore {
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Null);
-        m.insert("margin".to_string(), self.safe_bool_k(entry.clone(), "supportBorrow", &[]));
+        m.insert("margin".to_string(), self.safe_bool_k(entry, "supportBorrow", &[]));
     m
 }));
 
@@ -2349,7 +2349,7 @@ impl PoloniexCore {
             //                "actType": "TRADING"
             //            },
             //
-            let mut data: Value = self.safe_list_k(raw.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(raw, "data", &[Value::List(vec![])]);
             return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }
         let __ws_arg_7 = self.extend(request, &[params.clone()]);
@@ -2699,7 +2699,7 @@ impl PoloniexCore {
             //                "qCcy": "USDT"
             //            },
             //
-            response = self.safe_list_k(raw.clone(), "data", &[Value::List(vec![])]);
+            response = self.safe_list_k(raw, "data", &[Value::List(vec![])]);
         }  else if is_equal(&isTrigger, &Value::Bool(true)) {
             let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_smartorders(&[__ws_arg_9]).await;
@@ -4557,7 +4557,7 @@ impl PoloniexCore {
         m.insert("leverage".to_string(), crate::runtime::parse_int(&leverage));
         m.insert("marginRatio".to_string(), self.safe_number_k(position.clone(), "mgnRatio", &[]));
         m.insert("stopLossPrice".to_string(), self.safe_number_k(position.clone(), "slTrgPx", &[]));
-        m.insert("takeProfitPrice".to_string(), self.safe_number_k(position.clone(), "tpTrgPx", &[]));
+        m.insert("takeProfitPrice".to_string(), self.safe_number_k(position, "tpTrgPx", &[]));
     m
 }));
 

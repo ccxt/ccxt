@@ -2665,7 +2665,7 @@ impl BitstampCore {
 
     pub fn parse_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_timestamp(ohlcv.clone(), Value::Str("timestamp".to_string()), &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
@@ -2737,7 +2737,7 @@ impl BitstampCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ohlc: Value = self.safe_list_k(data.clone(), "ohlc", &[Value::List(vec![])]);
+        let mut ohlc: Value = self.safe_list_k(data, "ohlc", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(ohlc.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2863,7 +2863,7 @@ impl BitstampCore {
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("maker".to_string(), self.safe_number_k(fees.clone(), "maker", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fees, "taker", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -2966,7 +2966,7 @@ impl BitstampCore {
             if (code != Value::Null) {
                 add_element_to_object(&mut result, &code, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("withdraw_fee".to_string(), self.safe_number_k(fees.clone(), "fee", &[]));
+        m.insert("withdraw_fee".to_string(), self.safe_number_k(fees, "fee", &[]));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3029,7 +3029,7 @@ impl BitstampCore {
             let mut networkEntry: Value = get_value(&fee, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
-            let mut withdrawFee: Value = self.safe_number_k(networkEntry.clone(), "fee", &[]);
+            let mut withdrawFee: Value = self.safe_number_k(networkEntry, "fee", &[]);
             add_element_to_object(&mut result, &Value::Str("withdraw".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fee".to_string(), withdrawFee.clone());
@@ -3485,7 +3485,7 @@ impl BitstampCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -4077,7 +4077,7 @@ impl BitstampCore {
         m.insert("nextFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingDatetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate.clone(), "funding_rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), nextFundingRateTimestamp.clone());
         m.insert("fundingDatetime".to_string(), self.iso8601(nextFundingRateTimestamp.clone()));
         m.insert("interval".to_string(), Value::Null);

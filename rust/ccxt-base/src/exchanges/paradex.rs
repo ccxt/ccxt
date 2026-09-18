@@ -1326,7 +1326,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[]);
+        let mut data: Value = self.safe_list_k(response, "results", &[]);
         return self.parse_markets(data.clone());
 
     Value::Null
@@ -1533,7 +1533,7 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut apiFee: Value = self.safe_dict_k(feeConfig.clone(), "api_fee", &[Value::Map({
+        let mut apiFee: Value = self.safe_dict_k(feeConfig, "api_fee", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1541,7 +1541,7 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut takerFee: Value = self.safe_dict_k(apiFee.clone(), "taker_fee", &[Value::Map({
+        let mut takerFee: Value = self.safe_dict_k(apiFee, "taker_fee", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1549,8 +1549,8 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("maker".to_string(), self.safe_number_k(makerFee.clone(), "fee", &[self.safe_number(market.clone(), Value::Str("maker".to_string()), &[])]));
-        m.insert("taker".to_string(), self.safe_number_k(takerFee.clone(), "fee", &[self.safe_number(market.clone(), Value::Str("taker".to_string()), &[])]));
+        m.insert("maker".to_string(), self.safe_number_k(makerFee, "fee", &[self.safe_number(market.clone(), Value::Str("maker".to_string()), &[])]));
+        m.insert("taker".to_string(), self.safe_number_k(takerFee, "fee", &[self.safe_number(market.clone(), Value::Str("taker".to_string()), &[])]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m
@@ -1606,7 +1606,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1652,7 +1652,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut fees: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut fees: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1742,7 +1742,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1802,7 +1802,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_tickers(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1854,7 +1854,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1957,7 +1957,7 @@ impl ParadexCore {
         });
         let __ws_arg_4 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_markets_summary(&[__ws_arg_4]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_funding_rates(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -2040,7 +2040,7 @@ impl ParadexCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "funding_rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "funding_rate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -2307,7 +2307,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut interest: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3058,7 +3058,7 @@ impl ParadexCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_number_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_number_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3092,7 +3092,7 @@ impl ParadexCore {
         //
         let mut responseOrders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         let mut parsedOrders: Value = self.parse_orders(responseOrders.clone(), &[]);
-        let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::List(vec![])]);
+        let mut errors: Value = self.safe_list_k(response, "errors", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1046: bool = true;
@@ -3218,7 +3218,7 @@ impl ParadexCore {
         //     ]
         // }
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -3497,7 +3497,7 @@ impl ParadexCore {
         //     ]
         //   }
         //
-        let mut orders: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3532,7 +3532,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_balance(data.clone());
 
     Value::Null
@@ -3724,7 +3724,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3772,7 +3772,7 @@ impl ParadexCore {
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("notional".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.safe_number_k(position.clone(), "cost", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "unrealized_pnl", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -3844,7 +3844,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_liquidations(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3941,7 +3941,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4023,7 +4023,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut deposits: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4109,7 +4109,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_transfers(rows.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4272,7 +4272,7 @@ impl ParadexCore {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(response.clone(), "configs", &[]);
+        let mut configs: Value = self.safe_list_k(response, "configs", &[]);
         return self.parse_margin_mode(self.safe_dict(configs.clone(), Value::Int(0), &[]), &[market.clone()]);
 
     Value::Null
@@ -4370,7 +4370,7 @@ impl ParadexCore {
         //     ]
         // }
         //
-        let mut configs: Value = self.safe_list_k(response.clone(), "configs", &[]);
+        let mut configs: Value = self.safe_list_k(response, "configs", &[]);
         return self.parse_leverage(self.safe_dict(configs.clone(), Value::Int(0), &[]), &[market.clone()]);
 
     Value::Null
@@ -4503,7 +4503,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut greeks: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4573,7 +4573,7 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_all_greeks(results.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -4630,7 +4630,7 @@ impl ParadexCore {
         m.insert("vega".to_string(), self.safe_number_k(greeksData.clone(), "vega", &[]));
         m.insert("rho".to_string(), self.safe_number_k(greeksData.clone(), "rho", &[]));
         m.insert("vanna".to_string(), self.safe_number_k(greeksData.clone(), "vanna", &[]));
-        m.insert("volga".to_string(), self.safe_number_k(greeksData.clone(), "volga", &[]));
+        m.insert("volga".to_string(), self.safe_number_k(greeksData, "volga", &[]));
         m.insert("bidSize".to_string(), Value::Null);
         m.insert("askSize".to_string(), Value::Null);
         m.insert("bidImpliedVolatility".to_string(), self.safe_number_k(greeks.clone(), "bid_iv", &[]));
@@ -4716,7 +4716,7 @@ impl ParadexCore {
         //     ]
         // }
         //
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         return self.parse_incomes(results.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4746,7 +4746,7 @@ impl ParadexCore {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("id".to_string(), self.safe_string_k(income.clone(), "id", &[]));
-        m.insert("amount".to_string(), self.safe_number_k(income.clone(), "payment", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(income, "payment", &[]));
     m
 });
 
@@ -4820,7 +4820,7 @@ impl ParadexCore {
         // every row is one observation of a rate quoted for a whole funding period,
         // not a settled payment: paradex recomputes it each second and accrues it
         // into funding_index, so the series cannot be summed
-        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::List(vec![])]);
+        let mut results: Value = self.safe_list_k(response, "results", &[Value::List(vec![])]);
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -4834,7 +4834,7 @@ impl ParadexCore {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), rate.clone());
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(rate.clone(), "funding_rate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(rate, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), datetime.clone());
                 m

@@ -1165,7 +1165,7 @@ impl PhemexCore {
                     m
                 })]);
                 let mut asks: Value = self.safe_list_k(changes.clone(), "asks", &[Value::List(vec![])]);
-                let mut bids: Value = self.safe_list_k(changes.clone(), "bids", &[Value::List(vec![])]);
+                let mut bids: Value = self.safe_list_k(changes, "bids", &[Value::List(vec![])]);
                 self.custom_handle_deltas(get_value(&orderbook, &Value::Str("asks".to_string())), asks.clone(), &[market.clone()]);
                 self.custom_handle_deltas(get_value(&orderbook, &Value::Str("bids".to_string())), bids.clone(), &[market.clone()]);
                 add_element_to_object(&mut orderbook, &Value::Str("nonce".to_string()), nonce.clone());

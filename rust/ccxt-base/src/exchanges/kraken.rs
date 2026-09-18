@@ -1123,7 +1123,7 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut markets: Value = self.safe_dict_k(assetsResponse.clone(), "result", &[Value::Map({
+        let mut markets: Value = self.safe_dict_k(assetsResponse, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1366,7 +1366,7 @@ impl KrakenCore {
         //         },
         //     }
         //
-        let mut currencies: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut currencies: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1528,7 +1528,7 @@ impl KrakenCore {
         //        }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1629,18 +1629,18 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut orderbook: Value = self.safe_value(result.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), &[]);
         // sometimes kraken returns wsname instead of market id
         // https://github.com/ccxt/ccxt/issues/8662
-        let mut marketInfo: Value = self.safe_value_k(market.clone(), "info", &[Value::Map({
+        let mut marketInfo: Value = self.safe_value_k(market, "info", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut wsName: Value = self.safe_value_k(marketInfo.clone(), "wsname", &[]);
+        let mut wsName: Value = self.safe_value_k(marketInfo, "wsname", &[]);
         if (wsName != Value::Null) {
             orderbook = self.safe_value(result.clone(), wsName.clone(), &[orderbook.clone()]);
         }
@@ -1745,7 +1745,7 @@ impl KrakenCore {
         }
         let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_2]).await;
-        let mut tickers: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut tickers: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1797,7 +1797,7 @@ impl KrakenCore {
         });
         let __ws_arg_3 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_ticker(&[__ws_arg_3]).await;
-        let mut tickerResult: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut tickerResult: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1878,7 +1878,7 @@ impl KrakenCore {
         //             "last":1591517580
         //         }
         //     }
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1955,7 +1955,7 @@ impl KrakenCore {
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_number_k(item.clone(), "fee", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(item, "fee", &[]));
         m.insert("currency".to_string(), code.clone());
     m
 }));
@@ -2019,11 +2019,11 @@ impl KrakenCore {
         //                                                 "amount": "-0.2805800000",
         //                                                    "fee": "0.0050000000",
         //                                                "balance": "0.0000051000"           },
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut ledger: Value = self.safe_dict_k(result.clone(), "ledger", &[Value::Map({
+        let mut ledger: Value = self.safe_dict_k(result, "ledger", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2072,7 +2072,7 @@ impl KrakenCore {
         //                                       "amount": "-0.2805800000",
         //                                          "fee": "0.0050000000",
         //                                      "balance": "0.0000051000"           } } }
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2314,7 +2314,7 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2501,7 +2501,7 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2552,7 +2552,7 @@ impl KrakenCore {
             let mut side: Value = self.safe_string_k(rawOrder.clone(), "side", &[]);
             let mut amount: Value = self.safe_value_k(rawOrder.clone(), "amount", &[]);
             let mut price: Value = self.safe_value_k(rawOrder.clone(), "price", &[]);
-            let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
+            let mut orderParams: Value = self.safe_dict_k(rawOrder, "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2599,11 +2599,11 @@ impl KrakenCore {
         //       ]
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_orders(self.safe_list_k(result.clone(), "orders", &[]), &[]);
+        return self.parse_orders(self.safe_list_k(result, "orders", &[]), &[]);
 
     Value::Null
 }
@@ -3198,7 +3198,7 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3277,7 +3277,7 @@ impl KrakenCore {
         //         }
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::List(vec![])]);
         if !is_true(&(Value::Bool(in_op(&result, &id)))) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() could not find order id ".to_string()))), id)));
         }
@@ -3387,7 +3387,7 @@ impl KrakenCore {
             //         }
             //     }
             //
-            let mut rawTrades: Value = self.safe_value_k(response.clone(), "result", &[]);
+            let mut rawTrades: Value = self.safe_value_k(response, "result", &[]);
             let mut ids: Value = object_keys(&rawTrades);
             {
                                 let mut i: Value = Value::Int(0);
@@ -3432,7 +3432,7 @@ impl KrakenCore {
             m
         }), &[params.clone()]);
         let mut response: Value = self.private_post_query_orders(&[__ws_arg_12]).await;
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3527,11 +3527,11 @@ impl KrakenCore {
         //         },
         //     }
         //
-        let mut tradesResult: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut tradesResult: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_dict_k(tradesResult.clone(), "trades", &[Value::Map({
+        let mut trades: Value = self.safe_dict_k(tradesResult, "trades", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3791,11 +3791,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut open: Value = self.safe_dict_k(result.clone(), "open", &[Value::Map({
+        let mut open: Value = self.safe_dict_k(result, "open", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3909,11 +3909,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol != Value::Null) {
             market = self.market(symbol);
         }
-        let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut closed: Value = self.safe_dict_k(result.clone(), "closed", &[Value::Map({
+        let mut closed: Value = self.safe_dict_k(result, "closed", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4164,7 +4164,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //                       "time":  1529223212,
         //                     "status": "Success"                                                       } ] }
         //
-        let mut depositResult: Value = self.safe_list_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut depositResult: Value = self.safe_list_k(response, "result", &[Value::List(vec![])]);
         return self.parse_transactions_by_type(Value::Str("deposit".to_string()), depositResult.clone(), &[code.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4194,7 +4194,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        }
         //    }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::Map({
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -4293,7 +4293,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         let mut rawWithdrawals: Value = Value::Null;
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_value_k(response, "result", &[]);
         if !is_true(&Value::Bool(is_array(&result))) {
             rawWithdrawals = self.add_pagination_cursor_to_result(result.clone());
         }  else {
@@ -4306,7 +4306,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn add_pagination_cursor_to_result(&self, mut result: Value) -> Value {
         let mut cursor: Value = self.safe_string_k(result.clone(), "next_cursor", &[]);
-        let mut data: Value = self.safe_value_k(result.clone(), "withdrawals", &[]);
+        let mut data: Value = self.safe_value_k(result, "withdrawals", &[]);
         let mut dataLength: Value = get_array_length(&data);
         if (cursor != Value::Null) && is_greater_than(&dataLength, &Value::Int(0)) {
             let mut last: Value = get_value(&data, &subtract(&dataLength, &Value::Int(1)));
@@ -4368,7 +4368,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let __ws_arg_24 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_deposit_methods(&[__ws_arg_24]).await;
-        return self.safe_value_k(response.clone(), "result", &[]);
+        return self.safe_value_k(response, "result", &[]);
 
     Value::Null
 }
@@ -4452,7 +4452,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         ]
         //     }
         //
-        let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
+        let mut result: Value = self.safe_value_k(response, "result", &[Value::List(vec![])]);
         let mut firstResult: Value = self.safe_value(result.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4533,7 +4533,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             //         }
             //     }
             //
-            let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+            let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -4616,7 +4616,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     }
         //
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut result: Value = self.safe_list_k(response.clone(), "result", &[]);
+        let mut result: Value = self.safe_list_k(response, "result", &[]);
         let mut results: Value = self.parse_positions(result.clone(), &[symbols.clone()]);
         return self.filter_by_array_positions(results.clone(), Value::Str("symbol".to_string()), &[symbols.clone(), Value::Bool(false)]);
 
@@ -4667,7 +4667,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
-        m.insert("leverage".to_string(), self.safe_number_k(position.clone(), "leverage", &[]));
+        m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("stopLossPrice".to_string(), Value::Null);
         m.insert("takeProfitPrice".to_string(), Value::Null);
@@ -4909,12 +4909,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 // handleCreateOrdersErrors:
                 if is_true(&Value::Bool(in_op(&response, &Value::Str("result".to_string())))) {
-                    let mut result: Value = self.safe_dict_k(response.clone(), "result", &[Value::Map({
+                    let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                     if is_true(&Value::Bool(in_op(&result, &Value::Str("orders".to_string())))) {
-                        let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[Value::List(vec![])]);
+                        let mut orders: Value = self.safe_list_k(result, "orders", &[Value::List(vec![])]);
                         {
                                                         let mut i: Value = Value::Int(0);
                             let mut __for_first_859: bool = true;

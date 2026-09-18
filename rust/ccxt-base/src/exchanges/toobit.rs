@@ -1378,7 +1378,7 @@ impl ToobitCore {
         //            },
         //          ...
         //
-        let mut coins: Value = self.safe_list_k(response.clone(), "coins", &[Value::List(vec![])]);
+        let mut coins: Value = self.safe_list_k(response, "coins", &[Value::List(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1634,7 +1634,7 @@ impl ToobitCore {
         //          ...
         //
         let mut symbols: Value = self.safe_list_k(response.clone(), "symbols", &[Value::List(vec![])]);
-        let mut contracts: Value = self.safe_list_k(response.clone(), "contracts", &[Value::List(vec![])]);
+        let mut contracts: Value = self.safe_list_k(response, "contracts", &[Value::List(vec![])]);
         let mut all: Value = self.array_concat(symbols.clone(), contracts.clone());
         let mut result: Value = Value::List(vec![]);
         {
@@ -1676,7 +1676,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut minNotionalFilter: Value = self.safe_dict_k(filtersByType.clone(), "MIN_NOTIONAL", &[Value::Map({
+        let mut minNotionalFilter: Value = self.safe_dict_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1728,18 +1728,18 @@ impl ToobitCore {
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(lotSizeFilter.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(lotSizeFilter.clone(), "maxQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(lotSizeFilter, "maxQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("min".to_string(), self.safe_number_k(priceFilter.clone(), "minPrice", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceFilter.clone(), "maxPrice", &[]));
+        m.insert("max".to_string(), self.safe_number_k(priceFilter, "maxPrice", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(minNotionalFilter.clone(), "minNotional", &[]));
+        m.insert("min".to_string(), self.safe_number_k(minNotionalFilter, "minNotional", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -2387,7 +2387,7 @@ impl ToobitCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "settleRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "settleRate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -3440,7 +3440,7 @@ impl ToobitCore {
         m.insert("info".to_string(), data.clone());
         m.insert("symbol".to_string(), self.safe_symbol(marketId.clone(), &[market.clone()]));
         m.insert("maker".to_string(), self.safe_number_k(data.clone(), "closeMakerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(data.clone(), "closeTakerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(data, "closeTakerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -3949,7 +3949,7 @@ impl ToobitCore {
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number_k(position, "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), leverage.clone());
         m.insert("liquidationPrice".to_string(), Value::Null);

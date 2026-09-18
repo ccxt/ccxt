@@ -963,7 +963,7 @@ impl DeepcoinCore {
         let mut types: Value = Value::List(vec![Value::Str("spot".to_string()), Value::Str("swap".to_string())]);
         let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
         if (fetchMarketsOption != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOption.clone(), "types", &[types.clone()]);
+            types = self.safe_list_k(fetchMarketsOption, "types", &[types.clone()]);
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
@@ -1030,7 +1030,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut dataResponse: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut dataResponse: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_markets(dataResponse.clone());
 
     Value::Null
@@ -1257,7 +1257,7 @@ impl DeepcoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1376,7 +1376,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1411,7 +1411,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_11 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_deepcoin_market_tickers(&[__ws_arg_11]).await;
-        let mut tickers: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -1518,7 +1518,7 @@ impl DeepcoinCore {
         add_element_to_object(&mut request, &Value::Str("productGroup".to_string()), productGroup.clone());
         let __ws_arg_12 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1674,7 +1674,7 @@ impl DeepcoinCore {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut balances: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_616: bool = true;
@@ -1746,7 +1746,7 @@ impl DeepcoinCore {
         }
         let __ws_arg_14 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_asset_deposit_list(&[__ws_arg_14]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1812,7 +1812,7 @@ impl DeepcoinCore {
         }
         let __ws_arg_15 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_asset_withdraw_list(&[__ws_arg_15]).await;
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1954,11 +1954,11 @@ impl DeepcoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         let mut additionalParams: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), code.clone());
@@ -2133,7 +2133,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_ledger(data.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2253,7 +2253,7 @@ impl DeepcoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2262,7 +2262,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions.clone(), "fillResponseFromRequest", &[Value::Bool(true)]);
+        let mut fillResponseFromRequest: Value = self.safe_bool_k(transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]);
         if (fillResponseFromRequest.as_bool() == Some(true)) {
             add_element_to_object(&mut transfer, &Value::Str("fromAccount".to_string()), fromAccount.clone());
             add_element_to_object(&mut transfer, &Value::Str("toAccount".to_string()), toAccount.clone());
@@ -2367,7 +2367,7 @@ impl DeepcoinCore {
             //
             response = self.private_post_deepcoin_trade_order(&[request.clone()]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2786,7 +2786,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2827,7 +2827,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_20 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_trade_order_by_id(&[__ws_arg_20]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         let mut length: Value = Value::Int(data.len() as i64);
         if (length.as_f64() == Some(0.0)) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() could not find order id ".to_string()))), id)));
@@ -2981,7 +2981,7 @@ impl DeepcoinCore {
             response = self.private_get_deepcoin_trade_orders_history(&[__ws_arg_22]).await;
         }
         // todo handle with since, until and pagination
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3187,7 +3187,7 @@ impl DeepcoinCore {
             let __ws_arg_24 = self.extend(request, &[params.clone()]);
             response = self.private_get_deepcoin_trade_v2_orders_pending(&[__ws_arg_24]).await;
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("open".to_string()));
@@ -3237,7 +3237,7 @@ impl DeepcoinCore {
             let __ws_arg_26 = self.extend(request, &[params.clone()]);
             response = self.private_post_deepcoin_trade_cancel_order(&[__ws_arg_26]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3295,7 +3295,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_27 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_deepcoin_trade_swap_cancel_all(&[__ws_arg_27]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -3376,7 +3376,7 @@ impl DeepcoinCore {
             let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_post_deepcoin_trade_replace_order(&[__ws_arg_29]).await;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3417,7 +3417,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_30 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_post_deepcoin_trade_batch_cancel_order(&[__ws_arg_30]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone()]);
 
     Value::Null
@@ -3619,7 +3619,7 @@ impl DeepcoinCore {
         });
         let __ws_arg_31 = self.extend(request, &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_account_positions(&[__ws_arg_31]).await;
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_positions(data.clone(), &[Value::List(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])]);
 
     Value::Null
@@ -3683,7 +3683,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_positions(data.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3861,11 +3861,11 @@ impl DeepcoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rates: Value = self.safe_list_k(data.clone(), "current_fund_rates", &[Value::List(vec![])]);
+        let mut rates: Value = self.safe_list_k(data, "current_fund_rates", &[Value::List(vec![])]);
         return self.parse_funding_rates(rates.clone(), &[symbols.clone()]);
 
     Value::Null
@@ -3914,11 +3914,11 @@ impl DeepcoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rates: Value = self.safe_list_k(data.clone(), "current_fund_rates", &[Value::List(vec![])]);
+        let mut rates: Value = self.safe_list_k(data, "current_fund_rates", &[Value::List(vec![])]);
         let mut entry: Value = self.safe_dict(rates.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3948,7 +3948,7 @@ impl DeepcoinCore {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("fundingRate".to_string(), self.safe_number_k(contract.clone(), "fundingRate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(contract, "fundingRate", &[]));
         m.insert("fundingTimestamp".to_string(), Value::Null);
         m.insert("fundingDatetime".to_string(), Value::Null);
         m.insert("nextFundingRate".to_string(), Value::Null);
@@ -4023,11 +4023,11 @@ impl DeepcoinCore {
         //         }
         //     }
         //
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
+        let mut rows: Value = self.safe_list_k(data, "rows", &[Value::List(vec![])]);
         return self.parse_funding_rate_histories(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4050,7 +4050,7 @@ impl DeepcoinCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("fundingRate".to_string(), self.safe_number_k(info.clone(), "rate", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(info, "rate", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
     m
@@ -4141,7 +4141,7 @@ impl DeepcoinCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -4229,7 +4229,7 @@ impl DeepcoinCore {
             let __ws_arg_39 = self.extend(request, &[params.clone()]);
             response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await;
         }
-        let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+        let mut data: Value = self.safe_list_k(response, "data", &[Value::List(vec![])]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
     Value::Null

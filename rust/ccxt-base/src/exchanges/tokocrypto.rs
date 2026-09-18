@@ -1128,11 +1128,11 @@ impl TokocryptoCore {
         if is_equal(&self.options.as_map().and_then(|__m| __m.get("adjustForTimeDifference")).cloned().unwrap_or(Value::Null), &Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1275,7 +1275,7 @@ impl TokocryptoCore {
 }));
             }
             if is_true(&Value::Bool(in_op(&filtersByType, &Value::Str("MIN_NOTIONAL".to_string())))) {
-                let mut filter: Value = self.safe_value_k(filtersByType.clone(), "MIN_NOTIONAL", &[Value::Map({
+                let mut filter: Value = self.safe_value_k(filtersByType, "MIN_NOTIONAL", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]);
@@ -1575,11 +1575,11 @@ impl TokocryptoCore {
             //        "timestamp": 1787318052414
             //    }
             //
-            let mut data: Value = self.safe_dict_k(responseInner.clone(), "data", &[Value::Map({
+            let mut data: Value = self.safe_dict_k(responseInner, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+            let mut list: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
             return self.parse_trades(list.clone(), &[market.clone(), since.clone(), limit.clone()]);
         }
         if (limit != Value::Null) {
@@ -1772,7 +1772,7 @@ impl TokocryptoCore {
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
     pub fn is_native_market(&self, mut market: Value) -> Value {
-        let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
+        let mut marketInfo: Value = self.safe_dict_k(market, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1971,11 +1971,11 @@ impl TokocryptoCore {
             if (dataList != Value::Null) {
                 data = dataList.clone();
             }  else {
-                let mut dataDict: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+                let mut dataDict: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                data = self.safe_list_k(dataDict.clone(), "list", &[Value::List(vec![])]);
+                data = self.safe_list_k(dataDict, "list", &[Value::List(vec![])]);
             }
         }
         return self.parse_ohlc_vs(data.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
@@ -2028,11 +2028,11 @@ impl TokocryptoCore {
                 m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut balances: Value = self.safe_list_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
+        let mut balances: Value = self.safe_list_k(data, "accountAssets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1087: bool = true;
@@ -2437,7 +2437,7 @@ impl TokocryptoCore {
         //         "timestamp": 1662710994975
         //     }
         //
-        let mut rawOrder: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut rawOrder: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2499,11 +2499,11 @@ impl TokocryptoCore {
         //         "timestamp": 1662710056523
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut list: Value = self.safe_value_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut list: Value = self.safe_value_k(data, "list", &[Value::List(vec![])]);
         let mut rawOrder: Value = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2585,11 +2585,11 @@ impl TokocryptoCore {
         //         "timestamp": 1572860756458
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut orders: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         return self.parse_orders(orders.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2705,7 +2705,7 @@ impl TokocryptoCore {
         //         "timestamp": 1662710683634
         //     }
         //
-        let mut rawOrder: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut rawOrder: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2783,11 +2783,11 @@ impl TokocryptoCore {
         //         "timestamp": 1573723498893
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut trades: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2938,11 +2938,11 @@ impl TokocryptoCore {
         //         "timestamp":1659758865998
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut deposits: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut deposits: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         return self.parse_transactions(deposits.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3014,11 +3014,11 @@ impl TokocryptoCore {
         //         "timestamp":1659759062187
         //     }
         //
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut withdrawals: Value = self.safe_list_k(data.clone(), "list", &[Value::List(vec![])]);
+        let mut withdrawals: Value = self.safe_list_k(data, "list", &[Value::List(vec![])]);
         return self.parse_transactions(withdrawals.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null

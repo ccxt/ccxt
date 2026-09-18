@@ -1160,10 +1160,10 @@ impl BingxCore {
         let mut isSpot: bool = self.safe_bool_k(market.clone(), "spot", &[]).as_bool() == Some(true);
         let mut isInverse: bool = self.safe_bool_k(market.clone(), "inverse", &[]).as_bool() == Some(true);
         let mut timestamp: Value = (if isSpot { Value::Str("t".to_string()) } else { Value::Str("T".to_string()) });
-        if (self.safe_bool_k(market.clone(), "swap", &[]).as_bool() == Some(true)) {
+        if (self.safe_bool_k(market, "swap", &[]).as_bool() == Some(true)) {
             timestamp = (if isInverse { Value::Str("t".to_string()) } else { Value::Str("T".to_string()) });
         }
-        return Value::List(vec![self.safe_integer(ohlcv.clone(), timestamp.clone(), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv.clone(), "v", &[])]);
+        return Value::List(vec![self.safe_integer(ohlcv.clone(), timestamp.clone(), &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
 
     Value::Null
 }
@@ -1268,7 +1268,7 @@ impl BingxCore {
 })]); add_element_to_object(&mut self.ohlcvs, &symbol, __be_tmp); };
         let mut rawTimeframe: Value = split(&dataType, &Value::Str("_".to_string())).as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
         let mut marketOptions: Value = self.safe_dict(self.options.clone(), marketType.clone(), &[]);
-        let mut timeframes: Value = self.safe_dict_k(marketOptions.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(marketOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1346,7 +1346,7 @@ impl BingxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_value_k(options, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1408,7 +1408,7 @@ impl BingxCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_value_k(options.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_value_k(options, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1852,7 +1852,7 @@ impl BingxCore {
         m.insert("marginMode".to_string(), marginMode.clone());
         m.insert("liquidationPrice".to_string(), Value::Null);
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "ep", &[]));
-        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "up", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position, "up", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("contracts".to_string(), self.parse_number(contractsAbs, &[]));
         m.insert("contractSize".to_string(), Value::Null);

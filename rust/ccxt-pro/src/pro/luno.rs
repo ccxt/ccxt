@@ -330,7 +330,7 @@ impl LunoCore {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: Value = self.safe_list_k(message.clone(), "trade_updates", &[Value::List(vec![])]);
+        let mut rawTrades: Value = self.safe_list_k(message, "trade_updates", &[Value::List(vec![])]);
         let mut length: Value = Value::Int(rawTrades.len() as i64);
         if (length.as_f64() == Some(0.0)) {
             return;
@@ -608,7 +608,7 @@ impl LunoCore {
                 bidsOrderSide.store_array(bidAskArray.clone());
             }
         }
-        let mut deleteUpdate: Value = self.safe_value_k(message.clone(), "delete_update", &[]);
+        let mut deleteUpdate: Value = self.safe_value_k(message, "delete_update", &[]);
         if (deleteUpdate != Value::Null) {
             let mut orderId: Value = self.safe_string_k(deleteUpdate.clone(), "order_id", &[]);
             asksOrderSide.store_array(Value::List(vec![Value::Int(0), Value::Int(0), orderId.clone()]));

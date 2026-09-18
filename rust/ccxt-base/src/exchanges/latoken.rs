@@ -844,8 +844,8 @@ impl LatokenCore {
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCurrency", &[]);
             let mut baseCurrency: Value = self.safe_dict(currenciesById.clone(), baseId.clone(), &[]);
             let mut quoteCurrency: Value = self.safe_dict(currenciesById.clone(), quoteId.clone(), &[]);
-            let mut baseCurrencyInfo: Value = self.safe_dict_k(baseCurrency.clone(), "info", &[]);
-            let mut quoteCurrencyInfo: Value = self.safe_dict_k(quoteCurrency.clone(), "info", &[]);
+            let mut baseCurrencyInfo: Value = self.safe_dict_k(baseCurrency, "info", &[]);
+            let mut quoteCurrencyInfo: Value = self.safe_dict_k(quoteCurrency, "info", &[]);
             if (baseCurrencyInfo != Value::Null) && (quoteCurrencyInfo != Value::Null) {
                 let mut base: Value = self.safe_currency_code(self.safe_string_k(baseCurrencyInfo.clone(), "tag", &[]), &[]);
                 let mut quote: Value = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo.clone(), "tag", &[]), &[]);
@@ -966,7 +966,7 @@ impl LatokenCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(currency.clone(), "minTransferAmount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(currency, "minTransferAmount", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -1131,7 +1131,7 @@ impl LatokenCore {
         // for over half an hour - such a level is a deleted level their
         // aggregation failed to drop, so it is removed here
         let mut rawAsks: Value = self.safe_list_k(response.clone(), "ask", &[Value::List(vec![])]);
-        let mut rawBids: Value = self.safe_list_k(response.clone(), "bid", &[Value::List(vec![])]);
+        let mut rawBids: Value = self.safe_list_k(response, "bid", &[Value::List(vec![])]);
         let mut asks: Value = Value::List(vec![]);
         let mut bids: Value = Value::List(vec![]);
         {
@@ -1464,7 +1464,7 @@ impl LatokenCore {
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(response.clone(), "makerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response.clone(), "takerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(response, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -1495,7 +1495,7 @@ impl LatokenCore {
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(response.clone(), "makerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response.clone(), "takerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(response, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -2073,7 +2073,7 @@ impl LatokenCore {
         if (code != Value::Null) {
             currency = self.currency(code.clone());
         }
-        let mut content: Value = self.safe_list_k(response.clone(), "content", &[Value::List(vec![])]);
+        let mut content: Value = self.safe_list_k(response, "content", &[Value::List(vec![])]);
         return self.parse_transactions(content.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2233,7 +2233,7 @@ impl LatokenCore {
         //         "hasContent": true
         //     }
         //
-        let mut transfers: Value = self.safe_list_k(response.clone(), "content", &[Value::List(vec![])]);
+        let mut transfers: Value = self.safe_list_k(response, "content", &[Value::List(vec![])]);
         return self.parse_transfers(transfers.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2407,7 +2407,7 @@ impl LatokenCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
         }
-        let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
+        let mut error: Value = self.safe_value_k(response, "error", &[]);
         let mut errorMessage: Value = self.safe_string_k(error.clone(), "message", &[]);
         if is_true(&(Value::Bool(error != Value::Null))) || is_true(&(Value::Bool(errorMessage != Value::Null))) {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone(), feedback.clone());

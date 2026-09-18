@@ -1198,7 +1198,7 @@ impl NdaxCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("margin".to_string(), self.safe_bool_k(rawCurrency.clone(), "MarginEnabled", &[]));
+        m.insert("margin".to_string(), self.safe_bool_k(rawCurrency, "MarginEnabled", &[]));
     m
 }));
 
@@ -2756,7 +2756,7 @@ impl NdaxCore {
         //     ]
         //
         let mut grouped: Value = self.group_by(response.clone(), Value::Str("ChangeReason".to_string()), &[]);
-        let mut trades: Value = self.safe_list_k(grouped.clone(), "Trade", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(grouped, "Trade", &[Value::List(vec![])]);
         return self.parse_trades(trades.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -3149,7 +3149,7 @@ impl NdaxCore {
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.clone());
-        m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "Amount", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(transaction, "Amount", &[]));
         m.insert("currency".to_string(), code.clone());
         m.insert("status".to_string(), self.parse_transaction_status_by_type(&[transactionStatus.clone(), type_var.clone()]));
         m.insert("updated".to_string(), updated.clone());
@@ -3219,7 +3219,7 @@ impl NdaxCore {
         //         ]
         //     }
         //
-        let mut templateTypes: Value = self.safe_value_k(withdrawTemplateTypesResponse.clone(), "TemplateTypes", &[Value::List(vec![])]);
+        let mut templateTypes: Value = self.safe_value_k(withdrawTemplateTypesResponse, "TemplateTypes", &[Value::List(vec![])]);
         let mut firstTemplateType: Value = self.safe_value(templateTypes.clone(), Value::Int(0), &[]);
         if (firstTemplateType == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() could not find a withdraw template type for ".to_string()))), currency.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null))));

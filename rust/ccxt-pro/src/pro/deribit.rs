@@ -433,11 +433,11 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut data: Value = self.safe_value_k(params.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -594,7 +594,7 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -684,7 +684,7 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -802,7 +802,7 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -812,7 +812,7 @@ impl DeribitCore {
         let mut interval: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
-        let mut trades: Value = self.safe_list_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(params, "data", &[Value::List(vec![])]);
         if (self.safe_value(self.trades.clone(), symbol.clone(), &[]) == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             add_element_to_object(&mut self.trades, &symbol, ArrayCache::new(limit.clone()));
@@ -914,12 +914,12 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".to_string())]);
-        let mut trades: Value = self.safe_value_k(params.clone(), "data", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_value_k(params, "data", &[Value::List(vec![])]);
         let mut cachedTrades: Value = self.myTrades.clone();
         if is_equal(&cachedTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -1052,7 +1052,7 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1082,7 +1082,7 @@ impl DeribitCore {
         }
         let mut storedOrderBook: Value = get_value(&self.orderbooks, &symbol);
         let mut asks: Value = self.safe_list_k(data.clone(), "asks", &[Value::List(vec![])]);
-        let mut bids: Value = self.safe_list_k(data.clone(), "bids", &[Value::List(vec![])]);
+        let mut bids: Value = self.safe_list_k(data, "bids", &[Value::List(vec![])]);
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("asks".to_string())), asks.clone());
         self.handle_deltas(get_value(&storedOrderBook, &Value::Str("bids".to_string())), bids.clone());
         add_element_to_object(&mut storedOrderBook, &Value::Str("nonce".to_string()), timestamp.clone());
@@ -1233,12 +1233,12 @@ impl DeribitCore {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
-        let mut params: Value = self.safe_value_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_value_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[Value::Str("".to_string())]);
-        let mut data: Value = self.safe_value_k(params.clone(), "data", &[Value::Map({
+        let mut data: Value = self.safe_value_k(params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1344,7 +1344,7 @@ impl DeribitCore {
         //         }
         //     }
         //
-        let mut params: Value = self.safe_dict_k(message.clone(), "params", &[Value::Map({
+        let mut params: Value = self.safe_dict_k(message, "params", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1358,7 +1358,7 @@ impl DeribitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timeframes: Value = self.safe_dict_k(wsOptions.clone(), "timeframes", &[Value::Map({
+        let mut timeframes: Value = self.safe_dict_k(wsOptions, "timeframes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1372,7 +1372,7 @@ impl DeribitCore {
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &unifiedTimeframe, ArrayCacheByTimestamp::new(limit.clone()));
         }
         let mut stored: Value = get_value(&get_value(&self.ohlcvs, &symbol), &unifiedTimeframe);
-        let mut ohlcv: Value = self.safe_dict_k(params.clone(), "data", &[Value::Map({
+        let mut ohlcv: Value = self.safe_dict_k(params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1387,7 +1387,7 @@ impl DeribitCore {
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "tick", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv.clone(), "volume", &[])]);
+        return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "tick", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number_k(ohlcv, "volume", &[])]);
 
     Value::Null
 }
