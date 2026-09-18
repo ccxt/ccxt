@@ -745,8 +745,8 @@ public class Phemex extends PhemexApi
                     put( "11028", BadSymbol.class );
                     put( "11029", ExchangeError.class );
                     put( "11030", ExchangeError.class );
-                    put( "11031", DDoSProtection.class );
-                    put( "11032", DDoSProtection.class );
+                    put( "11031", InvalidOrder.class );
+                    put( "11032", InvalidOrder.class );
                     put( "11033", DuplicateOrderId.class );
                     put( "11034", InvalidOrder.class );
                     put( "11035", InvalidOrder.class );
