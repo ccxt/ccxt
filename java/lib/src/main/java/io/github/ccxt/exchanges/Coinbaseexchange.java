@@ -1346,7 +1346,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String feeCurrencyId = this.safeStringLower(market, "quoteId");
         if (!java.util.Objects.equals(feeCurrencyId, null))
         {
-            Object costField = (feeCurrencyId + "_value");
+            String costField = (feeCurrencyId + "_value");
             cost = this.safeString(trade, costField);
             String liquidity = this.safeString(trade, "liquidity");
             if (!java.util.Objects.equals(liquidity, null))
@@ -2755,7 +2755,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = ("/" + this.implodeParams(path, parameters));
+        String request = ("/" + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(method, "GET"))
         {

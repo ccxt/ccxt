@@ -4390,10 +4390,10 @@ public class Extended extends ExtendedApi
         {
             Object error = this.safeDict(response, "error");
             String errorCode = this.safeString(error, "code");
-            Object feedback = ((this.id + " ") + this.json(response));
+            String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

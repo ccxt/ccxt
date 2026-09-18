@@ -1686,10 +1686,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             {
                 String code = this.safeString(error, "code");
                 String errorMessage = this.safeString(error, "message");
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         } catch(Exception e)
         {
@@ -1881,10 +1881,10 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                     }
                 }
             }
-            Object allMessageHash = ("unsubscribe:" + this.getMessageHash("ticker"));
+            String allMessageHash = ("unsubscribe:" + this.getMessageHash("ticker"));
             if (((Map<?, ?>)client.subscriptions).containsKey(allMessageHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)allMessageHash);
+                ((Map<String,Object>)client.subscriptions).remove(allMessageHash);
             }
             client.resolve(true, allMessageHash);
             Map<String, Object> tickersStructure = new HashMap<String, Object>() {{

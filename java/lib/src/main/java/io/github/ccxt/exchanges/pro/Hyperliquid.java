@@ -1126,7 +1126,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                     put( "interval", timeframe );
                 }} );
             }};
-            Object subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
+            String subMessageHash = ((("candles:" + timeframe) + ":") + symbol);
             String messagehash = ("unsubscribe:" + subMessageHash);
             Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messagehash, message, messagehash, null)).join();
@@ -1500,7 +1500,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
             String topic = "clearinghouseState";
-            Object messageHash = (topic + "::positions");
+            String messageHash = (topic + "::positions");
             if ((!java.util.Objects.equals(symbols, null)) && !Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
@@ -1790,7 +1790,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
-            Object innerMessageHash = ((messageHash + ":") + symbol);
+            String innerMessageHash = ((messageHash + ":") + symbol);
             client.resolve(stored, innerMessageHash);
         }
         client.resolve(stored, messageHash);
@@ -1947,7 +1947,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String symbol = this.safeSymbol(marketId);
         String interval = this.safeString(subscription, "interval");
         Object timeframe = this.findTimeframe(interval);
-        Object subMessageHash = ((Helpers.add("candles:", timeframe) + ":") + symbol);
+        String subMessageHash = ((Helpers.add("candles:", timeframe) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (((Map<?, ?>)this.ohlcvs).containsKey(symbol))
@@ -1969,10 +1969,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String user = this.safeStringLower(subscription, "user");
         if (!java.util.Objects.equals(user, null))
         {
-            Object subscribeHash = ("subscribe:orderUpdates::" + user);
+            String subscribeHash = ("subscribe:orderUpdates::" + user);
             if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+                ((Map<String,Object>)client.subscriptions).remove(subscribeHash);
             }
         }
         Map<String, Object> topicStructure = new HashMap<String, Object>() {{
@@ -1991,10 +1991,10 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String user = this.safeStringLower(subscription, "user");
         if (!java.util.Objects.equals(user, null))
         {
-            Object subscribeHash = ("subscribe:userFills::" + user);
+            String subscribeHash = ("subscribe:userFills::" + user);
             if (((Map<?, ?>)client.subscriptions).containsKey(subscribeHash))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)subscribeHash);
+                ((Map<String,Object>)client.subscriptions).remove(subscribeHash);
             }
         }
         Map<String, Object> topicStructure = new HashMap<String, Object>() {{

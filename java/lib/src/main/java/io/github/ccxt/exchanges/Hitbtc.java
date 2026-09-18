@@ -4684,11 +4684,11 @@ public class Hitbtc extends HitbtcApi
         String errorCode = this.safeString(error, "code");
         if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             String message = this.safeString2(error, "message", "description");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }
@@ -4741,7 +4741,7 @@ public class Hitbtc extends HitbtcApi
             ((List<Object>)payload).add(timestamp);
             Object payloadString = String.join("", (List<String>)payload);
             Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
-            Object secondPayload = ((Helpers.add((this.apiKey + ":"), signature) + ":") + timestamp);
+            String secondPayload = ((Helpers.add((this.apiKey + ":"), signature) + ":") + timestamp);
             Object encoded = this.stringToBase64(secondPayload);
             ((Map<String, Object>)headers).put("Authorization", ("HS256 " + encoded));
         }

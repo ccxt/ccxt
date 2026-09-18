@@ -578,7 +578,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
-                Object symbolMessageHash = ((messageHash + "::") + hashSymbol);
+                String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.orders, symbolMessageHash);
             }
         }
@@ -711,7 +711,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
-                Object symbolMessageHash = ((messageHash + "::") + hashSymbol);
+                String symbolMessageHash = ((messageHash + "::") + hashSymbol);
                 client.resolve(this.myTrades, symbolMessageHash);
             }
         }
@@ -932,14 +932,14 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         Object data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Object feedback = ((this.id + " ") + this.json(data));
+        String feedback = ((this.id + " ") + this.json(data));
         try
         {
             String errorCode = this.safeString(data, "errorCode");
             String errorCodeName = this.safeString(data, "errorCodeName");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorCodeName, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {
             client.reject(e);

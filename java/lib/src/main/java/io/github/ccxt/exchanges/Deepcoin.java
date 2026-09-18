@@ -3938,7 +3938,7 @@ public class Deepcoin extends DeepcoinApi
                 errorCode = this.safeString(entry, "errorCode");
             }
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         if ((java.util.Objects.equals(sCode, null)) && (!java.util.Objects.equals(errorCode, null)))
         {
             sCode = errorCode;
@@ -3954,13 +3954,13 @@ public class Deepcoin extends DeepcoinApi
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), sCode, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), msg, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         } else
         {
             Object list = this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             if ((((Map<?, ?>)data).containsKey("list")) && (java.util.Objects.equals(list, null)))
             {
-                throw new NullResponse((String)feedback) ;
+                throw new NullResponse(feedback) ;
             }
         }
         return null;

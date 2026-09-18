@@ -583,7 +583,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
-            Object channel = (("market_" + wsId) + "_trade_ticker");
+            String channel = (("market_" + wsId) + "_trade_ticker");
             String messageHash = ("trades:" + symbol);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -724,7 +724,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
-            Object channel = ((("market_" + wsId) + "_kline_") + interval);
+            String channel = ((("market_" + wsId) + "_kline_") + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{
@@ -841,7 +841,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
             String baseIdLower = this.safeStringLower(market, "baseId");
             String quoteIdLower = this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
-            Object channel = (("market_" + wsId) + "_ticker");
+            String channel = (("market_" + wsId) + "_ticker");
             String messageHash = ("ticker:" + symbol);
             Object url = Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "futurePublic");
             Map<String, Object> message = new HashMap<String, Object>() {{

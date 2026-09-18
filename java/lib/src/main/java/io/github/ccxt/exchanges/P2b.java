@@ -1602,12 +1602,12 @@ public class P2b extends P2bApi
         if (!java.util.Objects.equals(success, true))
         {
             String errorCode = this.safeString(response, "errorCode");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             Object codeAsString = String.valueOf(code);
             if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         return null;

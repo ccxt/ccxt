@@ -3839,7 +3839,7 @@ public class Bitfinex extends BitfinexApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             body = this.json(query);
-            Object auth = ((("/api/" + request) + nonce) + body);
+            String auth = ((("/api/" + request) + nonce) + body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384());
             headers = new HashMap<String, Object>() {{
                 put( "bfx-nonce", nonce );
@@ -3885,7 +3885,7 @@ public class Bitfinex extends BitfinexApi
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             String errorCode = this.safeString(response, 1, "");
             String errorText = this.safeString(response, 2, "");
-            Object feedback = ((this.id + " ") + errorText);
+            String feedback = ((this.id + " ") + errorText);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorText, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorText, feedback);

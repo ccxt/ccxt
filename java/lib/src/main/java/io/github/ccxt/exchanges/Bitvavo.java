@@ -3323,10 +3323,10 @@ final Object finalBase = base;
         String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

@@ -61,7 +61,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             now = exchange.milliseconds();
             if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
             {
-                Object AssertionMessage = ((((((((exchange.id + " ") + method) + " ") + symbol) + " ") + chosenTimeframeKey) + " | ") + exchange.json(response));
+                String AssertionMessage = ((((((((exchange.id + " ") + method) + " ") + symbol) + " ") + chosenTimeframeKey) + " | ") + exchange.json(response));
                 Assert(exchange.isDictionary(response), ("Response must be a dictionary. " + AssertionMessage));
                 Assert(((Map<?, ?>)response).containsKey(symbol), ("Response should contain the symbol as key. " + AssertionMessage));
                 Object symbolObj = Helpers.GetValue(response, symbol);

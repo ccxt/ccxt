@@ -306,7 +306,7 @@ public class Btcbox extends BtcboxApi
                 Object quoteId = quote.toLowerCase();
                 Object id = baseCurr.toLowerCase();
                 Object res = this.safeDict(response1, marketId, new HashMap<String, Object>() {{}});
-                Object symbol = ((baseCurr + "/") + quote);
+                String symbol = ((baseCurr + "/") + quote);
                 Object fee = (((java.util.Objects.equals(id, "BTC")))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
                 Object details = this.safeDict(result2Data, id, new HashMap<String, Object>() {{}});
                 Object tradeDetails = this.safeDict(details, "trade", new HashMap<String, Object>() {{}});
@@ -441,11 +441,11 @@ public class Btcbox extends BtcboxApi
             Object code = Helpers.GetValue(codes, i);
             Map<String, Object> currency = (Map<String, Object>) this.currency(code);
             Object currencyId = ((Map<String, Object>)currency).get("id");
-            Object free = (currencyId + "_balance");
+            String free = (currencyId + "_balance");
             if (Helpers.inOp(response, free))
             {
                 Object account = this.account();
-                Object used = (currencyId + "_lock");
+                String used = (currencyId + "_lock");
                 Helpers.addElementToObject(account, "free", this.safeString(response, free));
                 Helpers.addElementToObject(account, "used", this.safeString(response, used));
                 Helpers.addElementToObject(result, code, account);
@@ -1066,9 +1066,9 @@ public class Btcbox extends BtcboxApi
             return null;  // either public API (no error codes expected) or success
         }
         Object code = this.safeValue(response, "code");
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptions, code, feedback);
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 
     public CompletableFuture<Object> request(Object path, Object... optionalArgs)

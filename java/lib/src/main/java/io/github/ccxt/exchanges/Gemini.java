@@ -834,18 +834,18 @@ public class Gemini extends GeminiApi
 
             Object parameters = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : new HashMap<String, Object>() {{}};
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>")).join();
-            Object error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
+            String error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
             Object tables = Helpers.split(data, "tbody>");
             Object numTables = Helpers.getArrayLength(tables);
             if (Helpers.isLessThan(numTables, 2))
             {
-                throw new NotSupported((String)error) ;
+                throw new NotSupported(error) ;
             }
             Object rows = Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
             Object numRows = Helpers.getArrayLength(rows);
             if (Helpers.isLessThan(numRows, 2))
             {
-                throw new NotSupported((String)error) ;
+                throw new NotSupported(error) ;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             // skip the first element (empty string)
@@ -856,7 +856,7 @@ public class Gemini extends GeminiApi
                 Object numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isLessThan(numCells, 5))
                 {
-                    throw new NotSupported((String)error) ;
+                    throw new NotSupported(error) ;
                 }
                 //     [
                 //         '<td>btcusd', // currency
@@ -2642,7 +2642,7 @@ public class Gemini extends GeminiApi
         {
             if ((body instanceof String))
             {
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             }
             return null;  // fallback to default error handler

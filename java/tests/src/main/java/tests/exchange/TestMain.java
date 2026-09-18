@@ -359,7 +359,7 @@ public class TestMain extends BaseTest
                 }
                 return true;
             }
-            Object argsStringified = (Helpers.add("(", exchange.json(args)) + ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            String argsStringified = (Helpers.add("(", exchange.json(args)) + ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
             if (Helpers.isTrue(isSync()))
             {
@@ -1727,7 +1727,7 @@ public class TestMain extends BaseTest
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        Object filename = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/markets/"), id) + ".json");
+        String filename = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/markets/"), id) + ".json");
         Object content = ioFileRead(filename);
         return content;
     }
@@ -1736,7 +1736,7 @@ public class TestMain extends BaseTest
     {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
-        Object filename = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/events/"), id) + ".json");
+        String filename = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/events/"), id) + ".json");
         if (!Helpers.isTrue(ioFileExists(filename)))
         {
             return null;
@@ -1746,7 +1746,7 @@ public class TestMain extends BaseTest
 
     public Object loadCurrenciesFromFile(Object id)
     {
-        Object filename = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/currencies/"), id) + ".json");
+        String filename = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/currencies/"), id) + ".json");
         Object content = ioFileRead(filename);
         return content;
     }
@@ -1758,7 +1758,7 @@ public class TestMain extends BaseTest
         if (!java.util.Objects.equals(targetExchange, null) && !java.util.Objects.equals(targetExchange, ""))
         {
             // read a single exchange
-            Object path = (Helpers.add(folder, targetExchange) + ".json");
+            String path = (Helpers.add(folder, targetExchange) + ".json");
             if (!Helpers.isTrue(ioFileExists(path)))
             {
                 dump(("[WARN] tests not found: " + path));
@@ -2129,7 +2129,7 @@ public class TestMain extends BaseTest
         {
             if (Helpers.isTrue(this.info))
             {
-                Object errorMessage = (Helpers.add((Helpers.add(this.varToString(newOutput), "(calculated)") + " != "), this.varToString(storedOutput)) + "(stored)");
+                String errorMessage = (Helpers.add((Helpers.add(this.varToString(newOutput), "(calculated)") + " != "), this.varToString(storedOutput)) + "(stored)");
                 dump(("[TEST_FAILURE_DETAIL]" + errorMessage));
             }
             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
@@ -3022,7 +3022,7 @@ public class TestMain extends BaseTest
             // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
             Object targetExchange = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object testName = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : null;
-            Object folder = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/"), type) + "/");
+            String folder = (Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/"), type) + "/");
             if (Helpers.isTrue(this.predictionTests))
             {
                 folder = (folder + "prediction/");
@@ -3090,7 +3090,7 @@ public class TestMain extends BaseTest
             } else
             {
                 String prefix = ((Helpers.isTrue((isSync())))) ? "[SYNC]" : "";
-                Object successMessage = (((((Helpers.add((("[" + this.lang) + "]"), prefix) + "[TEST_SUCCESS] ") + String.valueOf(sum)) + " static ") + type) + " tests passed.");
+                String successMessage = (((((Helpers.add((("[" + this.lang) + "]"), prefix) + "[TEST_SUCCESS] ") + String.valueOf(sum)) + " static ") + type) + " tests passed.");
                 dump(("[INFO]" + successMessage));
             }
             return true;  // required in c#
@@ -3146,7 +3146,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb()));
             (Helpers.promiseAll(promises)).join();
-            Object successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
+            String successMessage = (("[" + this.lang) + "][TEST_SUCCESS] brokerId tests passed.");
             dump(("[INFO]" + successMessage));
             exitScript(0);
             return true;

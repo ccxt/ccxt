@@ -139,7 +139,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             Object market = this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object topic = ("kline_" + interval);
+            String topic = ("kline_" + interval);
             String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
             Object ohlcv = (this.wathPublic(market, topic, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -935,10 +935,10 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Object snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
         if (java.util.Objects.equals(snapshot, true))
         {
-            Object messageHash = (Helpers.add(type, ":") + "fetchBalanceSnapshot");
+            String messageHash = (Helpers.add(type, ":") + "fetchBalanceSnapshot");
             if (!(((Map<?, ?>)client.futures).containsKey(messageHash)))
             {
-                client.future((String)messageHash);
+                client.future(messageHash);
                 this.spawn(() -> { try { this.loadBalanceSnapshot(client, messageHash, type); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
         }

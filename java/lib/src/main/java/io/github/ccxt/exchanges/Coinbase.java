@@ -6406,7 +6406,7 @@ public class Coinbase extends CoinbaseApi
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
         Boolean isV3 = java.util.Objects.equals(version, "v3");
         String pathPart = ((Helpers.isTrue((isV3)))) ? "api/v3" : "v2";
-        Object fullPath = ((Helpers.add("/", pathPart) + "/") + this.implodeParams(path, parameters));
+        String fullPath = ((Helpers.add("/", pathPart) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object savedPath = fullPath;
         if (java.util.Objects.equals(method, "GET"))
@@ -6532,7 +6532,7 @@ public class Coinbase extends CoinbaseApi
         {
             return null;  // fallback to default error handler
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         //
         //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
         //
@@ -6572,7 +6572,7 @@ public class Coinbase extends CoinbaseApi
             String errorMessage = this.safeString2(response, "error_description", "error");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         Object errorResponse = this.safeDict(response, "error_response");
         if (!java.util.Objects.equals(errorResponse, null))
@@ -6580,7 +6580,7 @@ public class Coinbase extends CoinbaseApi
             String errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessageInner, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessageInner, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         Object errors = this.safeList(response, "errors");
         if (!java.util.Objects.equals(errors, null))
@@ -6596,7 +6596,7 @@ public class Coinbase extends CoinbaseApi
                     {
                         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
                         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorMessage, feedback);
-                        throw new ExchangeError((String)feedback) ;
+                        throw new ExchangeError(feedback) ;
                     }
                 }
             }

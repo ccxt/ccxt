@@ -551,7 +551,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object name = ((Helpers.add("kline@", ((Map<String, Object>)market).get("id")) + ",") + timeframe);
+            String name = ((Helpers.add("kline@", ((Map<String, Object>)market).get("id")) + ",") + timeframe);
             Object ohlcv = (this.subscribe(name, "public", "watchOHLCV", market, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -585,7 +585,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object name = ((Helpers.add("kline@", ((Map<String, Object>)market).get("id")) + ",") + timeframe);
+            String name = ((Helpers.add("kline@", ((Map<String, Object>)market).get("id")) + ",") + timeframe);
             String messageHash = ("unsubscribe::" + name);
             List<Object> symbolsAndTimeframes = new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe))));
             return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new ArrayList<Object>(Arrays.asList(symbol)), parameters, new HashMap<String, Object>() {{
@@ -866,7 +866,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "contract"), "/") + "user");
+            String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "contract"), "/") + "user");
             Client client = this.client(url);
             this.setPositionsCache(client);
             Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
@@ -1471,7 +1471,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Object symbol = ((Map<String, Object>)market).get("symbol");
             Object obAsks = this.safeList(data, "a");
             Object obBids = this.safeList(data, "b");
-            Object messageHash = ((eventVar + "::") + tradeType);
+            String messageHash = ((eventVar + "::") + tradeType);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
             {
                 Object subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});

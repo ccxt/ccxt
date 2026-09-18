@@ -1338,7 +1338,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             symbol = this.symbol(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object name = ("candle" + interval);
+            String name = ("candle" + interval);
             Object ohlcv = (this.subscribe("public", name, name, symbol, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1537,7 +1537,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
             // or timeframe, thus otherwise it would be unrecognizable
-            Object messageHashForMulti = ((("multi:" + channel) + ":") + symbol);
+            String messageHashForMulti = ((("multi:" + channel) + ":") + symbol);
             client.resolve(new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored)), messageHashForMulti);
         }
     }
@@ -2691,7 +2691,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Object tradeSymbols = Helpers.objectKeys(symbols);
         for (var i = 0; i < ((List<?>)tradeSymbols).size(); i++)
         {
-            Object symbolMessageHash = ((messageHash + "::") + Helpers.GetValue(tradeSymbols, i));
+            String symbolMessageHash = ((messageHash + "::") + Helpers.GetValue(tradeSymbols, i));
             client.resolve(this.myTrades, symbolMessageHash);
         }
     }
@@ -3073,7 +3073,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             if ((!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "")) && !java.util.Objects.equals(errorCode, "0"))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 if (!java.util.Objects.equals(errorCode, "1"))
                 {
                     this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
@@ -3100,7 +3100,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                         }
                     }
                 }
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         } catch(Exception e)
         {
@@ -3246,7 +3246,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleUnSubscriptionTrades(Client client, String symbol, Object channel)
     {
-        Object subMessageHash = ((channel + ":") + symbol);
+        String subMessageHash = ((channel + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (((Map<?, ?>)this.trades).containsKey(symbol))
@@ -3257,7 +3257,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleUnsubscriptionOrderBook(Client client, String symbol, Object channel)
     {
-        Object subMessageHash = ((channel + ":") + symbol);
+        String subMessageHash = ((channel + ":") + symbol);
         String messageHash = ("unsubscribe:orderbook:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
@@ -3274,7 +3274,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             return;
         }
-        Object subMessageHash = ((("multi:" + channel) + ":") + symbol);
+        String subMessageHash = ((("multi:" + channel) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)Helpers.GetValue(this.ohlcvs, symbol)).containsKey(timeframe)))

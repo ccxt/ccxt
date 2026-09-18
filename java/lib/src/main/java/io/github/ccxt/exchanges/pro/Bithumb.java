@@ -403,7 +403,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         Object date = this.safeString(ticker, "date", "");
         Object time = this.safeString(ticker, "time", "");
-        Object kstDatetime = ((((((((((Helpers.slice(date, 0, 4) + "-") + Helpers.slice(date, 4, 6)) + "-") + Helpers.slice(date, 6, 8)) + "T") + Helpers.slice(time, 0, 2)) + ":") + Helpers.slice(time, 2, 4)) + ":") + Helpers.slice(time, 4, 6));
+        String kstDatetime = ((((((((((Helpers.slice(date, 0, 4) + "-") + Helpers.slice(date, 4, 6)) + "-") + Helpers.slice(date, 6, 8)) + "T") + Helpers.slice(time, 0, 2)) + ":") + Helpers.slice(time, 2, 4)) + ":") + Helpers.slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         Object timestamp = this.parse8601(kstDatetime);
         if (!java.util.Objects.equals(timestamp, null))
@@ -565,7 +565,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             this.handleDeltas(legacyOrderbook, list);
             Helpers.addElementToObject(legacyOrderbook, "timestamp", legacyTimestamp);
             Helpers.addElementToObject(legacyOrderbook, "datetime", this.iso8601(legacyTimestamp));
-            Object legacyMessageHash = (("orderbook" + ":") + legacySymbol);
+            String legacyMessageHash = (("orderbook" + ":") + legacySymbol);
             client.resolve(legacyOrderbook, legacyMessageHash);
             return;
         }

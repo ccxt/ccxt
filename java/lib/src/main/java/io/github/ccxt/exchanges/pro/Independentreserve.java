@@ -82,7 +82,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
             }
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
-            Object url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
+            String url = ((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "?subscribe=ticker-"), ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ("trades:" + symbol);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -188,7 +188,7 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
                 limit = 100;
             }
             Object limitString = this.numberToString(limit);
-            Object url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbook/"), limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
+            String url = ((((Helpers.add(Helpers.add(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws"), "/orderbook/"), limitString) + "?subscribe=") + ((Map<String, Object>)market).get("base")) + "-") + ((Map<String, Object>)market).get("quote"));
             String messageHash = ((("orderbook:" + symbol) + ":") + limitString);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );

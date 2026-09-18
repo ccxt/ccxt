@@ -2985,7 +2985,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object version = Helpers.GetValue(api, 0);
         Boolean signed = java.util.Objects.equals(Helpers.GetValue(api, 1), "private");
-        Object fullPath = ((Helpers.add("/", version) + "/") + this.implodeParams(path, parameters));
+        String fullPath = ((Helpers.add("/", version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         String savedPath = ("/api" + fullPath);
         if (java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE"))
@@ -3042,13 +3042,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         {
             return null;  // fallback to default error handler
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         String errMsg = this.safeString(response, "title");
         if (!java.util.Objects.equals(errMsg, null))
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errMsg, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errMsg, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

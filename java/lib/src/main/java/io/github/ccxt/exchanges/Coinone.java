@@ -1683,9 +1683,9 @@ public class Coinone extends CoinoneApi
         String errorCode = this.safeString(response, "error_code");
         if (!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "0"))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

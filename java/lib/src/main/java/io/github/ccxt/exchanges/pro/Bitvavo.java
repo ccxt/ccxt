@@ -522,7 +522,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "candles";
             Object marketId = ((Map<String, Object>)market).get("id");
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object messageHash = ((Helpers.add((name + "@"), marketId) + "_") + interval);
+            String messageHash = ((Helpers.add((name + "@"), marketId) + "_") + interval);
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -2251,7 +2251,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             {
                 Long timestamp = this.milliseconds();
                 Object stringTimestamp = String.valueOf(timestamp);
-                Object auth = (Helpers.add((stringTimestamp + "GET/"), this.version) + "/websocket");
+                String auth = (Helpers.add((stringTimestamp + "GET/"), this.version) + "/websocket");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 String action = "authenticate";
                 Map<String, Object> request = new HashMap<String, Object>() {{

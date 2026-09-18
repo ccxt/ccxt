@@ -4610,14 +4610,14 @@ public class Bitmex extends BitmexApi
         {
             Object error = this.safeValue(response, "error", new HashMap<String, Object>() {{}});
             String message = this.safeString(error, "message");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             if (Helpers.isEqual(code, 400))
             {
-                throw new BadRequest((String)feedback) ;
+                throw new BadRequest(feedback) ;
             }
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

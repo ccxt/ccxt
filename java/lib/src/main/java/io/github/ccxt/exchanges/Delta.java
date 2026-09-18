@@ -2339,7 +2339,7 @@ public class Delta extends DeltaApi
             Object price = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
             Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
             (this.loadMarkets()).join();
-            Object orderType = (type + "_order");
+            String orderType = (type + "_order");
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "product_id", ((Map<String, Object>)market).get("numericId") );
@@ -4709,7 +4709,7 @@ public class Delta extends DeltaApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : new HashMap<String, Object>() {{}};
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object requestPath = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String requestPath = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api), requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(api, "public"))
@@ -4769,10 +4769,10 @@ public class Delta extends DeltaApi
         String errorCode = this.safeString(error, "code");
         if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

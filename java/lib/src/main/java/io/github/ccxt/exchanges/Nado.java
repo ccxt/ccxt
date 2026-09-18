@@ -3802,10 +3802,10 @@ public class Nado extends NadoApi
         String error = this.safeString(response, "error");
         if ((java.util.Objects.equals(status, "failure")) || (!java.util.Objects.equals(errorCode, null)) || (!java.util.Objects.equals(error, null)))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

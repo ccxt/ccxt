@@ -1594,7 +1594,7 @@ public class Bitbns extends BitbnsApi
             }};
         }
         String baseUrl = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), api));
-        Object url = ((baseUrl + "/") + this.implodeParams(path, parameters));
+        String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object nonce = String.valueOf(this.nonce());
         if (java.util.Objects.equals(method, "GET"))
@@ -1651,11 +1651,11 @@ public class Bitbns extends BitbnsApi
         Boolean error = (!java.util.Objects.equals(code, null)) && (!java.util.Objects.equals(code, "200")) && (!java.util.Objects.equals(code, "204"));
         if (Helpers.isTrue(error) || (!java.util.Objects.equals(message, null)))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

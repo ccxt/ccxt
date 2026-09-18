@@ -268,7 +268,7 @@ public class Mudrex extends MudrexApi
         {
             throw new ExchangeError(((this.id + " unknown API namespace: ") + api)) ;
         }
-        Object url = ((base + "/") + this.implodeParams(path, parameters));
+        String url = ((base + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object requestHeaders = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(headers, null))
@@ -352,25 +352,25 @@ public class Mudrex extends MudrexApi
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), text, ((this.id + " ") + text));
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errCode, ((this.id + " ") + text));
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), text, ((this.id + " ") + text));
-            Object msg = ((this.id + " ") + text);
+            String msg = ((this.id + " ") + text);
             Object low = text.toLowerCase();
             if (Helpers.isEqual(code, 401) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))
             {
-                throw new AuthenticationError((String)msg) ;
+                throw new AuthenticationError(msg) ;
             }
             if (Helpers.isEqual(code, 429) || Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "rate"), 0))
             {
-                throw new RateLimitExceeded((String)msg) ;
+                throw new RateLimitExceeded(msg) ;
             }
             if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "insufficient"), 0))
             {
-                throw new InsufficientFunds((String)msg) ;
+                throw new InsufficientFunds(msg) ;
             }
             if (Helpers.isEqual(code, 400))
             {
-                throw new BadRequest((String)msg) ;
+                throw new BadRequest(msg) ;
             }
-            throw new ExchangeError((String)msg) ;
+            throw new ExchangeError(msg) ;
         }
         return null;
     }
@@ -1783,7 +1783,7 @@ public class Mudrex extends MudrexApi
             {
                 Object entry = Helpers.GetValue(allRows, i);
                 String feeType = this.safeString(entry, "fee_type");
-                Object pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
+                String pairKey = ((((this.safeString(entry, "symbol", "") + ":") + this.safeString(entry, "created_at", "")) + ":") + this.safeString(entry, "transaction_amount", ""));
                 if (java.util.Objects.equals(feeType, "TRANSACTION"))
                 {
                     ((List<Object>)transactions).add(entry);

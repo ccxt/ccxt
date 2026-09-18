@@ -2789,7 +2789,7 @@ public class Alpaca extends AlpacaApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object endpoint = ("/" + this.implodeParams(path, parameters));
+        String endpoint = ("/" + this.implodeParams(path, parameters));
         String url = (String) this.implodeHostname(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), Helpers.GetValue(api, 0)));
         headers = (((!java.util.Objects.equals(headers, null)))) ? headers : new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(Helpers.GetValue(api, 1), "private"))
@@ -2833,7 +2833,7 @@ public class Alpaca extends AlpacaApi
         //     "code": 40110000,
         //     "message": "request is not authorized"
         // }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         String errorCode = this.safeString(response, "code");
         if (!java.util.Objects.equals(code, null))
         {
@@ -2847,7 +2847,7 @@ public class Alpaca extends AlpacaApi
             Object codeAsString = String.valueOf(code);
             if ((Helpers.isLessThan(code, 400)) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))
             {
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         return null;

@@ -346,7 +346,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "channel", finalChannel );
                 }} );
             }};
-            Object messageHash = ((channel + ".") + symbol);
+            String messageHash = ((channel + ".") + symbol);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(Ticker::new);
 
@@ -388,7 +388,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
-                    Object messageHash = ((channel + ".") + Helpers.GetValue(symbols, i));
+                    String messageHash = ((channel + ".") + Helpers.GetValue(symbols, i));
                     ((List<Object>)messageHashes).add(messageHash);
                 }
             } else
@@ -506,7 +506,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         client.resolve(this.orders, messageHash);
         if (!java.util.Objects.equals(symbol, null))
         {
-            Object symbolMessageHash = ((messageHash + ":") + symbol);
+            String symbolMessageHash = ((messageHash + ":") + symbol);
             client.resolve(this.orders, symbolMessageHash);
         }
     }
@@ -581,7 +581,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     put( "channel", finalChannel );
                 }} );
             }};
-            Object messageHash = ((channel + ".") + symbol);
+            String messageHash = ((channel + ".") + symbol);
             return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, null)).join();
         }).thenApply(FundingRate::new);
 
@@ -626,7 +626,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     for (var i = 0; i < ((List<?>)symbols).size(); i++)
                     {
-                        Object messageHash = ((channel + ".") + Helpers.GetValue(symbols, i));
+                        String messageHash = ((channel + ".") + Helpers.GetValue(symbols, i));
                         ((List<Object>)messageHashes).add(messageHash);
                     }
                 } else
@@ -745,7 +745,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String errorCode = this.safeString(error, "code");
             if (!java.util.Objects.equals(errorCode, null))
             {
-                Object feedback = ((this.id + " ") + this.json(error));
+                String feedback = ((this.id + " ") + this.json(error));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), "-32600", feedback);
                 Object messageString = this.safeValue(error, "message");
                 if (!java.util.Objects.equals(messageString, null))

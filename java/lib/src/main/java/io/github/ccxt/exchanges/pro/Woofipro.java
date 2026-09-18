@@ -493,7 +493,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
-            Object topic = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
+            String topic = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -1182,7 +1182,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         }
         Helpers.callDynamically(trades, "append", new Object[]{trade});
         client.resolve(trades, messageHash);
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);
     }
 
@@ -1547,7 +1547,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         {
             if (!java.util.Objects.equals(errorMessage, null))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
             }
             return false;

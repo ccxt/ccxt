@@ -925,7 +925,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 {
                     throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
                 }
-                Object symbolHash = (((subscriptionHash + "@") + String.valueOf(watchOrderBookRate)) + "ms");
+                String symbolHash = (((subscriptionHash + "@") + String.valueOf(watchOrderBookRate)) + "ms");
                 ((List<Object>)subParams).add(symbolHash);
             }
             Object messageHashesLength = ((List<?>)messageHashes).size();
@@ -1007,7 +1007,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
                 Object streamId = ((Map<String, Object>)market).get("lowercaseId");
                 Object subscriptionHash = Helpers.add(Helpers.add(streamId, "@"), name);
-                Object symbolHash = (((subscriptionHash + "@") + watchOrderBookRate) + "ms");
+                String symbolHash = (((subscriptionHash + "@") + watchOrderBookRate) + "ms");
                 ((List<Object>)subParams).add(symbolHash);
             }
             Object messageHashesLength = ((List<?>)subMessageHashes).size();
@@ -4345,7 +4345,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
-            Object messageHash = (type + ":balance");
+            String messageHash = (type + ":balance");
             Object message = null;
             return (this.watch(url, messageHash, message, type, null)).join();
         }).thenApply(Balances::new);
@@ -4424,7 +4424,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Object subscriptions = client.subscriptions;
         Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        Object messageHash = (accountType + ":balance");
+        String messageHash = (accountType + ":balance");
         if (java.util.Objects.equals(Helpers.GetValue(this.balance, accountType), null))
         {
             Helpers.addElementToObject(this.balance, accountType, new HashMap<String, Object>() {{}});
@@ -5344,7 +5344,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     throw new BadRequest((this.id + " watchOrders() failed to initialize stock listenKey")) ;
                 }
                 Object stockUrl = this.getStockWsUrl("user");
-                Object stockStreamName = (stockListenKey + "@orderReport");
+                String stockStreamName = (stockListenKey + "@orderReport");
                 Object stockRequestId = this.requestId(stockUrl);
                 String stockMessageHash = "orders";
                 if (!java.util.Objects.equals(symbol, null))

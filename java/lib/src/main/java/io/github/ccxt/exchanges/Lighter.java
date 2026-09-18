@@ -4366,10 +4366,10 @@ public class Lighter extends LighterApi
         String message = this.safeString(response, "msg");
         if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0") && !java.util.Objects.equals(code, "200"))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

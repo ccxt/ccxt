@@ -272,7 +272,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 messageHash = ((messageHash + ":") + ((Map<String, Object>)market).get("symbol"));
             }
-            Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "user-trades");
+            String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "user-trades");
             this.authenticate(url);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -538,7 +538,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 (this.loadMarkets()).join();
             }
             String messageHash = "ACCOUNT_BALANCE";
-            Object url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "account-balance");
+            String url = (Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("ws"), "private"), "/") + "account-balance");
             this.authenticate(url);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
         }).thenApply(Balances::new);

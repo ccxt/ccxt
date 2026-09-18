@@ -3916,7 +3916,7 @@ public class Bithumb extends BithumbApi
             Object value = Helpers.GetValue(query, key);
             if (Helpers.isTrue(Helpers.isArray(value)))
             {
-                Object encodedKey = (this.encodeURIComponent(key) + "[]");
+                String encodedKey = (this.encodeURIComponent(key) + "[]");
                 for (var j = 0; j < ((List<?>)value).size(); j++)
                 {
                     Object item = Helpers.GetValue(value, j);

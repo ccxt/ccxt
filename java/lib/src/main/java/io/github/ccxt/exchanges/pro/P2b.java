@@ -186,7 +186,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Helpers.addElementToObject(Helpers.GetValue(this.options, "tickerSubs"), ((String)((Map<String, Object>)market).get("id")), true); // we need to re-subscribe to all tickers upon watching a new ticker
             Object tickerSubs = ((Map<String, Object>)this.options).get("tickerSubs");
             Object request = Helpers.objectKeys(tickerSubs);
-            Object messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
+            String messageHash = ((name + "::") + ((Map<String, Object>)market).get("symbol"));
             return (this.subscribe((name + ".subscribe"), messageHash, request, parameters)).join();
         }).thenApply(Ticker::new);
 

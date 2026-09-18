@@ -334,7 +334,7 @@ public class Revolutx extends RevolutxApi
         String minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
         String status = this.safeString(market, "status");
         Boolean active = (java.util.Objects.equals(status, "active"));
-        Object symbol = ((base + "/") + quote);
+        String symbol = ((base + "/") + quote);
         final Object finalBase = base;
         return new HashMap<String, Object>() {{
             put( "id", id );
@@ -1775,7 +1775,7 @@ public class Revolutx extends RevolutxApi
             {
                 return null;
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             String errorMessage = null;
             if ((response instanceof Map))
             {

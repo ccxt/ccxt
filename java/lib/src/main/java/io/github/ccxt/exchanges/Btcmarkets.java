@@ -1783,7 +1783,7 @@ public class Btcmarkets extends BtcmarketsApi
         Object parameters = optionalArgs != null && optionalArgs.length > 2 ? optionalArgs[2] : new HashMap<String, Object>() {{}};
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
-        Object request = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((Helpers.add("/", this.version) + "/") + this.implodeParams(path, parameters));
         Map<String, Object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (java.util.Objects.equals(api, "private"))
         {
@@ -1844,11 +1844,11 @@ public class Btcmarkets extends BtcmarketsApi
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(errorCode, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

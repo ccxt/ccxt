@@ -1352,7 +1352,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Helpers.callDynamically(trades, "append", new Object[]{trade});
         client.resolve(trades, messageHash);
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(trades, symbolSpecificMessageHash);
     }
 
@@ -1607,7 +1607,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         client.resolve(orders, messageHash);
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
 

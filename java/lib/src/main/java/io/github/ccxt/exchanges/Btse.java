@@ -4475,19 +4475,19 @@ public class Btse extends BtseApi
         {
             String spotErrorCode = this.safeString(response, "code");
             String spotMessage = this.safeString(response, "msg");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), spotErrorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), spotMessage, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         String errorCode = this.safeString(response, "errorCode");
         if (!java.util.Objects.equals(errorCode, null))
         {
             String message = this.safeString(response, "message");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         //
         // futures order and leverage endpoints reply with HTTP 200 and encode failures in a numeric status field, per the API Enum section of the docs
@@ -4506,10 +4506,10 @@ public class Btse extends BtseApi
         if ((!java.util.Objects.equals(legacyErrorText, null)) && (!java.util.Objects.equals(legacyEnumCode, null)))
         {
             String legacyMessage = this.safeString(response, "message");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), legacyEnumCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), legacyMessage, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         Object rows = new ArrayList<Object>(Arrays.asList());
         if (Helpers.isTrue(Helpers.isArray(response)))
@@ -4531,7 +4531,7 @@ public class Btse extends BtseApi
                 {
                     message = this.safeString(embedded, "default_msg", message);
                 }
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             }

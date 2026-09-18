@@ -11422,12 +11422,12 @@ public Object describe()
         if ((java.util.Objects.equals(argument, null)) || ((Helpers.isGreaterThan(optionsLength, 0)) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))
         {
             Object messageOptions = String.join(", ", (List<String>)options);
-            Object message = (Helpers.add((((this.id + " ") + methodName) + "() requires a "), argumentName) + " argument");
+            String message = (Helpers.add((((this.id + " ") + methodName) + "() requires a "), argumentName) + " argument");
             if (!java.util.Objects.equals(messageOptions, ""))
             {
                 message = (message + (((", one of " + "(") + messageOptions) + ")"));
             }
-            throw new ArgumentsRequired((String)message) ;
+            throw new ArgumentsRequired(message) ;
         }
     }
 
@@ -12505,7 +12505,7 @@ public Object describe()
         Object day = Helpers.slice(date, 4, 6);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
-        Object reconstructedDate = (((((("20" + year) + "-") + month) + "-") + day) + "T00:00:00.000Z");
+        String reconstructedDate = (((((("20" + year) + "-") + month) + "-") + day) + "T00:00:00.000Z");
         return reconstructedDate;
     }
 

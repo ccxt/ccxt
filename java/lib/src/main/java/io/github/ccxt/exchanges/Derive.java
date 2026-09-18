@@ -3471,10 +3471,10 @@ public class Derive extends DeriveApi
         if (!java.util.Objects.equals(error, null))
         {
             String errorCode = this.safeString(error, "code");
-            Object feedback = ((this.id + " ") + this.json(response));
+            String feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

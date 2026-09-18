@@ -3037,7 +3037,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (java.util.Objects.equals(authenticated, null))
             {
                 Object timestamp = String.valueOf(this.seconds());
-                Object auth = ((timestamp + "GET") + "/user/verify");
+                String auth = ((timestamp + "GET") + "/user/verify");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
                 final Object finalTimestamp = timestamp;
@@ -3115,11 +3115,11 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             if (java.util.Objects.equals(eventVar, "error"))
             {
                 String code = this.safeString(message, "code");
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), code, feedback);
                 String msg = this.safeString(message, "msg", "");
                 this.throwBroadlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "broad"), msg, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             return false;
         } catch(Exception e)
@@ -3327,14 +3327,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("unsubscribe:orderbook:" + ((Map<String, Object>)market).get("symbol"));
-        Object subMessageHash = ("orderbook:" + symbol);
+        String subMessageHash = ("orderbook:" + symbol);
         if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
         {
             ((Map<String,Object>)this.orderbooks).remove((String)symbol);
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subMessageHash);
+            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
         {
@@ -3360,14 +3360,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("unsubscribe:trade:" + ((Map<String, Object>)market).get("symbol"));
-        Object subMessageHash = ("trade:" + symbol);
+        String subMessageHash = ("trade:" + symbol);
         if (((Map<?, ?>)this.trades).containsKey(symbol))
         {
             ((Map<String,Object>)this.trades).remove((String)symbol);
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subMessageHash);
+            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
         {
@@ -3393,14 +3393,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = ((Map<String, Object>)market).get("symbol");
         String messageHash = ("unsubscribe:ticker:" + ((Map<String, Object>)market).get("symbol"));
-        Object subMessageHash = ("ticker:" + symbol);
+        String subMessageHash = ("ticker:" + symbol);
         if (((Map<?, ?>)this.tickers).containsKey(symbol))
         {
             ((Map<String,Object>)this.tickers).remove((String)symbol);
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(subMessageHash))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)subMessageHash);
+            ((Map<String,Object>)client.subscriptions).remove(subMessageHash);
         }
         if (((Map<?, ?>)client.subscriptions).containsKey(messageHash))
         {

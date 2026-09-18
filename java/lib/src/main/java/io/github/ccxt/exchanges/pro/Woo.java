@@ -841,7 +841,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
-            Object topic = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
+            String topic = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -883,7 +883,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object topic = "ohlcv";
             String name = "kline";
-            Object subHash = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
+            String subHash = ((Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), name) + "_") + interval);
             ((Map<String, Object>)parameters).put("symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"), timeframe)))));
             return (this.unwatchPublic(subHash, ((Map<String, Object>)market).get("symbol"), topic, parameters)).join();
         });
@@ -1908,7 +1908,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             if (!java.util.Objects.equals(errorMessage, null))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorMessage, feedback);
             }
             return false;

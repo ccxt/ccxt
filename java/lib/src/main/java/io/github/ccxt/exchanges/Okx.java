@@ -8519,7 +8519,7 @@ public class Okx extends OkxApi
         Object headers = optionalArgs != null && optionalArgs.length > 3 ? optionalArgs[3] : null;
         Object body = optionalArgs != null && optionalArgs.length > 4 ? optionalArgs[4] : null;
         Object isArray = Helpers.isArray(parameters);
-        Object request = ((Helpers.add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
+        String request = ((Helpers.add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest")), request);
         // const type = this.getPathAuthenticationType (path);
@@ -11525,7 +11525,7 @@ public class Okx extends OkxApi
         String code = this.safeString(response, "code");
         if ((!java.util.Objects.equals(code, "0")) && (!java.util.Objects.equals(code, "2")))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             Object data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
@@ -11536,7 +11536,7 @@ public class Okx extends OkxApi
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             }
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

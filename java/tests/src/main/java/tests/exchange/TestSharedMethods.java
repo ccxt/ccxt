@@ -604,7 +604,7 @@ public class TestSharedMethods extends BaseTest {
     {
         // note, `strictCheck` is `true` only from "fetchOrder" cases
         Object logText = logTemplate(exchange, method, order);
-        Object msg = ((("order should be " + AssertedStatus) + ", but it was not Asserted") + logText);
+        String msg = ((("order should be " + AssertedStatus) + ", but it was not Asserted") + logText);
         String filled = exchange.safeString(order, "filled");
         String amount = exchange.safeString(order, "amount");
         // shorthand variables

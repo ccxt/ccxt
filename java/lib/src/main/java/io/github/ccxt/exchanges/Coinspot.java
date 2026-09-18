@@ -1180,8 +1180,8 @@ public class Coinspot extends CoinspotApi
         String status = this.safeString(response, "status");
         if (java.util.Objects.equals(status, "error"))
         {
-            Object feedback = ((this.id + " ") + this.json(response));
-            throw new ExchangeError((String)feedback) ;
+            String feedback = ((this.id + " ") + this.json(response));
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

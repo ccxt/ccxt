@@ -5409,7 +5409,7 @@ public class Aster extends AsterApi
             }
             Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             Object signature = this.signMessage(encodedMessage, this.privateKey);
-            Object queryString = (((paramString + "&") + "signature=") + signature);
+            String queryString = (((paramString + "&") + "signature=") + signature);
             if (java.util.Objects.equals(method, "GET"))
             {
                 url = (url + ("?" + queryString));
@@ -5593,11 +5593,11 @@ public class Aster extends AsterApi
         String message = this.safeString(response, "msg");
         if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "200"))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

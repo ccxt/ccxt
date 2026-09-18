@@ -1096,18 +1096,18 @@ public class Zaif extends ZaifApi
         //
         //     {"error": "unsupported currency_pair"}
         //
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         Object success = this.safeBool(response, "success", true);
         if (!java.util.Objects.equals(success, true))
         {
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

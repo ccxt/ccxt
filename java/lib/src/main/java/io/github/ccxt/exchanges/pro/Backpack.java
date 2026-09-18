@@ -122,7 +122,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             Object ts = String.valueOf(this.nonce());
             String method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
-            Object payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
+            String payload = (((((("instruction=" + instruction) + "&") + "timestamp=") + ts) + "&window=") + recvWindow);
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
@@ -1372,7 +1372,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         }
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         client.resolve(orders, messageHash);
-        Object symbolSpecificMessageHash = ((messageHash + ":") + symbol);
+        String symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         client.resolve(orders, symbolSpecificMessageHash);
     }
 

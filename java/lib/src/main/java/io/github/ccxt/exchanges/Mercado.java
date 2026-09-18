@@ -1302,7 +1302,7 @@ public class Mercado extends MercadoApi
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
             }}, parameters));
-            Object auth = (((Helpers.add("/tapi/", this.version) + "/") + "?") + body);
+            String auth = (((Helpers.add("/tapi/", this.version) + "/") + "?") + body);
             headers = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "TAPI-ID", Mercado.this.apiKey );

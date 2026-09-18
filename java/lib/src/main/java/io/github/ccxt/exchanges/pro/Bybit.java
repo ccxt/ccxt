@@ -3006,11 +3006,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             if (!java.util.Objects.equals(code, null) && !java.util.Objects.equals(code, "0"))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 String msg = this.safeString2(message, "retMsg", "ret_msg");
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), msg, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             Object success = this.safeValue(message, "success");
             if ((!java.util.Objects.equals(success, null)) && (!java.util.Objects.equals(success, true)))

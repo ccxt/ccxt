@@ -2712,7 +2712,7 @@ public class Hashkey extends HashkeyApi
             label = "sub";
         }
         String accountType = this.parseAccountType(this.safeString(account, "accountType"));
-        Object type = ((label + " ") + accountType);
+        String type = ((label + " ") + accountType);
         return new HashMap<String, Object>() {{
             put( "id", Hashkey.this.safeString(account, "accountId") );
             put( "type", type );

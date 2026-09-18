@@ -1738,7 +1738,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 client.future((type + ":fetchBalanceSnapshot")).getFuture().join();
             }
-            Object messageHash = (type + ":balance");
+            String messageHash = (type + ":balance");
             Object message = null;
             return (this.watch(url, messageHash, message, type, null)).join();
         }).thenApply(Balances::new);
@@ -2416,7 +2416,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Object messageHashes = this.findMessageHashes(client, messageHash);
         if (!Helpers.isTrue(this.isEmpty(messageHashes)))
         {
-            Object symbolMessageHash = ((messageHash + "::") + symbol);
+            String symbolMessageHash = ((messageHash + "::") + symbol);
             client.resolve(cache, symbolMessageHash);
             client.resolve(cache, messageHash);
         }

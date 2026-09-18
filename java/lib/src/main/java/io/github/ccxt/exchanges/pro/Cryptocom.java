@@ -208,7 +208,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object currentTopic = ((Helpers.add(("book" + "."), ((Map<String, Object>)market).get("id")) + ".") + String.valueOf(limit));
+                String currentTopic = ((Helpers.add(("book" + "."), ((Map<String, Object>)market).get("id")) + ".") + String.valueOf(limit));
                 String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)topics).add(currentTopic);
@@ -276,7 +276,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object currentTopic = ((Helpers.add(("book" + "."), ((Map<String, Object>)market).get("id")) + ".") + String.valueOf(limit));
+                String currentTopic = ((Helpers.add(("book" + "."), ((Map<String, Object>)market).get("id")) + ".") + String.valueOf(limit));
                 String messageHash = ("orderbook:" + ((Map<String, Object>)market).get("symbol"));
                 ((List<Object>)subMessageHashes).add(messageHash);
                 ((List<Object>)messageHashes).add(("unsubscribe:" + messageHash));
@@ -1722,14 +1722,14 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             if ((!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "")) && !java.util.Objects.equals(errorCode, "0"))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errorCode, feedback);
                 Object messageString = this.safeValue(message, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
                     this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), messageString, feedback);
                 }
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
             return false;
         } catch(Exception e)

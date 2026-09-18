@@ -3086,12 +3086,12 @@ public class Upbit extends UpbitApi
         {
             String message = this.safeString(error, "message");
             String name = this.safeString(error, "name");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), name, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), name, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

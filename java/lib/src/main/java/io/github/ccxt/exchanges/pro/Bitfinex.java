@@ -330,7 +330,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object timeframe = this.findTimeframe(interval);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object messageHash = ((Helpers.add(Helpers.add(channel, ":"), interval) + ":") + marketId);
+        String messageHash = ((Helpers.add(Helpers.add(channel, ":"), interval) + ":") + marketId);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (java.util.Objects.equals(stored, null))
@@ -1220,7 +1220,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String symbol = this.safeSymbol(marketId);
             if (!java.util.Objects.equals(unifiedChannel, null))
             {
-                Object subId = ((("unsubscribe:" + unifiedChannel) + ":") + symbol);
+                String subId = ((("unsubscribe:" + unifiedChannel) + ":") + symbol);
                 Helpers.addElementToObject(client.subscriptions, subId, channelId);
             }
         }

@@ -591,7 +591,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
                 Helpers.addElementToObject(this.options, "ws-expires", expires);
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
-            Object auth = (("CONNECT" + "/stream") + expires);
+            String auth = (("CONNECT" + "/stream") + expires);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
             Map<String, Object> authParams = new HashMap<String, Object>() {{
@@ -621,7 +621,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         {
             if (!java.util.Objects.equals(error, null))
             {
-                Object feedback = ((this.id + " ") + this.json(message));
+                String feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(Helpers.GetValue(((Map<String, Object>)this.exceptions).get("ws"), "exact"), error, feedback);
             }
         } catch(Exception e)

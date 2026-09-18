@@ -145,7 +145,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
             }
             Object timestamp = String.valueOf(this.nonce());
-            Object auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
+            String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
             Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalName = name;
             final Object finalTimestamp = timestamp;
@@ -214,7 +214,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
             }
             Object timestamp = this.numberToString(this.seconds());
-            Object auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
+            String auth = ((Helpers.add(timestamp, this.apiKey) + "CBINTLMD") + this.password);
             Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
             final Object finalName = name;

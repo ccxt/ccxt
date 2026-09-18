@@ -1939,7 +1939,7 @@ public class Bullish extends BullishApi
     {
         Object since = optionalArgs != null && optionalArgs.length > 0 ? optionalArgs[0] : null;
         Object parameters = optionalArgs != null && optionalArgs.length > 1 ? optionalArgs[1] : new HashMap<String, Object>() {{}};
-        Object ninetyDays = ((((90L * 24L) * 60L) * 60L) * 1000L);
+        Long ninetyDays = ((((90L * 24L) * 60L) * 60L) * 1000L);
         Long now = this.milliseconds();
         Object allowedSince = Helpers.subtract(now, ninetyDays);
         if ((!java.util.Objects.equals(since, null)) && (Helpers.isLessThan(since, allowedSince)))
@@ -1970,7 +1970,7 @@ public class Bullish extends BullishApi
         Object until = this.safeInteger(parameters, "until");
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
         {
-            Object timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
+            Long timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
             if (java.util.Objects.equals(since, null))
             {
                 since = Helpers.subtract(until, timeDelta);
@@ -3794,11 +3794,11 @@ public class Bullish extends BullishApi
             {
                 message = type;
             }
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

@@ -135,7 +135,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object channel = Helpers.add("diff_order_book_", ((Map<String, Object>)market).get("id"));
-            Object subHash = ("orderbook:" + symbol);
+            String subHash = ("orderbook:" + symbol);
             return (this.unWatchChannel(channel, subHash, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -353,7 +353,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             Map<String, Object> market = (Map<String, Object>) this.market(symbol);
             symbol = ((Map<String, Object>)market).get("symbol");
             Object channel = Helpers.add("live_trades_", ((Map<String, Object>)market).get("id"));
-            Object subHash = ("trades:" + symbol);
+            String subHash = ("trades:" + symbol);
             return (this.unWatchChannel(channel, subHash, "trades", new ArrayList<Object>(Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -1116,7 +1116,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         String eventVar = this.safeString(message, "event");
         if (java.util.Objects.equals(eventVar, "bts:error"))
         {
-            Object feedback = ((this.id + " ") + this.json(message));
+            String feedback = ((this.id + " ") + this.json(message));
             Object data = this.safeValue(message, "data", new HashMap<String, Object>() {{}});
             Double code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);

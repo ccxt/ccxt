@@ -71,7 +71,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         this.checkRequiredCredentials();
         String path = "/users/self/verify";
         Object nonce = this.nonce();
-        Object payload = ((String.valueOf(nonce) + "GET") + path);
+        String payload = ((String.valueOf(nonce) + "GET") + path);
         Object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
         return new HashMap<String, Object>() {{
             put( "timestamp", nonce );
@@ -582,7 +582,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
             String type = "matches";
-            Object messageHash = ((type + ":") + marketId);
+            String messageHash = ((type + ":") + marketId);
             Object tradesArray = this.safeValue(this.trades, symbol);
             if (java.util.Objects.equals(tradesArray, null))
             {
@@ -606,7 +606,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         {
             Object trade = this.parseWsTrade(message);
             String type = "myTrades";
-            Object messageHash = ((type + ":") + marketId);
+            String messageHash = ((type + ":") + marketId);
             Object tradesArray = this.myTrades;
             if (java.util.Objects.equals(tradesArray, null))
             {

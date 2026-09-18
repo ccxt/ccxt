@@ -2298,10 +2298,10 @@ public class Cex extends CexApi
         String error = this.safeString(response, "error");
         if (!java.util.Objects.equals(error, null))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
         if (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "do_my_new_order"), 0))

@@ -2492,12 +2492,12 @@ public class Apex extends ApexApi
         Long errorCode = this.safeInteger(response, "code");
         if (!java.util.Objects.equals(errorCode, null) && !Helpers.isEqual(errorCode, 0))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             String message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             Object status = String.valueOf(code);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), status, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

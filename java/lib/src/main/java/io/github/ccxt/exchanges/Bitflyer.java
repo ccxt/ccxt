@@ -727,7 +727,7 @@ public class Bitflyer extends BitflyerApi
         Object order = null;
         if (!java.util.Objects.equals(side, null))
         {
-            Object idInner = (side + "_child_order_acceptance_id");
+            String idInner = (side + "_child_order_acceptance_id");
             if (((Map<?, ?>)trade).containsKey(idInner))
             {
                 order = Helpers.GetValue(trade, idInner);
@@ -1632,14 +1632,14 @@ public class Bitflyer extends BitflyerApi
         {
             return null;  // fallback to the default error handler
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         String errorMessage = this.safeString(response, "error_message");
         Long statusCode = this.safeInteger(response, "status");
         if (!java.util.Objects.equals(errorMessage, null))
         {
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), statusCode, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

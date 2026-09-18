@@ -2331,10 +2331,10 @@ final Object finalJ = j;
         {
             return null;
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         String error = this.safeString(response, "error");
         this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), error, feedback);
         this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), error, feedback);
-        throw new ExchangeError((String)feedback) ;
+        throw new ExchangeError(feedback) ;
     }
 }

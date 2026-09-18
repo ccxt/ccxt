@@ -4487,7 +4487,7 @@ public class Poloniex extends PoloniexApi
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.nonce());
-            Object auth = (method + "\n"); // eslint-disable-line quotes
+            String auth = (method + "\n"); // eslint-disable-line quotes
             url = Helpers.add(url, ("/" + implodedPath));
             auth = (auth + ("/" + implodedPath));
             if ((java.util.Objects.equals(method, "POST")) || (java.util.Objects.equals(method, "PUT")) || (java.util.Objects.equals(method, "DELETE")))
@@ -4547,10 +4547,10 @@ public class Poloniex extends PoloniexApi
         if ((!java.util.Objects.equals(responseCode, null)) && (!java.util.Objects.equals(responseCode, "200")))
         {
             String message = this.safeString2(response, "message", "msg");
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

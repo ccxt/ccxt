@@ -4389,11 +4389,11 @@ public class Pacifica extends PacificaApi
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
         if (Helpers.isTrue(error) || Helpers.isTrue(nonEmptyMessage))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback); // Try deeper catch first
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), inCode, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }
@@ -4408,7 +4408,7 @@ public class Pacifica extends PacificaApi
         Object isTestnet = this.isSandboxModeEnabled;
         String urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
-        Object url = ((Helpers.add((host + "/api/"), this.version) + "/") + this.implodeParams(path, parameters));
+        String url = ((Helpers.add((host + "/api/"), this.version) + "/") + this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         Object paramsLen = ((List<?>)Helpers.objectKeys(parameters)).size();
         headers = new HashMap<String, Object>() {{

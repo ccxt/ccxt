@@ -511,7 +511,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
         Object symbol = ((Map<String, Object>)market).get("symbol");
-        Object messageHash = ((name + ":") + symbol);
+        String messageHash = ((name + ":") + symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
@@ -621,7 +621,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
-            Object subscriptionHash = (name + ".subscribe");
+            String subscriptionHash = (name + ".subscribe");
             String messageHash = ("ticker:" + symbol);
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "method", subscriptionHash );
@@ -669,7 +669,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
             Object url = ((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("ws");
             Object requestId = this.requestId();
-            Object subscriptionHash = (name + ".subscribe");
+            String subscriptionHash = (name + ".subscribe");
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbols).size(); i++)
             {
@@ -910,7 +910,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         String type = this.safeString(message, "type");
         Long depth = this.safeInteger(message, "depth");
         String name = "orderbook";
-        Object messageHash = ((name + ":") + symbol);
+        String messageHash = ((name + ":") + symbol);
         Long nonce = this.safeInteger(message, "sequence");
         Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
         if (java.util.Objects.equals(type, "snapshot"))
@@ -1125,7 +1125,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object market = Helpers.GetValue(keys, i);
-            Object hash = ((channel + ":") + market);
+            String hash = ((channel + ":") + market);
             client.resolve(cachedTrades, hash);
         }
         // generic subscription
@@ -1412,7 +1412,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Object keys = Helpers.objectKeys(marketIds);
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object currentMessageHash = (("orders" + ":") + Helpers.GetValue(keys, i));
+            String currentMessageHash = (("orders" + ":") + Helpers.GetValue(keys, i));
             client.resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)

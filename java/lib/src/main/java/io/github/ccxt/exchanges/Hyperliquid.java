@@ -6132,7 +6132,7 @@ final Object finalClientOrderId = clientOrderId;
                 }
             }
         }
-        Object feedback = ((this.id + " ") + body);
+        String feedback = ((this.id + " ") + body);
         Boolean nonEmptyMessage = ((!java.util.Objects.equals(message, null)) && (!java.util.Objects.equals(message, "")));
         if (Helpers.isTrue(nonEmptyMessage))
         {
@@ -6141,7 +6141,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         if (Helpers.isTrue(nonEmptyMessage))
         {
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

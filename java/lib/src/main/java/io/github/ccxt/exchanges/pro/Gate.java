@@ -671,7 +671,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 Object stringLimit = String.valueOf(limit);
                 ((List<Object>)payload).add(stringLimit);
             }
-            Object subMessageHash = (("orderbook" + ":") + symbol);
+            String subMessageHash = (("orderbook" + ":") + symbol);
             String messageHash = (("unsubscribe:orderbook" + ":") + symbol);
             return (this.unSubscribePublicMultiple(url, "orderbook", new ArrayList<Object>(Arrays.asList(symbol)), new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(subMessageHash)), payload, channel, parameters)).join();
         });
@@ -1413,7 +1413,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object symbol = Helpers.GetValue(keys, i);
             Object timeframe = Helpers.GetValue(marketIds, symbol);
             Object interval = this.findTimeframe(timeframe);
-            Object hash = ((Helpers.add(("candles" + ":"), interval) + ":") + symbol);
+            String hash = ((Helpers.add(("candles" + ":"), interval) + ":") + symbol);
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), interval);
             client.resolve(stored, hash);
         }
@@ -1587,7 +1587,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }});
             // todo: add correct margin support
             Object channel = Helpers.add(channelType, ".balances");
-            Object messageHash = (type + ".balance");
+            String messageHash = (type + ".balance");
             return (this.subscribePrivate(url, messageHash, null, channel, parameters, requiresUid)).join();
         }).thenApply(Balances::new);
 
@@ -1738,7 +1738,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 put( "swap", "futures" );
                 put( "option", "options" );
             }});
-            Object messageHash = (type + ":positions");
+            String messageHash = (type + ":positions");
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 if (java.util.Objects.equals(symbols, null))
@@ -2409,10 +2409,10 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                     {
                         Object marketType = ((java.util.Objects.equals(Helpers.GetValue(parsedChannel, 0), "futures"))) ? "swap" : Helpers.GetValue(parsedChannel, 0);
                         String symbol = this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
-                        Object messageHashSymbol = ((Helpers.GetValue(parsedChannel, 1) + ":") + symbol);
+                        String messageHashSymbol = ((Helpers.GetValue(parsedChannel, 1) + ":") + symbol);
                         if ((!java.util.Objects.equals(messageHashSymbol, null)) && (((Map<?, ?>)client.subscriptions).containsKey(messageHashSymbol)))
                         {
-                            ((Map<String,Object>)client.subscriptions).remove((String)messageHashSymbol);
+                            ((Map<String,Object>)client.subscriptions).remove(messageHashSymbol);
                         }
                     }
                 }
@@ -2920,7 +2920,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Long time = this.seconds();
             String eventVar = "subscribe";
-            Object signaturePayload = ((((((Helpers.add("channel=", channel) + "&") + "event=") + eventVar) + "&") + "time=") + String.valueOf(time));
+            String signaturePayload = ((((((Helpers.add("channel=", channel) + "&") + "event=") + eventVar) + "&") + "time=") + String.valueOf(time));
             Object signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
             Map<String, Object> auth = new HashMap<String, Object>() {{
                 put( "method", "api_key" );

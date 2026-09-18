@@ -2208,7 +2208,7 @@ public class Bydfi extends BydfiApi
         until = ((List<Object>) untilparametersVariable).get(0);
         parameters = ((List<Object>) untilparametersVariable).get(1);
         Long now = this.milliseconds();
-        Object sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
+        Long sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
         Object startTime = since;
         if (java.util.Objects.equals(startTime, null))
         {
@@ -3547,7 +3547,7 @@ public class Bydfi extends BydfiApi
             until = ((List<Object>) untilparametersVariable).get(0);
             parameters = ((List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
-            Object sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
+            Long sevenDays = ((((7L * 24L) * 60L) * 60L) * 1000L); // the maximum range is 7 days
             Object startTime = since;
             if (java.util.Objects.equals(startTime, null))
             {
@@ -3763,11 +3763,11 @@ public class Bydfi extends BydfiApi
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(code, "200"))
         {
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
             this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), message, feedback);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
-            throw new ExchangeError((String)feedback) ;
+            throw new ExchangeError(feedback) ;
         }
         return null;
     }

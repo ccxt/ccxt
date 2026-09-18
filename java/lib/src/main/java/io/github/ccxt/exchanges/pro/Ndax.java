@@ -413,7 +413,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             for (var j = 0; j < ((List<?>)timeframes).size(); j++)
             {
                 Object timeframe = Helpers.GetValue(timeframes, j);
-                Object messageHash = ((((name + ":") + timeframe) + ":") + marketId);
+                String messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Map<String, Object> market = (Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = ((Map<String, Object>)market).get("symbol");
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayList<Object>(Arrays.asList()));
@@ -568,7 +568,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         String name = "SubscribeLevel2";
-        Object messageHash = ((name + ":") + marketId);
+        String messageHash = ((name + ":") + marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }

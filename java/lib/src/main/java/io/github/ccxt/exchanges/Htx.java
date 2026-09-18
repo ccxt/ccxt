@@ -9671,18 +9671,18 @@ public class Htx extends HtxApi
             if (java.util.Objects.equals(status, "error"))
             {
                 String code = this.safeString2(response, "err-code", "err_code");
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 String message = this.safeString2(response, "err-msg", "err_msg");
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         if (Helpers.inOp(response, "code"))
         {
             // {code: '1003', message: 'invalid signature'}
-            Object feedback = ((this.id + " ") + body);
+            String feedback = ((this.id + " ") + body);
             String code = this.safeString(response, "code");
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
         }
@@ -9693,7 +9693,7 @@ public class Htx extends HtxApi
             Object first = this.safeDict(errorsList, 0);
             String errcode = this.safeString(first, "err_code");
             String errmessage = this.safeString(first, "err_msg");
-            Object feedBack = ((this.id + " ") + body);
+            String feedBack = ((this.id + " ") + body);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errcode, feedBack);
             this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), errmessage, feedBack);
         }

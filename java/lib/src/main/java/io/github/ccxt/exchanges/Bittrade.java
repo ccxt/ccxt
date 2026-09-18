@@ -2811,12 +2811,12 @@ public class Bittrade extends BittradeApi
             if (java.util.Objects.equals(status, "error"))
             {
                 String code = this.safeString(response, "err-code");
-                Object feedback = ((this.id + " ") + body);
+                String feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(((Map<String, Object>)this.exceptions).get("broad"), body, feedback);
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), code, feedback);
                 String message = this.safeString(response, "err-msg");
                 this.throwExactlyMatchedException(((Map<String, Object>)this.exceptions).get("exact"), message, feedback);
-                throw new ExchangeError((String)feedback) ;
+                throw new ExchangeError(feedback) ;
             }
         }
         return null;
