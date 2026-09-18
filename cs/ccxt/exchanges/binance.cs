@@ -4431,7 +4431,7 @@ public partial class binance : Exchange
 
     public override Int64 nonce()
     {
-        return ((Int64)((object)(subtract(this.milliseconds(), getValue(this.options, "timeDifference"))))!);
+        return ((Int64)((object)(subtract(this.milliseconds(), (this.options.ContainsKey("timeDifference") ? this.options["timeDifference"] : null))))!);
     }
 
     /**
@@ -4603,8 +4603,8 @@ public partial class binance : Exchange
         }
         if (isTrue(enable))
         {
-            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = getValue(this.urls, "api");
-            ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "demo");
+            ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"] = (((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null);
+            ((IDictionary<string,object>)this.urls)["api"] = (((IDictionary<string, object>)this.urls).ContainsKey("demo") ? ((IDictionary<string, object>)this.urls)["demo"] : null);
         } else if (((IDictionary<string, object>)this.urls).ContainsKey("apiBackupDemoTrading"))
         {
             ((IDictionary<string,object>)this.urls)["api"] = ((IDictionary<string,object>)this.urls)["apiBackupDemoTrading"];
@@ -5017,7 +5017,7 @@ public partial class binance : Exchange
             if (((fetchMargins == true)) && ((res is IList<object>) || (res.GetType().IsGenericType && res.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 List<object> keysList = new List<object>(((IDictionary<string,object>)this.indexBy(res, "symbol")).Keys);
-                int length = getArrayLength(getValue(this.options, "crossMarginPairsData"));
+                int length = getArrayLength((this.options.ContainsKey("crossMarginPairsData") ? this.options["crossMarginPairsData"] : null));
                 // first one is the cross-margin promise
                 if ((length == 0))
                 {
@@ -5273,7 +5273,7 @@ public partial class binance : Exchange
         //         ]
         //     }
         //
-        if (isEqual(getValue(this.options, "adjustForTimeDifference"), true))
+        if (isEqual((this.options.ContainsKey("adjustForTimeDifference") ? this.options["adjustForTimeDifference"] : null), true))
         {
             await this.loadTimeDifference();
         }
@@ -5373,8 +5373,8 @@ public partial class binance : Exchange
         Dictionary<string, object> marginModes = null;
         if (spot)
         {
-            bool hasCrossMargin = this.inArray(id, getValue(this.options, "crossMarginPairsData"));
-            bool hasIsolatedMargin = this.inArray(id, getValue(this.options, "isolatedMarginPairsData"));
+            bool hasCrossMargin = this.inArray(id, (this.options.ContainsKey("crossMarginPairsData") ? this.options["crossMarginPairsData"] : null));
+            bool hasIsolatedMargin = this.inArray(id, (this.options.ContainsKey("isolatedMarginPairsData") ? this.options["isolatedMarginPairsData"] : null));
             marginModes = new Dictionary<string, object>() {
                 { "cross", hasCrossMargin },
                 { "isolated", hasIsolatedMargin },
@@ -7608,7 +7608,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["newClientOrderId"] = clientOrderId;
         }
-        ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeValue(getValue(this.options, "newOrderRespType"), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeValue((this.options.ContainsKey("newOrderRespType") ? this.options["newOrderRespType"] : null), type, "RESULT"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         bool timeInForceIsRequired = false;
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
@@ -9169,7 +9169,7 @@ public partial class binance : Exchange
         // handle newOrderRespType response type
         if ((((marketType == "spot")) || ((marketType == "margin"))) && !isTrue(isPortfolioMargin) && ((stock != true)))
         {
-            ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString(getValue(this.options, "newOrderRespType"), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            ((IDictionary<string,object>)request)["newOrderRespType"] = this.safeString((this.options.ContainsKey("newOrderRespType") ? this.options["newOrderRespType"] : null), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else if ((stock != true))
         {
             // swap, futures and options
@@ -10105,7 +10105,7 @@ public partial class binance : Exchange
             }
         } else if (!isTrue(stock))
         {
-            bool? warnWithoutSymbol = this.safeBool(getValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
+            bool? warnWithoutSymbol = this.safeBool((this.options.ContainsKey("fetchOpenOrders") ? this.options["fetchOpenOrders"] : null), "warnWithoutSymbol");
             bool? optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
             if (((optValue == true)) || (isEqual(optValue, null) && ((warnWithoutSymbol == true))))
             {
@@ -13932,10 +13932,10 @@ public partial class binance : Exchange
                     string? maintenanceMarginPercentage = this.safeString(bracket, "maintMarginRatio");
                     ((IList<object>)result).Add(new List<object>() {floorValue, maintenanceMarginPercentage});
                 }
-                ((IDictionary<string,object>)getValue(this.options, "leverageBrackets"))[(string)symbol] = result;
+                ((IDictionary<string,object>)(this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null))[(string)symbol] = result;
             }
         }
-        return getValue(this.options, "leverageBrackets");
+        return (this.options.ContainsKey("leverageBrackets") ? this.options["leverageBrackets"] : null);
     }
 
     /**
@@ -15537,7 +15537,7 @@ public partial class binance : Exchange
         {
             throw new NotSupported ((string)(add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
         }
-        object url = getValue(getValue(this.urls, "api"), api);
+        object url = getValue((((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
         url = add(url, add("/", path));
         if (isEqual(path, "historicalTrades"))
         {
@@ -15814,7 +15814,7 @@ public partial class binance : Exchange
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
-            if (((error == "-2015")) && (isEqual(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
+            if (((error == "-2015")) && (isEqual((this.options.ContainsKey("hasAlreadyAuthenticatedSuccessfully") ? this.options["hasAlreadyAuthenticatedSuccessfully"] : null), true)))
             {
                 throw new DDoSProtection ((string)add((this.id + " "), body)) ;
             }
