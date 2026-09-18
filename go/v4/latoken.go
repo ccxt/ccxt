@@ -2411,6 +2411,7 @@ func (this *Latoken) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name latoken#fetchTime

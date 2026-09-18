@@ -918,6 +918,7 @@ func (this *Paymium) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name paymium#fetchBalance

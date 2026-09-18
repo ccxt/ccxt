@@ -1220,7 +1220,6 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message any) any {
 			}
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1270,6 +1269,7 @@ func (this *Coinbaseexchange) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name coinbaseexchange#watchTicker

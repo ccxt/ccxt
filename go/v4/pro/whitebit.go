@@ -1444,6 +1444,7 @@ func (this *Whitebit) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name whitebit#watchOHLCV

@@ -2528,6 +2528,7 @@ func (this *Bitso) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bitso#fetchLedger

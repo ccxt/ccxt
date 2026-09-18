@@ -909,7 +909,6 @@ func (this *Derive) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -999,6 +998,7 @@ func (this *Derive) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name derive#watchOrderBook

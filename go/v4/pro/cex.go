@@ -1815,7 +1815,6 @@ func (this *Cex) HandleErrorMessage(client any, message any) any {
 			panic(ccxt.ExchangeError(feedback))
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -1923,6 +1922,7 @@ func (this *Cex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name cex#watchBalance

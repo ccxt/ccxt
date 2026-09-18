@@ -3197,7 +3197,6 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 			return false
 
 		}(this)
-
 		if ret__ != nil {
 			return ret__
 		}
@@ -3416,6 +3415,7 @@ func (this *Bybit) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bybit#createOrderWs

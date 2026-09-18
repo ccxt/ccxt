@@ -803,6 +803,7 @@ func (this *Bittrade) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bittrade#watchTicker

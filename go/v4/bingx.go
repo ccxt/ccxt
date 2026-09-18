@@ -7934,6 +7934,7 @@ func (this *Bingx) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name bingx#fetchTime

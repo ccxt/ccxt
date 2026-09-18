@@ -3568,6 +3568,7 @@ func (this *Derive) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name derive#fetchTime

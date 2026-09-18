@@ -6764,6 +6764,7 @@ func (this *Phemex) Init(userConfig map[string]any) {
 }
 
 // typed methods
+
 /**
  * @method
  * @name phemex#fetchMarkets
