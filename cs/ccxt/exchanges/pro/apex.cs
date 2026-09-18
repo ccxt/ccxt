@@ -615,7 +615,7 @@ public partial class apex : ccxt.apex
         string? timeframeId = this.safeString(topicParts, 1);
         string? timeframe = this.findTimeframe(timeframeId);
         string? marketId = this.safeString(topicParts, (topicLength - 1));
-        bool isSpot = getIndexOf(client.url, "spot") > -1;
+        bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
         string marketType = ((bool) isSpot) ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
@@ -1088,7 +1088,7 @@ public partial class apex : ccxt.apex
                 // this short-circuit the catch-clause's `((WebSocketClient)client).reject(error,
                 // messageHash)` rejects every in-flight future on the connection
                 // because apex doesn't echo a `reqId` on these warnings.
-                if ((ret_msg != null) && getIndexOf(ret_msg, "already subscribed") >= 0)
+                if ((ret_msg != null) && ((string)ret_msg).IndexOf("already subscribed", StringComparison.Ordinal) >= 0)
                 {
                     return ((bool?)((object)(false)));
                 }

@@ -428,7 +428,7 @@ public partial class delta : Exchange
         object bs = null;
         string? expiry = null;
         object optionType = null;
-        if (getIndexOf(symbol, "/") > -1)
+        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             bs = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2105,7 +2105,7 @@ public partial class delta : Exchange
         Int64? timestamp = null;
         if ((createdAt != null))
         {
-            if (getIndexOf(createdAt, "-") >= 0)
+            if (((string)createdAt).IndexOf("-", StringComparison.Ordinal) >= 0)
             {
                 timestamp = this.parse8601(createdAt);
             } else

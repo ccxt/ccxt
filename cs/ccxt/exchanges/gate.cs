@@ -2008,7 +2008,7 @@ public partial class gate : Exchange
         List<object> marketIdBase = ((string)symbol).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
         string? expiry = this.safeString(optionParts, 1);
-        if (getIndexOf(symbol, "/") > -1)
+        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             bs = this.safeString(symbolBase, 0);
         } else
@@ -2068,7 +2068,7 @@ public partial class gate : Exchange
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        bool isOption = (!isEqual(marketId, null)) && ((getIndexOf(marketId, "-C") > -1) || (getIndexOf(marketId, "-P") > -1));
+        bool isOption = (!isEqual(marketId, null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
@@ -6410,7 +6410,7 @@ public partial class gate : Exchange
             timestampStr = this.safeString2(order, "create_time", "ctime");
             if ((timestampStr != null))
             {
-                if ((((string)timestampStr).Length == 10) || getIndexOf(timestampStr, ".") >= 0)
+                if ((((string)timestampStr).Length == 10) || ((string)timestampStr).IndexOf(".", StringComparison.Ordinal) >= 0)
                 {
                     // ts in seconds, multiply to ms
                     timestampStr = Precise.stringMul(timestampStr, "1000");
@@ -6427,7 +6427,7 @@ public partial class gate : Exchange
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
             if ((lastTradeTimestampStr != null))
             {
-                if ((((string)lastTradeTimestampStr).Length == 10) || getIndexOf(lastTradeTimestampStr, ".") >= 0)
+                if ((((string)lastTradeTimestampStr).Length == 10) || ((string)lastTradeTimestampStr).IndexOf(".", StringComparison.Ordinal) >= 0)
                 {
                     // ts in seconds, multiply to ms
                     lastTradeTimestampStr = Precise.stringMul(lastTradeTimestampStr, "1000");
@@ -8610,7 +8610,7 @@ public partial class gate : Exchange
             {
                 List<object> pathParts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
                 string secondPart = ((string)this.safeString(pathParts, 1, ""));
-                requiresURLEncoding = (getIndexOf(secondPart, "dual") >= 0) || (getIndexOf(secondPart, "positions") >= 0);
+                requiresURLEncoding = (((string)secondPart).IndexOf("dual", StringComparison.Ordinal) >= 0) || (((string)secondPart).IndexOf("positions", StringComparison.Ordinal) >= 0);
             }
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || requiresURLEncoding || (isEqual(method, "PATCH")))
             {
@@ -8620,7 +8620,7 @@ public partial class gate : Exchange
                     rawQueryString = this.rawencode(query);
                     queryString = this.urlencode(query);
                     // https://github.com/ccxt/ccxt/issues/25570
-                    if (getIndexOf(queryString, "currencies=") >= 0 && getIndexOf(queryString, "%2C") >= 0)
+                    if (((string)queryString).IndexOf("currencies=", StringComparison.Ordinal) >= 0 && ((string)queryString).IndexOf("%2C", StringComparison.Ordinal) >= 0)
                     {
                         queryString = ((string)queryString).Replace((string)"%2C", (string)",");
                     }

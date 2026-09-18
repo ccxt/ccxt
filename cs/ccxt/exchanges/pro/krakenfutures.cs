@@ -1816,7 +1816,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         // below rejects every pending future on the connection, so a stray
         // re-subscribe warning would kill unrelated in-flight watch* calls —
         // mirrors the bitmart 90008 fix.
-        if ((errMsg != null) && getIndexOf(errMsg, "Already subscribed") >= 0)
+        if ((errMsg != null) && ((string)errMsg).IndexOf("Already subscribed", StringComparison.Ordinal) >= 0)
         {
             return ((bool?)((object)(false)));
         }

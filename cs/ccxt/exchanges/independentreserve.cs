@@ -721,17 +721,17 @@ public partial class independentreserve : Exchange
         string? side = null;
         if ((orderType != null))
         {
-            if (getIndexOf(orderType, "Bid") >= 0)
+            if (((string)orderType).IndexOf("Bid", StringComparison.Ordinal) >= 0)
             {
                 side = "buy";
-            } else if (getIndexOf(orderType, "Offer") >= 0)
+            } else if (((string)orderType).IndexOf("Offer", StringComparison.Ordinal) >= 0)
             {
                 side = "sell";
             }
-            if (getIndexOf(orderType, "Market") >= 0)
+            if (((string)orderType).IndexOf("Market", StringComparison.Ordinal) >= 0)
             {
                 orderType = "market";
-            } else if (getIndexOf(orderType, "Limit") >= 0)
+            } else if (((string)orderType).IndexOf("Limit", StringComparison.Ordinal) >= 0)
             {
                 orderType = "limit";
             }
@@ -959,10 +959,10 @@ public partial class independentreserve : Exchange
         string? side = this.safeString(trade, "OrderType");
         if ((side != null))
         {
-            if (getIndexOf(side, "Bid") >= 0)
+            if (((string)side).IndexOf("Bid", StringComparison.Ordinal) >= 0)
             {
                 side = "buy";
-            } else if (getIndexOf(side, "Offer") >= 0)
+            } else if (((string)side).IndexOf("Offer", StringComparison.Ordinal) >= 0)
             {
                 side = "sell";
             }

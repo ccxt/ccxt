@@ -2680,7 +2680,7 @@ public partial class hashkey : Exchange
         string? amountString = this.safeString(item, "change");
         double? amount = this.parseNumber(amountString);
         string direction = "in";
-        if (getIndexOf(((string)amountString), "-") >= 0)
+        if (((string)amountString).IndexOf("-", StringComparison.Ordinal) >= 0)
         {
             direction = "out";
         }

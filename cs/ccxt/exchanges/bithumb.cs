@@ -537,7 +537,7 @@ public partial class bithumb : Exchange
     public virtual string? getGen2MarketId(object market)
     {
         string? marketId = this.safeString(market, "id");
-        if (((marketId != null)) && (getIndexOf(marketId, "-") >= 0))
+        if (((marketId != null)) && (((string)marketId).IndexOf("-", StringComparison.Ordinal) >= 0))
         {
             return marketId;
         }
@@ -2421,7 +2421,7 @@ public partial class bithumb : Exchange
         object timestamp = null;
         if ((datetime != null))
         {
-            if (getIndexOf(datetime, "+09:00") > -1)
+            if (((string)datetime).IndexOf("+09:00", StringComparison.Ordinal) > -1)
             {
                 string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
                 Int64? normalizedTimestamp = this.parse8601(normalized);
@@ -3087,7 +3087,7 @@ public partial class bithumb : Exchange
         currency = this.safeCurrency(currencyId, currency);
         string? datetime = this.safeString(transaction, "created_at");
         object timestamp = this.parse8601(datetime);
-        if (((datetime != null)) && (getIndexOf(datetime, "+09:00") > -1))
+        if (((datetime != null)) && (((string)datetime).IndexOf("+09:00", StringComparison.Ordinal) > -1))
         {
             string normalized = ((string)datetime).Replace((string)"+09:00", (string)"Z");
             Int64? normalizedTimestamp = this.parse8601(normalized);

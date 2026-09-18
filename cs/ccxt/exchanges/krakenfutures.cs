@@ -535,13 +535,13 @@ public partial class krakenfutures : Exchange
             string? id = this.safeString(market, "symbol");
             string? marketType = this.safeString(market, "type");
             string? type = null;
-            bool index = (getIndexOf(((string)marketType), " index") >= 0);
+            bool index = (((string)marketType).IndexOf(" index", StringComparison.Ordinal) >= 0);
             bool? linear = null;
             bool? inverse = null;
             Int64? expiry = null;
             if (!index)
             {
-                linear = (getIndexOf(((string)marketType), "_vanilla") >= 0);
+                linear = (((string)marketType).IndexOf("_vanilla", StringComparison.Ordinal) >= 0);
                 inverse = !isTrue(linear);
                 string? settleTime = this.safeString(market, "lastTradingTime");
                 type = ((bool) ((settleTime == null))) ? "swap" : "future";
@@ -1369,10 +1369,10 @@ public partial class krakenfutures : Exchange
         string? fillType = this.safeString(trade, "fillType");
         if ((fillType != null))
         {
-            if (getIndexOf(fillType, "taker") >= 0)
+            if (((string)fillType).IndexOf("taker", StringComparison.Ordinal) >= 0)
             {
                 takerOrMaker = "taker";
-            } else if (getIndexOf(fillType, "maker") >= 0)
+            } else if (((string)fillType).IndexOf("maker", StringComparison.Ordinal) >= 0)
             {
                 takerOrMaker = "maker";
             }

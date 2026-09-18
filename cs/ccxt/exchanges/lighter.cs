@@ -1469,7 +1469,7 @@ public partial class lighter : Exchange
             object type = this.safeString(market, "market_type");
             type = ((bool) (isEqual(type, "perp"))) ? "swap" : type;
             object baseId = this.safeString(market, "symbol");
-            if ((baseId != null) && !isEqual(getIndexOf(baseId, "/"), -1))
+            if ((baseId != null) && !isEqual(((string)baseId).IndexOf("/", StringComparison.Ordinal), -1))
             {
                 baseId = getValue(((string)baseId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0);
             }
@@ -2703,11 +2703,11 @@ public partial class lighter : Exchange
         double? takeProfitPrice = null;
         if ((type != null))
         {
-            if (getIndexOf(type, "stop-loss") >= 0)
+            if (((string)type).IndexOf("stop-loss", StringComparison.Ordinal) >= 0)
             {
                 stopLossPrice = triggerPrice;
             }
-            if (getIndexOf(type, "take-profit") >= 0)
+            if (((string)type).IndexOf("take-profit", StringComparison.Ordinal) >= 0)
             {
                 takeProfitPrice = triggerPrice;
             }

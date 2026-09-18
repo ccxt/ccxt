@@ -931,7 +931,7 @@ public partial class blofin : ccxt.blofin
             IDictionary<string, object> arg = this.safeDict(message, "arg");
             string? channelName = this.safeString(arg, "channel");
             method = this.safeValue(methods, channelName);
-            if (((method == null)) && (getIndexOf(((string)channelName), "candle") >= 0))
+            if (((method == null)) && (((string)channelName).IndexOf("candle", StringComparison.Ordinal) >= 0))
             {
                 method = ((IDictionary<string,object>)methods)["candle"];
             }

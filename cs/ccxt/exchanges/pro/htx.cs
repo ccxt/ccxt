@@ -1626,7 +1626,7 @@ public partial class htx : ccxt.htx
         string? type = null;
         if ((typeSide != null))
         {
-            if (getIndexOf(typeSide, "-") >= 0)
+            if (((string)typeSide).IndexOf("-", StringComparison.Ordinal) >= 0)
             {
                 typeSideParts = ((string)typeSide).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 type = this.safeStringLower(typeSideParts, 1);

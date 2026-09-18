@@ -3901,10 +3901,10 @@ public partial class hyperliquid : Exchange
         double? takeProfitPrice = null;
         if (!isEqual(triggerPx, null))
         {
-            if (getIndexOf(orderTypeRaw, "stop") >= 0)
+            if (((string)orderTypeRaw).IndexOf("stop", StringComparison.Ordinal) >= 0)
             {
                 stopLossPrice = triggerPx;
-            } else if (getIndexOf(orderTypeRaw, "take profit") >= 0)
+            } else if (((string)orderTypeRaw).IndexOf("take profit", StringComparison.Ordinal) >= 0)
             {
                 takeProfitPrice = triggerPx;
             }
@@ -5567,11 +5567,11 @@ public partial class hyperliquid : Exchange
             object code = this.safeString(hip3Dict, "code", coin);
             return add(add(add(add(code, "/"), quote), ":"), quote);
         }
-        if (getIndexOf(coin, "/") > -1 || getIndexOf(coin, "@") > -1)
+        if (((string)coin).IndexOf("/", StringComparison.Ordinal) > -1 || ((string)coin).IndexOf("@", StringComparison.Ordinal) > -1)
         {
             return coin;  // spot
         }
-        if (getIndexOf(coin, ":") > -1)
+        if (((string)coin).IndexOf(":", StringComparison.Ordinal) > -1)
         {
             coin = ((string)coin).Replace((string)":", (string)"-"); // hip3
         }

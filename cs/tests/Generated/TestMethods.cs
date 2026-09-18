@@ -276,12 +276,12 @@ public partial class testMainClass
     public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, object isPublic)
     {
         // todo: temporary skip for c#
-        if (getIndexOf(methodName, "OrderBook") >= 0 && isEqual(this.ext, "cs"))
+        if (((string)methodName).IndexOf("OrderBook", StringComparison.Ordinal) >= 0 && isEqual(this.ext, "cs"))
         {
             ((IDictionary<string,object>)exchange.options)["checksum"] = false;
         }
         // todo: temporary skip for php
-        if (getIndexOf(methodName, "OrderBook") >= 0 && isEqual(this.ext, "php"))
+        if (((string)methodName).IndexOf("OrderBook", StringComparison.Ordinal) >= 0 && isEqual(this.ext, "php"))
         {
             return true;
         }
@@ -1070,7 +1070,7 @@ public partial class testMainClass
                     {
                         unscopedError = exceptionMessage(e);
                     }
-                    assert(getIndexOf(unscopedError, "requires at least one of") >= 0, add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
+                    assert(((string)unscopedError).IndexOf("requires at least one of", StringComparison.Ordinal) >= 0, add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                 }
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
@@ -1175,7 +1175,7 @@ public partial class testMainClass
                 {
                     tickersError = exceptionMessage(e);
                 }
-                assert(getIndexOf(tickersError, "requires an outcomes argument") >= 0, add(add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
+                assert(((string)tickersError).IndexOf("requires an outcomes argument", StringComparison.Ordinal) >= 0, add(add(exchange.id, " fetchTickers () without outcomes must throw ArgumentsRequired, got: "), tickersError));
             }
         }
         dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));

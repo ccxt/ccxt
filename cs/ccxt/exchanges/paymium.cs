@@ -602,7 +602,7 @@ public partial class paymium : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(((string)code));
-        if (getIndexOf(toAccount, "@") < 0)
+        if (((string)toAccount).IndexOf("@", StringComparison.Ordinal) < 0)
         {
             throw new ExchangeError ((string)(this.id + " transfer() only allows transfers to an email address")) ;
         }

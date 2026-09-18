@@ -1802,7 +1802,7 @@ public partial class dydx : Exchange
             throw new ArgumentsRequired ((string)(this.id + " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
         }
         string idString = ((object)id).ToString();
-        if (!isEqual(id, null) && getIndexOf(idString, "-") > -1)
+        if (!isEqual(id, null) && ((string)idString).IndexOf("-", StringComparison.Ordinal) > -1)
         {
             throw new NotSupported ((string)(this.id + " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
         }
@@ -2147,7 +2147,7 @@ public partial class dydx : Exchange
         {
             throw new ExchangeError ((string)(this.id + " estimateTxFee() missing feeAmount")) ;
         }
-        if (getIndexOf(feeAmount, ".") >= 0)
+        if (((string)feeAmount).IndexOf(".", StringComparison.Ordinal) >= 0)
         {
             feeAmount = this.numberToString(Math.Ceiling(Convert.ToDouble(this.parseToNumeric(feeAmount))));
         }

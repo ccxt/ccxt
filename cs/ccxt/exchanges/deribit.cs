@@ -795,11 +795,11 @@ public partial class deribit : Exchange
         List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
         string? expiry = null;
-        if (getIndexOf(symbol, "/") > -1)
+        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             bs = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
-            if (getIndexOf(symbol, "USDC") > -1)
+            if (((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1)
             {
                 bs = add(bs, "_USDC");
             }
@@ -808,7 +808,7 @@ public partial class deribit : Exchange
             bs = this.safeString(optionParts, 0);
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (getIndexOf(symbol, "USDC") > -1)
+        if (((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1)
         {
             quote = "USDC";
             settle = "USDC";
@@ -821,7 +821,7 @@ public partial class deribit : Exchange
         {
             throw new ExchangeError ((string)(this.id + " createExpiredOptionMarket() missing base")) ;
         }
-        if (getIndexOf(bs, "_") > -1)
+        if (((string)bs).IndexOf("_", StringComparison.Ordinal) > -1)
         {
             List<object> splitSymbol = ((string)bs).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             splitBase = this.safeString(splitSymbol, 0);
@@ -1259,17 +1259,17 @@ public partial class deribit : Exchange
                 {
                     throw new ExchangeError ((string)(this.id + " method() missing kind")) ;
                 }
-                bool future = !swap && (getIndexOf(kind, "future") >= 0);
+                bool future = !swap && (((string)kind).IndexOf("future", StringComparison.Ordinal) >= 0);
                 if ((kind == null))
                 {
                     throw new ExchangeError ((string)(this.id + " method() missing kind")) ;
                 }
-                bool option = (getIndexOf(kind, "option") >= 0);
+                bool option = (((string)kind).IndexOf("option", StringComparison.Ordinal) >= 0);
                 if ((kind == null))
                 {
                     throw new ExchangeError ((string)(this.id + " method() missing kind")) ;
                 }
-                bool isComboMarket = getIndexOf(kind, "combo") >= 0;
+                bool isComboMarket = ((string)kind).IndexOf("combo", StringComparison.Ordinal) >= 0;
                 Int64? expiry = this.safeInteger(market, "expiration_timestamp");
                 double? strike = null;
                 string? optionType = null;

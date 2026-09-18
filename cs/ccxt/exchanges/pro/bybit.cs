@@ -893,7 +893,7 @@ public partial class bybit : ccxt.bybit
             return;
         }
         string? marketId = this.safeString(topicParts, (topicLength - 1));
-        bool isSpot = getIndexOf(client.url, "spot") > -1;
+        bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) > -1;
         string marketType = ((bool) isSpot) ? "spot" : "contract";
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         string? symbol = ((string)getValue(market, "symbol"));
@@ -1117,7 +1117,7 @@ public partial class bybit : ccxt.bybit
         //
         string? topic = this.safeString(message, "topic", "");
         object limit = getValue(((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 1);
-        bool isSpot = getIndexOf(client.url, "spot") >= 0;
+        bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) >= 0;
         string? type = this.safeString(message, "type");
         bool isSnapshot = ((type == "snapshot"));
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
@@ -1311,7 +1311,7 @@ public partial class bybit : ccxt.bybit
         string? topic = this.safeString(message, "topic", "");
         object trades = data;
         List<object> parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        bool isSpot = getIndexOf(client.url, "spot") >= 0;
+        bool isSpot = ((string)client.url).IndexOf("spot", StringComparison.Ordinal) >= 0;
         string marketType = ((bool) (isSpot)) ? "spot" : "contract";
         string? marketId = this.safeString(parts, 1);
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);

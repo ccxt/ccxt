@@ -655,7 +655,7 @@ public partial class alpaca : ccxt.alpaca
         {
             return null;
         }
-        if (getIndexOf(type, "limit") >= 0)
+        if (((string)type).IndexOf("limit", StringComparison.Ordinal) >= 0)
         {
             // might be limit or stop-limit
             type = "limit";

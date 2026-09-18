@@ -1602,7 +1602,7 @@ public partial class indodax : Exchange
                     {
                         throw new ExchangeError ((string)(this.id + " fetchDepositAddresses() missing networkId")) ;
                     }
-                    if (getIndexOf(networkId, ",") >= 0)
+                    if (((string)networkId).IndexOf(",", StringComparison.Ordinal) >= 0)
                     {
                         network = new List<object>() {};
                         if ((networkId == null))

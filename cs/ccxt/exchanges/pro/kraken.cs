@@ -941,7 +941,7 @@ public partial class kraken : ccxt.kraken
     {
         string url = client.url;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (getIndexOf(url, "v2") >= 0)
+        if (((string)url).IndexOf("v2", StringComparison.Ordinal) >= 0)
         {
             ((IDictionary<string,object>)request)["method"] = "ping";
         } else

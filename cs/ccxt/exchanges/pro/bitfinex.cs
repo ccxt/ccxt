@@ -567,10 +567,10 @@ public partial class bitfinex : ccxt.bitfinex
         string? type = this.safeString(trade, 6);
         if ((type != null))
         {
-            if (getIndexOf(type, "LIMIT") > -1)
+            if (((string)type).IndexOf("LIMIT", StringComparison.Ordinal) > -1)
             {
                 type = "limit";
-            } else if (getIndexOf(type, "MARKET") > -1)
+            } else if (((string)type).IndexOf("MARKET", StringComparison.Ordinal) > -1)
             {
                 type = "market";
             }

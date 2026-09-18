@@ -2116,7 +2116,7 @@ public partial class mexc : ccxt.mexc
             if (getIndexOf(messageHash, "ticker") >= 0)
             {
                 string symbol = ((string)messageHash).Replace((string)"unsubscribe:ticker:", (string)"");
-                if (getIndexOf(symbol, "unsubscribe") >= 0)
+                if (((string)symbol).IndexOf("unsubscribe", StringComparison.Ordinal) >= 0)
                 {
                     // unWatchTickers
                     List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);

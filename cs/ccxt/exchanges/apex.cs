@@ -1442,7 +1442,7 @@ public partial class apex : Exchange
     public virtual object addHyphenBeforeUsdt(object symbol)
     {
         string uppercaseSymbol = ((string)symbol).ToUpper();
-        int index = getIndexOf(uppercaseSymbol, "USDT");
+        int index = ((string)uppercaseSymbol).IndexOf("USDT", StringComparison.Ordinal);
         string? symbolChar = this.safeString(symbol, (index - 1));
         if (index > 0 && (symbolChar != "-"))
         {

@@ -2090,7 +2090,7 @@ public partial class cex : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
-        if (getIndexOf(url, "do_my_new_order") >= 0)
+        if (((string)url).IndexOf("do_my_new_order", StringComparison.Ordinal) >= 0)
         {
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             string? rejectReason = this.safeString(data, "rejectReason");

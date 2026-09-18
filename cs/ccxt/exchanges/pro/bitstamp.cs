@@ -876,7 +876,7 @@ public partial class bitstamp : ccxt.bitstamp
         {
             return;
         }
-        if (getIndexOf(channel, "order_book") > -1)
+        if (((string)channel).IndexOf("order_book", StringComparison.Ordinal) > -1)
         {
             this.handleOrderBookSubscription(client as WebSocketClient, message);
         }
@@ -1005,7 +1005,7 @@ public partial class bitstamp : ccxt.bitstamp
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
             string? key = ((string)getValue(keys, i));
-            if (getIndexOf(channel, key) > -1)
+            if (((string)channel).IndexOf(((string)key), StringComparison.Ordinal) > -1)
             {
                 object method = getValue(methods, key);
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

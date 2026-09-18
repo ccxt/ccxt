@@ -481,7 +481,7 @@ public partial class kalshi : PredictionExchange
         // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
-        if (getIndexOf(outcomeSymbol, ":") < 0)
+        if (((string)outcomeSymbol).IndexOf(":", StringComparison.Ordinal) < 0)
         {
             // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
             // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks

@@ -289,7 +289,7 @@ public partial class opinion : PredictionExchange
         string? marketId = this.safeString(raw, "marketId");
         string? slug = this.safeString(raw, "slug");
         object effectiveEventSlug = eventSlug;
-        if ((!isEqual(eventSlug, null)) && ((slug != null)) && ((getIndexOf(slug, eventSlug) == 0)))
+        if ((!isEqual(eventSlug, null)) && ((slug != null)) && ((((string)slug).IndexOf(((string)eventSlug), StringComparison.Ordinal) == 0)))
         {
             effectiveEventSlug = null;
         }
@@ -523,7 +523,7 @@ public partial class opinion : PredictionExchange
     public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool isSlug = (getIndexOf(id, "-") >= 0);
+        bool isSlug = (((string)id).IndexOf("-", StringComparison.Ordinal) >= 0);
         object response = null;
         if (isSlug)
         {

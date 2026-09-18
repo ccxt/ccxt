@@ -218,7 +218,7 @@ public partial class binance : ccxt.binance
 
     public virtual bool isSpotUrl(WebSocketClient client)
     {
-        return ((bool)((object)((getIndexOf(client.url, "/stream") > -1) || (getIndexOf(client.url, "demo-stream") > -1)))!);
+        return ((bool)((object)((((string)client.url).IndexOf("/stream", StringComparison.Ordinal) > -1) || (((string)client.url).IndexOf("demo-stream", StringComparison.Ordinal) > -1)))!);
     }
 
     public virtual string? stream(object type, object subscriptionHash, object numSubscriptions = null)
@@ -334,7 +334,7 @@ public partial class binance : ccxt.binance
         }
         object safeQuote = ((bool) (isEqual(quote, null))) ? "USDC" : quote;
         string? parsed = this.safeSymbol(stockSymbol, null, "/", "spot");
-        if (((parsed != null)) && (getIndexOf(parsed, "/") >= 0))
+        if (((parsed != null)) && (((string)parsed).IndexOf("/", StringComparison.Ordinal) >= 0))
         {
             return parsed;
         }
@@ -3158,7 +3158,7 @@ public partial class binance : ccxt.binance
         extendedParams = this.keysort(extendedParams);
         string query = this.rawencode(extendedParams);
         string? signature = null;
-        if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
+        if (((string)this.secret).IndexOf("PRIVATE KEY", StringComparison.Ordinal) > -1)
         {
             if (((string)this.secret).Length > 120)
             {
@@ -5170,7 +5170,7 @@ public partial class binance : ccxt.binance
         {
             string? baseAssetCode = this.safeString(order, "b");
             string? stockBaseSymbol = baseAssetCode;
-            if (((stockBaseSymbol != null)) && ((getIndexOf(stockBaseSymbol, "EQ_") == 0)))
+            if (((stockBaseSymbol != null)) && ((((string)stockBaseSymbol).IndexOf("EQ_", StringComparison.Ordinal) == 0)))
             {
                 stockBaseSymbol = slice(stockBaseSymbol, 3, null);
             }

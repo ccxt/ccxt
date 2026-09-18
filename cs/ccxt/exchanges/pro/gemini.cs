@@ -1041,7 +1041,7 @@ public partial class gemini : ccxt.gemini
         }
         this.checkRequiredCredentials();
         int startIndex = getArrayLength(getValue(getValue(this.urls, "api"), "ws"));
-        int urlParamsIndex = getIndexOf(url, "?");
+        int urlParamsIndex = ((string)url).IndexOf("?", StringComparison.Ordinal);
         int urlLength = ((string)url).Length;
         int endIndex = ((bool) (urlParamsIndex >= 0)) ? urlParamsIndex : urlLength;
         string? request = slice(url, startIndex, endIndex);

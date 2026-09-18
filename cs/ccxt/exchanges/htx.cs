@@ -3469,7 +3469,7 @@ public partial class htx : Exchange
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
         object type = this.safeString(trade, "type");
-        if (((type != null)) && (getIndexOf(type, "-") >= 0))
+        if (((type != null)) && (((string)type).IndexOf("-", StringComparison.Ordinal) >= 0))
         {
             List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(typeParts, 0);
@@ -3513,7 +3513,7 @@ public partial class htx : Exchange
         // - otherwise the least priority is given to the `id` key
         string? id = null;
         string? safeId = this.safeString(trade, "id");
-        if ((safeId != null) && getIndexOf(safeId, "-") >= 0)
+        if ((safeId != null) && ((string)safeId).IndexOf("-", StringComparison.Ordinal) >= 0)
         {
             id = safeId;
         } else
@@ -6074,7 +6074,7 @@ public partial class htx : Exchange
             string? rawType = this.safeString(order, "type");
             if ((rawType != null))
             {
-                if (getIndexOf(rawType, "-") >= 0)
+                if (((string)rawType).IndexOf("-", StringComparison.Ordinal) >= 0)
                 {
                     List<object> orderType = ((string)rawType).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     side = getValue(orderType, 0);
@@ -6089,7 +6089,7 @@ public partial class htx : Exchange
         string? clientOrderId = this.safeStringN(order, new List<object>() {"client_order_id", ("client-or" + "der-id"), "algo_client_order_id"}); // transpiler regex trick for php issue
         string? cost = null;
         string? amount = null;
-        if (((type != null)) && (getIndexOf(type, "market") >= 0) && ((isLinearOrder != true)))
+        if (((type != null)) && (((string)type).IndexOf("market", StringComparison.Ordinal) >= 0) && ((isLinearOrder != true)))
         {
             cost = this.safeString(order, "field-cash-amount");
         } else
@@ -8034,7 +8034,7 @@ public partial class htx : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseTransaction() missing txHash")) ;
         }
-        if ((networkId == "ETH") && getIndexOf(txHash, "0x") < 0)
+        if ((networkId == "ETH") && ((string)txHash).IndexOf("0x", StringComparison.Ordinal) < 0)
         {
             txHash = ("0x" + txHash);
         }
@@ -9076,7 +9076,7 @@ public partial class htx : Exchange
                     string id = ((string)this.safeString(options, "id", "AA03022abc"));
                     if (!isArrayParams)
                     {
-                        if ((isEqual(getIndexOf(pathString, "cancel"), -1)) && ((string)pathString).EndsWith(((string)"order")))
+                        if ((isEqual(((string)pathString).IndexOf("cancel", StringComparison.Ordinal), -1)) && ((string)pathString).EndsWith(((string)"order")))
                         {
                             // swap order placement
                             string? channelCode = this.safeString(parameters, "channel_code");

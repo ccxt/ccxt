@@ -193,10 +193,10 @@ public partial class mudrex : ccxt.mudrex
         string? stream = this.safeString(message, "stream");
         if ((stream != null))
         {
-            if (getIndexOf(stream, "kline") >= 0 || getIndexOf(stream, "markKline") >= 0)
+            if (((string)stream).IndexOf("kline", StringComparison.Ordinal) >= 0 || ((string)stream).IndexOf("markKline", StringComparison.Ordinal) >= 0)
             {
                 this.handleOHLCV(client as WebSocketClient, message);
-            } else if (getIndexOf(stream, "ticker") >= 0)
+            } else if (((string)stream).IndexOf("ticker", StringComparison.Ordinal) >= 0)
             {
                 this.handleTicker(client as WebSocketClient, message);
             }

@@ -5974,7 +5974,7 @@ public partial class coinbase : Exchange
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
                 // v2: 'GET' require payload in the signature
                 // https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-                bool isCloudAPiKey = (getIndexOf(this.apiKey, "organizations/") >= 0) || (((string)this.secret).StartsWith(((string)"-----BEGIN")));
+                bool isCloudAPiKey = (((string)this.apiKey).IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (((string)this.secret).StartsWith(((string)"-----BEGIN")));
                 // using the size might be fragile, so we add an option to force v2 cloud api key if needed
                 bool isV2CloudAPiKey = (((string)this.secret).Length == 88) || isTrue(this.safeBool(this.options, "v2CloudAPiKey", false)) || ((string)this.secret).EndsWith(((string)"="));
                 if (isCloudAPiKey || isV2CloudAPiKey)

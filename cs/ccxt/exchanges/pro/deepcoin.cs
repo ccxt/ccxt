@@ -85,7 +85,7 @@ public partial class deepcoin : ccxt.deepcoin
     public override object ping(WebSocketClient client)
     {
         string url = client.url;
-        if (getIndexOf(url, "private") >= 0)
+        if (((string)url).IndexOf("private", StringComparison.Ordinal) >= 0)
         {
             client.lastPong = this.milliseconds();
         }

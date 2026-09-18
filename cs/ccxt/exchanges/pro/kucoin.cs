@@ -676,7 +676,7 @@ public partial class kucoin : ccxt.kucoin
         //    }
         //
         string? topic = this.safeString(message, "topic");
-        if (getIndexOf(((string)topic), "contractMarket") < 0)
+        if (((string)topic).IndexOf("contractMarket", StringComparison.Ordinal) < 0)
         {
             IDictionary<string, object> market = null;
             if ((topic != null))
@@ -929,7 +929,7 @@ public partial class kucoin : ccxt.kucoin
     public virtual object parseWsBidAsk(object ticker, object market = null)
     {
         string? topic = this.safeString(ticker, "topic");
-        if (getIndexOf(((string)topic), "contractMarket") < 0)
+        if (((string)topic).IndexOf("contractMarket", StringComparison.Ordinal) < 0)
         {
             List<object> parts = ((string)((string)topic)).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             string? marketId = ((string)getValue(parts, 1));
@@ -1161,7 +1161,7 @@ public partial class kucoin : ccxt.kucoin
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
-        bool isContractMarket = (getIndexOf(((string)topic), "contractMarket") >= 0);
+        bool isContractMarket = (((string)topic).IndexOf("contractMarket", StringComparison.Ordinal) >= 0);
         int baseVolumeIndex = ((bool) isContractMarket) ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         List<object> parsed = new List<object> {this.safeTimestamp(candles, 0), this.safeNumber(candles, 1), this.safeNumber(candles, 3), this.safeNumber(candles, 4), this.safeNumber(candles, 2), this.safeNumber(candles, baseVolumeIndex)};
         callDynamically(stored, "append", new object[] {parsed});
@@ -1835,7 +1835,7 @@ public partial class kucoin : ccxt.kucoin
         string? symbol = this.safeSymbol(marketId, null, "-");
         string messageHash = ("orderbook:" + symbol);
         // let orderbook = this.safeDict (this.orderbooks, symbol);
-        if (getIndexOf(((string)topic), "Depth") >= 0)
+        if (((string)topic).IndexOf("Depth", StringComparison.Ordinal) >= 0)
         {
             if (!(inOp(this.orderbooks, symbol)))
             {
@@ -3849,12 +3849,12 @@ public partial class kucoin : ccxt.kucoin
         if ((data == "token is expired"))
         {
             string type = "public";
-            if (getIndexOf(client.url, "connectId=private") >= 0)
+            if (((string)client.url).IndexOf("connectId=private", StringComparison.Ordinal) >= 0)
             {
                 type = "private";
             }
             // Match the negotiation cache key; spot tokens can also contain "Futures".
-            if (getIndexOf(client.url, (("connectId=" + type) + "Futures")) >= 0)
+            if (((string)client.url).IndexOf(((string)(("connectId=" + type) + "Futures")), StringComparison.Ordinal) >= 0)
             {
                 type = type + "Futures";
             }

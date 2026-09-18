@@ -841,7 +841,7 @@ public partial class extended : Exchange
         //     }
         //
         string? currencyId = this.safeString(currency, "symbol");
-        if (((currencyId != null)) && (getIndexOf(currencyId, "SPOT") >= 0))
+        if (((currencyId != null)) && (((string)currencyId).IndexOf("SPOT", StringComparison.Ordinal) >= 0))
         {
             currencyId = ((string)currencyId).Replace((string)"SPOT", (string)"");
         }
@@ -3869,7 +3869,7 @@ public partial class extended : Exchange
             return ("0x" + this.getExtendedDecimalToBase16(signature));
         }
         string signatureString = ((string)this.numberToString(signature));
-        if ((getIndexOf(signatureString, "0x") == 0))
+        if ((((string)signatureString).IndexOf("0x", StringComparison.Ordinal) == 0))
         {
             return signatureString;
         }

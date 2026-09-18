@@ -340,7 +340,7 @@ public partial class hyperliquid : PredictionExchange
                         return bs;
                     }
                 }
-                bool isFallbackLike = ((rawDescription == "other")) || (getIndexOf(nameLower, "fallback") >= 0) || (getIndexOf(nameLower, "other") >= 0);
+                bool isFallbackLike = ((rawDescription == "other")) || (((string)nameLower).IndexOf("fallback", StringComparison.Ordinal) >= 0) || (((string)nameLower).IndexOf("other", StringComparison.Ordinal) >= 0);
                 if (((questionUnderlying != null) && (questionUnderlying != "")) && isFallbackLike)
                 {
                     object bs = (((string)questionUnderlying).ToUpper() + "_OTHER");
@@ -366,7 +366,7 @@ public partial class hyperliquid : PredictionExchange
                 };
                 if (inOp(genericOutcomeNames, outcomeSlug))
                 {
-                    if (getIndexOf(outcomeSlug, "FALLBACK") >= 0)
+                    if (((string)outcomeSlug).IndexOf("FALLBACK", StringComparison.Ordinal) >= 0)
                     {
                         outcomeSlug = "OTHER";
                     } else
@@ -1256,7 +1256,7 @@ public partial class hyperliquid : PredictionExchange
         {
             return null;
         }
-        int colonIndex = getIndexOf(outcomeInput, ":");
+        int colonIndex = ((string)outcomeInput).IndexOf(":", StringComparison.Ordinal);
         if (colonIndex > -1 && isLessThan(colonIndex, (((string)outcomeInput).Length - 1)))
         {
             string side = ((string)slice(outcomeInput, add(colonIndex, 1), null)).ToUpper();
@@ -1299,7 +1299,7 @@ public partial class hyperliquid : PredictionExchange
         bool isNumericInput = inputCharsLength > 0;
         for (int di = 0; di < getArrayLength(inputChars); postFixIncrement(ref di))
         {
-            if (getIndexOf(digitChars, getValue(inputChars, di)) < 0)
+            if (((string)digitChars).IndexOf(((string)getValue(inputChars, di)), StringComparison.Ordinal) < 0)
             {
                 isNumericInput = false;
                 break;
@@ -2159,7 +2159,7 @@ public partial class hyperliquid : PredictionExchange
                     {
                         string? word = ((string)getValue(words, wi));
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
-                        if ((!isEqual(word, "")) && (getIndexOf(haystack, word) < 0))
+                        if ((!isEqual(word, "")) && (((string)haystack).IndexOf(((string)word), StringComparison.Ordinal) < 0))
                         {
                             allWords = false;
                             break;

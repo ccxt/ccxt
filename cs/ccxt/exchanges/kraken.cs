@@ -966,7 +966,7 @@ public partial class kraken : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseCurrency() missing id")) ;
         }
-        if (getIndexOf(id, ".") < 0)
+        if (((string)id).IndexOf(".", StringComparison.Ordinal) < 0)
         {
             string? altName = this.safeString(rawCurrency, "altname");
             // handle cases like below:
@@ -996,7 +996,7 @@ public partial class kraken : Exchange
         {
             throw new ExchangeError ((string)(this.id + " parseCurrency() missing code")) ;
         }
-        bool isFiat = getIndexOf(code, ".HOLD") >= 0;
+        bool isFiat = ((string)code).IndexOf(".HOLD", StringComparison.Ordinal) >= 0;
         rawCurrency = this.omit(rawCurrency, "_coin_id");
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1029,7 +1029,7 @@ public partial class kraken : Exchange
         {
             return ((string?)((object)(currencyId)));
         }
-        if (getIndexOf(currencyId, ".") > 0)
+        if (((string)currencyId).IndexOf(".", StringComparison.Ordinal) > 0)
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             List<object> parts = ((string)currencyId).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
@@ -2438,7 +2438,7 @@ public partial class kraken : Exchange
         string? cost = this.safeString(parameters, "cost");
         object flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new List<object>() {"cost", "oflags"});
-        bool isViqcOrder = ((flags != null)) && (getIndexOf(flags, "viqc") > -1); // volume in quote currency
+        bool isViqcOrder = ((flags != null)) && (((string)flags).IndexOf("viqc", StringComparison.Ordinal) > -1); // volume in quote currency
         if (isMarketOrder && ((cost != null) || isViqcOrder))
         {
             if ((cost == null) && (!isEqual(amount, null)))
@@ -3740,7 +3740,7 @@ public partial class kraken : Exchange
                     {
                         throw new ExchangeError ((string)(this.id + " fetchDepositAddress() missing entry")) ;
                     }
-                    if (getIndexOf(entry, network) >= 0)
+                    if (((string)entry).IndexOf(((string)network), StringComparison.Ordinal) >= 0)
                     {
                         depositMethod = entry;
                         break;

@@ -2404,7 +2404,7 @@ public partial class bybit : Exchange
         List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
         string? expiry = null;
-        if (getIndexOf(symbol, "/") > -1)
+        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
         {
             bs = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
@@ -2501,7 +2501,7 @@ public partial class bybit : Exchange
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        bool isOption = (!isEqual(marketId, null)) && ((getIndexOf(marketId, "-C") > -1) || (getIndexOf(marketId, "-P") > -1));
+        bool isOption = (!isEqual(marketId, null)) && ((((string)marketId).IndexOf("-C", StringComparison.Ordinal) > -1) || (((string)marketId).IndexOf("-P", StringComparison.Ordinal) > -1));
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
@@ -11708,10 +11708,10 @@ public partial class bybit : Exchange
         } else if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
-            bool isOpenapi = getIndexOf(url, "openapi") >= 0;
-            bool isV3UnifiedMargin = getIndexOf(url, "unified/v3") >= 0;
-            bool isV3Contract = getIndexOf(url, "contract/v3") >= 0;
-            bool isV5UnifiedAccount = getIndexOf(url, "v5") >= 0;
+            bool isOpenapi = ((string)url).IndexOf("openapi", StringComparison.Ordinal) >= 0;
+            bool isV3UnifiedMargin = ((string)url).IndexOf("unified/v3", StringComparison.Ordinal) >= 0;
+            bool isV3Contract = ((string)url).IndexOf("contract/v3", StringComparison.Ordinal) >= 0;
+            bool isV5UnifiedAccount = ((string)url).IndexOf("v5", StringComparison.Ordinal) >= 0;
             string timestamp = ((object)this.nonce()).ToString();
             if (isOpenapi)
             {
@@ -11758,7 +11758,7 @@ public partial class bybit : Exchange
                     url = url + ("?" + queryEncoded);
                 }
                 string? signature = null;
-                if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
+                if (((string)this.secret).IndexOf("PRIVATE KEY", StringComparison.Ordinal) > -1)
                 {
                     signature = rsa(authFull, this.secret, sha256);
                 } else
@@ -11776,7 +11776,7 @@ public partial class bybit : Exchange
                 Dictionary<string, object> sortedQuery = this.keysort(query);
                 string auth = this.rawencode(sortedQuery, true);
                 string? signature = null;
-                if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
+                if (((string)this.secret).IndexOf("PRIVATE KEY", StringComparison.Ordinal) > -1)
                 {
                     signature = rsa(auth, this.secret, sha256);
                 } else
@@ -11785,7 +11785,7 @@ public partial class bybit : Exchange
                 }
                 if (isEqual(method, "POST"))
                 {
-                    bool isSpot = getIndexOf(url, "spot") >= 0;
+                    bool isSpot = ((string)url).IndexOf("spot", StringComparison.Ordinal) >= 0;
                     Dictionary<string, object> extendedQuery = this.extend(query, new Dictionary<string, object>() {
                         { "sign", signature },
                     });
@@ -11860,14 +11860,14 @@ public partial class bybit : Exchange
                 return null;
             }
             object feedback = null;
-            if ((errorCode == "10005") && getIndexOf(url, "order") < 0)
+            if ((errorCode == "10005") && ((string)url).IndexOf("order", StringComparison.Ordinal) < 0)
             {
                 feedback = add((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" "), body);
             } else
             {
                 feedback = add((this.id + " "), body);
             }
-            if (getIndexOf(body, "Withdraw address chain or destination tag are not equal") > -1)
+            if (((string)body).IndexOf("Withdraw address chain or destination tag are not equal", StringComparison.Ordinal) > -1)
             {
                 feedback = add(feedback, "; You might also need to ensure the address is whitelisted");
             }

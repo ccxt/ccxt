@@ -130,7 +130,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        bool isBatch = getIndexOf(name, "batch") >= 0;
+        bool isBatch = ((string)name).IndexOf("batch", StringComparison.Ordinal) >= 0;
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         List<object> messageHashes = new List<object>() {};
         if (!isEqual(symbols, null) && !isBatch)

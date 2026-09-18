@@ -1032,10 +1032,10 @@ public partial class bitbns : Exchange
         string? side = this.safeStringLower(trade, "type");
         if ((side != null))
         {
-            if (getIndexOf(side, "buy") >= 0)
+            if (((string)side).IndexOf("buy", StringComparison.Ordinal) >= 0)
             {
                 side = "buy";
-            } else if (getIndexOf(side, "sell") >= 0)
+            } else if (((string)side).IndexOf("sell", StringComparison.Ordinal) >= 0)
             {
                 side = "sell";
             }
@@ -1332,11 +1332,11 @@ public partial class bitbns : Exchange
         string? status = null;
         if ((type != null))
         {
-            if (getIndexOf(type, "deposit") >= 0)
+            if (((string)type).IndexOf("deposit", StringComparison.Ordinal) >= 0)
             {
                 type = "deposit";
                 status = "ok";
-            } else if (getIndexOf(type, "withdraw") >= 0 || getIndexOf(expTime, "withdraw") >= 0)
+            } else if (((string)type).IndexOf("withdraw", StringComparison.Ordinal) >= 0 || getIndexOf(expTime, "withdraw") >= 0)
             {
                 type = "withdrawal";
             }

@@ -2153,7 +2153,7 @@ public partial class paradex : Exchange
         {
             throw new ExchangeError ((string)(this.id + " signOrderRequest() missing orderType")) ;
         }
-        bool isMarket = (getIndexOf(orderType, "MARKET") >= 0);
+        bool isMarket = (((string)orderType).IndexOf("MARKET", StringComparison.Ordinal) >= 0);
         Dictionary<string, object> orderReq = new Dictionary<string, object>() {
             { "timestamp", (now * 1000) },
             { "market", this.stringToBase16(getValue(request, "market")) },

@@ -423,7 +423,7 @@ public partial class myriad : PredictionExchange
     public async override Task<ccxt.PredictionEvent> FetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (getIndexOf(id, ":") < 0)
+        if (((string)id).IndexOf(":", StringComparison.Ordinal) < 0)
         {
             object rawQuestion = ccxt.BaseExchange.FromDict(await this.FetchRawQuestionById(id, parameters));
             object orderBookEvent = this.parseEvent(rawQuestion);
@@ -1495,7 +1495,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ExchangeError ((string)(this.id + " toOrderbookWei() missing scaled")) ;
         }
-        int dotIndex = getIndexOf(scaled, ".");
+        int dotIndex = ((string)scaled).IndexOf(".", StringComparison.Ordinal);
         if ((scaled == null))
         {
             throw new ExchangeError ((string)(this.id + " toOrderbookWei() missing scaled")) ;
@@ -2305,7 +2305,7 @@ public partial class myriad : PredictionExchange
         string? result = "0";
         for (int i = 0; i < n; postFixIncrement(ref i))
         {
-            int v = getIndexOf(digits, getValue(chars, i));
+            int v = ((string)digits).IndexOf(((string)getValue(chars, i)), StringComparison.Ordinal);
             if (v > -1)
             {
                 string? mul = Precise.stringMul(result, "16");
@@ -3415,7 +3415,7 @@ public partial class myriad : PredictionExchange
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
         {
-            if (getIndexOf(eventId, ":") > -1)
+            if (((string)eventId).IndexOf(":", StringComparison.Ordinal) > -1)
             {
                 object rawMarket = ccxt.BaseExchange.FromDict(await this.FetchRawMarketById(eventId, rest));
                 rawMarkets = new List<object>() {rawMarket};

@@ -1806,7 +1806,7 @@ public partial class alpaca : Exchange
         string? orderType = this.safeString(order, "order_type");
         if ((orderType != null))
         {
-            if (getIndexOf(orderType, "limit") >= 0)
+            if (((string)orderType).IndexOf("limit", StringComparison.Ordinal) >= 0)
             {
                 // might be limit or stop-limit
                 orderType = "limit";
@@ -2530,7 +2530,7 @@ public partial class alpaca : Exchange
                 continue;
             }
             string? baseId = null;
-            if (getIndexOf(positionSymbol, "/") >= 0)
+            if (((string)positionSymbol).IndexOf("/", StringComparison.Ordinal) >= 0)
             {
                 List<object> parts = ((string)positionSymbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
                 baseId = this.safeString(parts, 0);
