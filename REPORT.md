@@ -27,8 +27,8 @@ Everything else in the family is documented below as rejected with a reason.
 before (HEAD d847892a6):  locals: object=9304 typed=44132 typed%=82
 after  (this unit):       locals: object=9232 typed=44204 typed%=82
 ```
-Exactly −72 object / +72 typed (−70 on the ws tree measured before the 2 venue-helper names were added,
-−1 prediction, −1 more ws); casts, params, returns and helper counts are byte-identical to the base
+Exactly −72 object / +72 typed — 61 `exchanges/pro/*.cs` files + 1 prediction file (`polymarket.cs`),
+declaration lines only. Casts, params, returns and helper counts are byte-identical to the base
 (`casts: (string)=2113 (IList<object>)=1922 … (IDictionary<string, object>)=127 (List<object>)=102`).
 
 ## The rule and its proof
@@ -98,14 +98,14 @@ was re-gated the same way — `REPORT.md` is not a build input, so the farm comp
 | next use | sites | verdict |
 |---|---|---|
 | `callDynamically(x, "getLimit" / "append")` + `filterBy*(x, …)` | 193 | **rejected** — ArrayCache family |
-| `(x as IOrderBook).limit()` | 72 | **typed** (rule A) — 70 first-pass, 1 multi-line ws helper each for gemini/kraken(krakenfutures) after the venue-helper names were added |
+| `(x as IOrderBook).limit()` | 74 | **typed** — 72 typed by the rule (69 ws + 1 prediction in the first pass incl. 3 multi-line calls, +2 after the two venue-local helper names were added); `bitget.cs:945` and `coinex.cs:915` are declined on purpose (the deref sits inside a branch) |
 | `getValue(x, …)` / `this.safe*(x, …)` | 58 | **rejected** — dict box, no unique type |
 | `ccxt.BaseExchange.To*(this.filterBy*(x, …))` converters | 41 | **rejected** — list/cache box |
 | `filterByArray/filterBySinceLimit(x, …)` | 40 | **rejected** — list box |
 | `return x;` / `x.Count` / other (incl. `this.options` writes, kucoin `negotiate` url) | 39 | **rejected** — no type-requiring use |
 
-(the 72 row includes the 2 sites the rule declines on purpose — `bitget.cs:945`, `coinex.cs:915` — whose
-`.limit()` sits inside a branch; the typed count is 70 + 2 venue-helper names = **72**.)
+(the class has 74 sites; the survey's ws-name filter misses the two venue-local spellings, which is why
+its `typed` column sums to 70 rather than 72.)
 
 Typed / total family sites per method (tree census, `tools/U27/candidates.py`): `watch` 28/142 ·
 `watchPublic` 11/38 · `watchMultiple` 7/51 · `subscribe` 5/27 · `subscribePublic` 5/17 ·
@@ -149,15 +149,21 @@ Typed / total family sites per method (tree census, `tools/U27/candidates.py`): 
 6. **`subscribe*` cores whose value is a list/ticker/dict** (e.g. `subscribeOpinionChannel` /
    `subscribeMyriadChannel` → `filterBySinceLimit`, `watchMultiTickerHelper` → `ToTickers`): no
    type-naming use.
-7. **`x.limit()` inside a `try`/`catch`** (bittrade `:440`, bitvavo `:910`, htx `:716`): typed — the
-   deref is the immediate next statement and the `catch` is outside the declaration's block.
+7. **Not a rejection — the 2 try/catch sites** (bittrade `:440`, htx `:716`): the declaration and its
+   `.limit ()` deref sit inside a `try` whose `catch (Exception e)` does `client.reject (e, messageHash)`,
+   so the added cast's failure mode is IDENTICAL there (both the cast and the deref are caught and the
+   future is rejected; only the exception object differs). bitvavo `:910` looks similar but is not in a
+   `try` — its typed site is unconditional like the other 69.
 
 ## Residual risk
 
 * The family ADDS a cast; the campaign's standard risk applies: a value that is not an `IOrderBook`
   would now throw `InvalidCastException` at the declaration instead of `NullReferenceException` at the
-  `.limit ()` deref on the same statement (both escape the core — no `catch` in any of the 72 methods).
-  `null` behaves identically (a cast of `null` to a reference type yields `null`, then the same NRE).
+  `.limit ()` deref on the same statement. In 68 of the 72 the exception escapes the core unchanged
+  (same caller-visible failure, different type/message); in bittrade `:440` / htx `:716` both are caught
+  by the surrounding `catch (Exception e)` and turned into `client.reject (e, messageHash)`, so the
+  caller sees a rejected future either way. `null` behaves identically everywhere (a cast of `null` to a
+  reference type yields `null`, then the same NRE at `.limit ()`).
 * Evidence B is a per-file (per-class) correlation, not a hash-path trace: it shows the class resolves
   an order book cache for an `orderbook`-worded hash, plus (A) that the core itself cannot work unless
   the value is one. It does not symbolically follow the hash from the subscription to the resolve.
