@@ -144,18 +144,18 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access any, channel any, opt
 		retRes12612 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes12612)
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.Symbols
 	}
 	symbols = this.MarketSymbols(symbols)
 	var url any = this.GetUrl(channel, access)
 	var messageHashes any = []any{}
 	var args any = []any{}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 		}
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
@@ -164,7 +164,7 @@ func (this *Okx) subscribeMultipleBody(ch chan any, access any, channel any, opt
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&args, this.Extend(arg, params))
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribeMultiple() symbols is required"))
 		}
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(symbols, i)))
@@ -514,7 +514,7 @@ func (this *Okx) watchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchFundingRates() requires an array of symbols"))
 	}
 	if this.Markets == nil {
@@ -1060,7 +1060,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optio
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var messageHash string = "liquidations"
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+"::", symbol))
@@ -1193,7 +1193,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, opt
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var messageHash string = "myLiquidations"
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add(messageHash+"::", symbol))
@@ -2394,7 +2394,7 @@ func (this *Okx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var channel string = "positions"
 	var newPositions any = nil
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		var arg map[string]any = map[string]any{
 			"channel":  "positions",
 			"instType": "ANY",

@@ -226,7 +226,7 @@ func (this *Onetrading) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes18112)
 	}
 	symbols = this.MarketSymbols(symbols)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var subscriptionHash string = "MARKET_TICKER"

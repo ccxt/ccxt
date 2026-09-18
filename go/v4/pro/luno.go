@@ -152,7 +152,7 @@ func (this *Luno) ParseTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = func() any {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return ccxt.GetValue(market, "symbol")

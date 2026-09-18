@@ -1759,7 +1759,7 @@ func (this *Coinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = this.SafeValue(symbols, 0)
 		market = this.Market(symbol)
 	}
@@ -1963,7 +1963,7 @@ func (this *Coinex) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "created_at")
 	var defaultType any = DerefScalar(this.SafeString(this.Options, "defaultType"))
-	if !IsEqual(market, nil) {
+	if market != nil {
 		defaultType = GetValue(market, "type")
 	}
 	var marketId *string = this.SafeString(trade, "market")
@@ -4184,7 +4184,7 @@ func (this *Coinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		"market_type": "FUTURES",
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
 			var symbolsLength int = GetArrayLength(symbols)
@@ -4557,7 +4557,7 @@ func (this *Coinex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes450512)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var marketIds any = this.MarketIds(symbols)
 		request["market"] = Join(marketIds, ",")
 	}
@@ -5099,7 +5099,7 @@ func (this *Coinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = this.SafeValue(symbols, 0)
 		market = this.Market(symbol)
 		if GetValue(market, "swap") != true {
@@ -6294,7 +6294,7 @@ func (this *Coinex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 			continue
 		}
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if IsEqual(codes, nil) || this.InArray(code, codes) {
+		if (codes == nil) || this.InArray(code, codes) {
 			if code != nil {
 				AddElementToObject(result, code, this.ParseDepositWithdrawFee(item))
 			}

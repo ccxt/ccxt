@@ -1898,7 +1898,7 @@ func (this *Gate) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	})
 	var messageHash any = ccxt.Add(typeVar, ":positions")
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
@@ -2840,7 +2840,7 @@ func (this *Gate) GetUrlByMarket(market any) any {
 	}
 }
 func (this *Gate) GetTypeByMarket(market any) any {
-	if ccxt.IsEqual(market, nil) {
+	if market == nil {
 		return nil
 	}
 	if ccxt.GetValue(market, "spot") == true {
@@ -2912,7 +2912,7 @@ func (this *Gate) subscribePublicBody(ch chan any, url any, messageHash any, pay
 		"event":   "subscribe",
 		"payload": payload,
 	}
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var client ccxt.ClientInterface = this.Client(url)
 		if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 			var tempSubscriptionHash string = ccxt.ToString(requestId)

@@ -1150,11 +1150,11 @@ func (this *Htx) GetOrderChannelAndMessageHash(typeVar any, subType any, optiona
 	orderType = this.SafeString(params, "orderType", orderType)
 	params = this.Omit(params, "orderType")
 	var marketCode any = nil
-	if (!ccxt.IsEqual(market, nil)) && (!ccxt.IsEqual(ccxt.GetValue(market, "lowercaseId"), nil)) {
+	if (market != nil) && (!ccxt.IsEqual(ccxt.GetValue(market, "lowercaseId"), nil)) {
 		marketCode = ccxt.ToLower(ccxt.GetValue(market, "lowercaseId"))
 	}
 	var baseId any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return ccxt.GetValue(market, "baseId")
 		}
 		return nil
@@ -1202,7 +1202,7 @@ func (this *Htx) GetV5LinearChannelAndMessageHash(topic any, optionalArgs ...any
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var contractCode any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return ccxt.GetValue(market, "id")
 		}
 		return this.SafeString(params, "contract_code", "*")
@@ -1885,7 +1885,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var messageHash any = ""
-	if (!ccxt.EvalTruthy(this.IsEmpty(symbols))) && (!ccxt.IsEqual(symbols, nil)) {
+	if (!ccxt.EvalTruthy(this.IsEmpty(symbols))) && (symbols != nil) {
 		market = this.GetMarketFromSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
@@ -1930,7 +1930,7 @@ func (this *Htx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}()
 	if isV5Linear {
 		var v5Market any = nil
-		if (!ccxt.IsEqual(symbols, nil)) && (ccxt.GetArrayLength(symbols) == 1) {
+		if (symbols != nil) && (ccxt.GetArrayLength(symbols) == 1) {
 			v5Market = market
 		}
 		var channelAndMessageHashAndParams any = this.GetV5LinearChannelAndMessageHash("positions", v5Market, params)
@@ -3337,7 +3337,7 @@ func (this *Htx) unsubscribePublicBody(ch chan any, market any, subMessageHash a
 	}
 	var messageHash any = ccxt.Add("unsubscribe::", subMessageHash)
 	var isFeed bool = (ccxt.IsEqual(topic, "orderbook"))
-	if ccxt.IsEqual(market, nil) {
+	if market == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " unsubscribePublic() market is required"))
 	}
 	var url any = this.GetUrlByMarketType(ccxt.GetValue(market, "type"), ccxt.GetValue(market, "linear"), false, isFeed)

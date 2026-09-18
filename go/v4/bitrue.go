@@ -1833,7 +1833,7 @@ func (this *Bitrue) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var data []any = []any{}
 	var request map[string]any = map[string]any{}
 	var typeVar any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var first *string = this.SafeString(symbols, 0)
 		var market any = this.Market(first)
 		if IsEqual(GetValue(market, "swap"), true) {

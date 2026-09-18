@@ -645,7 +645,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashNam
 		retRes53212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes53212)
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple requires at least one symbol"))
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)

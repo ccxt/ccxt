@@ -208,7 +208,7 @@ func (this *Coinbaseexchange) watchTickersBody(ch chan any, optionalArgs ...any)
 		retRes14412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes14412)
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() symbols is required"))
 	}
 	var symbolsLength int = ccxt.GetArrayLength(symbols)

@@ -174,7 +174,7 @@ func (this *Krakenfutures) subscribePublicBody(ch chan any, name any, symbols an
 	}
 	var marketIds any = []any{}
 	var messageHash any = name
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -482,7 +482,7 @@ func (this *Krakenfutures) watchPositionsBody(ch chan any, optionalArgs ...any) 
 	}
 	var messageHash any = ""
 	symbols = this.MarketSymbols(symbols)
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
 	messageHash = ccxt.Add("positions", messageHash)

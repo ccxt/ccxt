@@ -2965,7 +2965,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes245312 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes245312)
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			// the type gate throws NotSupported rather than letting marketSymbols raise
@@ -2979,7 +2979,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	symbols = this.MarketSymbols(symbols, "swap", true, true)
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		var marketType any = nil
 		var marketTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -5218,7 +5218,7 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -5789,7 +5789,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			var market any = this.Market(GetValue(symbols, 0))

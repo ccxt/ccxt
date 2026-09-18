@@ -1151,7 +1151,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		// so we aggregate 300 markets per request only when symbols are not provided.
 		var marketIds any = []any{}
 		var symbolsForMarketIds any = func() any {
-			if IsEqual(symbols, nil) {
+			if symbols == nil {
 				return this.Symbols
 			}
 			return symbols
@@ -1169,7 +1169,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var marketIdsChunks any = []any{}
 		var promises any = []any{}
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			request["markets"] = Join(marketIds, ",")
 			AppendToArray(&marketIdsChunks, marketIds)
 			AppendToArray(&promises, this.PublicGetV1Ticker(this.Extend(request, params)))
@@ -1273,7 +1273,7 @@ func (this *Bithumb) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		var quoteCurrencies map[string]any = SafeMapTyped(this.Options, "quoteCurrencies")
 		var quotes []string = ObjectKeys(quoteCurrencies)
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			var requiredQuotes map[string]any = map[string]any{}
 			for i := 0; i < GetArrayLength(symbols); i++ {
 				var symbol any = GetValue(symbols, i)
@@ -2569,7 +2569,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) any {
 	var fee any = nil
 	if feeCost != nil {
 		var currency any = nil
-		if !IsEqual(market, nil) {
+		if market != nil {
 			currency = GetValue(market, "quote")
 		}
 		fee = map[string]any{

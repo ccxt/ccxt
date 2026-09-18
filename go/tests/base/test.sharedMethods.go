@@ -20,7 +20,7 @@ func LogTemplate(exchange ccxt.ICoreExchange, method any, entry any) any {
 		return "undefined"
 	}()
 	var entryString any = func() any {
-		if !IsEqual(exchange, nil) && !IsEqual(entry, nil) {
+		if !IsEqual(exchange, nil) && (entry != nil) {
 			return exchange.Json(entry)
 		}
 		return ""
@@ -69,10 +69,10 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 	deep := GetArg(optionalArgs, 1, false)
 	_ = deep
 	var logText any = LogTemplate(exchange, method, entry)
-	Assert(!IsEqual(entry, nil), Add("item is null/undefined", logText))
+	Assert((entry != nil), Add("item is null/undefined", logText))
 	// get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
 	var allowEmptySkips any = exchange.SafeList(skippedProperties, "allowNull", []any{})
-	if !IsEqual(emptyAllowedFor, nil) {
+	if emptyAllowedFor != nil {
 		emptyAllowedFor = Concat(emptyAllowedFor, allowEmptySkips)
 	}
 	if IsArray(format) {
@@ -81,7 +81,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		var expectedLength int = GetArrayLength(format)
 		Assert((realLength == expectedLength), Add("entry length is not equal to expected length of "+ToString(expectedLength), logText))
 		for i := 0; i < GetArrayLength(format); i++ {
-			var emptyAllowedForThisKey bool = (IsEqual(emptyAllowedFor, nil)) || EvalTruthy(exchange.InArray(i, emptyAllowedFor))
+			var emptyAllowedForThisKey bool = (emptyAllowedFor == nil) || EvalTruthy(exchange.InArray(i, emptyAllowedFor))
 			var value any = GetValue(entry, i)
 			// check when:
 			// - it's not inside "allowe empty values" list
@@ -103,7 +103,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 				continue
 			}
 			Assert(InOp(entry, key), Add(Add(Add("\"", StringValue(key)), "\" key is missing from structure"), logText))
-			var emptyAllowedForThisKey bool = (IsEqual(emptyAllowedFor, nil)) || EvalTruthy(exchange.InArray(key, emptyAllowedFor))
+			var emptyAllowedForThisKey bool = (emptyAllowedFor == nil) || EvalTruthy(exchange.InArray(key, emptyAllowedFor))
 			var value any = GetValue(entry, key)
 			// check when:
 			// - it's not inside "allowed empty values" list
@@ -412,7 +412,7 @@ func AssertInteger(exchange ccxt.ICoreExchange, skippedProperties any, method an
 		return
 	}
 	var logText any = LogTemplate(exchange, method, entry)
-	if !IsEqual(entry, nil) {
+	if entry != nil {
 		var value any = exchange.SafeValue(entry, key)
 		Assert(!IsEqual(value, nil) || EvalTruthy(allowNull), Add("value is null", logText))
 		if !IsEqual(value, nil) {
@@ -676,9 +676,9 @@ func Concat(optionalArgs ...any) any {
 	_ = a
 	b := GetArg(optionalArgs, 1, nil)
 	_ = b
-	if IsEqual(a, nil) {
+	if a == nil {
 		return b
-	} else if IsEqual(b, nil) {
+	} else if b == nil {
 		return a
 	} else {
 		var result any = []any{}

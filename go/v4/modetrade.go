@@ -1265,7 +1265,7 @@ func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) an
 	var nextFundingTimeString *string = this.SafeString(fundingRate, "next_funding_time")
 	var millisecondsInterval *string = Precise.StringSub(nextFundingTimeString, fundingTimeString)
 	var fundingSymbol any = func() any {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			return GetValue(market, "symbol")
 		}
 		return nil

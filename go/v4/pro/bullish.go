@@ -861,7 +861,7 @@ func (this *Bullish) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var subscribeHash string = "positions"
 	var messageHash any = subscribeHash
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}

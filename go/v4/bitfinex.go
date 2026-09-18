@@ -1706,7 +1706,7 @@ func (this *Bitfinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var ids any = this.MarketIds(symbols)
 		request["symbols"] = Join(ids, ",")
 	} else {
@@ -3317,7 +3317,7 @@ func (this *Bitfinex) ParseTransaction(transaction any, optionalArgs ...any) any
 	if transactionLength == 8 {
 		var data any = this.SafeValue(transaction, 4, []any{})
 		timestamp = this.SafeInteger(transaction, 0)
-		if !IsEqual(currency, nil) {
+		if currency != nil {
 			code = GetValue(currency, "code")
 		}
 		feeCost = DerefScalar(this.SafeString(data, 8))
@@ -4128,7 +4128,7 @@ func (this *Bitfinex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchFundingRates() requires a symbols argument"))
 	}
 	if this.Markets == nil {
@@ -4424,7 +4424,7 @@ func (this *Bitfinex) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = []any{"ALL"}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		marketIds = this.MarketIds(symbols)
 	}
 	var request map[string]any = map[string]any{

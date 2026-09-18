@@ -2546,7 +2546,7 @@ func (this *Aster) fetchFundingIntervalsBody(ch chan any, optionalArgs ...any) a
 		retRes195412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes195412)
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 	}
 
@@ -4777,7 +4777,7 @@ func (this *Aster) fetchPositionsRiskBody(ch chan any, optionalArgs ...any) any 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		if !IsArray(symbols) {
 			panic(ArgumentsRequired(this.Id + " fetchPositionsRisk() requires an array argument for symbols"))
 		}
@@ -5125,7 +5125,7 @@ func (this *Aster) fetchAccountPositionsBody(ch chan any, optionalArgs ...any) a
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		if !IsArray(symbols) {
 			panic(ArgumentsRequired(this.Id + " fetchPositions() requires an array argument for symbols"))
 		}

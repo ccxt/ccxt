@@ -65,7 +65,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (ccxt.IsEqual(ep, nil)) || (ccxt.IsEqual(market, nil)) {
+	if (ccxt.IsEqual(ep, nil)) || (market == nil) {
 		return ep
 	}
 	return this.FromEn(ep, this.SafeInteger(market, "priceScale"))
@@ -73,7 +73,7 @@ func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (ccxt.IsEqual(ev, nil)) || (ccxt.IsEqual(market, nil)) {
+	if (ccxt.IsEqual(ev, nil)) || (market == nil) {
 		return ev
 	}
 	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
@@ -81,7 +81,7 @@ func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (ccxt.IsEqual(er, nil)) || (ccxt.IsEqual(market, nil)) {
+	if (ccxt.IsEqual(er, nil)) || (market == nil) {
 		return er
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))

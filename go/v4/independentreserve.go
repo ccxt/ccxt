@@ -758,7 +758,7 @@ func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) any {
 		base = DerefScalar(this.SafeCurrencyCode(baseId))
 		quote = DerefScalar(this.SafeCurrencyCode(quoteId))
 		symbol = Add(Add(base, "/"), quote)
-	} else if !IsEqual(market, nil) {
+	} else if market != nil {
 		symbol = GetValue(market, "symbol")
 		base = GetValue(market, "base")
 		quote = GetValue(market, "quote")

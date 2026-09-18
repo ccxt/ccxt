@@ -677,10 +677,10 @@ func (this *Bittrade) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		retRes44412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes44412)
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.Symbols
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	var result map[string]any = map[string]any{}

@@ -1140,7 +1140,7 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) any {
 	var open any = nil
 	var volume any = nil
 	var symbol any = func() any {
-		if IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return GetValue(market, "symbol")

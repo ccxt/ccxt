@@ -1441,7 +1441,7 @@ func (this *Krakenfutures) ParseTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var cost any = nil
 	var linear *bool = this.SafeBool(market, "linear")
-	if (amount != nil) && (price != nil) && (!IsEqual(market, nil)) {
+	if (amount != nil) && (price != nil) && (market != nil) {
 		if linear != nil && *linear == true {
 			cost = Precise.StringMul(amount, price) // in quote
 		} else {
@@ -2901,7 +2901,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 		amount = Precise.StringAdd(filled, remaining)
 	}
 	var cost any = nil
-	if (filled != nil) && (!IsEqual(market, nil)) {
+	if (filled != nil) && (market != nil) {
 		var whichPrice any = func() any {
 			if average != nil {
 				return average

@@ -990,7 +990,7 @@ func (this *Extended) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes7878)
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var marketIds any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
@@ -1469,7 +1469,7 @@ func (this *Extended) ParseFundingHistories(histories any, optionalArgs ...any) 
 		AppendToArray(&result, this.ParseFundingHistory(GetValue(histories, i), market))
 	}
 	var symbol any = func() any {
-		if IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return GetValue(market, "symbol")
@@ -1530,7 +1530,7 @@ func (this *Extended) ParseTrade(trade any, optionalArgs ...any) any {
 		return map[string]any{
 			"cost": feeCost,
 			"currency": func() any {
-				if IsEqual(market, nil) {
+				if market == nil {
 					return nil
 				}
 				return GetValue(market, "settle")
@@ -2687,7 +2687,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	if !IsEqual(currencyByNumericId, nil) {
 		return this.SafeString(currencyByNumericId, "code")
 	}
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		return GetValue(currency, "code")
 	}
 	var code any = DerefScalar(this.SafeCurrencyCode(assetId))
@@ -3039,7 +3039,7 @@ func (this *Extended) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	retRes23098 := (<-this.LoadMarketsAsync())
 	PanicOnError(retRes23098)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var marketIds any = this.MarketIds(symbols)
 		request["market"] = marketIds
 	}
@@ -3155,7 +3155,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var marketIds any = this.MarketIds(symbols)
 		request["market"] = marketIds
 	}
@@ -3950,7 +3950,7 @@ func (this *Extended) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_id")
 	params = this.Omit(params, []any{"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"})
 	var request map[string]any = map[string]any{}
-	var hasOrderIds bool = !IsEqual(ids, nil)
+	var hasOrderIds bool = (ids != nil)
 	if hasOrderIds {
 		var idsLength int = GetArrayLength(ids)
 		if idsLength > 0 {
@@ -4457,7 +4457,7 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) any {
 	var fee map[string]any = map[string]any{
 		"cost": feeCost,
 		"currency": func() any {
-			if IsEqual(market, nil) {
+			if market == nil {
 				return nil
 			}
 			return GetValue(market, "settle")

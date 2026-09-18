@@ -3243,7 +3243,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 	}
 	var request any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 0 {
 			market = this.Market(GetValue(symbols, 0))
@@ -3464,7 +3464,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan any, optionalArgs ...any) any {
 		retRes270212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes270212)
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchLeverages() requires a symbols argument"))
 	}
 	var marginMode any = nil

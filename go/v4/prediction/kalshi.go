@@ -1227,7 +1227,7 @@ func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var marketAny any = market
 	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
 	var outcomeLabel any = func() any {
-		if !ccxt.IsEqual(market, nil) && !ccxt.IsEqual(market, nil) {
+		if (market != nil) {
 			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "YES"))
 		}
 		return "YES"
@@ -1332,7 +1332,7 @@ func (this *Kalshi) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())"))
 	}
 	// batch-resolve the uncached outcomes (one markets request per 100 tickers)
@@ -2078,7 +2078,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var outcomesLength int = 0
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		outcomesLength = ccxt.GetArrayLength(outcomes)
 	}
 	if outcomesLength > 0 {
@@ -2101,7 +2101,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var wantedTickers map[string]any = map[string]any{}
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
 	}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {

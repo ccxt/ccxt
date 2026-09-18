@@ -54,7 +54,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 							// to "all tickers" itself, and it requires symbols to be set
 							// so, in such case, if it's arguments-required exception, we don't
 							// mark tests as failed, but just skip them
-							if (IsInstance(e, ArgumentsRequired)) && (IsEqual(argSymbols, nil) || (GetArrayLength(argSymbols) == 0)) {
+							if (IsInstance(e, ArgumentsRequired)) && ((argSymbols == nil) || (GetArrayLength(argSymbols) == 0)) {
 								// todo: provide random symbols to try
 								// return;
 								// return false;
@@ -85,7 +85,7 @@ func testWatchTickersHelperBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 			Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), exchange.Json(argSymbols)), " must return a dictionary. "), exchange.Json(response)))
 			var values []any = ObjectValues(response)
 			var checkedSymbol any = nil
-			if !IsEqual(argSymbols, nil) && (GetArrayLength(argSymbols) == 1) {
+			if (argSymbols != nil) && (GetArrayLength(argSymbols) == 1) {
 				checkedSymbol = GetValue(argSymbols, 0)
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)

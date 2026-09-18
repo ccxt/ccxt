@@ -1247,11 +1247,11 @@ func (this *Woofipro) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes any = []any{}
 	symbols = this.MarketSymbols(symbols)
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			if ccxt.IsEqual(symbols, nil) {
+			if symbols == nil {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
 			var symbol any = ccxt.GetValue(symbols, i)

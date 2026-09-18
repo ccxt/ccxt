@@ -1230,7 +1230,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
 			var symbolsLength int = GetArrayLength(symbols)
@@ -4241,7 +4241,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
 			var symbolsLength int = GetArrayLength(symbols)

@@ -479,7 +479,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, false, true)
 	var marketType any = nil
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbols), "watchBidsAsks() markets is required")
@@ -879,7 +879,7 @@ func (this *Mexc) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	var volume *float64 = this.SafeNumber2(ohlcv, "v", "volume")
 	// MEXC swap websocket klines publish contracts volume in `q`,
 	// while spot/protobuf uses `v`/`volume`.
-	if (!ccxt.IsEqual(market, nil)) && (!ccxt.IsEqual(this.SafeBool(market, "spot"), true)) && (volume == nil) {
+	if (market != nil) && (!ccxt.IsEqual(this.SafeBool(market, "spot"), true)) && (volume == nil) {
 		volume = this.SafeNumber2(ohlcv, "q", "v")
 	}
 	return []any{this.SafeTimestamp2(ohlcv, "t", "windowStart"), this.SafeNumber2(ohlcv, "o", "openingPrice"), this.SafeNumber2(ohlcv, "h", "highestPrice"), this.SafeNumber2(ohlcv, "l", "lowestPrice"), this.SafeNumber2(ohlcv, "c", "closingPrice"), volume}
@@ -2142,7 +2142,7 @@ func (this *Mexc) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, false, true)
 	var marketType any = nil
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks required symbols argument"))
 	}
 	var markets any = this.RequireValue(this.MarketsForSymbols(symbols), "unWatchBidsAsks() markets is required")

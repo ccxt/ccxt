@@ -1844,7 +1844,7 @@ func (this *Deribit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var code any = DerefScalar(this.SafeString2(params, "code", "currency"))
 	var typeVar any = nil
 	params = this.Omit(params, []any{"code"})
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
 			if !IsEqual(code, nil) && !IsEqual(code, GetValue(market, "base")) {

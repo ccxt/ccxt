@@ -1447,7 +1447,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	var hip3paramsVariable []any = this.HandleOptionAndParams(params, "fetchTickers", "hip3", false)
 	hip3 = GetValue(hip3paramsVariable, 0)
 	params = GetValue(hip3paramsVariable, 1)
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		// infer from first symbol
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
@@ -4727,7 +4727,7 @@ func (this *Hyperliquid) fetchPositionBody(ch chan any, symbol any, optionalArgs
 func (this *Hyperliquid) GetDexFromSymbols(methodName any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		return nil
 	}
 	var symbolsLength int = GetArrayLength(symbols)

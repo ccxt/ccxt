@@ -269,7 +269,7 @@ func (this *Bydfi) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "ticker::"
 	var channels any = []any{}
 	var channel string = "@ticker"
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&messageHashes, messageHash+"all")
 		ccxt.AppendToArray(&channels, "!ticker@arr")
 	} else {
@@ -318,7 +318,7 @@ func (this *Bydfi) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var subscription map[string]any = map[string]any{
 		"topic": "ticker",
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		// all tickers and tickers for specific symbols are different channels
 		// we need to unsubscribe from all ticker channels
 		var subHashes any = this.GetMessageHashesForTickersUnsubscription()
@@ -862,7 +862,7 @@ func (this *Bydfi) watchOrdersForSymbolsBody(ch chan any, symbols any, optionalA
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var messageHashes any = []any{}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&messageHashes, "orders")
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1031,7 +1031,7 @@ func (this *Bydfi) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true)
 	var messageHashes any = []any{}
 	var messageHash string = "positions"
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

@@ -1660,7 +1660,7 @@ func (this *Bybit) ParseWsTrade(trade any, optionalArgs ...any) any {
 		}
 		return "spot"
 	}()
-	if !ccxt.IsEqual(market, nil) {
+	if market != nil {
 		marketType = ccxt.GetValue(market, "type")
 	}
 	var marketId *string = this.SafeString(trade, "s")
@@ -2022,7 +2022,7 @@ func (this *Bybit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var method string = "watchPositions"
 	var messageHash any = ""
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}
@@ -2222,7 +2222,7 @@ func (this *Bybit) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var method string = "watchPositions"
 	var messageHash string = "unsubscribe:positions"
 	var subHash string = "positions"
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders"))
 	}
 

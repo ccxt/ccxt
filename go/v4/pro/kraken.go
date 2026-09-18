@@ -1474,7 +1474,7 @@ func (this *Kraken) watchPrivateBody(ch chan any, name any, optionalArgs ...any)
 		},
 		"req_id": requestId,
 	}
-	if !ccxt.IsEqual(params, nil) {
+	if params != nil {
 		subscribe["params"] = this.DeepExtend(subscribe["params"], params)
 	}
 
@@ -1609,7 +1609,7 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = ccxt.DerefScalar(this.SafeString(trade, "symbol"))
-	if !ccxt.IsEqual(market, nil) {
+	if market != nil {
 		symbol = ccxt.GetValue(market, "symbol")
 	}
 	var fee any = nil
@@ -1846,7 +1846,7 @@ func (this *Kraken) watchMultiHelperBody(ch chan any, unifiedName any, channelNa
 	ccxt.PanicOnError(retRes14558)
 	// symbols are required
 	symbols = this.MarketSymbols(symbols, nil, false, true, false)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 
 		return nil
 	}

@@ -1692,7 +1692,7 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeObject map[string]any = SafeMapTyped(trade, "fee")
 	var marketId *string = this.SafeString(trade, "product_id")
 	market = this.SafeMarket(marketId, market, "-")
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 	} else {
 		var baseId *string = this.SafeString(amountObject, "currency")
@@ -1729,7 +1729,7 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	var feeCurrencyId any = DerefScalar(this.SafeString(feeObject, "currency"))
 	var feeCost *float64 = this.SafeNumber(feeObject, "amount", this.ParseNumber(v3FeeCost))
-	if (IsEqual(feeCurrencyId, nil)) && (!IsEqual(market, nil)) && (feeCost != nil) {
+	if (IsEqual(feeCurrencyId, nil)) && (market != nil) && (feeCost != nil) {
 		feeCurrencyId = GetValue(market, "quote")
 	}
 	var datetime *string = this.SafeStringN(trade, []any{"created_at", "trade_time", "time"})
@@ -2712,7 +2712,7 @@ func (this *Coinbase) fetchTickersV3Body(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		request["product_ids"] = this.MarketIds(symbols)
 	}
 	var marketType any = nil
@@ -4197,7 +4197,7 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 	var datetime *string = this.SafeString(order, "created_time")
 	var totalFees *string = this.SafeString(order, "total_fees")
 	var currencyFee any = nil
-	if (totalFees != nil) && (!IsEqual(market, nil)) {
+	if (totalFees != nil) && (market != nil) {
 		currencyFee = GetValue(market, "quote")
 	}
 	return this.SafeOrder(map[string]any{
@@ -5290,7 +5290,7 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		request["product_ids"] = this.MarketIds(symbols)
 	}
 
@@ -6241,7 +6241,7 @@ func (this *Coinbase) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 	}
 	var typeVar any = nil

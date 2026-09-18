@@ -291,7 +291,7 @@ func (this *Xt) subscribeBody(ch chan any, name any, access any, methodName any,
 		return "spot"
 	}()
 	var messageHash any = ccxt.Add(ccxt.Add(name, "::"), tradeType)
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.Join(symbols, ","))
 	}
 	var request map[string]any = this.Extend(subscribe, params)
@@ -525,7 +525,7 @@ func (this *Xt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
 	var market any = nil
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		market = this.Market(ccxt.GetValue(symbols, 0))
 	}
 
@@ -572,7 +572,7 @@ func (this *Xt) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var options any = this.SafeDict(this.Options, "unWatchTickers")
 	var defaultMethod *string = this.SafeString(options, "method", "tickers")
 	var name *string = this.SafeString(params, "method", defaultMethod)
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only"))
 	}
 	var messageHash any = ccxt.Add("unsubscribe::", name)

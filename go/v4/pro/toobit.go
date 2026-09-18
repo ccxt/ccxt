@@ -1315,7 +1315,7 @@ func (this *Toobit) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHash any = ""
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
 		messageHash = "::" + ccxt.Join(symbols, ",")

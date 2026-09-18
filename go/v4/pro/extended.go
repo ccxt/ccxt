@@ -490,7 +490,7 @@ func (this *Extended) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var messageHash any = "positions"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}
 

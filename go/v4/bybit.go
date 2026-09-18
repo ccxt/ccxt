@@ -3674,7 +3674,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var code any = DerefScalar(this.SafeStringN(params, []any{"code", "currency", "baseCoin"}))
 	var market any = nil
 	var parsedSymbols any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		parsedSymbols = []any{}
 		var marketTypeInfo []any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 		var defaultType any = GetValue(marketTypeInfo, 0) // don't omit here
@@ -4077,7 +4077,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
 		var symbolsLength int = GetArrayLength(symbols)
@@ -4439,7 +4439,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) any {
 			return "contract"
 		}()
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		marketType = GetValue(market, "type")
 	}
 	market = this.SafeMarket(marketId, market, nil, marketType)
@@ -5245,7 +5245,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(order, "symbol")
 	var isContract bool = (InOp(order, "tpslMode"))
 	var marketType any = nil
-	if !IsEqual(market, nil) {
+	if market != nil {
 		marketType = GetValue(market, "type")
 	} else {
 		marketType = func() any {
@@ -8716,7 +8716,7 @@ func (this *Bybit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var symbol any = nil
-	if (!IsEqual(symbols, nil)) && IsArray(symbols) {
+	if (symbols != nil) && IsArray(symbols) {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 1 {
 			panic(ArgumentsRequired(this.Id + " fetchPositions() does not accept an array with more than one symbol"))
@@ -10394,7 +10394,7 @@ func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var defaultType any = func() any {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			return GetValue(market, "type")
 		}
 		return "contract"
@@ -11094,7 +11094,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		"baseCoin": baseCoin,
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))
@@ -11460,7 +11460,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market any = nil
 	var symbol any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 		if GetValue(market, "spot") == true {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
@@ -11946,7 +11946,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	var market any = nil
 	var subType any = nil
 	var symbolsLength int = 0
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbolsLength = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
@@ -11960,7 +11960,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"category": subType,
 	}
-	if (!IsEqual(symbols, nil)) && (symbolsLength == 1) {
+	if (symbols != nil) && (symbolsLength == 1) {
 		request["symbol"] = this.SafeString(market, "id")
 	}
 	if !IsEqual(since, nil) {
@@ -12635,7 +12635,7 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchPositionsADLRank() requires a symbols argument"))
 	}
 	if this.Markets == nil {
@@ -12944,7 +12944,7 @@ func (this *Bybit) Sign(path any, optionalArgs ...any) any {
 	if IsEqual(method, "POST") {
 		var brokerId *string = this.SafeString(this.Options, "brokerId", "CCXT")
 		headers = func() any {
-			if IsEqual(headers, nil) {
+			if headers == nil {
 				return map[string]any{}
 			}
 			return headers

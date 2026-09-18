@@ -2471,7 +2471,7 @@ func (this *Mexc) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	var isSingularMarket bool = false
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		isSingularMarket = (length == 1)
 		var firstSymbol *string = this.SafeString(symbols, 0)
@@ -2750,7 +2750,7 @@ func (this *Mexc) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	var isSingularMarket bool = false
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		isSingularMarket = (length == 1)
 		market = this.Market(GetValue(symbols, 0))
@@ -7164,7 +7164,7 @@ func (this *Mexc) ParseTransactionFees(response any, optionalArgs ...any) any {
 		var currencyId *string = this.SafeString(entry, "coin")
 		var currency map[string]any = this.SafeCurrency(currencyId).(map[string]any)
 		var code *string = this.SafeString(currency, "code")
-		if (IsEqual(codes, nil)) || (this.InArray(code, codes)) {
+		if (codes == nil) || (this.InArray(code, codes)) {
 			AddElementToObject(withdrawFees, code, this.ParseTransactionFee(entry, currency))
 		}
 	}
@@ -7486,7 +7486,7 @@ func (this *Mexc) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes617512)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -7674,7 +7674,7 @@ func (this *Mexc) Sign(path any, optionalArgs ...any) any {
 		}
 		if (IsEqual(method, "POST")) || (IsEqual(method, "PUT")) || (IsEqual(method, "DELETE")) {
 			headers = func() any {
-				if IsEqual(headers, nil) {
+				if headers == nil {
 					return map[string]any{}
 				}
 				return headers

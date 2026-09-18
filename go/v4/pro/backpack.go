@@ -1576,7 +1576,7 @@ func (this *Backpack) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var messageHashes any = []any{}
 	var topics any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions"+":", symbol))
@@ -1628,7 +1628,7 @@ func (this *Backpack) unWatchPositionsBody(ch chan any, optionalArgs ...any) any
 	symbols = this.MarketSymbols(symbols)
 	var messageHashes any = []any{}
 	var topics any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:positions"+":", symbol))

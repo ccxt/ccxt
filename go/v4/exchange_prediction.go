@@ -143,7 +143,7 @@ func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs .
 	// own-line length read so the regex transpiler treats `queries` as an array (count())
 	// and not a string (strlen()); guard undefined since the default is undefined
 	var queriesLength int = 0
-	if !IsEqual(queries, nil) {
+	if queries != nil {
 		queriesLength = GetArrayLength(queries)
 	}
 	if queriesLength > 0 {
@@ -207,10 +207,10 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	searchIn := GetArg(optionalArgs, 0, nil)
 	_ = searchIn
 	var queriesLength int = 0
-	if !IsEqual(queries, nil) {
+	if queries != nil {
 		queriesLength = GetArrayLength(queries)
 	}
-	if (searchIn == nil) || (IsEqual(queries, nil)) || (queriesLength == 0) {
+	if (searchIn == nil) || (queries == nil) || (queriesLength == 0) {
 		return events
 	}
 	var checkTitle bool = (searchIn == "title") || (searchIn == "both")
@@ -274,7 +274,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 	// object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
 	tags := GetArg(optionalArgs, 0, nil)
 	_ = tags
-	if (IsEqual(tags, nil)) || (GetArrayLength(tags) == 0) {
+	if (tags == nil) || (GetArrayLength(tags) == 0) {
 		return events
 	}
 	var wanted any = []any{}
@@ -759,7 +759,7 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan any, optionalArgs ...an
 	_ = reload
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if !IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		var missing any = []any{}
 		for i := 0; i < GetArrayLength(outcomes); i++ {
 			if EvalTruthy(reload) || !EvalTruthy(this.HasOutcome(GetValue(outcomes, i))) {
@@ -1996,19 +1996,19 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	_ = outcomeObj
 	var fallback *string = this.SafeString2(orderbook, "outcome", "symbol")
 	AddElementToObject(orderbook, "outcome", func() any {
-		if IsEqual(outcomeObj, nil) {
+		if outcomeObj == nil {
 			return fallback
 		}
 		return this.SafeString(outcomeObj, "outcome", fallback)
 	}())
 	AddElementToObject(orderbook, "outcomeId", func() any {
-		if IsEqual(outcomeObj, nil) {
+		if outcomeObj == nil {
 			return this.SafeString(orderbook, "outcomeId")
 		}
 		return this.SafeString(outcomeObj, "outcomeId")
 	}())
 	AddElementToObject(orderbook, "market", func() any {
-		if IsEqual(outcomeObj, nil) {
+		if outcomeObj == nil {
 			return this.SafeString(orderbook, "market")
 		}
 		return this.SafeString(outcomeObj, "market")

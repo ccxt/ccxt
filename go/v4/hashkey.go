@@ -4467,7 +4467,7 @@ func (this *Hashkey) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var methodName string = "fetchPositions"
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a symbol argument with one single market symbol"))
 	} else {
 		var symbolsLength int = GetArrayLength(symbols)

@@ -1260,7 +1260,7 @@ func (this *Bitflyer) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ArgumentsRequired(this.Id + " fetchPositions() requires a `symbols` argument, exactly one symbol in an array"))
 	}
 	if this.Markets == nil {

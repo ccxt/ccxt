@@ -1456,7 +1456,7 @@ func (this *Polymarket) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())"))
 	}
 	// batch-resolve the uncached outcomes (one gamma request per 50 token ids)
@@ -1631,7 +1631,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	var outcome any = this.SafeOutcomeSymbol(nil, market)
 	var timestamp *int64 = this.SafeInteger(bookData, "timestamp", this.Milliseconds())
 	var quoteVolume *float64 = nil
-	if !ccxt.IsEqual(market, nil) {
+	if market != nil {
 		quoteVolume = this.SafeNumber2(ccxt.GetValue(market, "info"), "volume24hr", "volume")
 	}
 	return this.SafePredictionTicker(map[string]any{
@@ -2269,7 +2269,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 	}()
 	var assetId *string = this.SafeString2(trade, "asset", "asset_id")
 	var mkt any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return market
 		}
 		return this.SafeOutcome(assetId)
@@ -2395,7 +2395,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var outcomesLength int = 0
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		outcomesLength = ccxt.GetArrayLength(outcomes)
 
 		retRes170612 := (<-this.LoadOutcomesAsync(outcomes))
@@ -2422,7 +2422,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		return nil
 	}
 	var wantedIds map[string]any = map[string]any{}
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
 	}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {

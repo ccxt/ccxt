@@ -1098,7 +1098,7 @@ func (this *Coinsph) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes89312)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var ids any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))

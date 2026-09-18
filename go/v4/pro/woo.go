@@ -660,7 +660,7 @@ func (this *Woo) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes48212 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes48212)
 	}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once"))
 	}
 	var topic string = "ticker"
@@ -790,7 +790,7 @@ func (this *Woo) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		retRes57512 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes57512)
 	}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once"))
 	}
 	var subHash string = "bbos"
@@ -1701,11 +1701,11 @@ func (this *Woo) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes any = []any{}
 	symbols = this.MarketSymbols(symbols)
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-			if ccxt.IsEqual(symbols, nil) {
+			if symbols == nil {
 				panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 			}
 			var symbol any = ccxt.GetValue(symbols, i)

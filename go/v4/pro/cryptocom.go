@@ -1295,7 +1295,7 @@ func (this *Cryptocom) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var messageHash any = "positions"
 	symbols = this.MarketSymbols(symbols)
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
 		messageHash = "positions::" + ccxt.Join(symbols, ",")
