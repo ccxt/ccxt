@@ -1460,8 +1460,8 @@ public partial class deepcoin : Exchange
         {
             parameters = this.omit(parameters, "network");
         }
-        object addressess = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
-        int length = getArrayLength(addressess);
+        List<object> addressess = ccxt.BaseExchange.FromDepositAddressList(await this.FetchDepositAddresses(new List<object>() {code}, parameters));
+        int length = addressess?.Count ?? 0;
         object address = this.safeDict(addressess, 0, new Dictionary<string, object>() {});
         if (((network != null)) && (isGreaterThan(length, 1)))
         {

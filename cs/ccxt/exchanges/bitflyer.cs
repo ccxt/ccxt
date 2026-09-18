@@ -990,7 +990,7 @@ public partial class bitflyer : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol));
         Dictionary<string, object> ordersById = this.indexBy(orders, "id");
         if (inOp(ordersById, id))
         {

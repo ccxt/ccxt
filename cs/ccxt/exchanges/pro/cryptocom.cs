@@ -1097,10 +1097,10 @@ public partial class cryptocom : ccxt.cryptocom
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
+        List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             double? contracts = this.safeNumber(position, "contracts", 0);

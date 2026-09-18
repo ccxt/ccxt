@@ -1137,7 +1137,7 @@ public partial class bitstamp : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
+        List<object> response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
         //
         //    [
         //
@@ -1184,7 +1184,7 @@ public partial class bitstamp : Exchange
         //         }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
@@ -1360,7 +1360,7 @@ public partial class bitstamp : Exchange
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
+        List<object> response = ccxt.BaseExchange.FromDictList(await this.FetchMarketsFromCache(parameters));
         //
         //     [
         //         {

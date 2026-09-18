@@ -2035,7 +2035,7 @@ public partial class blofin : Exchange
         object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
         if ((isTpsl == true))
         {
-            object tpslResponse = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
+            List<object> tpslResponse = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
             IDictionary<string, object> first = this.safeDict(tpslResponse, 0);
             return ccxt.BaseExchange.ToOrder(first);
         } else if ((isTrigger == true))

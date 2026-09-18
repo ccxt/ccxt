@@ -452,7 +452,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return this.events;
         }
-        object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
+        List<object> events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(parameters));
         return this.setEvents(events);
     }
 

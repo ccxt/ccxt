@@ -1542,7 +1542,7 @@ public partial class poloniex : Exchange
         };
         if (isEqual(GetValue(market, "contract"), true))
         {
-            object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {GetValue(market, "symbol")}, parameters));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {GetValue(market, "symbol")}, parameters));
             return ccxt.BaseExchange.ToTicker(this.safeDict(tickers, symbol));
         }
         Dictionary<string, object> response = await this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters));
@@ -2746,7 +2746,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         Dictionary<string, object> indexed = this.indexBy(orders, "id");
         return ccxt.BaseExchange.ToStringValue((inOp(indexed, id)) ? "open" : "closed");
     }
@@ -3376,7 +3376,7 @@ public partial class poloniex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
         IDictionary<string, object> currency = null;
         if (!isEqual(code, null))
         {
@@ -3404,7 +3404,7 @@ public partial class poloniex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
         IDictionary<string, object> currency = null;
         if (!isEqual(code, null))
         {
@@ -3580,7 +3580,7 @@ public partial class poloniex : Exchange
     public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchTransactionsHelper(code, since, limit, parameters));
         IDictionary<string, object> currency = null;
         if (!isEqual(code, null))
         {

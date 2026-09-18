@@ -1232,6 +1232,14 @@ public partial class BaseExchange
         return values;
     }
 
+    // the typed funnel twin: the printer emits FromDictList only for a typed core declared
+    // List<Dictionary<string, object>> (typedCoreFromHelper), so the argument is always that list
+    // and the object overload reboxes it — a null argument passes through as null
+    public static List<object> FromDictList(List<Dictionary<string, object>> values)
+    {
+        return (List<object>)FromDictList((object)values);
+    }
+
     public static Int64 FromInt64(Int64 value)
     {
         return value;
@@ -1561,6 +1569,13 @@ public partial class BaseExchange
         return result;
     }
 
+    // the typed funnel twin: FromOHLCVList is emitted only for a small OHLCV[] core, so the
+    // argument is always that candle list — null passes through as null
+    public static List<object> FromOHLCVList(List<OHLCV> candles)
+    {
+        return (List<object>)FromOHLCVList((object)candles);
+    }
+
     // watchOHLCVForSymbols: `{ symbol: { timeframe: OHLCV[] } }`. Not a types.ts struct, so the
     // generator has no To*/From* pair for it — these two are the hand-written equivalents,
     // built on ToOHLCVList / FromOHLCVList (see OHLCV_DICT_TYPE in build/csharpTranspiler.ts)
@@ -1608,5 +1623,12 @@ public partial class BaseExchange
             result[symbolEntry.Key] = byTimeframe;
         }
         return result;
+    }
+
+    // the typed funnel twin: FromOHLCVDict is emitted only for the `{ symbol: { timeframe:
+    // OHLCV[] } }` core shape the dictionary's own type names — null passes through as null
+    public static Dictionary<string, object> FromOHLCVDict(Dictionary<string, Dictionary<string, List<OHLCV>>> value)
+    {
+        return (Dictionary<string, object>)FromOHLCVDict((object)value);
     }
 }

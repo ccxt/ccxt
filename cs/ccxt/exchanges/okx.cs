@@ -4966,7 +4966,7 @@ public partial class okx : Exchange
         bool isTrigger = ((trigger != null)) && (!isEqual(trigger, false));
         if (isTrigger || ((trailing == true)))
         {
-            object orderInner = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
+            List<object> orderInner = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
             return ccxt.BaseExchange.ToOrder(this.safeDict(orderInner, 0));
         }
         if (isEqual(this.markets, null))
@@ -6820,8 +6820,8 @@ public partial class okx : Exchange
         parameters = this.omit(parameters, "network");
         codeVar = ((string)this.safeCurrencyCode(codeVar));
         string? network = this.networkIdToCode(rawNetwork, codeVar);
-        object responseRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)codeVar), parameters));
-        object response = responseRaw;
+        Dictionary<string, object> responseRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)codeVar), parameters));
+        Dictionary<string, object> response = responseRaw;
         if ((network != null))
         {
             IDictionary<string, object> result = this.safeDict(response, network);
@@ -8562,8 +8562,8 @@ public partial class okx : Exchange
     public async override Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
-        int length = getArrayLength(accounts);
+        List<object> accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
+        int length = accounts?.Count ?? 0;
         object selectedAccount = null;
         if (isGreaterThan(length, 1))
         {

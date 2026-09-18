@@ -4048,7 +4048,7 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object response = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {symbolVar}, parameters));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromFundingRates(await this.FetchFundingRates(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToFundingRate(this.safeValue(response, symbolVar));
     }
 

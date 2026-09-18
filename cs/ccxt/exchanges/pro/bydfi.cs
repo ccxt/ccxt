@@ -346,7 +346,7 @@ public partial class bydfi : ccxt.bydfi
         string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
+        Dictionary<string, object> result = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(result, symbol), timeframeVar));
     }
 
@@ -1042,7 +1042,7 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> parameters = new Dictionary<string, object>() {
             { "type", "swap" },
         };
-        object response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
         var future = getValue(client.futures, messageHash);

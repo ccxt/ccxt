@@ -1212,7 +1212,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbolVar));
     }
 
@@ -2635,8 +2635,8 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         string? network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
-        object depositAddresses = depositAddressesRaw;
+        Dictionary<string, object> depositAddressesRaw = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
+        Dictionary<string, object> depositAddresses = depositAddressesRaw;
         if (inOp(depositAddresses, ((string)network)))
         {
             return ccxt.BaseExchange.ToDepositAddress(getValue(depositAddresses, ((string)network)));

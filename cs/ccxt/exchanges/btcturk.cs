@@ -614,7 +614,7 @@ public partial class btcturk : Exchange
         {
             await this.loadMarkets();
         }
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
     }
 

@@ -10483,7 +10483,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)parameters)["stock"] = true;
             ((IDictionary<string,object>)parameters)["orderStatus"] = "FILLED";
         }
-        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> filteredOrders = this.filterBy(orders, "status", "closed");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filteredOrders, since, limit));
     }
@@ -10533,7 +10533,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)parameters)["stock"] = true;
             ((IDictionary<string,object>)parameters)["orderStatus"] = "CANCELED";
         }
-        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> filteredOrders = this.filterBy(orders, "status", "canceled");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filteredOrders, since, limit));
     }
@@ -10583,7 +10583,7 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)parameters)["stock"] = true;
             ((IDictionary<string,object>)parameters)["orderStatus"] = "FILLED,CANCELED";
         }
-        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> canceledOrders = this.filterBy(orders, "status", "canceled");
         List<object> closedOrders = this.filterBy(orders, "status", "closed");
         List<object> filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
@@ -16079,7 +16079,7 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", symbol },
         };
-        object borrowRates = ccxt.BaseExchange.FromIsolatedBorrowRates(await this.FetchIsolatedBorrowRates(this.extend(request, parameters)));
+        Dictionary<string, object> borrowRates = ccxt.BaseExchange.FromIsolatedBorrowRates(await this.FetchIsolatedBorrowRates(this.extend(request, parameters)));
         return ccxt.BaseExchange.ToIsolatedBorrowRate(this.safeDict(borrowRates, symbol));
     }
 
@@ -17297,9 +17297,9 @@ public partial class binance : Exchange
     {
         // this method should not be called directly, use loadTradingLimits () instead
         parameters ??= new Dictionary<string, object>();
-        object markets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchMarkets());
+        List<object> markets = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchMarkets());
         Dictionary<string, object> tradingLimits = new Dictionary<string, object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, markets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? symbol = this.safeString(market, "symbol");
@@ -17440,7 +17440,7 @@ public partial class binance : Exchange
             response = await this.fapiPrivateGetSymbolConfig(this.extend(request, parameters));
         } else if (subType == "inverse")
         {
-            object fetchMarginModesResponse = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, parameters));
+            Dictionary<string, object> fetchMarginModesResponse = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToMarginMode(getValue(fetchMarginModesResponse, symbol));
         } else
         {

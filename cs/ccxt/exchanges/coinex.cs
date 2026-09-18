@@ -3593,8 +3593,8 @@ public partial class coinex : Exchange
     public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object openOrders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus("pending", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        for (int i = 0; isLessThan(i, getArrayLength(openOrders)); postFixIncrement(ref i))
+        List<object> openOrders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus("pending", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        for (int i = 0; isLessThan(i, openOrders?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(openOrders, i))["status"] = "open";
         }

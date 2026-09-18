@@ -978,7 +978,7 @@ public partial class bigone : Exchange
             return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
         } else
         {
-            object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbol));
         }
     }

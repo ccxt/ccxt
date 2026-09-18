@@ -838,7 +838,7 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = ((string)GetValue(market, "symbol"));
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
-        object result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
+        Dictionary<string, object> result = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(result, symbolVar));
     }
 
@@ -1629,10 +1629,10 @@ public partial class gate : ccxt.gate
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, }));
+        List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, }));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
-        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             double? contracts = this.safeNumber(position, "contracts", 0);

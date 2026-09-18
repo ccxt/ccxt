@@ -1563,7 +1563,7 @@ public partial class kraken : Exchange
     public async override Task<ccxt.LedgerEntry> FetchLedgerEntry(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object items = ccxt.BaseExchange.FromLedgerEntryList(await this.FetchLedgerEntriesByIds(new List<object>() {id},code, parameters));
+        List<object> items = ccxt.BaseExchange.FromLedgerEntryList(await this.FetchLedgerEntriesByIds(new List<object>() {id},code, parameters));
         return ccxt.BaseExchange.ToLedgerEntry(getValue(items, 0));
     }
 
@@ -3729,11 +3729,11 @@ public partial class kraken : Exchange
         // we pass it as is, otherwise we take the 'network' unified param
         if ((depositMethod == null))
         {
-            object depositMethods = ccxt.BaseExchange.FromDictList(await this.FetchDepositMethods(((string)codeVar)));
+            List<object> depositMethods = ccxt.BaseExchange.FromDictList(await this.FetchDepositMethods(((string)codeVar)));
             if ((network != null))
             {
                 // find best matching deposit method, or fallback to the first one
-                for (int i = 0; isLessThan(i, getArrayLength(depositMethods)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, depositMethods?.Count ?? 0); postFixIncrement(ref i))
                 {
                     string? entry = this.safeString(getValue(depositMethods, i), "method");
                     if ((entry == null))

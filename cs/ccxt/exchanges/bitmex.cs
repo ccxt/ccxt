@@ -1445,8 +1445,8 @@ public partial class bitmex : Exchange
                 { "orderID", id },
             } },
         };
-        object response = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.deepExtend(filter, parameters)));
-        int numResults = getArrayLength(response);
+        List<object> response = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.deepExtend(filter, parameters)));
+        int numResults = response?.Count ?? 0;
         if ((numResults == 1))
         {
             return ccxt.BaseExchange.ToOrder(getValue(response, 0));
@@ -1552,7 +1552,7 @@ public partial class bitmex : Exchange
     {
         // Bitmex barfs if you set 'open': false in the filter...
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
         return ccxt.BaseExchange.ToOrderList(this.filterByArray(orders, "status", new List<object>() {"closed", "canceled"}, false));
     }
 
@@ -2919,7 +2919,7 @@ public partial class bitmex : Exchange
         {
             await this.loadMarkets();
         }
-        object leverages = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(symbols, parameters));
+        List<object> leverages = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(symbols, parameters));
         return ccxt.BaseExchange.ToLeverages(this.parseLeverages(leverages, symbols, "symbol"));
     }
 

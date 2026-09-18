@@ -209,7 +209,7 @@ public partial class nado : ccxt.nado
         string messageHash = add("orderbook:", GetValue(market, "symbol"));
         if (!(inOp(this.orderbooks, GetValue(market, "symbol"))))
         {
-            object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
+            Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit)));
             ((IDictionary<string,object>)this.orderbooks)[(string)GetValue(market, "symbol")] = this.orderBook(snapshot, limit);
         }
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic("book_depth", market, messageHash, parameters));
@@ -263,7 +263,7 @@ public partial class nado : ccxt.nado
             ((IList<object>)messageHashes).Add(messageHash);
             if (!(inOp(this.orderbooks, GetValue(market, "symbol"))))
             {
-                object snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
+                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit)));
                 ((IDictionary<string,object>)this.orderbooks)[(string)GetValue(market, "symbol")] = this.orderBook(snapshot, limit);
             }
         }
@@ -451,7 +451,7 @@ public partial class nado : ccxt.nado
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbolVar = this.symbol(symbolVar);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, symbolVar));
     }
 
@@ -917,7 +917,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired (add(this.id, " ws execute requires params.id")) ;
         }
-        object request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CreateOrderRequest(symbol, type, side, amount, price, parameters));
         IDictionary<string, object> placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         if (placeOrder.ContainsKey("trigger"))
         {
@@ -978,7 +978,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired (add(this.id, " ws execute requires params.id")) ;
         }
-        object request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.EditOrderRequest(id, symbol, type, side, amount, price, parameters));
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1013,7 +1013,7 @@ public partial class nado : ccxt.nado
     public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 
@@ -1054,7 +1054,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired (add(this.id, " ws execute requires params.id")) ;
         }
-        object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1114,7 +1114,7 @@ public partial class nado : ccxt.nado
         {
             throw new ArgumentsRequired (add(this.id, " ws execute requires params.id")) ;
         }
-        object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
+        Dictionary<string, object> request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         object response = await this.watchExecuteRequest(requestIdString, request);
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});

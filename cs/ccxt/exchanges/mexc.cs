@@ -4224,7 +4224,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        object response = ccxt.BaseExchange.FromDict(await this.FetchAccountHelper(marketType, query));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromDict(await this.FetchAccountHelper(marketType, query));
         List<object> data = this.safeList(response, "balances", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
@@ -5407,7 +5407,7 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         string? network = this.safeString(parameters, "network");
-        object addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
+        Dictionary<string, object> addressStructures = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(code, parameters));
         IDictionary<string, object> result = null;
         if ((network != null))
         {
@@ -5756,7 +5756,7 @@ public partial class mexc : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
         };
-        object response = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, this.extend(request, parameters)));
+        List<object> response = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, this.extend(request, parameters)));
         return ccxt.BaseExchange.ToPosition(this.safeValue(response, 0));
     }
 

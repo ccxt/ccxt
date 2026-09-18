@@ -649,7 +649,7 @@ public partial class revolutx : Exchange
         {
             await this.loadMarkets();
         }
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         IDictionary<string, object> ticker = this.safeDict(tickers, symbol);
         if ((ticker == null))
         {

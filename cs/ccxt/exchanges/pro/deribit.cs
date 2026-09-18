@@ -905,7 +905,7 @@ public partial class deribit : ccxt.deribit
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
+        Dictionary<string, object> ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolVar), timeframeVar));
     }
 
