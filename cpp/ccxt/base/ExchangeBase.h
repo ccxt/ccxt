@@ -436,7 +436,7 @@ public:
     ccxt::any MAX_VALUE = ccxt::any (1.7976931348623157e308);
 
     // -- json and query-string encoding ----------------------------------------------
-    virtual ccxt::any parseJson (ccxt::any value);
+    virtual ccxt::any parseJson (const ccxt::any& value);
     virtual ccxt::any json (ccxt::any value, ccxt::any params = ccxt::any {});
     virtual ccxt::any isJsonEncodedObject (ccxt::any value);
     // The four qs.stringify() configurations ccxt uses. They differ only in what gets
