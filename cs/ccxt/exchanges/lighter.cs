@@ -2690,7 +2690,7 @@ public partial class lighter : Exchange
         string? side = null;
         if (!isEqual(isAsk, null))
         {
-            side = ((bool) isTrue(isAsk)) ? "sell" : "buy";
+            side = ((bool) (isAsk == true)) ? "sell" : "buy";
         }
         string? type = this.safeString(order, "type");
         if ((type == null))
@@ -3492,8 +3492,8 @@ public partial class lighter : Exchange
         string? takerOrMaker = null;
         if ((side != null) && !isEqual(isMakerAsk, null))
         {
-            bool? isMaker = ((bool) (isEqual(side, "sell"))) ? isMakerAsk : !isTrue(isMakerAsk);
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            bool? isMaker = ((bool) (isEqual(side, "sell"))) ? isMakerAsk : !(isMakerAsk == true);
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },

@@ -211,7 +211,7 @@ public partial class bybit : ccxt.bybit
             List<object> unified = await this.isUnifiedEnabled();
             bool? isUnifiedMargin = this.safeBool(unified, 0, false);
             bool? isUnifiedAccount = this.safeBool(unified, 1, false);
-            if (isTrue(isUsdcSettled) && ((isUnifiedMargin != true)) && ((isUnifiedAccount != true)))
+            if ((isUsdcSettled == true) && ((isUnifiedMargin != true)) && ((isUnifiedAccount != true)))
             {
                 url = getValue(getValue(url, accessibility), "usdc");
             } else
@@ -220,7 +220,7 @@ public partial class bybit : ccxt.bybit
             }
         } else
         {
-            if (isTrue(isSpot))
+            if ((isSpot == true))
             {
                 url = getValue(getValue(url, accessibility), "spot");
             } else if ((isEqual(type, "swap")) || (isEqual(type, "future")))

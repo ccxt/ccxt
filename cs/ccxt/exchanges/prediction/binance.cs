@@ -741,8 +741,8 @@ public partial class binance : PredictionExchange
             if (resolved && ((price != null)))
             {
                 winnerRaw = Precise.stringEq(price, "1");
-                settleFractionRaw = ((bool) isTrue((winnerRaw))) ? 1 : 0;
-                if (isTrue(winnerRaw))
+                settleFractionRaw = ((bool) (winnerRaw == true)) ? 1 : 0;
+                if ((winnerRaw == true))
                 {
                     resolvedOutcomeRaw = outcomeHandle;
                 }

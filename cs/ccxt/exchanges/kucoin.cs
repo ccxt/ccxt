@@ -2719,7 +2719,7 @@ public partial class kucoin : Exchange
         bool? loadedHf = null;
         if (!isEqual(migrated, null))
         {
-            if (isTrue(migrated))
+            if ((migrated == true))
             {
                 loadedHf = true;
             } else

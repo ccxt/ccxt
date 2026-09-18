@@ -4763,7 +4763,7 @@ public partial class okx : Exchange
         string? clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         if ((clientOrderId != null))
         {
-            if (isTrue(isAlgoOrder))
+            if ((isAlgoOrder == true))
             {
                 ((IDictionary<string,object>)request)["algoClOrdId"] = clientOrderId;
             } else
@@ -4772,7 +4772,7 @@ public partial class okx : Exchange
             }
         } else
         {
-            if (isTrue(isAlgoOrder))
+            if ((isAlgoOrder == true))
             {
                 ((IDictionary<string,object>)request)["algoId"] = id;
             } else
@@ -4790,7 +4790,7 @@ public partial class okx : Exchange
         object takeProfit = this.safeValue(parameters, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
-        if (isTrue(isAlgoOrder))
+        if ((isAlgoOrder == true))
         {
             if ((isEqual(stopLossTriggerPrice, null)) && (isEqual(takeProfitTriggerPrice, null)))
             {
@@ -4854,7 +4854,7 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["newSz"] = this.amountToPrecision(symbol, amount);
         }
-        if (!isTrue(isAlgoOrder))
+        if (!(isAlgoOrder == true))
         {
             if (!isEqual(price, null))
             {
@@ -4911,7 +4911,7 @@ public partial class okx : Exchange
             isAlgoOrder = true;
         }
         Dictionary<string, object> response = null;
-        if (isTrue(isAlgoOrder))
+        if ((isAlgoOrder == true))
         {
             response = await this.privatePostTradeAmendAlgos(this.extend(request, parameters));
         } else

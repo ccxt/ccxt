@@ -2009,12 +2009,12 @@ public partial class bingx : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (!isEqual(isBuyer, null))
         {
-            side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
+            side = ((bool) (isBuyer == true)) ? "buy" : "sell";
         }
         bool? isMaker = this.safeBool(trade, "isMaker");
         if (!isEqual(isMaker, null))
         {
-            takeOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takeOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         }
         string? amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if ((!isEqual(market, null)) && (isEqual(getValue(market, "swap"), true)) && (inOp(trade, "volume")))
@@ -3449,7 +3449,7 @@ public partial class bingx : Exchange
         string? marginMode = null;
         if (!isEqual(isolated, null))
         {
-            marginMode = ((bool) isTrue(isolated)) ? "isolated" : "cross";
+            marginMode = ((bool) (isolated == true)) ? "isolated" : "cross";
         }
         Int64? timestamp = this.safeInteger(position, "openTime");
         return this.safePosition(new Dictionary<string, object>() {
@@ -3882,7 +3882,7 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         bool? test = this.safeBool(parameters, "test", false);
-        if (isTrue(test) && ((!isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "inverse"), true))))
+        if ((test == true) && ((!isEqual(getValue(market, "swap"), true)) || (isEqual(getValue(market, "inverse"), true))))
         {
             throw new NotSupported ((string)(this.id + " createOrder() only supports test orders for linear swap markets")) ;
         }

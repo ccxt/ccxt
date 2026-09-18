@@ -1422,7 +1422,7 @@ public partial class revolutx : Exchange
         string? side = this.safeStringLower(trade, "s");
         Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
         bool? isMaker = this.safeBool(trade, "im", false);
-        string takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
+        string takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         object cost = null;
         if (!isEqual(price, null) && !isEqual(amount, null))
         {

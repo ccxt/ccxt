@@ -1509,11 +1509,11 @@ public partial class backpack : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         } else if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
         }
         string? orderId = this.safeString(trade, "orderId");
         Dictionary<string, object> fee = null;

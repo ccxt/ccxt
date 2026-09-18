@@ -2622,7 +2622,7 @@ public partial class htx : Exchange
                 future = (delivery_date != null);
                 swap = !future;
                 linear = (business_type != null);
-                inverse = !isTrue(linear);
+                inverse = !(linear == true);
                 if (swap)
                 {
                     type = "swap";
@@ -2633,12 +2633,12 @@ public partial class htx : Exchange
                     List<object> parts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                     baseId = this.safeStringLower(market, "symbol");
                     quoteId = this.safeStringLower(parts, 1);
-                    settleId = ((bool) isTrue(inverse)) ? baseId : quoteId;
+                    settleId = ((bool) (inverse == true)) ? baseId : quoteId;
                 } else if (future)
                 {
                     type = "future";
                     baseId = this.safeStringLower(market, "symbol");
-                    if (isTrue(inverse))
+                    if ((inverse == true))
                     {
                         quoteId = "USD";
                         settleId = baseId;

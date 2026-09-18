@@ -1655,7 +1655,7 @@ public partial class derive : Exchange
         if (!isEqual(reduceOnly, null))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
-            if (isTrue(reduceOnly) && ((postOnly == true)))
+            if ((reduceOnly == true) && ((postOnly == true)))
             {
                 throw new InvalidOrder ((string)(this.id + " cannot use reduce only with post only time in force")) ;
             }
@@ -1840,7 +1840,7 @@ public partial class derive : Exchange
         if (!isEqual(reduceOnly, null))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
-            if (isTrue(reduceOnly) && ((postOnly == true)))
+            if ((reduceOnly == true) && ((postOnly == true)))
             {
                 throw new InvalidOrder ((string)(this.id + " cannot use reduce only with post only time in force")) ;
             }

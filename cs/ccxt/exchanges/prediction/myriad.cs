@@ -2418,7 +2418,7 @@ public partial class myriad : PredictionExchange
         string? resolvedOutcomeId = this.safeString(raw, "resolvedOutcomeId", "-1");
         bool? voided = this.safeBool(raw, "voided", false);
         bool hasResolution = ((resolvedOutcomeId != "-1")) && ((resolvedOutcomeId != null)) && ((resolvedOutcomeId != ""));
-        bool marketResolved = hasResolution || isTrue(voided);
+        bool marketResolved = hasResolution || (voided == true);
         object resolvedOutcome = null;
         double? volume24h = this.safeNumber(raw, "volume24h");
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
@@ -2450,8 +2450,8 @@ public partial class myriad : PredictionExchange
             if (hasResolution)
             {
                 winnerRaw = ((outcomeId == resolvedOutcomeId));
-                settleFractionRaw = ((bool) isTrue(winnerRaw)) ? 1 : 0;
-                if (isTrue(winnerRaw))
+                settleFractionRaw = ((bool) (winnerRaw == true)) ? 1 : 0;
+                if ((winnerRaw == true))
                 {
                     resolvedOutcome = outcomeHandle;
                 }

@@ -1147,7 +1147,7 @@ public partial class hashkey : Exchange
         bool? isInverse = this.safeBool(market, "inverse");
         if (!isEqual(isInverse, null))
         {
-            if (isTrue(isInverse))
+            if ((isInverse == true))
             {
                 isLinear = false;
                 subType = "inverse";
@@ -1599,20 +1599,20 @@ public partial class hashkey : Exchange
         bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (!isEqual(isBuyer, null))
         {
-            side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
+            side = ((bool) (isBuyer == true)) ? "buy" : "sell";
         }
         string? takerOrMaker = null;
         bool? isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         }
         bool? isBuyerMaker = this.safeBool(trade, "ibm");
         // if public trade
         if (!isEqual(isBuyerMaker, null))
         {
             takerOrMaker = "taker";
-            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
         }
         string? feeCost = this.safeString(trade, "commission");
         string? feeCurrncyId = this.safeString(trade, "commissionAsset");

@@ -1617,20 +1617,20 @@ public partial class aster : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
             if ((side == null))
             {
                 bool? isBuyer = this.safeBool(trade, "buyer");
                 if (!isEqual(isBuyer, null))
                 {
-                    side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
+                    side = ((bool) (isBuyer == true)) ? "buy" : "sell";
                 }
             }
         }
         bool? isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if (!isEqual(isBuyerMaker, null))
         {
-            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -4478,7 +4478,7 @@ public partial class aster : Exchange
         string? marginMode = null;
         string? collateralString = null;
         string? walletBalance = null;
-        if (isTrue(isolated))
+        if ((isolated == true))
         {
             marginMode = "isolated";
             walletBalance = this.safeString(position, "isolatedWallet");

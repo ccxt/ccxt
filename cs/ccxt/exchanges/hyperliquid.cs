@@ -1067,7 +1067,7 @@ public partial class hyperliquid : Exchange
         bool active = true;
         if (!isEqual(isDelisted, null))
         {
-            active = !isTrue(isDelisted);
+            active = !(isDelisted == true);
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
@@ -4087,7 +4087,7 @@ public partial class hyperliquid : Exchange
         bool? crossed = this.safeBool(trade, "crossed");
         if (!isEqual(crossed, null))
         {
-            takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
+            takerOrMaker = ((bool) (crossed == true)) ? "taker" : "maker";
         }
         string? builderFee = this.safeString(trade, "builderFee");
         if ((builderFee != null))

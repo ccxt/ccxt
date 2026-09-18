@@ -978,7 +978,7 @@ public partial class woo : ccxt.woo
         string? takerOrMaker = null;
         if (!isEqual(maker, null))
         {
-            takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (maker == true)) ? "maker" : "taker";
         }
         string? type = this.safeStringLower(trade, "type");
         Dictionary<string, object> fee = null;

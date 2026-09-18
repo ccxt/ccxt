@@ -4303,7 +4303,7 @@ public partial class bybit : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         } else
         {
             string? lastLiquidityInd = this.safeString(trade, "lastLiquidityInd");
@@ -5122,7 +5122,7 @@ public partial class bybit : Exchange
         string? stopLossPrice = ((string)this.omitZero(this.safeString(order, "stopLoss")));
         string? triggerDirection = this.safeString(order, "triggerDirection");
         bool isAscending = ((triggerDirection == "1"));
-        bool isStopOrderType2 = ((triggerPrice != null)) && isTrue(reduceOnly);
+        bool isStopOrderType2 = ((triggerPrice != null)) && (reduceOnly == true);
         if (((stopLossPrice == null)) && ((isStopOrderType2 == true)))
         {
             // check if order is stop order type 2 - stopLossPrice
@@ -8359,7 +8359,7 @@ public partial class bybit : Exchange
         {
             hedged = ((positionIdx != "0"));
         }
-        if ((!isEqual(hedged, null)) && isTrue(hedged))
+        if ((!isEqual(hedged, null)) && (hedged == true))
         {
             side = ((bool) ((positionIdx == "1"))) ? "long" : "short";
         } else if ((side != null))
@@ -8404,7 +8404,7 @@ public partial class bybit : Exchange
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 bool? useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
-                string? price = ((bool) isTrue(useMarkPrice)) ? markPrice : entryPrice;
+                string? price = ((bool) (useMarkPrice == true)) ? markPrice : entryPrice;
                 string? difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else

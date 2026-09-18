@@ -1378,12 +1378,12 @@ public partial class toobit : Exchange
             bool? isBuyerTaker = this.safeBool(trade, "m");
             if (!isEqual(isBuyerTaker, null))
             {
-                isBuyerMaker = !isTrue(isBuyerTaker);
+                isBuyerMaker = !(isBuyerTaker == true);
             }
         }
         if (!isEqual(isBuyerMaker, null))
         {
-            if (isTrue(isBuyerMaker))
+            if ((isBuyerMaker == true))
             {
                 side = "sell";
             } else
@@ -1414,7 +1414,7 @@ public partial class toobit : Exchange
         string? takerOrMaker = null;
         if (!isEqual(isMaker, null))
         {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
         }
         market = this.safeMarket(null, market);
         object symbol = getValue(market, "symbol");

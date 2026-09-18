@@ -3979,7 +3979,7 @@ public partial class pacifica : Exchange
             error = true;
         }
         bool nonEmptyMessage = (((message != null)) && ((message != "")));
-        if (isTrue(error) || nonEmptyMessage)
+        if ((error == true) || nonEmptyMessage)
         {
             string feedback = add((this.id + " "), body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first

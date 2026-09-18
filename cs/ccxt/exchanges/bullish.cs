@@ -977,7 +977,7 @@ public partial class bullish : Exchange
             contractSize = this.safeNumber(market, "contractMultiplier");
             symbol = add(symbol, (":" + settle));
             linear = (settle == quote);
-            inverse = !isTrue(linear);
+            inverse = !(linear == true);
             if (isEqual(type, "swap"))
             {
                 swap = true;

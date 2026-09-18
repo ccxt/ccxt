@@ -2810,7 +2810,7 @@ public partial class xt : Exchange
         bool? isBuyerMaker = this.safeBool(trade, "b");
         if (!isEqual(isBuyerMaker, null))
         {
-            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            side = ((bool) (isBuyerMaker == true)) ? "sell" : "buy";
             takerOrMaker = "taker"; // public trades always taker
         } else
         {
@@ -2823,7 +2823,7 @@ public partial class xt : Exchange
                 bool? isMaker = this.safeBool(trade, "isMaker");
                 if (!isEqual(isMaker, null))
                 {
-                    takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+                    takerOrMaker = ((bool) (isMaker == true)) ? "maker" : "taker";
                 }
             }
             string? orderSide = this.safeStringLower(trade, "orderSide");

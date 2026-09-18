@@ -877,7 +877,7 @@ public partial class hitbtc : Exchange
             bool contract = ((marketType == "futures"));
             bool spot = ((marketType == "spot"));
             bool? marginTrading = this.safeBool(market, "margin_trading", false);
-            bool margin = spot && isTrue(marginTrading);
+            bool margin = spot && (marginTrading == true);
             bool future = (!isEqual(expiry, null));
             bool swap = (contract && !future);
             bool option = false;
@@ -900,7 +900,7 @@ public partial class hitbtc : Exchange
                 settleId = feeCurrencyId;
                 settle = this.safeCurrencyCode(settleId);
                 linear = (((quote != null)) && (isEqual(quote, settle)));
-                inverse = !isTrue(linear);
+                inverse = !(linear == true);
                 symbol = add(add(symbol, ":"), settle);
                 if (future)
                 {
