@@ -109,7 +109,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan any, name any, optional
 	var market any = nil
 	var messageHash any = name
 	var productIds any = nil
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.GetActiveSymbols()
 	}
 	var symbolsLength int = ccxt.GetArrayLength(symbols)
@@ -269,7 +269,7 @@ func (this *Coinbaseinternational) watchFundingRatesBody(ch chan any, optionalAr
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchFundingRates() requires an array of symbols"))
 	}
 	if ccxt.IsEqual(this.Markets, nil) {

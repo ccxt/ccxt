@@ -2389,10 +2389,10 @@ func (this *Htx) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) any {
 		retRes145412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes145412)
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.Symbols
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
 	var result map[string]any = map[string]any{}
@@ -6386,7 +6386,7 @@ func (this *Htx) ParseOrder(order any, optionalArgs ...any) any {
 	var id *string = this.SafeStringN(order, []any{"algo_id", "id", "order_id_str", "order-id", "order_id"})
 	var side any = DerefScalar(this.SafeString2(order, "direction", "side"))
 	var contractCode *string = this.SafeString(order, "contract_code")
-	var isLinearOrder bool = (contractCode != nil) && (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "linear"), true)) && (!IsEqual(GetValue(market, "spot"), true))
+	var isLinearOrder bool = (contractCode != nil) && (market != nil) && (IsEqual(GetValue(market, "linear"), true)) && (!IsEqual(GetValue(market, "spot"), true))
 	var typeVar any = nil
 	if isLinearOrder == true {
 		typeVar = DerefScalar(this.SafeString(order, "type"))
@@ -9275,7 +9275,7 @@ func (this *Htx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	var subTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		var market any = this.Market(firstSymbol)
 		var isLinear any = GetValue(market, "linear")
@@ -10115,7 +10115,7 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbols, 0)
@@ -10701,7 +10701,7 @@ func (this *Htx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbols, 0)
@@ -11929,7 +11929,7 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			var first *string = this.SafeString(symbols, 0)

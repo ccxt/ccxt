@@ -863,7 +863,7 @@ func (this *Upbit) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes65212)
 	}
 	var ids any = nil
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		var allIds any = this.Ids
 		if !IsEqual(allIds, nil) {
 			ids = Join(allIds, ",")
@@ -1051,7 +1051,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var tickers any = []any{}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		// ticker/all returns every market of the requested quote currencies with a single request
 		var quoteIds any = []any{}
 		var marketSymbols any = this.Symbols
@@ -1124,7 +1124,7 @@ func (this *Upbit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Upbit) IdsQueryStrings(ids any, maxQueryLength any) any {
-	if IsEqual(ids, nil) {
+	if ids == nil {
 		return []any{}
 	}
 	var idsString any = ""

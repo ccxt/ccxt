@@ -768,7 +768,7 @@ func (this *Coinex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var marketIds any = this.MarketIds(symbols)
 	var market any = nil
 	var messageHashes any = []any{}
-	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
+	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
@@ -877,7 +877,7 @@ func (this *Coinex) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	var callerMethodNameparamsVariable []any = this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
 	callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable, 0)
 	params = ccxt.GetValue(callerMethodNameparamsVariable, 1)
-	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
+	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
@@ -965,7 +965,7 @@ func (this *Coinex) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
 		panic(ccxt.NotSupported(this.Id + " watchOrderBookForSymbols() aggregation must be one of " + ccxt.Join(aggregations, ", ")))
 	}
 	params = this.Omit(params, "aggregation")
-	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
+	var symbolsDefined bool = (symbols != nil)
 	if !symbolsDefined {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a symbol argument"))
 	}
@@ -1508,7 +1508,7 @@ func (this *Coinex) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var marketIds any = this.MarketIds(symbols)
 	var messageHashes any = []any{}
 	var market any = nil
-	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
+	var symbolsDefined bool = (symbols != nil)
 	if symbolsDefined {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)

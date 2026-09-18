@@ -2076,7 +2076,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 		var depositFee any = GetValue(depositFees, i)
 		var currencyId *string = this.SafeString(depositFee, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (!IsEqual(codes, nil)) && !this.InArray(code, codes) {
+		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
 		if code != nil {
@@ -2095,7 +2095,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (!IsEqual(codes, nil)) && !this.InArray(code, codes) {
+		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
 		if code != nil {
@@ -2243,7 +2243,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 		var entry any = GetValue(depositResponse, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (IsEqual(codes, nil)) || ((code != nil) && (InOp(codes, code))) {
+		if (codes == nil) || ((code != nil) && (InOp(codes, code))) {
 			if code != nil {
 				AddElementToObject(result, code, map[string]any{
 					"deposit": map[string]any{
@@ -2264,7 +2264,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 	for i := 0; i < len(withdrawalKeys); i++ {
 		var currencyId string = GetValue(withdrawalKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code != nil) && ((IsEqual(codes, nil)) || (InOp(codes, code))) {
+		if (code != nil) && ((codes == nil) || (InOp(codes, code))) {
 			var withdrawFee any = this.ParseNumber(GetValue(withdrawalResponse, currencyId))
 			var resultValue any = this.SafeValue(result, code)
 			if IsEqual(resultValue, nil) {

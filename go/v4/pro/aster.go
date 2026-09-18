@@ -203,7 +203,7 @@ func (this *Aster) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes15412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -275,7 +275,7 @@ func (this *Aster) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes20512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -403,7 +403,7 @@ func (this *Aster) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes28612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -481,7 +481,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes33812)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -634,7 +634,7 @@ func (this *Aster) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes46912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -701,7 +701,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes51712)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var firstMarket any = this.GetMarketFromSymbols(symbols)
@@ -760,7 +760,7 @@ func (this *Aster) ParseWsBidAsk(message any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(message, "T")
 	var bidAskSymbol any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return ccxt.GetValue(market, "symbol")
 		}
 		return nil
@@ -1114,7 +1114,7 @@ func (this *Aster) ParseWsTrade(trade any, optionalArgs ...any) any {
 	}
 	var marketId *string = this.SafeString(trade, "s")
 	var defaultType any = func() any {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return this.SafeString(this.Options, "defaultType", "spot")
 		}
 		return ccxt.GetValue(market, "type")
@@ -2065,7 +2065,7 @@ func (this *Aster) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHashes any = []any{}
 	var messageHash string = "positions"
 	symbols = this.MarketSymbols(symbols, "swap", true, true)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

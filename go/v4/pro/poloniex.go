@@ -192,7 +192,7 @@ func (this *Poloniex) subscribeBody(ch chan any, name any, messageHash any, isPr
 	if ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		ccxt.AppendToArray(&marketIds, "all")
 	} else {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " subscribe() symbols is required"))
 		}
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.Join(symbols, ","))
@@ -674,7 +674,7 @@ func (this *Poloniex) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	}
 	var request map[string]any = this.Extend(subscribe, params)
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			ccxt.AppendToArray(&messageHashes, ccxt.Add(name+"::", ccxt.GetValue(symbols, i)))
 		}

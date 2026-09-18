@@ -608,7 +608,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes53712)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var marketIds any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
@@ -648,7 +648,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		AddElementToObject(result, symbol, ticker)
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var filtered map[string]any = map[string]any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var s any = GetValue(symbols, i)

@@ -1679,7 +1679,7 @@ func (this *Bitbns) Sign(path any, optionalArgs ...any) any {
 		var payload string = this.StringToBase64(this.Json(auth))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
 		headers = func() any {
-			if IsEqual(headers, nil) {
+			if headers == nil {
 				return map[string]any{}
 			}
 			return headers

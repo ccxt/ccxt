@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, market any) {
-	if IsEqual(market, nil) {
+	if market == nil {
 		return
 	}
 	var format any = map[string]any{

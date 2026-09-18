@@ -1251,7 +1251,7 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes96912 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes96912)
 	}
-	if IsEqual(symbols, nil) {
+	if symbols == nil {
 		// every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
 		var allSymbols []any = this.Sort(this.Symbols) // symbol iteration order differs per language
 		symbols = allSymbols
@@ -2287,7 +2287,7 @@ func (this *Alpaca) ParseDepositAddress(depositAddress any, optionalArgs ...any)
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var parsedCurrency any = nil
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		parsedCurrency = GetValue(currency, "id")
 	}
 	return map[string]any{
@@ -2880,7 +2880,7 @@ func (this *Alpaca) Sign(path any, optionalArgs ...any) any {
 	var endpoint any = Add("/", this.ImplodeParams(path, params))
 	var url any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), GetValue(api, 0)))
 	headers = func() any {
-		if !IsEqual(headers, nil) {
+		if headers != nil {
 			return headers
 		}
 		return map[string]any{}

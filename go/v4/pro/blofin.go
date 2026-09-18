@@ -372,7 +372,7 @@ func (this *Blofin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.NotSupported(this.Id + " watchTickers() requires a list of symbols"))
 	}
 

@@ -690,7 +690,7 @@ func (this *Nado) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var messageHash any = "ticker"
 	var streamType string = "all_bbo"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbols, 0))
@@ -746,7 +746,7 @@ func (this *Nado) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var messageHash any = "ticker"
 	var streamType string = "all_bbo"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbols, 0))
@@ -789,7 +789,7 @@ func (this *Nado) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var messageHash any = "bidask"
 	var streamType string = "all_bbo"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbols, 0))
@@ -845,7 +845,7 @@ func (this *Nado) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var messageHash any = "bidask"
 	var streamType string = "all_bbo"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbols, 0))
@@ -1141,7 +1141,7 @@ func (this *Nado) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHash any = "positions"
 	var productId any = nil
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			var market any = this.Market(ccxt.GetValue(symbols, 0))
@@ -1204,7 +1204,7 @@ func (this *Nado) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHash any = "positions"
 	var productId any = nil
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			var market any = this.Market(ccxt.GetValue(symbols, 0))

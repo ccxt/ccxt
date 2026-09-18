@@ -1558,7 +1558,7 @@ func (this *Apex) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	if IsEqual(market, nil) && (marketId != nil) {
+	if (market == nil) && (marketId != nil) {
 		var marketsMap any = this.Markets
 		var marketsById any = this.Markets_by_id
 		if (!IsEqual(marketsMap, nil)) && (InOp(marketsMap, marketId)) {

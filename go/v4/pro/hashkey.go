@@ -809,7 +809,7 @@ func (this *Hashkey) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var messageHash string = "positions"
 	var messageHashes any = []any{}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

@@ -166,7 +166,7 @@ func (this *Hitbtc) subscribePublicBody(ch chan any, name any, messageHashPrefix
 	var isBatch bool = (ccxt.GetIndexOf(name, "batch") >= 0)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) && !isBatch {
+	if (symbols != nil) && !isBatch {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(messageHashPrefix, "::"), ccxt.GetValue(symbols, i)))
 		}
@@ -465,7 +465,7 @@ func (this *Hitbtc) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	})
 	params = this.Omit(params, []any{"method", "speed"})
 	var marketIds any = []any{}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&marketIds, "*")
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -704,7 +704,7 @@ func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
 	var bidAskSymbol any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return ccxt.GetValue(market, "symbol")
 		}
 		return nil

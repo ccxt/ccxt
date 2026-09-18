@@ -3095,7 +3095,7 @@ func (this *Grvt) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"sub_account_id": this.GetSubAccountId(params),
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		request["base"] = []any{}
 		request["quote"] = []any{}
@@ -4159,7 +4159,7 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 	if IsEqual(structureType, "EIP712_TRANSFER_TYPE") {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
 		var amountInt any = Multiply(GetValue(request, "num_tokens"), amountMultiplier)
-		if IsEqual(currencyObj, nil) {
+		if currencyObj == nil {
 			panic(ExchangeError(this.Id + " createSignedRequest() missing currencyObj"))
 		}
 		messageData = map[string]any{
@@ -4174,7 +4174,7 @@ func (this *Grvt) CreateSignedRequest(request any, structureType any, optionalAr
 		}
 	} else if IsEqual(structureType, "EIP712_WITHDRAWAL_TYPE") {
 		var amountMultiplier any = this.ConvertToBigIntCustom("1000000")
-		if IsEqual(currencyObj, nil) {
+		if currencyObj == nil {
 			panic(ExchangeError(this.Id + " createSignedRequest() missing currencyObj"))
 		}
 		messageData = map[string]any{

@@ -1470,7 +1470,7 @@ func (this *Paradex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	// the venue: a single symbol is asked for by name, which is 544 bytes
 	// against 1.6 MB
 	var target any = "ALL"
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			target = GetValue(this.Market(GetValue(symbols, 0)), "id")
@@ -2790,7 +2790,7 @@ func (this *Paradex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any)
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var hasOrderIds bool = (!IsEqual(ids, nil)) && (IsArray(ids))
+	var hasOrderIds bool = (ids != nil) && (IsArray(ids))
 	var hasClientOrderIds bool = (!IsEqual(clientOrderIds, nil)) && (IsArray(clientOrderIds))
 	if !hasOrderIds && !hasClientOrderIds {
 		panic(ArgumentsRequired(this.Id + " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter"))

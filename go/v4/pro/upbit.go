@@ -58,11 +58,11 @@ func (this *Upbit) watchPublicMultipleBody(ch chan any, symbols any, channel any
 		retRes4112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes4112)
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.Symbols
 	}
 	symbols = this.MarketSymbols(symbols)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var marketIds any = this.MarketIds(symbols)

@@ -447,7 +447,7 @@ func (this *Coinbase) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes33312 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes33312)
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.Symbols
 	}
 	var name string = "ticker_batch"
@@ -493,7 +493,7 @@ func (this *Coinbase) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		retRes36012 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes36012)
 	}
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = this.Symbols
 	}
 

@@ -2615,7 +2615,7 @@ func (this *Bullish) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	if IsEqual(market, nil) {
+	if market == nil {
 		market = this.SafeMarket(marketId)
 	}
 	var symbol *string = this.SafeSymbol(marketId, market)
@@ -3863,7 +3863,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 		}
 		if IsEqual(path, "v1/users/hmac/login") {
 			headers = func() any {
-				if IsEqual(headers, nil) {
+				if headers == nil {
 					return map[string]any{}
 				}
 				return headers
@@ -3875,7 +3875,7 @@ func (this *Bullish) Sign(path any, optionalArgs ...any) any {
 				panic(AuthenticationError(this.Id + " requires a token, please call signIn() first"))
 			}
 			headers = func() any {
-				if IsEqual(headers, nil) {
+				if headers == nil {
 					return map[string]any{}
 				}
 				return headers

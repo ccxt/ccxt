@@ -507,10 +507,10 @@ func (this *Lighter) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHashes any = []any{}
 	var symbolsLength int = 0
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbolsLength = ccxt.GetArrayLength(symbols)
 	}
-	if (ccxt.IsEqual(symbols, nil)) || (symbolsLength == 0) {
+	if (symbols == nil) || (symbolsLength == 0) {
 		ccxt.AppendToArray(&messageHashes, this.GetMessageHash("ticker"))
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
@@ -1202,7 +1202,7 @@ func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) an
 	var price *string = this.SafeString(liquidation, "price")
 	var baseValue *string = ccxt.Precise.StringMul(contracts, contractSize)
 	var quoteValue *string = ccxt.Precise.StringMul(baseValue, price)
-	if ccxt.IsEqual(market, nil) {
+	if market == nil {
 		return nil
 	}
 	return this.SafeLiquidation(map[string]any{

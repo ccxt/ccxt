@@ -559,7 +559,7 @@ func (this *Mudrex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		}
 		var m any = this.SafeMarket(sym)
 		var symbol any = GetValue(m, "symbol")
-		if !IsEqual(symbols, nil) && !this.InArray(symbol, symbols) {
+		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
 		AddElementToObject(resultTickers, symbol, this.ParseTicker(t, m))

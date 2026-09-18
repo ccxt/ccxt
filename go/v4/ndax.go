@@ -2926,7 +2926,7 @@ func (this *Ndax) ParseDepositAddress(depositAddress any, optionalArgs ...any) a
 	var address *string = this.SafeString(parts, 0)
 	var tag *string = this.SafeString(parts, 1)
 	var code any = nil
-	if !IsEqual(currency, nil) {
+	if currency != nil {
 		code = GetValue(currency, "code")
 	}
 	this.CheckAddress(address)

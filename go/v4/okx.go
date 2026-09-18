@@ -8029,7 +8029,7 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes620712)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var marketIds any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var entry any = GetValue(symbols, i)
@@ -8894,7 +8894,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes694112)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
 			var marketInfo any = this.SafeDict(market, "info", map[string]any{})
@@ -10257,7 +10257,7 @@ func (this *Okx) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 	}
 	var marketType any = nil
@@ -10497,7 +10497,7 @@ func (this *Okx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes825112)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(codes, nil) {
+	if codes != nil {
 		var ids any = this.CurrencyIds(codes)
 		request["ccy"] = Join(ids, ",")
 	}
@@ -10584,7 +10584,7 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) any
 		var feeInfo any = GetValue(response, i)
 		var currencyId *string = this.SafeString(feeInfo, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
+		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var depositWithdrawFee any = this.SafeDict(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
@@ -10923,10 +10923,10 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var symbolsLength any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbolsLength = GetArrayLength(symbols)
 	}
-	if (IsEqual(symbols, nil)) || (!IsEqual(symbolsLength, 1)) {
+	if (symbols == nil) || (!IsEqual(symbolsLength, 1)) {
 		var uly *string = this.SafeString(params, "uly")
 		if uly != nil {
 			request["uly"] = uly
@@ -10940,7 +10940,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		if IsEqual(symbolsLength, 1) {
 			market = this.Market(GetValue(symbols, 0))
 			var marketId *string = this.SafeString(market, "id", "")
@@ -11973,7 +11973,7 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any
 	var request map[string]any = map[string]any{
 		"limit": limit,
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -12118,7 +12118,7 @@ func (this *Okx) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")
 	var symbol any = nil
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 	}
 	return map[string]any{

@@ -745,7 +745,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		// one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
 		// then identities resolve synchronously
 
@@ -786,7 +786,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	var outcomeHandles []string = ccxt.ObjectKeys(outcomesMap)
 	for i := 0; i < len(outcomeHandles); i++ {
 		var outcomeHandle string = ccxt.GetValue(outcomeHandles, i).(string)
-		if !ccxt.IsEqual(outcomes, nil) && !(func() bool { _, ok := requestedOutcomeSymbols[outcomeHandle]; return ok }()) {
+		if (outcomes != nil) && !(func() bool { _, ok := requestedOutcomeSymbols[outcomeHandle]; return ok }()) {
 			continue
 		}
 		var outcomeObj any = this.SafeDict(outcomesMap, outcomeHandle, map[string]any{})
@@ -1184,7 +1184,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		// one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
 		// then identities resolve synchronously
 
@@ -1242,7 +1242,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 		// the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
 		var tradeCoin any = "#" + ccxt.Slice(coin, 1, nil)
 		var outcomeObj any = this.SafeOutcome(tradeCoin)
-		if !ccxt.IsEqual(outcomes, nil) {
+		if outcomes != nil {
 			var outcomeHandle *string = this.SafeString(outcomeObj, "outcome")
 			if (outcomeHandle == nil) || !(ccxt.InOp(requestedOutcomeSymbols, outcomeHandle)) {
 				continue

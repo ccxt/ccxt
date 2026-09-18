@@ -274,7 +274,7 @@ func (this *Kucoin) subscribePublicUtaBody(ch chan any, messageHash any, channel
 	}()
 	var tradeType string = ccxt.ToUpper(urlType)
 	var action any = "subscribe"
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		action = func() any {
 			if unsubscribe != nil && *unsubscribe == true {
@@ -319,7 +319,7 @@ func (this *Kucoin) subscribePrivateUtaBody(ch chan any, messageHashes any, subs
 	this.CheckRequiredCredentials()
 	var requestId string = ccxt.ToString(this.RequestId())
 	var action any = "subscribe"
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		action = func() any {
 			if unsubscribe != nil && *unsubscribe == true {
@@ -501,7 +501,7 @@ func (this *Kucoin) unSubscribeMultipleBody(ch chan any, url any, messageHashes 
 		"response": true,
 	}
 	var message map[string]any = this.Extend(request, params)
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		ccxt.AddElementToObject(subscription, requestId, requestId)
 	}
 	var client ccxt.ClientInterface = this.Client(url)
@@ -700,7 +700,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.GetValue(utaparamsVariable, 1)
 	var isFuturesMethod bool = (!ccxt.IsEqual(marketType, "spot")) && (!ccxt.IsEqual(marketType, "margin"))
-	if (isFuturesMethod || ccxt.EvalTruthy(uta)) && ccxt.IsEqual(symbols, nil) {
+	if (isFuturesMethod || ccxt.EvalTruthy(uta)) && (symbols == nil) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(this.Id+" watchTickers() requires a list of symbols for ", marketType), " markets and unified trading account (uta)")))
 	}
 	var messageHash string = "tickers"
@@ -714,7 +714,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var messageHashes any = []any{}
 	var topics any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", symbol))
@@ -726,7 +726,7 @@ func (this *Kucoin) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	url := (<-this.NegotiateAsync(false, isFuturesMethod))
 	ccxt.PanicOnError(url)
 	var tickers any = nil
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		var allTopic any = ccxt.Add(method, ":all")
 
 		tickers = (<-this.SubscribeAsync(url, messageHash, allTopic, params))
@@ -777,7 +777,7 @@ func (this *Kucoin) subscribePublicMultipleUtaBody(ch chan any, messageHashes an
 	}()
 	var tradeType string = ccxt.ToUpper(urlType)
 	var action any = "subscribe"
-	if !ccxt.IsEqual(subscription, nil) {
+	if subscription != nil {
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		action = func() any {
 			if unsubscribe != nil && *unsubscribe == true {
@@ -3636,7 +3636,7 @@ func (this *Kucoin) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var messageHash string = "positions"
 	var messageHashes any = []any{}
 	symbols = this.MarketSymbols(symbols)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	} else {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

@@ -319,7 +319,7 @@ func (this *P2b) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArg
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("deals::", ccxt.GetValue(symbols, i)))
 		}

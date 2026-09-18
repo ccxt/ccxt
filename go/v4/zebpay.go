@@ -2056,7 +2056,7 @@ func (this *Zebpay) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes150312)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		request["symbols"] = this.MarketIds(symbols)
 	}
 

@@ -2144,13 +2144,13 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var amount *string = this.SafeStringN(trade, []any{"qty", "amount", "q"})
-	if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "swap"), true)) && (InOp(trade, "volume")) {
+	if (market != nil) && (IsEqual(GetValue(market, "swap"), true)) && (InOp(trade, "volume")) {
 		// Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
 		// safeTrade applies contractSize when calculating inverse cost.
 		amount = this.SafeString(trade, "volume")
 	}
 	var price *string = this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
-	if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "linear"), true)) && (IsEqual(this.SafeString(trade, "x"), "TRADE")) {
+	if (market != nil) && (IsEqual(GetValue(market, "linear"), true)) && (IsEqual(this.SafeString(trade, "x"), "TRADE")) {
 		var lastAmount *string = this.SafeString(trade, "l")
 		var lastPrice *string = this.SafeString(trade, "L")
 		if (lastAmount != nil) && (lastPrice != nil) {
@@ -2964,7 +2964,7 @@ func (this *Bingx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes219812)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
@@ -3111,7 +3111,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes232812)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		if firstSymbol != nil {
@@ -3591,7 +3591,7 @@ func (this *Bingx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(response)
 	} else {
 		var market any = nil
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			symbols = this.MarketSymbols(symbols)
 			var firstSymbol *string = this.SafeString(symbols, 0)
 			if firstSymbol != nil {
@@ -4784,7 +4784,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) any {
 		return "swap"
 	}()
 	var marketId *string = this.SafeString2(order, "symbol", "s")
-	if IsEqual(market, nil) {
+	if market == nil {
 		market = this.SafeMarket(marketId, nil, nil, marketType)
 	}
 	var side *string = this.SafeStringLower2(order, "side", "S")
@@ -7078,7 +7078,7 @@ func (this *Bingx) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	var responseCodes []string = ObjectKeys(response)
 	for i := 0; i < len(responseCodes); i++ {
 		var code string = GetValue(responseCodes, i).(string)
-		if (IsEqual(codes, nil)) || (this.InArray(code, codes)) {
+		if (codes == nil) || (this.InArray(code, codes)) {
 			var entry any = GetValue(response, code)
 			depositWithdrawFees[code] = this.ParseDepositWithdrawFee(entry)
 		}
@@ -7842,7 +7842,7 @@ func (this *Bingx) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = func() any {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			return GetValue(market, "symbol")
 		}
 		return nil

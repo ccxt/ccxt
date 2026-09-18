@@ -210,7 +210,7 @@ func (this *Grvt) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers requires a symbols argument"))
 	}
 	var channel any = nil
@@ -998,7 +998,7 @@ func (this *Grvt) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var rawHashes any = []any{}
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			var market any = this.Market(symbol)

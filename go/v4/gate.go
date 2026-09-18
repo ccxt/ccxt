@@ -2787,7 +2787,7 @@ func (this *Gate) PrepareRequest(optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var request map[string]any = map[string]any{}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		if IsEqual(GetValue(market, "contract"), true) {
 			request["contract"] = GetValue(market, "id")
 			if !IsEqual(GetValue(market, "option"), true) {
@@ -2835,7 +2835,7 @@ func (this *Gate) SpotOrderPrepareRequest(optionalArgs ...any) any {
 	query := GetValue(marginModequeryVariable, 1)
 	var request map[string]any = map[string]any{}
 	if !EvalTruthy(trigger) {
-		if IsEqual(market, nil) {
+		if market == nil {
 			panic(ArgumentsRequired(this.Id + " spotOrderPrepareRequest() requires a market argument for non-trigger orders"))
 		}
 		request["account"] = marginMode
@@ -2866,7 +2866,7 @@ func (this *Gate) MultiOrderSpotPrepareRequest(optionalArgs ...any) any {
 	var request map[string]any = map[string]any{
 		"account": marginMode,
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		if EvalTruthy(trigger) {
 			// gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
 			request["market"] = GetValue(market, "id")
@@ -3161,7 +3161,7 @@ func (this *Gate) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		market = this.Market(firstSymbol)
 	}
@@ -3674,7 +3674,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any
 		var entry any = this.SafeDict(response, i, map[string]any{})
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (!IsEqual(codes, nil)) && !this.InArray(code, codes) {
+		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
 		var withdrawFixOnChains any = this.SafeValue(entry, "withdraw_fix_on_chains")
@@ -8547,7 +8547,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var market any = nil
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			market = this.Market(GetValue(symbols, 0))
@@ -8562,7 +8562,7 @@ func (this *Gate) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		typeVar = "swap" // default to swap
 	}
 	if IsEqual(typeVar, "option") {
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			var marketId *string = this.SafeString(market, "id")
 			var optionParts []string = Split(marketId, "-")
 			AddElementToObject(request, "underlying", this.SafeString(optionParts, 0))
@@ -10716,7 +10716,7 @@ func (this *Gate) ParseGreeks(greeks any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(greeks, "name")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if IsEqual(market, nil) {
+	if market == nil {
 		panic(ExchangeError(this.Id + " parseGreeks() could not resolve market"))
 	}
 	return map[string]any{
@@ -11162,7 +11162,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes867112)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))

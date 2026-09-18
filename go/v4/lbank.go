@@ -1051,7 +1051,7 @@ func (this *Lbank) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes85612)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
@@ -3710,7 +3710,7 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response any, optionalArgs ...
 		if canWithdraw == true {
 			var currencyId *string = this.SafeString(fee, "assetCode")
 			var code *string = this.SafeCurrencyCode(currencyId)
-			if (code != nil) && (IsEqual(codes, nil) || this.InArray(code, codes)) {
+			if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 				var withdrawFee *float64 = this.SafeNumber(fee, "fee")
 				if withdrawFee != nil {
 					var resultValue any = this.SafeValue(result, code)

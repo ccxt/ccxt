@@ -386,7 +386,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var timestamp int64 = this.ParseToInt(ccxt.Divide(microtimestamp, 1000))
 	var price *string = this.SafeString(trade, "price")
 	var amount *string = this.SafeString(trade, "amount")
-	if ccxt.IsEqual(market, nil) {
+	if market == nil {
 		market = this.SafeMarket(nil, market)
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")

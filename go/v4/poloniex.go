@@ -1439,7 +1439,7 @@ func (this *Poloniex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes11408)
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols, nil, true, true, false)
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength > 0 {
@@ -3979,7 +3979,7 @@ func (this *Poloniex) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var currencyId string = GetValue(responseKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var feeInfo any = GetValue(response, currencyId)
-		if (code != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
+		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var currency any = this.Currency(code)
 			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
 			var childChains any = this.SafeValue(feeInfo, "childChains")

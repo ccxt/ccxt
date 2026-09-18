@@ -2358,7 +2358,7 @@ func (this *Bitopro) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add("/", this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsEqual(headers, nil) {
+	if headers == nil {
 		headers = map[string]any{}
 	}
 	AddElementToObject(headers, "X-BITOPRO-API", "ccxt")

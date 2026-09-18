@@ -992,7 +992,7 @@ func (this *Indodax) ParseOrder(order any, optionalArgs ...any) any {
 	var filled any = nil
 	var marketId *string = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 		var quoteId any = GetValue(market, "quoteId")
 		var baseId any = GetValue(market, "baseId")
@@ -1825,7 +1825,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 		var marketId string = GetValue(addressKeys, i).(string)
 		var code *string = this.SafeCurrencyCode(marketId)
 		var address *string = this.SafeString(addresses, marketId)
-		if (address != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
+		if (address != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			this.CheckAddress(address)
 			var network any = nil
 			if InOp(networks, marketId) {

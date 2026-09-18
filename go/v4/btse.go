@@ -1375,7 +1375,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes11638)
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var requestedSymbol *string = this.SafeString(symbols, 0)
@@ -1416,7 +1416,7 @@ func (this *Btse) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
-		if IsEqual(symbols, nil) || this.InArray(symbol, symbols) {
+		if (symbols == nil) || this.InArray(symbol, symbols) {
 			var levels any = this.SafeList(entry, "riskLimits", []any{})
 			var tiers any = []any{}
 			for j := 0; j < GetArrayLength(levels); j++ {
@@ -1611,7 +1611,7 @@ func (this *Btse) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var baseVolume *string = this.SafeString(ticker, "amount")
-	if (baseVolume != nil) && (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "contract"), true)) {
+	if (baseVolume != nil) && (market != nil) && (IsEqual(GetValue(market, "contract"), true)) {
 		// for contract markets the amount field is denominated in contracts, verified live -
 		// scaling by contractSize converts it into base currency units
 		var contractSizeString *string = this.NumberToString(GetValue(market, "contractSize"))

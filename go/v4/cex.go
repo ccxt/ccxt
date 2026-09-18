@@ -700,7 +700,7 @@ func (this *Cex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes58012)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		request["pairs"] = this.MarketIds(symbols)
 	}
 

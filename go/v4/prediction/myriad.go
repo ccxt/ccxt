@@ -1822,7 +1822,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	var isMarketTif bool = (tif != nil && *tif == "FOK") || (tif != nil && *tif == "FAK")
 	// resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
 	var outcome any = func() any {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return this.SafeString(market, "outcome")
@@ -3259,7 +3259,7 @@ func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var outcomeId any = func() any {
-		if !ccxt.IsEqual(market, nil) && !ccxt.IsEqual(market, nil) {
+		if (market != nil) {
 			return this.SafeString(ccxt.GetValue(market, "info"), "outcomeId")
 		}
 		return nil
@@ -3734,7 +3734,7 @@ func (this *Myriad) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())"))
 	}
 	var result map[string]any = map[string]any{}
@@ -4672,7 +4672,7 @@ func (this *Myriad) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() requires a list of outcomes (the prices channel is per-market)"))
 	}
 	var symbolsLength int = ccxt.GetArrayLength(outcomes)
@@ -4932,7 +4932,7 @@ func (this *Myriad) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 
 		retRes376912 := (<-this.LoadOutcomesAsync(outcomes))
 		ccxt.PanicOnError(retRes376912)

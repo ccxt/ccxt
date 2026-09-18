@@ -1774,7 +1774,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var costString *string = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
-	if IsEqual(market, nil) {
+	if market == nil {
 		var keys []string = ObjectKeys(trade)
 		for i := 0; i < len(keys); i++ {
 			var currentKey string = GetValue(keys, i).(string)
@@ -1786,7 +1786,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) any {
 	}
 	// if the market is still not defined
 	// try to deduce it from used keys
-	if IsEqual(market, nil) {
+	if market == nil {
 		market = this.GetMarketFromTrade(trade)
 	}
 	var feeCostString *string = this.SafeString(trade, "fee")
@@ -2276,7 +2276,7 @@ func (this *Bitstamp) ParseTransactionFees(response any, optionalArgs ...any) an
 		var id string = GetValue(ids, i).(string)
 		var fees any = this.SafeValue(response, i, map[string]any{})
 		var code *string = this.SafeCurrencyCode(id)
-		if (!IsEqual(codes, nil)) && !this.InArray(code, codes) {
+		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
 		if code != nil {
@@ -3081,7 +3081,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) any
 	var amount any = nil
 	if InOp(transaction, "amount") {
 		amount = DerefScalar(this.SafeString(transaction, "amount"))
-	} else if !IsEqual(currency, nil) {
+	} else if currency != nil {
 		amount = DerefScalar(this.SafeString(transaction, GetValue(currency, "id"), amount))
 		feeCurrency = GetValue(currency, "code")
 	} else if (code != nil) && (currencyId != nil) {
@@ -3777,7 +3777,7 @@ func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var status *string = this.SafeString(transfer, "status")
-	if IsEqual(currency, nil) {
+	if currency == nil {
 		panic(ExchangeError(this.Id + " parseTransfer() could not resolve currency"))
 	}
 	var result map[string]any = map[string]any{

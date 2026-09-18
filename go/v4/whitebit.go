@@ -1270,7 +1270,7 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var currencyId any = GetValue(splitEntry, 0)
 		var feeInfo any = GetValue(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
+		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
@@ -1477,7 +1477,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 		}
 		var symbol any = GetValue(market, "symbol")
 		// Filter by symbols if specified
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			var symbolFound bool = false
 			for j := 0; j < GetArrayLength(symbols); j++ {
 				if IsEqual(GetValue(symbols, j), symbol) {
@@ -1618,7 +1618,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 		if IsEqual(currency, nil) {
 			continue
 		}
-		if !IsEqual(codes, nil) && !this.InArray(code, codes) {
+		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
 		// Find corresponding fee data for this currency
@@ -2030,7 +2030,7 @@ func (this *Whitebit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var onlyContractSymbols bool = true
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var symbol any = GetValue(symbols, i)
 			var market any = this.Market(symbol)
@@ -5580,7 +5580,7 @@ func (this *Whitebit) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var version any = this.SafeValue(api, 0)
 	var accessibility any = this.SafeValue(api, 1)
-	if IsEqual(headers, nil) {
+	if headers == nil {
 		headers = map[string]any{}
 	}
 	AddElementToObject(headers, "User-Agent", Add("ccxt/"+this.Id+"-", this.Version))

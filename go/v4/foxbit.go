@@ -2374,10 +2374,10 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = DerefScalar(this.SafeString(order, "market_symbol"))
-	if IsEqual(market, nil) && !IsEqual(symbol, nil) {
+	if (market == nil) && !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 	}
 	var timestamp any = this.ParseDate(this.SafeString(order, "created_at"))

@@ -1368,7 +1368,7 @@ func (this *Weex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var symbolsLength int = 0
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbolsLength = GetArrayLength(symbols)
 	}
 	var request map[string]any = map[string]any{}
@@ -1558,7 +1558,7 @@ func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var markPrice *string = this.SafeString(ticker, "markPrice")
 	var marketType string = "spot"
-	if (markPrice != nil) || ((!IsEqual(market, nil)) && (IsEqual(GetValue(market, "contract"), true))) {
+	if (markPrice != nil) || ((market != nil) && (IsEqual(GetValue(market, "contract"), true))) {
 		// 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
 		marketType = "swap"
 	}
@@ -2210,7 +2210,7 @@ func (this *Weex) ParseTrade(trade any, optionalArgs ...any) any {
 		}()
 	}
 	var isSpot any = true
-	if IsEqual(market, nil) {
+	if market == nil {
 		var marketId *string = this.SafeString(trade, "symbol")
 		var realizedPnl *string = this.SafeString(trade, "realizedPnl")
 		var marketType any = func() any {
@@ -2357,7 +2357,7 @@ func (this *Weex) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var symbolsLength int = 0
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbolsLength = GetArrayLength(symbols)
 	}
 	var request map[string]any = map[string]any{}
@@ -3315,7 +3315,7 @@ func (this *Weex) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		} else {
 			request["origClientOrderIdList"] = clientOrderIds
 		}
-	} else if !IsEqual(ids, nil) {
+	} else if ids != nil {
 		if isSpot {
 			request["orderIds"] = ids
 		} else {
@@ -4041,7 +4041,7 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) any {
 	if (errorCode != nil) || (errorMessage != nil) {
 		this.HandleOrderOrPositionError(errorCode, errorMessage, order)
 	}
-	if IsEqual(market, nil) {
+	if market == nil {
 		var marketId any = this.FromSandboxMarketId(this.SafeString(order, "symbol"))
 		var positionSide *string = this.SafeString(order, "positionSide")
 		var marketType any = func() any {

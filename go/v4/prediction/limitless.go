@@ -1264,7 +1264,7 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) an
 		book = this.SafeDict(ticker, "book")
 	}
 	var rawLabel any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return this.SafeString(market, "label", this.SafeString(ccxt.GetValue(market, "info"), "outcomeLabel", "yes"))
 		}
 		return "yes"
@@ -1397,7 +1397,7 @@ func (this *Limitless) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())"))
 	}
 	var result map[string]any = map[string]any{}
@@ -3425,7 +3425,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var symbolsLength int = 0
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		symbolsLength = ccxt.GetArrayLength(outcomes)
 	}
 	if symbolsLength > 0 {
@@ -3538,7 +3538,7 @@ func (this *Limitless) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 func (this *Limitless) GetPositionFromClobEntry(label any, optionalArgs ...any) any {
 	entry := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = entry
-	if ccxt.IsEqual(entry, nil) {
+	if entry == nil {
 		return nil
 	}
 	var tokensBalance any = this.SafeDict(entry, "tokensBalance")

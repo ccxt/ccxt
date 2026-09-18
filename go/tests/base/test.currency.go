@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any) {
-	if IsEqual(entry, nil) {
+	if entry == nil {
 		return
 	}
 	var format map[string]any = map[string]any{

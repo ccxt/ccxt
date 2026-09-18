@@ -138,7 +138,7 @@ func (this *Bingx) unWatchBody(ch chan any, messageHash any, subMessageHash any,
 		"reqType":  "unsub",
 	}
 	var symbols any = []any{}
-	if !ccxt.IsEqual(market, nil) {
+	if market != nil {
 		ccxt.AppendToArray(&symbols, ccxt.GetValue(market, "symbol"))
 	}
 	var subscription map[string]any = map[string]any{
@@ -1573,7 +1573,7 @@ func (this *Bingx) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	var messageHash any = ""
 	symbols = this.MarketSymbols(symbols)
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		market = this.GetMarketFromSymbols(symbols)
 		messageHash = "::" + ccxt.Join(symbols, ",")
 	}

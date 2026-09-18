@@ -386,7 +386,7 @@ func (this *Paradex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		},
 	}
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) && ccxt.IsArray(symbols) {
+	if (symbols != nil) && ccxt.IsArray(symbols) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var messageHash any = ccxt.Add(channel+".", ccxt.GetValue(symbols, i))
 			ccxt.AppendToArray(&messageHashes, messageHash)
@@ -634,7 +634,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		},
 	}
 	var messageHashes any = []any{}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 0 {
 			for i := 0; i < ccxt.GetArrayLength(symbols); i++ {

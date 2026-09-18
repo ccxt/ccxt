@@ -2286,7 +2286,7 @@ func (this *Xt) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes179812)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
 	}
@@ -2405,7 +2405,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		market = this.Market(GetValue(symbols, 0))
 	}
 	var typeVar any = nil
@@ -2544,7 +2544,7 @@ func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(ticker, "s")
 	var marketType any = func() any {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			return GetValue(market, "type")
 		}
 		return nil
@@ -2947,7 +2947,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString2(trade, "s", "symbol")
 	var marketType any = func() any {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			return GetValue(market, "type")
 		}
 		return nil
@@ -5941,7 +5941,7 @@ func (this *Xt) ParseLeverageTiers(response any, optionalArgs ...any) any {
 		var marketId *string = this.SafeString(entry, "symbol")
 		var market any = this.SafeMarket(marketId, nil, "_", "contract")
 		var symbol *string = this.SafeSymbol(marketId, market)
-		if !IsEqual(symbols, nil) {
+		if symbols != nil {
 			if this.InArray(symbol, symbols) {
 				AddElementToObject(result, symbol, this.ParseMarketLeverageTiers(entry, market))
 			}
@@ -6523,7 +6523,7 @@ func (this *Xt) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = func() any {
-		if !IsEqual(market, nil) {
+		if market != nil {
 			return GetValue(market, "symbol")
 		}
 		return nil
@@ -6933,7 +6933,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(GetValue(symbols, 0))

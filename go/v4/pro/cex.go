@@ -384,7 +384,7 @@ func (this *Cex) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ticker := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(ticker)
 	var tickerSymbol any = ccxt.GetValue(ticker, "symbol")
-	if !ccxt.IsEqual(symbols, nil) && !this.InArray(tickerSymbol, symbols) {
+	if (symbols != nil) && !this.InArray(tickerSymbol, symbols) {
 
 		retRes32519 := (<-this.WatchTickersAsync(symbols, params))
 		ccxt.PanicOnError(retRes32519)
@@ -982,14 +982,14 @@ func (this *Cex) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 	var remainsPrecision *string = this.SafeString(order, "remains")
 	var remaining any = nil
 	if remainsPrecision != nil {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		remaining = this.CurrencyFromPrecision(ccxt.GetValue(market, "base"), remainsPrecision)
 	}
 	var amount *string = this.SafeString(order, "amount")
 	if !isTransaction {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		this.CurrencyFromPrecision(ccxt.GetValue(market, "base"), amount)

@@ -1633,7 +1633,7 @@ func (this *Toobit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol *string = this.SafeString(symbols, 0)
 		if symbol != nil {
 			market = this.Market(symbol)
@@ -1741,7 +1741,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -1807,7 +1807,7 @@ func (this *Toobit) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -1892,7 +1892,7 @@ func (this *Toobit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any 
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length == 1 {
 			var market any = this.Market(GetValue(symbols, 0))
@@ -3776,7 +3776,7 @@ func (this *Toobit) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var length int = GetArrayLength(symbols)
 		if length > 1 {
 			panic(BadRequest(this.Id + " fetchPositions() only accepts an array with a single symbol or without symbols argument"))

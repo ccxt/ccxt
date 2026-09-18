@@ -454,7 +454,7 @@ func (this *Weex) ParseWsTicker(ticker any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(ticker, "C")
 	var close *string = this.SafeString(ticker, "c")
 	var symbol any = func() any {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return ccxt.GetValue(market, "symbol")
@@ -717,7 +717,7 @@ func (this *Weex) ParseWsTrade(trade any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "T")
 	var symbol any = func() any {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return ccxt.GetValue(market, "symbol")
@@ -1420,7 +1420,7 @@ func (this *Weex) ParseWsBidAsk(message any, optionalArgs ...any) any {
 	_ = market
 	var timestamp *int64 = this.SafeInteger(message, "E")
 	var symbol any = func() any {
-		if ccxt.IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return ccxt.GetValue(market, "symbol")
@@ -2264,7 +2264,7 @@ func (this *Weex) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, "swap", true)
 	var messageHash any = "positions"
 	var subscriptionHash any = messageHash
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}
 	var channel string = "positions"
@@ -2350,7 +2350,7 @@ func (this *Weex) unWatchPositionsBody(ch chan any, optionalArgs ...any) any {
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols."))
 	}
 	var subHash string = "positions"

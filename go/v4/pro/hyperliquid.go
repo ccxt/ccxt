@@ -1638,7 +1638,7 @@ func (this *Hyperliquid) watchPositionsBody(ch chan any, optionalArgs ...any) an
 	params = this.SafeDict(userAddressResult, 1, params)
 	var topic string = "clearinghouseState"
 	var messageHash any = topic + "::positions"
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		symbols = this.MarketSymbols(symbols)
 		messageHash = ccxt.Add(messageHash, "::"+ccxt.Join(symbols, ","))
 	}
@@ -1738,7 +1738,7 @@ func (this *Hyperliquid) unWatchPositionsBody(ch chan any, optionalArgs ...any) 
 		retRes130912 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes130912)
 	}
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		panic(ccxt.NotSupported(this.Id + " unWatchPositions() does not support a symbol parameter, you must unwatch all orders"))
 	}
 	var messageHash string = "unsubscribe:clearinghouseState"

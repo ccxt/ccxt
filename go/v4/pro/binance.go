@@ -895,7 +895,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var name string = "depth"
 	var streamHash any = "multipleOrderbook"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 200 {
 			panic(ccxt.BadRequest(this.Id + " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times"))
@@ -996,7 +996,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 	}
 	var name string = "depth"
 	var streamHash any = "multipleOrderbook"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		streamHash = ccxt.Add(streamHash, "::"+ccxt.Join(symbols, ","))
 	}
 	var watchOrderBookRate *string = this.SafeString(this.Options, "watchOrderBookRate", "100")
@@ -1486,7 +1486,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var streamHash any = "multipleTrades"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 200 {
 			panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times"))
@@ -1593,7 +1593,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
 	var streamHash any = "multipleTrades"
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength > 200 {
 			panic(ccxt.BadRequest(this.Id + " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times"))
@@ -1871,7 +1871,7 @@ func (this *Binance) ParseWsTrade(trade any, optionalArgs ...any) any {
 		return "spot"
 	}()
 	var marketType any = func() any {
-		if !ccxt.IsEqual(market, nil) {
+		if market != nil {
 			return ccxt.GetValue(market, "type")
 		}
 		return fallbackType
@@ -2714,7 +2714,7 @@ func (this *Binance) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
 	if ccxt.EvalTruthy(stock) {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchTickers() with stock stream requires symbols"))
 		}
 		symbols = this.MarketSymbols(symbols, nil, false, false, true)
@@ -2948,7 +2948,7 @@ func (this *Binance) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	stock = ccxt.GetValue(stockparamsVariable, 0)
 	params = ccxt.GetValue(stockparamsVariable, 1)
 	if ccxt.EvalTruthy(stock) {
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchBidsAsks() with stock stream requires symbols"))
 		}
 		symbols = this.MarketSymbols(symbols, nil, false, false, true)
@@ -3009,8 +3009,8 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	var use1sFreq *bool = this.SafeBool(params, "use1sFreq", true)
 	var firstMarket any = nil
 	var marketType any = nil
-	var symbolsDefined bool = (!ccxt.IsEqual(symbols, nil))
-	if !ccxt.IsEqual(symbols, nil) {
+	var symbolsDefined bool = (symbols != nil)
+	if symbols != nil {
 		firstMarket = this.Market(ccxt.GetValue(symbols, 0))
 	}
 	var userDefaultType *string = this.SafeString(this.Options, "defaultType")
@@ -3074,7 +3074,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 	} else {
 		unifiedPrefix = "ticker"
 	}
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var seenUnderlyings map[string]any = map[string]any{}
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
@@ -3148,7 +3148,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan any, methodName any, cha
 		}
 	}
 	var streamHash any = channelName
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		streamHash = ccxt.Add(ccxt.Add(channelName, "::"), ccxt.Join(symbols, ","))
 	}
 	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channelName)), "/"), this.Stream(rawMarketType, streamHash))
@@ -4370,7 +4370,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any 
 	var payload map[string]any = map[string]any{}
 	var market any = nil
 	symbols = this.MarketSymbols(symbols, "swap", true, true, true)
-	if !ccxt.IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbolsLength int = ccxt.GetArrayLength(symbols)
 		if symbolsLength == 1 {
 			market = this.Market(ccxt.GetValue(symbols, 0))
@@ -4378,7 +4378,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any 
 		}
 	}
 	var typeVar any = this.GetMarketType("fetchPositionsWs", market, params)
-	if ccxt.IsEqual(symbols, nil) && (ccxt.IsEqual(typeVar, "spot")) {
+	if (symbols == nil) && (ccxt.IsEqual(typeVar, "spot")) {
 		// when symbols aren't provide
 		// we shouldn't rely on the defaultType
 		typeVar = "future"
@@ -6208,7 +6208,7 @@ func (this *Binance) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	if !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		market = this.GetMarketFromSymbols(symbols)
-		if ccxt.IsEqual(symbols, nil) {
+		if symbols == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
 		messageHash = "::" + ccxt.Join(symbols, ",")

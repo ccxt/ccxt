@@ -1321,7 +1321,7 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes112612)
 	}
 	var request map[string]any = map[string]any{}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		symbols = this.MarketSymbols(symbols)
 		var marketIds any = []any{}
 		for i := 0; i < GetArrayLength(symbols); i++ {
@@ -1815,7 +1815,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		amount = DerefScalar(this.SafeString(trade, "vol"))
 		if InOp(trade, "fee") {
 			var currency any = nil
-			if !IsEqual(market, nil) {
+			if market != nil {
 				currency = GetValue(market, "quote")
 			}
 			fee = map[string]any{
@@ -1832,7 +1832,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) any {
 		price = DerefScalar(this.SafeString(trade, "price"))
 		amount = DerefScalar(this.SafeString(trade, "qty"))
 	}
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 	}
 	var cost *string = this.SafeString(trade, "cost")
@@ -2479,7 +2479,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	var flags *string = this.SafeString(order, "oflags", "")
 	var isPostOnly any = IsGreaterThan(GetIndexOf(flags, "post"), -1)
 	var average *float64 = this.SafeNumber(order, "price")
-	if !IsEqual(market, nil) {
+	if market != nil {
 		symbol = GetValue(market, "symbol")
 		if InOp(order, "fee") {
 			var feeCost *string = this.SafeString(order, "fee")

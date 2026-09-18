@@ -1679,7 +1679,7 @@ func (this *Digifinex) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString *string = this.SafeStringN(trade, []any{"amount", "volume", "size"})
 	var marketId *string = this.SafeStringUpper2(trade, "symbol", "instrument_id")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	if IsEqual(market, nil) {
+	if market == nil {
 		market = this.SafeMarket(marketId)
 	}
 	var timestamp *int64 = this.SafeTimestamp2(trade, "date", "timestamp")
@@ -4132,7 +4132,7 @@ func (this *Digifinex) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	var amountInvested *string = Precise.StringDiv(amountString, leverageString)
 	var amountBorrowed *string = Precise.StringSub(amountString, amountInvested)
 	var currency any = func() any {
-		if IsEqual(market, nil) {
+		if market == nil {
 			return nil
 		}
 		return GetValue(market, "base")
@@ -4619,7 +4619,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	var request map[string]any = map[string]any{}
 	var market any = nil
 	var marketType any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var symbol any = nil
 		if IsArray(symbols) {
 			var symbolsLength int = GetArrayLength(symbols)
@@ -5398,7 +5398,7 @@ func (this *Digifinex) ParseDepositWithdrawFees(response any, optionalArgs ...an
 		var entry any = GetValue(response, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		if (code != nil) && ((IsEqual(codes, nil)) || (this.InArray(code, codes))) {
+		if (code != nil) && ((codes == nil) || (this.InArray(code, codes))) {
 			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
 			if IsEqual(depositWithdrawFee, nil) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))

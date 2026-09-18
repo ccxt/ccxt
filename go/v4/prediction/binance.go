@@ -1026,7 +1026,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())"))
 	}
 
@@ -1208,7 +1208,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	outcomeObj := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
-	if ccxt.IsEqual(outcomeObj, nil) {
+	if outcomeObj == nil {
 		var marketId *string = this.SafeString(order, "marketId")
 		var outcome *string = this.SafeStringUpper(order, "outcome")
 		var market any = this.SafeMarket(marketId)
@@ -1525,7 +1525,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	retRes12288 := (<-this.LoadOutcomesAsync())
 	ccxt.PanicOnError(retRes12288)
 	var requestedOutcomeSymbols map[string]any = map[string]any{}
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 			var requested any = ccxt.GetValue(outcomes, i)
 			var requestedOutcomeObj any = this.SafeOutcome(requested)
@@ -1593,7 +1593,7 @@ func (this *Binance) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeList(response, "positions", []any{})
 	var positions any = this.ParsePredictionPositions(data)
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 
 		ch <- positions
 		return nil
@@ -1670,7 +1670,7 @@ func (this *Binance) fetchPositionBody(ch chan any, outcome any, optionalArgs ..
 func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	outcomeObj := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
-	if ccxt.IsEqual(outcomeObj, nil) {
+	if outcomeObj == nil {
 		var marketId *string = this.SafeString(position, "marketId")
 		var outcome *string = this.SafeStringUpper(position, "outcomeName")
 		var market any = this.SafeMarket(marketId)
@@ -1876,7 +1876,7 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	//
 	outcomeObj := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = outcomeObj
-	if ccxt.IsEqual(outcomeObj, nil) {
+	if outcomeObj == nil {
 		var marketId *string = this.SafeString(trade, "marketId")
 		var outcome *string = this.SafeStringUpper(trade, "outcome")
 		var market any = this.SafeMarket(marketId)

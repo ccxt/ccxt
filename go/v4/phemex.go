@@ -1458,7 +1458,7 @@ func (this *Phemex) CustomParseBidAsk(bidask any, optionalArgs ...any) any {
 	_ = amountKey
 	market := GetArg(optionalArgs, 2, nil)
 	_ = market
-	if IsEqual(market, nil) {
+	if market == nil {
 		panic(ArgumentsRequired(this.Id + " customParseBidAsk() requires a market argument"))
 	}
 	var amount any = DerefScalar(this.SafeString(bidask, amountKey))
@@ -1597,7 +1597,7 @@ func (this *Phemex) ToEn(n any, scale any) any {
 func (this *Phemex) ToEv(amount any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(amount, nil)) || (IsEqual(market, nil)) {
+	if (IsEqual(amount, nil)) || (market == nil) {
 		return amount
 	}
 	return this.ToEn(amount, this.SafeInteger(market, "valueScale"))
@@ -1605,7 +1605,7 @@ func (this *Phemex) ToEv(amount any, optionalArgs ...any) any {
 func (this *Phemex) ToEp(price any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(price, nil)) || (IsEqual(market, nil)) {
+	if (IsEqual(price, nil)) || (market == nil) {
 		return price
 	}
 	return this.ToEn(price, this.SafeInteger(market, "priceScale"))
@@ -1622,7 +1622,7 @@ func (this *Phemex) FromEn(en any, scale any) any {
 func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(ep, nil)) || (IsEqual(market, nil)) {
+	if (IsEqual(ep, nil)) || (market == nil) {
 		return ep
 	}
 	return this.FromEn(ep, this.SafeInteger(market, "priceScale"))
@@ -1630,7 +1630,7 @@ func (this *Phemex) FromEp(ep any, optionalArgs ...any) any {
 func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(ev, nil)) || (IsEqual(market, nil)) {
+	if (IsEqual(ev, nil)) || (market == nil) {
 		return ev
 	}
 	return this.FromEn(ev, this.SafeInteger(market, "valueScale"))
@@ -1638,7 +1638,7 @@ func (this *Phemex) FromEv(ev any, optionalArgs ...any) any {
 func (this *Phemex) FromEr(er any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	if (IsEqual(er, nil)) || (IsEqual(market, nil)) {
+	if (IsEqual(er, nil)) || (market == nil) {
 		return er
 	}
 	return this.FromEn(er, this.SafeInteger(market, "ratioScale"))
@@ -1660,7 +1660,7 @@ func (this *Phemex) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var baseVolume any = nil
-	if (!IsEqual(market, nil)) && (IsEqual(GetValue(market, "spot"), true)) {
+	if (market != nil) && (IsEqual(GetValue(market, "spot"), true)) {
 		baseVolume = this.ParseNumber(this.FromEv(this.SafeString(ohlcv, 7), market))
 	} else {
 		baseVolume = DerefScalar(this.SafeNumber(ohlcv, 7))
@@ -1998,7 +1998,7 @@ func (this *Phemex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes166412)
 	}
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var first any = this.SafeValue(symbols, 0)
 		market = this.Market(first)
 	}
@@ -5102,7 +5102,7 @@ func (this *Phemex) ParseFundingFeeToPrecision(value any, optionalArgs ...any) a
 	_ = market
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
-	if IsEqual(value, nil) || (currencyCode == nil) || IsEqual(market, nil) {
+	if IsEqual(value, nil) || (currencyCode == nil) || (market == nil) {
 		return value
 	}
 	// it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -5483,7 +5483,7 @@ func (this *Phemex) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) any
 		retRes460712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes460712)
 	}
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var first any = this.SafeValue(symbols, 0)
 		var market any = this.Market(first)
 		if !IsEqual(GetValue(market, "settle"), "USD") {

@@ -1266,7 +1266,7 @@ func (this *Modetrade) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var messageHashes any = []any{}
 	symbols = this.MarketSymbols(symbols)
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
 			var symbol any = ccxt.GetValue(symbols, i)
 			ccxt.AppendToArray(&messageHashes, ccxt.Add("positions::", symbol))

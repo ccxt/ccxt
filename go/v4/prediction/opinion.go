@@ -851,7 +851,7 @@ func (this *Opinion) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(outcomes, nil) {
+	if outcomes == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())"))
 	}
 
@@ -1916,7 +1916,7 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	retRes14518 := (<-this.LoadApiKeyAsync())
 	ccxt.PanicOnError(retRes14518)
 	var outcomesLength int = 0
-	if !ccxt.IsEqual(outcomes, nil) {
+	if outcomes != nil {
 		outcomesLength = ccxt.GetArrayLength(outcomes)
 
 		retRes145512 := (<-this.LoadOutcomesAsync(outcomes))
@@ -1939,7 +1939,7 @@ func (this *Opinion) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var wantedTokenIds map[string]any = map[string]any{}
 	// copy to a plain list so the strict null checks see one shape
 	var outcomesList any = func() any {
-		if ccxt.IsEqual(outcomes, nil) {
+		if outcomes == nil {
 			return []any{}
 		}
 		return outcomes

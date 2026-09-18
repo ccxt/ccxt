@@ -1522,7 +1522,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 		retRes116412 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes116412)
 	}
-	if IsEqual(codes, nil) {
+	if codes == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddresses requires a list with one currency code"))
 	}
 	var length int = GetArrayLength(codes)
@@ -3352,7 +3352,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols, nil, true, true)
 	var marketType any = "swap"
 	var market any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		market = this.Market(firstSymbol)
 	}
@@ -3561,7 +3561,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	symbols = this.MarketSymbols(symbols, "swap", true, true, true)
 	var subType any = "linear"
 	var firstMarket any = nil
-	if !IsEqual(symbols, nil) {
+	if symbols != nil {
 		var firstSymbol *string = this.SafeString(symbols, 0)
 		firstMarket = this.Market(firstSymbol)
 	}

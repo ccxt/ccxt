@@ -252,7 +252,7 @@ func (this *Bitget) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes18612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var market any = this.Market(ccxt.GetValue(symbols, 0))
@@ -536,7 +536,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes43212)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	if ccxt.IsEqual(symbols, nil) {
+	if symbols == nil {
 		symbols = []any{}
 	}
 	var market any = this.Market(ccxt.GetValue(symbols, 0))
@@ -899,7 +899,7 @@ func (this *Bitget) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var volumeIndex int = 5
-	if (!ccxt.IsEqual(market, nil)) && (ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true)) {
+	if (market != nil) && (ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true)) {
 		volumeIndex = 6
 	}
 	return []any{this.SafeInteger2(ohlcv, "start", 0), this.SafeNumber2(ohlcv, "open", 1), this.SafeNumber2(ohlcv, "high", 2), this.SafeNumber2(ohlcv, "low", 3), this.SafeNumber2(ohlcv, "close", 4), this.SafeNumber2(ohlcv, "volume", volumeIndex)}
@@ -1619,7 +1619,7 @@ func (this *Bitget) ParseWsTrade(trade any, optionalArgs ...any) any {
 			return "spot"
 		}()
 	}
-	if ccxt.IsEqual(market, nil) {
+	if market == nil {
 		market = this.SafeMarket(instId, nil, nil, defaultType)
 	}
 	var timestamp *int64 = this.SafeIntegerN(trade, []any{"uTime", "cTime", "ts", "T", "execTime"})
@@ -1695,7 +1695,7 @@ func (this *Bitget) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	uta = ccxt.GetValue(utaparamsVariable, 0)
 	params = ccxt.GetValue(utaparamsVariable, 1)
 	symbols = this.MarketSymbols(symbols)
-	if (!ccxt.IsEqual(symbols, nil)) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
+	if (symbols != nil) && !ccxt.EvalTruthy(this.IsEmpty(symbols)) {
 		market = this.GetMarketFromSymbols(symbols)
 		instTypeparamsVariable := this.GetInstType("watchPositions", market, uta, params)
 		instType = ccxt.GetValue(instTypeparamsVariable, 0)
@@ -1924,7 +1924,7 @@ func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) any {
 	var percentageDecimal *string = this.SafeString2(position, "unrealizedPLR", "profitRate")
 	var percentage *string = ccxt.Precise.StringMul(percentageDecimal, "100")
 	var contractSize any = nil
-	if !ccxt.IsEqual(market, nil) {
+	if market != nil {
 		contractSize = ccxt.GetValue(market, "contractSize")
 	}
 	return this.SafePosition(map[string]any{

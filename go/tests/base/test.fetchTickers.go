@@ -51,7 +51,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	AssertDictionaryResponse(exchange, method, response, exchange.Json(argSymbols))
 	var values []any = ObjectValues(response)
 	var checkedSymbol any = nil
-	if !IsEqual(argSymbols, nil) && (GetArrayLength(argSymbols) == 1) {
+	if (argSymbols != nil) && (GetArrayLength(argSymbols) == 1) {
 		checkedSymbol = GetValue(argSymbols, 0)
 	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol)
