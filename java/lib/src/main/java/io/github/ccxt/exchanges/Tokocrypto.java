@@ -1530,7 +1530,7 @@ public class Tokocrypto extends TokocryptoApi
         {
             return this.safeString(market, "id");
         }
-        return Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
+        return (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", ""));
     }
 
     /**
@@ -2124,7 +2124,7 @@ public class Tokocrypto extends TokocryptoApi
                     String brokerId = this.safeString(broker, "marketType");
                     if (!java.util.Objects.equals(brokerId, null))
                     {
-                        ((Map<String, Object>)request).put("clientId", Helpers.add(brokerId, this.uuid22()));
+                        ((Map<String, Object>)request).put("clientId", (brokerId + this.uuid22()));
                     }
                 }
             } else

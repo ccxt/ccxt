@@ -1355,7 +1355,7 @@ public class Bitbank extends BitbankApi
             Object auth = null;
             if (Helpers.isTrue(isTimeWindow))
             {
-                auth = Helpers.add(requestTime, timeWindow);
+                auth = (requestTime + timeWindow);
             } else
             {
                 auth = nonce;

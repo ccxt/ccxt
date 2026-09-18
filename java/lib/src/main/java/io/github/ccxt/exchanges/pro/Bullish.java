@@ -827,7 +827,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         Object messageHash = "balance";
         String tradingAccountIdHash = ("::" + tradingAccountId);
         client.resolve(Helpers.GetValue(this.balance, tradingAccountId), messageHash);
-        client.resolve(Helpers.GetValue(this.balance, tradingAccountId), Helpers.add(messageHash, tradingAccountIdHash));
+        client.resolve(Helpers.GetValue(this.balance, tradingAccountId), (messageHash + tradingAccountIdHash));
     }
 
     /**

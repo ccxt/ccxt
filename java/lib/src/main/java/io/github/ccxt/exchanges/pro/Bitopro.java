@@ -116,7 +116,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 endPart = ((Map<String, Object>)market).get("id");
             } else
             {
-                endPart = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), ":"), this.numberToString(limit));
+                endPart = (Helpers.add(((Map<String, Object>)market).get("id"), ":") + this.numberToString(limit));
             }
             Object orderbook = (this.watchPublic("order-books", messageHash, endPart)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});

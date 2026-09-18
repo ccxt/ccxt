@@ -3009,7 +3009,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
                     payload = body;
                 }
             }
-            Object auth = Helpers.add(Helpers.add(Helpers.add(nonce, method), savedPath), payload);
+            Object auth = ((Helpers.add(nonce, method) + savedPath) + payload);
             Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalNonce = nonce;
             headers = new HashMap<String, Object>() {{

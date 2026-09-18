@@ -141,7 +141,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Object marketId = Helpers.GetValue(market, "symbol"); // spot markets use symbol with slash
         if (java.util.Objects.equals(Helpers.GetValue(market, "type"), "swap"))
         {
-            marketId = Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
+            marketId = (this.safeString(market, "baseId", "") + this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         String action = "1"; // subscribe
         if (Helpers.isTrue(unWatch))

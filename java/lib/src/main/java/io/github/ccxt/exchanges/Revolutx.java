@@ -271,7 +271,7 @@ public class Revolutx extends RevolutxApi
             {
                 bodyString = body;
             }
-            Object message = Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, ((String)method).toUpperCase()), requestPath), queryString), bodyString);
+            Object message = (((Helpers.add(timestamp, ((String)method).toUpperCase()) + requestPath) + queryString) + bodyString);
             Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
             final Object finalTimestamp = timestamp;
             headers = new HashMap<String, Object>() {{

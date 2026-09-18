@@ -258,7 +258,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = Helpers.add(messageHash, Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = (messageHash + Helpers.add(":", ((Map<String, Object>)market).get("id")));
             }
             Object trades = (this.watchPrivate(messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -365,7 +365,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
             {
                 market = this.market(symbol);
                 symbol = ((Map<String, Object>)market).get("symbol");
-                messageHash = Helpers.add(messageHash, Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = (messageHash + Helpers.add(":", ((Map<String, Object>)market).get("id")));
             }
             Object orders = (this.watchPrivate(messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))

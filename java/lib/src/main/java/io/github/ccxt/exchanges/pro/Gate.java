@@ -1991,7 +1991,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             Object payload = new ArrayList<Object>(Arrays.asList(("!" + "all")));
             if (!java.util.Objects.equals(market, null))
             {
-                messageHash = Helpers.add(messageHash, Helpers.add(":", ((Map<String, Object>)market).get("id")));
+                messageHash = (messageHash + Helpers.add(":", ((Map<String, Object>)market).get("id")));
                 Object mid = ((Map<String, Object>)market).get("id");
                 if (!java.util.Objects.equals(mid, null))
                 {

@@ -920,7 +920,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
                 ((List<Object>)messageHashes).add(("orderbook::" + symbol));
-                Object subscriptionHash = Helpers.add(Helpers.add(((Map<String, Object>)market).get("lowercaseId"), "@"), name);
+                Object subscriptionHash = (Helpers.add(((Map<String, Object>)market).get("lowercaseId"), "@") + name);
                 if (java.util.Objects.equals(watchOrderBookRate, null))
                 {
                     throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() watchOrderBookRate is required")) ;
@@ -1006,7 +1006,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 ((List<Object>)subMessageHashes).add(("orderbook::" + symbol));
                 ((List<Object>)messageHashes).add(("unsubscribe:orderbook:" + symbol));
                 Object streamId = ((Map<String, Object>)market).get("lowercaseId");
-                Object subscriptionHash = Helpers.add(Helpers.add(streamId, "@"), name);
+                Object subscriptionHash = (Helpers.add(streamId, "@") + name);
                 Object symbolHash = (((subscriptionHash + "@") + watchOrderBookRate) + "ms");
                 ((List<Object>)subParams).add(symbolHash);
             }
@@ -2958,7 +2958,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                     } else
                     {
                         Object streamId = ((Map<String, Object>)market).get("lowercaseId");
-                        ((List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(Helpers.add(streamId, "@"), channelName), suffix));
+                        ((List<Object>)subscriptionArgs).add((Helpers.add(Helpers.add(streamId, "@"), channelName) + suffix));
                     }
                 }
             } else

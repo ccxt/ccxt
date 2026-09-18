@@ -2565,7 +2565,7 @@ public class Foxbit extends FoxbitApi
         if (java.util.Objects.equals(urlPath, "private"))
         {
             this.checkRequiredCredentials();
-            Object preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
+            Object preHash = ((((this.numberToString(timestamp) + method) + fullPath) + signatureQuery) + bodyToSignature);
             Object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
             ((Map<String, Object>)headers).put("X-FB-ACCESS-KEY", this.apiKey);
             ((Map<String, Object>)headers).put("X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));

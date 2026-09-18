@@ -1592,7 +1592,7 @@ public class Bitflyer extends BitflyerApi
             }
         }
         String baseUrl = (String) this.implodeHostname(((Map<String, Object>)((Map<String, Object>)this.urls).get("api")).get("rest"));
-        Object url = Helpers.add(baseUrl, request);
+        Object url = (baseUrl + request);
         if (java.util.Objects.equals(api, "private"))
         {
             this.checkRequiredCredentials();

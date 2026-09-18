@@ -4023,8 +4023,8 @@ public class Blofin extends BlofinApi
                 if (!Helpers.isTrue(this.isEmpty(query)))
                 {
                     String urlencodedQuery = ("?" + this.urlencode(query));
-                    url = Helpers.add(url, urlencodedQuery);
-                    request = Helpers.add(request, urlencodedQuery);
+                    url = (url + urlencodedQuery);
+                    request = (request + urlencodedQuery);
                 }
             } else
             {

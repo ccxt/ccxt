@@ -2001,7 +2001,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 Object timestamp = String.valueOf(this.seconds());
                 String method = "GET";
                 String path = "/users/self/verify";
-                Object auth = Helpers.add(Helpers.add(timestamp, method), path);
+                Object auth = ((timestamp + method) + path);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
                 final Object finalTimestamp = timestamp;

@@ -1510,7 +1510,7 @@ public class Coinmate extends CoinmateApi
             {
                 ((Map<String, Object>)request).put("amount", this.amountToPrecision(symbol, amount)); // amount in crypto
                 ((Map<String, Object>)request).put("price", this.priceToPrecision(symbol, price));
-                method = Helpers.add(method, this.capitalize(type));
+                method = (method + this.capitalize(type));
             }
             Map<String, Object> requestParams = this.extend(request, parameters);
             Object response = null;

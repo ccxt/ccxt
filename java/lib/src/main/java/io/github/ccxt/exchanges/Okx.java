@@ -2473,8 +2473,8 @@ public class Okx extends OkxApi
         final Object finalExpiry = expiry;
         final Object finalOptionType = optionType;
         return new HashMap<String, Object>() {{
-            put( "id", Helpers.add((Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalBase, "-"), quote) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
-            put( "symbol", Helpers.add((Helpers.add((Helpers.add((Helpers.add((Helpers.add(Helpers.add(finalBase, "/"), quote) + ":"), settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "id", Helpers.add((Helpers.add((Helpers.add(((Helpers.add(finalBase, "-") + quote) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
+            put( "symbol", Helpers.add((Helpers.add((Helpers.add((Helpers.add(((Helpers.add(finalBase, "/") + quote) + ":"), settle) + "-"), finalExpiry) + "-"), strike) + "-"), finalOptionType) );
             put( "base", finalBase );
             put( "quote", quote );
             put( "settle", settle );
@@ -3888,7 +3888,7 @@ public class Okx extends OkxApi
             String bar = this.safeString(this.timeframes, timeframe, timeframe);
             if ((java.util.Objects.equals(timezone, "UTC")) && (Helpers.isGreaterThanOrEqual(duration, 21600)))
             {
-                bar = Helpers.add(bar, timezone.toLowerCase());
+                bar = (bar + timezone.toLowerCase());
             }
             final Object finalBar = bar;
             final Object finalLimit = limit;
@@ -4793,7 +4793,7 @@ public class Okx extends OkxApi
             String brokerId = this.safeString(this.options, "brokerId");
             if (!java.util.Objects.equals(brokerId, null))
             {
-                ((Map<String, Object>)request).put("clOrdId", Helpers.add(brokerId, this.uuid16()));
+                ((Map<String, Object>)request).put("clOrdId", (brokerId + this.uuid16()));
                 ((Map<String, Object>)request).put("tag", brokerId);
             }
         } else
@@ -8544,7 +8544,7 @@ public class Okx extends OkxApi
                         String clientOrderId = this.safeString(entry, "clOrdId");
                         if (java.util.Objects.equals(clientOrderId, null))
                         {
-                            Helpers.addElementToObject(entry, "clOrdId", Helpers.add(brokerId, this.uuid16()));
+                            Helpers.addElementToObject(entry, "clOrdId", (brokerId + this.uuid16()));
                             Helpers.addElementToObject(entry, "tag", brokerId);
                             Helpers.addElementToObject(parameters, i, entry);
                         }
@@ -8554,7 +8554,7 @@ public class Okx extends OkxApi
                     String clientOrderId = this.safeString(parameters, "clOrdId");
                     if (java.util.Objects.equals(clientOrderId, null))
                     {
-                        ((Map<String, Object>)parameters).put("clOrdId", Helpers.add(brokerId, this.uuid16()));
+                        ((Map<String, Object>)parameters).put("clOrdId", (brokerId + this.uuid16()));
                         ((Map<String, Object>)parameters).put("tag", brokerId);
                     }
                 }
@@ -8572,8 +8572,8 @@ public class Okx extends OkxApi
                 if (((List<?>)Helpers.objectKeys(query)).size() > 0)
                 {
                     String urlencodedQuery = ("?" + this.urlencode(query));
-                    url = Helpers.add(url, urlencodedQuery);
-                    auth = Helpers.add(auth, urlencodedQuery);
+                    url = (url + urlencodedQuery);
+                    auth = (auth + urlencodedQuery);
                 }
             } else
             {

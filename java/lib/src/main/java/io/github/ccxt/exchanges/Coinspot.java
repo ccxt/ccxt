@@ -1197,7 +1197,7 @@ public class Coinspot extends CoinspotApi
         Object version = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = ("/" + this.implodeParams(path, parameters));
-        Object fullPath = (((!java.util.Objects.equals(version, null)))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
+        Object fullPath = (((!java.util.Objects.equals(version, null)))) ? (Helpers.add("/", version) + endpoint) : endpoint;
         Object url = Helpers.add(Helpers.GetValue(((Map<String, Object>)this.urls).get("api"), accessType), fullPath);
         if (java.util.Objects.equals(accessType, "private"))
         {

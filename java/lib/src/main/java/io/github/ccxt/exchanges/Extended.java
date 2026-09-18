@@ -4427,7 +4427,7 @@ public class Extended extends ExtendedApi
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
-        url = Helpers.add(Helpers.add((url + "/api/"), version), endpoint);
+        url = (Helpers.add((url + "/api/"), version) + endpoint);
         if ((java.util.Objects.equals(method, "GET") || java.util.Objects.equals(method, "DELETE") || Helpers.isTrue(queryPost)) && (((List<?>)Helpers.objectKeys(query)).size() > 0))
         {
             url = (url + ("?" + this.urlencodeWithArrayRepeat(query)));

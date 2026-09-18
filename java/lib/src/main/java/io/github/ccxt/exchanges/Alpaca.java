@@ -2810,7 +2810,7 @@ public class Alpaca extends AlpacaApi
                 ((Map<String, Object>)headers).put("Content-Type", "application/json");
             }
         }
-        url = Helpers.add(url, endpoint);
+        url = (url + endpoint);
         final Object finalUrl = url;
         final Object finalMethod = method;
         final Object finalBody = body;

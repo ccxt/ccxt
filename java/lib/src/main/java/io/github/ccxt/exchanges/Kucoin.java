@@ -4117,7 +4117,7 @@ public class Kucoin extends KucoinApi
                 {
                     throw new NotSupported((this.id + " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
                 }
-                ((Map<String, Object>)request).put("symbol", Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "-"), suffix));
+                ((Map<String, Object>)request).put("symbol", (Helpers.add(((Map<String, Object>)market).get("id"), "-") + suffix));
             }
             Map<String, Object> response = (this.utaGetMarketKline(this.extend(request, parameters))).join();
             //
@@ -14166,7 +14166,7 @@ final Object finalMarket = market;
             String partnerSecret = this.safeString2(partner, "secret", "key");
             if ((!java.util.Objects.equals(partnerId, null)) && (!java.util.Objects.equals(partnerSecret, null)))
             {
-                Object partnerPayload = Helpers.add(Helpers.add(timestamp, partnerId), this.apiKey);
+                Object partnerPayload = ((timestamp + partnerId) + this.apiKey);
                 Object partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256(), "base64");
                 ((Map<String, Object>)headers).put("KC-API-PARTNER-SIGN", partnerSignature);
                 ((Map<String, Object>)headers).put("KC-API-PARTNER", partnerId);

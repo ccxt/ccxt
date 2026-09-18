@@ -191,10 +191,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         Boolean isTrailingLimitAmountOrder = !java.util.Objects.equals(trailingLimitAmount, null);
         Boolean isTrailingLimitPercentOrder = !java.util.Objects.equals(trailingLimitPercent, null);
         String offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
-        Object trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? Helpers.add(offset, this.numberToString(trailingAmount)) : null;
-        Object trailingPercentString = (((!java.util.Objects.equals(trailingPercent, null)))) ? Helpers.add(offset, this.numberToString(trailingPercent)) : null;
-        Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
-        Object trailingLimitPercentString = (((!java.util.Objects.equals(trailingLimitPercent, null)))) ? Helpers.add(offset, this.numberToString(trailingLimitPercent)) : null;
+        Object trailingAmountString = (((!java.util.Objects.equals(trailingAmount, null)))) ? (offset + this.numberToString(trailingAmount)) : null;
+        Object trailingPercentString = (((!java.util.Objects.equals(trailingPercent, null)))) ? (offset + this.numberToString(trailingPercent)) : null;
+        Object trailingLimitAmountString = (((!java.util.Objects.equals(trailingLimitAmount, null)))) ? (offset + this.numberToString(trailingLimitAmount)) : null;
+        Object trailingLimitPercentString = (((!java.util.Objects.equals(trailingLimitPercent, null)))) ? (offset + this.numberToString(trailingLimitPercent)) : null;
         String priceType = (((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (java.util.Objects.equals(method, "createOrderWs"))
         {

@@ -278,7 +278,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object channelName = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), topic);
+                Object channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
                 Object messageHash = ((topic + "::") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channelName);
@@ -348,7 +348,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object channelName = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), topic);
+                Object channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
                 Object messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
@@ -519,7 +519,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object channelName = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), topic);
+                Object channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
                 Object messageHash = ((topic + "::") + symbol);
                 ((List<Object>)messageHashes).add(messageHash);
                 ((List<Object>)channels).add(channelName);
@@ -588,7 +588,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Map<String, Object> market = (Map<String, Object>) this.market(symbol);
-                Object channelName = Helpers.add(Helpers.add(((Map<String, Object>)market).get("id"), "@"), topic);
+                Object channelName = (Helpers.add(((Map<String, Object>)market).get("id"), "@") + topic);
                 Object messageHash = ((topic + "::") + symbol);
                 String unSubMessageHash = ("unsubscribe::" + messageHash);
                 ((List<Object>)subHashes).add(messageHash);
