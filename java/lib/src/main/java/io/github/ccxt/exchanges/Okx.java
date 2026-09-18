@@ -8905,7 +8905,7 @@ public class Okx extends OkxApi
                 String balanceChange = this.safeString(entry, "balChg");
                 String positionBalanceChange = this.safeString(entry, "posBalChg");
                 String amount = null;
-                if ((!java.util.Objects.equals(balanceChange, null)) && Helpers.isTrue((!Precise.stringEq(balanceChange, "0"))))
+                if ((!java.util.Objects.equals(balanceChange, null)) && (!Precise.stringEq(balanceChange, "0")))
                 {
                     amount = balanceChange;
                 } else
