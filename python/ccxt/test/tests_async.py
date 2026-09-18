@@ -1687,6 +1687,9 @@ class testMainClass:
                 is_disabled_php = exchange.safe_string(result, 'disabledPHP')
                 if (is_disabled_php is not None) and (self.lang == 'PHP'):
                     continue
+                is_disabled_rust = exchange.safe_string(result, 'disabledRS')
+                if (is_disabled_rust is not None) and (self.lang == 'RUST'):
+                    continue
                 exchange.extend_exchange_options(global_options)
                 test_exchange_options = exchange.safe_value(result, 'options', {})
                 exchange.extend_exchange_options(test_exchange_options)
@@ -1713,14 +1716,14 @@ class testMainClass:
         wasm_exec_path = None
         library_path = None
         # const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         # const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         # const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         base_path = get_root_dir() + 'ts/src/test/static/binaries/'
         if exchange_name == 'lighter':
             if self.lang == 'JS':
                 wasm_exec_path = base_path + 'wasm_exec.js'
-                library_path = base_path + 'lighter.wasm'
+                library_path = base_path + 'lighter-signer.wasm'
             else:
                 if is_windows():
                     library_path = base_path + 'lighter-signer-windows-amd64.dll'
@@ -2036,7 +2039,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit(), self.test_bithumb()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -2165,6 +2168,37 @@ class testMainClass:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
         assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
+        if not is_sync():
+            await close(exchange)
+        return True
+
+    async def test_bithumb(self):
+        exchange = self.init_offline_exchange('bithumb')
+        id = 'CCXT'
+        req_headers = {}
+        try:
+            # default path: generation 2, the versioned (jwt-signed) endpoints
+            await exchange.create_order('BTC/KRW', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (v2 endpoints).'
+        req_headers = {}
+        try:
+            # legacy path: generation 1, the hmac-signed endpoints
+            await exchange.create_order('BTC/KRW', 'limit', 'buy', 1, 20000, {
+                'generation': 1,
+            })
+        except Exception as e:
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (legacy endpoints).'
+        req_headers = {}
+        try:
+            # public endpoints carry the partner header as well
+            await exchange.fetch_ticker('BTC/KRW')
+        except Exception as e:
+            req_headers = exchange.last_request_headers if (exchange.last_request_headers is not None and exchange.last_request_headers is not None) else {}
+        assert req_headers['OPEN-API-PARTNER'] == id, 'bithumb - id: ' + id + ' not in headers (public endpoints).'
         if not is_sync():
             await close(exchange)
         return True

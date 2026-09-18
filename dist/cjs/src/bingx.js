@@ -1797,11 +1797,19 @@ class bingx extends bingx$1["default"] {
         //         "markPrice": "16884.5",
         //         "indexPrice": "16886.9",
         //         "lastFundingRate": "0.0001",
-        //         "nextFundingTime": 1672041600000
+        //         "nextFundingTime": 1672041600000,
+        //         "fundingIntervalHours": 8,
+        //         "updateTime": 1672012800000
         //     }
         //
         const marketId = this.safeString(contract, 'symbol');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
+        const timestamp = this.safeInteger(contract, 'updateTime');
+        const interval = this.safeString(contract, 'fundingIntervalHours');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
@@ -1809,8 +1817,8 @@ class bingx extends bingx$1["default"] {
             'indexPrice': this.safeNumber(contract, 'indexPrice'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': this.safeNumber(contract, 'lastFundingRate'),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
@@ -1820,7 +1828,7 @@ class bingx extends bingx$1["default"] {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
     }
     /**

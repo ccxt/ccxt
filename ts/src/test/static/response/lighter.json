@@ -25,8 +25,8 @@
         },
         "apiKeyIndex": 30,
         "integratorAccountIndex": 130303,
-        "integratorMakerFee": 10,
-        "integratorTakerFee": 10
+        "integratorMakerFee": 1000,
+        "integratorTakerFee": 1000
     },
     "methods": {
         "fetchClosedOrders": [
@@ -412,54 +412,57 @@
         ],
         "createOrder": [
             {
-                "description": "create limit  buy order",
+                "description": "swap limit & postonly",
                 "method": "createOrder",
                 "input": [
                     "LTC/USDC:USDC",
                     "limit",
                     "buy",
                     1,
-                    40
+                    40,
+                    {
+                        "postOnly": true
+                    }
                 ],
                 "httpResponse": {
-                    "code": "200",
+                    "code": 200,
                     "message": "{\"ratelimit\": \"didn't use volume quota\"}",
-                    "tx_hash": "01c996483f7bd99173796ec87c6af530de3151fa27194b8998f60ba325a3cbc968d9891c5a5afc77",
-                    "predicted_execution_time_ms": "1772175128392"
+                    "tx_hash": "315d01d9ffdd3615b931cc2ad952bbaa767a9473506c9f404ab374e4cd3f4ab5658c2998dc468ab6",
+                    "predicted_execution_time_ms": 1789494363134
                 },
                 "parsedResponse": {
                     "info": {
-                        "code": "200",
+                        "code": 200,
                         "message": "{\"ratelimit\": \"didn't use volume quota\"}",
-                        "tx_hash": "01c996483f7bd99173796ec87c6af530de3151fa27194b8998f60ba325a3cbc968d9891c5a5afc77",
-                        "predicted_execution_time_ms": "1772175128392",
+                        "tx_hash": "315d01d9ffdd3615b931cc2ad952bbaa767a9473506c9f404ab374e4cd3f4ab5658c2998dc468ab6",
+                        "predicted_execution_time_ms": 1789494363134,
                         "market_index": 35,
-                        "nonce": 7,
-                        "api_key_index": 5,
-                        "account_index": 715085,
+                        "api_key_index": 254,
+                        "account_index": 746962,
                         "is_ask": 0,
                         "order_expiry": -1,
                         "order_type": 0,
-                        "time_in_force": 1,
+                        "time_in_force": 2,
                         "reduce_only": 0,
-                        "client_order_index": 489057754,
+                        "client_order_index": 290148420,
                         "base_amount": 1000,
                         "avg_execution_price": 40000,
                         "trigger_price": 0,
                         "integrator_account_index": 130303,
-                        "integrator_taker_fee": 10,
-                        "integrator_maker_fee": 10
+                        "integrator_taker_fee": 1000,
+                        "integrator_maker_fee": 1000,
+                        "nonce": 1789494361450
                     },
                     "id": null,
-                    "clientOrderId": "489057754",
+                    "clientOrderId": "290148420",
                     "timestamp": null,
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "symbol": "LTC/USDC:USDC",
                     "type": "limit",
-                    "timeInForce": "GTC",
-                    "postOnly": false,
+                    "timeInForce": "PO",
+                    "postOnly": true,
                     "reduceOnly": false,
                     "side": "buy",
                     "price": null,
@@ -479,7 +482,7 @@
                 }
             },
             {
-                "description": "create market buy order",
+                "description": "swap market buy",
                 "method": "createOrder",
                 "input": [
                     "LTC/USDC:USDC",
@@ -514,8 +517,8 @@
                         "avg_execution_price": 60000,
                         "trigger_price": 0,
                         "integrator_account_index": 130303,
-                        "integrator_taker_fee": 10,
-                        "integrator_maker_fee": 10
+                        "integrator_taker_fee": 1000,
+                        "integrator_maker_fee": 1000
                     },
                     "id": null,
                     "clientOrderId": "911280573",

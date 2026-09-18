@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +16,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchOrderBookForSymbols(Exchange exchange, Object skippedProperties, Object symbols)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchOrderBookForSymbols";
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the

@@ -63,7 +63,7 @@ public partial class coincheck : ccxt.coincheck
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add("orderbook:", getValue(market, "symbol"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-orderbook") },
@@ -97,8 +97,8 @@ public partial class coincheck : ccxt.coincheck
         //
         string? symbol = this.symbol(this.safeString(message, 0));
         object data = this.safeValue(message, 1, new Dictionary<string, object>() {});
-        object timestamp = this.safeTimestamp(data, "last_update_at");
-        object snapshot = this.parseOrderBook(data, symbol, timestamp);
+        Int64? timestamp = this.safeTimestamp(data, "last_update_at");
+        Dictionary<string, object> snapshot = ((Dictionary<string, object>)this.parseOrderBook(data, symbol, timestamp));
         object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
@@ -136,7 +136,7 @@ public partial class coincheck : ccxt.coincheck
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string messageHash = add("trade:", getValue(market, "symbol"));
-        object url = getValue(getValue(this.urls, "api"), "ws");
+        string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-trades") },
@@ -178,7 +178,7 @@ public partial class coincheck : ccxt.coincheck
         for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object data = this.safeValue(message, i);
-            object trade = this.parseWsTrade(data);
+            Dictionary<string, object> trade = ((Dictionary<string, object>)this.parseWsTrade(data));
             callDynamically(stored, "append", new object[] {trade});
         }
         string messageHash = add("trade:", symbol);
@@ -200,7 +200,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         string? symbol = this.symbol(this.safeString(trade, 2));
-        object timestamp = this.safeTimestamp(trade, 0);
+        Int64? timestamp = this.safeTimestamp(trade, 0);
         string? side = this.safeString(trade, 5);
         string? priceString = this.safeString(trade, 3);
         string? amountString = this.safeString(trade, 4);

@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
     public CompletableFuture<Object> testWatchOHLCVForSymbols(Exchange exchange, Object skippedProperties, Object symbol2)
     {
         final Object symbol3 = symbol2;
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
             Object symbol = symbol3;
         String method = "watchOHLCVForSymbols";
         Object now = exchange.milliseconds();

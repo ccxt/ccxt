@@ -2292,7 +2292,7 @@ impl AlpacaCore {
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "client_order_id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), datetime.clone());
-        m.insert("lastTradeTimeStamp".to_string(), Value::Null);
+        m.insert("lastTradeTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "filled_at", &[])));
         m.insert("status".to_string(), status.clone());
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("type".to_string(), orderType.clone());
@@ -2320,10 +2320,22 @@ impl AlpacaCore {
             let mut m = indexmap::IndexMap::new();
                 m.insert("pending_new".to_string(), Value::Str("open".to_string()));
                 m.insert("accepted".to_string(), Value::Str("open".to_string()));
+                m.insert("accepted_for_bidding".to_string(), Value::Str("open".to_string()));
                 m.insert("new".to_string(), Value::Str("open".to_string()));
                 m.insert("partially_filled".to_string(), Value::Str("open".to_string()));
                 m.insert("activated".to_string(), Value::Str("open".to_string()));
+                m.insert("done_for_day".to_string(), Value::Str("open".to_string()));
+                m.insert("stopped".to_string(), Value::Str("open".to_string()));
+                m.insert("suspended".to_string(), Value::Str("open".to_string()));
+                m.insert("held".to_string(), Value::Str("open".to_string()));
+                m.insert("pending_replace".to_string(), Value::Str("open".to_string()));
+                m.insert("pending_cancel".to_string(), Value::Str("canceling".to_string()));
                 m.insert("filled".to_string(), Value::Str("closed".to_string()));
+                m.insert("calculated".to_string(), Value::Str("closed".to_string()));
+                m.insert("canceled".to_string(), Value::Str("canceled".to_string()));
+                m.insert("replaced".to_string(), Value::Str("canceled".to_string()));
+                m.insert("expired".to_string(), Value::Str("expired".to_string()));
+                m.insert("rejected".to_string(), Value::Str("rejected".to_string()));
             m
         });
         return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);

@@ -2026,6 +2026,10 @@ class testMainClass {
                 if (($is_disabled_php !== null) && ($this->lang === 'PHP')) {
                     continue;
                 }
+                $is_disabled_rust = $exchange->safe_string($result, 'disabledRS');
+                if (($is_disabled_rust !== null) && ($this->lang === 'RUST')) {
+                    continue;
+                }
                 $exchange->extend_exchange_options($global_options);
                 $test_exchange_options = $exchange->safe_value($result, 'options', array());
                 $exchange->extend_exchange_options($test_exchange_options);
@@ -2058,14 +2062,14 @@ class testMainClass {
         $wasm_exec_path = null;
         $library_path = null;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         $base_path = get_root_dir() . 'ts/src/test/static/binaries/';
         if ($exchange_name === 'lighter') {
             if ($this->lang === 'JS') {
                 $wasm_exec_path = $base_path . 'wasm_exec.js';
-                $library_path = $base_path . 'lighter.wasm';
+                $library_path = $base_path . 'lighter-signer.wasm';
             } else {
                 if (is_windows()) {
                     $library_path = $base_path . 'lighter-signer-windows-amd64.dll';
@@ -2450,7 +2454,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit(), $this->test_bithumb()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -2596,6 +2600,42 @@ class testMainClass {
             $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
         }
         assert($req_headers['Referer'] === $id, 'bybit - id: ' . $id . ' not in headers.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_bithumb() {
+        $exchange = $this->init_offline_exchange('bithumb');
+        $id = 'CCXT';
+        $req_headers = array();
+        try {
+            // default path: generation 2, the versioned (jwt-signed) endpoints
+            $exchange->create_order('BTC/KRW', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+        }
+        assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (v2 endpoints).');
+        $req_headers = array();
+        try {
+            // legacy path: generation 1, the hmac-signed endpoints
+            $exchange->create_order('BTC/KRW', 'limit', 'buy', 1, 20000, array(
+                'generation' => 1,
+            ));
+        } catch(\Throwable $e) {
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+        }
+        assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (legacy endpoints).');
+        $req_headers = array();
+        try {
+            // public endpoints carry the partner header as well
+            $exchange->fetch_ticker('BTC/KRW');
+        } catch(\Throwable $e) {
+            $req_headers = ($exchange->last_request_headers !== null && $exchange->last_request_headers !== null) ? $exchange->last_request_headers : array();
+        }
+        assert($req_headers['OPEN-API-PARTNER'] === $id, 'bithumb - id: ' . $id . ' not in headers (public endpoints).');
         if (!is_sync()) {
             close($exchange);
         }

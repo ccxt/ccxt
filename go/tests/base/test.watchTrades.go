@@ -14,14 +14,14 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "watchTrades"
-	var now any = exchange.Milliseconds()
+	var now int64 = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var maxIdleTime int = 5000
 	var idle bool = false
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = []any{}
 		var success bool = true
-		var startTime any = exchange.Milliseconds()
+		var startTime int64 = exchange.Milliseconds()
 
 		{
 			func() (ret_ any) {
@@ -32,7 +32,7 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -49,12 +49,12 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 
 		}
 		now = exchange.Milliseconds()
-		if IsTrue(IsEqual(success, true)) {
+		if success == true {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now, true)
 			}
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

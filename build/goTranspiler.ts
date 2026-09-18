@@ -16,7 +16,7 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { installCcxtGoLocalTypes } from './go-local-types.js';
+import { installCcxtGoLocalTypes, CCXT_GO_HELPER_RETURN_TYPES, CCXT_GO_BOOL_METHOD_NAMES } from './go-local-types.js';
 
 type dict = { [key: string]: string };
 
@@ -332,6 +332,29 @@ function guardMultiSendCores (content: string): string {
     return result.join ('\n');
 }
 
+// Go cannot assign an interface value to a concrete-typed variable, so a local the
+// classifier named `string` needs the explicit assertion its new type forces:
+//
+//     var key any = GetValue(keys, i)              // before
+//     var key string = GetValue(keys, i).(string)  // after
+//
+// This is the element-access family of build/go-local-types.js: `keys` is a []string
+// local and the read is bounded by its own loop condition, so GetValue always returns
+// the boxed string of its []string branch — never the untyped nil the assertion would
+// panic on (that path is what keeps every unbounded/computed/map-receiver site `any`).
+// The C# port of the same family emits the identical `(string)` cast.
+//
+// Only those declarations can match: a `var x string = GetValue(...)` line the
+// classifier did not produce would not compile at all, so this rewrite and the
+// classifier's decision are the same set by construction. Anchored to one whole
+// declaration line so a comment or string that merely quotes the shape is untouched.
+function assertTypedElementAccess (content: string): string {
+    return content.replace (
+        /^(\s*var[ \t]+\w+[ \t]+string[ \t]*=[ \t]*)((?:[A-Za-z_]\w*\.)?GetValue\()((?:[^()\n]|\([^()\n]*\))*)(\))[ \t]*$/gm,
+        (_match, declaration: string, call: string, args: string, close: string) => `${declaration}${call}${args}${close}.(string)`,
+    );
+}
+
 // gofmt indents with tabs while the transpiler emits 4-space indentation, so
 // we run the generated code through gofmt at write time: the emitted .go files
 // already have tabs and running gofmt over the tree afterwards does nothing
@@ -340,6 +363,7 @@ function formatGoSource (filePath: string, content: string): string {
         return content;
     }
     content = guardMultiSendCores (content);
+    content = assertTypedElementAccess (content);
     const gofmt = spawnSync ('gofmt', [], {
         'input': content,
         'encoding': 'utf8',
@@ -362,14 +386,46 @@ function formatGoSource (filePath: string, content: string): string {
     return gofmt.stdout;
 }
 
+// Typed pointer locals print both `x !== undefined` and `x !== null` as `x != nil`, and the printer
+// also adds its own nil-guard before dereferencing (`x != nil && *x == ""`). Next to an explicit
+// TS undefined-check that yields `(x != nil) && (x != nil ...`, which is harmless but rejected by
+// `go vet` ("redundant and/or"), failing `go test`. Collapse the duplicated operand.
+export function collapseRedundantNilChecks (content: string): string {
+    const id = '([A-Za-z_][A-Za-z0-9_]*)';
+    return content
+        // (x != nil) && (x != nil && rest   ->  (x != nil) && (rest
+        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil && ', 'g'), '($1 != nil) && (')
+        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil \\|\\| ', 'g'), '($1 == nil) || (')
+        // (x != nil) && (x != nil)          ->  (x != nil)
+        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil\\)', 'g'), '($1 != nil)')
+        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
+}
+
 function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
-    content = formatGoSource (path, content);
+    // after gofmt, so the match runs against canonical spacing
+    content = collapseRedundantNilChecks (formatGoSource (path, content));
     // overwriteFile() already opens+truncates+writes the file; the extra
     // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
+}
+
+// The generated methods named in CCXT_GO_BOOL_METHOD_NAMES are annotated `: boolean` in
+// ts/src, but the printer maps no TS return annotation to Go `bool` and emits `any`.
+// Their bodies already `return` a Go bool on every path (no `return nil`, no
+// any-typed expression — the per-method census lives in the campaign unit's REPORT.md),
+// so the declared return type is retagged to match the value it returns. This is the
+// signature half of the rule in build/go-local-types.js; the local half types
+// `var x any = this.M(...)` as `bool` off the same list, so the two cannot drift.
+// Same shape as the Promise-returning `<-chan any` coercion in createGoExchange().
+function coerceGoBoolMethodReturns (content: string, names: string[]): string {
+    for (const name of names) {
+        const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + name + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
+        content = content.replace (coerceRegex, '$1 bool$2');
+    }
+    return content;
 }
 
 function capitalize(s: string) {
@@ -924,7 +980,12 @@ class NewTranspiler {
             [/\.Append\(/g, '.(Appender).Append('],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
-            [/stored := NewArrayCache\(limit\)/g, 'var stored any = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
+            // `const stored = new ArrayCache (limit)` prints as a short declaration; the ws regexes
+            // above cannot see the inferred type, so name it. The local only ever holds the
+            // constructor result (`this.trades[symbol] = stored`), and naming the type keeps the very
+            // same box: every `.append`/`.hashmap`/nil-check in the sources of these 8 sites lives on
+            // the *read* local (`this.trades[symbol]`), never on this one.
+            [/stored := NewArrayCache\(limit\)/g, 'var stored *ArrayCache = NewArrayCache(limit)'],
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
@@ -934,7 +995,7 @@ class NewTranspiler {
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
-            [/\.Cache\s*=\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
+            [/\.Cache\s*=(?!=)\s*(.+)/g, '.(OrderBookInterface).SetCache($1)'],
             [/(?:&)?(storedOrderBook|orderbook)\.Cache/g, '$1.(OrderBookInterface).GetCache()'],
             [/orderbook(s)?\.(Reset|Limit)/g, 'orderbook$1.(OrderBookInterface).$2'],
             [/([a-zA-Z0-9]+).StoreArray/g, '$1.(IOrderBookSide).StoreArray'],
@@ -949,9 +1010,9 @@ class NewTranspiler {
             [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
-            [/client\.LastPong\s*=\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
+            [/client\.LastPong\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
             [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
-            [/client\.KeepAlive\s*=\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
+            [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
             [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <- future.(*ccxt.Future).Await()'],
@@ -2245,6 +2306,10 @@ ${constStatements.join('\n')}
         // });
 
 
+        // the `[ value, params ]` tuple helpers return a concrete `[]any` (see
+        // coerceTupleHelperSignatures) so the destructuring holders can carry the real slice type
+        baseClass = this.coerceTupleHelperSignatures (baseClass);
+
         // custom transformations needed for go
         baseClass = this.regexAll (baseClass, [
             [/\=\snew\s/gm, "= "],
@@ -2282,11 +2347,25 @@ ${constStatements.join('\n')}
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
-            // symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
+            // Symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
             // to an untyped []any{} literal which cannot be assigned to the typed field.
             [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
+            // ParseToInt's TS body is `parseInt(parseFloat(numberToString(number)))` and the
+            // hand-written ParseInt always returns int64 (math.MinInt64 when the conversion
+            // fails), so the method never hands back nil. Name the concrete type here (the
+            // only place this signature is emitted) so generated locals can be declared
+            // `int64` instead of `any` — see the ParseToInt entry in build/go-local-types.js.
+            [/func\s+\(this \*BaseExchange\)\s+ParseToInt\(number any\)\s+any\s*\{/g, 'func (this *BaseExchange) ParseToInt(number any) int64 {'],
             // Fix setMarketsFromExchange parameter type (base methods now hang off *BaseExchange)
             [/func\s+\(this \*BaseExchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange)'],
+            // The `[value, params]` tuple helpers of ts/src/base/Exchange.ts (handleOptionAndParams/2,
+            // handleParamString/2, handleMarketTypeAndParams) return a TS tuple, which the printer can
+            // only express as `any`. Coerce those declarations to `[]any` so the destructuring holder
+            // (see CCXT_GO_ARRAY_BINDING_HOLDERS in build/go-local-types.js) is a real slice instead of
+            // an `any` box — the same shape #30356's C# retypeDestructuringTemp gave the same holder.
+            // The proof (every return path of every declaration, the two Okx/Deepcoin overrides
+            // included, delegates to a `[]any{...}` literal) and the census checker live in
+            // coerceTupleHelperSignatures above.
             // the empty `class Exchange extends BaseExchange {}` transpiles to a thin struct +
             // a NewExchange constructor; both are hand-written in exchange.go (where NewExchange
             // returns ICoreExchange so the base tests can type-assert `.(*ccxt.Exchange)`), so drop
@@ -2308,6 +2387,21 @@ ${constStatements.join('\n')}
             // EXPORTED method — stopping at the lowercase body would leave that body behind,
             // orphaned and still untranspilable.
             [new RegExp(`func\\s+\\(this \\*Exchange\\)\\s+LoadOrderBook${GO_ASYNC_SUFFIX}\\([\\s\\S]*?(?=\\nfunc\\s+\\(this \\*Exchange\\)\\s+[A-Z])`, 'g'), ''],
+            // The rest of the Safe* family enters Go as imported free functions (class
+            // properties above the marker) and gets hand-written pointer-returning wrappers in
+            // exchange_safe.go. safeBool/safeBool2/safeBoolN are the exception: real TS methods
+            // below the marker, so the printer emits `any` copies here. Drop them so the
+            // hand-written *bool twins (same pointer/`derefScalar` layer) take over — otherwise
+            // Go reports a duplicate method. A rename in Exchange.ts makes this regex miss; the
+            // copy then comes back as `any` and the declarations the classifier types `*bool`
+            // fail the build loudly instead of drifting silently.
+            [new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+SafeBool(?:N|2)?\\([^)]*\\)\\s+any\\s*\\{[\\s\\S]*?(?=\\nfunc )', 'g'), ''],
+            // `any` locals that capture a SafeBool* pointer must carry the plain value: this
+            // file does not go through createGoExchange's unwrap pass, and its `any` locals are
+            // still compared raw (`postOnly != true` in IsPostOnly), which an interface holding
+            // a *bool always satisfies. Bool family only -- the other Safe* families' locals in
+            // this file are consumed through IsEqual/EvalTruthy and need no unwrap.
+            [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
             // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
             // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
             // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
@@ -2315,7 +2409,18 @@ ${constStatements.join('\n')}
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
             [new RegExp(`this\\.DerivedExchange\\.(EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
+            // SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero are hand-written in
+            // go/v4/exchange_safe.go with the honest *float64 return the printer cannot emit (the
+            // TS `Num` annotation prints as `any`), so drop the transpiled copies to avoid a
+            // redeclaration — same shape as the loadOrderBook drop above. The classifier in
+            // build/go-local-types.js types locals from the hand-written signature.
+            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+SafeNumber(?:2|N|OmitZero)?\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
+
+        // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
+        // accessors already use (see coerceTypedStringAccessors), so the locals initialised
+        // from them can be typed and the printer's pointer-aware comparisons apply.
+        baseClass = this.coerceTypedStringAccessors (baseClass);
 
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -2325,7 +2430,7 @@ ${constStatements.join('\n')}
                 this.createGeneratedHeader().join('\n'),
             ]).join("\n");
 
-            const file = fileHeader + baseMethods + "\n";
+            const file = coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES);
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite (and its gofmt spawnSync over a ~390 KB file) after the first
             this.writeGeneratedOnce (goExchangeBase, file);
@@ -2384,6 +2489,12 @@ ${constStatements.join('\n')}
             // route through this.DerivedExchange type-asserted to IPredictionDispatch (these loops only
             // ever run on prediction instances, whose DerivedExchange satisfies it).
             [/this\.(ParsePredictionOrder|ParsePredictionTrade|ParsePredictionPosition)\(/g, 'this.DerivedExchange.(IPredictionDispatch).$1('],
+            // `any` locals that capture a SafeBool* pointer must carry the plain value: this
+            // file does not go through createGoExchange's unwrap pass, and its `any` locals are
+            // still compared raw (`postOnly != true` in IsPostOnly), which an interface holding
+            // a *bool always satisfies. Bool family only -- the other Safe* families' locals in
+            // this file are consumed through IsEqual/EvalTruthy and need no unwrap.
+            [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
         ]);
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -2417,7 +2528,8 @@ ${constStatements.join('\n')}
             const file = fileHeader + '\n' + structDef + methods + shims + "\n";
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
-            fs.writeFileSync (goPredictionBase, guardMultiSendCores (file));
+            // (and add the element-access assertions formatGoSource would have added)
+            fs.writeFileSync (goPredictionBase, assertTypedElementAccess (guardMultiSendCores (file)));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
@@ -3076,6 +3188,109 @@ ${caseStatements.join('\n')}
             .join("\n");
     }
 
+    /**
+     * SafeCurrencyCode / SafeSymbol are string-ish on every TS return path: the `code` /
+     * `symbol` field of the dict their callee (safeCurrency / safeMarket) always hands back,
+     * or `undefined` when that dict carries none. Their Go body is transpiled into `any`, so
+     * a local initialised from them can only be typed once the emitted signature carries the
+     * same `*string` shape the hand-written Safe* accessors use (build/go-local-types.js
+     * lists these two callees): an absent value then stays a nil pointer instead of an
+     * untyped nil, which is the shape the printer's pointer-aware comparisons expect.
+     * Wrap the single transpiled return in SafeStringPtr (go/v4/exchange_safe.go) and rename
+     * the result type. Fail closed: a body that no longer matches this shape keeps the
+     * transpiled `any` signature, so a printer change degrades instead of emitting an
+     * uncompilable `*string` with an `any` return.
+     *
+     * @param content The generated exchange_generated.go content (raw, pre-gofmt)
+     * @returns The content with the two coerced signatures
+     */
+    coerceTypedStringAccessors (content: string): string {
+        // method name → the one expression its transpiled body returns today
+        const stringish: [string, string][] = [
+            [ 'SafeCurrencyCode', 'GetValue(currency, "code")' ],
+            [ 'SafeSymbol', 'GetValue(market, "symbol")' ],
+        ];
+        for (let i = 0; i < stringish.length; i++) {
+            const method = stringish[i][0];
+            const returnExpr = stringish[i][1];
+            // the raw (pre-gofmt) emission pads the signature with extra spaces
+            // (`func  (this *BaseExchange) SafeSymbol(…) any  {`), so leave the whitespace loose
+            const fnRegex = new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{([\\s\\S]*?)\\n\\}', 'g');
+            content = content.replace (fnRegex, ((match: string, params: string, body: string) => {
+                const returns = body.match (/^[ \t]*return .*$/gm) || [];
+                if ((returns.length !== 1) || (returns[0].trim ().replace (/\s+/g, ' ') !== ('return ' + returnExpr))) {
+                    return match; // unexpected body shape: keep the transpiled `any` signature
+                }
+                const wrapped = body.replace (returns[0], 'return SafeStringPtr(' + returnExpr + ')');
+                return 'func (this *BaseExchange) ' + method + '(' + params + ') *string {' + wrapped + '\n}';
+            }) as any);
+        }
+        return content;
+    }
+
+    /**
+     * An exchange may override one of the two coerced string-ish accessors — kraken's
+     * safeCurrencyCode handles the X/Z prefixes. Its transpiled copy shadows the base method for
+     * `this.SafeCurrencyCode(...)` calls on that exchange, so it has to carry the same `*string`
+     * shape or the locals the classifier types against the call would not compile (the compiler
+     * resolves the receiver, the classifier cannot). Every return goes through SafeStringPtr,
+     * which is the identity on the string-ish value these methods return and maps anything else
+     * (including nil) to the nil pointer = TS `undefined`. Fail closed: an override whose return
+     * statements are not the emitted one-line `return <expr>` form is left `any` — the classifier
+     * entries then fail the build loudly instead of drifting silently.
+     *
+     * @param content One generated exchange file (go/v4/<id>.go or a pro/prediction twin)
+     * @returns The content with any override of the two accessors coerced
+     */
+    coerceTypedStringAccessorOverrides (content: string): string {
+        const names = [ 'SafeCurrencyCode', 'SafeSymbol' ];
+        for (let i = 0; i < names.length; i++) {
+            const fnRegex = new RegExp ('func\\s+\\(this \\*(?!BaseExchange)(\\w+)\\)\\s+' + names[i] + '\\(([^)]*)\\)\\s+any\\s*\\{([\\s\\S]*?)\\n\\}', 'g');
+            content = content.replace (fnRegex, ((match: string, receiver: string, params: string, body: string) => {
+                const returns = body.match (/^[ \t]*return .*$/gm) || [];
+                if (!returns.length || (body.indexOf ('SafeStringPtr(') >= 0)) {
+                    return match;
+                }
+                let wrapped = body;
+                for (let r = 0; r < returns.length; r++) {
+                    const expr = returns[r].replace (/^[ \t]*return[ \t]+/, '');
+                    const indent = returns[r].substring (0, returns[r].length - returns[r].trimStart ().length);
+                    wrapped = wrapped.replace (returns[r], indent + 'return SafeStringPtr(' + expr + ')');
+                }
+                // keep the printer's own signature spacing and swap only the result type
+                const head = match.substring (0, match.indexOf ('{'));
+                return head.replace (/\s+any\s*$/, ' *string ') + '{' + wrapped + '\n}';
+            }) as any);
+        }
+        return content;
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Tuple-helper return signatures (U28 family)
+    //
+    // ts/src/base/Exchange.ts declares the `[ value, params ]` helpers with a TS tuple return
+    // (handleOptionAndParams/2, handleParamString/2, handleMarketTypeAndParams), which the printer
+    // can only express as `any`. Every return statement of every declaration of those names —
+    // BaseExchange's own bodies (HandleOptionAndParams 1, HandleOptionAndParams2 2,
+    // HandleParamString 1, HandleParamString2 1, HandleMarketTypeAndParams 6) plus the two
+    // exchange overrides (Okx, Deepcoin — each a single `return super.handleMarketTypeAndParams
+    // (...)` delegating to the base) — already produces a Go `[]any` value, so the declared return
+    // type can carry it. That is what lets the destructuring holder be a real `[]any` instead of an
+    // `any` box (see CCXT_GO_ARRAY_BINDING_HOLDERS in build/go-local-types.js), the same shape
+    // #30356's C# retypeDestructuringTemp gave the same holder.
+    // The receiver is deliberately not restricted to *BaseExchange: Go has no virtual dispatch, so
+    // an exchange that overrides one of these methods (Okx/Deepcoin do) shadows the embedded base
+    // method for its own call sites — coercing the base declaration alone would leave those call
+    // sites holding a `[]any` variable initialised from an `any` value (the first farm build of this
+    // unit failed exactly there). The census checker for every declaration of the five names is
+    // go-locals/u28-holder-gate.py (section "declarations of the five helpers"): it fails unless
+    // each declaration returns []any on every path. Run it after adding a new override.
+    // Nothing else moves: a `[]any` value still boxes into every `any` sink (parameter, map value,
+    // AppendToArray, SafeValue/GetValue receiver), and no call site compares the result to a literal.
+    coerceTupleHelperSignatures (content: string): string {
+        return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleParamString|HandleParamString2|HandleMarketTypeAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any$4');
+    }
+
     createGoExchange(className: string, goVersion: any, ws: boolean | 'prediction' = false, typedSection = '') {
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
@@ -3103,6 +3318,83 @@ ${caseStatements.join('\n')}
             const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + capName + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
             content = content.replace (coerceRegex, '$1 <-chan any$2');
         }
+
+        content = this.coerceTypedStringAccessorOverrides (content);
+        content = coerceGoBoolMethodReturns (content, CCXT_GO_BOOL_METHOD_NAMES);
+        // The destructured `[ value, params ]` helpers carry a concrete `[]any` return (see
+        // coerceTupleHelperSignatures); an exchange that overrides one of them (Okx, Deepcoin)
+        // shadows the embedded base method, so its own declaration has to be coerced here too.
+        content = this.coerceTupleHelperSignatures (content);
+
+        // The Safe* accessors return a typed pointer. When the printer stores that result in an
+        // `any` local, later inline `local == "literal"` comparisons compare an interface holding
+        // a *string against an untyped constant and are always false. Unwrap at the assignment so
+        // the `any` local carries the plain value, matching every other language port.
+        const derefFn = isWs ? 'ccxt.DerefScalar(' : 'DerefScalar(';
+        const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601)\\((?:[^()]|\\([^()]*\\))*\\)';
+        content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
+        // A SafeBool* call compared directly to a bool literal has no local for the unwrap
+        // above, and the printer emits the comparison raw -- `this.SafeBool(..) == true`.
+        // That compiled while the accessor returned `any`; now it is a type error (*bool vs
+        // untyped bool), so route it through IsEqual, which derefs. Same rewrite the test
+        // passes apply to their call comparisons; bool family only.
+        const isEqualWrap = isWs ? 'ccxt.IsEqual(' : 'IsEqual(';
+        content = content.replace (new RegExp ('(this\\.SafeBool(?:2|N)?\\((?:[^()]|\\([^()]*\\))*\\)) (==|!=) (true|false)\\b', 'g'), ((_m: string, call: string, op: string, literal: string) => (op === '==') ? isEqualWrap + call + ', ' + literal + ')' : '!' + isEqualWrap + call + ', ' + literal + ')') as any);
+        // ... and the same for reassignments of a local already declared `any`. A typed
+        // `var x *string` local must keep its pointer, and the same name can be `any` in one
+        // function and typed in another, so resolve the declaration per function body.
+        content = content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
+            const signature = fn.slice (0, fn.indexOf ('{'));
+            const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((d: string) => d.split (' ')[1]));
+            // `any` parameters (and the `x := GetArg(...)` optionals) are untyped sinks too
+            const paramMatches = signature.match (/(\w+) any\b/g) || [];
+            for (let pi = 0; pi < paramMatches.length; pi++) {
+                anyLocals.add (paramMatches[pi].split (' ')[0]);
+            }
+            const argMatches = fn.match (/(\w+) := GetArg\(/g) || [];
+            for (let ai = 0; ai < argMatches.length; ai++) {
+                anyLocals.add (argMatches[ai].split (' ')[0]);
+            }
+            const typedLocals = new Set ((fn.match (/var (\w+) \*\w+\b/g) || []).map ((d: string) => d.split (' ')[1]));
+            if (!anyLocals.size) {
+                return fn;
+            }
+            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
+            // An `any` name can still receive a typed pointer from its caller (an `any` parameter
+            // fed a *string by another exchange method), so `name == "literal"` compares an
+            // interface against an untyped constant and is always false. Route those via IsEqual.
+            const isEqualFn = isWs ? 'ccxt.IsEqual(' : 'IsEqual(';
+            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (("(?:[^"\\]|\\.)*")|-?\d+(?:\.\d+)?)/g, ((m: string, name: string, op: string, literal: string) => {
+                if (!anyLocals.has (name) || typedLocals.has (name)) {
+                    return m;
+                }
+                const call = isEqualFn + name + ', ' + literal + ')';
+                return (op === '==') ? call : '!' + call;
+            }) as any);
+            // Same hazard when the right side is a helper call returning `any` (Subtract,
+            // GetArrayLength, OpNeg, ...): `i == Subtract(n, 1)` compares an int against an
+            // interface holding int64 and is always false.
+            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) ((?:Subtract|Add|Multiply|Divide|OpNeg|GetArrayLength|ParseInt)\((?:[^()]|\([^()]*\))*\))/g, ((m: string, name: string, op: string, call: string) => {
+                if (name === 'nil' || typedLocals.has (name)) {
+                    return m;
+                }
+                const wrapped = isEqualFn + name + ', ' + call + ')';
+                return (op === '==') ? wrapped : '!' + wrapped;
+            }) as any);
+            // ... and when both sides are `any` names: two interfaces holding different numeric
+            // kinds (int vs int64) compare unequal even when the numbers match.
+            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (\w+)(?![\w(])/g, ((m: string, left: string, op: string, right: string) => {
+                if (right === 'nil' || left === 'nil' || right === 'true' || right === 'false') {
+                    return m;
+                }
+                if (!anyLocals.has (left) || !anyLocals.has (right) || typedLocals.has (left) || typedLocals.has (right)) {
+                    return m;
+                }
+                const wrapped = isEqualFn + left + ', ' + right + ')';
+                return (op === '==') ? wrapped : '!' + wrapped;
+            }) as any);
+            return fn;
+        }) as any);
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -3445,6 +3737,17 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
                 [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
+                // Base-test helpers and the Safe* accessors return `any`/typed pointers, so the
+                // printer's inlined `call == literal` is either a compile error or an
+                // interface-vs-untyped-constant mismatch that is always false. Route the whole
+                // family (Safe*, PrecisionFromString, Crc32, Rsa, Jwt, ...) back through IsEqual.
+                [/(?<![.\w])((?:exchange\.)?[A-Z]\w*\((?:[^()]|\([^()]*\))*\)) == (("(?:[^"\\]|\\.)*")|(?:ccxt\.)?OpNeg\([^()]*\)|-?\d+(?:\.\d+)?)/g, 'IsEqual($1, $2)'],
+                // SafeBool* now return `*bool` (the pointer layer): an `any` local that
+                // captures the call must keep holding the plain value, exactly as it did before
+                // that change, because test code compares such locals against untyped bool
+                // constants (`local != true`) -- always true for an interface holding a *bool.
+                // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
+                [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /\@SKIP_START_GO[\s\S]*?\@SKIP_END_GO/gm, '' ],
@@ -3503,7 +3806,14 @@ func (this *${className}) Init(userConfig map[string]any) {
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
             [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
             GO_TEST_ANY_RECEIVE_REGEX,
-            [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+            // SafeBool* now return `*bool` (the pointer layer): an `any` local that captures
+            // the call must keep holding the plain value, exactly as it did before that change,
+            // because test code compares such locals against untyped bool constants
+            // (`local != true`) -- always true for an interface holding a *bool. Mirrors the
+            // DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
+            [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+            // the (?!=) guard keeps the assignment rewrite off == comparisons
+            [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
@@ -3620,9 +3930,15 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // only some of them satisfies each has-gated per-method assertion it actually runs.
                 [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
                 GO_TEST_ANY_RECEIVE_REGEX,
+                // SafeBool* now return `*bool` (the pointer layer): an `any` local that
+                // captures the call must keep holding the plain value, exactly as it did before
+                // that change, because these tests compare such locals against untyped bool
+                // constants (`local != true`) -- always true for an interface holding a *bool.
+                // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
+                [/(var \w+ any = )(exchange\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
-                [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+                [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
                 [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
                 [/Precise\./gm, 'ccxt.Precise.'],
                 // the spawned helper is an async test function, i.e. a suffixed channel trampoline
@@ -3816,7 +4132,467 @@ function resetPerStageAccumulators () {
     predictionLocalOptionStructs.clear ();
 }
 
-if (isMainEntry(import.meta.url)) {
+// ===== Local-typing audit (`--audit-local-types`) =====
+//
+// The go-locals campaign's shippable gate; mirrors build/javaTranspiler.ts `--audit-string-types`.
+//
+//   1. census: declarations / any / typed over go/v4 — the numbers census.sh prints — plus the
+//      typed breakdown by declared type and the remaining `any` declarations grouped by the
+//      callee of their initializer, so the untouched clusters stay visible;
+//   2. declaration-diff gate: every line that changed in a GENERATED go/v4 file, with gofmt
+//      normalization applied to BOTH sides first, must pair with a removed line as a declaration
+//      retype (same var name, same initializer modulo `derefScalar(...)` wrappers — the
+//      pointer-transparency wrapper the Safe*/arith shims take). Anything else is `other` and
+//      fails the run. Normalizing with gofmt is what makes the gate usable on this tree: the
+//      base commit regenerated its go files without gofmt, so a correct reindent of a whole file
+//      is invisible here — and unlike a whitespace-insensitive text diff it cannot hide a
+//      semantic edit inside a string literal;
+//   3. `--parity [id...]`: proves build/go-worker.ts (Piscina) and the main-thread path emit
+//      byte-identical Go for typed locals. Per file, the main-thread `transpileGoByPath` output
+//      is compared against the worker's `createProgramBatch` output across two pool shapes
+//      (1 and 2 threads), and a negative control — the same printer with the ccxt hook NOT
+//      installed — must emit untyped declarations for the same file, or the comparison would
+//      prove nothing about the hook being live on both sides.
+//
+//   npx tsx build/goTranspiler.ts --audit-local-types [--base <ref>] [--target <ref>] [--json]
+//   npx tsx build/goTranspiler.ts --audit-local-types --parity [id...] [--roots-all]
+//   npx tsx build/goTranspiler.ts --audit-local-types --self-test
+
+const LOCAL_AUDIT_SCOPE = 'go/v4';
+const LOCAL_AUDIT_GEN_MARKER = 'PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED';
+// census shapes, byte-for-byte the ones census.sh greps for
+const LOCAL_AUDIT_CENSUS_DECL_RX = /^\s+var [A-Za-z0-9_]+ [^=]+= /;
+const LOCAL_AUDIT_CENSUS_ANY_RX = /^\s+var [A-Za-z0-9_]+ any = /;
+const LOCAL_AUDIT_CENSUS_TYPE_RX = /^\s+var [A-Za-z0-9_]+ ([^=]+) = /;
+// one declaration, parsed: `var <name> <type> = <init>` (no Go type contains '=')
+const LOCAL_AUDIT_DECL_RX = /^(\s*)var\s+([A-Za-z_][A-Za-z0-9_]*)\s+([^=]+?)\s*=\s*(.*)$/;
+
+function localAuditRun (cmd: string, args: string[], input?: string) {
+    const res = spawnSync (cmd, args, { 'input': input, 'encoding': 'utf8', 'maxBuffer': 256 * 1024 * 1024, 'windowsHide': true });
+    return { 'status': res.status, 'error': res.error, 'stdout': res.stdout ?? '', 'stderr': res.stderr ?? '' };
+}
+
+const localAuditGit = (repo: string, args: string[]) => localAuditRun ('git', [ '-C', repo, ...args ]);
+
+// null when gofmt is missing or the text does not parse as Go
+function localAuditGofmt (text: string) {
+    const res = localAuditRun ('gofmt', [], text);
+    if (res.error || res.status !== 0) {
+        return null;
+    }
+    return res.stdout;
+}
+
+// whitespace outside string literals is the only thing gofmt moves: dropping it compares two
+// lines for semantic identity without caring about indentation or gofmt's key alignment
+function localAuditStripWs (s: string) {
+    let out = '';
+    let quote = '';
+    for (let i = 0; i < s.length; i++) {
+        const c = s[i];
+        if (quote) {
+            out += c;
+            if (c === '\\' && quote !== '`') { out += s[++i] ?? ''; continue; }
+            if (c === quote) { quote = ''; }
+            continue;
+        }
+        if (c === '"' || c === "'" || c === '`') { quote = c; out += c; continue; }
+        if (c === ' ' || c === '\t' || c === '\r') { continue; }
+        out += c;
+    }
+    return out;
+}
+
+// `derefScalar(<balanced>)` / `DerefScalar(<balanced>)` -> `<balanced>`, repeatedly: the no-op
+// unwrap a typed local forces on its initializer (or that a retyped local no longer needs, when
+// the family removes the wrapper the `any` form carried). Leaves anything not balanced alone.
+const LOCAL_AUDIT_DEREF_NAMES = [ 'derefScalar(', 'DerefScalar(' ];
+function localAuditStripDeref (s: string) {
+    for (;;) {
+        let at = -1, open = '';
+        for (const name of LOCAL_AUDIT_DEREF_NAMES) {
+            const idx = s.indexOf (name);
+            if (idx !== -1 && (at === -1 || idx < at)) { at = idx; open = name; }
+        }
+        if (at === -1) { return s; }
+        let depth = 1, i = at + open.length, closed = -1;
+        for (; i < s.length; i++) {
+            const c = s[i];
+            if (c === '"' || c === "'" || c === '`') {
+                const q = c; i++;
+                while (i < s.length && s[i] !== q) { if (s[i] === '\\') { i++; } i++; }
+                continue;
+            }
+            if (c === '(') { depth++; }
+            else if (c === ')') { depth--; if (depth === 0) { closed = i; break; } }
+        }
+        if (closed === -1) { return s; }
+        s = s.slice (0, at) + s.slice (at + open.length, closed) + s.slice (closed + 1);
+    }
+}
+
+const localAuditInitNorm = (s: string) => localAuditStripWs (localAuditStripDeref (s));
+
+// 'format'  — same line up to whitespace/gofmt alignment
+// 'declaration' — same var name, same initializer, declared type token changed
+// 'coercion' — differs only by derefScalar(...) wrappers somewhere on the line
+// 'other' — anything else: fails the gate
+function localAuditPairKind (removed: string, added: string) {
+    if (localAuditStripWs (removed) === localAuditStripWs (added)) { return 'format'; }
+    const r = removed.match (LOCAL_AUDIT_DECL_RX);
+    const a = added.match (LOCAL_AUDIT_DECL_RX);
+    if (r && a && r[2] === a[2] && localAuditInitNorm (r[4]) === localAuditInitNorm (a[4])) {
+        return (r[3].trim () === a[3].trim ()) ? 'format' : 'declaration';
+    }
+    if (localAuditInitNorm (removed) === localAuditInitNorm (added)) { return 'coercion'; }
+    return 'other';
+}
+
+function localAuditInitKey (init: string) {
+    const v = init.trim ();
+    let m = v.match (/^\(<-(this\.[A-Za-z0-9_]+)\(/);
+    if (m) { return `await ${m[1]}`; }
+    m = v.match (/^([A-Za-z_][A-Za-z0-9_.]*)\(/);
+    if (m) { return `${m[1]}(`; }
+    if (/^"[^"]*"$/.test (v)) { return '"strlit"'; }
+    if (/^[0-9]+$/.test (v)) { return 'intlit'; }
+    if (/^(true|false)$/.test (v)) { return 'boollit'; }
+    if (/^nil$/.test (v)) { return 'nil'; }
+    return v.length > 40 ? v.slice (0, 40) + '...' : v;
+}
+
+function localAuditCensus (dir: string, recursive = false) {
+    const out: any = { 'dir': dir, 'files': 0, 'declarations': 0, 'any': 0, 'typed': 0, 'byType': {} as Record<string, number>, 'anyByInit': {} as Record<string, number>, 'derefScalar': 0, 'derefScalarExported': 0 };
+    if (!fs.existsSync (dir)) { return out; }
+    const bump = (map: Record<string, number>, key: string) => { map[key] = (map[key] ?? 0) + 1; };
+    const visit = (d: string) => {
+        for (const e of fs.readdirSync (d, { 'withFileTypes': true })) {
+            const p = path.join (d, e.name);
+            if (e.isDirectory ()) { if (recursive) { visit (p); } continue; }
+            if (!e.isFile () || !e.name.endsWith ('.go')) { continue; }
+            out.files++;
+            const text = fs.readFileSync (p, 'utf8');
+            out.derefScalar += text.split ('derefScalar(').length - 1;
+            out.derefScalarExported += text.split ('DerefScalar(').length - 1;
+            for (const line of text.split ('\n')) {
+                if (!LOCAL_AUDIT_CENSUS_DECL_RX.test (line)) { continue; }
+                out.declarations++;
+                const decl = line.match (LOCAL_AUDIT_DECL_RX);
+                if (LOCAL_AUDIT_CENSUS_ANY_RX.test (line)) {
+                    out.any++;
+                    bump (out.anyByInit, decl ? localAuditInitKey (decl[4]) : line.trim ());
+                    continue;
+                }
+                out.typed++;
+                const tm = line.match (LOCAL_AUDIT_CENSUS_TYPE_RX);
+                bump (out.byType, tm ? tm[1].trim () : '?');
+            }
+        }
+    };
+    visit (dir);
+    return out;
+}
+
+function localAuditParseHunks (diffText: string) {
+    const hunks: any[] = [];
+    let hunk: any = null, newLine = 0;
+    for (const raw of diffText.split ('\n')) {
+        if (raw.startsWith ('@@')) {
+            const m = raw.match (/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+            newLine = m ? parseInt (m[1], 10) : 0;
+            hunk = { 'removed': [], 'added': [] };
+            hunks.push (hunk);
+            continue;
+        }
+        if (!hunk) { continue; }
+        if (raw.startsWith ('+')) { hunk.added.push ({ 'text': raw.slice (1), 'line': newLine }); newLine++; }
+        else if (raw.startsWith ('-')) { hunk.removed.push ({ 'text': raw.slice (1) }); }
+        else if (raw.startsWith (' ')) { newLine++; }
+    }
+    return hunks;
+}
+
+function localAuditDiffAudit (repo: string, base: string, target: string | null, scope: string) {
+    const report: any = { 'scope': scope, 'base': base, 'target': target, 'files': [], 'skippedHandwritten': [], 'gofmtMissing': false, 'totals': { 'declaration': 0, 'coercion': 0, 'format': 0, 'other': 0 } };
+    const nameArgs = [ 'diff', '--name-only', '--diff-filter=AM', base ];
+    if (target) { nameArgs.push (target); }
+    nameArgs.push ('--', scope);
+    const names = localAuditGit (repo, nameArgs).stdout.split ('\n').map ((x) => x.trim ()).filter ((x) => x.length);
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-local-audit-'));
+    try {
+        for (const file of names) {
+            const readSide = (ref: string | null) => {
+                if (ref) {
+                    const res = localAuditGit (repo, [ 'show', `${ref}:${file}` ]);
+                    return res.status === 0 ? res.stdout : null;
+                }
+                try { return fs.readFileSync (path.join (repo, file), 'utf8'); } catch (e) { return null; }
+            };
+            const before = readSide (base), after = readSide (target);
+            if (!(after ?? before ?? '').includes (LOCAL_AUDIT_GEN_MARKER)) { report.skippedHandwritten.push (file); continue; }
+            const fmtBefore = before === null ? '' : localAuditGofmt (before);
+            const fmtAfter = after === null ? '' : localAuditGofmt (after);
+            const rec: any = { 'path': file, 'declaration': 0, 'coercion': 0, 'format': 0, 'other': 0, 'otherLines': [] };
+            if ((before !== null && fmtBefore === null) || (after !== null && fmtAfter === null)) {
+                // a generated go file must parse; gofmt missing would silently weaken the gate
+                if (localAuditRun ('gofmt', [], 'package x\n').error) { report.gofmtMissing = true; }
+                rec.other++;
+                report.totals.other++;
+                rec.otherLines.push ('gofmt could not normalize ' + ((before !== null && fmtBefore === null) ? 'the base' : 'the target') + ' revision (missing gofmt or invalid go)');
+                report.files.push (rec);
+                continue;
+            }
+            const beforePath = path.join (tmp, 'before.go'), afterPath = path.join (tmp, 'after.go');
+            fs.writeFileSync (beforePath, fmtBefore ?? '');
+            fs.writeFileSync (afterPath, fmtAfter ?? '');
+            const diff = localAuditRun ('git', [ 'diff', '--no-index', '--no-color', '-U0', '--', beforePath, afterPath ]);
+            for (const h of localAuditParseHunks (diff.stdout)) {
+                const unusedR: number[] = h.removed.map ((_: any, i: number) => i);
+                for (const a of h.added) {
+                    let ri = unusedR.find ((r) => localAuditPairKind (h.removed[r].text, a.text) === 'format');
+                    if (ri === undefined) { ri = unusedR.find ((r) => localAuditPairKind (h.removed[r].text, a.text) === 'declaration'); }
+                    if (ri === undefined) { ri = unusedR.find ((r) => localAuditPairKind (h.removed[r].text, a.text) === 'coercion'); }
+                    if (ri === undefined) {
+                        rec.other++;
+                        report.totals.other++;
+                        rec.otherLines.push ('+ ' + a.text);
+                        continue;
+                    }
+                    const kind = localAuditPairKind (h.removed[ri].text, a.text);
+                    unusedR.splice (unusedR.indexOf (ri), 1);
+                    rec[kind]++;
+                    report.totals[kind]++;
+                    if (kind === 'other') { rec.otherLines.push ('- ' + h.removed[ri].text + '\n    + ' + a.text); }
+                }
+                for (const ri of unusedR) {
+                    rec.other++;
+                    report.totals.other++;
+                    rec.otherLines.push ('- ' + h.removed[ri].text);
+                }
+            }
+            report.files.push (rec);
+        }
+    } finally {
+        fs.rmSync (tmp, { 'recursive': true, 'force': true });
+    }
+    return report;
+}
+
+// every declaration in `content` whose initializer callee is a ccxt hook callee AND whose
+// declared type matches what the hook table promises — 0 with the hook uninstalled
+function localAuditHookTypedCount (content: string) {
+    let n = 0;
+    for (const line of content.split ('\n')) {
+        const m = line.match (LOCAL_AUDIT_DECL_RX);
+        if (!m) { continue; }
+        const type = m[3].trim (), init = m[4].trim ();
+        const open = init.indexOf ('(');
+        if (open <= 0) { continue; }
+        const callee = init.substring (0, open);
+        if ((CCXT_GO_HELPER_RETURN_TYPES as any)[callee] === type) { n++; }
+    }
+    return n;
+}
+
+function localAuditEmitStats (content: string) {
+    let anyCount = 0, total = 0;
+    for (const line of content.split ('\n')) {
+        if (!LOCAL_AUDIT_CENSUS_DECL_RX.test (line)) { continue; }
+        total++;
+        if (LOCAL_AUDIT_CENSUS_ANY_RX.test (line)) { anyCount++; }
+    }
+    return { 'declarations': total, 'any': anyCount, 'typed': total - anyCount, 'hookTyped': localAuditHookTypedCount (content) };
+}
+
+const LOCAL_AUDIT_PARITY_DEFAULT_IDS = [ 'cryptomus', 'bitflyer', 'gemini', 'alpaca' ];
+
+// first differing line between two emits, for the failure diagnostics
+function localAuditFirstDiff (x: string, y: string) {
+    const xs = x.split ('\n'), ys = y.split ('\n');
+    for (let i = 0; i < Math.max (xs.length, ys.length); i++) {
+        if (xs[i] !== ys[i]) {
+            return `L${i + 1}: ${JSON.stringify ((xs[i] ?? '<eof>').slice (0, 120))} vs ${JSON.stringify ((ys[i] ?? '<eof>').slice (0, 120))}`;
+        }
+    }
+    return '';
+}
+
+async function runLocalTypeParity (ids: string[], rootsAll: boolean) {
+    const files = ids.map ((id) => `ts/src/${id}.ts`);
+    const missing = files.filter ((f) => !fs.existsSync (f));
+    if (missing.length) {
+        console.error ('local-type parity: no such ts source(s): ' + missing.join (', '));
+        process.exit (1);
+    }
+    const config = new NewTranspiler ().getTranspilerConfig ();
+    const configKey = JSON.stringify (config);
+    // the stage list the worker's sticky ts.Program is built over: a scoped CLI run passes the
+    // exchange files it is transpiling, a full build passes the whole stage
+    const roots = rootsAll ? exchangeIds.map ((id: string) => `ts/src/${id}.ts`) : files;
+
+    // main-thread path: exactly what transpileDerivedExchangeFiles does for one file
+    const driver = new NewTranspiler ();
+    const main = files.map ((f) => driver.transpiler.transpileGoByPath (f));
+
+    // piscina path: build/go-worker.ts, one task per file, the same payload webworkerTranspile sends
+    const runPool = async (maxThreads: number) => {
+        const pool = new Piscina ({ 'filename': resolve (__dirname, 'go-worker.ts'), maxThreads });
+        try {
+            const tasks = files.map ((f) => pool.run ({ 'transpilerConfig': config, 'configKey': configKey, 'roots': roots, 'files': [ f ] }));
+            const results = await Promise.all (tasks);
+            return results.map ((r: any) => (r.files ?? [ r.file ])[0]);
+        } finally {
+            await pool.destroy ();
+        }
+    };
+    const poolA = await runPool (1);
+    const poolB = await runPool (2);
+
+    // negative control: the printer WITHOUT the ccxt hook must not produce the typed declarations
+    const bare = new Transpiler (config);
+    bare.setVerboseMode (false);
+    const unhooked = files.map ((f) => bare.transpileGoByPath (f));
+
+    let failures = 0, hookTotal = 0;
+    const rows: any[] = [];
+    for (let i = 0; i < files.length; i++) {
+        const same = (x: any, y: any) => x.content === y.content && JSON.stringify (x.methodsTypes) === JSON.stringify (y.methodsTypes);
+        const mainVsA = same (main[i], poolA[i]);
+        const aVsB = same (poolA[i], poolB[i]);
+        const stats = localAuditEmitStats (main[i].content);
+        const bareStats = localAuditEmitStats (unhooked[i].content);
+        const control = bareStats.hookTyped === 0 && (stats.hookTyped === 0 || unhooked[i].content !== main[i].content);
+        hookTotal += stats.hookTyped;
+        const ok = mainVsA && aVsB && control;
+        if (!ok) { failures++; }
+        const diffs: string[] = [];
+        if (!mainVsA) { diffs.push (`main!=pool1 ${localAuditFirstDiff (main[i].content, poolA[i].content)}`); }
+        if (!aVsB) { diffs.push (`pool1!=pool2 ${localAuditFirstDiff (poolA[i].content, poolB[i].content)}`); }
+        if (!control) { diffs.push ('negative control: the unhooked printer emitted the same hook-typed declarations'); }
+        rows.push ({ 'file': files[i], 'bytes': main[i].content.length, 'methodsTypes': (main[i].methodsTypes ?? []).length, 'hookTyped': stats.hookTyped, 'unhookedHookTyped': bareStats.hookTyped, 'mainVsPool1': mainVsA, 'pool1VsPool2': aVsB, 'negativeControl': control, 'ok': ok, 'diffs': diffs });
+    }
+    const rootsNote = rootsAll ? `roots=${roots.length} (stage-wide)` : `roots=${roots.length}`;
+    console.log (`local-type parity | ${rootsNote} files=${files.length}`);
+    for (const r of rows) {
+        console.log (`  ${r.ok ? 'OK  ' : 'FAIL'} ${r.file} main==pool(1)==pool(2)=${r.mainVsPool1 && r.pool1VsPool2} hook-typed-locals=${r.hookTyped} unhooked-copies=${r.unhookedHookTyped} bytes=${r.bytes} methodsTypes=${r.methodsTypes}`);
+        for (const d of r.diffs) { console.log (`       ${d}`); }
+    }
+    const hookLive = hookTotal > 0;
+    const pass = failures === 0 && hookLive;
+    console.log (`  hook-typed locals across files: ${hookTotal}${hookLive ? '' : ' — WARNING: the negative control is vacuous (no hook-typed declarations in this sample)'}`);
+    console.log (`  ${pass ? 'PASS' : 'FAIL'}${failures ? ` (${failures} file(s) diverged)` : ''}`);
+    if (process.argv.includes ('--json')) {
+        console.log (JSON.stringify ({ 'mode': 'parity', 'roots': roots.length, 'rows': rows, 'pass': pass }, null, 2));
+    }
+    process.exit (pass ? 0 : 1);
+}
+
+// synthetic repo: a clean retype (plus the reindent this tree's mixed base produces) and a
+// derefScalar-wrapped consumer line must pass; a semantic edit and a changed initializer must fail
+function localAuditSelfTest () {
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-local-audit-self-'));
+    const problems: string[] = [];
+    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push (msg); } };
+    const gc = (args: string[]) => localAuditRun ('git', [ '-C', tmp, '-c', 'user.email=audit@test', '-c', 'user.name=audit', ...args ]);
+    try {
+        fs.mkdirSync (path.join (tmp, LOCAL_AUDIT_SCOPE), { 'recursive': true });
+        const f = path.join (tmp, LOCAL_AUDIT_SCOPE, 'Gen.go');
+        const handPath = path.join (tmp, LOCAL_AUDIT_SCOPE, 'Hand.go');
+        const header = '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\npackage ccxt\n\n';
+        const genBase = 'func f() any {\n    var rows any = this.ToArray(response)\n    var s any = this.Capitalize(key)\n    var m any = this.Market(symbol)\n    var b any = DerefScalar(this.SafeBool(response, "success", false))\n    x := 1\n    if rows == nil {\n        return nil\n    }\n    _ = m\n    return rows\n}\n';
+        const genTyped = 'func f() any {\n\tvar rows []any = this.ToArray(response)\n\tvar s string = this.Capitalize(key)\n\tvar m MarketInterface = derefScalar(this.Market(symbol))\n\tvar b *bool = this.SafeBool(response, "success", false)\n\tx := 1\n\tif derefScalar(rows) == nil {\n\t\treturn nil\n\t}\n\t_ = m\n\treturn rows\n}\n';
+        const handBase = 'package ccxt\n\nfunc g() any { return nil }\n';
+        fs.writeFileSync (f, header + genBase);
+        fs.writeFileSync (handPath, handBase);
+        gc ([ 'init', '-q' ]); gc ([ 'add', '-A' ]); gc ([ 'commit', '-q', '-m', 'base' ]);
+        const base = gc ([ 'rev-parse', 'HEAD' ]).stdout.trim ();
+        // census of the base revision
+        const census = localAuditCensus (path.join (tmp, LOCAL_AUDIT_SCOPE));
+        ok (census.declarations === 4 && census.any === 4 && census.typed === 0, `census expected 4/4/0, got ${census.declarations}/${census.any}/${census.typed}`);
+        // clean retype + full reindent (spaces -> tabs) + DerefScalar wrapper removal + one
+        // derefScalar-wrapped consumer line
+        fs.writeFileSync (f, header + genTyped);
+        let audit = localAuditDiffAudit (tmp, base, null, LOCAL_AUDIT_SCOPE);
+        ok (audit.totals.other === 0, `clean retype+reindent must pass, got other=${audit.totals.other}: ${JSON.stringify (audit.files.map ((x: any) => x.otherLines[0]).filter ((x: any) => x))}`);
+        ok (audit.totals.declaration === 4, `expected 4 declaration retypes, got ${audit.totals.declaration}`);
+        ok (audit.totals.coercion === 1, `expected 1 coercion line, got ${audit.totals.coercion}`);
+        ok (audit.files.length === 1 && audit.skippedHandwritten.length === 0, 'expected one generated file audited');
+        // a hand-written file is skipped, never classified
+        fs.writeFileSync (handPath, handBase.replace ('return nil', 'return 1'));
+        audit = localAuditDiffAudit (tmp, base, null, LOCAL_AUDIT_SCOPE);
+        ok (audit.skippedHandwritten.length === 1, `hand-written file must be skipped, got ${JSON.stringify (audit.skippedHandwritten)}`);
+        ok (audit.totals.other === 0, `hand-written edit must not fail the gate, got other=${audit.totals.other}`);
+        fs.writeFileSync (handPath, handBase);
+        // semantic edit on a non-declaration line -> fails as 'other'
+        fs.writeFileSync (f, header + genTyped.replace ('x := 1', 'x := 2'));
+        audit = localAuditDiffAudit (tmp, base, null, LOCAL_AUDIT_SCOPE);
+        ok (audit.totals.other >= 1, 'a semantic edit must be flagged');
+        // retyped declaration whose INITIALIZER changed -> still 'other'
+        fs.writeFileSync (f, header + genTyped.replace ('var rows []any = this.ToArray(response)', 'var rows []any = this.ToArray(response2)'));
+        audit = localAuditDiffAudit (tmp, base, null, LOCAL_AUDIT_SCOPE);
+        ok (audit.totals.other >= 1, 'a changed initializer must be flagged');
+        ok (audit.totals.declaration === 3, `changed initializer must not count as a declaration, got ${audit.totals.declaration}`);
+        // the hook-typed counter sees the hook's callees only
+        ok (localAuditHookTypedCount ('\tvar rows []any = this.ToArray(response)\n\tvar x any = this.ToArray(response)\n') === 1, 'hook-typed counter mis-counts');
+    } catch (e: any) {
+        problems.push (`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync (tmp, { 'recursive': true, 'force': true });
+    }
+    return problems;
+}
+
+async function runLocalTypeAudit () {
+    const argv = process.argv.slice (2);
+    const flag = (name: string) => { const i = argv.indexOf (name); return i === -1 ? undefined : argv[i + 1]; };
+    if (argv.includes ('--self-test')) {
+        const problems = localAuditSelfTest ();
+        if (problems.length) { console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - ')); process.exit (3); }
+        console.log ('SELF-TEST PASSED');
+        return;
+    }
+    if (argv.includes ('--parity')) {
+        const consumed = new Set ([ flag ('--base'), flag ('--target') ].filter ((x) => x !== undefined));
+        const ids = argv.filter ((x) => !x.startsWith ('--') && !consumed.has (x));
+        await runLocalTypeParity (ids.length ? ids : LOCAL_AUDIT_PARITY_DEFAULT_IDS, argv.includes ('--roots-all'));
+        return;
+    }
+    const repo = process.cwd ();
+    const base = localAuditGit (repo, [ 'rev-parse', `${flag ('--base') ?? 'origin/master'}^{commit}` ]).stdout.trim ();
+    const target = flag ('--target') ?? null;
+    const census = localAuditCensus (LOCAL_AUDIT_SCOPE);
+    const packages: any[] = [];
+    for (const e of fs.readdirSync (LOCAL_AUDIT_SCOPE, { 'withFileTypes': true })) {
+        if (e.isDirectory ()) { packages.push (localAuditCensus (path.join (LOCAL_AUDIT_SCOPE, e.name), true)); }
+    }
+    const audit = localAuditDiffAudit (repo, base, target, LOCAL_AUDIT_SCOPE);
+    const pass = audit.totals.other === 0;
+    const topAnyByInit = Object.entries (census.anyByInit).sort ((a: any, b: any) => b[1] - a[1]).slice (0, 30);
+    const topByType = Object.entries (census.byType).sort ((a: any, b: any) => b[1] - a[1]).slice (0, 20);
+    if (argv.includes ('--json')) {
+        console.log (JSON.stringify ({ 'base': base, 'target': target, 'census': { 'declarations': census.declarations, 'any': census.any, 'typed': census.typed, 'byType': census.byType, 'anyByInit': census.anyByInit, 'derefScalar': census.derefScalar, 'derefScalarExported': census.derefScalarExported }, 'packages': packages, 'audit': { 'totals': audit.totals, 'files': audit.files, 'skippedHandwritten': audit.skippedHandwritten, 'gofmtMissing': audit.gofmtMissing }, 'pass': pass }, null, 2));
+    } else {
+        console.log (`local-type audit | base=${base.slice (0, 11)} target=${target ?? '<worktree>'}`);
+        console.log (`  census ${census.dir}: files=${census.files} declarations=${census.declarations} any=${census.any} typed=${census.typed} (${census.declarations ? Math.round (100 * census.typed / census.declarations) : 0}%) derefScalar-calls=${census.derefScalar} DerefScalar-calls=${census.derefScalarExported}`);
+        for (const p of packages) {
+            if (p.declarations) { console.log (`  census ${p.dir}: files=${p.files} declarations=${p.declarations} any=${p.any} typed=${p.typed}`); }
+        }
+        console.log (`  typed by type: ${topByType.map ((x: any) => `${x[0]}=${x[1]}`).join (' ')}`);
+        console.log (`  remaining any by initializer: ${topAnyByInit.map ((x: any) => `${x[0]}=${x[1]}`).join (' ')}`);
+        console.log (`  diff audit (generated files): declaration=${audit.totals.declaration} coercion=${audit.totals.coercion} format=${audit.totals.format} other=${audit.totals.other} (hand-written skipped: ${audit.skippedHandwritten.length})`);
+        for (const f of audit.files.filter ((x: any) => x.other > 0).slice (0, 30)) {
+            console.log (`    OTHER ${f.path}: ${String (f.otherLines[0]).split ('\n')[0].trim ().slice (0, 140)}`);
+        }
+        console.log (`  ${pass ? 'PASS' : 'FAIL'}`);
+    }
+    process.exit (pass ? 0 : 1);
+}
+
+async function runMain () {
+    if (process.argv.includes ('--audit-local-types')) {
+        await runLocalTypeAudit ();
+        return;
+    }
     const ws = process.argv.includes ('--ws');
     // bare prediction-only ids (e.g. `goTranspiler.ts kalshi`) auto-route to the
     // prediction namespace so scoped CI steps don't need to know it
@@ -3877,4 +4653,8 @@ if (isMainEntry(import.meta.url)) {
     } else {
         await transpiler.transpileEverything (force, false, examples, prediction);
     }
+}
+
+if (isMainEntry (import.meta.url)) {
+    await runMain ();
 }

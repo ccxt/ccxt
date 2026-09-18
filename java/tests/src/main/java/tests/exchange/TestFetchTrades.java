@@ -5,6 +5,8 @@ import io.github.ccxt.Exchange;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -16,7 +18,7 @@ public class TestFetchTrades extends BaseTest {
     public CompletableFuture<Object> testFetchTrades(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTrades";
         Object trades = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol, null, 12000})).join(); // test with unrealistically high amount
@@ -60,7 +62,7 @@ public class TestFetchTrades extends BaseTest {
     public CompletableFuture<Object> helperTestFetchTradesSideSequence(BaseExchange exchange, Object skippedProperties, Object symbol, Object method, Object trades)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         //
         // Check whether returned trades are sorted correctly by side - multi-trade orders at the same
@@ -78,6 +80,7 @@ public class TestFetchTrades extends BaseTest {
         Object lastTs = null;
         String lastPrice = null;
         Object lastSide = null;
+        Object lastTrade = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
@@ -91,19 +94,25 @@ public class TestFetchTrades extends BaseTest {
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isSameTs) && Helpers.isTrue(isSameSide)) && !Helpers.isTrue(isSamePrice)))
             {
+                final Object finalLastTrade = lastTrade;
+                Map<String, Object> pair = new HashMap<String, Object>() {{
+                    put( "previous", finalLastTrade );
+                    put( "current", trade );
+                }};
                 Object priceIncreasing = Precise.stringGt(price, lastPrice);
                 Object priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (Helpers.isTrue(priceIncreasing))
                 {
-                    Assert(Helpers.isEqual(side, "buy"), Helpers.add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, trade)));
+                    Assert(Helpers.isEqual(side, "buy"), Helpers.add("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, pair)));
                 } else if (Helpers.isTrue(priceDecreasing))
                 {
-                    Assert(Helpers.isEqual(side, "sell"), Helpers.add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, trade)));
+                    Assert(Helpers.isEqual(side, "sell"), Helpers.add("Price is decreasing, but side is not `sell`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip", TestSharedMethods.logTemplate(exchange, method, pair)));
                 }
             }
             lastPrice = price;
             lastTs = ts;
             lastSide = side;
+            lastTrade = trade;
         }
         return true;
         });

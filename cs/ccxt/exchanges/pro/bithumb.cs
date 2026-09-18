@@ -100,7 +100,7 @@ public partial class bithumb : ccxt.bithumb
         };
         if (isTrue(isGenerationTwo))
         {
-            object marketIdRequest = this.getGen2MarketId(market);
+            string? marketIdRequest = this.getGen2MarketId(market);
             request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }, this.extend(new Dictionary<string, object>() {
@@ -286,7 +286,7 @@ public partial class bithumb : ccxt.bithumb
         {
             return;
         }
-        object ticker = this.parseWsTicker(tickerMessage);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)this.parseWsTicker(tickerMessage));
         string messageHash = add("ticker:", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
@@ -360,7 +360,7 @@ public partial class bithumb : ccxt.bithumb
         }
         string date = ((string)this.safeString(ticker, "date", ""));
         string time = ((string)this.safeString(ticker, "time", ""));
-        object kstDatetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
+        string kstDatetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         object timestamp = this.parse8601(kstDatetime);
         if (isTrue(!isEqual(timestamp, null)))
@@ -427,7 +427,7 @@ public partial class bithumb : ccxt.bithumb
         };
         if (isTrue(isGenerationTwo))
         {
-            object marketIdRequest = this.getGen2MarketId(market);
+            string? marketIdRequest = this.getGen2MarketId(market);
             request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }, this.extend(new Dictionary<string, object>() {
@@ -634,7 +634,7 @@ public partial class bithumb : ccxt.bithumb
         };
         if (isTrue(isGenerationTwo))
         {
-            object marketIdRequest = this.getGen2MarketId(market);
+            string? marketIdRequest = this.getGen2MarketId(market);
             request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }, this.extend(new Dictionary<string, object>() {
@@ -718,7 +718,7 @@ public partial class bithumb : ccxt.bithumb
             {
                 fallbackSymbol = this.safeSymbol(marketId, null, "_");
             }
-            object parsed = this.parseWsTrade(rawTrade);
+            Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(rawTrade));
             string? symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!isTrue((inOp(this.trades, symbol))))
             {
@@ -872,7 +872,7 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((string)add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
         string messageHash = "myAsset";
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
             { "type", messageHash },
@@ -977,7 +977,7 @@ public partial class bithumb : ccxt.bithumb
             };
             ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
         }
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
         var client = this.client(url);
         return client;
     }
@@ -1013,7 +1013,7 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((string)add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
         object messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
@@ -1061,7 +1061,7 @@ public partial class bithumb : ccxt.bithumb
         //    }
         //
         string messageHash = "myOrder";
-        object parsed = this.parseWsOrder(message);
+        Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (isTrue(isEqual(this.orders, null)))
@@ -1072,7 +1072,7 @@ public partial class bithumb : ccxt.bithumb
         object cachedOrders = this.orders;
         callDynamically(cachedOrders, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, messageHash});
-        object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, symbolSpecificMessageHash});
     }
 

@@ -422,7 +422,7 @@ public partial class bitbank : Exchange
         });
     }
 
-    public override object parseTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parseTicker(object ticker, object market = null)
     {
         string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
@@ -503,7 +503,7 @@ public partial class bitbank : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp));
     }
 
-    public override object parseTrade(object trade, object market = null)
+    public override Dictionary<string, object> parseTrade(object trade, object market = null)
     {
         //
         // fetchTrades
@@ -631,7 +631,7 @@ public partial class bitbank : Exchange
             object pair = getValue(pairs, i);
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            object symbol = getValue(market, "symbol");
+            string? symbol = ((string)getValue(market, "symbol"));
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", pair },
                 { "symbol", symbol },
@@ -673,7 +673,7 @@ public partial class bitbank : Exchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object sinceVar = since;
         object limitVar = limit;
         timeframeVar ??= "1m";
@@ -813,7 +813,7 @@ public partial class bitbank : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override Dictionary<string, object> parseOrder(object order, object market = null)
     {
         string? id = this.safeString(order, "order_id");
         string? marketId = this.safeString(order, "pair");
@@ -1273,7 +1273,7 @@ public partial class bitbank : Exchange
         }
         Int64? success = this.safeInteger(response, "success");
         object data = this.safeValue(response, "data");
-        if (isTrue(isTrue((isTrue(isTrue(isEqual(success, null)) || isTrue(isEqual(success, null))) || isTrue(isEqual(success, 0)))) || isTrue((isEqual(data, null)))))
+        if (isTrue(isTrue((isTrue(isEqual(success, null)) || isTrue(isEqual(success, 0)))) || isTrue((isEqual(data, null)))))
         {
             Dictionary<string, object> errorMessages = new Dictionary<string, object>() {
                 { "10000", "URL does not exist" },

@@ -1403,6 +1403,7 @@ class okx extends okx$1["default"] {
                 delete this.orderbooks[symbol];
             }
             client.reject(error, messageHash);
+            return orderbook;
         }
         const timestamp = this.safeInteger(message, 'ts');
         orderbook['nonce'] = seqId;
@@ -1519,7 +1520,10 @@ class okx extends okx$1["default"] {
                 const orderbook = this.orderBook({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
-                this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                if (!(messageHash in client.subscriptions)) {
+                    break;
+                }
                 client.resolve(orderbook, messageHash);
             }
         }
@@ -1529,6 +1533,11 @@ class okx extends okx$1["default"] {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
+                    if (!(messageHash in client.subscriptions)) {
+                        // a nonce gap rejected the future and always cleared the subscription entry, while the book
+                        // removal alone is skipped for a frame lacking an instrument id - stop replaying leftover rows
+                        break;
+                    }
                     client.resolve(orderbook, messageHash);
                 }
             }

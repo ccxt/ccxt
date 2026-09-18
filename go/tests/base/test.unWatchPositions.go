@@ -43,7 +43,7 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 					}
 					ret_ = func() any {
 						// catch block:
-						if !IsTrue(IsTemporaryFailure(e)) {
+						if !EvalTruthy(IsTemporaryFailure(e)) {
 							panic(e)
 						}
 
@@ -109,7 +109,7 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 					}
 					ret_ = func() any {
 						// catch block:
-						if !IsTrue(IsTemporaryFailure(e)) {
+						if !EvalTruthy(IsTemporaryFailure(e)) {
 							panic(e)
 						}
 						panic(e)
@@ -139,7 +139,7 @@ func testUnWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedP
 					}
 					ret_ = func() any {
 						// catch block:
-						if !IsTrue(IsTemporaryFailure(e)) {
+						if !EvalTruthy(IsTemporaryFailure(e)) {
 							panic(e)
 						}
 						panic(Error(Add(Add(Add(exchange.GetId(), " "), method), " failed to resubscribe after unwatch, indicating potential cleanup issues")))

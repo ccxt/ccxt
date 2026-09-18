@@ -6,6 +6,7 @@ import io.github.ccxt.api.BinanceusdmApi;
 import io.github.ccxt.base.Precise;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.Helpers;
+import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class Binanceusdm extends BinanceusdmApi
     public CompletableFuture<Object> transferIn(String code, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // transfer from spot wallet to usdm futures wallet
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});
@@ -74,7 +75,7 @@ public class Binanceusdm extends BinanceusdmApi
     public CompletableFuture<Object> transferOut(String code, Object amount, Object... optionalArgs)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
             // transfer from usdm futures wallet to spot wallet
             Object parameters = Helpers.getArg(optionalArgs, 0, new HashMap<String, Object>() {{}});

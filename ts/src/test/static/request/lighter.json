@@ -20,19 +20,34 @@
         "apiKeyIndex": 30,
         "nonce": 0,
         "integratorAccountIndex": 130303,
-        "integratorMakerFee": 10,
-        "integratorTakerFee": 10
+        "integratorMakerFee": 1000,
+        "integratorTakerFee": 1000
     },
     "methods": {
         "cancelAllOrders": [
             {
-                "description": "cancelAllOrders",
+                "description": "default",
                 "method": "cancelAllOrders",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
                 "input": [],
                 "output": {
                     "tx_type": 16,
-                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1772176172357,\"Nonce\":8,\"Sig\":\"NEzOBq4ZOwSoqvH/0RuH0P8b5ReKggfVhUlAge3sjQWc8M4j3qhRNJFaZP6lk36ZtpEQ4+mb2njrcpRgb++cDf77ceZEusyc0lYu/Ijt5Es=\",\"L2TxAttributes\":{\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1789490284390,\"Nonce\":1789489685389,\"Sig\":\"FgZmNnDzRgo8A5h+/XXrDZH0hu/tWu8v8Q0v/LQaRtmRDsV42CkgSfT5dWYHJXKE45NNlTNqTj0rvI3GE01a+MiAZec6OkYK5i9pzU+YIzo=\",\"L2TxAttributes\":{\"4\":1}}"
+                }
+            },
+            {
+                "description": "single market",
+                "method": "cancelAllOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    null,
+                    {
+                        "cancel_all_market_index": 35
+                    }
+                ],
+                "output": {
+                    "tx_type": 16,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1789490284390,\"Nonce\":1789489685389,\"Sig\":\"FgZmNnDzRgo8A5h+/XXrDZH0hu/tWu8v8Q0v/LQaRtmRDsV42CkgSfT5dWYHJXKE45NNlTNqTj0rvI3GE01a+MiAZec6OkYK5i9pzU+YIzo=\",\"L2TxAttributes\":{\"4\":1,\"5\":35}}"
                 }
             }
         ],
@@ -78,7 +93,7 @@
         ],
         "createOrder": [
             {
-                "description": "create limit  buy order",
+                "description": "swap limit",
                 "method": "createOrder",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
                 "input": [
@@ -90,27 +105,27 @@
                 ],
                 "output": {
                     "tx_type": 14,
-                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":489057754,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1774594326601,\"ExpiredAt\":1772175725602,\"Nonce\":7,\"Sig\":\"gl3Tm3SFdCvd5lJw9uByG8sUAThDZ8NpP5SJ8DUKwRwv2DoYAfZoIcjUZCiZjllNS2d/Z6XDlERYaKb4JrfniOXIVZHmfo5ie5I1lKR4UCk=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"MarketIndex\":35,\"ClientOrderIndex\":778339085,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1791912496625,\"ExpiredAt\":1789493895625,\"Nonce\":1789493296625,\"Sig\":\"rJtG78GSfnFM2un05LNQd3Z/YBVtRDwLUVWOHJIz3NgfjuU6I52YUt026iVt6eBI1eYNaBxioMYuTxfhDzlnHlzHo03EfF9OD1FJ3xOQRGM=\",\"L2TxAttributes\":{\"1\":130303,\"2\":1000,\"3\":1000,\"4\":1}}"
                 }
             },
             {
-                "description": "create market buy order",
+                "description": "swap market",
                 "method": "createOrder",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
                 "input": [
                     "LTC/USDC:USDC",
                     "market",
                     "buy",
-                    0.1,
+                    1,
                     60
                 ],
                 "output": {
                     "tx_type": 14,
-                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":911280573,\"BaseAmount\":100,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1772175612201,\"Nonce\":6,\"Sig\":\"6cnea3og5elG3CMCxRpldy7yHQI3ettJVkYKl2VcvF4yIT1/RREaD/m8D+KTbCTGAftezZjNtw8KEo9YoAO68WTdDU8d6bq69BcKlQm1kAk=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"MarketIndex\":35,\"ClientOrderIndex\":283496187,\"BaseAmount\":1000,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1789494136568,\"Nonce\":1789493537567,\"Sig\":\"pL6lnoTwFHlkqJDHdOfZUvXV5F1tSn/45fon/XHJ6zN5m9f08+FkGchfWm7m4w2mr1s1SeZO8ZXhr21tEqiHiq9L6k1J7NWBtvJeAARhnBE=\",\"L2TxAttributes\":{\"1\":130303,\"2\":1000,\"3\":1000,\"4\":1}}"
                 }
             },
             {
-                "description": "create limit postOnly buy order",
+                "description": "swap limit & postonly",
                 "method": "createOrder",
                 "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
                 "input": [
@@ -125,7 +140,7 @@
                 ],
                 "output": {
                     "tx_type": 14,
-                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":489057754,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":2,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":-1,\"ExpiredAt\":1772175725602,\"Nonce\":7,\"Sig\":\"gl3Tm3SFdCvd5lJw9uByG8sUAThDZ8NpP5SJ8DUKwRwv2DoYAfZoIcjUZCiZjllNS2d/Z6XDlERYaKb4JrfniOXIVZHmfo5ie5I1lKR4UCk=\",\"L2TxAttributes\":{\"1\":130303,\"2\":10,\"3\":10,\"4\":1}}"
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":30,\"MarketIndex\":35,\"ClientOrderIndex\":199728408,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":2,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1791912839529,\"ExpiredAt\":1789494238529,\"Nonce\":1789493639528,\"Sig\":\"kDt2vfV4gMFcMveYcB6jj4FR4V2KA/Y2j40R4uytV5vHmy4U05oySCu3IClNLvpdGrjDLABZbHM9+4OCrpb0mVDIh8woRjnRBQxXvWE4YBI=\",\"L2TxAttributes\":{\"1\":130303,\"2\":1000,\"3\":1000,\"4\":1}}"
                 }
             }
         ],

@@ -2,6 +2,7 @@ package tests.exchange.ws;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import tests.exchange.*;
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +16,7 @@ public class TestWatchOrderBook extends BaseTest {
     public CompletableFuture<Object> testWatchOrderBook(Exchange exchange, Object skippedProperties, String symbol)
     {
 
-        return CompletableFuture.supplyAsync(() -> {
+        return BaseExchange.supplyAsync(() -> {
 
         String method = "watchOrderBook";
         // `watchOrderBook` only resolves when the exchange pushes an update, and a

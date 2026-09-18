@@ -528,7 +528,8 @@ export declare class BaseExchange {
     lighterCreateClient(signer: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any): any;
     lighterSignCreateGroupedOrders(signer: any, request: any): any[];
     lighterSignCreateOrder(signer: any, request: any): any[];
-    checkLighterSignedError(result: any): void;
+    checkLighterSignedError(method: string, result: any, request?: any): void;
+    raiseLighterSignerError(method: string, error: any, request?: any): void;
     lighterSignCancelOrder(signer: any, request: any): any[];
     lighterSignWithdraw(signer: any, request: any): any[];
     lighterSignCreateSubAccount(signer: any, request: any): any[];
