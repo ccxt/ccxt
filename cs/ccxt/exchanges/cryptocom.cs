@@ -1236,11 +1236,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters));
         }
@@ -1330,11 +1330,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
         }
@@ -1406,11 +1406,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, 300));
         }
@@ -2075,16 +2075,16 @@ public partial class cryptocom : Exchange
         {
             // use createmarketBuy logic here
             string? quoteAmount = null;
-            object createMarketBuyOrderRequiresPrice = true;
+            bool? createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber2(parameters, "cost", "notional");
             parameters = this.omit(parameters, "cost");
             if (!isEqual(cost, null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (createMarketBuyOrderRequiresPrice == true)
             {
                 if (isEqual(price, null))
                 {
@@ -2401,11 +2401,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
         }
@@ -3749,11 +3749,11 @@ public partial class cryptocom : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }

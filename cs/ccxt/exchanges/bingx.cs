@@ -1636,11 +1636,11 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = (isEqual(GetValue(market, "inverse"), true)) ? 1000 : 1440;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, maxLimit));
         }
@@ -2354,11 +2354,11 @@ public partial class bingx : Exchange
         {
             throw new NotSupported (add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
@@ -2448,11 +2448,11 @@ public partial class bingx : Exchange
         {
             throw new NotSupported (add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", parameters));
         }
@@ -5557,11 +5557,11 @@ public partial class bingx : Exchange
             request["toAccount"] = toId;
         }
         int maxLimit = 100;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit));
         }

@@ -370,11 +370,11 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string messageHash = add("ticker:", symbolVar);
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
-        if (isTrue(uta))
+        if (uta == true)
         {
             messageHash = add("uta:", messageHash);
             string channel = "ticker";
@@ -418,9 +418,9 @@ public partial class kucoin : ccxt.kucoin
         Dictionary<string, object> market = this.market(symbol);
         symbol = GetValue(market, "symbol");
         bool? isFuturesMethod = ((bool?)GetValue(market, "contract"));
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "unWatchTicker", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbols", new List<object>() {symbol} },
@@ -428,7 +428,7 @@ public partial class kucoin : ccxt.kucoin
             { "unsubscribe", true },
         };
         string subMessageHash = add("ticker:", symbol);
-        if (isTrue(uta))
+        if (uta == true)
         {
             subMessageHash = add("uta:", subMessageHash);
             subscription["subMessageHashes"] = new List<object>() {subMessageHash};
@@ -486,12 +486,12 @@ public partial class kucoin : ccxt.kucoin
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         bool isFuturesMethod = (marketType != "spot") && (marketType != "margin");
-        if ((isFuturesMethod || isTrue(uta)) && isEqual(symbols, null))
+        if ((isFuturesMethod || uta == true) && isEqual(symbols, null))
         {
             throw new ArgumentsRequired (add(add(add(this.id, " watchTickers() requires a list of symbols for "), marketType), " markets and unified trading account (uta)")) ;
         }
@@ -1000,12 +1000,12 @@ public partial class kucoin : ccxt.kucoin
         symbolVar = GetValue(market, "symbol");
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = add(add(add("candles:", symbolVar), ":"), timeframeVar);
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         object ohlcv = null;
-        if (isTrue(uta))
+        if (uta == true)
         {
             string channel = "kline";
             messageHash = add("uta:", messageHash);
@@ -1057,9 +1057,9 @@ public partial class kucoin : ccxt.kucoin
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = GetValue(market, "symbol");
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         List<object> symbolAndTimeframe = new List<object>() {symbol, timeframeVar};
@@ -1070,7 +1070,7 @@ public partial class kucoin : ccxt.kucoin
             { "unsubscribe", true },
         };
         string subMessageHash = add(add(add("candles:", symbol), ":"), timeframeVar);
-        if (isTrue(uta))
+        if (uta == true)
         {
             subMessageHash = add("uta:", subMessageHash);
             subscription["subMessageHashes"] = new List<object>() {subMessageHash};
@@ -1228,11 +1228,11 @@ public partial class kucoin : ccxt.kucoin
         object symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
-        if (isTrue(uta))
+        if (uta == true)
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
@@ -1372,11 +1372,11 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
-        if (isTrue(uta))
+        if (uta == true)
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
@@ -1552,11 +1552,11 @@ public partial class kucoin : ccxt.kucoin
         // sequence follows the snapshot; price 0 → skip (bump sequence), size 0 → remove the price level
         //
         parameters ??= new Dictionary<string, object>();
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
-        if (isTrue(uta))
+        if (uta == true)
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
@@ -1605,11 +1605,11 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object uta = false;
+        bool? uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "unWatchOrderBook", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
-        if (isTrue(uta))
+        if (uta == true)
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbol);
@@ -2167,9 +2167,9 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool? uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrders", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         IDictionary<string, object> market = null;
         object messageHash = "orders";
@@ -2639,9 +2639,9 @@ public partial class kucoin : ccxt.kucoin
         marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         bool isFuturesMethod = ((marketType != "spot") && (marketType != "margin"));
-        object uta = await this.isUTAEnabled();
+        bool? uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         object trades = null;
         if (isTrue(uta))
@@ -2873,9 +2873,9 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool? uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         string? defaultType = isTrue(uta) ? "unified" : "spot";
         string? type = defaultType;
@@ -3188,9 +3188,9 @@ public partial class kucoin : ccxt.kucoin
         {
             await this.loadMarkets();
         }
-        object uta = await this.isUTAEnabled();
+        bool? uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         string tradeType = isTrue(uta) ? "UNIFIED" : "TRADE";
         string messageHash = "positions";

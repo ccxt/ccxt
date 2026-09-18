@@ -498,7 +498,10 @@
 // C# body, not the TS tuple annotation), so `x = (T)((IList<object>)tmp)[0]` names exactly
 // the box the helper produced — see DESTRUCTURED_ELEMENT0_TYPES. Every other helper keeps
 // the printer's untyped read: handleOptionAndParams/2 element 0 is the user's params value
-// or `defaultValue` (any), handleMarketTypeAndParams returns `getValue (market, 'type')` /
+// or `defaultValue` (any) — the bool-option shard (U14, BOOL_OPTION_HELPERS) is the audited
+// exception, its keys being documented booleans with a bool default argument per call site,
+// so the slot holds a boxed bool or null there; handleMarketTypeAndParams returns
+// `getValue (market, 'type')` /
 // `defaultValue` on two of six paths, handleMarginModeAndParams / handleSubTypeAndParams /
 // handleUntilOption thread caller values through. The TS checker does type the elements from
 // the call's tuple return type (`[Str, Dict]` -> Str, the `[T, Dict]` overload -> T), but a
@@ -7165,8 +7168,97 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
     'handleParamInteger': 'Int64?',
     'handleParamInteger2': 'Int64?',
     'handlePostOnly': 'bool',
+    // base Exchange.BaseMethods.cs `bool? isTrigger = this.safeBool2 (parameters, "trigger",
+    // "stop");` is the ONLY slot-0 writer (no default argument, so the fall-through hands back
+    // null) and isTriggerOrder returns that list through an `object` signature — both box a
+    // bool? local / that same list, so `(bool?)` names the box on every path.
+    'handleTriggerAndParams': 'bool?',
+    'isTriggerOrder': 'bool?',
 };
 
+// ===== U14: bool option locals (`object paginate = false`, `object uta = null`, ...) =====
+//
+// The locals this shard owns (name fence: sibling units never fire on the same declaration).
+export const BOOL_OPTION_LOCALS = [
+    'isPortfolioMargin', 'uta', 'paginate', 'returnRateLimits', 'usePrivate',
+    'isUnifiedAccount', 'isTrigger', 'createMarketBuyOrderRequiresPrice',
+];
+
+// The [value, params] helpers whose element 0 is a BOOLEAN OPTION value resolved from params /
+// this.options / the default argument, and the 1-based position of that default argument. The
+// option keys they read (paginate, uta, unifiedAccount, portfolioMargin/papi, returnRateLimits,
+// usePrivate) are documented booleans and every in-corpus writer of them is a bool literal /
+// safeBool result (REPORT.md census), so the slot holds a boxed bool or null — the same box the
+// hand-written safeBool* family names. The default argument is the per-call-site gate.
+export const BOOL_OPTION_HELPERS = {
+    'handleOptionAndParams': 4,
+    'handleOptionAndParams2': 5,
+    'handleUTAAndParams': 3,
+    'handleTriggerOptionAndParams': 3,
+};
+
+function boolOptionLocalName (declaration) {
+    const raw = declaration?.name?.escapedText;
+    return (typeof raw === 'string' && BOOL_OPTION_LOCALS.includes (raw)) ? raw : undefined;
+}
+
+function isBoolLiteralArgument (node) {
+    return node?.kind === ts.SyntaxKind.TrueKeyword || node?.kind === ts.SyntaxKind.FalseKeyword;
+}
+
+// the RHS of a destructuring assignment behind its parentheses / `await`
+// (`[ uta, params ] = await this.handleUTAAndParams (...)`)
+function unwrapOptionCall (node) {
+    let current = node;
+    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression || current?.kind === ts.SyntaxKind.AwaitExpression) {
+        current = current.expression;
+    }
+    return current;
+}
+
+// `this.<helper>` of a destructuring RHS, await/parens unwrapped, or undefined
+function destructuredHelperName (node) {
+    const call = unwrapOptionCall (node);
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    return callee.name?.escapedText;
+}
+
+// `[ x, params ] = this.<helper> (...)` element 0 of a bool-option helper. Per call site the
+// default argument must be absent / explicit `undefined` / a bool literal / the target local
+// itself (whose own box is the same bool-or-null family: its initialiser is a bool literal or
+// null and every other write is re-scanned by csharpLocalIsSafeToRetype). Anything else — a
+// non-bool default, a second target — keeps the printer's untyped read.
+function boolOptionElementProof (declaration, idNode, assignment, name) {
+    const call = unwrapOptionCall (assignment?.right);
+    if (boolOptionLocalName (declaration) === undefined
+            || !Object.prototype.hasOwnProperty.call (BOOL_OPTION_HELPERS, name)
+            || idNode.parent?.elements?.[0] !== idNode
+            || call?.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const argument = call.arguments[BOOL_OPTION_HELPERS[name] - 1];
+    if (argument === undefined || isUndefinedLiteral (argument) || isBoolLiteralArgument (argument)) {
+        return true;
+    }
+    return argument.kind === ts.SyntaxKind.Identifier && argument.escapedText === declaration.name?.escapedText;
+}
+
+// element 0 of a bool helper: the per-call-site option proof above, or the flat
+// DESTRUCTURED_ELEMENT0_TYPES entry (a helper whose own body boxes a bool? local on every path)
+function destructuredBoolElementProof (declaration, idNode, assignment, name) {
+    const elementType = DESTRUCTURED_ELEMENT0_TYPES[name];
+    if (elementType === 'bool?' && boolOptionLocalName (declaration) !== undefined
+            && idNode.parent?.elements?.[0] === idNode) {
+        return true;
+    }
+    return boolOptionElementProof (declaration, idNode, assignment, name);
+}
 // S28 (+ cs90 U13): element 0 of `[ value, params ] = this.helper (...)` for a LITERAL-initialised
 // target. The helper's own generated C# body boxes a concretely-typed local in slot 0 on every path
 // (DESTRUCTURED_ELEMENT0_TYPES), or the audited string box (DESTRUCTURED_STRING_HELPERS, whose
@@ -7177,6 +7269,12 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
 function literalInitElement0Type (csharp, declaration, idNode, assignment, name, context) {
     if (!isLiteralInit (declaration) || idNode.parent?.elements?.[0] !== idNode) {
         return undefined;
+    }
+    // a bool-option helper called with a bool default / no default: element 0 is the option's
+    // box (a bool or null), so the literal `false` / `true` initialiser joins it as `bool?`.
+    // Checked before the call guard: the venue helper is awaited (`await this.handleUTAAndParams`)
+    if (boolOptionElementProof (declaration, idNode, assignment, name)) {
+        return 'bool';
     }
     if (assignment?.right?.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
@@ -7212,7 +7310,12 @@ export function recordDestructuredWriteType (scope, printedName, csharpType) {
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
 function destructuredWriteIsCastable (csharp, index, declaration, idNode, assignment, csharpType, context) {
-    const right = assignment.right;
+    let right = assignment.right;
+    if (csharpType === 'bool?' && right?.kind === ts.SyntaxKind.AwaitExpression) {
+        // U14 bool shard: the awaited venue helper (`[ uta, params ] = await this.handleUTAAndParams
+        // (...)`) is the same destructuring write — every other family keeps the printer's shape
+        right = unwrapOptionCall (right);
+    }
     if (right?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -7229,6 +7332,11 @@ function destructuredWriteIsCastable (csharp, index, declaration, idNode, assign
     } else if ((csharpType === 'string' || csharpType === 'string?') && destructuredStringElementProof (csharp, declaration, idNode, assignment, helper, context)) {
         // the null-initialised string family: element 0 of an audited helper (see
         // DESTRUCTURED_STRING_HELPERS) is a string or null, and the `(string)` cast names that box
+    } else if (csharpType === 'bool?' && destructuredBoolElementProof (declaration, idNode, assignment, helper)) {
+        // the bool shard: element 0 of an audited bool helper is a boxed bool or null on every
+        // path, and the `(bool?)` unbox accepts both (null in, null out) — never a cross-widening.
+        // A non-nullable `bool` target never reaches this shard: the element write always widens
+        // the join's spelling to `bool?` (see typeFromValueOrWrites).
     } else {
         // element 0 of an audited [value, params] helper: the helper's own C# local boxes the
         // target's declared type on every path, so the injected cast is an identity. The
@@ -7505,6 +7613,16 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
                     elementType = (destructuredName !== undefined && destructuredStringElementProof (csharp, declaration, n, parent.parent, destructuredName, context)) ? 'string' : undefined;
                 } else if (destructuredName !== undefined) {
                     elementType = literalInitElement0Type (csharp, declaration, n, parent.parent, destructuredName, context);
+                }
+                if (elementType === undefined) {
+                    // U14 bool shard: element 0 of a bool helper is a boxed bool or null on every
+                    // path (per-call-site option proof, or the helper's own bool? local), and
+                    // sawNull below spells the declaration `bool?`. The helper name comes off the
+                    // RHS, so the awaited venue helper and every initialiser shape are covered.
+                    const optionHelper = (destructuredName !== undefined) ? destructuredName : destructuredHelperName (parent.parent.right);
+                    if (destructuredBoolElementProof (declaration, n, parent.parent, optionHelper)) {
+                        elementType = 'bool';
+                    }
                 }
                 if (elementType !== undefined) {
                     // the element can be null (the helper's default paths hand back null), so the

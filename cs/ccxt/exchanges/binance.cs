@@ -5714,9 +5714,9 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBalance", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         object marginMode = null;
         object query = null;
@@ -5726,7 +5726,7 @@ public partial class binance : Exchange
         query = this.omit(query, "type");
         object response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        if (isTrue(isPortfolioMargin) || (type == "papi"))
+        if (isPortfolioMargin == true || (type == "papi"))
         {
             if (isTrue(this.isLinear(type, subType)))
             {
@@ -6822,11 +6822,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, parameters, 1000));
         }
@@ -7289,11 +7289,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
         }
@@ -7767,15 +7767,15 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         Dictionary<string, object> request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "linear"), true))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiPutUmOrder(this.extend(request, parameters));
             } else
@@ -7784,7 +7784,7 @@ public partial class binance : Exchange
             }
         } else if (isEqual(GetValue(market, "inverse"), true))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiPutCmOrder(this.extend(request, parameters));
             } else
@@ -7893,11 +7893,11 @@ public partial class binance : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object isPortfolioMargin = null;
+            bool? isPortfolioMargin = null;
             IList<object> isPortfolioMarginorderParamsVariable = (IList<object>)this.handleOptionAndParams2(orderParams, "editOrders", "papi", "portfolioMargin", false);
-            isPortfolioMargin = isPortfolioMarginorderParamsVariable[0];
+            isPortfolioMargin = (bool?)isPortfolioMarginorderParamsVariable[0];
             orderParams = isPortfolioMarginorderParamsVariable[1];
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 throw new NotSupported (add(this.id, " editOrders() does not support portfolio margin orders")) ;
             }
@@ -8980,9 +8980,9 @@ public partial class binance : Exchange
             { "symbol", GetValue(market, "id") },
             { "side", upperCaseSide },
         };
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "createOrder", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
@@ -9009,7 +9009,7 @@ public partial class binance : Exchange
         bool isTakeProfit = (takeProfitPrice != null);
         bool isTriggerOrder = (triggerPrice != null);
         bool isConditional = isTriggerOrder || isTrailingPercentOrder || isStopLoss || isTakeProfit;
-        bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isConditional);
+        bool isPortfolioMarginConditional = (isPortfolioMargin == true && isConditional);
         bool isPriceMatch = (priceMatch != null);
         bool priceRequiredForTrailing = true;
         string uppercaseType = ((string)type).ToUpper();
@@ -9113,7 +9113,7 @@ public partial class binance : Exchange
             }
         }
         string clientOrderIdRequest = isPortfolioMarginConditional ? "newClientStrategyId" : "newClientOrderId";
-        if ((isEqual(GetValue(market, "linear"), true)) && (isEqual(GetValue(market, "swap"), true)) && isConditional && !isTrue(isPortfolioMargin))
+        if ((isEqual(GetValue(market, "linear"), true)) && (isEqual(GetValue(market, "swap"), true)) && isConditional && !(isPortfolioMargin == true))
         {
             clientOrderIdRequest = "clientAlgoId";
         } else if ((stock == true))
@@ -9137,7 +9137,7 @@ public partial class binance : Exchange
             request[(string)clientOrderIdRequest] = clientOrderId;
         }
         bool? postOnly = null;
-        if (!isTrue(isPortfolioMargin))
+        if (!(isPortfolioMargin == true))
         {
             postOnly = this.isPostOnly(isMarketOrder, initialUppercaseType == "LIMIT_MAKER", parameters);
             if ((isEqual(GetValue(market, "spot"), true)) || marketType == "margin")
@@ -9167,7 +9167,7 @@ public partial class binance : Exchange
             }
         }
         // handle newOrderRespType response type
-        if (((marketType == "spot") || (marketType == "margin")) && !isTrue(isPortfolioMargin) && ((stock != true)))
+        if (((marketType == "spot") || (marketType == "margin")) && !(isPortfolioMargin == true) && ((stock != true)))
         {
             request["newOrderRespType"] = this.safeString(getValue(this.options, "newOrderRespType"), type, "FULL"); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else if ((stock != true))
@@ -9374,7 +9374,7 @@ public partial class binance : Exchange
             }
             if ((stopPrice != null))
             {
-                if ((isEqual(GetValue(market, "swap"), true)) && !isTrue(isPortfolioMargin))
+                if ((isEqual(GetValue(market, "swap"), true)) && !(isPortfolioMargin == true))
                 {
                     request["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
                 } else
@@ -9387,7 +9387,7 @@ public partial class binance : Exchange
         {
             request["timeInForce"] = this.handleOption("createOrder", "timeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
-        if (!isTrue(isPortfolioMargin) && (isEqual(GetValue(market, "contract"), true)) && postOnly == true)
+        if (!(isPortfolioMargin == true) && (isEqual(GetValue(market, "contract"), true)) && postOnly == true)
         {
             request["timeInForce"] = "GTX";
         }
@@ -9575,9 +9575,9 @@ public partial class binance : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrder", parameters);
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchOrder", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = type == "option";
@@ -9611,7 +9611,7 @@ public partial class binance : Exchange
             response = await this.eapiPrivateGetOrder(this.extend(request, parameters));
         } else if (isTrue(isLinearType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmOrder(this.extend(request, parameters));
             } else
@@ -9626,16 +9626,16 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isInverseType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmOrder(this.extend(request, parameters));
             } else
             {
                 response = await this.dapiPrivateGetOrder(this.extend(request, parameters));
             }
-        } else if ((type == "margin") || ((marginMode != null)) || isTrue(isPortfolioMargin))
+        } else if ((type == "margin") || ((marginMode != null)) || isPortfolioMargin == true)
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetMarginOrder(this.extend(request, parameters));
             } else
@@ -9695,11 +9695,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limitVar, parameters));
         }
@@ -9730,9 +9730,9 @@ public partial class binance : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrders", parameters);
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchOrders", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = type == "option";
@@ -9778,7 +9778,7 @@ public partial class binance : Exchange
             response = await this.eapiPrivateGetHistoryOrders(this.extend(request, parameters));
         } else if (isTrue(isLinearType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -9799,7 +9799,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isInverseType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -9814,7 +9814,7 @@ public partial class binance : Exchange
             }
         } else
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetMarginAllOrders(this.extend(request, parameters));
             } else if (type == "margin" || (marginMode != null))
@@ -10086,9 +10086,9 @@ public partial class binance : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOpenOrders", parameters);
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchOpenOrders", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object stock = null;
@@ -10134,7 +10134,7 @@ public partial class binance : Exchange
             response = await this.eapiPrivateGetOpenOrders(this.extend(request, parameters));
         } else if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10155,7 +10155,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10174,9 +10174,9 @@ public partial class binance : Exchange
                     response = await this.dapiPrivateGetOpenOrders(this.extend(request, parameters));
                 }
             }
-        } else if (type == "margin" || (marginMode != null) || isTrue(isPortfolioMargin))
+        } else if (type == "margin" || (marginMode != null) || isPortfolioMargin == true)
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetMarginOpenOrders(this.extend(request, parameters));
             } else
@@ -10233,19 +10233,19 @@ public partial class binance : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
         };
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchOpenOrder", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
-        bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isConditional == true);
+        bool isPortfolioMarginConditional = (isPortfolioMargin == true && isConditional == true);
         string orderIdRequest = ((isPortfolioMarginConditional == true)) ? "strategyId" : "orderId";
         request[(string)orderIdRequest] = id;
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "linear"), true))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10260,7 +10260,7 @@ public partial class binance : Exchange
             }
         } else if (isEqual(GetValue(market, "inverse"), true))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10652,9 +10652,9 @@ public partial class binance : Exchange
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("cancelOrder", parameters);
         marginMode = marginModeparametersVariable[0];
         parameters = marginModeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "cancelOrder", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = type == "option";
@@ -10672,7 +10672,7 @@ public partial class binance : Exchange
                 request["clientAlgoId"] = clientOrderId;
             } else
             {
-                if (isTrue(isPortfolioMargin) && ((isConditional == true)))
+                if (isPortfolioMargin == true && ((isConditional == true)))
                 {
                     request["newClientStrategyId"] = clientOrderId;
                 } else
@@ -10682,7 +10682,7 @@ public partial class binance : Exchange
             }
         } else
         {
-            if (isTrue(isPortfolioMargin) && ((isConditional == true)))
+            if (isPortfolioMargin == true && ((isConditional == true)))
             {
                 request["strategyId"] = id;
             } else if ((isSwapConditional == true))
@@ -10700,7 +10700,7 @@ public partial class binance : Exchange
             response = await this.eapiPrivateDeleteOrder(this.extend(request, parameters));
         } else if (isTrue(isLinearType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10721,7 +10721,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isInverseType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10740,9 +10740,9 @@ public partial class binance : Exchange
                     response = await this.dapiPrivateDeleteOrder(this.extend(request, parameters));
                 }
             }
-        } else if ((type == "margin") || ((marginMode != null)) || isTrue(isPortfolioMargin))
+        } else if ((type == "margin") || ((marginMode != null)) || isPortfolioMargin == true)
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiDeleteMarginOrder(this.extend(request, parameters));
             } else
@@ -10816,9 +10816,9 @@ public partial class binance : Exchange
         {
             throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
         }
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         string? type = null;
@@ -10843,7 +10843,7 @@ public partial class binance : Exchange
             response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
         } else if (isTrue(isLinearType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10864,7 +10864,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isInverseType))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 if ((isConditional == true))
                 {
@@ -10877,9 +10877,9 @@ public partial class binance : Exchange
             {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, parameters));
             }
-        } else if ((type == "margin") || ((marginMode != null)) || isTrue(isPortfolioMargin))
+        } else if ((type == "margin") || ((marginMode != null)) || isPortfolioMargin == true)
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiDeleteMarginAllOpenOrders(this.extend(request, parameters));
             } else
@@ -11068,11 +11068,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limitVar, parameters));
         }
@@ -11146,9 +11146,9 @@ public partial class binance : Exchange
             IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = marginModeparametersVariable[0];
             parameters = marginModeparametersVariable[1];
-            object isPortfolioMargin = null;
+            bool? isPortfolioMargin = null;
             IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchMyTrades", "papi", "portfolioMargin", false);
-            isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+            isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
             parameters = isPortfolioMarginparametersVariable[1];
             if (isEqual(stock, true))
             {
@@ -11165,7 +11165,7 @@ public partial class binance : Exchange
                 response = await this.sapiGetEquityTradeHistory(this.extend(request, parameters));
             } else if (type == "spot" || type == "margin")
             {
-                if (isTrue(isPortfolioMargin))
+                if (isPortfolioMargin == true)
                 {
                     response = await this.papiGetMarginMyTrades(this.extend(request, parameters));
                 } else if ((type == "margin") || ((marginMode != null)))
@@ -11181,7 +11181,7 @@ public partial class binance : Exchange
                 }
             } else if ((this.safeBool(market, "linear") == true))
             {
-                if (isTrue(isPortfolioMargin))
+                if (isPortfolioMargin == true)
                 {
                     response = await this.papiGetUmUserTrades(this.extend(request, parameters));
                 } else
@@ -11190,7 +11190,7 @@ public partial class binance : Exchange
                 }
             } else if ((this.safeBool(market, "inverse") == true))
             {
-                if (isTrue(isPortfolioMargin))
+                if (isPortfolioMargin == true)
                 {
                     response = await this.papiGetCmUserTrades(this.extend(request, parameters));
                 } else
@@ -11548,11 +11548,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchDeposits", code, since, limit, parameters));
         }
@@ -11643,11 +11643,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters));
         }
@@ -12189,11 +12189,11 @@ public partial class binance : Exchange
         }
         bool? intern = this.safeBool(parameters, "internal");
         parameters = this.omit(parameters, "internal");
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate) && ((intern != true)))
+        if (paginate == true && ((intern != true)))
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters));
         }
@@ -12706,9 +12706,9 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchTradingFee", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         object isLinear = this.isLinear(type, subType);
         object isInverse = this.isInverse(type, subType);
@@ -12718,7 +12718,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if (isTrue(isLinear))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmCommissionRate(this.extend(request, parameters));
             } else
@@ -12727,7 +12727,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(isInverse))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmCommissionRate(this.extend(request, parameters));
             } else
@@ -13102,11 +13102,11 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbolVar, since, limit, "8h", parameters));
         }
@@ -13885,14 +13885,14 @@ public partial class binance : Exchange
             IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
             subType = (string)subTypeparametersVariable[0];
             parameters = subTypeparametersVariable[1];
-            object isPortfolioMargin = null;
+            bool? isPortfolioMargin = null;
             IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "loadLeverageBrackets", "papi", "portfolioMargin", false);
-            isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+            isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
             parameters = isPortfolioMarginparametersVariable[1];
             List<object> response = null;
             if (isTrue(this.isLinear(type, subType)))
             {
-                if (isTrue(isPortfolioMargin))
+                if (isPortfolioMargin == true)
                 {
                     response = await this.papiGetUmLeverageBracket(query);
                 } else
@@ -13901,7 +13901,7 @@ public partial class binance : Exchange
                 }
             } else if (isTrue(this.isInverse(type, subType)))
             {
-                if (isTrue(isPortfolioMargin))
+                if (isPortfolioMargin == true)
                 {
                     response = await this.papiGetCmLeverageBracket(query);
                 } else
@@ -13967,14 +13967,14 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters, "linear");
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchLeverageTiers", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         List<object> response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmLeverageBracket(parameters);
             } else
@@ -13983,7 +13983,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmLeverageBracket(parameters);
             } else
@@ -14353,14 +14353,14 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchAccountPositions", null, parameters, "linear");
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchAccountPositions", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiV2GetUmAccount(parameters);
             } else
@@ -14379,7 +14379,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmAccount(parameters);
             } else
@@ -14439,15 +14439,15 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositionsRisk", null, parameters, "linear");
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchPositionsRisk", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         parameters = this.omit(parameters, "type");
         List<object> response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmPositionRisk(this.extend(request, parameters));
             } else
@@ -14467,7 +14467,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmPositionRisk(this.extend(request, parameters));
             } else
@@ -14619,9 +14619,9 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingHistory", market, parameters, "linear");
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchFundingHistory", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
         request = (Dictionary<string, object>)requestparametersVariable[0];
@@ -14640,7 +14640,7 @@ public partial class binance : Exchange
         List<object> response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmIncome(this.extend(request, parameters));
             } else
@@ -14649,7 +14649,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmIncome(this.extend(request, parameters));
             } else
@@ -14699,14 +14699,14 @@ public partial class binance : Exchange
             { "symbol", GetValue(market, "id") },
             { "leverage", leverage },
         };
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "setLeverage", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "linear"), true))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiPostUmLeverage(this.extend(request, parameters));
             } else
@@ -14715,7 +14715,7 @@ public partial class binance : Exchange
             }
         } else if (isEqual(GetValue(market, "inverse"), true))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiPostCmLeverage(this.extend(request, parameters));
             } else
@@ -14853,9 +14853,9 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("setPositionMode", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "setPositionMode", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         string? dualSidePosition = null;
         if (isTrue(hedged))
@@ -14871,7 +14871,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiPostCmPositionSideDual(this.extend(request, parameters));
             } else
@@ -14880,7 +14880,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiPostUmPositionSideDual(this.extend(request, parameters));
             } else
@@ -14934,14 +14934,14 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchLeverages", null, parameters, "linear");
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchLeverages", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmAccount(parameters);
             } else
@@ -14950,7 +14950,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmAccount(parameters);
             } else
@@ -15292,11 +15292,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, null, false));
         }
@@ -15328,9 +15328,9 @@ public partial class binance : Exchange
             parameters = this.omit(parameters, "until");
             request["endTime"] = until;
         }
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchLedger", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         List<object> response = null;
         if (type == "option")
@@ -15344,7 +15344,7 @@ public partial class binance : Exchange
             response = await this.eapiPrivateGetBill(this.extend(request, parameters));
         } else if (isTrue(this.isLinear(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmIncome(this.extend(request, parameters));
             } else
@@ -15353,7 +15353,7 @@ public partial class binance : Exchange
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmIncome(this.extend(request, parameters));
             } else
@@ -16364,9 +16364,9 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchBorrowInterest", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
@@ -16387,7 +16387,7 @@ public partial class binance : Exchange
         request = (Dictionary<string, object>)requestparametersVariable[0];
         parameters = requestparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isTrue(isPortfolioMargin))
+        if (isPortfolioMargin == true)
         {
             response = await this.papiGetMarginMarginInterestHistory(this.extend(request, parameters));
         } else
@@ -16486,11 +16486,11 @@ public partial class binance : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> response = null;
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
-        if (isTrue(isPortfolioMargin))
+        if (isPortfolioMargin == true)
         {
             object method = null;
             IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "repayCrossMargin", "repayCrossMarginMethod", "method");
@@ -16574,11 +16574,11 @@ public partial class binance : Exchange
             { "amount", this.currencyToPrecision(code, amount) },
         };
         Dictionary<string, object> response = null;
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
-        if (isTrue(isPortfolioMargin))
+        if (isPortfolioMargin == true)
         {
             response = await this.papiPostMarginLoan(this.extend(request, parameters));
         } else
@@ -16693,11 +16693,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limitVar,timeframeVar, parameters, 500));
         }
@@ -16898,11 +16898,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyLiquidations", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallIncremental("fetchMyLiquidations", symbol, since, limit, parameters, "current", 100));
         }
@@ -16919,9 +16919,9 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters, "linear");
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchMyLiquidations", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (type != "spot")
@@ -16931,7 +16931,7 @@ public partial class binance : Exchange
         if ((market != null))
         {
             string symbolKey = (isEqual(GetValue(market, "spot"), true)) ? "isolatedSymbol" : "symbol";
-            if (!isTrue(isPortfolioMargin))
+            if (!(isPortfolioMargin == true))
             {
                 request[(string)symbolKey] = GetValue(market, "id");
             }
@@ -16956,7 +16956,7 @@ public partial class binance : Exchange
         Dictionary<string, object> response = null;
         if (type == "spot")
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetMarginForceOrders(this.extend(request, parameters));
             } else
@@ -16965,7 +16965,7 @@ public partial class binance : Exchange
             }
         } else if (subType == "linear")
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmForceOrders(this.extend(request, parameters));
             } else
@@ -16974,7 +16974,7 @@ public partial class binance : Exchange
             }
         } else if (subType == "inverse")
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmForceOrders(this.extend(request, parameters));
             } else
@@ -18253,14 +18253,14 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
-        object isPortfolioMargin = null;
+        bool? isPortfolioMargin = null;
         IList<object> isPortfolioMarginparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
-        isPortfolioMargin = isPortfolioMarginparametersVariable[0];
+        isPortfolioMargin = (bool?)isPortfolioMarginparametersVariable[0];
         parameters = isPortfolioMarginparametersVariable[1];
         List<object> response = null;
         if (subType == "linear")
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetUmAdlQuantile(parameters);
             } else
@@ -18269,7 +18269,7 @@ public partial class binance : Exchange
             }
         } else if (subType == "inverse")
         {
-            if (isTrue(isPortfolioMargin))
+            if (isPortfolioMargin == true)
             {
                 response = await this.papiGetCmAdlQuantile(parameters);
             } else

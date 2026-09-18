@@ -150,9 +150,9 @@ public partial class bitget : ccxt.bitget
         symbolVar = GetValue(market, "symbol");
         string messageHash = add("ticker:", symbolVar);
         object instType = null;
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchTicker", market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -209,9 +209,9 @@ public partial class bitget : ccxt.bitget
         }
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
         object instType = null;
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchTickers", market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -468,9 +468,9 @@ public partial class bitget : ccxt.bitget
         }
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
         object instType = null;
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -569,9 +569,9 @@ public partial class bitget : ccxt.bitget
         string? interval = this.safeString(timeframes, timeframeVar);
         string? messageHash = null;
         object instType = null;
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -579,7 +579,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        if (isTrue(uta))
+        if (uta == true)
         {
             args["topic"] = "kline";
             args["symbol"] = GetValue(market, "id");
@@ -859,9 +859,9 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = add(add(add("unsubscribe:", messageHashTopic), ":"), GetValue(market, "symbol"));
         object instType = null;
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         var instTypeparametersVariable = this.getInstType(methodName, market, uta, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
@@ -869,7 +869,7 @@ public partial class bitget : ccxt.bitget
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
-        if (isTrue(uta))
+        if (uta == true)
         {
             args["topic"] = channel;
             args["symbol"] = GetValue(market, "id");
@@ -916,9 +916,9 @@ public partial class bitget : ccxt.bitget
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -938,7 +938,7 @@ public partial class bitget : ccxt.bitget
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
         }
-        if (isTrue(uta))
+        if (uta == true)
         {
             ((IDictionary<string,object>)parameters)["uta"] = true;
         }
@@ -1161,9 +1161,9 @@ public partial class bitget : ccxt.bitget
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -1185,7 +1185,7 @@ public partial class bitget : ccxt.bitget
             ((IList<object>)topics).Add(args);
             ((IList<object>)messageHashes).Add(add("trade:", symbol));
         }
-        if (isTrue(uta))
+        if (uta == true)
         {
             parameters = this.extend(parameters, new Dictionary<string, object>() {
                 { "uta", true },
@@ -1458,9 +1458,9 @@ public partial class bitget : ccxt.bitget
         object messageHash = "";
         string subscriptionHash = "positions";
         object instType = "USDT-FUTURES";
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         symbols = this.marketSymbols(symbols);
         if ((!isEqual(symbols, null)) && !isTrue(this.isEmpty(symbols)))
@@ -1470,7 +1470,7 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isTrue(uta))
+        if (uta == true)
         {
             instType = "UTA";
         }
@@ -1481,7 +1481,7 @@ public partial class bitget : ccxt.bitget
         string topicOrChannel = isTrue(uta) ? "topic" : "channel";
         string channel = isTrue(uta) ? "position" : "positions";
         args[(string)topicOrChannel] = channel;
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["instId"] = "default";
         } else
@@ -1747,9 +1747,9 @@ public partial class bitget : ccxt.bitget
         }
         IDictionary<string, object> market = null;
         object marketId = null;
-        object isTrigger = null;
+        bool? isTrigger = null;
         var isTriggerparametersVariable = this.isTriggerOrder(parameters);
-        isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
+        isTrigger = (bool?)((IList<object>)isTriggerparametersVariable)[0];
         parameters = ((IList<object>)isTriggerparametersVariable)[1];
         object messageHash = (isEqual(isTrigger, true)) ? "triggerOrder" : "order";
         object subscriptionHash = "order:trades";
@@ -1760,9 +1760,9 @@ public partial class bitget : ccxt.bitget
             marketId = GetValue(market, "id");
             messageHash = add(add(messageHash, ":"), symbolVar);
         }
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrders", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         string? productType = this.safeString(parameters, "productType");
         string? type = null;
@@ -1826,7 +1826,7 @@ public partial class bitget : ccxt.bitget
                 channel = "orders-crossed";
             }
         }
-        if (isTrue(uta))
+        if (uta == true)
         {
             instType = "UTA";
             channel = "order";
@@ -1837,7 +1837,7 @@ public partial class bitget : ccxt.bitget
         };
         string topicOrChannel = isTrue(uta) ? "topic" : "channel";
         args[(string)topicOrChannel] = channel;
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["instId"] = instId;
         } else
@@ -2345,9 +2345,9 @@ public partial class bitget : ccxt.bitget
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
         object instType = null;
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMyTrades", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         if ((market == null) && type == "spot")
         {
@@ -2358,7 +2358,7 @@ public partial class bitget : ccxt.bitget
             instType = ((IList<object>)instTypeparametersVariable)[0];
             parameters = ((IList<object>)instTypeparametersVariable)[1];
         }
-        if (isTrue(uta))
+        if (uta == true)
         {
             instType = "UTA";
         }
@@ -2368,7 +2368,7 @@ public partial class bitget : ccxt.bitget
         };
         string topicOrChannel = isTrue(uta) ? "topic" : "channel";
         args[(string)topicOrChannel] = "fill";
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["instId"] = "default";
         } else
@@ -2553,9 +2553,9 @@ public partial class bitget : ccxt.bitget
     public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object uta = null;
+        bool? uta = null;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "uta", false);
-        uta = utaparametersVariable[0];
+        uta = (bool?)utaparametersVariable[0];
         parameters = utaparametersVariable[1];
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -2573,7 +2573,7 @@ public partial class bitget : ccxt.bitget
         } else if ((marginMode != null))
         {
             instType = "MARGIN";
-            if (!isTrue(uta))
+            if (!(uta == true))
             {
                 if (isEqual(marginMode, "isolated"))
                 {
@@ -2583,14 +2583,14 @@ public partial class bitget : ccxt.bitget
                     channel = "account-crossed";
                 }
             }
-        } else if (!isTrue(uta))
+        } else if (!(uta == true))
         {
             instType = "SPOT";
         }
         IList<object> instTypeparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchBalance", "instType", instType);
         instType = instTypeparametersVariable[0];
         parameters = instTypeparametersVariable[1];
-        if (isTrue(uta))
+        if (uta == true)
         {
             instType = "UTA";
         }
@@ -2599,7 +2599,7 @@ public partial class bitget : ccxt.bitget
         };
         string topicOrChannel = isTrue(uta) ? "topic" : "channel";
         args[(string)topicOrChannel] = channel;
-        if (!isTrue(uta))
+        if (!(uta == true))
         {
             args["coin"] = "default";
         } else

@@ -1134,11 +1134,11 @@ public partial class bullish : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 100;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             parameters = this.handlePaginationParams("fetchTrades", since, parameters);
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, maxLimit));
@@ -1207,11 +1207,11 @@ public partial class bullish : Exchange
             response = await this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters));
         } else
         {
-            object paginate = false;
+            bool? paginate = false;
             IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
-            paginate = paginateparametersVariable[0];
+            paginate = (bool?)paginateparametersVariable[0];
             parameters = paginateparametersVariable[1];
-            if (isTrue(paginate))
+            if (paginate == true)
             {
                 parameters = this.handlePaginationParams("fetchMyTrades", since, parameters);
                 return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100));
@@ -1572,11 +1572,11 @@ public partial class bullish : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = 100;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, maxLimit));
         }
@@ -1653,11 +1653,11 @@ public partial class bullish : Exchange
             await this.loadMarkets();
         }
         int maxLimit = 100;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             parameters = this.handlePaginationParams("fetchFundingRateHistory", since, parameters);
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, maxLimit));
@@ -3000,11 +3000,11 @@ public partial class bullish : Exchange
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
         int maxLimit = 100;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             parameters = this.handlePaginationParams("fetchTransfers", since, parameters);
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit));

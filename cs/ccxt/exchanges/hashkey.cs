@@ -1671,11 +1671,11 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, 1000));
         }
@@ -3163,9 +3163,9 @@ public partial class hashkey : Exchange
             response = await this.privateDeleteApiV1SpotOrder(this.extend(request, parameters));
         } else if (marketType == "swap")
         {
-            object isTrigger = false;
+            bool? isTrigger = false;
             IList<object> isTriggerparametersVariable = (IList<object>)this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
-            isTrigger = isTriggerparametersVariable[0];
+            isTrigger = (bool?)isTriggerparametersVariable[0];
             parameters = isTriggerparametersVariable[1];
             if (isEqual(isTrigger, true))
             {
@@ -3336,9 +3336,9 @@ public partial class hashkey : Exchange
             response = await this.privateGetApiV1SpotOrder(this.extend(request, parameters));
         } else if (marketType == "swap")
         {
-            object isTrigger = false;
+            bool? isTrigger = false;
             IList<object> isTriggerparametersVariable = (IList<object>)this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
-            isTrigger = isTriggerparametersVariable[0];
+            isTrigger = (bool?)isTriggerparametersVariable[0];
             parameters = isTriggerparametersVariable[1];
             if (isEqual(isTrigger, true))
             {
@@ -3492,9 +3492,9 @@ public partial class hashkey : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
         };
-        object isTrigger = false;
+        bool? isTrigger = false;
         IList<object> isTriggerparametersVariable = (IList<object>)this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
-        isTrigger = isTriggerparametersVariable[0];
+        isTrigger = (bool?)isTriggerparametersVariable[0];
         parameters = isTriggerparametersVariable[1];
         if (isEqual(isTrigger, true))
         {
@@ -3602,9 +3602,9 @@ public partial class hashkey : Exchange
                 throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a symbol argument for swap markets")) ;
             }
             request["symbol"] = this.safeString(market, "id");
-            object isTrigger = false;
+            bool? isTrigger = false;
             IList<object> isTriggerparametersVariable = (IList<object>)this.handleTriggerOptionAndParams(parameters, methodName, isTrigger);
-            isTrigger = isTriggerparametersVariable[0];
+            isTrigger = (bool?)isTriggerparametersVariable[0];
             parameters = isTriggerparametersVariable[1];
             if (isEqual(isTrigger, true))
             {
