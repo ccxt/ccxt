@@ -1549,7 +1549,7 @@ public partial class derive : Exchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -1559,7 +1559,7 @@ public partial class derive : Exchange
         string? r = ((string)getValue(signature, "r"));
         string? s = ((string)getValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -3197,7 +3197,7 @@ public partial class derive : Exchange
         {
             return new List<object>() {optionsWallet, parameters};
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
     public virtual List<object> handleDeriveWalletAddress(object methodName, object parameters)
@@ -3216,7 +3216,7 @@ public partial class derive : Exchange
         {
             return new List<object>() {optionsWallet, parameters};
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

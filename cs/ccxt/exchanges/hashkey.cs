@@ -1528,7 +1528,7 @@ public partial class hashkey : Exchange
             }
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
@@ -1961,7 +1961,7 @@ public partial class hashkey : Exchange
             return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
     }
 
@@ -2744,7 +2744,7 @@ public partial class hashkey : Exchange
             return await this.CreateSwapOrder(symbol, type, side, amount, price, parameters);
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " createOrder() is not supported for "), getValue(market, "type")) + " type of markets")) ;
+            throw new NotSupported ((string)(((this.id + " createOrder() is not supported for ") + (getValue(market, "type"))) + " type of markets")) ;
         }
     }
 
@@ -2850,7 +2850,7 @@ public partial class hashkey : Exchange
             return this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         } else
         {
-            throw new NotSupported ((string)(add(((this.id + " ") + "createOrderRequest() is not supported for "), getValue(market, "type")) + " type of markets")) ;
+            throw new NotSupported ((string)((((this.id + " ") + "createOrderRequest() is not supported for ") + (getValue(market, "type"))) + " type of markets")) ;
         }
     }
 
@@ -3105,7 +3105,7 @@ public partial class hashkey : Exchange
             response = await this.privatePostApiV1FuturesBatchOrders(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add(((this.id + " ") + "createOrderRequest() is not supported for "), getValue(market, "type")) + " type of markets")) ;
+            throw new NotSupported ((string)((((this.id + " ") + "createOrderRequest() is not supported for ") + (getValue(market, "type"))) + " type of markets")) ;
         }
         List<object> result = this.safeList(response, "result", new List<object>() {});
         List<object> responseOrders = new List<object>() {};
@@ -3181,7 +3181,7 @@ public partial class hashkey : Exchange
             response = await this.privateDeleteApiV1FuturesOrder(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
@@ -3228,7 +3228,7 @@ public partial class hashkey : Exchange
             response = await this.privateDeleteApiV1FuturesBatchOrders(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), getValue(market, "type")) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (getValue(market, "type"))) + " type of markets")) ;
         }
         Dictionary<string, object> order = this.safeOrder(response);
         ((IDictionary<string,object>)order)["info"] = response;
@@ -3276,7 +3276,7 @@ public partial class hashkey : Exchange
             response = await this.privateDeleteApiV1FuturesCancelOrderByIds(request);
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
         Dictionary<string, object> order = this.safeOrder(response);
         ((IDictionary<string,object>)order)["info"] = response;
@@ -3347,7 +3347,7 @@ public partial class hashkey : Exchange
             response = await this.privateGetApiV1FuturesOrder(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
@@ -3402,7 +3402,7 @@ public partial class hashkey : Exchange
             return await this.FetchOpenSwapOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
     }
 
@@ -3486,7 +3486,7 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)methodNameparametersVariable)[1];
         if ((symbol == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a symbol argument for swap market orders")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a symbol argument for swap market orders")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3623,7 +3623,7 @@ public partial class hashkey : Exchange
             }
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), marketType) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (marketType)) + " type of markets")) ;
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
@@ -3636,7 +3636,7 @@ public partial class hashkey : Exchange
         string? paramsType = this.safeString(parameters, "type");
         if (((paramsType != null)) && ((paramsType != "spot")) && ((paramsType != "swap")))
         {
-            throw new BadRequest ((string)(((add((this.id + " "), methodName) + " () type parameter can not be \"") + paramsType) + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
+            throw new BadRequest ((string)(((((this.id + " ") + (methodName)) + " () type parameter can not be \"") + paramsType) + "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
         }
     }
 
@@ -4113,7 +4113,7 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)methodNameparametersVariable)[1];
         if (((getValue(market, "swap") as bool?) != true))
         {
-            throw new NotSupported ((string)(add((this.id + " "), methodName) + "() supports swap markets only")) ;
+            throw new NotSupported ((string)(((this.id + " ") + (methodName)) + "() supports swap markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -4359,12 +4359,12 @@ public partial class hashkey : Exchange
         parameters = ((IList<object>)sideparametersVariable)[1];
         if ((side == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), type) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (type)) + "Margin() requires a params[\"side\"] argument, either \"long\" or \"short\"")) ;
         }
         side = ((string)side).ToUpper();
         if (((side != "LONG")) && ((side != "SHORT")))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " "), type) + "Margin() params[\"side\"] must be either long or short")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " ") + (type)) + "Margin() params[\"side\"] must be either long or short")) ;
         }
         string? amountString = this.numberToString(amount);
         if (isEqual(type, "reduce"))
@@ -4568,7 +4568,7 @@ public partial class hashkey : Exchange
             return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(response, market));
         } else
         {
-            throw new NotSupported ((string)(add((((this.id + " ") + methodName) + "() is not supported for "), getValue(market, "type")) + " type of markets")) ;
+            throw new NotSupported ((string)(((((this.id + " ") + methodName) + "() is not supported for ") + (getValue(market, "type"))) + " type of markets")) ;
         }
     }
 
@@ -4754,7 +4754,7 @@ public partial class hashkey : Exchange
         }
         if ((!isEqual(code, 200)) || errorInArray)
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), responseCodeString, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCodeString, feedback);
             throw new ExchangeError ((string)feedback) ;

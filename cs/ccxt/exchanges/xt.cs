@@ -6176,7 +6176,7 @@ public partial class xt : Exchange
                 return ccxt.BaseExchange.ToPosition(this.parsePosition(merged, marketInner));
             }
         }
-        throw new NullResponse ((string)add((this.id + " fetchPosition() could not find a position for "), symbol)) ;
+        throw new NullResponse ((string)((this.id + " fetchPosition() could not find a position for ") + (symbol))) ;
     }
 
     /**
@@ -6739,7 +6739,7 @@ public partial class xt : Exchange
         string? status = this.safeStringUpper2(response, "msgInfo", "mc");
         if ((status != null) && (status != "SUCCESS"))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             IDictionary<string, object> error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             string? spotErrorCode = this.safeString(response, "mc");
             string? errorCode = this.safeString(error, "code", spotErrorCode);
@@ -6765,10 +6765,10 @@ public partial class xt : Exchange
         {
             if (signed)
             {
-                payload = (add("/", this.version) + request);
+                payload = (("/" + (this.version)) + request);
             } else
             {
-                payload = ((add("/", this.version) + "/public") + request);
+                payload = ((("/" + (this.version)) + "/public") + request);
             }
         } else
         {
@@ -6815,26 +6815,26 @@ public partial class xt : Exchange
             object payloadString = null;
             if ((isEqual(endpoint, "spot")) || (isEqual(endpoint, "user")))
             {
-                payloadString = (((((add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
+                payloadString = (((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + (this.apiKey)) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp=") + timestamp);
                 if (isUndefinedBody)
                 {
                     if ((urlencoded != ""))
                     {
                         url = add(url, ("?" + urlencoded));
-                        payloadString = add(payloadString, ((((add("#", method) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
+                        payloadString = add(payloadString, ((((("#" + (method)) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
                     } else
                     {
-                        payloadString = add(payloadString, ((add("#", method) + "#") + payload));
+                        payloadString = add(payloadString, ((("#" + (method)) + "#") + payload));
                     }
                 } else
                 {
-                    payloadString = add(payloadString, add((((add("#", method) + "#") + payload) + "#"), body));
+                    payloadString = add(payloadString, ((((("#" + (method)) + "#") + payload) + "#") + (body)));
                 }
                 ((IDictionary<string,object>)headers)["xt-validate-algorithms"] = "HmacSHA256";
                 ((IDictionary<string,object>)headers)["xt-validate-recvwindow"] = recvWindow;
             } else
             {
-                payloadString = (((add("xt-validate-appkey=", this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
+                payloadString = (((("xt-validate-appkey=" + (this.apiKey)) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if (isEqual(method, "GET"))
                 {
                     if ((urlencoded != ""))
@@ -6847,7 +6847,7 @@ public partial class xt : Exchange
                     }
                 } else
                 {
-                    payloadString = add(payloadString, add((("#" + payload) + "#"), body));
+                    payloadString = add(payloadString, ((("#" + payload) + "#") + (body)));
                 }
             }
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);

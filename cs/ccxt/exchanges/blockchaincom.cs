@@ -1415,7 +1415,7 @@ public partial class blockchaincom : Exchange
         {
             if ((text == "Insufficient Balance"))
             {
-                throw new InsufficientFunds ((string)add((this.id + " "), body)) ;
+                throw new InsufficientFunds ((string)((this.id + " ") + (body))) ;
             }
         }
         string? errorCode = this.safeString(response, "status");

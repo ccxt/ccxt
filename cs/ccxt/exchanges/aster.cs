@@ -3157,7 +3157,7 @@ public partial class aster : Exchange
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
         if (((getValue(market, "spot") as bool?) == true))
         {
-            throw new NotSupported ((string)(add((this.id + " createOrders() does not support "), getValue(market, "type")) + " orders")) ;
+            throw new NotSupported ((string)(((this.id + " createOrders() does not support ") + (getValue(market, "type"))) + " orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "batchOrders", ordersRequests },
@@ -3363,7 +3363,7 @@ public partial class aster : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
             string? pricePrecision = this.safeString(getValue(market, "precision"), "price");
             bool isPricePrecisionAvailable = ((pricePrecision != null));
@@ -3379,7 +3379,7 @@ public partial class aster : Exchange
         {
             if ((stopPrice == null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a stopPrice extra param for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a stopPrice extra param for a ") + (type)) + " order")) ;
             }
             if ((stopPrice != null))
             {
@@ -4356,7 +4356,7 @@ public partial class aster : Exchange
             return await this.FetchAccountPositions(symbols, parameters);
         } else
         {
-            throw new NotSupported ((string)(add((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
+            throw new NotSupported ((string)(((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + (defaultMethod)) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
         }
     }
 
@@ -4687,7 +4687,7 @@ public partial class aster : Exchange
 
     public virtual object keccakMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -4919,7 +4919,7 @@ public partial class aster : Exchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + (this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -4929,7 +4929,7 @@ public partial class aster : Exchange
         string? r = ((string)getValue(signature, "r"));
         string? s = ((string)getValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
-        return (add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
+        return ((("0x" + ((r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + ((s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0")))) + v);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -5026,7 +5026,7 @@ public partial class aster : Exchange
             object queryString = add(add(add(paramString, "&"), "signature="), signature);
             if (isEqual(method, "GET"))
             {
-                url = add(url, add("?", queryString));
+                url = add(url, ("?" + (queryString)));
             } else
             {
                 headers = new Dictionary<string, object>() {};
@@ -5187,7 +5187,7 @@ public partial class aster : Exchange
         string? message = this.safeString(response, "msg");
         if ((code != null) && (code != "200"))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

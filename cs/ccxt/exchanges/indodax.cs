@@ -901,12 +901,12 @@ public partial class indodax : Exchange
             {
                 baseId = "rp";
             }
-            cost = this.safeString(order, add("order_", quoteId));
-            amount = this.safeString(order, add("order_", baseId));
-            remaining = this.safeString(order, add("remain_", baseId));
+            cost = this.safeString(order, ("order_" + (quoteId)));
+            amount = this.safeString(order, ("order_" + (baseId)));
+            remaining = this.safeString(order, ("remain_" + (baseId)));
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = this.safeString(order, add("receive_", baseId));
+            filled = this.safeString(order, ("receive_" + (baseId)));
         }
         Int64? timestamp = this.safeInteger(order, "submit_time");
         object fee = null;
@@ -1123,7 +1123,7 @@ public partial class indodax : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
             ((IDictionary<string,object>)request)["price"] = price;
         }
@@ -1715,7 +1715,7 @@ public partial class indodax : Exchange
                 return null;
             }
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
         throw new ExchangeError ((string)feedback) ;

@@ -902,14 +902,14 @@ public partial class mercado : Exchange
             bool account_ref = (inOp(parameters, "account_ref"));
             if (!account_ref)
             {
-                throw new ArgumentsRequired ((string)add((this.id + " withdraw() requires account_ref parameter to withdraw "), code)) ;
+                throw new ArgumentsRequired ((string)((this.id + " withdraw() requires account_ref parameter to withdraw ") + (code))) ;
             }
         } else if (!isEqual(code, "LTC"))
         {
             bool tx_fee = (inOp(parameters, "tx_fee"));
             if (!tx_fee)
             {
-                throw new ArgumentsRequired ((string)add((this.id + " withdraw() requires tx_fee parameter to withdraw "), code)) ;
+                throw new ArgumentsRequired ((string)((this.id + " withdraw() requires tx_fee parameter to withdraw ") + (code))) ;
             }
             if (isEqual(code, "XRP"))
             {
@@ -917,7 +917,7 @@ public partial class mercado : Exchange
                 {
                     if (!(inOp(parameters, "destination_tag")))
                     {
-                        throw new ArgumentsRequired ((string)add((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw "), code)) ;
+                        throw new ArgumentsRequired ((string)((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + (code))) ;
                     }
                 } else
                 {
@@ -1174,7 +1174,7 @@ public partial class mercado : Exchange
                 { "tapi_method", path },
                 { "tapi_nonce", nonce },
             }, parameters));
-            string auth = add(((add("/tapi/", this.version) + "/") + "?"), body);
+            string auth = (((("/tapi/" + (this.version)) + "/") + "?") + (body));
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "TAPI-ID", this.apiKey },

@@ -2971,7 +2971,7 @@ public partial class ndax : Exchange
         object firstTemplateType = this.safeValue(templateTypes, 0);
         if ((firstTemplateType == null))
         {
-            throw new ExchangeError ((string)add((this.id + " withdraw() could not find a withdraw template type for "), getValue(currency, "code"))) ;
+            throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template type for ") + (getValue(currency, "code")))) ;
         }
         string? templateName = this.safeString(firstTemplateType, "TemplateName");
         Dictionary<string, object> withdrawTemplateRequest = new Dictionary<string, object>() {
@@ -2993,7 +2993,7 @@ public partial class ndax : Exchange
         string? template = this.safeString(withdrawTemplateResponse, "Template");
         if ((template == null))
         {
-            throw new ExchangeError ((string)add((this.id + " withdraw() could not find a withdraw template for "), getValue(currency, "code"))) ;
+            throw new ExchangeError ((string)((this.id + " withdraw() could not find a withdraw template for ") + (getValue(currency, "code")))) ;
         }
         object withdrawTemplate = parseJson(template);
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
@@ -3063,7 +3063,7 @@ public partial class ndax : Exchange
             if ((sessionToken == null))
             {
                 string nonce = ((object)this.nonce()).ToString();
-                object auth = add(add(nonce, this.uid), this.apiKey);
+                object auth = ((nonce + (this.uid)) + (this.apiKey));
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },
@@ -3101,7 +3101,7 @@ public partial class ndax : Exchange
     {
         if (isEqual(code, 404))
         {
-            throw new AuthenticationError ((string)add((this.id + " "), body)) ;
+            throw new AuthenticationError ((string)((this.id + " ") + (body))) ;
         }
         if ((response == null))
         {
@@ -3114,7 +3114,7 @@ public partial class ndax : Exchange
         string? message = this.safeString(response, "errormsg");
         if (((message != null)) && ((message != "")))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             throw new ExchangeError ((string)feedback) ;

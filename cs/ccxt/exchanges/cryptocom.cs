@@ -4278,9 +4278,9 @@ public partial class cryptocom : Exchange
         string? errorCode = this.safeString(response, "code");
         if ((errorCode != "0"))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;
     }

@@ -156,7 +156,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = add("ohlcv:", symbolVar);
+        string messageHash = ("ohlcv:" + (symbolVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "prices" },
@@ -244,7 +244,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + (symbolVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "ticker" },
@@ -365,7 +365,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = (market.ContainsKey("symbol") ? market["symbol"] : null);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
-        string messageHash = add("trades:", symbolVar);
+        string messageHash = ("trades:" + (symbolVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "trades" },
@@ -714,7 +714,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string? type = this.safeString(parameters, "type", "l2");
         parameters = this.omit(parameters, "type");
-        string messageHash = ((add("orderbook:", symbol) + ":") + type);
+        string messageHash = ((("orderbook:" + (symbol)) + ":") + type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", type },

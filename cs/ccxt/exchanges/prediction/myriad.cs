@@ -851,7 +851,7 @@ public partial class myriad : PredictionExchange
         // byte-identical to ethers' serialization
         object accessList = this.rlpEncodeList(new List<object>() {});
         List<object> fields = new List<object> {this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList};
-        string payload = add("02", this.rlpEncodeList(fields));
+        string payload = ("02" + (this.rlpEncodeList(fields)));
         object hashHex = this.hash(this.base16ToBinary(payload), keccak, "hex");
         Dictionary<string, object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1, null);
         string? rHex = this.safeString(signature, "r");
@@ -883,7 +883,7 @@ public partial class myriad : PredictionExchange
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(this.intToRlpHex(yParity)));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(rHex));
         ((IList<object>)signedFields).Add(this.rlpEncodeBytes(sHex));
-        return add("0x02", this.rlpEncodeList(signedFields));
+        return ("0x02" + (this.rlpEncodeList(signedFields)));
     }
 
     public async override Task<object> ethRpc(object rpcUrl, object method, object rpcParams)
@@ -901,7 +901,7 @@ public partial class myriad : PredictionExchange
         object rpcError = this.safeValue(response, "error");
         if ((rpcError != null))
         {
-            throw new ExchangeError ((string)((add((this.id + " rpc "), method) + " error: ") + this.json(rpcError))) ;
+            throw new ExchangeError ((string)((((this.id + " rpc ") + (method)) + " error: ") + this.json(rpcError))) ;
         }
         // the result is either a hex string (nonce/gasPrice/txhash) or an object (receipt) —
         // safeString would coerce a receipt object to "[object Object]"
@@ -911,7 +911,7 @@ public partial class myriad : PredictionExchange
     public async virtual Task<object> ensureErc20Allowance(object rpcUrl, object networkId, object token, object owner, object spender)
     {
         // allowance(owner, spender)
-        string allowanceData = add(add("0xdd62ed3e", this.padHexAddress(owner)), this.padHexAddress(spender));
+        string allowanceData = (("0xdd62ed3e" + (this.padHexAddress(owner))) + (this.padHexAddress(spender)));
         object current = await this.ethRpc(rpcUrl, "eth_call", new List<object>() {new Dictionary<string, object>() {
     { "to", token },
     { "data", allowanceData },
@@ -924,7 +924,7 @@ public partial class myriad : PredictionExchange
         }
         // approve(spender, maxUint256)
         string maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        string approveData = (add("0x095ea7b3", this.padHexAddress(spender)) + maxUint);
+        string approveData = (("0x095ea7b3" + (this.padHexAddress(spender))) + maxUint);
         object approveHash = await this.sendEvmTransaction(rpcUrl, this.parseToInt(networkId), owner, token, "0x0", approveData, "0x186a0");
         await this.waitForTransactionReceipt(rpcUrl, approveHash);
         return null;
@@ -1310,7 +1310,7 @@ public partial class myriad : PredictionExchange
         string? exchangeAddress = this.safeString(chainConfig, "obExchangeAddress");
         if ((exchangeAddress == null))
         {
-            throw new NotSupported ((string)add((this.id + " order book trading is not configured for network "), networkId)) ;
+            throw new NotSupported ((string)((this.id + " order book trading is not configured for network ") + (networkId))) ;
         }
         string? domainName = this.safeString(this.options, "obDomainName", "MyriadCTFExchange");
         string? domainVersion = this.safeString(this.options, "obDomainVersion", "1");
@@ -1328,7 +1328,7 @@ public partial class myriad : PredictionExchange
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object v = this.sum(27, getValue(signature, "v"));
-        string sigHex = (add(add("0x", r), s) + this.intToBase16(v));
+        string sigHex = ((("0x" + (r)) + (s)) + this.intToBase16(v));
         return ((string)sigHex).ToLower();
     }
 
@@ -2270,7 +2270,7 @@ public partial class myriad : PredictionExchange
         Int64? decimals = this.safeInteger(parameters, "decimals", this.safeInteger(chainConfig, "collateralDecimals", 18));
         string owner = this.walletAddressFromKeys();
         // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
-        string callData = add("0x70a08231", this.padHexAddress(owner));
+        string callData = ("0x70a08231" + (this.padHexAddress(owner)));
         List<object> callParams = new List<object>() {new Dictionary<string, object>() {
     { "to", token },
     { "data", callData },
@@ -4390,7 +4390,7 @@ public partial class myriad : PredictionExchange
         {
             return null;
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
         throw new ExchangeError ((string)feedback) ;

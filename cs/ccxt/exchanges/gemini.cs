@@ -1964,7 +1964,7 @@ public partial class gemini : Exchange
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
         if (isEqual(typeVar, "stopLimit"))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), typeVar) + " orders")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + (typeVar)) + " orders")) ;
         }
         if ((triggerPrice != null))
         {
@@ -2429,7 +2429,7 @@ public partial class gemini : Exchange
         {
             if ((body is string))
             {
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             }
             return null;  // fallback to default error handler

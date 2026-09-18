@@ -1441,7 +1441,7 @@ public partial class p2b : Exchange
         }
         if (isEqual(api, "private"))
         {
-            ((IDictionary<string,object>)parameters)["request"] = add("/api/v2/", path);
+            ((IDictionary<string,object>)parameters)["request"] = ("/api/v2/" + (path));
             ((IDictionary<string,object>)parameters)["nonce"] = ((object)this.nonce()).ToString();
             string payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new Dictionary<string, object>() {
@@ -1475,7 +1475,7 @@ public partial class p2b : Exchange
         if ((success != true))
         {
             string? errorCode = this.safeString(response, "errorCode");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             string codeAsString = ((object)code).ToString();
             if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))

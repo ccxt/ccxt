@@ -2690,7 +2690,7 @@ public partial class coinex : Exchange
         {
             if (((getValue(market, "swap") as bool?) != true))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() does not support reduceOnly for "), getValue(market, "type")) + " orders, reduceOnly orders are supported for swap markets only")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() does not support reduceOnly for ") + (getValue(market, "type"))) + " orders, reduceOnly orders are supported for swap markets only")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4091,7 +4091,7 @@ public partial class coinex : Exchange
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, maxLeverage)))
         {
-            throw new BadRequest ((string)add((((this.id + " setMarginMode() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for "), symbol)) ;
+            throw new BadRequest ((string)((((this.id + " setMarginMode() leverage should be between 1 and ") + ((object)maxLeverage).ToString()) + " for ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -4137,7 +4137,7 @@ public partial class coinex : Exchange
         Int64? maxLeverage = this.safeInteger(getValue(getValue(market, "limits"), "leverage"), "max", 100);
         if ((isLessThan(leverage, minLeverage)) || (isGreaterThan(leverage, maxLeverage)))
         {
-            throw new BadRequest ((string)add((((((this.id + " setLeverage() leverage should be between ") + ((object)minLeverage).ToString()) + " and ") + ((object)maxLeverage).ToString()) + " for "), symbol)) ;
+            throw new BadRequest ((string)((((((this.id + " setLeverage() leverage should be between ") + ((object)minLeverage).ToString()) + " and ") + ((object)maxLeverage).ToString()) + " for ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -6051,7 +6051,7 @@ public partial class coinex : Exchange
             }, query);
             query = this.keysort(query);
             string urlencoded = this.rawencode(query);
-            object signature = this.hash(this.encode(add((urlencoded + "&secret_key="), this.secret)), sha256);
+            object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + (this.secret))), sha256);
             headers = new Dictionary<string, object>() {
                 { "Authorization", ((string)signature).ToLower() },
                 { "AccessId", this.apiKey },
@@ -6081,7 +6081,7 @@ public partial class coinex : Exchange
                 }, query);
                 query = this.keysort(query);
                 string urlencoded = this.rawencode(query);
-                object signature = this.hash(this.encode(add((urlencoded + "&secret_key="), this.secret)), md5);
+                object signature = this.hash(this.encode(((urlencoded + "&secret_key=") + (this.secret))), md5);
                 headers = new Dictionary<string, object>() {
                     { "Authorization", ((string)signature).ToUpper() },
                     { "Content-Type", "application/json" },
@@ -6107,7 +6107,7 @@ public partial class coinex : Exchange
                 {
                     preparedString = add(preparedString, ("?" + urlencoded));
                 }
-                preparedString = add(preparedString, add(nonce, this.secret));
+                preparedString = add(preparedString, (nonce + (this.secret)));
                 object signature = this.hash(this.encode(preparedString), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },

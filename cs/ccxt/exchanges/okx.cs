@@ -6826,7 +6826,7 @@ public partial class okx : Exchange
             IDictionary<string, object> result = this.safeDict(response, network);
             if ((result == null))
             {
-                throw new InvalidAddress ((string)add((add((this.id + " fetchDepositAddress() cannot find "), network) + " deposit address for "), codeVar)) ;
+                throw new InvalidAddress ((string)((((this.id + " fetchDepositAddress() cannot find ") + (network)) + " deposit address for ") + (codeVar))) ;
             }
             return ccxt.BaseExchange.ToDepositAddress(result);
         }
@@ -7503,7 +7503,7 @@ public partial class okx : Exchange
         IDictionary<string, object> position = this.safeDict(data, 0);
         if ((position == null))
         {
-            throw new NullResponse ((string)add((this.id + " fetchPosition() could not find a position for "), symbol)) ;
+            throw new NullResponse ((string)((this.id + " fetchPosition() could not find a position for ") + (symbol))) ;
         }
         return ccxt.BaseExchange.ToPosition(this.parsePosition(position, market));
     }
@@ -8095,7 +8095,7 @@ public partial class okx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        string request = ((add("/api/", this.version) + "/") + this.implodeParams(path, parameters));
+        string request = ((("/api/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string url = (this.implodeHostname(getValue(getValue(this.urls, "api"), "rest")) + request);
         // const type = this.getPathAuthenticationType (path);
@@ -8336,7 +8336,7 @@ public partial class okx : Exchange
                 bool isExtendedPerpetual = ((ruleType == "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                 if ((((getValue(market, "swap") as bool?) != true)) && !isExtendedPerpetual)
                 {
-                    throw new BadRequest ((string)(add((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, "), getValue(symbols, i)) + " is not")) ;
+                    throw new BadRequest ((string)(((this.id + " fetchFundingRates() symbols must be swap markets or XPERP futures, ") + (getValue(symbols, i))) + " is not")) ;
                 }
             }
         }
@@ -9098,7 +9098,7 @@ public partial class okx : Exchange
         {
             if ((type != "MARGIN"))
             {
-                throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)) ;
+                throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() cannot fetch leverage tiers for ") + (symbol))) ;
             }
         }
         object marginMode = null;
@@ -10066,7 +10066,7 @@ public partial class okx : Exchange
                 return ccxt.BaseExchange.ToGreeks(this.parseGreeks(entry, market));
             }
         }
-        throw new NullResponse ((string)add((this.id + " fetchGreeks() could not find greeks for "), symbol)) ;
+        throw new NullResponse ((string)((this.id + " fetchGreeks() could not find greeks for ") + (symbol))) ;
     }
 
     /**
@@ -10847,7 +10847,7 @@ public partial class okx : Exchange
         string? code = this.safeString(response, "code");
         if (((code != "0")) && ((code != "2")))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             List<object> data = this.safeList(response, "data", new List<object>() {});
             for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
             {
@@ -10898,7 +10898,7 @@ public partial class okx : Exchange
                 subType = "162";
             } else
             {
-                throw new BadRequest ((string)add((this.id + " cannot fetch margin adjustments for type "), type)) ;
+                throw new BadRequest ((string)((this.id + " cannot fetch margin adjustments for type ") + (type))) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

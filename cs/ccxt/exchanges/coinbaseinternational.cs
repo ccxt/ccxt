@@ -474,7 +474,7 @@ public partial class coinbaseinternational : Exchange
                 return new List<object>() {portfolioId, parameters};
             }
         }
-        throw new ArgumentsRequired ((string)(add((this.id + " "), methodName) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
+        throw new ArgumentsRequired ((string)(((this.id + " ") + (methodName)) + "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
     }
 
     public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters = null)
@@ -494,7 +494,7 @@ public partial class coinbaseinternational : Exchange
                 // find default network
                 if (isTrue(this.isEmpty(networks)))
                 {
-                    throw new BadRequest ((string)(add((this.id + " createDepositAddress network not found for currency "), currencyCode) + " please specify networkId in params")) ;
+                    throw new BadRequest ((string)(((this.id + " createDepositAddress network not found for currency ") + (currencyCode)) + " please specify networkId in params")) ;
                 }
                 object defaultNetwork = this.findDefaultNetwork(networks);
                 networkId = getValue(defaultNetwork, "id");
@@ -2719,7 +2719,7 @@ public partial class coinbaseinternational : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
         bool signed = isEqual(getValue(api, 1), "private");
-        string fullPath = ((add("/", version) + "/") + this.implodeParams(path, parameters));
+        string fullPath = ((("/" + (version)) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string savedPath = ("/api" + fullPath);
         if (isEqual(method, "GET") || isEqual(method, "DELETE"))
@@ -2743,7 +2743,7 @@ public partial class coinbaseinternational : Exchange
                     payload = body;
                 }
             }
-            object auth = add(add(add(nonce, method), savedPath), payload);
+            object auth = (((nonce + (method)) + savedPath) + (payload));
             string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-TIMESTAMP", nonce },
@@ -2772,7 +2772,7 @@ public partial class coinbaseinternational : Exchange
         {
             return null;  // fallback to default error handler
         }
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         string? errMsg = this.safeString(response, "title");
         if ((errMsg != null))
         {

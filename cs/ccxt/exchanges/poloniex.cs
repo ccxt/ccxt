@@ -1167,7 +1167,7 @@ public partial class poloniex : Exchange
         } else
         {
             // actually, exchange does not have any inverse future now
-            symbol = add(symbol, add(":", bs));
+            symbol = add(symbol, (":" + (bs)));
         }
         string? alias = this.safeString(market, "alias");
         string type = "swap";
@@ -2404,7 +2404,7 @@ public partial class poloniex : Exchange
         {
             if (((getValue(market, "spot") as bool?) != true))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() does not support trigger orders for "), getValue(market, "type")) + " markets")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() does not support trigger orders for ") + (getValue(market, "type"))) + " markets")) ;
             }
             upperCaseType = ((bool) (isEqual(price, null))) ? "STOP" : "STOP_LIMIT";
             ((IDictionary<string,object>)request)["stopPrice"] = triggerPrice;
@@ -2493,7 +2493,7 @@ public partial class poloniex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (((getValue(market, "spot") as bool?) != true))
         {
-            throw new NotSupported ((string)(add((this.id + " editOrder() does not support "), getValue(market, "type")) + " orders, only spot orders are accepted")) ;
+            throw new NotSupported ((string)(((this.id + " editOrder() does not support ") + (getValue(market, "type"))) + " orders, only spot orders are accepted")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
@@ -3116,7 +3116,7 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!(inOp(this.currencies, code)))
         {
-            throw new BadSymbol ((string)(add((this.id + " fetchDepositAddress(): can not recognize "), code) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
+            throw new BadSymbol ((string)(((this.id + " fetchDepositAddress(): can not recognize ") + (code)) + " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         object networkCode = null;
@@ -3125,7 +3125,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " fetchDepositAddress requires a network parameter for "), code) + ".")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " fetchDepositAddress requires a network parameter for ") + (code)) + ".")) ;
         }
         object exchangeNetworkId = null;
         networkCode = this.networkIdToCode(networkCode, code);
@@ -3257,7 +3257,7 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " withdraw requires a network parameter for "), code) + ".")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " withdraw requires a network parameter for ") + (code)) + ".")) ;
         }
         ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(networkCode, code);
         if ((tagVar != null))
@@ -4157,7 +4157,7 @@ public partial class poloniex : Exchange
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     body = this.json(query);
-                    auth = add(auth, (add("requestBody=", body) + "&"));
+                    auth = add(auth, (("requestBody=" + (body)) + "&"));
                 }
                 auth = add(auth, ("signTimestamp=" + timestamp));
             } else
@@ -4204,7 +4204,7 @@ public partial class poloniex : Exchange
         if (((responseCode != null)) && ((responseCode != "200")))
         {
             string? message = this.safeString2(response, "message", "msg");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;

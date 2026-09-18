@@ -743,7 +743,7 @@ public partial class bittrade : Exchange
             response = await this.publicGetCommonSymbols(parameters);
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchMarkets() does not support the "), method) + " method")) ;
+            throw new NotSupported ((string)(((this.id + " fetchMarkets() does not support the ") + (method)) + " method")) ;
         }
         //
         //    {
@@ -1561,7 +1561,7 @@ public partial class bittrade : Exchange
             response = await this.privateGetAccountAccountsIdBalance(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " fetchBalance() does not support the "), method) + " method")) ;
+            throw new NotSupported ((string)(((this.id + " fetchBalance() does not support the ") + (method)) + " method")) ;
         }
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
@@ -1972,7 +1972,7 @@ public partial class bittrade : Exchange
             response = await this.privatePostOrderOrdersPlace(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported ((string)(add((this.id + " createOrder() does not support the "), method) + " method")) ;
+            throw new NotSupported ((string)(((this.id + " createOrder() does not support the ") + (method)) + " method")) ;
         }
         string? id = this.safeString(response, "data");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "timestamp", null },             { "datetime", null },             { "lastTradeTimestamp", null },             { "status", null },             { "symbol", symbol },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", null },             { "remaining", null },             { "cost", null },             { "trades", null },             { "fee", null },             { "clientOrderId", null },             { "average", null },         }, market));
@@ -2510,9 +2510,9 @@ public partial class bittrade : Exchange
                 url = add(url, ("?" + this.urlencode(parameters)));
             }
         }
-        url = add(this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
+        url = (this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
     { "hostname", this.hostname },
-}), url);
+}) + (url));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2536,7 +2536,7 @@ public partial class bittrade : Exchange
             if ((status == "error"))
             {
                 string? code = this.safeString(response, "err-code");
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 string? message = this.safeString(response, "err-msg");

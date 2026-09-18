@@ -314,7 +314,7 @@ public partial class phemex : ccxt.phemex
         {
             object ticker = getValue(tickers, i);
             object symbol = getValue(ticker, "symbol");
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + (symbol));
             Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
             ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
@@ -347,7 +347,7 @@ public partial class phemex : ccxt.phemex
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool usePerpetualApi = (this.safeString(parameters, "settle") == "USDT");
         object messageHash = ":balance";
-        messageHash = ((bool) usePerpetualApi) ? add("perpetual", messageHash) : add(type, messageHash);
+        messageHash = ((bool) usePerpetualApi) ? ("perpetual" + (messageHash)) : add(type, messageHash);
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, parameters));
     }
 
@@ -575,7 +575,7 @@ public partial class phemex : ccxt.phemex
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         string subscriptionHash = (name + ".subscribe");
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + (symbolVar));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
             { "id", requestId },
@@ -620,7 +620,7 @@ public partial class phemex : ccxt.phemex
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
         {
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+            ((IList<object>)messageHashes).Add(("ticker:" + (getValue(symbols, i))));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
@@ -668,7 +668,7 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "trade_p" : "trade";
-        string messageHash = add("trade:", symbolVar);
+        string messageHash = ("trade:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
@@ -713,7 +713,7 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "orderbook_p" : "orderbook";
-        string messageHash = add("orderbook:", symbolVar);
+        string messageHash = ("orderbook:" + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
@@ -758,7 +758,7 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = ((getValue(market, "settle") as string) == "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = ((bool) isUsdtSwap) ? "kline_p" : "kline";
-        string messageHash = add((add("kline:", timeframeVar) + ":"), symbolVar);
+        string messageHash = ((("kline:" + (timeframeVar)) + ":") + (symbolVar));
         string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
@@ -1052,7 +1052,7 @@ public partial class phemex : ccxt.phemex
             (client as WebSocketClient).resolve(cachedTrades, hash);
         }
         // generic subscription
-        string messageHash = add((channel + ":"), type);
+        string messageHash = ((channel + ":") + (type));
         (client as WebSocketClient).resolve(cachedTrades, messageHash);
     }
 
@@ -1329,11 +1329,11 @@ public partial class phemex : ccxt.phemex
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; i < keys.Count; postFixIncrement(ref i))
         {
-            string currentMessageHash = add(("orders" + ":"), getValue(keys, i));
+            string currentMessageHash = (("orders" + ":") + (getValue(keys, i)));
             (client as WebSocketClient).resolve(this.orders, currentMessageHash);
         }
         // resolve generic subscription (spot or swap)
-        string messageHash = add("orders:", type);
+        string messageHash = ("orders:" + (type));
         (client as WebSocketClient).resolve(this.orders, messageHash);
     }
 

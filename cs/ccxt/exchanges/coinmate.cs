@@ -1396,7 +1396,7 @@ public partial class coinmate : Exchange
             response = await this.privatePostSellLimit(requestParams);
         } else
         {
-            throw new InvalidOrder ((string)add((this.id + " createOrder() does not support order type "), type)) ;
+            throw new InvalidOrder ((string)((this.id + " createOrder() does not support order type ") + (type))) ;
         }
         string? id = this.safeString(response, "data");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },         }, market));
@@ -1486,7 +1486,7 @@ public partial class coinmate : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
-            object auth = add(add(nonce, this.uid), this.apiKey);
+            object auth = ((nonce + (this.uid)) + (this.apiKey));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },
@@ -1519,7 +1519,7 @@ public partial class coinmate : Exchange
         string? errorMessage = this.safeString(response, "errorMessage");
         if ((errorMessage != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
             throw new ExchangeError ((string)feedback) ;

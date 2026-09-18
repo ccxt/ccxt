@@ -1426,7 +1426,7 @@ public partial class bitbns : Exchange
         object urls = this.urls;
         if (!(inOp(getValue(urls, "api"), api)))
         {
-            throw new ExchangeError ((string)(add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
+            throw new ExchangeError ((string)(((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
         if (!isEqual(api, "www"))
         {
@@ -1488,7 +1488,7 @@ public partial class bitbns : Exchange
         bool error = ((code != null)) && ((code != "200")) && ((code != "204"));
         if (error || ((message != null)))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

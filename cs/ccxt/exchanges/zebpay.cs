@@ -436,7 +436,7 @@ public partial class zebpay : Exchange
                 ((IList<object>)promisesUnresolved).Add(this.FetchSwapMarkets(parameters));
             } else
             {
-                throw new ExchangeError ((string)(add((this.id + " fetchMarkets() this.options fetchMarkets \""), type) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((string)(((this.id + " fetchMarkets() this.options fetchMarkets \"") + (type)) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesUnresolved);

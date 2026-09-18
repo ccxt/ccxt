@@ -2377,7 +2377,7 @@ public partial class digifinex : Exchange
             int numCanceledOrders = canceledOrders.Count;
             if ((numCanceledOrders != 1))
             {
-                throw new OrderNotFound ((string)(add((this.id + " cancelOrder() "), idVar) + " not found")) ;
+                throw new OrderNotFound ((string)(((this.id + " cancelOrder() ") + (idVar)) + " not found")) ;
             }
             List<object> orders = this.parseCancelOrders(response);
             return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
@@ -3336,7 +3336,7 @@ public partial class digifinex : Exchange
         object address = this.safeValue(addresses, code);
         if ((address == null))
         {
-            throw new InvalidAddress ((string)(add((this.id + " fetchDepositAddress() did not return an address for "), code) + " - create the deposit address in the user settings on the exchange website first.")) ;
+            throw new InvalidAddress ((string)(((this.id + " fetchDepositAddress() did not return an address for ") + (code)) + " - create the deposit address in the user settings on the exchange website first.")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(address);
     }
@@ -5199,7 +5199,7 @@ public partial class digifinex : Exchange
         {
             return null;  // no error
         }
-        string feedback = add((this.id + " "), responseBody);
+        string feedback = ((this.id + " ") + (responseBody));
         if ((code == null))
         {
             throw new BadResponse ((string)feedback) ;

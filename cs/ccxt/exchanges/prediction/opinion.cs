@@ -885,7 +885,7 @@ public partial class opinion : PredictionExchange
         if (!(inOp(this.timeframes, timeframeVar)))
         {
             List<object> supportedKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
-            throw new BadRequest ((string)((add((this.id + " fetchOHLCV() unsupported timeframe "), timeframeVar) + ", supported timeframes are ") + String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
+            throw new BadRequest ((string)((((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar)) + ", supported timeframes are ") + String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
         }
         IDictionary<string, object> outcomeObj = ((IDictionary<string, object>)await this.loadOutcome(outcome));
         string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
@@ -980,7 +980,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> quoteToken = this.safeDict(quoteTokens, cacheKey);
         if ((quoteToken == null))
         {
-            throw new ExchangeError ((string)add((this.id + " loadQuoteToken() could not find quote token "), quoteTokenAddress)) ;
+            throw new ExchangeError ((string)((this.id + " loadQuoteToken() could not find quote token ") + (quoteTokenAddress))) ;
         }
         return quoteToken;
     }
@@ -1056,7 +1056,7 @@ public partial class opinion : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         object sig = this.signMessage(encoded, this.privateKey);
-        return (add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
+        return ((("0x" + (this.remove0xPrefix(getValue(sig, "r")))) + (this.remove0xPrefix(getValue(sig, "s")))) + this.intToBase16(getValue(sig, "v")));
     }
 
     public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, object side, object amount, object price, object decimals)
@@ -1695,7 +1695,7 @@ public partial class opinion : PredictionExchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + (this.hash(message, keccak, "hex")));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -1707,8 +1707,8 @@ public partial class opinion : PredictionExchange
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
-            { "r", add("0x", r) },
-            { "s", add("0x", s) },
+            { "r", ("0x" + (r)) },
+            { "s", ("0x" + (s)) },
             { "v", this.sum(27, getValue(signature, "v")) },
         };
     }
@@ -1745,7 +1745,7 @@ public partial class opinion : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         object sig = this.signMessage(encoded, this.privateKey);
-        return (add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
+        return ((("0x" + (this.remove0xPrefix(getValue(sig, "r")))) + (this.remove0xPrefix(getValue(sig, "s")))) + this.intToBase16(getValue(sig, "v")));
     }
 
     /**
@@ -2408,7 +2408,7 @@ public partial class opinion : PredictionExchange
         if ((!isEqual(errno, null)) && ((errno != 0)))
         {
             string? errmsg = this.safeString(response, "errmsg", "");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), this.numberToString(errno), feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errmsg, feedback);
             throw new ExchangeError ((string)feedback) ;
@@ -2452,7 +2452,7 @@ public partial class opinion : PredictionExchange
                 // wallet-signature scheme: no apiKey involved, the signature itself is the credential
                 if (((this.walletAddress == null)) || ((this.privateKey == null)))
                 {
-                    throw new ArgumentsRequired ((string)(add((this.id + " "), path) + " requires a walletAddress and privateKey")) ;
+                    throw new ArgumentsRequired ((string)(((this.id + " ") + (path)) + " requires a walletAddress and privateKey")) ;
                 }
                 Dictionary<string, object> actionByMethod = new Dictionary<string, object>() {
                     { "POST", "create" },
@@ -2472,7 +2472,7 @@ public partial class opinion : PredictionExchange
                 object apiKey = ((bool) (hasDirectApiKey)) ? this.apiKey : this.safeString(this.options, "apiKey");
                 if ((apiKey == null))
                 {
-                    throw new AuthenticationError ((string)(add((this.id + " "), path) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
+                    throw new AuthenticationError ((string)(((this.id + " ") + (path)) + " requires an apiKey - set it directly or call createApiKey()/fetchApiKey() first")) ;
                 }
                 ((IDictionary<string,object>)headers)["apikey"] = apiKey;
             }

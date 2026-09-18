@@ -3948,7 +3948,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (((getValue(market, "spot") as bool?) == true))
         {
-            throw new NotSupported ((string)(add((this.id + " fetchLiquidations() does not support "), getValue(market, "type")) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchLiquidations() does not support ") + (getValue(market, "type"))) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -4037,7 +4037,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (((getValue(market, "spot") as bool?) == true))
         {
-            throw new NotSupported ((string)(add((this.id + " fetchMyLiquidations() does not support "), getValue(market, "type")) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchMyLiquidations() does not support ") + (getValue(market, "type"))) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -4535,7 +4535,7 @@ public partial class deribit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = add((add((add(("/" + "api/"), this.version) + "/"), api) + "/"), path);
+        string request = (((((("/" + "api/") + (this.version)) + "/") + (api)) + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -4554,10 +4554,10 @@ public partial class deribit : Exchange
                 request = request + ("?" + this.urlencode(parameters));
             }
             object requestData = add(add(add(add(add(method, "\n"), request), "\n"), requestBody), "\n"); // eslint-disable-line quotes
-            string auth = add((((timestamp + "\n") + nonce) + "\n"), requestData); // eslint-disable-line quotes
+            string auth = ((((timestamp + "\n") + nonce) + "\n") + (requestData)); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
-                { "Authorization", (((((((add("deri-hmac-sha256 id=", this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
+                { "Authorization", (((((((("deri-hmac-sha256 id=" + (this.apiKey)) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
         }
         object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
@@ -4593,7 +4593,7 @@ public partial class deribit : Exchange
         if ((error != null))
         {
             string? errorCode = this.safeString(error, "code");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }

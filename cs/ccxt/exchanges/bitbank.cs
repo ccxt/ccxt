@@ -1235,12 +1235,12 @@ public partial class bitbank : Exchange
                 auth = add(auth, body);
             } else
             {
-                auth = add(auth, add((add("/", this.version) + "/"), path));
+                auth = add(auth, ((("/" + (this.version)) + "/") + (path)));
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
                     query = this.urlencode(query);
-                    url = add(url, add("?", query));
-                    auth = add(auth, add("?", query));
+                    url = add(url, ("?" + (query)));
+                    auth = add(auth, ("?" + (query)));
                 }
             }
             headers = new Dictionary<string, object>() {

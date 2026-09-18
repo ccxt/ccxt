@@ -234,7 +234,7 @@ public partial class mudrex : Exchange
         object bs = this.safeString(apiUrls, api);
         if ((bs == null))
         {
-            throw new ExchangeError ((string)add((this.id + " unknown API namespace: "), api)) ;
+            throw new ExchangeError ((string)((this.id + " unknown API namespace: ") + (api))) ;
         }
         object url = add(add(bs, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

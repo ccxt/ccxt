@@ -1092,7 +1092,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string orderType = this.capitalize(type);
-        orderType = add(orderType, ((bool) (isEqual(side, "sell"))) ? "Offer" : "Bid");
+        orderType = orderType + (((bool) (isEqual(side, "sell"))) ? "Offer" : "Bid");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", (market.ContainsKey("baseId") ? market["baseId"] : null) },
             { "secondaryCurrencyCode", (market.ContainsKey("quoteId") ? market["quoteId"] : null) },
@@ -1338,7 +1338,7 @@ public partial class independentreserve : Exchange
         {
             this.checkRequiredCredentials();
             Int64 nonce = this.nonce();
-            List<object> auth = new List<object>() {url, add("apiKey=", this.apiKey), ("nonce=" + ((object)nonce).ToString())};
+            List<object> auth = new List<object>() {url, ("apiKey=" + (this.apiKey)), ("nonce=" + ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; i < keys.Count; postFixIncrement(ref i))
             {

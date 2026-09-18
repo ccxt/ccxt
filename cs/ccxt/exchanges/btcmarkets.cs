@@ -1103,7 +1103,7 @@ public partial class btcmarkets : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + "order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + "order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1115,7 +1115,7 @@ public partial class btcmarkets : Exchange
             parameters = this.omit(parameters, "triggerPrice");
             if (isEqual(triggerPrice, null))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a triggerPrice parameter for a "), type) + "order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a triggerPrice parameter for a ") + (type)) + "order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -1591,7 +1591,7 @@ public partial class btcmarkets : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        string request = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (isEqual(api, "private"))
         {
@@ -1649,7 +1649,7 @@ public partial class btcmarkets : Exchange
         string? message = this.safeString(response, "message");
         if ((errorCode != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

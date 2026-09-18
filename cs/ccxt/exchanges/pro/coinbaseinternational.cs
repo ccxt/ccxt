@@ -115,7 +115,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             throw new NotSupported ((string)(this.id + " is not supported in sandbox environment")) ;
         }
         string timestamp = ((object)this.nonce()).ToString();
-        object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
+        object auth = (((timestamp + (this.apiKey)) + "CBINTLMD") + (this.password));
         string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },

@@ -1544,7 +1544,7 @@ public partial class coinone : Exchange
         string? errorCode = this.safeString(response, "error_code");
         if ((errorCode != null) && (errorCode != "0"))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;
         }

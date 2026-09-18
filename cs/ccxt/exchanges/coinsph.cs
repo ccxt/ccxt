@@ -1625,7 +1625,7 @@ public partial class coinsph : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired ((string)(add((this.id + " createOrder() requires a price argument for a "), type) + " order")) ;
+                throw new ArgumentsRequired ((string)(((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
             }
             newOrderRespType = this.safeString(newOrderRespType, "limit", "FULL");
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -2563,7 +2563,7 @@ public partial class coinsph : Exchange
         string encodedQuery = this.urlencode(query);
         if ((((string)encodedQuery).Length != 0))
         {
-            return add((encodedQuery + "&"), encodedArrayParams);
+            return ((encodedQuery + "&") + (encodedArrayParams));
         } else
         {
             return encodedArrayParams;
@@ -2612,7 +2612,7 @@ public partial class coinsph : Exchange
             query = this.urlEncodeQuery(query);
             if ((getArrayLength(query) != 0))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + (query)));
             }
         }
         return new Dictionary<string, object>() {
@@ -2632,7 +2632,7 @@ public partial class coinsph : Exchange
         string? responseCode = this.safeString(response, "code");
         if (((responseCode != null)) && ((responseCode != "200")) && ((responseCode != "0")))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             throw new ExchangeError ((string)feedback) ;

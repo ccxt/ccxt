@@ -1802,7 +1802,7 @@ public partial class delta : Exchange
         string? price = this.safeString(parameters, "price");
         if ((price == "mark"))
         {
-            ((IDictionary<string,object>)request)["symbol"] = add("MARK:", getValue(market, "id"));
+            ((IDictionary<string,object>)request)["symbol"] = ("MARK:" + (getValue(market, "id")));
         } else if ((price == "index"))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(getValue(getValue(market, "info"), "spot_index"), "symbol");
@@ -4378,7 +4378,7 @@ public partial class delta : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         headers ??= new Dictionary<string, object>();
-        string requestPath = ((add("/", this.version) + "/") + this.implodeParams(path, parameters));
+        string requestPath = ((("/" + (this.version)) + "/") + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
@@ -4434,7 +4434,7 @@ public partial class delta : Exchange
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
             throw new ExchangeError ((string)feedback) ;

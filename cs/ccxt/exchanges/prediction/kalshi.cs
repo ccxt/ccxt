@@ -651,7 +651,7 @@ public partial class kalshi : PredictionExchange
         if ((error != null))
         {
             string? errorCode = this.safeString(error, "code");
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
         }
@@ -659,7 +659,7 @@ public partial class kalshi : PredictionExchange
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (isEqual(code, 400))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             throw new BadRequest ((string)feedback) ;
         }
         return null;
@@ -1394,7 +1394,7 @@ public partial class kalshi : PredictionExchange
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             List<object> tfKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             string supported = String.Join(", ", ((IList<object>)tfKeys).ToArray());
-            throw new BadRequest ((string)(((add((this.id + " fetchOHLCV() does not support the "), timeframeVar) + " timeframe (supported: ") + supported) + ")")) ;
+            throw new BadRequest ((string)(((((this.id + " fetchOHLCV() does not support the ") + (timeframeVar)) + " timeframe (supported: ") + supported) + ")")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "series_ticker", seriesTicker },
@@ -3092,7 +3092,7 @@ public partial class kalshi : PredictionExchange
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = slice(baseUrl, tradeApiIndex, null);
             object pathForSigning = add(add(versionPrefix, "/"), implodedPath);
-            object payload = add(add(timestamp, method), pathForSigning);
+            object payload = ((timestamp + (method)) + (pathForSigning));
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = ((string)this.privateKey).Split(new [] {((string)"\\n")}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", ((IList<object>)keyParts).ToArray());

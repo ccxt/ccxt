@@ -4606,7 +4606,7 @@ public partial class kucoin : Exchange
             return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
         } else
         {
-            throw new NotSupported ((string)add((this.id + " createOrder() does not support market "), getValue(market, "type"))) ;
+            throw new NotSupported ((string)((this.id + " createOrder() does not support market ") + (getValue(market, "type")))) ;
         }
     }
 
@@ -4845,7 +4845,7 @@ public partial class kucoin : Exchange
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
         if (isEqual(result, "0"))
         {
-            throw new InvalidOrder ((string)((add((this.id + " amount of "), getValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder ((string)((((this.id + " amount of ") + (getValue(market, "symbol"))) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(getValue(market, "precision"), "amount")))) ;
         }
         return result;
     }
@@ -13275,7 +13275,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)headers)["KC-API-PASSPHRASE"] = this.password;
             }
-            object payload = add(add(add(timestamp, method), endpoint), endpart);
+            object payload = (((timestamp + (method)) + endpoint) + (endpart));
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             ((IDictionary<string,object>)headers)["KC-API-SIGN"] = signature;
             object partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});
@@ -13286,7 +13286,7 @@ public partial class kucoin : Exchange
             string? partnerSecret = this.safeString2(partner, "secret", "key");
             if (((partnerId != null)) && ((partnerSecret != null)))
             {
-                object partnerPayload = add((timestamp + partnerId), this.apiKey);
+                object partnerPayload = ((timestamp + partnerId) + (this.apiKey));
                 string partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER-SIGN"] = partnerSignature;
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER"] = partnerId;
@@ -13324,7 +13324,7 @@ public partial class kucoin : Exchange
         //
         string? errorCode = this.safeString(response, "code");
         string? message = this.safeString2(response, "msg", "data", "");
-        string feedback = add((this.id + " "), body);
+        string feedback = ((this.id + " ") + (body));
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);

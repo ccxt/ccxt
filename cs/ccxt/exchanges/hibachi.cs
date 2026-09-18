@@ -2001,7 +2001,7 @@ public partial class hibachi : Exchange
             if ((status == "failed"))
             {
                 string? code = this.safeString(response, "errorCode");
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 string? message = this.safeString(response, "message");

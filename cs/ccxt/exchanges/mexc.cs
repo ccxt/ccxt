@@ -2594,7 +2594,7 @@ public partial class mexc : Exchange
             tickers = await this.spotPublicGetTickerBookTicker(query);
         } else if (isEqual(marketType, "swap"))
         {
-            throw new NotSupported ((string)(add((this.id + " fetchBidsAsks() is not available for "), marketType) + " markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchBidsAsks() is not available for ") + (marketType)) + " markets")) ;
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
         if (isSingularMarket)
@@ -2757,7 +2757,7 @@ public partial class mexc : Exchange
         {
             if (!isEqual(marginMode, "isolated"))
             {
-                throw new BadRequest ((string)(add((this.id + " createOrder() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                throw new BadRequest ((string)(((this.id + " createOrder() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
             }
         }
         bool? postOnly = null;
@@ -3128,7 +3128,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest ((string)(add((this.id + " fetchOrder() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                    throw new BadRequest ((string)(((this.id + " fetchOrder() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
                 }
                 data = await this.spotPrivateGetMarginOrder(this.extend(request, query));
             } else
@@ -3236,7 +3236,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest ((string)(add((this.id + " fetchOrders() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                    throw new BadRequest ((string)(((this.id + " fetchOrders() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
                 }
                 response = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
             } else
@@ -3418,7 +3418,7 @@ public partial class mexc : Exchange
         var query = ((IList<object>) marketTypequeryVariable)[1];
         if (isEqual(marketType, "spot"))
         {
-            throw new BadRequest ((string)add((this.id + " fetchOrdersByIds() is not supported for "), marketType)) ;
+            throw new BadRequest ((string)((this.id + " fetchOrdersByIds() is not supported for ") + (marketType))) ;
         } else
         {
             ((IDictionary<string,object>)request)["order_ids"] = String.Join(",", ((IList<object>)ids).ToArray());
@@ -3507,7 +3507,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest ((string)(add((this.id + " fetchOpenOrders() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                    throw new BadRequest ((string)(((this.id + " fetchOpenOrders() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
                 }
                 response = await this.spotPrivateGetMarginOpenOrders(this.extend(request, query));
             } else
@@ -3630,7 +3630,7 @@ public partial class mexc : Exchange
         var marketType = ((IList<object>) marketTypeVariable)[0];
         if (isEqual(marketType, "spot"))
         {
-            throw new NotSupported ((string)add((this.id + " fetchOrdersByState() is not supported for "), marketType)) ;
+            throw new NotSupported ((string)((this.id + " fetchOrdersByState() is not supported for ") + (marketType))) ;
         } else
         {
             ((IDictionary<string,object>)request)["states"] = state;
@@ -3695,7 +3695,7 @@ public partial class mexc : Exchange
             {
                 if (!isEqual(marginMode, "isolated"))
                 {
-                    throw new BadRequest ((string)(add((this.id + " cancelOrder() does not support marginMode "), marginMode) + " for spot-margin trading")) ;
+                    throw new BadRequest ((string)(((this.id + " cancelOrder() does not support marginMode ") + (marginMode)) + " for spot-margin trading")) ;
                 }
                 data = await this.spotPrivateDeleteMarginOrder(this.extend(requestInner, query));
             } else
@@ -3736,7 +3736,7 @@ public partial class mexc : Exchange
             object errorMsg = this.safeValue(order, "errorMsg", "");
             if (!isEqual(errorMsg, "success"))
             {
-                throw new InvalidOrder ((string)add((add((this.id + " cancelOrder() the order with id "), id) + " cannot be cancelled: "), errorMsg)) ;
+                throw new InvalidOrder ((string)((((this.id + " cancelOrder() the order with id ") + (id)) + " cannot be cancelled: ") + (errorMsg))) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
@@ -3764,7 +3764,7 @@ public partial class mexc : Exchange
         var marketType = ((IList<object>) marketTypeVariable)[0];
         if (isEqual(marketType, "spot"))
         {
-            throw new BadRequest ((string)add((this.id + " cancelOrders() is not supported for "), marketType)) ;
+            throw new BadRequest ((string)((this.id + " cancelOrders() is not supported for ") + (marketType))) ;
         } else
         {
             Dictionary<string, object> response = await this.contractPrivatePostOrderCancel(ids); // the request cannot be changed or extended. The only way to send.
@@ -5429,7 +5429,7 @@ public partial class mexc : Exchange
         }
         if ((result == null))
         {
-            throw new InvalidAddress ((string)(((add((this.id + " fetchDepositAddress() cannot find a deposit address for "), code) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
+            throw new InvalidAddress ((string)(((((this.id + " fetchDepositAddress() cannot find a deposit address for ") + (code)) + ", and network") + network) + "consider creating one using .createDepositAddress() method or in MEXC website")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(result);
     }
@@ -5959,9 +5959,9 @@ public partial class mexc : Exchange
             return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
         } else if (isEqual(marketType, "swap"))
         {
-            throw new BadRequest ((string)add((this.id + " fetchTransfer() is not supported for "), marketType)) ;
+            throw new BadRequest ((string)((this.id + " fetchTransfer() is not supported for ") + (marketType))) ;
         }
-        throw new BadRequest ((string)add((this.id + " fetchTransfer() is not supported for "), marketType)) ;
+        throw new BadRequest ((string)((this.id + " fetchTransfer() is not supported for ") + (marketType))) ;
     }
 
     /**
@@ -6913,7 +6913,7 @@ public partial class mexc : Exchange
                     if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                     {
                         auth = add(auth, this.urlencode(parameters));
-                        url = add(url, add("?", auth));
+                        url = add(url, ("?" + (auth)));
                     }
                 }
                 auth = add(add(this.apiKey, timestamp), auth);
@@ -6953,7 +6953,7 @@ public partial class mexc : Exchange
         string? responseCode = this.safeString(response, "code");
         if (((responseCode != null)) && ((responseCode != "200")) && ((responseCode != "0")))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             throw new ExchangeError ((string)feedback) ;

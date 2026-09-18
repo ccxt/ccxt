@@ -6170,7 +6170,11 @@ function nativeArithmeticResultKind (csharp, node) {
 }
 
 // the pairs whose helper result is the native operator result, value and box identical:
-//   +  string + string        add(string ,string) is `a + b` (null on either side is "")
+//   +  string + ANY right      a provably-string LEFT operand makes the call site bind
+//                             add(string, object) / add(string, string), and both of those
+//                             overloads ARE C# concatenation (add(string, object) is
+//                             `add(a, b?.ToString())`, i.e. `a + b`), so `+` is the same
+//                             call for every right operand — proven, unproven or boxed
 //   +  int/uint/Int64 pairs   the Int64 branch / the small-int promotion to long
 //   +  double + (double|int)  add's double branch (Convert.ToDouble == the implicit conversion)
 //   -  int - int              subtract(int, int) is `a - b`
@@ -6182,10 +6186,17 @@ function nativeArithmeticResultKind (csharp, node) {
 // Rejected: int+int / uint*uint (the helper normalizes to Int64, so the native Int32 /
 // UInt32 box and its Int32 overflow would differ), (small-int) op double for + / - / *
 // (add / subtract cast the RIGHT operand to Int64 and throw; multiply re-boxes a
-// whole-number double product as Int64), every mixed kind (string vs numeric) and every
-// unproven operand.
+// whole-number double product as Int64), every other mixed kind and every unproven
+// LEFT operand (add(object, object) returns null for a null left where `object + string`
+// returns the right operand).
 function nativeArithmeticIsProven (op, left, right) {
-    if (left === undefined || right === undefined) {
+    if (left === undefined) {
+        return false;
+    }
+    if (op === ts.SyntaxKind.PlusToken && left === 'string') {
+        return true;
+    }
+    if (right === undefined) {
         return false;
     }
     const bothSmall = NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (left) && NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right);
@@ -6220,6 +6231,16 @@ function nativeArithmeticPairResultKind (op, left, right) {
     return 'Int64';
 }
 
+// the printed RIGHT operand of an emitted operator. A right operand whose C# type the
+// module cannot name may still print as a low-precedence expression — `x += c ? a : b`
+// prints the conditional with no parentheses of its own, where the helper call it
+// replaces held it as an argument — so it is wrapped: only the string-left rule reaches
+// this shape, and the parentheses cannot change which operator the two operands select.
+function nativeArithmeticRightText (csharp, node, kind) {
+    const text = csharp.printNode (node, 0);
+    return (kind === undefined) ? '(' + text + ')' : text;
+}
+
 // the printed native expression, parenthesised: it is one operand of its context (the
 // throw printer prefixes casts like `(string)` with no parens of its own), and a nested
 // arithmetic child arrives already parenthesised from this same wrapper
@@ -6237,7 +6258,7 @@ function nativeArithmeticExpression (csharp, node) {
     if (!nativeArithmeticIsProven (op, left, right)) {
         return undefined;
     }
-    return '(' + csharp.printNode (node.left, 0) + ' ' + symbol + ' ' + csharp.printNode (node.right, 0) + ')';
+    return '(' + csharp.printNode (node.left, 0) + ' ' + symbol + ' ' + nativeArithmeticRightText (csharp, node.right, right) + ')';
 }
 
 // `x += y` prints `x = add(x, y)` and `x -= y` prints `x = subtract(x, y)`: emitted
@@ -6256,7 +6277,7 @@ function nativeArithmeticAssignment (csharp, node) {
         return undefined;
     }
     const target = csharp.printNode (node.left, 0);
-    return target + ' = ' + target + ' ' + NATIVE_ARITHMETIC_SYMBOLS[baseOp] + ' ' + csharp.printNode (node.right, 0);
+    return target + ' = ' + target + ' ' + NATIVE_ARITHMETIC_SYMBOLS[baseOp] + ' ' + nativeArithmeticRightText (csharp, node.right, right);
 }
 
 // wrap printCustomBinaryExpressionIfAny: the helper call is dropped for the pairs proven

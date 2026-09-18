@@ -2169,7 +2169,7 @@ public partial class bigone : Exchange
                 body = this.json(query);
             }
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = add((("ccxt/" + this.id) + "-"), this.version);
+        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + (this.version));
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -2608,7 +2608,7 @@ public partial class bigone : Exchange
         string? message = this.safeString(response, "message");
         if (((code != "0")) && ((code != null)))
         {
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

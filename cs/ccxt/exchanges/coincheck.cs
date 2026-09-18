@@ -1168,7 +1168,7 @@ public partial class coincheck : Exchange
                     queryString = body;
                 }
             }
-            object auth = add(add(nonce, url), queryString);
+            object auth = ((nonce + (url)) + (queryString));
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },

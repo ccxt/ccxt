@@ -2831,7 +2831,7 @@ public partial class bybit : Exchange
                 }
             } else
             {
-                throw new ExchangeError ((string)(add((this.id + " fetchMarkets() this.options fetchMarkets \""), marketType) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((string)(((this.id + " fetchMarkets() this.options fetchMarkets \"") + (marketType)) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesUnresolved);
@@ -6374,7 +6374,7 @@ public partial class bybit : Exchange
         ((IDictionary<string,object>)request)["category"] = type;
         if ((isEqual(type, "option")) && !isUnifiedAccount)
         {
-            throw new NotSupported ((string)(add((this.id + " cancelAllOrders() Normal Account not support "), type) + " market")) ;
+            throw new NotSupported ((string)(((this.id + " cancelAllOrders() Normal Account not support ") + (type)) + " market")) ;
         }
         if ((isEqual(type, "linear")) || (isEqual(type, "inverse")))
         {
@@ -8765,7 +8765,7 @@ public partial class bybit : Exchange
         string? interval = this.safeString(intervals, timeframeVar); // 5min,15min,30min,1h,4h,1d
         if ((interval == null))
         {
-            throw new BadRequest ((string)(add((this.id + " fetchOpenInterestHistory() cannot use the "), timeframeVar) + " timeframe")) ;
+            throw new BadRequest ((string)(((this.id + " fetchOpenInterestHistory() cannot use the ") + (timeframeVar)) + " timeframe")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -8928,7 +8928,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((((getValue(market, "spot") as bool?) == true)) || (((getValue(market, "option") as bool?) == true)))
         {
-            throw new BadRequest ((string)add((this.id + " fetchOpenInterestHistory() symbol does not support market "), symbol)) ;
+            throw new BadRequest ((string)((this.id + " fetchOpenInterestHistory() symbol does not support market ") + (symbol))) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -9550,7 +9550,7 @@ public partial class bybit : Exchange
         market = this.market(symbol);
         if ((((getValue(market, "spot") as bool?) == true)) || (((getValue(market, "option") as bool?) == true)))
         {
-            throw new BadRequest ((string)add((this.id + " fetchMarketLeverageTiers() symbol does not support market "), symbol)) ;
+            throw new BadRequest ((string)((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + (symbol))) ;
         }
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         return await this.FetchDerivativesMarketLeverageTiers(((string)symbol), parameters);
@@ -11698,7 +11698,7 @@ public partial class bybit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = add((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/"), path);
+        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/") + (path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
@@ -11724,7 +11724,7 @@ public partial class bybit : Exchange
                     // '[]' on empty arrays even when forced to use objects
                     body = "{}";
                 }
-                object payload = add(add(timestamp, this.apiKey), body);
+                object payload = ((timestamp + (this.apiKey)) + (body));
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
@@ -11746,7 +11746,7 @@ public partial class bybit : Exchange
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
                 string queryEncoded = this.rawencode(query);
-                object auth_base = (add(((object)timestamp).ToString(), this.apiKey) + ((object)getValue(this.options, "recvWindow")).ToString());
+                object auth_base = ((((object)timestamp).ToString() + (this.apiKey)) + ((object)getValue(this.options, "recvWindow")).ToString());
                 object authFull = null;
                 if (isEqual(method, "POST"))
                 {
@@ -11862,10 +11862,10 @@ public partial class bybit : Exchange
             object feedback = null;
             if ((errorCode == "10005") && getIndexOf(url, "order") < 0)
             {
-                feedback = add((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" "), body);
+                feedback = ((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ") + (body));
             } else
             {
-                feedback = add((this.id + " "), body);
+                feedback = ((this.id + " ") + (body));
             }
             if (getIndexOf(body, "Withdraw address chain or destination tag are not equal") > -1)
             {

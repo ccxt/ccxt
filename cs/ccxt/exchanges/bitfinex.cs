@@ -808,7 +808,7 @@ public partial class bitfinex : Exchange
         {
             return getValue(getValue(this.options, "currencyNames"), code);
         }
-        throw new NotSupported ((string)(add((this.id + " "), code) + " not supported for withdrawal")) ;
+        throw new NotSupported ((string)(((this.id + " ") + (code)) + " not supported for withdrawal")) ;
     }
 
     public override string? amountToPrecision(object symbol, object amount)
@@ -2532,7 +2532,7 @@ public partial class bitfinex : Exchange
         object order = this.safeValue(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)(add((this.id + " order "), id) + " not found")) ;
+            throw new OrderNotFound ((string)(((this.id + " order ") + (id)) + " not found")) ;
         }
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2558,7 +2558,7 @@ public partial class bitfinex : Exchange
         object order = this.safeValue(orders, 0);
         if ((order == null))
         {
-            throw new OrderNotFound ((string)(add((this.id + " order "), id) + " not found")) ;
+            throw new OrderNotFound ((string)(((this.id + " order ") + (id)) + " not found")) ;
         }
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -2882,7 +2882,7 @@ public partial class bitfinex : Exchange
         string? networkId = this.safeString(currencyNetwork, "id");
         if ((networkId == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " fetchDepositAddress() could not find a network for '"), code) + "'. You can specify it by providing the 'network' value inside params")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " fetchDepositAddress() could not find a network for '") + (code)) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
         string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -3311,7 +3311,7 @@ public partial class bitfinex : Exchange
         string? networkId = this.safeString(currencyNetwork, "id");
         if ((networkId == null))
         {
-            throw new ArgumentsRequired ((string)(add((this.id + " withdraw() could not find a network for '"), code) + "'. You can specify it by providing the 'network' value inside params")) ;
+            throw new ArgumentsRequired ((string)(((this.id + " withdraw() could not find a network for '") + (code)) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
         string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -3365,7 +3365,7 @@ public partial class bitfinex : Exchange
         string? statusMessage = this.safeString(response, 0);
         if ((statusMessage == "error"))
         {
-            string feedback = add((this.id + " "), response);
+            string feedback = ((this.id + " ") + (response));
             string? message = this.safeString(response, 2, "");
             // same message as in v1
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
@@ -3547,7 +3547,7 @@ public partial class bitfinex : Exchange
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
             body = this.json(query);
-            string auth = add((add("/api/", request) + nonce), body);
+            string auth = ((("/api/" + (request)) + nonce) + (body));
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384);
             headers = new Dictionary<string, object>() {
                 { "bfx-nonce", nonce },
@@ -3572,10 +3572,10 @@ public partial class bitfinex : Exchange
             if (!((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
                 string? message = this.safeString2(response, "message", "error");
-                string feedback = add((this.id + " "), body);
+                string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-                throw new ExchangeError ((string)add((this.id + " "), body)) ;
+                throw new ExchangeError ((string)((this.id + " ") + (body))) ;
             }
         } else if (isEqual(response, ""))
         {
@@ -3583,7 +3583,7 @@ public partial class bitfinex : Exchange
         }
         if (isEqual(statusCode, 429))
         {
-            throw new RateLimitExceeded ((string)add((this.id + " "), body)) ;
+            throw new RateLimitExceeded ((string)((this.id + " ") + (body))) ;
         }
         if (isEqual(statusCode, 500))
         {

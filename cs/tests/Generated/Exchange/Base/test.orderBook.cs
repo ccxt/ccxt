@@ -41,7 +41,7 @@ public partial class testMainClass : BaseTest
                 if (isGreaterThan(bidsLength, nextI))
                 {
                     string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
-                    assert(Precise.stringGt(currentBidString, nextBidString), add(((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString), logText));
+                    assert(Precise.stringGt(currentBidString, nextBidString), (((("current bid should be > than the next one: " + currentBidString) + ">") + nextBidString) + (logText)));
                 }
             }
             if (!(inOp(skippedProperties, "compareToZero")))
@@ -62,7 +62,7 @@ public partial class testMainClass : BaseTest
                 if (isGreaterThan(asksLength, nextI))
                 {
                     string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);
-                    assert(Precise.stringLt(currentAskString, nextAskString), add(((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString), logText));
+                    assert(Precise.stringLt(currentAskString, nextAskString), (((("current ask should be < than the next one: " + currentAskString) + "<") + nextAskString) + (logText)));
                 }
             }
             if (!(inOp(skippedProperties, "compareToZero")))
@@ -79,7 +79,7 @@ public partial class testMainClass : BaseTest
                 string? firstBid = exchange.safeString(getValue(bids, 0), 0);
                 string? firstAsk = exchange.safeString(getValue(asks, 0), 0);
                 // check bid-ask spread
-                assert(Precise.stringLt(firstBid, firstAsk), add((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")"), logText));
+                assert(Precise.stringLt(firstBid, firstAsk), ((((("bids[0][0] (" + firstBid) + ") should be < than asks[0][0] (") + firstAsk) + ")") + (logText)));
             }
         }
     }

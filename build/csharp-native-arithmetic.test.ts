@@ -52,6 +52,49 @@ check ('outer + over an add(string, object) call',
     'function f (type) { const x = this.id + " does not support " + type + " market"; return x; }',
     ' + " market"');
 
+// ---- a provably-string LEFT operand drops the helper for ANY right operand ----
+// the call site binds add(string, object) / add(string, string), and both overloads ARE
+// C# concatenation (`add(string a, object b)` is `add(a, b?.ToString())`), so `+` is the
+// same call for a proven, an unproven or a boxed right operand
+
+// the whole chain is native: this.id is a string member, `o` an unproven parameter
+check ('this.id + unproven param',
+    'function f (o) { const x = this.id + o; return x; }',
+    'string x = (this.id + (o));');
+
+check ('this.id + getValue(...) call',
+    'function f (m, k) { const x = this.id + getValue (m, "type"); return x; }',
+    '(this.id + (getValue(m, "type")))');
+
+check ('this.id + unproven param + literal (whole chain native)',
+    'function f (o) { const x = this.id + " not " + o + " here"; return x; }',
+    'string x = (((this.id + " not ") + (o)) + " here");');
+
+check ('string literal + unproven param',
+    'function f (o) { const x = "a" + o; return x; }',
+    'string x = ("a" + (o));');
+
+check ('literal chain over an unproven param',
+    'function f (o) { const x = "&" + "signature=" + o; return x; }',
+    'string x = (("&" + "signature=") + (o));');
+
+check ('toString() + unproven param',
+    'function f (o, m) { const x = o.toString () + m; return x; }',
+    'string x = (((object)o).ToString() + (m));');
+
+// a conditional right operand is printed parenthesised by the printer, so the native `+`
+// keeps it as one operand. `x += c ? a : b` prints that ternary with no parentheses of its
+// own, so an unnamed right operand is wrapped (CS0029 on the farm without the wrap)
+check ('this.id + conditional right',
+    'function f (c, a, b) { const x = this.id + (c ? a : b); return x; }',
+    'string x = (this.id + ((((bool) isTrue(c)) ? a : b)));');
+
+// an object literal right operand: add(string, object) calls b.ToString() exactly like
+// String.Concat does
+check ('this.id + object literal right',
+    'function f (v) { const x = this.id + { "k": v }; return x; }',
+    'string x = (this.id + (new Dictionary<string, object>() {');
+
 // Int64 (this.milliseconds) - uint literal: add/subtract normalize both to Int64
 check ('milliseconds - large literal',
     'function f () { const x = this.milliseconds () - 2592000000; return x; }',
@@ -103,10 +146,17 @@ check ('modulo keeps mod()',
     'function f (a) { const x = a % 2; return x; }',
     'mod(a, 2)');
 
-// a string + a number is not a same-kind pair
-check ('string + number keeps add()',
+// a string + a number: the LEFT operand is a string literal, so the call site binds
+// add(string, object) — `add(a, b?.ToString())` — which IS `a + b` for every box
+check ('string literal + number literal',
     'function f () { const x = "a" + 5; return x; }',
-    'add("a", 5)');
+    'string x = ("a" + 5);');
+
+// the reverse order keeps the helper: add(5, "a") binds add(object, object), whose Int64
+// branch casts the right operand instead of concatenating it
+check ('number literal + string literal stays add()',
+    'function f () { const x = 5 + "a"; return x; }',
+    'add(5, "a")');
 
 console.log (failures === 0 ? 'all checks passed' : failures + ' check(s) failed');
 process.exit (failures === 0 ? 0 : 1);

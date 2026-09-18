@@ -934,7 +934,7 @@ public partial class bitrue : Exchange
                 ((IList<object>)promisesRaw).Add(this.dapiV1PublicGetContracts(parameters));
             } else
             {
-                throw new ExchangeError ((string)(add((this.id + " fetchMarkets() this.options fetchMarkets \""), marketType) + "\" is not a supported market type")) ;
+                throw new ExchangeError ((string)(((this.id + " fetchMarkets() this.options fetchMarkets \"") + (marketType)) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesRaw);
@@ -2245,7 +2245,7 @@ public partial class bitrue : Exchange
             object validOrderTypes = this.safeValue(getValue(market, "info"), "orderTypes");
             if (!this.inArray(uppercaseType, validOrderTypes))
             {
-                throw new InvalidOrder ((string)add((add((this.id + " "), type) + " is not a valid order type in market "), symbol)) ;
+                throw new InvalidOrder ((string)((((this.id + " ") + (type)) + " is not a valid order type in market ") + (symbol))) ;
             }
             string? clientOrderId = this.safeString2(parameters, "newClientOrderId", "clientOrderId");
             if ((clientOrderId != null))
@@ -3549,7 +3549,7 @@ public partial class bitrue : Exchange
                     signPath = "/dapi";
                 }
                 signPath = add(add(add(add(signPath, "/"), version), "/"), path);
-                object signMessage = add(add(timestamp, method), signPath);
+                object signMessage = ((timestamp + (method)) + (signPath));
                 if (isEqual(method, "GET"))
                 {
                     List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
@@ -3600,7 +3600,7 @@ public partial class bitrue : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)add((add((((this.id + " ") + ((object)code).ToString()) + " "), reason) + " "), body)) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + (reason)) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -3609,15 +3609,15 @@ public partial class bitrue : Exchange
         {
             if (getIndexOf(body, "Price * QTY is zero or less") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order cost = amount * price is zero or less "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order cost = amount * price is zero or less ") + (body))) ;
             }
             if (getIndexOf(body, "LOT_SIZE") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order amount should be evenly divisible by lot size "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order amount should be evenly divisible by lot size ") + (body))) ;
             }
             if (getIndexOf(body, "PRICE_FILTER") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ") + (body))) ;
             }
         }
         if ((response == null))
@@ -3668,15 +3668,15 @@ public partial class bitrue : Exchange
             // on a temporary ban, the API key is valid, but disabled for a while
             if (((error == "-2015")) && (isEqual(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
             {
-                throw new DDoSProtection ((string)add((this.id + " temporary banned: "), body)) ;
+                throw new DDoSProtection ((string)((this.id + " temporary banned: ") + (body))) ;
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
         if ((success != true))
         {
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;
     }

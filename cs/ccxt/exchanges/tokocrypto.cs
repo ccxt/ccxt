@@ -1483,7 +1483,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isTrue(this.isNativeMarket(market)))
         {
-            throw new NotSupported ((string)(add((this.id + " fetchTicker() does not support "), symbol) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
+            throw new NotSupported ((string)(((this.id + " fetchTicker() does not support ") + (symbol)) + " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.getMarketIdByType(market) },
@@ -1986,10 +1986,10 @@ public partial class tokocrypto : Exchange
         {
             if (!isEqual(initialUppercaseType, uppercaseType))
             {
-                throw new InvalidOrder ((string)(add((add((this.id + " triggerPrice parameter is not allowed for "), symbol) + " "), typeVar) + " orders")) ;
+                throw new InvalidOrder ((string)(((((this.id + " triggerPrice parameter is not allowed for ") + (symbol)) + " ") + (typeVar)) + " orders")) ;
             } else
             {
-                throw new InvalidOrder ((string)(add((add((this.id + " "), typeVar) + " is not a valid order type for the "), symbol) + " market")) ;
+                throw new InvalidOrder ((string)(((((this.id + " ") + (typeVar)) + " is not a valid order type for the ") + (symbol)) + " market")) ;
             }
         }
         Dictionary<string, object> reverseOrderTypeMapping = new Dictionary<string, object>() {
@@ -2107,7 +2107,7 @@ public partial class tokocrypto : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a price argument for a "), typeVar) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a price argument for a ") + (typeVar)) + " order")) ;
             }
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -2115,7 +2115,7 @@ public partial class tokocrypto : Exchange
         {
             if ((triggerPrice == null))
             {
-                throw new InvalidOrder ((string)(add((this.id + " createOrder() requires a triggerPrice extra param for a "), typeVar) + " order")) ;
+                throw new InvalidOrder ((string)(((this.id + " createOrder() requires a triggerPrice extra param for a ") + (typeVar)) + " order")) ;
             } else
             {
                 ((IDictionary<string,object>)request)["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -2843,10 +2843,10 @@ public partial class tokocrypto : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!(inOp(getValue(getValue(this.urls, "api"), "rest"), api)))
         {
-            throw new NotSupported ((string)(add((this.id + " does not have a testnet/sandbox URL for "), api) + " endpoints")) ;
+            throw new NotSupported ((string)(((this.id + " does not have a testnet/sandbox URL for ") + (api)) + " endpoints")) ;
         }
         object url = getValue(getValue(getValue(this.urls, "api"), "rest"), api);
-        url = add(url, add("/", path));
+        url = add(url, ("/" + (path)));
         if (isEqual(api, "wapi"))
         {
             url = add(url, ".html");
@@ -2903,7 +2903,7 @@ public partial class tokocrypto : Exchange
             };
             if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")) || (isEqual(api, "wapi")))
             {
-                url = add(url, add("?", query));
+                url = add(url, ("?" + (query)));
             } else
             {
                 body = query;
@@ -2928,7 +2928,7 @@ public partial class tokocrypto : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection ((string)add((add((((this.id + " ") + ((object)code).ToString()) + " "), reason) + " "), body)) ;
+            throw new DDoSProtection ((string)((((((this.id + " ") + ((object)code).ToString()) + " ") + (reason)) + " ") + (body))) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
@@ -2937,15 +2937,15 @@ public partial class tokocrypto : Exchange
         {
             if (getIndexOf(body, "Price * QTY is zero or less") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order cost = amount * price is zero or less "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order cost = amount * price is zero or less ") + (body))) ;
             }
             if (getIndexOf(body, "LOT_SIZE") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order amount should be evenly divisible by lot size "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order amount should be evenly divisible by lot size ") + (body))) ;
             }
             if (getIndexOf(body, "PRICE_FILTER") >= 0)
             {
-                throw new InvalidOrder ((string)add((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) "), body)) ;
+                throw new InvalidOrder ((string)((this.id + " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ") + (body))) ;
             }
         }
         if ((response == null))
@@ -2996,9 +2996,9 @@ public partial class tokocrypto : Exchange
             // on a temporary ban, the API key is valid, but disabled for a while
             if (((error == "-2015")) && (isEqual(getValue(this.options, "hasAlreadyAuthenticatedSuccessfully"), true)))
             {
-                throw new DDoSProtection ((string)add((this.id + " "), body)) ;
+                throw new DDoSProtection ((string)((this.id + " ") + (body))) ;
             }
-            string feedback = add((this.id + " "), body);
+            string feedback = ((this.id + " ") + (body));
             if ((message == "No need to change margin type."))
             {
                 throw new MarginModeAlreadySet ((string)feedback) ;
@@ -3008,7 +3008,7 @@ public partial class tokocrypto : Exchange
         }
         if ((success != true))
         {
-            throw new ExchangeError ((string)add((this.id + " "), body)) ;
+            throw new ExchangeError ((string)((this.id + " ") + (body))) ;
         }
         return null;
     }
