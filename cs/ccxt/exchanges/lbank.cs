@@ -676,7 +676,7 @@ public partial class lbank : Exchange
             string? quoteId = ((string)getValue(parts, 1));
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
-            object symbol = add(add(bs, "/"), quote);
+            string? symbol = ((string)add(add(bs, "/"), quote));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
@@ -777,7 +777,7 @@ public partial class lbank : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
+            string? symbol = ((string)add(add(add(add(bs, "/"), quote), ":"), settle));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", symbol },
@@ -945,7 +945,7 @@ public partial class lbank : Exchange
         //         "ts": :1692064276872
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTicker(this.parseTicker(first, market));
     }
@@ -1803,7 +1803,7 @@ public partial class lbank : Exchange
         for (int i = 0; isLessThan(i, fees.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> fee = this.parseTradingFee(getValue(fees, i));
-            object symbol = GetValue(fee, "symbol");
+            string? symbol = ((string)GetValue(fee, "symbol"));
             result[(string)((string)symbol)] = fee;
         }
         return ccxt.BaseExchange.ToTradingFees(result);
@@ -1897,16 +1897,16 @@ public partial class lbank : Exchange
             {
                 request["type"] = add(add(side, "_"), "market");
                 string? quoteAmount = null;
-                object createMarketBuyOrderRequiresPrice = true;
+                bool? createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (!isEqual(cost, null))
                 {
                     quoteAmount = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (createMarketBuyOrderRequiresPrice == true)
                 {
                     if (isEqual(price, null))
                     {
@@ -2610,7 +2610,7 @@ public partial class lbank : Exchange
         //          "ts":1648075865103
         //      }
         //
-        object result = this.safeValue(response, "data");
+        IDictionary<string, object> result = this.safeDict(response, "data");
         string? address = this.safeString(result, "address");
         string? tag = this.safeString(result, "memo");
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", this.networkIdToCode(this.safeString(result, "netWork"), code) },             { "address", address },             { "tag", tag },         });
@@ -2649,7 +2649,7 @@ public partial class lbank : Exchange
         //          "ts":1648073818880
         //     }
         //
-        object result = this.safeValue(response, "data");
+        IDictionary<string, object> result = this.safeDict(response, "data");
         string? address = this.safeString(result, "address");
         string? tag = this.safeString(result, "memo");
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });

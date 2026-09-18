@@ -1636,11 +1636,11 @@ public partial class bingx : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = (isEqual(GetValue(market, "inverse"), true)) ? 1000 : 1440;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, maxLimit));
         }
@@ -2265,12 +2265,12 @@ public partial class bingx : Exchange
         }
         symbols = this.marketSymbols(symbols, "swap", true, true, true);
         Dictionary<string, object> firstMarket = this.getMarketFromSymbols(symbols);
-        object subType = "linear";
+        string? subType = "linear";
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
-        subType = subTypeparametersVariable[0];
+        subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(subType, "inverse"))
+        if (subType == "inverse")
         {
             response = await this.cswapV1PublicGetMarketPremiumIndex(parameters);
         } else
@@ -2297,8 +2297,8 @@ public partial class bingx : Exchange
         string? marketId = this.safeString(contract, "symbol");
         Int64? nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Int64? timestamp = this.safeInteger(contract, "updateTime");
-        object interval = this.safeString(contract, "fundingIntervalHours");
-        object intervalString = null;
+        string? interval = this.safeString(contract, "fundingIntervalHours");
+        string? intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");
@@ -2354,11 +2354,11 @@ public partial class bingx : Exchange
         {
             throw new NotSupported (add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
@@ -2448,11 +2448,11 @@ public partial class bingx : Exchange
         {
             throw new NotSupported (add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingHistory", symbol, since, limit, "24h", parameters));
         }
@@ -2959,7 +2959,7 @@ public partial class bingx : Exchange
         // it's (bad, but) the only way we can check the tickers origin
         string type = ((lastQty == null)) ? "spot" : "swap";
         market = this.safeMarket(marketId, market, null, type);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? open = this.safeString(ticker, "openPrice");
         string? high = this.safeString(ticker, "highPrice");
         string? low = this.safeString(ticker, "lowPrice");
@@ -4035,7 +4035,7 @@ public partial class bingx : Exchange
         List<object> marketIds = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol", "");
             string? type = this.safeString(rawOrder, "type");
             ((IList<object>)marketIds).Add(marketId);
@@ -4772,19 +4772,19 @@ public partial class bingx : Exchange
             market = this.market(symbol);
             request["symbol"] = GetValue(market, "id");
         }
-        object marketType = "spot";
+        string? marketType = "spot";
         string? subType = null;
         IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
-        marketType = marketTypeparametersVariable[0];
+        marketType = (string)marketTypeparametersVariable[0];
         parameters = marketTypeparametersVariable[1];
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
         subType = (string)subTypeparametersVariable[0];
         parameters = subTypeparametersVariable[1];
         Dictionary<string, object> response = null;
-        if (isEqual(marketType, "spot"))
+        if (marketType == "spot")
         {
             response = await this.spotV1PrivatePostTradeCancelOpenOrders(this.extend(request, parameters));
-        } else if (isEqual(marketType, "swap"))
+        } else if (marketType == "swap")
         {
             if (subType == "inverse")
             {
@@ -5557,11 +5557,11 @@ public partial class bingx : Exchange
             request["toAccount"] = toId;
         }
         int maxLimit = 100;
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit));
         }
@@ -6471,7 +6471,7 @@ public partial class bingx : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"walletType", "network"});
         Dictionary<string, object> response = await this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters));
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         //    {
         //        "code":0,
         //        "timestamp":1689258953651,

@@ -301,7 +301,7 @@ public partial class bitget : ccxt.bitget
         //
         this.handleBidAsk(client, message);
         Dictionary<string, object> ticker = this.parseWsTicker(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -406,7 +406,7 @@ public partial class bitget : ccxt.bitget
         //     }
         //
         IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        List<object> data = ((List<object>)this.safeValue(message, "data", new List<object>() {}));
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
         Int64? timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
@@ -504,7 +504,7 @@ public partial class bitget : ccxt.bitget
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         Dictionary<string, object> ticker = this.parseWsBidAsk(message);
-        object symbol = GetValue(ticker, "symbol");
+        string? symbol = ((string)GetValue(ticker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
@@ -516,7 +516,7 @@ public partial class bitget : ccxt.bitget
     public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market = null)
     {
         IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        List<object> data = ((List<object>)this.safeValue(message, "data", new List<object>() {}));
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object ticker = this.safeValue(data, 0, new Dictionary<string, object>() {});
         Int64? utaTimestamp = this.safeInteger(message, "ts");
         Int64? timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
@@ -1989,7 +1989,7 @@ public partial class bitget : ccxt.bitget
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
             Dictionary<string, object> parsed = this.parseWsOrder(order, market);
             callDynamically(stored, "append", new object[] {parsed});
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             if ((symbol != null))
             {
                 marketSymbols[(string)symbol] = true;
@@ -2194,9 +2194,9 @@ public partial class bitget : ccxt.bitget
         string? marketId = this.safeString2(order, "instId", "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger2(order, "cTime", "createdTime");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? rawStatus = this.safeString2(order, "status", "orderStatus");
-        object orderFee = this.safeValue(order, "feeDetail", new List<object>() {});
+        List<object> orderFee = this.safeList(order, "feeDetail", new List<object>() {});
         IDictionary<string, object> fee = this.safeDict(orderFee, 0);
         string? feeAmount = this.safeString(fee, "fee");
         Dictionary<string, object> feeObject = null;
@@ -2527,7 +2527,7 @@ public partial class bitget : ccxt.bitget
             }
             Dictionary<string, object> parsed = this.parseWsTrade(trade, market);
             callDynamically(stored, "append", new object[] {parsed});
-            object symbol = GetValue(parsed, "symbol");
+            string? symbol = ((string)GetValue(parsed, "symbol"));
             string symbolSpecificMessageHash = add("myTrades:", symbol);
             callDynamically(client, "resolve", new object[] {stored, symbolSpecificMessageHash});
         }

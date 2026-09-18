@@ -262,7 +262,7 @@ public partial class okx : ccxt.okx
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -294,7 +294,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:", channel), ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -367,7 +367,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         string? marketId = this.safeString(arg, "instId");
         string? symbol = this.safeSymbol(marketId);
@@ -377,7 +377,7 @@ public partial class okx : ccxt.okx
         {
             Dictionary<string, object> trade = this.parseTrade(getValue(data, i));
             object messageHash = add(add(channel, ":"), symbol);
-            object stored = this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((stored == null))
             {
                 stored = new ArrayCache(tradesLimit);
@@ -432,7 +432,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -486,7 +486,7 @@ public partial class okx : ccxt.okx
         {
             object rawfr = getValue(data, i);
             Dictionary<string, object> fundingRate = this.parseFundingRate(rawfr);
-            object symbol = GetValue(fundingRate, "symbol");
+            string? symbol = ((string)GetValue(fundingRate, "symbol"));
             if ((symbol != null))
             {
                 ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
@@ -507,7 +507,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         object channel = null;
         IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTicker", "channel", "tickers");
@@ -515,7 +515,7 @@ public partial class okx : ccxt.okx
         parameters = channelparametersVariable[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(ticker, symbolVar));
     }
@@ -578,7 +578,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         object channel = null;
         IList<object> channelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
@@ -586,7 +586,7 @@ public partial class okx : ccxt.okx
         parameters = channelparametersVariable[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> ticker = ccxt.BaseExchange.FromTickers(await this.WatchMarkPrices(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(ticker, symbolVar));
     }
@@ -647,7 +647,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
             string? marketId = this.marketId(symbol);
             Dictionary<string, object> topic = new Dictionary<string, object>() {
@@ -692,7 +692,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         this.handleBidAsk(client, message);
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -807,7 +807,7 @@ public partial class okx : ccxt.okx
         List<object> data = this.safeList(message, "data", new List<object>() {});
         IDictionary<string, object> ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker, market);
-        object symbol = GetValue(parsedTicker, "symbol");
+        string? symbol = ((string)GetValue(parsedTicker, "symbol"));
         if ((symbol != null))
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
@@ -877,7 +877,7 @@ public partial class okx : ccxt.okx
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
             }
         } else
@@ -996,7 +996,7 @@ public partial class okx : ccxt.okx
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
             }
         } else
@@ -1340,8 +1340,8 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
-        object channel = this.safeString(arg, "channel");
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        string? channel = this.safeString(arg, "channel");
         if ((channel == null))
         {
             return;
@@ -1350,7 +1350,7 @@ public partial class okx : ccxt.okx
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        string interval = ((string)channel).Replace((string)"candle", (string)"");
+        string interval = channel.Replace((string)"candle", (string)"");
         // use a reverse lookup in a static map instead
         string? timeframe = this.findTimeframe(interval);
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
@@ -1368,7 +1368,7 @@ public partial class okx : ccxt.okx
                 }
             }
             callDynamically(stored, "append", new object[] {parsed});
-            object messageHash = add(add(channel, ":"), GetValue(market, "id"));
+            string messageHash = add(add(channel, ":"), GetValue(market, "id"));
             callDynamically(client, "resolve", new object[] {stored, messageHash});
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
@@ -1466,7 +1466,7 @@ public partial class okx : ccxt.okx
             { "args", topics },
         };
         string? url = this.getUrl(depth, "public");
-        object orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, request, messageHashes));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -1515,7 +1515,7 @@ public partial class okx : ccxt.okx
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)subMessageHashes).Add(add(add(depth, ":"), symbol));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
             string? marketId = this.marketId(symbol);
@@ -1594,8 +1594,8 @@ public partial class okx : ccxt.okx
         //         "seqId": 123457
         //     }
         //
-        object asks = this.safeValue(message, "asks", new List<object>() {});
-        object bids = this.safeValue(message, "bids", new List<object>() {});
+        List<object> asks = this.safeList(message, "asks", new List<object>() {});
+        List<object> bids = this.safeList(message, "bids", new List<object>() {});
         object storedAsks = getValue(orderbook, "asks");
         object storedBids = getValue(orderbook, "bids");
         this.handleDeltas(storedAsks, asks);
@@ -1946,7 +1946,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? channel = this.safeString(arg, "channel");
         object balance = this.parseTradingBalance(message);
         Dictionary<string, object> newBalance = this.deepExtend(this.balance, balance);
@@ -1996,7 +1996,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();
@@ -2020,7 +2020,7 @@ public partial class okx : ccxt.okx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             type = GetValue(market, "type");
             messageHash = add(add(messageHash, "::"), symbolVar);
         }
@@ -2172,7 +2172,7 @@ public partial class okx : ccxt.okx
         //        }]
         //    }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
@@ -2223,7 +2223,7 @@ public partial class okx : ccxt.okx
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -2245,7 +2245,7 @@ public partial class okx : ccxt.okx
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             type = GetValue(market, "type");
         }
         if (isEqual(type, "future"))
@@ -2337,7 +2337,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         this.handleMyTrades(client, message);
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         List<object> orders = this.safeList(message, "data", new List<object>() {});
         int ordersLength = orders.Count;
@@ -2354,9 +2354,9 @@ public partial class okx : ccxt.okx
             IList<object> parsed = this.parseOrders(orders);
             for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
             {
-                object order = getValue(parsed, i);
+                IDictionary<string, object> order = ((IDictionary<string, object>)getValue(parsed, i));
                 callDynamically(stored, "append", new object[] {order});
-                object symbol = getValue(order, "symbol");
+                string? symbol = ((string)GetValue(order, "symbol"));
                 Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)marketIds).Add(GetValue(market, "id"));
             }
@@ -2425,7 +2425,7 @@ public partial class okx : ccxt.okx
         //         ]
         //     }
         //
-        IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+        IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         List<object> filteredOrders = new List<object>() {};
@@ -2457,7 +2457,7 @@ public partial class okx : ccxt.okx
             Dictionary<string, object> rawTrade = ((Dictionary<string, object>)getValue(filteredOrders, i));
             Dictionary<string, object> trade = this.orderToTrade(rawTrade);
             callDynamically(myTrades, "append", new object[] {trade});
-            object symbol = GetValue(trade, "symbol");
+            string? symbol = ((string)GetValue(trade, "symbol"));
             if ((symbol != null))
             {
                 symbols[(string)symbol] = true;
@@ -2937,14 +2937,14 @@ public partial class okx : ccxt.okx
                 { "cancel-order", this.handlePlaceOrders },
                 { "mass-cancel", this.handleCancelAllOrders },
             };
-            object method = this.safeValue(methods, eventVar);
+            Delegate method = ((Delegate)this.safeValue(methods, eventVar));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         } else
         {
-            IDictionary<string, object> arg = ((IDictionary<string, object>)this.safeValue(message, "arg", new Dictionary<string, object>() {}));
+            IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
             string? channel = this.safeString(arg, "channel");
             if ((channel == null))
             {
@@ -2972,7 +2972,7 @@ public partial class okx : ccxt.okx
                 { "liquidation-orders", this.handleLiquidation },
                 { "balance_and_position", this.handleBalanceAndPosition },
             };
-            object method = this.safeValue(methods, channel);
+            Delegate method = ((Delegate)this.safeValue(methods, channel));
             if ((method == null))
             {
                 if ((getIndexOf(channel, "candle") == 0))

@@ -1946,11 +1946,11 @@ public partial class nado : Exchange
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
         IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
         if ((ticker == null))
@@ -3368,8 +3368,8 @@ public partial class nado : Exchange
             throw new ArgumentsRequired (add(this.id, " signHash() requires privateKey")) ;
         }
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
-        object r = GetValue(signature, "r");
-        object s = GetValue(signature, "s");
+        string? r = ((string)GetValue(signature, "r"));
+        string? s = ((string)GetValue(signature, "s"));
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v"))).ToLower();
         return add(add(add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }

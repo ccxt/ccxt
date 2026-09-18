@@ -3817,10 +3817,10 @@ public partial class delta : Exchange
 
     public override object parseMarginMode(object marginMode, IDictionary<string, object> market = null)
     {
-        object symbol = null;
+        string? symbol = null;
         if (!isEqual(market, null))
         {
-            symbol = getValue(market, "symbol");
+            symbol = ((string)getValue(market, "symbol"));
         }
         return new Dictionary<string, object>() {
             { "info", marginMode },

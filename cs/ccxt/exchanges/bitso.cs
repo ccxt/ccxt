@@ -482,7 +482,7 @@ public partial class bitso : Exchange
         //     }
         string? operation = this.safeString(item, "operation");
         string? type = this.parseLedgerEntryType(operation);
-        object balanceUpdates = this.safeValue(item, "balance_updates", new List<object>() {});
+        List<object> balanceUpdates = this.safeList(item, "balance_updates", new List<object>() {});
         object firstBalance = this.safeValue(balanceUpdates, 0, new Dictionary<string, object>() {});
         string? direction = null;
         Dictionary<string, object> fee = null;
@@ -490,7 +490,7 @@ public partial class bitso : Exchange
         string? currencyId = this.safeString(firstBalance, "currency");
         string? code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object details = this.safeValue(item, "details", new Dictionary<string, object>() {});
+        IDictionary<string, object> details = this.safeDict(item, "details", new Dictionary<string, object>() {});
         string? referenceId = this.safeString2(details, "fid", "wid");
         if ((referenceId == null))
         {
@@ -592,8 +592,8 @@ public partial class bitso : Exchange
             string? quote = ((string)quoteId).ToUpper();
             bs = this.safeCurrencyCode(bs);
             quote = this.safeCurrencyCode(quote);
-            object fees = this.safeValue(market, "fees", new Dictionary<string, object>() {});
-            object flatRate = this.safeValue(fees, "flat_rate", new Dictionary<string, object>() {});
+            IDictionary<string, object> fees = this.safeDict(market, "fees", new Dictionary<string, object>() {});
+            IDictionary<string, object> flatRate = this.safeDict(fees, "flat_rate", new Dictionary<string, object>() {});
             string? takerString = this.safeString(flatRate, "taker");
             string? makerString = this.safeString(flatRate, "maker");
             double? taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
@@ -1456,10 +1456,10 @@ public partial class bitso : Exchange
         // canceledOrder
         // yWTQGxDMZ0VimZgZ
         //
-        object id = null;
+        string? id = null;
         if ((order is string))
         {
-            id = order;
+            id = ((string)order);
         } else
         {
             id = this.safeString(order, "oid");
@@ -1652,7 +1652,7 @@ public partial class bitso : Exchange
         //         }]
         //     }
         //
-        object transactions = this.safeValue(response, "payload", new List<object>() {});
+        List<object> transactions = this.safeList(response, "payload", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(transactions, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first));
     }
@@ -2066,7 +2066,7 @@ public partial class bitso : Exchange
         //         ]
         //     }
         //
-        object payload = this.safeValue(response, "payload", new List<object>() {});
+        List<object> payload = this.safeList(response, "payload", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(payload, 0);
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(first, currency));
     }
@@ -2111,7 +2111,7 @@ public partial class bitso : Exchange
         //
         string? currencyId = this.safeString2(transaction, "currency", "asset");
         currency = this.safeCurrency(currencyId, currency);
-        object details = this.safeValue(transaction, "details", new Dictionary<string, object>() {});
+        IDictionary<string, object> details = this.safeDict(transaction, "details", new Dictionary<string, object>() {});
         string? datetime = this.safeString(transaction, "created_at");
         string? withdrawalAddress = this.safeString(details, "withdrawal_address");
         string? receivingAddress = this.safeString(details, "receiving_address");
@@ -2174,7 +2174,7 @@ public partial class bitso : Exchange
                 endpoint = add(endpoint, add("?", this.urlencode(query)));
             }
         }
-        object url = add(getValue(getValue(this.urls, "api"), "rest"), endpoint);
+        string? url = ((string)add(getValue(getValue(this.urls, "api"), "rest"), endpoint));
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2191,7 +2191,7 @@ public partial class bitso : Exchange
                 }
             }
             string signature = this.hmac(this.encode(request), this.encode(this.secret), sha256);
-            object auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
+            string? auth = add(add(add(add(this.apiKey, ":"), nonce), ":"), signature);
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Bitso ", auth) },
             };

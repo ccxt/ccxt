@@ -808,8 +808,8 @@ public partial class gate : ccxt.gate
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
-        object bids = this.safeValue(delta, "b", new List<object>() {});
-        object asks = this.safeValue(delta, "a", new List<object>() {});
+        List<object> bids = this.safeList(delta, "b", new List<object>() {});
+        List<object> asks = this.safeList(delta, "a", new List<object>() {});
         object storedBids = getValue(orderbook, "bids");
         object storedAsks = getValue(orderbook, "asks");
         this.handleBidAsks(storedBids, bids);
@@ -987,7 +987,7 @@ public partial class gate : ccxt.gate
             string? marketId = this.safeString(rawTicker, "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_", marketType);
             Dictionary<string, object> parsedItem = this.parseTicker(rawTicker, market);
-            object symbol = GetValue(parsedItem, "symbol");
+            string? symbol = ((string)GetValue(parsedItem, "symbol"));
             if (isTicker)
             {
                 if ((symbol != null))
@@ -1063,7 +1063,7 @@ public partial class gate : ccxt.gate
         object trades = await this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
             limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
         }
@@ -1094,7 +1094,7 @@ public partial class gate : ccxt.gate
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)subMessageHashes).Add(add("trades:", symbol));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
         }
@@ -1142,8 +1142,8 @@ public partial class gate : ccxt.gate
         IList<object> parsedTrades = this.parseTrades(result);
         for (int i = 0; isLessThan(i, parsedTrades?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsedTrades, i);
-            object symbol = getValue(trade, "symbol");
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsedTrades, i));
+            string? symbol = ((string)GetValue(trade, "symbol"));
             ccxt.pro.ArrayCache cachedTrades = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
             if ((cachedTrades == null))
             {
@@ -1370,9 +1370,9 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsed, i);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsed, i));
             callDynamically(cachedTrades, "append", new object[] {trade});
-            object symbol = getValue(trade, "symbol");
+            string? symbol = ((string)GetValue(trade, "symbol"));
             if ((symbol != null))
             {
                 marketIds[(string)symbol] = true;
@@ -1634,7 +1634,7 @@ public partial class gate : ccxt.gate
         object cache = getValue(this.positions, type);
         for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             double? contracts = this.safeNumber(position, "contracts", 0);
             if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
             {
@@ -1805,7 +1805,7 @@ public partial class gate : ccxt.gate
         if ((market != null))
         {
             messageHash = add(messageHash, add(":", GetValue(market, "id")));
-            object mid = GetValue(market, "id");
+            string? mid = ((string)GetValue(market, "id"));
             if ((mid != null))
             {
                 payload = new List<object>() {mid};
@@ -1888,7 +1888,7 @@ public partial class gate : ccxt.gate
         {
             object parsed = getValue(parsedOrders, i);
             // inject order status
-            object info = this.safeValue(parsed, "info");
+            IDictionary<string, object> info = this.safeDict(parsed, "info");
             string? eventVar = this.safeString(info, "event");
             if (eventVar == "put" || eventVar == "update")
             {

@@ -847,7 +847,7 @@ public partial class tokocrypto : Exchange
         {
             await this.loadTimeDifference();
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> list = this.safeList(data, "list", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, list.Count); postFixIncrement(ref i))
@@ -861,7 +861,7 @@ public partial class tokocrypto : Exchange
             object bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
             string? settle = this.safeCurrencyCode(settleId);
-            object symbol = add(add(bs, "/"), quote);
+            string? symbol = ((string)add(add(bs, "/"), quote));
             object filters = this.safeValue(market, "filters", new List<object>() {});
             Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             string? status = this.safeString(market, "spotTradingEnable");
@@ -944,7 +944,7 @@ public partial class tokocrypto : Exchange
             }
             if (filtersByType.ContainsKey("LOT_SIZE"))
             {
-                object filter = this.safeValue(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)((IDictionary<string,object>)entry)["precision"])["amount"] = this.safeNumber(filter, "stepSize");
                 ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["amount"] = new Dictionary<string, object>() {
                     { "min", this.safeNumber(filter, "minQty") },
@@ -953,7 +953,7 @@ public partial class tokocrypto : Exchange
             }
             if (filtersByType.ContainsKey("MARKET_LOT_SIZE"))
             {
-                object filter = this.safeValue(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)((IDictionary<string,object>)entry)["limits"])["market"] = new Dictionary<string, object>() {
                     { "min", this.safeNumber(filter, "minQty") },
                     { "max", this.safeNumber(filter, "maxQty") },
@@ -961,7 +961,7 @@ public partial class tokocrypto : Exchange
             }
             if (filtersByType.ContainsKey("MIN_NOTIONAL"))
             {
-                object filter = this.safeValue(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
+                IDictionary<string, object> filter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)getValue(((IDictionary<string,object>)entry)["limits"], "cost"))["min"] = this.safeNumber2(filter, "minNotional", "notional");
             }
             ((IList<object>)result).Add(entry);
@@ -1728,7 +1728,7 @@ public partial class tokocrypto : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> balances = this.safeList(data, "accountAssets", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
@@ -2017,7 +2017,7 @@ public partial class tokocrypto : Exchange
             object broker = this.safeValue(this.options, "broker");
             if ((broker != null))
             {
-                object brokerId = this.safeString(broker, "marketType");
+                string? brokerId = this.safeString(broker, "marketType");
                 if ((brokerId != null))
                 {
                     request["clientId"] = add(brokerId, this.uuid22());
@@ -2048,16 +2048,16 @@ public partial class tokocrypto : Exchange
             {
                 object precision = getValue(GetValue(market, "precision"), "price");
                 object quoteAmount = null;
-                object createMarketBuyOrderRequiresPrice = true;
+                bool? createMarketBuyOrderRequiresPrice = true;
                 IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-                createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
+                createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
                 parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
                 double? cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                 parameters = this.omit(parameters, new List<object>() {"cost", "quoteOrderQty"});
                 if (!isEqual(cost, null))
                 {
                     quoteAmount = cost;
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (createMarketBuyOrderRequiresPrice == true)
                 {
                     if (isEqual(price, null))
                     {
@@ -2201,8 +2201,8 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1662710056523
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        List<object> list = ((List<object>)this.safeValue(data, "list", new List<object>() {}));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> list = this.safeList(data, "list", new List<object>() {});
         IDictionary<string, object> rawOrder = this.safeDict(list, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder));
     }
@@ -2275,7 +2275,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1572860756458
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> orders = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market, since, limit));
     }
@@ -2434,7 +2434,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp": 1573723498893
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> trades = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
@@ -2485,7 +2485,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1660685915746
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? address = this.safeString(data, "address");
         string? tag = this.safeString(data, "addressTag", "");
         if ((tag.Length == 0))
@@ -2562,7 +2562,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659758865998
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> deposits = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(deposits, currency, since, limit));
     }
@@ -2628,7 +2628,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1659759062187
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> withdrawals = this.safeList(data, "list", new List<object>() {});
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(withdrawals, currency, since, limit));
     }
@@ -2752,7 +2752,7 @@ public partial class tokocrypto : Exchange
         string? id = this.safeString(transaction, "id");
         if ((id == null))
         {
-            object data = this.safeValue(transaction, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> data = this.safeDict(transaction, "data", new Dictionary<string, object>() {});
             id = this.safeString(data, "withdrawId");
             type = "withdrawal";
         }

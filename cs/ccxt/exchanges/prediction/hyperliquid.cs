@@ -2231,7 +2231,7 @@ public partial class hyperliquid : PredictionExchange
         object firstMarket = (isGreaterThan(marketsLength, 0)) ? getValue(markets, 0) : new Dictionary<string, object>() {};
         IDictionary<string, object> firstInfo = this.safeDict(firstMarket, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> desc = this.safeDict(firstInfo, "parsedDescription", new Dictionary<string, object>() {});
-        object underlying = this.safeString(desc, "underlying");
+        string? underlying = this.safeString(desc, "underlying");
         string? targetPrice = this.safeString(desc, "targetPrice");
         string? expiryRaw = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
@@ -2250,7 +2250,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         Int64? firstExpiry = this.safeInteger(firstMarket, "expiry");
-        object title = parentSymbol;
+        string? title = parentSymbol;
         if ((underlying != null))
         {
             string titleSuffix = "";

@@ -890,7 +890,7 @@ public partial class phemex : ccxt.phemex
         }
         IDictionary<string, object> market = null;
         string? type = null;
-        object messageHash = "trades:";
+        string messageHash = "trades:";
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
@@ -1075,7 +1075,7 @@ public partial class phemex : ccxt.phemex
         {
             await this.loadMarkets();
         }
-        object messageHash = "orders:";
+        string messageHash = "orders:";
         IDictionary<string, object> market = null;
         string? type = null;
         if (!isEqual(symbolVar, null))

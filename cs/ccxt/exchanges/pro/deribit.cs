@@ -578,7 +578,7 @@ public partial class deribit : ccxt.deribit
         {
             IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsed, i));
             callDynamically(cachedTrades, "append", new object[] {trade});
-            object symbol = GetValue(trade, "symbol");
+            string? symbol = ((string)GetValue(trade, "symbol"));
             marketIds[(string)((string)symbol)] = true;
         }
         callDynamically(client, "resolve", new object[] {cachedTrades, channel});

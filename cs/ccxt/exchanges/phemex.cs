@@ -1819,7 +1819,7 @@ public partial class phemex : Exchange
         //
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         Int64? timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), market);
         object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), market);
@@ -2220,7 +2220,7 @@ public partial class phemex : Exchange
         //
         object priceString = null;
         object amountString = null;
-        object timestamp = null;
+        Int64? timestamp = null;
         string? id = null;
         string? side = null;
         object costString = null;
@@ -2231,7 +2231,7 @@ public partial class phemex : Exchange
         string? feeCurrencyCode = null;
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? orderId = null;
         string? takerOrMaker = null;
         if (((trade is IList<object>) || (trade.GetType().IsGenericType && trade.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
@@ -2449,7 +2449,7 @@ public partial class phemex : Exchange
             { "info", response },
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object balance = this.safeValue(data, "account", new Dictionary<string, object>() {});
+        IDictionary<string, object> balance = this.safeDict(data, "account", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(balance, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> currency = this.currency(((string)code));
@@ -2778,7 +2778,7 @@ public partial class phemex : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         object price = this.fromEp(this.safeString(order, "priceEp"), market);
         object amount = this.fromEv(this.safeString(order, "baseQtyEv"), market);
         object remaining = this.omitZero(this.fromEv(this.safeString(order, "leavesBaseQtyEv"), market));
@@ -3074,8 +3074,8 @@ public partial class phemex : Exchange
             { "ordType", typeVar },
         };
         string? clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
-        object stopLoss = this.safeValue(parameters, "stopLoss");
-        object takeProfit = this.safeValue(parameters, "takeProfit");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
         bool hasStopLoss = ((stopLoss != null));
         bool hasTakeProfit = ((takeProfit != null));
         bool isStableSettled = (isEqual(GetValue(market, "settle"), "USDT")) || (isEqual(GetValue(market, "settle"), "USDC"));
@@ -4532,14 +4532,14 @@ public partial class phemex : Exchange
      */
     public async override Task<List<ccxt.Position>> FetchPositionHistory(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
         };
@@ -4678,7 +4678,7 @@ public partial class phemex : Exchange
         //
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         string? notionalString = this.safeString2(position, "value", "valueRv");
         string? maintenanceMarginPercentageString = this.safeString2(position, "maintMarginReq", "maintMarginReqRr");
@@ -5684,11 +5684,11 @@ public partial class phemex : Exchange
         {
             throw new BadRequest (add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100));
         }

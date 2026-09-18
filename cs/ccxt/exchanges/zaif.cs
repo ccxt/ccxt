@@ -338,7 +338,7 @@ public partial class zaif : Exchange
         var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -392,7 +392,7 @@ public partial class zaif : Exchange
 
     public override Dictionary<string, object> parseBalance(object response)
     {
-        IDictionary<string, object> balances = ((IDictionary<string, object>)this.safeValue(response, "return", new Dictionary<string, object>() {}));
+        IDictionary<string, object> balances = this.safeDict(response, "return", new Dictionary<string, object>() {});
         object deposit = this.safeValue(balances, "deposit");
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },

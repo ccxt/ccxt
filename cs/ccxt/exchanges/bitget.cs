@@ -11807,10 +11807,10 @@ public partial class bitget : Exchange
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
         }
         List<object> sorted = this.sortBy(result, "timestamp");
-        object symbol = null;
+        string? symbol = null;
         if (!isEqual(market, null))
         {
-            symbol = getValue(market, "symbol");
+            symbol = ((string)getValue(market, "symbol"));
         }
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }

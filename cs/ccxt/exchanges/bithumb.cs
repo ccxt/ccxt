@@ -2476,7 +2476,7 @@ public partial class bithumb : Exchange
                 remaining = amount;
             }
         }
-        object symbol = null;
+        string? symbol = null;
         string? baseId = this.safeString(order, "order_currency");
         string? quoteId = this.safeString(order, "payment_currency");
         string? bs = this.safeCurrencyCode(baseId);
@@ -2489,7 +2489,7 @@ public partial class bithumb : Exchange
         {
             string? marketId = this.safeString(order, "market");
             market = this.safeMarket(marketId, market);
-            symbol = getValue(market, "symbol");
+            symbol = ((string)getValue(market, "symbol"));
         }
         string? id = this.safeStringN(order, new List<object>() {"order_id", "uuid", "algo_order_id"});
         List<object> rawTrades = this.safeList2(order, "contract", "trades", new List<object>() {});

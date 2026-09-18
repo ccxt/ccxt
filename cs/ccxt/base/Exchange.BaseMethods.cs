@@ -1196,7 +1196,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            object code = GetValue(parsed, "code");
+            string? code = ((string)GetValue(parsed, "code"));
             result[(string)code] = parsed;
         }
         return result;
@@ -4583,9 +4583,9 @@ public partial class BaseExchange
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (int i = 0; isLessThan(i, oldest); postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
-            object ts = getValue(trade, "timestamp");
-            object price = getValue(trade, "price");
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
+            object ts = GetValue(trade, "timestamp");
+            object price = GetValue(trade, "price");
             if ((isEqual(ts, null)) || (isEqual(price, null)))
             {
                 continue;
@@ -4617,7 +4617,7 @@ public partial class BaseExchange
             if (isFirstCandle || isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms)))
             {
                 // moved to a new timeframeVar -> create a new candle from opening trade
-                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, price, price, price, price, getValue(trade, "amount"), 1});
+                ((IList<object>)ohlcvs).Add(new List<object>() {openingTime, price, price, price, price, GetValue(trade, "amount"), 1});
             } else
             {
                 // still processing the same timeframeVar -> update opening trade
@@ -4628,7 +4628,7 @@ public partial class BaseExchange
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_high)] = mathMax(prevHighValue, price);
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_low)] = mathMin(prevLowValue, price);
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_close)] = price;
-                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_volume)] = this.sum(getValue(getValue(ohlcvs, candle), i_volume), getValue(trade, "amount"));
+                ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_volume)] = this.sum(getValue(getValue(ohlcvs, candle), i_volume), GetValue(trade, "amount"));
                 ((List<object>)getValue(ohlcvs, candle))[Convert.ToInt32(i_count)] = this.sum(getValue(getValue(ohlcvs, candle), i_count), 1);
             }
         }
@@ -4747,7 +4747,7 @@ public partial class BaseExchange
                 {
                     string? baseId = this.safeString(parts, 0);
                     string? quoteId = this.safeString(parts, 1);
-                    object bs = this.safeCurrencyCode(baseId);
+                    string? bs = this.safeCurrencyCode(baseId);
                     string? quote = this.safeCurrencyCode(quoteId);
                     result["baseId"] = baseId;
                     result["quoteId"] = quoteId;
@@ -5265,13 +5265,13 @@ public partial class BaseExchange
 
     public async virtual Task<ccxt.ADL> FetchPositionADLRank(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchPositionsADLRank"), null) && !isEqual(getValue(this.has, "fetchPositionsADLRank"), false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             List<object> ranks = ccxt.BaseExchange.FromADLList(await this.FetchPositionsADLRank(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> rank = this.safeDict(ranks, 0);
             if ((rank == null))
@@ -6387,13 +6387,13 @@ public partial class BaseExchange
 
     public async virtual Task<ccxt.FundingRate> FetchFundingRate(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchFundingRates"), null) && !isEqual(getValue(this.has, "fetchFundingRates"), false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             if (!isEqual(GetValue(market, "contract"), true))
             {
                 throw new BadSymbol (add(this.id, " fetchFundingRate() supports contract markets only")) ;
@@ -6415,13 +6415,13 @@ public partial class BaseExchange
 
     public async virtual Task<ccxt.FundingRate> FetchFundingInterval(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchFundingIntervals"), null) && !isEqual(getValue(this.has, "fetchFundingIntervals"), false))
         {
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             if (!isEqual(GetValue(market, "contract"), true))
             {
                 throw new BadSymbol (add(this.id, " fetchFundingInterval() supports contract markets only")) ;

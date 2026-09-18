@@ -700,7 +700,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
         {
-            object networkEntry = getValue(networkEntries, j);
+            IDictionary<string, object> networkEntry = ((IDictionary<string, object>)getValue(networkEntries, j));
             string? networkId = this.safeString2(networkEntry, "chain", "currency");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -829,7 +829,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object spotData = this.safeValue(spotMarkets, "symbol_list", new List<object>() {});
+        List<object> spotData = this.safeList(spotMarkets, "symbol_list", new List<object>() {});
         object swapData = this.safeValue(swapMarkets, "data", new List<object>() {});
         List<object> response = this.arrayConcat(spotData, swapData);
         List<object> result = new List<object>() {};
@@ -1324,7 +1324,7 @@ public partial class digifinex : Exchange
                 { "date", date },
             }, getValue(tickers, i));
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;
@@ -1408,7 +1408,7 @@ public partial class digifinex : Exchange
         //     }
         //
         Int64? date = this.safeInteger(response, "date");
-        object tickers = this.safeValue(response, "ticker", new List<object>() {});
+        List<object> tickers = this.safeList(response, "ticker", new List<object>() {});
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object firstTicker = this.safeValue(tickers, 0, new Dictionary<string, object>() {});
         object result = null;
@@ -2027,7 +2027,7 @@ public partial class digifinex : Exchange
         object marginMode = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -2107,7 +2107,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             Dictionary<string, object> individualOrder = new Dictionary<string, object>() {};
             individualOrder["order_id"] = getValue(data, i);
             individualOrder["instrument_id"] = GetValue(market, "id");
@@ -2216,9 +2216,9 @@ public partial class digifinex : Exchange
             request["type"] = add(side, suffix);
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             string? quantity = null;
-            object createMarketBuyOrderRequiresPrice = true;
+            bool? createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             if (isMarketOrder && (isEqual(side, "buy")))
             {
@@ -2227,7 +2227,7 @@ public partial class digifinex : Exchange
                 if (!isEqual(cost, null))
                 {
                     quantity = this.costToPrecision(symbol, cost);
-                } else if (isTrue(createMarketBuyOrderRequiresPrice))
+                } else if (createMarketBuyOrderRequiresPrice == true)
                 {
                     if (isEqual(price, null))
                     {
@@ -3331,7 +3331,7 @@ public partial class digifinex : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         object addresses = this.parseDepositAddresses(data, new List<object>() {GetValue(currency, "code")});
         object address = this.safeValue(addresses, code);
         if ((address == null))
@@ -3594,7 +3594,7 @@ public partial class digifinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        object currencyId = GetValue(currency, "id");
+        string? currencyId = ((string)GetValue(currency, "id"));
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -4414,7 +4414,7 @@ public partial class digifinex : Exchange
         //
         string? marketId = this.safeString2(position, "instrument_id", "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? marginMode = this.safeString(position, "margin_mode");
         if ((marginMode != null))
         {

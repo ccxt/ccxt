@@ -2001,7 +2001,7 @@ public partial class mexc : Exchange
         string? id = null;
         Int64? timestamp = null;
         string? orderId = null;
-        object symbol = null;
+        string? symbol = null;
         Dictionary<string, object> fee = null;
         object type = null;
         string? side = null;
@@ -2026,7 +2026,7 @@ public partial class mexc : Exchange
             //
             timestamp = this.safeInteger(trade, "t");
             market = this.safeMarket(null, market);
-            symbol = getValue(market, "symbol");
+            symbol = ((string)getValue(market, "symbol"));
             priceString = this.safeString(trade, "p");
             amountString = this.safeString(trade, "v");
             side = this.parseOrderSide(this.safeString(trade, "T"));
@@ -2085,7 +2085,7 @@ public partial class mexc : Exchange
             //
             string? marketId = this.safeString(trade, "symbol");
             market = this.safeMarket(marketId, market);
-            symbol = getValue(market, "symbol");
+            symbol = ((string)getValue(market, "symbol"));
             id = this.safeString2(trade, "id", "a");
             priceString = this.safeString2(trade, "price", "p");
             orderId = this.safeString(trade, "orderId");
@@ -2181,11 +2181,11 @@ public partial class mexc : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         int maxLimit = (isEqual(GetValue(market, "spot"), true)) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, parameters, maxLimit));
         }
@@ -3026,7 +3026,7 @@ public partial class mexc : Exchange
         string? symbol = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             Dictionary<string, object> market = this.market(marketId);
             if (!isEqual(GetValue(market, "spot"), true))
@@ -4057,10 +4057,10 @@ public partial class mexc : Exchange
                 { "clientOrderId", this.safeString(order, "newClientOrderId") },
             });
         }
-        object id = null;
+        string? id = null;
         if ((order is string))
         {
-            id = order;
+            id = ((string)order);
         } else
         {
             id = this.safeString2(order, "orderId", "id");
@@ -4946,8 +4946,8 @@ public partial class mexc : Exchange
         string? marketId = this.safeString(contract, "symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "contract");
         Int64? timestamp = this.safeInteger(contract, "timestamp");
-        object interval = this.safeString(contract, "collectCycle");
-        object intervalString = null;
+        string? interval = this.safeString(contract, "collectCycle");
+        string? intervalString = null;
         if ((interval != null))
         {
             intervalString = add(interval, "h");
@@ -5084,7 +5084,7 @@ public partial class mexc : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         List<object> result = this.safeList(data, "resultList", new List<object>() {});
         List<object> rates = new List<object>() {};
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
@@ -5311,7 +5311,7 @@ public partial class mexc : Exchange
             if (((networkUnified != null)) && (inOp(networks, networkUnified)))
             {
                 IDictionary<string, object> network = ((networkUnified == null)) ? new Dictionary<string, object>() {} : this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
-                object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+                IDictionary<string, object> networkInfo = this.safeDict(network, "info", new Dictionary<string, object>() {});
                 networkId = this.safeString(networkInfo, "network");
             } else
             {
@@ -5372,7 +5372,7 @@ public partial class mexc : Exchange
         if (((networkUnified != null)) && (inOp(networks, networkUnified)))
         {
             IDictionary<string, object> network = ((networkUnified == null)) ? new Dictionary<string, object>() {} : this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
-            object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+            IDictionary<string, object> networkInfo = this.safeDict(network, "info", new Dictionary<string, object>() {});
             networkId = this.safeString(networkInfo, "network");
         } else
         {
@@ -5874,7 +5874,7 @@ public partial class mexc : Exchange
         //    }
         //
         market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? contracts = this.safeString(position, "holdVol");
         double? entryPrice = this.safeNumber(position, "openAvgPrice");
         string? initialMargin = this.safeString(position, "im");
@@ -6066,7 +6066,7 @@ public partial class mexc : Exchange
                 request["page_size"] = limit;
             }
             Dictionary<string, object> response = await this.contractPrivateGetAccountTransferRecord(this.extend(request, parameters));
-            object data = this.safeValue(response, "data");
+            IDictionary<string, object> data = this.safeDict(response, "data");
             resultList = this.safeList(data, "resultList");
         }
         return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(resultList, currency, since, limit));

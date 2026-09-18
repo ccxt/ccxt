@@ -480,7 +480,7 @@ public partial class bitopro : Exchange
         string? quoteId = this.safeString(market, "quote");
         object bs = this.safeCurrencyCode(baseId);
         string? quote = this.safeCurrencyCode(quoteId);
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         Dictionary<string, object> limits = new Dictionary<string, object>() {
             { "amount", new Dictionary<string, object>() {
                 { "min", this.safeNumber(market, "minLimitBaseAmount") },
@@ -1384,7 +1384,7 @@ public partial class bitopro : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object id = GetValue(market, "uppercaseId");
+        string? id = ((string)GetValue(market, "uppercaseId"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((id != null))
         {

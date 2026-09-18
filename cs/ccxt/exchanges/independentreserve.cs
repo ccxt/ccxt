@@ -579,15 +579,15 @@ public partial class independentreserve : Exchange
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
         Int64? timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
-        object baseId = this.safeString(ticker, "PrimaryCurrencyCode");
+        string? baseId = this.safeString(ticker, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
-        object defaultMarketId = null;
+        string? defaultMarketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
             defaultMarketId = add(add(baseId, "/"), quoteId);
         }
         market = this.safeMarket(defaultMarketId, market, "/");
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? last = this.safeString(ticker, "LastPrice");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -948,9 +948,9 @@ public partial class independentreserve : Exchange
         double? price = this.parseNumber(priceString);
         double? amount = this.parseNumber(amountString);
         double? cost = this.parseNumber(Precise.stringMul(priceString, amountString));
-        object baseId = this.safeString(trade, "PrimaryCurrencyCode");
+        string? baseId = this.safeString(trade, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(trade, "SecondaryCurrencyCode");
-        object marketId = null;
+        string? marketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
             marketId = add(add(baseId, "/"), quoteId);
