@@ -27,7 +27,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // continue;
             success = Value::Bool(false);
         }
-        if is_true(&(Value::Bool(success.as_bool() == Some(true)))) && is_true(&(Value::Bool(response != Value::Null))) {
+        if is_true(&(success.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             now = exchange.milliseconds();
             testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), symbol.clone(), now.clone());

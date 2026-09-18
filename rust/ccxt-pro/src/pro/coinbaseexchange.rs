@@ -337,7 +337,7 @@ impl CoinbaseexchangeCore {
             append_to_array(&mut productIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        if is_true(&Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("signature")))) {
+        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("signature")))) {
             // need to distinguish between public trades and user trades
             url = add(&url, &Value::Str("?".to_string()));
         }
@@ -380,7 +380,7 @@ impl CoinbaseexchangeCore {
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        if is_true(&Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("signature")))) {
+        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("signature")))) {
             // need to distinguish between public trades and user trades
             url = add(&url, &Value::Str("?".to_string()));
         }
@@ -895,7 +895,7 @@ impl CoinbaseexchangeCore {
         let mut parsed: Value = self.parent.parse_trade(trade.clone(), &[]);
         let mut feeRate: Value = Value::Null;
         let mut isMaker: bool = false;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("maker_fee_rate".to_string())))) {
+        if (in_op(&trade, &Value::Str("maker_fee_rate".to_string()))) {
             isMaker = true;
             add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".to_string()), Value::Str("maker".to_string()));
             feeRate = self.safe_string_k(trade.clone(), "maker_fee_rate", &[]);
@@ -917,7 +917,7 @@ impl CoinbaseexchangeCore {
         market = self.market(parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         let mut feeCurrency: Value = market.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null);
         let mut feeCost: Value = Value::Null;
-        if is_true(&(Value::Bool(parsed.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null) != Value::Null))) && is_true(&(Value::Bool(feeRate != Value::Null))) {
+        if is_true(&(parsed.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null) != Value::Null)) && is_true(&(feeRate != Value::Null)) {
             let mut cost: Value = self.safe_string_k(parsed.clone(), "cost", &[]);
             feeCost = crate::precise::Precise::stringMul(&cost, &feeRate);
         }
@@ -1064,7 +1064,7 @@ impl CoinbaseexchangeCore {
                     m
                 })]);
                 let mut previousSequence: Value = self.safe_integer_k(previousInfo.clone(), "sequence", &[]);
-                if is_true(&(Value::Bool(previousSequence == Value::Null))) || is_true(&(sequence.as_f64().unwrap_or(f64::NAN) > previousSequence.as_f64().unwrap_or(f64::NAN))) {
+                if is_true(&(previousSequence == Value::Null)) || is_true(&(sequence.as_f64().unwrap_or(f64::NAN) > previousSequence.as_f64().unwrap_or(f64::NAN))) {
                     if (type_var.as_str() == Some("match")) {
                         let mut trade: Value = self.parse_ws_trade(message.clone(), &[]);
                         if (crate::value::get_value_k(&previousOrder, "trades") == Value::Null) {
@@ -1104,7 +1104,7 @@ impl CoinbaseexchangeCore {
     m
 }));
                         }
-                        if is_true(&(Value::Bool(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null))) && is_true(&(Value::Bool(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null))) {
+                        if is_true(&(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null)) && is_true(&(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null)) {
                             { let __be_tmp = self.sum(&[crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost"), self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[])]); add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), __be_tmp); };
                             let mut previousOrderFee: Value = self.safe_dict_k(previousOrder.clone(), "fee", &[]);
                             let mut tradeFee: Value = self.safe_dict_k(trade.clone(), "fee", &[]);
@@ -1113,7 +1113,7 @@ impl CoinbaseexchangeCore {
                         // update the newUpdates count
                         orders.append(previousOrder.clone());
                         client.resolve(&[orders.clone(), messageHash.clone()]);
-                    }  else if is_true(&(Value::Bool(type_var.as_str() == Some("received")))) || is_true(&(Value::Bool(type_var.as_str() == Some("done")))) {
+                    }  else if is_true(&(type_var.as_str() == Some("received"))) || is_true(&(type_var.as_str() == Some("done"))) {
                         let mut info: Value = self.extend(crate::value::get_value_k(&previousOrder, "info"), &[message.clone()]);
                         let mut order: Value = self.parse_ws_order(info.clone(), &[]);
                         let mut keys: Value = object_keys(&order);
@@ -1157,7 +1157,7 @@ impl CoinbaseexchangeCore {
         let mut remaining: Value = self.safe_string_k(order.clone(), "remaining_size", &[]);
         let mut type_var: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut filled: Value = Value::Null;
-        if is_true(&(Value::Bool(amount != Value::Null))) && is_true(&(Value::Bool(remaining != Value::Null))) {
+        if is_true(&(amount != Value::Null)) && is_true(&(remaining != Value::Null)) {
             filled = crate::precise::Precise::stringSub(&amount, &remaining);
         }  else if (type_var.as_str() == Some("received")) {
             filled = Value::Str("0".to_string());

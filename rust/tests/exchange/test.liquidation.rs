@@ -40,9 +40,9 @@ pub fn testLiquidation(mut exchange: Value, mut skippedProperties: Value, mut me
     let mut contractSize: Value = exchange.safe_string(entry.clone(), Value::Str("contractSize".to_string()), &[]);
     let mut price: Value = exchange.safe_string(entry.clone(), Value::Str("price".to_string()), &[]);
     let mut baseValue: Value = exchange.safe_string(entry.clone(), Value::Str("baseValue".to_string()), &[]);
-    if is_true(&(Value::Bool(contracts != Value::Null))) && is_true(&(Value::Bool(contracts.as_str() != Some("")))) && is_true(&(Value::Bool(contractSize != Value::Null))) && is_true(&(Value::Bool(contractSize.as_str() != Some("")))) {
+    if is_true(&(contracts != Value::Null)) && is_true(&(contracts.as_str() != Some(""))) && is_true(&(contractSize != Value::Null)) && is_true(&(contractSize.as_str() != Some(""))) {
         assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&contracts, &contractSize)))));
-        if is_true(&(Value::Bool(price != Value::Null))) && is_true(&(Value::Bool(price.as_str() != Some("")))) {
+        if is_true(&(price != Value::Null)) && is_true(&(price.as_str() != Some(""))) {
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEq(&baseValue, &ccxt::precise::Precise::stringMul(&ccxt::precise::Precise::stringMul(&contracts, &contractSize), &price)))));
         }
     }

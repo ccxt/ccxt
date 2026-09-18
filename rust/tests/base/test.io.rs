@@ -18,7 +18,7 @@ pub fn testIo() {
     let mut fileName: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ccxt-test-io-".to_string()), to_string_val(&ms))), Value::Str(".ccxtfile".to_string())));
     // upper tmp dir
     let mut tempDir: Value = exchange.get_temp_dir();
-    assert!(ccxt::runtime::is_true(&(Value::Bool((tempDir != Value::Null) && (tempDir.as_str() != Some(""))))));
+    assert!(ccxt::runtime::is_true(&(((tempDir != Value::Null) && (tempDir.as_str() != Some(""))))));
     let mut filePath: Value = Value::Str(format!("{}{}", tempDir, fileName)); // '../../../../../../../../../../../../tmp/' + fileName;
     let mut fileContent: Value = Value::Str("hello world".to_string());
     assert!(ccxt::runtime::is_true(&(exchange.write_file(filePath.clone(), fileContent.clone()))));

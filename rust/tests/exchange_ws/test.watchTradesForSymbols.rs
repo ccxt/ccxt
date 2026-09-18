@@ -32,15 +32,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         now = exchange.milliseconds();
         let mut elapsedMs: Value = (match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        if is_true(&(Value::Bool(success.as_bool() == Some(true)))) && is_true(&(Value::Bool(response != Value::Null))) {
-            assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&response)))));
+        if is_true(&(success.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
+            assert!(ccxt::runtime::is_true(&((is_array(&response)))));
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1492: bool = true;
                 while { if !__for_first_1492 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1492 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut trade: Value = get_value(&response, &i);
                 let mut symbol: Value = trade.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                assert!(ccxt::runtime::is_true(&(Value::Bool(symbol != Value::Null))));
+                assert!(ccxt::runtime::is_true(&((symbol != Value::Null))));
                 testTrade(exchange.clone(), skippedProperties.clone(), method.clone(), trade.clone(), symbol.clone(), now.clone(), Value::Bool(true));
                 crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), trade.clone(), Value::Str("symbol".to_string()).clone(), symbols.clone()]);
                 if !is_true(&exchange.in_array(symbol.clone(), returnedSymbols.clone())) {
@@ -53,7 +53,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(returnedSymbols.len() as i64).as_f64() == Value::Int(symbols.len() as i64).as_f64()))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(returnedSymbols.len() as i64).as_f64() == Value::Int(symbols.len() as i64).as_f64()))));
     return Value::Bool(true);
 
     Value::Null

@@ -14,7 +14,7 @@ pub async fn testWatchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut timeframeKeys: Value = object_keys(&get_value(&exchange, &Value::Str("timeframes".to_string())));
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(timeframeKeys.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // prefer 1m timeframe if available, otherwise return the first one
     let mut chosenTimeframeKey: Value = Value::Str("1m".to_string());
     if !is_true(&exchange.in_array(chosenTimeframeKey.clone(), timeframeKeys.clone())) {
@@ -42,7 +42,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             success = Value::Bool(false);
         }
         now = exchange.milliseconds();
-        if is_true(&(Value::Bool(success.as_bool() == Some(true)))) && is_true(&(Value::Bool(response != Value::Null))) {
+        if is_true(&(success.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), symbol.clone()]);
             {
                                 let mut i: Value = Value::Int(0);

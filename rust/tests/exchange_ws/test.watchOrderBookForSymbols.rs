@@ -33,7 +33,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             succeeded = Value::Bool(false);
         }
         currentTime = exchange.milliseconds();
-        if is_true(&(Value::Bool(succeeded.as_bool() == Some(true)))) && is_true(&(Value::Bool(response != Value::Null))) {
+        if is_true(&(succeeded.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), Value::Null);
             crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), response.clone(), Value::Str("symbol".to_string()).clone(), symbols.clone()]);
             let mut elapsed: Value = (match (&(currentTime), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });

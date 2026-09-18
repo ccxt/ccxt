@@ -371,7 +371,7 @@ impl LunoCore {
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
-        let mut symbol: Value = (if is_true(&(Value::Bool(market == Value::Null))) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
+        let mut symbol: Value = (if is_true(&(market == Value::Null)) { Value::Null } else { market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -473,7 +473,7 @@ impl LunoCore {
         let mut symbol: Value = crate::value::get_value_k(&subscription, "symbol");
         let mut messageHash: Value = add(&Value::Str("orderbook:".to_string()), &symbol);
         let mut timestamp: Value = self.safe_integer_k(message.clone(), "timestamp", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.indexed_order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

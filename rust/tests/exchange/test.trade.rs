@@ -61,7 +61,7 @@ pub fn testTrade(mut exchange: Value, mut skippedProperties: Value, mut method: 
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("takerOrMaker".to_string()).clone(), Value::List(vec![Value::Str("taker".to_string()), Value::Str("maker".to_string()), Value::Null]).clone()]);
     }
     crate::tests_support::shared::assert_fee_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".to_string()).clone()]);
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("fees".to_string()))))) {
+    if !(in_op(&skippedProperties, &Value::Str("fees".to_string()))) {
         // todo: remove undefined check and probably non-empty array check later
         if (entry.as_map().and_then(|__m| __m.get("fees")).cloned().unwrap_or(Value::Null) != Value::Null) {
             {

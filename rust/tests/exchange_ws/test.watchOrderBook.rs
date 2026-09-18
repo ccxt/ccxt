@@ -36,7 +36,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // refresh the deadline on every path, otherwise a stream of temporary
         // failures would loop forever
         now = exchange.milliseconds();
-        if is_true(&(Value::Bool(success.as_bool() == Some(true)))) && is_true(&(Value::Bool(response != Value::Null))) {
+        if is_true(&(success.as_bool() == Some(true))) && is_true(&(response != Value::Null)) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), symbol.clone());
             let mut elapsed: Value = (match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if elapsed.as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {

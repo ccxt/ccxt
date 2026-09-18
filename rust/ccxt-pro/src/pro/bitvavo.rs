@@ -958,7 +958,7 @@ impl BitvavoCore {
             let mut market: Value = self.market(symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             let mut timeframeString: Value = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
-            if !is_true(&(Value::Bool(in_op(&marketIdsByInterval, &interval)))) {
+            if !(in_op(&marketIdsByInterval, &interval)) {
                 add_element_to_object(&mut marketIdsByInterval, &interval, Value::List(vec![]));
             }
             let mut intervalIds: Value = get_value(&marketIdsByInterval, &interval);
@@ -1058,7 +1058,7 @@ impl BitvavoCore {
             let mut market: Value = self.market(symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             let mut timeframeString: Value = symbolAndTimeframe.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
-            if !is_true(&(Value::Bool(in_op(&marketIdsByInterval, &interval)))) {
+            if !(in_op(&marketIdsByInterval, &interval)) {
                 add_element_to_object(&mut marketIdsByInterval, &interval, Value::List(vec![]));
             }
             let mut intervalIds: Value = get_value(&marketIdsByInterval, &interval);
@@ -1371,7 +1371,7 @@ impl BitvavoCore {
         // in that case the buffered delta message identifies the market
         let mut marketId: Value = self.safe_string2(subscription.clone(), Value::Str("marketId".to_string()), Value::Str("market".to_string()), &[self.safe_string_k(message.clone(), "market", &[])]);
         let mut snapshotSymbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &snapshotSymbol)))) {
+        if !(in_op(&self.orderbooks, &snapshotSymbol)) {
             return Value::Null;
         }
         let mut name: Value = Value::Str("getBook".to_string());
@@ -1442,7 +1442,7 @@ impl BitvavoCore {
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
         // instead of suppressing the request as an already-active subscription
         let mut snapshotHash: Value = add(&Value::Str("getBook@".to_string()), &marketId);
-        if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &snapshotHash))) {
+        if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &snapshotHash)) {
             remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &snapshotHash);
         }
 }
@@ -1450,7 +1450,7 @@ impl BitvavoCore {
     pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         let mut limit: Value = self.safe_integer_k(subscription.clone(), "limit", &[]);
-        if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
+        if (in_op(&self.orderbooks, &symbol)) {
             remove(&mut self.orderbooks, &symbol);
         }
         { let __be_tmp = self.order_book(&[Value::Map({
@@ -1468,7 +1468,7 @@ impl BitvavoCore {
             let mut marketId: Value = self.safe_string(marketIds.clone(), i.clone(), &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[Value::Null, Value::Str("-".to_string())]);
             let mut messageHash: Value = add(&Value::Str(format!("{}{}", name, Value::Str("@".to_string()))), &marketId);
-            if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+            if !(in_op(&self.orderbooks, &symbol)) {
                 let mut subscription: Value = self.safe_value(get_value(&client, &Value::Str("subscriptions".to_string())), messageHash.clone(), &[]);
                 let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
                 if (method != Value::Null) {
@@ -1536,10 +1536,10 @@ impl BitvavoCore {
             while { if !__for_first_181 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_181 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
-            if !is_true(&(Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &key)))) {
+            if !(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &key)) {
                 continue;
             }
-            if !is_true(&Value::Bool(starts_with(&key, &Value::Str("unsubscribe:".to_string())))) {
+            if !(starts_with(&key, &Value::Str("unsubscribe:".to_string()))) {
                 continue;
             }
             let mut subscription: Value = get_value(&get_value(&client, &Value::Str("subscriptions".to_string())), &key);
@@ -1550,7 +1550,7 @@ impl BitvavoCore {
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
             // would immediately reject the next subscribe's fresh future, so clear it here
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("rejections".to_string())), &subHash))) {
+            if (in_op(&get_value(&client, &Value::Str("rejections".to_string())), &subHash)) {
                 remove(&mut get_value(&client, &Value::Str("rejections".to_string())), &subHash);
             }
         }
@@ -2620,7 +2620,7 @@ impl BitvavoCore {
             let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
             // allows further authentication attempts
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }

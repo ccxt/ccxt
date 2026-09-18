@@ -599,7 +599,7 @@ impl CoincheckCore {
             let mut code: Value = get_value(&codes, &i);
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-            if is_true(&Value::Bool(in_op(&response, &currencyId))) {
+            if (in_op(&response, &currencyId)) {
                 let mut account: Value = self.account();
                 let mut reserved: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_reserved".to_string())));
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), currencyId.clone(), &[])); }
@@ -952,7 +952,7 @@ impl CoincheckCore {
         let mut side: Value = Value::Null;
         let mut fee: Value = Value::Null;
         let mut orderId: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("liquidity".to_string())))) {
+        if (in_op(&trade, &Value::Str("liquidity".to_string()))) {
             if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("T")) {
                 takerOrMaker = Value::Str("taker".to_string());
             }  else if (self.safe_string_k(trade.clone(), "liquidity", &[]).as_str() == Some("M")) {

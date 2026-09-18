@@ -558,7 +558,7 @@ impl AlpacaCore {
         let mut datetime: Value = self.safe_string_k(message.clone(), "t", &[]);
         let mut timestamp: Value = self.parse8601(datetime.clone());
         let mut isSnapshot: Value = self.safe_bool_k(message.clone(), "r", &[Value::Bool(false)]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -965,7 +965,7 @@ impl AlpacaCore {
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
         m.insert("type".to_string(), type_var.clone());
         m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
-        m.insert("takerOrMaker".to_string(), (if is_true(&(Value::Bool(type_var.as_str() == Some("market")))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) }));
+        m.insert("takerOrMaker".to_string(), (if is_true(&(type_var.as_str() == Some("market"))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) }));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "filled_avg_price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "filled_qty", &[]));
         m.insert("cost".to_string(), Value::Null);
@@ -1093,7 +1093,7 @@ impl AlpacaCore {
 }
 
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
-        if is_true(&Value::Bool(is_array(&message))) {
+        if (is_array(&message)) {
             self.handle_crypto_message(client.clone(), message.clone());
             return;
         }

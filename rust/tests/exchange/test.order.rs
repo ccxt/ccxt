@@ -67,7 +67,7 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), Value::Str("0".to_string()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), exchange.safe_string(entry.clone(), Value::Str("remaining".to_string()), &[]).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".to_string()).clone(), exchange.safe_string(entry.clone(), Value::Str("filled".to_string()), &[]).clone()]);
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("trades".to_string()))))) {
+    if !(in_op(&skippedProperties, &Value::Str("trades".to_string()))) {
         let mut skippedNew: Value = exchange.deep_extend(skippedProperties.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::Bool(true));

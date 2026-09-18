@@ -20,16 +20,16 @@ pub async fn testFetchHistoryBase() -> Value {
     {
         exchange.fetch2(Value::Str("sample1".to_string()), &[]).await;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(1.0)))));
     {
         exchange.fetch2(Value::Str("sample2".to_string()), &[]).await;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
     {
         exchange.fetch2(Value::Str("sample3".to_string()), &[]).await;
     }
-    assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
-    assert!(ccxt::runtime::is_true(&(Value::Bool((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < Value::Int(3).as_f64().unwrap_or(f64::NAN)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int((exchange.get_fetch_cache()).len() as i64).as_f64() == Some(2.0)))));
+    assert!(ccxt::runtime::is_true(&(((match (&(Value::Int(1)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) < Value::Int(3).as_f64().unwrap_or(f64::NAN)))));
 
     Value::Null
 }

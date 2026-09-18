@@ -685,7 +685,7 @@ impl BitoproCore {
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("type".to_string(), (if is_true(&isFiat) { Value::Str("fiat".to_string()) } else { Value::Str("crypto".to_string()) }));
         m.insert("name".to_string(), Value::Null);
-        m.insert("active".to_string(), (Value::Bool(is_true(&(Value::Bool(deposit.as_bool() == Some(true)))) && is_true(&(Value::Bool(withdraw.as_bool() == Some(true)))))));
+        m.insert("active".to_string(), (Value::Bool(is_true(&(deposit.as_bool() == Some(true))) && is_true(&(withdraw.as_bool() == Some(true))))));
         m.insert("deposit".to_string(), deposit.clone());
         m.insert("withdraw".to_string(), withdraw.clone());
         m.insert("fee".to_string(), self.safe_number_k(rawCurrency.clone(), "withdrawFee", &[]));
@@ -1391,7 +1391,7 @@ impl BitoproCore {
                 m.insert("6".to_string(), Value::Str("canceled".to_string()));
             m
         });
-        return (if is_true(&(Value::Bool(status == Value::Null))) { Value::Null } else { self.safe_string(statuses.clone(), status.clone(), &[]) });
+        return (if is_true(&(status == Value::Null)) { Value::Null } else { self.safe_string(statuses.clone(), status.clone(), &[]) });
 
     Value::Null
 }
@@ -2186,14 +2186,14 @@ impl BitoproCore {
                 m.insert("address".to_string(), address.clone());
             m
         });
-        if is_true(&Value::Bool(matches!(&params, Value::Dict(__d) if __d.contains_key("network")))) {
+        if is_true(&(matches!(&params, Value::Dict(__d) if __d.contains_key("network")))) {
             let mut networks: Value = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             let mut requestedNetwork: Value = self.safe_string_upper(params.clone(), Value::Str("network".to_string()), &[]);
             params = self.omit(params.clone(), Value::List(vec![Value::Str("network".to_string())]), &[]);
-            let mut networkId: Value = (if is_true(&(Value::Bool(requestedNetwork == Value::Null))) { Value::Null } else { self.safe_string(networks.clone(), requestedNetwork.clone(), &[]) });
+            let mut networkId: Value = (if is_true(&(requestedNetwork == Value::Null)) { Value::Null } else { self.safe_string(networks.clone(), requestedNetwork.clone(), &[]) });
             if (networkId == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" invalid network ".to_string()))), &requestedNetwork)));
             }

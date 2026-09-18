@@ -23,5 +23,5 @@ pub fn testUrlencodeWithArrayRepeat() {
     let mut expected2a: Value = Value::Str("a=1&product_ids=AA&product_ids=BB".to_string());
     let mut expected2b: Value = Value::Str("product_ids=AA&product_ids=BB&a=1".to_string());
     let mut result2: Value = exchange.urlencode_with_array_repeat(dict2.clone());
-    assert!(ccxt::runtime::is_true(&(Value::Bool((result2.as_str() == expected2a.as_str()) || (result2.as_str() == expected2b.as_str())))));
+    assert!(ccxt::runtime::is_true(&(((result2.as_str() == expected2a.as_str()) || (result2.as_str() == expected2b.as_str())))));
 }

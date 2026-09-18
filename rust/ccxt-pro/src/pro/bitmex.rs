@@ -643,7 +643,7 @@ impl BitmexCore {
             let mut update: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(update.clone(), "symbol", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-            if !is_true(&(Value::Bool(in_op(&self.tickers, &symbol)))) {
+            if !(in_op(&self.tickers, &symbol)) {
                 { let __be_tmp = self.parse_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1093,7 +1093,7 @@ impl BitmexCore {
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(self.json(message.clone())));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }
@@ -2134,7 +2134,7 @@ impl BitmexCore {
                 let mut size: Value = self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[]), &[]);
                 let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
                 let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
-                side = (if is_true(&(Value::Bool(side.as_str() == Some("Buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+                side = (if is_true(&(side.as_str() == Some("Buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store_array(Value::List(vec![price.clone(), size.clone(), id.clone()]));
@@ -2158,7 +2158,7 @@ impl BitmexCore {
                 if (marketId == Value::Null) {
                     return;
                 }
-                if !is_true(&(Value::Bool(in_op(&numUpdatesByMarketId, &marketId)))) {
+                if !(in_op(&numUpdatesByMarketId, &marketId)) {
                     add_element_to_object(&mut numUpdatesByMarketId, &marketId, Value::Int(0));
                 }
                 { let __be_tmp = self.sum(&[get_value(&numUpdatesByMarketId, &marketId), Value::Int(1)]); add_element_to_object(&mut numUpdatesByMarketId, &marketId, __be_tmp); };
@@ -2166,10 +2166,10 @@ impl BitmexCore {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
                 let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
                 let mut price: Value = self.safe_number_k(get_value(&data, &i), "price", &[]);
-                let mut size: Value = (if is_true(&(Value::Bool(action.as_str() == Some("delete")))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
+                let mut size: Value = (if is_true(&(action.as_str() == Some("delete"))) { Value::Int(0) } else { self.parent.convert_from_raw_quantity(symbol.clone(), self.safe_string_k(get_value(&data, &i), "size", &[Value::Str("0".to_string())]), &[]) });
                 let mut id: Value = self.safe_string_k(get_value(&data, &i), "id", &[]);
                 let mut side: Value = self.safe_string_k(get_value(&data, &i), "side", &[]);
-                side = (if is_true(&(Value::Bool(side.as_str() == Some("Buy")))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
+                side = (if is_true(&(side.as_str() == Some("Buy"))) { Value::Str("bids".to_string()) } else { Value::Str("asks".to_string()) });
                 let mut bookside: Value = get_value(&orderbook, &side);
                 let mut bookside: Value = get_value(&orderbook, &side);
                 bookside.store_array(Value::List(vec![price.clone(), size.clone(), id.clone()]));

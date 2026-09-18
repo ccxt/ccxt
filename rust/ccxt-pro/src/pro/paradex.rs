@@ -516,7 +516,7 @@ impl ParadexCore {
         let mut market: Value = self.safe_market(&[marketId.clone()]);
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "last_updated_at", &[]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbookData: Value = Value::Map({
@@ -620,7 +620,7 @@ impl ParadexCore {
             m
         });
         let mut messageHashes: Value = Value::List(vec![]);
-        if (symbols != Value::Null) && is_true(&Value::Bool(is_array(&symbols))) {
+        if (symbols != Value::Null) && (is_array(&symbols)) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_585: bool = true;

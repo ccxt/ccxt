@@ -22,7 +22,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     // todo: remove fee from empty
     let mut emptyAllowedFor: Value = Value::List(vec![Value::Str("name".to_string()), Value::Str("fee".to_string())]);
     // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    let mut isNative: Value = Value::Bool(is_true(&(Value::Bool(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null))) && (!is_equal(&get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null), &Value::Bool(false))) && is_true(&(Value::Bool(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated")))));
+    let mut isNative: Value = Value::Bool(is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null) != Value::Null)) && (!is_equal(&get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null), &Value::Bool(false))) && is_true(&(get_value(&exchange, &Value::Str("has".to_string())).as_map().and_then(|__m| __m.get("fetchCurrencies")).cloned().unwrap_or(Value::Null).as_str() != Some("emulated"))));
     let mut currencyType: Value = exchange.safe_string(entry.clone(), Value::Str("type".to_string()), &[]);
     if (isNative.as_bool() == Some(true)) {
         add_element_to_object(&mut format, &Value::Str("info".to_string()), Value::Map({
@@ -57,10 +57,10 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
         add_element_to_object(&mut format, &Value::Str("type".to_string()), Value::Str("crypto".to_string())); // crypto, fiat, leverage, other
         crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".to_string()).clone(), Value::List(vec![Value::Str("fiat".to_string()), Value::Str("crypto".to_string()), Value::Str("leveraged".to_string()), Value::Str("other".to_string()), Value::Null]).clone()]); // todo: remove undefined
         // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
-        if (currencyType.as_str() != Some("crypto")) && is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("depositForNonCrypto".to_string()))))) {
+        if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("depositForNonCrypto".to_string()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("deposit".to_string()));
         }
-        if (currencyType.as_str() != Some("crypto")) && is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("withdrawForNonCrypto".to_string()))))) {
+        if (currencyType.as_str() != Some("crypto")) && (in_op(&skippedProperties, &Value::Str("withdrawForNonCrypto".to_string()))) {
             append_to_array(&mut emptyAllowedFor, Value::Str("withdraw".to_string()));
         }
         if (currencyType.as_str() == Some("leveraged")) || (currencyType.as_str() == Some("other")) {
@@ -76,7 +76,7 @@ pub fn testCurrency(mut exchange: Value, mut skippedProperties: Value, mut metho
     })]);
     let mut networkKeys: Value = object_keys(&networks);
     let mut networkKeysLength: Value = Value::Int(networkKeys.len() as i64);
-    if (networkKeysLength.as_f64() == Some(0.0)) && is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("skipCurrenciesWithoutNetworks".to_string()))))) {
+    if (networkKeysLength.as_f64() == Some(0.0)) && (in_op(&skippedProperties, &Value::Str("skipCurrenciesWithoutNetworks".to_string()))) {
         return;
     }
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -90,13 +90,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut format, &Value::Str("id".to_string()), Value::Int(123));
             crate::tests_support::shared::assert_structure(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), format.clone(), emptyAllowedFor.clone()]);
         }  else {
-            assert!(ccxt::runtime::is_true(&(Value::Bool(message.as_str() == Some("")))));
+            assert!(ccxt::runtime::is_true(&((message.as_str() == Some("")))));
         }
     }
     //
     crate::tests_support::shared::check_precision_accuracy(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("precision".to_string()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("fee".to_string()).clone(), Value::Str("0".to_string()).clone()]);
-    if !is_true(&(Value::Bool(in_op(&skippedProperties, &Value::Str("limits".to_string()))))) {
+    if !(in_op(&skippedProperties, &Value::Str("limits".to_string()))) {
         let mut limits: Value = exchange.safe_value(entry.clone(), Value::Str("limits".to_string()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

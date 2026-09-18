@@ -475,7 +475,7 @@ impl BtcboxCore {
     m
 })]);
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseCurr, Value::Str("/".to_string()))), quote));
-            let mut fee: Value = (if is_true(&(Value::Bool(id.as_str() == Some("BTC")))) { self.parse_number(Value::Str("0.0005".to_string()), &[]) } else { self.parse_number(Value::Str("0.0010".to_string()), &[]) });
+            let mut fee: Value = (if is_true(&(id.as_str() == Some("BTC"))) { self.parse_number(Value::Str("0.0005".to_string()), &[]) } else { self.parse_number(Value::Str("0.0010".to_string()), &[]) });
             let mut details: Value = self.safe_dict(result2Data.clone(), id.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -647,7 +647,7 @@ impl BtcboxCore {
             let mut currency: Value = self.currency(code.clone());
             let mut currencyId: Value = currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
             let mut free: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_balance".to_string())));
-            if is_true(&Value::Bool(in_op(&response, &free))) {
+            if (in_op(&response, &free)) {
                 let mut account: Value = self.account();
                 let mut used: Value = Value::Str(format!("{}{}", currencyId, Value::Str("_lock".to_string())));
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".to_string(), self.safe_string(response.clone(), free.clone(), &[])); }

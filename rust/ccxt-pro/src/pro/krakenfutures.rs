@@ -662,7 +662,7 @@ impl KrakenfuturesCore {
         }
         let mut messageHash: Value = Value::Str("".to_string());
         symbols = self.market_symbols(&[symbols.clone()]);
-        if is_true(&(Value::Bool(symbols != Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
+        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
             messageHash = Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))));
         }
         messageHash = Value::Str(format!("{}{}", Value::Str("positions".to_string()), messageHash));
@@ -1209,7 +1209,7 @@ impl KrakenfuturesCore {
             })]);
             let mut previousOrder: Value = self.safe_value(previousOrders.clone(), orderId.clone(), &[]);
             let mut reason: Value = self.safe_string_k(message.clone(), "reason", &[]);
-            if is_true(&(Value::Bool(previousOrder == Value::Null))) || is_true(&(Value::Bool(reason.as_str() == Some("edited_by_user")))) {
+            if is_true(&(previousOrder == Value::Null)) || is_true(&(reason.as_str() == Some("edited_by_user"))) {
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
                 orders.append(parsed.clone());
                 client.resolve(&[orders.clone(), messageHash.clone()]);
@@ -1254,7 +1254,7 @@ impl KrakenfuturesCore {
     m
 }));
                 }
-                if is_true(&(Value::Bool(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null))) && is_true(&(Value::Bool(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null))) {
+                if is_true(&(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost") != Value::Null)) && is_true(&(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]) != Value::Null)) {
                     let mut stringOrderCost: Value = self.number_to_string(crate::value::get_value_k(&crate::value::get_value_k(&previousOrder, "fee"), "cost"));
                     let mut stringTradeCost: Value = self.number_to_string(self.safe_number(trade.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null), Value::Str("cost".to_string()), &[]));
                     add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".to_string())), &Value::Str("cost".to_string()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
@@ -1472,7 +1472,7 @@ impl KrakenfuturesCore {
         m.insert("type".to_string(), self.safe_string_k(unparsedOrder.clone(), "type", &[]));
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), (if is_true(&(Value::Bool(direction.as_f64() == Some(0.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
+        m.insert("side".to_string(), (if is_true(&(direction.as_f64() == Some(0.0))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) }));
         m.insert("price".to_string(), self.safe_string_k(unparsedOrder.clone(), "limit_price", &[]));
         m.insert("stopPrice".to_string(), self.safe_string_k(unparsedOrder.clone(), "stop_price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_string_k(unparsedOrder.clone(), "stop_price", &[]));
@@ -1976,7 +1976,7 @@ impl KrakenfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-                if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
+                if is_true(&(symbol != Value::Null)) && is_true(&(code != Value::Null)) {
                     add_element_to_object(get_value_mut(&mut futuresResult, &symbol), &code, newAccount.clone());
                 }
             }
@@ -2305,7 +2305,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(message.clone()))));
             client.reject(&[Value::from(error.clone()), messageHash.clone()]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash)) {
                 remove(&mut get_value(&client, &Value::Str("subscriptions".to_string())), &messageHash);
             }
         }

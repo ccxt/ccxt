@@ -510,7 +510,7 @@ impl BitstampCore {
             return Value::Int(-1);
         }
         let mut nonce: Value = self.safe_integer_k(orderbook.clone(), "nonce", &[]);
-        if is_true(&(Value::Bool(nonce == Value::Null))) || is_true(&(nonce.as_f64().unwrap_or(f64::NAN) < firstElementNonce.as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(nonce == Value::Null)) || is_true(&(nonce.as_f64().unwrap_or(f64::NAN) < firstElementNonce.as_f64().unwrap_or(f64::NAN))) {
             return Value::Int(-1);
         }
         {
@@ -627,7 +627,7 @@ impl BitstampCore {
         }
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut sideRaw: Value = self.safe_integer_k(trade.clone(), "type", &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(sideRaw.as_f64() == Some(0.0)))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
+        let mut side: Value = (if is_true(&(sideRaw.as_f64() == Some(0.0))) { Value::Str("buy".to_string()) } else { Value::Str("sell".to_string()) });
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -935,7 +935,7 @@ impl BitstampCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut subscription: Value = (if is_true(&(Value::Bool(channel == Value::Null))) { Value::Null } else { self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]) });
+        let mut subscription: Value = (if is_true(&(channel == Value::Null)) { Value::Null } else { self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]) });
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         if (symbol == Value::Null) {
             return;
@@ -1036,7 +1036,7 @@ impl BitstampCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut subscription: Value = (if is_true(&(Value::Bool(channel == Value::Null))) { Value::Null } else { self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]) });
+        let mut subscription: Value = (if is_true(&(channel == Value::Null)) { Value::Null } else { self.safe_dict(get_value(&client, &Value::Str("subscriptions".to_string())), channel.clone(), &[]) });
         let mut symbol: Value = self.safe_string_k(subscription.clone(), "symbol", &[]);
         if (symbol == Value::Null) {
             return;
@@ -1078,7 +1078,7 @@ impl BitstampCore {
         //
         let mut id: Value = self.safe_string_k(order.clone(), "id_str", &[]);
         let mut orderTypeRaw: Value = self.safe_string_lower(order.clone(), Value::Str("order_type".to_string()), &[]);
-        let mut side: Value = (if is_true(&(Value::Bool(orderTypeRaw.as_str() == Some("1")))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
+        let mut side: Value = (if is_true(&(orderTypeRaw.as_str() == Some("1"))) { Value::Str("sell".to_string()) } else { Value::Str("buy".to_string()) });
         let mut orderSubTypeRaw: Value = self.safe_string_lower(order.clone(), Value::Str("order_subtype".to_string()), &[]); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let mut orderType: Value = Value::Null;
         let mut timeInForce: Value = Value::Null;
@@ -1207,11 +1207,11 @@ impl BitstampCore {
         // would wipe the whole orders/myTrades cache - rebuild those without
         // the unsubscribed symbols instead, so the markets that are still
         // subscribed keep their cached history
-        if is_true(&(Value::Bool(topic.as_str() == Some("orders")))) && (!is_equal(&self.orders, &Value::Null)) {
+        if is_true(&(topic.as_str() == Some("orders"))) && (!is_equal(&self.orders, &Value::Null)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             let mut freshOrdersCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshOrdersCache.clone(), self.orders.clone(), symbols.clone()); self.orders = __t; }
-        }  else if is_true(&(Value::Bool(topic.as_str() == Some("myTrades")))) && (!is_equal(&self.myTrades, &Value::Null)) {
+        }  else if is_true(&(topic.as_str() == Some("myTrades"))) && (!is_equal(&self.myTrades, &Value::Null)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut freshTradesCache = ArrayCacheBySymbolById::new(limit.clone());
             { let __t = self.prune_cached_by_symbols(freshTradesCache.clone(), self.myTrades.clone(), symbols.clone()); self.myTrades = __t; }
@@ -1391,7 +1391,7 @@ impl BitstampCore {
         self.check_required_credentials(&[]);
         let mut time: Value = self.milliseconds();
         let mut expiresIn: Value = self.safe_integer_k(self.options.clone(), "expiresIn", &[]);
-        if is_true(&(Value::Bool(expiresIn == Value::Null))) || is_true(&(time.as_f64().unwrap_or(f64::NAN) > expiresIn.as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(expiresIn == Value::Null)) || is_true(&(time.as_f64().unwrap_or(f64::NAN) > expiresIn.as_f64().unwrap_or(f64::NAN))) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
             // minted by a private REST call and cached in this.options, so N
@@ -1404,7 +1404,7 @@ impl BitstampCore {
             // goes through the client's own accessors in the ported languages
             let mut messageHash: Value = Value::Str("authenticateFlight".to_string());
             let mut client: Value = self.client(&[Value::Str("authenticationFlights".to_string())]);
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in this.options
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

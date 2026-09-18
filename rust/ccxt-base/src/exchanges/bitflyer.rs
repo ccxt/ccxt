@@ -933,7 +933,7 @@ impl BitflyerCore {
         let mut order: Value = Value::Null;
         if (side != Value::Null) {
             let mut idInner: Value = Value::Str(format!("{}{}", side, Value::Str("_child_order_acceptance_id".to_string())));
-            if is_true(&Value::Bool(in_op(&trade, &idInner))) {
+            if (in_op(&trade, &idInner)) {
                 order = get_value(&trade, &idInner);
             }
         }
@@ -1324,7 +1324,7 @@ impl BitflyerCore {
         }
         let mut orders: Value = self.fetch_orders(&[symbol.clone()]).await;
         let mut ordersById: Value = self.index_by(orders.clone(), Value::Str("id".to_string()));
-        if is_true(&Value::Bool(in_op(&ordersById, &id))) {
+        if (in_op(&ordersById, &id)) {
             return get_value(&ordersById, &id);
         }
         panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" No order found with id ".to_string()))), id)));
@@ -1597,7 +1597,7 @@ impl BitflyerCore {
         let mut type_var: Value = Value::Null;
         let mut status: Value = Value::Null;
         let mut fee: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&transaction, &Value::Str("fee".to_string())))) {
+        if (in_op(&transaction, &Value::Str("fee".to_string()))) {
             type_var = Value::Str("withdrawal".to_string());
             status = self.parse_withdrawal_status(rawStatus.clone());
             let mut feeCost: Value = self.safe_string_k(transaction.clone(), "fee", &[]);

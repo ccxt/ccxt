@@ -39,7 +39,7 @@ fn detectMarketConflicts(mut exchange: Value, mut marketValues: Value) -> Value 
         while { if !__for_first_1463 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1463 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketValues.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut market: Value = get_value(&marketValues, &i);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        if !is_true(&(Value::Bool(in_op(&ids, &symbol)))) {
+        if !(in_op(&ids, &symbol)) {
             add_element_to_object(&mut ids, &symbol, get_value(&market, &Value::Str("id".to_string())));
         }  else {
             let mut isDifferent: Value = Value::Bool(!is_equal(&get_value(&ids, &symbol), &get_value(&market, &Value::Str("id".to_string()))));

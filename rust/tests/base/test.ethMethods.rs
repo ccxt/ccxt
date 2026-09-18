@@ -17,5 +17,5 @@ pub fn testEthMethods() {
     let mut privateKey: Value = Value::Str("0x27c9c557bd398e354b57ba58046b055035c47788926eb53fcdb394769ef80e1b".to_string());
     let mut publicKey: Value = Value::Str("0x3096cD9827766E03f8b6DF58996399406DC270Af".to_string());
     let mut generatedAddress: Value = exchange.eth_get_address_from_private_key(privateKey.clone(), &[]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(to_lower(&generatedAddress).as_str() == to_lower(&publicKey).as_str()))));
+    assert!(ccxt::runtime::is_true(&((to_lower(&generatedAddress).as_str() == to_lower(&publicKey).as_str()))));
 }

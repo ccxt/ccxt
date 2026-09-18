@@ -465,10 +465,10 @@ impl KrakenCore {
         let mut isTrailingLimitAmountOrder: bool = trailingLimitAmount != Value::Null;
         let mut isTrailingLimitPercentOrder: bool = trailingLimitPercent != Value::Null;
         let mut offset: Value = self.safe_string_k(params.clone(), "offset", &[Value::Str("".to_string())]); // can set this to - for minus
-        let mut trailingAmountString: Value = (if is_true(&(Value::Bool(trailingAmount != Value::Null))) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingAmount.clone()))) } else { Value::Null });
-        let mut trailingPercentString: Value = (if is_true(&(Value::Bool(trailingPercent != Value::Null))) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingPercent.clone()))) } else { Value::Null });
-        let mut trailingLimitAmountString: Value = (if is_true(&(Value::Bool(trailingLimitAmount != Value::Null))) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitAmount.clone()))) } else { Value::Null });
-        let mut trailingLimitPercentString: Value = (if is_true(&(Value::Bool(trailingLimitPercent != Value::Null))) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitPercent.clone()))) } else { Value::Null });
+        let mut trailingAmountString: Value = (if is_true(&(trailingAmount != Value::Null)) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingAmount.clone()))) } else { Value::Null });
+        let mut trailingPercentString: Value = (if is_true(&(trailingPercent != Value::Null)) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingPercent.clone()))) } else { Value::Null });
+        let mut trailingLimitAmountString: Value = (if is_true(&(trailingLimitAmount != Value::Null)) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitAmount.clone()))) } else { Value::Null });
+        let mut trailingLimitPercentString: Value = (if is_true(&(trailingLimitPercent != Value::Null)) { Value::Str(format!("{}{}", offset, self.number_to_string(trailingLimitPercent.clone()))) } else { Value::Null });
         let mut priceType: Value = (if (isTrailingPercentOrder || isTrailingLimitPercentOrder) { Value::Str("pct".to_string()) } else { Value::Str("quote".to_string()) });
         if (method.as_str() == Some("createOrderWs")) {
             let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
@@ -992,7 +992,7 @@ impl KrakenCore {
         let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut marketId: Value = self.safe_string_k(first.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
-        if !is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
+        if !(in_op(&self.ohlcvs, &symbol)) {
             add_element_to_object(&mut self.ohlcvs, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1291,7 +1291,7 @@ impl KrakenCore {
 }));
         let mut markets: Value = self.parent.load_markets(&[reload.clone(), params.clone()]).await;
         let mut marketsByWsName: Value = self.safe_value_k(self.options.clone(), "marketsByWsName", &[]);
-        if is_true(&(Value::Bool(marketsByWsName == Value::Null))) || is_true(&reload) {
+        if is_true(&(marketsByWsName == Value::Null)) || is_true(&reload) {
             marketsByWsName = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1570,7 +1570,7 @@ impl KrakenCore {
         let mut now: Value = self.seconds();
         let mut start: Value = self.safe_integer_k(subscription.clone(), "start", &[]);
         let mut expires: Value = self.safe_integer_k(subscription.clone(), "expires", &[]);
-        if is_true(&(Value::Bool(subscription == Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(subscription != Value::Null))) && ((match (&(start), &(expires)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= now.as_f64().unwrap_or(f64::NAN)))) {
+        if is_true(&(subscription == Value::Null)) || is_true(&(is_true(&(subscription != Value::Null)) && ((match (&(start), &(expires)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) <= now.as_f64().unwrap_or(f64::NAN))) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1582,7 +1582,7 @@ impl KrakenCore {
             // through client.resolve () / client.reject () so every write to
             // that map stays behind the client's own lock
             let mut messageHash: Value = Value::Str("authenticateFlight".to_string());
-            if is_true(&Value::Bool(in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash))) {
+            if (in_op(&get_value(&client, &Value::Str("futures".to_string())), &messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the subscriptions bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -1799,7 +1799,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             symbol = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         }
         let mut fee: Value = Value::Null;
-        if is_true(&Value::Bool(in_op(&trade, &Value::Str("fees".to_string())))) {
+        if (in_op(&trade, &Value::Str("fees".to_string()))) {
             let mut fees: Value = self.safe_list_k(trade.clone(), "fees", &[Value::List(vec![])]);
             let mut firstFee: Value = self.safe_dict(fees.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1814,7 +1814,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut datetime: Value = self.safe_string_k(trade.clone(), "timestamp", &[]);
         let mut liquidityIndicator: Value = self.safe_string_k(trade.clone(), "liquidity_ind", &[]);
-        let mut takerOrMaker: Value = (if is_true(&(Value::Bool(liquidityIndicator.as_str() == Some("t")))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
+        let mut takerOrMaker: Value = (if is_true(&(liquidityIndicator.as_str() == Some("t"))) { Value::Str("taker".to_string()) } else { Value::Str("maker".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -1925,13 +1925,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     newOrder = self.parse_ws_order(newRawOrder.clone(), &[]);
                 }
                 let mut length: Value = get_array_length(&stored);
-                if (length.as_f64() == limit.as_f64()) && is_true(&(Value::Bool(previousOrder == Value::Null))) {
+                if (length.as_f64() == limit.as_f64()) && is_true(&(previousOrder == Value::Null)) {
                     let mut first: Value = get_value(&stored, &Value::Int(0));
                     let mut symbolsByOrderId: Value = self.safe_dict_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]);
-                    if is_true(&Value::Bool(in_op(&symbolsByOrderId, &crate::value::get_value_k(&first, "id")))) {
+                    if (in_op(&symbolsByOrderId, &crate::value::get_value_k(&first, "id"))) {
                         remove(&mut symbolsByOrderId, &crate::value::get_value_k(&first, "id"));
                     }
                 }
@@ -2268,7 +2268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]);
                 let mut execType: Value = self.safe_string_k(first.clone(), "exec_type", &[]);
-                channel = (if is_true(&(Value::Bool(execType.as_str() == Some("trade")))) { Value::Str("myTrades".to_string()) } else { Value::Str("orders".to_string()) });
+                channel = (if is_true(&(execType.as_str() == Some("trade"))) { Value::Str("myTrades".to_string()) } else { Value::Str("orders".to_string()) });
             }
             let mut methods: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();

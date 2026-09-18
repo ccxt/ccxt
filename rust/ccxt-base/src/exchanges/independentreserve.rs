@@ -879,7 +879,7 @@ impl IndependentreserveCore {
         let mut baseId: Value = self.safe_string_k(ticker.clone(), "PrimaryCurrencyCode", &[]);
         let mut quoteId: Value = self.safe_string_k(ticker.clone(), "SecondaryCurrencyCode", &[]);
         let mut defaultMarketId: Value = Value::Null;
-        if is_true(&(Value::Bool(baseId != Value::Null))) && is_true(&(Value::Bool(quoteId != Value::Null))) {
+        if is_true(&(baseId != Value::Null)) && is_true(&(quoteId != Value::Null)) {
             defaultMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".to_string()))), quoteId));
         }
         market = self.safe_market(&[defaultMarketId.clone(), market.clone(), Value::Str("/".to_string())]);
@@ -999,7 +999,7 @@ impl IndependentreserveCore {
         let mut quoteId: Value = self.safe_string_k(order.clone(), "SecondaryCurrencyCode", &[]);
         let mut base: Value = Value::Null;
         let mut quote: Value = Value::Null;
-        if is_true(&(Value::Bool(baseId != Value::Null))) && is_true(&(Value::Bool(quoteId != Value::Null))) {
+        if is_true(&(baseId != Value::Null)) && is_true(&(quoteId != Value::Null)) {
             base = self.safe_currency_code(baseId.clone(), &[]);
             quote = self.safe_currency_code(quoteId.clone(), &[]);
             symbol = add(&add(&base, &Value::Str("/".to_string())), &quote);
@@ -1273,7 +1273,7 @@ impl IndependentreserveCore {
         let mut baseId: Value = self.safe_string_k(trade.clone(), "PrimaryCurrencyCode", &[]);
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "SecondaryCurrencyCode", &[]);
         let mut marketId: Value = Value::Null;
-        if is_true(&(Value::Bool(baseId != Value::Null))) && is_true(&(Value::Bool(quoteId != Value::Null))) {
+        if is_true(&(baseId != Value::Null)) && is_true(&(quoteId != Value::Null)) {
             marketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, Value::Str("/".to_string()))), quoteId));
         }
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone(), Value::Str("/".to_string())]);
@@ -1447,7 +1447,7 @@ impl IndependentreserveCore {
         }
         let mut market: Value = self.market(symbol);
         let mut orderType: Value = self.capitalize(type_var.clone());
-        orderType = Value::Str(format!("{}{}", orderType, (if is_true(&(Value::Bool(side.as_str() == Some("sell")))) { Value::Str("Offer".to_string()) } else { Value::Str("Bid".to_string()) })));
+        orderType = Value::Str(format!("{}{}", orderType, (if is_true(&(side.as_str() == Some("sell"))) { Value::Str("Offer".to_string()) } else { Value::Str("Bid".to_string()) })));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("primaryCurrencyCode".to_string(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));

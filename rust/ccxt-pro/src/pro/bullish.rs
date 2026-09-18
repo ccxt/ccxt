@@ -481,7 +481,7 @@ impl BullishCore {
         let mut market: Value = self.market(symbol.clone());
         let mut rawTrades: Value = self.safe_list_k(data, "trades", &[Value::List(vec![])]);
         let mut trades: Value = self.parse_trades(rawTrades.clone(), &[market.clone()]);
-        if !is_true(&(Value::Bool(in_op(&self.trades, &symbol)))) {
+        if !(in_op(&self.trades, &symbol)) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut tradesArrayCache = ArrayCache::new(limit.clone());
             add_element_to_object(&mut self.trades, &symbol, tradesArrayCache.clone());
@@ -661,7 +661,7 @@ impl BullishCore {
         let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".to_string()), symbol));
         let mut timestamp: Value = self.safe_integer_k(data.clone(), "timestamp", &[]);
-        if !is_true(&(Value::Bool(in_op(&self.orderbooks, &symbol)))) {
+        if !(in_op(&self.orderbooks, &symbol)) {
             { let __be_tmp = self.order_book(&[]); add_element_to_object(&mut self.orderbooks, &symbol, __be_tmp); };
         }
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
@@ -1066,7 +1066,7 @@ impl BullishCore {
         if (tradingAccountId == Value::Null) {
             return;
         }
-        if !is_true(&(Value::Bool(in_op(&self.balance, &tradingAccountId)))) {
+        if !(in_op(&self.balance, &tradingAccountId)) {
             add_element_to_object(&mut self.balance, &tradingAccountId, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1086,7 +1086,7 @@ impl BullishCore {
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".to_string(), self.safe_string_k(data.clone(), "availableQuantity", &[])); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".to_string(), self.safe_string_k(data.clone(), "lockedQuantity", &[])); }
             let mut code: Value = self.safe_currency_code(assetId.clone(), &[]);
-            if is_true(&(Value::Bool(tradingAccountId != Value::Null))) && is_true(&(Value::Bool(code != Value::Null))) {
+            if is_true(&(tradingAccountId != Value::Null)) && is_true(&(code != Value::Null)) {
                 add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &code, account.clone());
             }
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.balance) }, &tradingAccountId), &Value::Str("info".to_string()), message.clone());
@@ -1122,7 +1122,7 @@ impl BullishCore {
         }
         let mut subscribeHash: Value = Value::Str("positions".to_string());
         let mut messageHash: Value = subscribeHash.clone();
-        if is_true(&(Value::Bool(symbols != Value::Null))) && !is_true(&self.is_empty(symbols.clone())) {
+        if is_true(&(symbols != Value::Null)) && !is_true(&self.is_empty(symbols.clone())) {
             symbols = self.market_symbols(&[symbols.clone()]);
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str("::".to_string()), join(&symbols, &Value::Str(",".to_string()))))));
         }
