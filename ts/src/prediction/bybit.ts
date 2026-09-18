@@ -1,7 +1,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from '../abstract/prediction/bybit.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound } from '../base/errors.js';
-import type { Int, Str, Dict, Strings, Num, Market, OrderType, OrderSide, PredictionOrderBook, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, Endpoint, NullableDict, Fee } from '../base/types.js';
+import type { Int, Str, Dict, Strings, Num, Market, OrderType, OrderSide, PredictionOrderBook, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, PredictionEvent, fetchEventsParams, Endpoint, NullableDict, Fee } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -32,7 +32,10 @@ export default class bybit extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchEvent': true,
+                'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchOutcome': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
@@ -119,6 +122,140 @@ export default class bybit extends Exchange {
 
     /**
      * @method
+     * @name bybit#fetchEvents
+     * @description fetches Bybit Event Contract events grouped from instrument metadata
+     * @see https://bybit-exchange.github.io/docs/v5/event/market/instrument-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.status] 'active', 'closed' or 'all'; maps to Bybit instrument status
+     * @param {int} [params.limit] the maximum number of instruments to inspect
+     * @param {string} [params.query] filters the derived event id and title client-side
+     * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+        const status = this.safeStringLower (params, 'status', 'active');
+        let instrumentStatus = this.safeString (params, 'instrumentStatus');
+        if (instrumentStatus === undefined) {
+            if (status === 'active') {
+                instrumentStatus = 'Trading';
+            } else if (status === 'closed' || status === 'inactive') {
+                instrumentStatus = 'Closed';
+            }
+        }
+        const request: Dict = this.omit (params, [ 'query', 'queries', 'tags', 'status', 'sort', 'searchIn', 'eventId', 'slug', 'instrumentStatus' ]);
+        if (instrumentStatus !== undefined) {
+            request['status'] = instrumentStatus;
+        }
+        const rawMarkets = await this.fetchMarkets (request);
+        const eventsById: Dict = {};
+        const query = this.safeStringLower (params, 'query');
+        const queries = this.parseSearchQueries (params);
+        const wantedQueries: string[] = [];
+        if (query !== undefined) {
+            wantedQueries.push (query);
+        }
+        for (let i = 0; i < queries.length; i++) {
+            wantedQueries.push (queries[i].toLowerCase ());
+        }
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
+            if (market === undefined) {
+                continue;
+            }
+            const eventId = this.safeString (market, 'event', this.safeString (market, 'market'));
+            if (eventId === undefined) {
+                continue;
+            }
+            const eventText = (eventId + ' ' + this.safeString (market, 'market', '')).toLowerCase ();
+            let matched = true;
+            for (let qi = 0; qi < wantedQueries.length; qi++) {
+                if (eventText.indexOf (wantedQueries[qi]) < 0) {
+                    matched = false;
+                    break;
+                }
+            }
+            if (!matched) {
+                continue;
+            }
+            if (!(eventId in eventsById)) {
+                eventsById[eventId] = {
+                    'info': market['info'],
+                    'id': eventId,
+                    'event': eventId,
+                    'slug': eventId,
+                    'title': eventId,
+                    'markets': [],
+                    'active': false,
+                    'resolved': true,
+                };
+            }
+            const event = eventsById[eventId];
+            event['markets'].push (market);
+            if (this.safeBool (market, 'active', false)) {
+                event['active'] = true;
+            }
+            if (!this.safeBool (market, 'resolved', false)) {
+                event['resolved'] = false;
+            }
+        }
+        const events: PredictionEvent[] = [];
+        const eventKeys = Object.keys (eventsById);
+        for (let i = 0; i < eventKeys.length; i++) {
+            events.push (eventsById[eventKeys[i]] as PredictionEvent);
+        }
+        const filtered = this.applyEventFetchParams (events, params, wantedQueries);
+        this.setMarkets (rawMarkets);
+        return filtered as PredictionEvent[];
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchEvent
+     * @description fetches a derived Bybit Event Contract event by its event handle
+     * @see https://bybit-exchange.github.io/docs/v5/event/market/instrument-info
+     * @param {string} id the derived event handle, e.g. BTCUSDT-15MIN
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
+     */
+    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+        const events = await this.fetchEvents (this.extend ({ 'eventId': id, 'status': 'all' }, params));
+        for (let i = 0; i < events.length; i++) {
+            if (events[i]['id'] === id || events[i]['event'] === id || events[i]['slug'] === id) {
+                return events[i];
+            }
+        }
+        throw new ExchangeError (this.id + ' fetchEvent() could not find event ' + id);
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchOutcome
+     * @description resolves a Bybit Event Contract outcome by handle or instrument symbol id
+     * @see https://bybit-exchange.github.io/docs/v5/event/market/instrument-info
+     * @param {string} outcomeSymbol a unified outcome handle or Bybit symbol id
+     * @returns {object} a prediction outcome structure
+     */
+    override async fetchOutcome (outcomeSymbol: string): Promise<any> {
+        const colonIndex = outcomeSymbol.indexOf (':');
+        const marketSymbol = (colonIndex >= 0) ? outcomeSymbol.slice (0, colonIndex) : outcomeSymbol;
+        const statuses = [ 'Trading', 'PreLaunch', 'Delivering', 'Closed' ];
+        for (let i = 0; i < statuses.length; i++) {
+            const markets = await this.fetchMarkets ({ 'symbol': marketSymbol, 'status': statuses[i], 'limit': 1 });
+            if (markets.length > 0) {
+                this.setMarkets (markets);
+                if (this.hasOutcome (outcomeSymbol)) {
+                    return this.safeOutcome (outcomeSymbol);
+                }
+            }
+        }
+        await this.loadMarkets (false);
+        if (this.hasOutcome (outcomeSymbol)) {
+            return this.safeOutcome (outcomeSymbol);
+        }
+        throw new ExchangeError (this.id + ' fetchOutcome() could not resolve outcome ' + outcomeSymbol);
+    }
+
+    /**
+     * @method
      * @name bybit#fetchMarkets
      * @description fetches bybit Event Contract instruments (each instrument is a single tradable outcome, e.g. BTCUSDT-15MIN-DOWN)
      * @see https://bybit-exchange.github.io/docs/v5/event/market/instrument-info
@@ -134,7 +271,8 @@ export default class bybit extends Exchange {
         if (this.safeString (rest, 'status') === undefined) {
             rest['status'] = 'Trading';
         }
-        const pageLimit = this.safeInteger (this.options, 'instrumentsPageLimit', 100);
+        const configuredPageLimit = this.safeInteger (this.options, 'instrumentsPageLimit', 100);
+        const pageLimit = (maxInstruments < configuredPageLimit) ? maxInstruments : configuredPageLimit;
         const flatMarkets: Market[] = [];
         let cursor: Str = undefined;
         while (true) {
@@ -219,6 +357,9 @@ export default class bybit extends Exchange {
         //     }
         //
         const symbol = this.safeString (raw, 'symbol');
+        if (symbol === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() received an instrument without a symbol');
+        }
         const symbolId = this.safeString (raw, 'symbolId');
         const baseCoin = this.safeString (raw, 'baseCoin');
         const quoteCoin = this.safeString (raw, 'quoteCoin');
@@ -237,6 +378,9 @@ export default class bybit extends Exchange {
             'amount': this.safeNumber (lotSizeFilter, 'orderAmountTickSize'),
             'price': undefined,
         };
+        const symbolParts = symbol.split ('-');
+        const symbolPartsLength = symbolParts.length;
+        const eventId = (symbolPartsLength > 1) ? this.arraySlice (symbolParts, 0, symbolPartsLength - 1).join ('-') : symbol;
         const label = this.parseOutcomeLabel (symbol, contractType);
         const outcomeHandle = symbol + ':' + label;
         const outcomes: any[] = [
@@ -245,6 +389,7 @@ export default class bybit extends Exchange {
                 'outcomeId': symbolId,
                 'outcome': outcomeHandle,
                 'market': symbol,
+                'event': eventId,
                 'label': label,
                 'active': active,
                 'winner': undefined,
@@ -256,6 +401,7 @@ export default class bybit extends Exchange {
         return {
             'id': symbol,
             'market': symbol,
+            'event': eventId,
             'base': baseCoin,
             'quote': quoteCoin,
             'settle': settleCoin,
