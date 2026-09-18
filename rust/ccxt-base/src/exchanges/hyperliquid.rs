@@ -1641,10 +1641,10 @@ impl HyperliquidCore {
         let mut isUnifiedEnabled: Value = Value::Null;
         { let __destr_tmp = self.is_unified_enabled(Value::Str("fetchBalance".to_string()), &[userAddress.clone(), shouldRefresh.clone(), params.clone()]).await; isUnifiedEnabled = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut dex: Value = self.safe_string_k(params.clone(), "dex", &[]);
-        let mut isSpot: Value = Value::Bool(is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null))));
+        let mut isSpot: bool = is_true(&(Value::Bool(is_true(&(Value::Bool(type_var.as_str() == Some("spot")))) || is_true(&(Value::Bool(isUnifiedEnabled.as_bool() == Some(true))))))) && is_true(&(Value::Bool(dex == Value::Null)));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("type".to_string(), (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { Value::Str("spotClearinghouseState".to_string()) } else { Value::Str("clearinghouseState".to_string()) }));
+                m.insert("type".to_string(), (if (isSpot) { Value::Str("spotClearinghouseState".to_string()) } else { Value::Str("clearinghouseState".to_string()) }));
                 m.insert("user".to_string(), userAddress.clone());
             m
         });
@@ -1699,7 +1699,7 @@ impl HyperliquidCore {
                 let mut balance: Value = get_value(&balances, &i);
                 let mut balance: Value = get_value(&balances, &i);
                 let mut unifiedCode: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "coin", &[]), &[]);
-                let mut code: Value = (if is_true(&(Value::Bool(isSpot.as_bool() == Some(true)))) { self.update_spot_currency_code(unifiedCode.clone()) } else { unifiedCode.clone() });
+                let mut code: Value = (if (isSpot) { self.update_spot_currency_code(unifiedCode.clone()) } else { unifiedCode.clone() });
                 let mut account: Value = self.account();
                 let mut total: Value = self.safe_string_k(balance.clone(), "total", &[]);
                 let mut used: Value = self.safe_string_k(balance.clone(), "hold", &[]);
@@ -3165,14 +3165,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if isTrigger {
-            let mut isTp: Value = Value::Bool(false);
+            let mut isTp: bool = false;
             if (takeProfitPrice != Value::Null) {
                 triggerPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.clone());
-                isTp = Value::Bool(true);
+                isTp = true;
             }  else {
                 triggerPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
             }
-            let mut tpSlType: Value = (if is_true(&(isTp)) { Value::Str("tp".to_string()) } else { Value::Str("sl".to_string()) });
+            let mut tpSlType: Value = (if (isTp) { Value::Str("tp".to_string()) } else { Value::Str("sl".to_string()) });
             add_element_to_object(&mut orderType, &Value::Str("trigger".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket.clone());
@@ -3870,14 +3870,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
             if isTrigger {
-                let mut isTp: Value = Value::Bool(false);
+                let mut isTp: bool = false;
                 if (takeProfitPrice != Value::Null) {
                     triggerPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.clone());
-                    isTp = Value::Bool(true);
+                    isTp = true;
                 }  else {
                     triggerPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone());
                 }
-                let mut tpSlType: Value = (if is_true(&(isTp)) { Value::Str("tp".to_string()) } else { Value::Str("sl".to_string()) });
+                let mut tpSlType: Value = (if (isTp) { Value::Str("tp".to_string()) } else { Value::Str("sl".to_string()) });
                 add_element_to_object(&mut orderType, &Value::Str("trigger".to_string()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("isMarket".to_string(), isMarket.clone());

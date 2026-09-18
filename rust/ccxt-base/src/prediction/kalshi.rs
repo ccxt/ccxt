@@ -2500,10 +2500,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         let mut yesCount: Value = self.safe_number2(settlement.clone(), Value::Str("yes_count_fp".to_string()), Value::Str("yes_count".to_string()), &[Value::Int(0)]);
         let mut noCount: Value = self.safe_number2(settlement.clone(), Value::Str("no_count_fp".to_string()), Value::Str("no_count".to_string()), &[Value::Int(0)]);
-        let mut heldYes: Value = (Value::Bool(yesCount.as_f64().unwrap_or(f64::NAN) >= noCount.as_f64().unwrap_or(f64::NAN)));
-        let mut heldLabel: Value = (if is_true(&(heldYes)) { Value::Str("YES".to_string()) } else { Value::Str("NO".to_string()) });
+        let mut heldYes: bool = yesCount.as_f64().unwrap_or(f64::NAN) >= noCount.as_f64().unwrap_or(f64::NAN);
+        let mut heldLabel: Value = (if (heldYes) { Value::Str("YES".to_string()) } else { Value::Str("NO".to_string()) });
         let mut tickerMissing: bool = ticker == Value::Null;
-        let mut useHeldYesTicker: bool = is_true(&heldYes) || tickerMissing;
+        let mut useHeldYesTicker: bool = heldYes || tickerMissing;
         let mut heldTicker: Value = (if (useHeldYesTicker) { ticker.clone() } else { (Value::Str(format!("{}{}", ticker, Value::Str("-NO".to_string())))) });
         let mut mkt: Value = self.safe_outcome(heldTicker.clone(), &[market.clone()]);
         // which leg won; market_result is yes or no
@@ -2517,8 +2517,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 payout = (match ((revenueCents).as_f64(), (Value::Int(100)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             }
         }
-        let mut costKey: Value = (if is_true(&(heldYes)) { Value::Str("yes_total_cost".to_string()) } else { Value::Str("no_total_cost".to_string()) });
-        let mut costDollarsKey: Value = (if is_true(&(heldYes)) { Value::Str("yes_total_cost_dollars".to_string()) } else { Value::Str("no_total_cost_dollars".to_string()) });
+        let mut costKey: Value = (if (heldYes) { Value::Str("yes_total_cost".to_string()) } else { Value::Str("no_total_cost".to_string()) });
+        let mut costDollarsKey: Value = (if (heldYes) { Value::Str("yes_total_cost_dollars".to_string()) } else { Value::Str("no_total_cost_dollars".to_string()) });
         let mut cost: Value = self.safe_number(settlement.clone(), costDollarsKey.clone(), &[]);
         if (cost == Value::Null) {
             let mut costCents: Value = self.safe_number(settlement.clone(), costKey.clone(), &[]);
@@ -2543,7 +2543,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("event".to_string(), Value::Null);
         m.insert("result".to_string(), marketResult.clone());
         m.insert("won".to_string(), won.clone());
-        m.insert("amount".to_string(), (if is_true(&(heldYes)) { yesCount.clone() } else { noCount.clone() }));
+        m.insert("amount".to_string(), (if (heldYes) { yesCount.clone() } else { noCount.clone() }));
         m.insert("price".to_string(), (if is_true(&(won)) { Value::Int(1) } else { Value::Int(0) }));
         m.insert("cost".to_string(), cost.clone());
         m.insert("payout".to_string(), payout.clone());

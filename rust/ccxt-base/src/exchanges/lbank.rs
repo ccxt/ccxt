@@ -1975,8 +1975,8 @@ impl LbankCore {
             return self.safe_balance(result.clone());
         }
         // from spotPrivatePostSupplementUserInfo
-        let mut isArray: Value = Value::Bool(is_array(&data));
-        if (isArray.as_bool() == Some(true)) {
+        let mut isArray: bool = is_array(&data);
+        if (isArray) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_913: bool = true;

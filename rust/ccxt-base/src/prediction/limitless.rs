@@ -2832,8 +2832,8 @@ impl LimitlessCore {
         // the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
         // smartWallet field can stay populated after switching to eoa, so key off the option here
         let mut tradeWalletOption: Value = self.safe_string_k(accountInfo.clone(), "tradeWalletOption", &[]);
-        let mut usesSmartWallet: Value = (Value::Bool(tradeWalletOption.as_str() == Some("smartWallet")));
-        let mut walletFromAccount: Value = (if is_true(&(usesSmartWallet)) { self.safe_string_k(accountInfo.clone(), "smartWallet", &[]) } else { self.safe_string_k(accountInfo.clone(), "account", &[]) });
+        let mut usesSmartWallet: bool = tradeWalletOption.as_str() == Some("smartWallet");
+        let mut walletFromAccount: Value = (if (usesSmartWallet) { self.safe_string_k(accountInfo.clone(), "smartWallet", &[]) } else { self.safe_string_k(accountInfo.clone(), "account", &[]) });
         let mut maker: Value = (if is_true(&(Value::Bool(self.walletAddress.as_str() != Some("")))) { self.walletAddress.clone() } else { walletFromAccount.clone() });
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("maker".to_string()), &[maker.clone()]); maker = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -2846,7 +2846,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // linked embedded (owner) wallet, not by the smart wallet itself
         let mut embeddedAddress: Value = self.safe_string_k(accountInfo.clone(), "embeddedAccount", &[]);
         let mut hasEmbedded: bool = embeddedAddress != Value::Null;
-        let mut isSmartWallet: bool = is_true(&usesSmartWallet) && hasEmbedded;
+        let mut isSmartWallet: bool = usesSmartWallet && hasEmbedded;
         let mut signer: Value = maker.clone();
         if isSmartWallet {
             signer = embeddedAddress.clone();

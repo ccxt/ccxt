@@ -846,8 +846,8 @@ impl MudrexCore {
         let mut aggregated: Value = Value::List(vec![]);
         let mut offset: Value = Value::Int(0);
         let mut pageLimit: Value = Value::Int(100);
-        let mut paging: Value = Value::Bool(true);
-        while (paging.as_bool() == Some(true)) {
+        let mut paging: bool = true;
+        while (paging) {
             let mut q: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("limit".to_string(), pageLimit.clone());
@@ -873,7 +873,7 @@ impl MudrexCore {
             }
             let mut numItems: Value = Value::Int(items.len() as i64);
             if is_true(&(Value::Bool(numItems == Value::Null))) || is_true(&(Value::Bool(numItems.as_f64() == Some(0.0)))) {
-                paging = Value::Bool(false);
+                paging = false;
                 break;
             }
             {
@@ -884,7 +884,7 @@ impl MudrexCore {
             }
             }
             if numItems.as_f64().unwrap_or(f64::NAN) < pageLimit.as_f64().unwrap_or(f64::NAN) {
-                paging = Value::Bool(false);
+                paging = false;
             }  else {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(&[offset.clone(), pageLimit.clone()]);
@@ -1941,8 +1941,8 @@ impl MudrexCore {
         let mut transactionsCount: Value = Value::Int(0);
         let mut calls: Value = Value::Int(0);
         let mut offset: Value = Value::Int(0);
-        let mut paging: Value = Value::Bool(true);
-        while (paging.as_bool() == Some(true)) {
+        let mut paging: bool = true;
+        while (paging) {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1971,12 +1971,12 @@ impl MudrexCore {
             }
             }
             calls = self.sum(&[calls.clone(), Value::Int(1)]);
-            paging = Value::Bool(false);
+            paging = false;
             // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
             if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(Value::Bool(dataLength.as_f64() == pageSize.as_f64()))) && is_true(&(transactionsCount.as_f64().unwrap_or(f64::NAN) < limit.as_f64().unwrap_or(f64::NAN))) && is_true(&(calls.as_f64().unwrap_or(f64::NAN) < maxCalls.as_f64().unwrap_or(f64::NAN))) {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = self.sum(&[offset.clone(), pageSize.clone()]);
-                paging = Value::Bool(true);
+                paging = true;
             }
         }
         // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece

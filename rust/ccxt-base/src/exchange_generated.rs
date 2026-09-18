@@ -4419,17 +4419,17 @@ pub trait ExchangeBase:
                 continue;
             }
             // pick which form goes first in the returned pair
-            let mut preferPrimary: Value = Value::Bool(false);
+            let mut preferPrimary: bool = false;
             if (currencyCode.as_str() == baseCoin.as_str()) {
-                preferPrimary = Value::Bool(true); // mainnet currency uses primary chain
+                preferPrimary = true; // mainnet currency uses primary chain
             }  else if (currencyCode != Value::Null) {
-                preferPrimary = Value::Bool(false); // any other (token) currency uses secondary chain
+                preferPrimary = false; // any other (token) currency uses secondary chain
             }  else if is_true(&allowDefault) {
-                preferPrimary = (Value::Bool(crate::value::get_value_k(&entry, "default").as_str() == Some("primary")));
+                preferPrimary = crate::value::get_value_k(&entry, "default").as_str() == Some("primary");
             }  else {
-                preferPrimary = Value::Bool(is_equal(&networkCode, &primary)); // keep user input first
+                preferPrimary = is_equal(&networkCode, &primary); // keep user input first
             }
-            return (if is_true(&(preferPrimary)) { Value::List(vec![primary.clone(), secondary.clone()]) } else { Value::List(vec![secondary.clone(), primary.clone()]) });
+            return (if (preferPrimary) { Value::List(vec![primary.clone(), secondary.clone()]) } else { Value::List(vec![secondary.clone(), primary.clone()]) });
         }
         }
         return Value::List(vec![networkCode.clone(), networkCode.clone()]);
