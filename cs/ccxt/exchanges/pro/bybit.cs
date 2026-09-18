@@ -453,7 +453,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             ((IList<object>)topics).Add(add(add(topic, "."), marketId));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
         }
@@ -493,8 +493,8 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
-            object symbol = getValue(symbols, i);
+            string? marketId = ((string)getValue(marketIds, i));
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)topics).Add(add(add(topic, "."), marketId));
             ((IList<object>)subMessageHashes).Add(add("ticker:", symbol));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
@@ -695,7 +695,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             string topic = add("orderbook.1.", marketId);
             ((IList<object>)topics).Add(topic);
             ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
@@ -1052,7 +1052,7 @@ public partial class bybit : ccxt.bybit
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)GetValue(market, "id"));
             string topic = add(add(channel, "."), marketId);
@@ -1260,7 +1260,7 @@ public partial class bybit : ccxt.bybit
         List<object> subMessageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string topic = add("publicTrade.", GetValue(market, "id"));
             ((IList<object>)topics).Add(topic);

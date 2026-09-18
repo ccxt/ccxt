@@ -421,7 +421,7 @@ public partial class bitmex : ccxt.bitmex
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)subscriptionHashes).Add(add("liquidation:", GetValue(market, "id")));
                 ((IList<object>)messageHashes).Add(add("liquidations::", symbol));

@@ -4,6 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
+import { CORE_LIST_ARGS, CORE_LIST_TARGET_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -902,76 +903,6 @@ const CORE_IDICT_ARGS: Record<string, number[]> = {
     'parseWsUtaTrade': [ 0 ],
 };
 
-// Generated C# core parameters that can be narrowed from `object` to a list type: the C#
-// spelling of the TS `Strings` parameter (every array the printer builds is a `List<object>`,
-// the bodies only read it as a list, and the dominant writer `symbols = this.marketSymbols
-// (symbols)` returns IList<object>). Same positional keying and all-declarations-must-agree
-// gate as CORE_STRING_ARGS, but NO call-site wrap is emitted for a list target -- unlike a
-// `((string)x)` wrap, `((IList<object>)x)` on an `object` argument is a new runtime type
-// check, so a position is admitted only when every caller already passes a list / `null` /
-// nothing (census + per-site proof: campaigns/cs-strict/tools/S39/admission3.py).
-const CORE_LIST_ARGS: Record<string, Record<number, string>> = {
-    'checkNoStockSymbols': { 0: 'IList<object>' },
-    'fetchAllGreeks': { 0: 'IList<object>' },  // FetchAllGreeks
-    'fetchBidsAsks': { 0: 'IList<object>' },  // FetchBidsAsks
-    'fetchContractTickers': { 0: 'IList<object>' },  // FetchContractTickers
-    'fetchFundingIntervals': { 0: 'IList<object>' },  // FetchFundingIntervals
-    'fetchFundingRates': { 0: 'IList<object>' },  // FetchFundingRates
-    'fetchLastPrices': { 0: 'IList<object>' },  // FetchLastPrices
-    'fetchLeverageTiers': { 0: 'IList<object>' },  // FetchLeverageTiers
-    'fetchLeverages': { 0: 'IList<object>' },  // FetchLeverages
-    'fetchMarginModes': { 0: 'IList<object>' },  // FetchMarginModes
-    'fetchMarkPrices': { 0: 'IList<object>' },  // FetchMarkPrices
-    'fetchOpenInterests': { 0: 'IList<object>' },  // FetchOpenInterests
-    'fetchOrderBooks': { 0: 'IList<object>' },  // FetchOrderBooks
-    'fetchPositionsADLRank': { 0: 'IList<object>' },  // FetchPositionsADLRank
-    'fetchPositionsHistory': { 0: 'IList<object>' },  // FetchPositionsHistory
-    'fetchPositionsWs': { 0: 'IList<object>' },  // FetchPositionsWs
-    'fetchSpotTickers': { 0: 'IList<object>' },  // FetchSpotTickers
-    'fetchTickers': { 0: 'IList<object>' },  // FetchTickers
-    'fetchTickersV2': { 0: 'IList<object>' },  // FetchTickersV2
-    'fetchTickersV3': { 0: 'IList<object>' },  // FetchTickersV3
-    'fetchTickersWs': { 0: 'IList<object>' },  // FetchTickersWs
-    'fetchTradingLimits': { 0: 'IList<object>' },  // FetchTradingLimits
-    'loadTradingLimits': { 0: 'IList<object>' },
-    'parseADLRanks': { 1: 'IList<object>' },
-    'parseAllGreeks': { 1: 'IList<object>' },
-    'parseBidsAsksCustom': { 1: 'IList<object>' },
-    'parseFundingRates': { 1: 'IList<object>' },
-    'parseLastPrices': { 1: 'IList<object>' },
-    'parseLeverageTiers': { 1: 'IList<object>' },
-    'parseLeverages': { 1: 'IList<object>' },
-    'parseMarginModes': { 1: 'IList<object>' },
-    'parseMarginModifications': { 1: 'IList<object>' },
-    'parseOpenInterests': { 1: 'IList<object>' },
-    'parseTickers': { 1: 'IList<object>' },
-    'parseTickersForRolling': { 1: 'IList<object>' },
-    'pruneCachedBySymbols': { 2: 'IList<object>' },
-    'subscribePublicMultipleUta': { 2: 'IList<object>' },
-    'unSubscribe': { 6: 'IList<object>' },
-    'unSubscribePublicMultiple': { 2: 'IList<object>' },
-    'unWatchBidsAsks': { 0: 'IList<object>' },
-    'unWatchFundingRates': { 0: 'IList<object>' },
-    'unWatchMarkPrices': { 0: 'IList<object>' },
-    'unWatchOrderBookForSymbols': { 0: 'IList<object>' },
-    'unWatchPositions': { 0: 'IList<object>' },
-    'unWatchTickers': { 0: 'IList<object>' },
-    'unWatchTopics': { 2: 'IList<object>' },
-    'unWatchTradesForSymbols': { 0: 'IList<object>' },
-    'watchFundingRates': { 0: 'IList<object>' },  // WatchFundingRates
-    'watchFundingRatesForSymbols': { 0: 'IList<object>' },  // WatchFundingRatesForSymbols
-    'watchLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchLiquidationsForSymbols
-    'watchMarkPrices': { 0: 'IList<object>' },  // WatchMarkPrices
-    'watchMyLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchMyLiquidationsForSymbols
-    'watchMyTradesForSymbols': { 0: 'IList<object>' },  // WatchMyTradesForSymbols
-    'watchOrdersForSymbols': { 0: 'IList<object>' },  // WatchOrdersForSymbols
-    'watchPositionForSymbols': { 0: 'IList<object>' },  // WatchPositionForSymbols
-    'watchUtaTickers': { 0: 'IList<object>' },  // WatchUtaTickers
-};
-
-// The list targets of CORE_LIST_ARGS; a list parameter keeps the `object` shadow only where a
-// body write cannot be attributed to a list producer (see bodyWritesAreListTyped).
-const CORE_LIST_TARGET_TYPES = [ 'IList<object>' ];
 
 // Collection-returning helpers whose every return site yields a list (or null) at runtime but
 // whose generated declaration still said `object`. Every site was checked mechanically (a

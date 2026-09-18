@@ -4785,6 +4785,12 @@ function stringElementsProducer (initializer) {
         if (method === 'findMessageHashes' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && node.arguments?.length === 2) {
             return true;
         }
+        // this.marketIds (symbols) — the generated body (Exchange.BaseMethods.cs#MarketIds) adds
+        // exactly one `string? id = this.marketId (getValue (symbols, i))` per element and only
+        // when it is non-null, so every element of the result is a string
+        if (method === 'marketIds' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+            return true;
+        }
         return method === 'keys'
             && callee.expression?.kind === ts.SyntaxKind.Identifier
             && callee.expression.escapedText === 'Object';
@@ -4987,6 +4993,143 @@ function promiseAllElementType (csharp, initializer, context, scope) {
     return built;
 }
 
+// ---- U02: element reads of a narrowed string-list PARAMETER -----------------------------
+//
+// `const symbol = symbols[i]` where `symbols` is a method PARAMETER prints `getValue(symbols, i)`
+// and the receiver IS that parameter -- a list in the emitted C#, but only where the `typeCoreArgs`
+// pass narrowed it (CORE_LIST_ARGS, exported by build/csharpTranspiler.ts): a `Strings` parameter
+// the pass left `object` keeps the untyped local, which is the family's reject rule (an `object`
+// receiver proves nothing about its elements).
+//
+// Every element of a narrowed parameter is a string:
+//   * the TS annotation is a string list -- `Strings` (`type Strings = string[] | undefined`,
+//     ts/src/base/types.ts:4, 49 sites) or `string[]` (39 sites), the only two shapes the family
+//     admits (census: campaigns/cs90/tools/U02/param_census.py);
+//   * every write `name = RHS` in the body produces a string list. Census over the emitted tree
+//     (`grep -E '^\s+symbols = ' cs/ccxt` -> 390 writes): 369 `this.marketSymbols (...)` -- its
+//     generated body adds exactly one `string?` per element (`safeString (market, "symbol",
+//     getValue (symbols, i))`, Exchange.BaseMethods.cs:3579) -- 8 `this.symbols` (census A above)
+//     and one `this.getActiveSymbols (...)`; the remaining 12 write an EMPTY `new List<object> ()`,
+//     whose every read is bounded by its own Count (nothing to name). `marketIds`/`messageHashes`/
+//     `topics` are never assigned at all (they are built in the body).
+//   * no in-place mutation: the `(push|unshift|splice|sort|reverse|fill|pop|shift)` census over
+//     ts/src matches only lists BUILT in the method, never a parameter, and the C# twin census
+//     (`((IList<object>)<name>).Add (`) finds nothing either. A parameter is only read, indexed or
+//     handed to a callee that reads it (marketSymbols / marketIds / getMarketFromSymbols /
+//     safeString / isEmpty / watchPublic / ...), so unlike the local-receiver scan above an
+//     argument position stays allowed here -- the callee gets the caller's own array.
+//
+// The declaration keeps the existing spelling (`string?` + the `(string)` cast the local-receiver
+// family emits): the call's C# type is `object` either way, and the cast names exactly the box
+// the element read hands back. `csharpLocalIsSafeToRetype` still vets every use of the local.
+
+// the string-list RHS shapes the census allows for a write to a narrowed list parameter
+function stringListParameterWriteProducer (right) {
+    let node = right;
+    // `symbols = this.marketSymbols (symbols, undefined, false) as string[]` is the same list —
+    // `as` is a compile-time-only assertion with no runtime effect (see the printer's own note
+    // in src/csharpTranspiler.ts#printAsExpression)
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression
+        || node?.kind === ts.SyntaxKind.AsExpression
+        || node?.kind === ts.SyntaxKind.SatisfiesExpression
+        || node?.kind === ts.SyntaxKind.TypeAssertionExpression) {
+        node = node.expression;
+    }
+    if (node === undefined) {
+        return false;
+    }
+    if (node.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return node.elements.length === 0; // an empty list holds no element a read could name
+    }
+    if (node.kind === ts.SyntaxKind.PropertyAccessExpression) {
+        return node.expression?.kind === ts.SyntaxKind.ThisKeyword && node.name?.escapedText === 'symbols';
+    }
+    if (node.kind === ts.SyntaxKind.CallExpression) {
+        const callee = node.expression;
+        if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+            return false;
+        }
+        return callee.name?.escapedText === 'marketSymbols' || callee.name?.escapedText === 'getActiveSymbols';
+    }
+    return false;
+}
+
+// the parameter's TS annotation names a string list
+function stringListParameterAnnotation (parameter) {
+    const type = parameter.type;
+    if (type === undefined) {
+        return false;
+    }
+    if (type.kind === ts.SyntaxKind.ArrayType) {
+        return type.elementType?.kind === ts.SyntaxKind.StringKeyword;
+    }
+    return type.kind === ts.SyntaxKind.TypeReference
+        && type.typeName?.kind === ts.SyntaxKind.Identifier
+        && type.typeName.escapedText === 'Strings';
+}
+
+// a use that can change what the list holds in place: an element write, a delete, an in-place
+// list method. The alias / argument / return shapes receiverUseIsWrite also rejects are allowed
+// here (see the family comment).
+function parameterListUseIsMutation (identifier) {
+    const parent = identifier.parent;
+    if (!parent) {
+        return true;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.ElementAccessExpression: {
+        if (parent.expression !== identifier) {
+            return false;
+        }
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+            return true;
+        }
+        return grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
+    }
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return parent.expression === identifier && LIST_MUTATING_METHODS.includes (parent.name?.escapedText);
+    case ts.SyntaxKind.DeleteExpression:
+        return true;
+    }
+    return false;
+}
+
+// is every element of this narrowed parameter a string? (see the family comment above)
+function stringListParameterElementType (csharp, scope, parameter) {
+    if (typeof csharp.csharpListTypedCoreArg !== 'function' || !stringListParameterAnnotation (parameter)) {
+        return false;
+    }
+    const name = parameter.name?.escapedText;
+    const methodName = (scope.kind === ts.SyntaxKind.MethodDeclaration && scope.name?.kind === ts.SyntaxKind.Identifier) ? scope.name.escapedText : undefined;
+    if (name === undefined || methodName === undefined) {
+        return false;
+    }
+    const position = (scope.parameters ?? []).indexOf (parameter);
+    if (position < 0 || csharp.csharpListTypedCoreArg (methodName, position) === undefined) {
+        return false;
+    }
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === parameter.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, parameter, use) === false) {
+            continue; // a same-name binding in a nested scope: not this parameter's value
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            if (!stringListParameterWriteProducer (parent.right)) {
+                return false;
+            }
+            continue;
+        }
+        if (parameterListUseIsMutation (use)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // the element type of `recv[key]`, or undefined. `getValue (recv, key)` is an object box, so a
 // named declaration needs the cast csharpLocalTypeOf adds; the receiver must have exactly one
 // binding, declared before the read, and every other use of it must be a read the producer proved
@@ -5015,7 +5158,14 @@ function elementAccessElementType (csharp, initializer, context) {
             declaration = parent;
         }
     }
-    if (bindings !== 1 || declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
+    if (bindings !== 1) {
+        return undefined;
+    }
+    if (declaration.kind === ts.SyntaxKind.Parameter) {
+        // U02: a parameter receiver -- the receiver IS a narrowed list parameter (see above)
+        return stringListParameterElementType (csharp, scope, declaration) ? 'string' : undefined;
+    }
+    if (declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
         return undefined;
     }
     if (declaration.getStart () > initializer.getStart ()) {
@@ -6984,6 +7134,18 @@ export function installCsharpLocalTypes (transpiler) {
         return 'IList<object>';
     };
     installTypedDictElementAccess (csharp);
+    // U02: the C# type `typeCoreArgs` narrows the parameter at (method, position) to, or
+    // undefined; stringListParameterElementType reads it to prove a list receiver's elements.
+    // hasOwnProperty because the table is an object literal (`CORE_LIST_ARGS['toString']` would
+    // answer Object.prototype's). The table is read here, inside the installer -- importing the
+    // module is not enough, the transpiler's own module may still be initialising.
+    csharp.csharpListTypedCoreArg = (methodName, position) => {
+        if (!Object.prototype.hasOwnProperty.call (CORE_LIST_ARGS, methodName)) {
+            return undefined;
+        }
+        const type = CORE_LIST_ARGS[methodName][position];
+        return (type !== undefined && CORE_LIST_TARGET_TYPES.indexOf (type) !== -1) ? type : undefined;
+    };
     if (csharp._localTypesPatched) {
         // record every emitted local declaration line (S22 dictionary index-write cast elision)
         installCsharpDictionaryIndexWriteCastElision (csharp);
@@ -7750,3 +7912,82 @@ export function installCsharpNumericReturns (transpiler) {
 }
 
 export default installCsharpLocalTypes;
+
+// ===== U02: list-typed core arguments (moved here from build/csharpTranspiler.ts) =====
+//
+// The narrowing table `typeCoreArgs` reads. Kept in this module so BOTH the narrowing pass
+// and this file's element-read proof read ONE copy: a parameter that pass narrowed to a list
+// is a list receiver in the emitted C#, which is exactly what stringListParameterElementType
+// has to know (and the reason a position added there can never be typed here by accident).
+// Generated C# core parameters that can be narrowed from `object` to a list type: the C#
+// spelling of the TS `Strings` parameter (every array the printer builds is a `List<object>`,
+// the bodies only read it as a list, and the dominant writer `symbols = this.marketSymbols
+// (symbols)` returns IList<object>). Same positional keying and all-declarations-must-agree
+// gate as CORE_STRING_ARGS, but NO call-site wrap is emitted for a list target -- unlike a
+// `((string)x)` wrap, `((IList<object>)x)` on an `object` argument is a new runtime type
+// check, so a position is admitted only when every caller already passes a list / `null` /
+// nothing (census + per-site proof: campaigns/cs-strict/tools/S39/admission3.py).
+// Read in this file by stringListParameterElementType (a narrowed list parameter's element
+// reads) and by build/csharpTranspiler.ts#typeCoreArgs (the narrowing itself) -- one table.
+export const CORE_LIST_ARGS = {
+    'checkNoStockSymbols': { 0: 'IList<object>' },
+    'fetchAllGreeks': { 0: 'IList<object>' },  // FetchAllGreeks
+    'fetchBidsAsks': { 0: 'IList<object>' },  // FetchBidsAsks
+    'fetchContractTickers': { 0: 'IList<object>' },  // FetchContractTickers
+    'fetchFundingIntervals': { 0: 'IList<object>' },  // FetchFundingIntervals
+    'fetchFundingRates': { 0: 'IList<object>' },  // FetchFundingRates
+    'fetchLastPrices': { 0: 'IList<object>' },  // FetchLastPrices
+    'fetchLeverageTiers': { 0: 'IList<object>' },  // FetchLeverageTiers
+    'fetchLeverages': { 0: 'IList<object>' },  // FetchLeverages
+    'fetchMarginModes': { 0: 'IList<object>' },  // FetchMarginModes
+    'fetchMarkPrices': { 0: 'IList<object>' },  // FetchMarkPrices
+    'fetchOpenInterests': { 0: 'IList<object>' },  // FetchOpenInterests
+    'fetchOrderBooks': { 0: 'IList<object>' },  // FetchOrderBooks
+    'fetchPositionsADLRank': { 0: 'IList<object>' },  // FetchPositionsADLRank
+    'fetchPositionsHistory': { 0: 'IList<object>' },  // FetchPositionsHistory
+    'fetchPositionsWs': { 0: 'IList<object>' },  // FetchPositionsWs
+    'fetchSpotTickers': { 0: 'IList<object>' },  // FetchSpotTickers
+    'fetchTickers': { 0: 'IList<object>' },  // FetchTickers
+    'fetchTickersV2': { 0: 'IList<object>' },  // FetchTickersV2
+    'fetchTickersV3': { 0: 'IList<object>' },  // FetchTickersV3
+    'fetchTickersWs': { 0: 'IList<object>' },  // FetchTickersWs
+    'fetchTradingLimits': { 0: 'IList<object>' },  // FetchTradingLimits
+    'loadTradingLimits': { 0: 'IList<object>' },
+    'parseADLRanks': { 1: 'IList<object>' },
+    'parseAllGreeks': { 1: 'IList<object>' },
+    'parseBidsAsksCustom': { 1: 'IList<object>' },
+    'parseFundingRates': { 1: 'IList<object>' },
+    'parseLastPrices': { 1: 'IList<object>' },
+    'parseLeverageTiers': { 1: 'IList<object>' },
+    'parseLeverages': { 1: 'IList<object>' },
+    'parseMarginModes': { 1: 'IList<object>' },
+    'parseMarginModifications': { 1: 'IList<object>' },
+    'parseOpenInterests': { 1: 'IList<object>' },
+    'parseTickers': { 1: 'IList<object>' },
+    'parseTickersForRolling': { 1: 'IList<object>' },
+    'pruneCachedBySymbols': { 2: 'IList<object>' },
+    'subscribePublicMultipleUta': { 2: 'IList<object>' },
+    'unSubscribe': { 6: 'IList<object>' },
+    'unSubscribePublicMultiple': { 2: 'IList<object>' },
+    'unWatchBidsAsks': { 0: 'IList<object>' },
+    'unWatchFundingRates': { 0: 'IList<object>' },
+    'unWatchMarkPrices': { 0: 'IList<object>' },
+    'unWatchOrderBookForSymbols': { 0: 'IList<object>' },
+    'unWatchPositions': { 0: 'IList<object>' },
+    'unWatchTickers': { 0: 'IList<object>' },
+    'unWatchTopics': { 2: 'IList<object>' },
+    'unWatchTradesForSymbols': { 0: 'IList<object>' },
+    'watchFundingRates': { 0: 'IList<object>' },  // WatchFundingRates
+    'watchFundingRatesForSymbols': { 0: 'IList<object>' },  // WatchFundingRatesForSymbols
+    'watchLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchLiquidationsForSymbols
+    'watchMarkPrices': { 0: 'IList<object>' },  // WatchMarkPrices
+    'watchMyLiquidationsForSymbols': { 0: 'IList<object>' },  // WatchMyLiquidationsForSymbols
+    'watchMyTradesForSymbols': { 0: 'IList<object>' },  // WatchMyTradesForSymbols
+    'watchOrdersForSymbols': { 0: 'IList<object>' },  // WatchOrdersForSymbols
+    'watchPositionForSymbols': { 0: 'IList<object>' },  // WatchPositionForSymbols
+    'watchUtaTickers': { 0: 'IList<object>' },  // WatchUtaTickers
+};
+
+// The list targets of CORE_LIST_ARGS; a list parameter keeps the `object` shadow only where a
+// body write cannot be attributed to a list producer (see bodyWritesAreListTyped there).
+export const CORE_LIST_TARGET_TYPES = [ 'IList<object>' ];

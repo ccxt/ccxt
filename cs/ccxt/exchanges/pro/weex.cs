@@ -287,7 +287,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(GetValue(market, "id"), "@"), topic);
             string messageHash = add(add(topic, "::"), symbol);
@@ -501,7 +501,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(GetValue(market, "id"), "@"), topic);
             string messageHash = add(add(topic, "::"), symbol);
@@ -978,7 +978,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string messageHash = add("orderbook::", symbol);
             object channel = add(add(GetValue(market, "id"), "@depth"), depth);
@@ -1129,7 +1129,7 @@ public partial class weex : ccxt.weex
         List<object> unSubHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(GetValue(market, "id"), "@"), "bookTicker");
             string messageHash = add("bidask::", symbol);

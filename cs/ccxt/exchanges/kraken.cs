@@ -1254,7 +1254,7 @@ public partial class kraken : Exchange
             List<object> marketIds = new List<object>() {};
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 Dictionary<string, object> market = this.market(symbol);
                 if (isEqual(getValue(market, "active"), true))
                 {

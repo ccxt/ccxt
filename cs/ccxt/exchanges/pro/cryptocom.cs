@@ -222,7 +222,7 @@ public partial class cryptocom : ccxt.cryptocom
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = add(add(add(add("book", "."), GetValue(market, "id")), "."), ((object)limit).ToString());
             string messageHash = add("orderbook:", GetValue(market, "symbol"));
@@ -441,7 +441,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string currentTopic = add(add("trade", "."), GetValue(market, "id"));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", GetValue(market, "symbol")));
@@ -606,7 +606,7 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> marketIds = this.marketIds(symbols);
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             ((IList<object>)messageHashes).Add(add("ticker.", marketId));
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
@@ -650,8 +650,8 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> marketIds = this.marketIds(symbols);
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
-            object symbol = getValue(symbols, i);
+            string? marketId = ((string)getValue(marketIds, i));
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)subMessageHashes).Add(add("ticker.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
         }
@@ -772,7 +772,7 @@ public partial class cryptocom : ccxt.cryptocom
         IList<object> marketIds = this.marketIds(symbols);
         for (int i = 0; isLessThan(i, marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
             ((IList<object>)topics).Add(add("ticker.", marketId));
         }

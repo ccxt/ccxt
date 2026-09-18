@@ -291,7 +291,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             string? marketId = this.marketId(symbol);
             ((IList<object>)topics).Add(add("ticker.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
@@ -425,7 +425,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             string? marketId = this.marketId(symbol);
             ((IList<object>)topics).Add(add("bookTicker.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:bidask:", symbol));
@@ -787,7 +787,7 @@ public partial class backpack : ccxt.backpack
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             string? marketId = this.marketId(symbol);
             ((IList<object>)topics).Add(add("trade.", marketId));
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
@@ -939,7 +939,7 @@ public partial class backpack : ccxt.backpack
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             string topic = add("depth.", marketId);
             ((IList<object>)topics).Add(topic);
         }
@@ -983,9 +983,9 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             string topic = add("depth.", marketId);
             ((IList<object>)topics).Add(topic);
         }
@@ -1386,7 +1386,7 @@ public partial class backpack : ccxt.backpack
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add(add("unsubscribe:positions", ":"), symbol));
                 ((IList<object>)topics).Add(add("account.positionUpdate.", this.marketId(symbol)));
             }

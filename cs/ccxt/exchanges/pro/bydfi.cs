@@ -276,7 +276,7 @@ public partial class bydfi : ccxt.bydfi
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 object marketId = this.marketId(symbol);
                 ((IList<object>)messageHashes).Add(add(messageHash, symbol));
                 ((IList<object>)channels).Add(add(marketId, channel));
@@ -602,7 +602,7 @@ public partial class bydfi : ccxt.bydfi
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             ((IList<object>)channels).Add(add(add(add(GetValue(market, "id"), "@depth"), depth), channelSuffix));
             ((IList<object>)messageHashes).Add(add("unsubscribe::orderbook::", symbol));
@@ -693,7 +693,7 @@ public partial class bydfi : ccxt.bydfi
         {
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                object symbol = getValue(symbols, i);
+                string? symbol = ((string)getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(add("orders::", symbol));
             }
         }
