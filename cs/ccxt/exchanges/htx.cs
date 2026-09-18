@@ -4194,7 +4194,7 @@ public partial class htx : Exchange
         }
         for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
-            object account = getValue(accounts, i);
+            IDictionary<string, object> account = ((IDictionary<string, object>)getValue(accounts, i));
             object info = this.safeValue(account, "info");
             string? subtype = this.safeString(info, "subtype");
             string? typeFromAccount = this.safeString(account, "type");
@@ -5444,7 +5444,7 @@ public partial class htx : Exchange
                 await this.loadAccounts();
                 for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
                 {
-                    object account = getValue(this.accounts, i);
+                    IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
                     if ((this.safeString(account, "type") == "spot"))
                     {
                         accountId = this.safeString(account, "id");
@@ -6858,7 +6858,7 @@ public partial class htx : Exchange
         object marginMode = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {

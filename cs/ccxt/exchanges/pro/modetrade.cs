@@ -1168,7 +1168,7 @@ public partial class modetrade : ccxt.modetrade
         object cache = this.positions;
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             string? contracts = this.safeString(position, "contracts", "0");
             if (isTrue(Precise.stringGt(contracts, "0")))
             {

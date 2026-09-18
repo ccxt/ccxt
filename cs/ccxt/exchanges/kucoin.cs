@@ -5479,7 +5479,7 @@ public partial class kucoin : Exchange
         string? symbol = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
@@ -5589,7 +5589,7 @@ public partial class kucoin : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? symbol = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {

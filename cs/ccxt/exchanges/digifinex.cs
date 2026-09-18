@@ -700,7 +700,7 @@ public partial class digifinex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, getArrayLength(networkEntries)); postFixIncrement(ref j))
         {
-            object networkEntry = getValue(networkEntries, j);
+            IDictionary<string, object> networkEntry = ((IDictionary<string, object>)getValue(networkEntries, j));
             string? networkId = this.safeString2(networkEntry, "chain", "currency");
             string? networkCode = this.networkIdToCode(networkId, code);
             if ((networkCode != null))
@@ -2027,7 +2027,7 @@ public partial class digifinex : Exchange
         object marginMode = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
@@ -2107,7 +2107,7 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             Dictionary<string, object> individualOrder = new Dictionary<string, object>() {};
             individualOrder["order_id"] = getValue(data, i);
             individualOrder["instrument_id"] = GetValue(market, "id");

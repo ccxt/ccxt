@@ -4840,8 +4840,8 @@ public partial class binance : ccxt.binance
         List<object> closedOrders = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
-            if (isEqual(getValue(order, "status"), "closed"))
+            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
+            if (isEqual(GetValue(order, "status"), "closed"))
             {
                 ((IList<object>)closedOrders).Add(order);
             }
@@ -5735,7 +5735,7 @@ public partial class binance : ccxt.binance
         object cache = getValue(this.positions, type);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             double? contracts = this.safeNumber(position, "contracts", 0);
             if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
             {

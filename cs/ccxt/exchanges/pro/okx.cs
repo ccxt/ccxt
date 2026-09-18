@@ -2354,9 +2354,9 @@ public partial class okx : ccxt.okx
             IList<object> parsed = this.parseOrders(orders);
             for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
             {
-                object order = getValue(parsed, i);
+                IDictionary<string, object> order = ((IDictionary<string, object>)getValue(parsed, i));
                 callDynamically(stored, "append", new object[] {order});
-                object symbol = getValue(order, "symbol");
+                object symbol = GetValue(order, "symbol");
                 Dictionary<string, object> market = this.market(symbol);
                 ((IList<object>)marketIds).Add(GetValue(market, "id"));
             }

@@ -7884,7 +7884,7 @@ public partial class binance : Exchange
         IList<object> orderSymbols = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             ((IList<object>)orderSymbols).Add(marketId);
             string? id = this.safeString(rawOrder, "id");
@@ -8717,7 +8717,7 @@ public partial class binance : Exchange
         IList<object> orderSymbols = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             ((IList<object>)orderSymbols).Add(marketId);
             string? type = this.safeString(rawOrder, "type");

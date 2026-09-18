@@ -977,10 +977,10 @@ public partial class coinbase : Exchange
             await this.loadAccounts();
             for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
             {
-                object account = getValue(this.accounts, i);
-                if (isEqual(getValue(account, "code"), code) && isEqual(getValue(account, "type"), "wallet"))
+                IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+                if (isEqual(GetValue(account, "code"), code) && isEqual(GetValue(account, "type"), "wallet"))
                 {
-                    accountId = getValue(account, "id");
+                    accountId = GetValue(account, "id");
                     break;
                 }
             }
@@ -3302,10 +3302,10 @@ public partial class coinbase : Exchange
         await this.loadAccounts(false, parameters);
         for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
         {
-            object account = getValue(this.accounts, i);
-            if (isEqual(getValue(account, "code"), code))
+            IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+            if (isEqual(GetValue(account, "code"), code))
             {
-                return getValue(account, "id");
+                return GetValue(account, "id");
             }
         }
         return null;

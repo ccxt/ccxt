@@ -1655,7 +1655,7 @@ public partial class opinion : PredictionExchange
         List<object> filtered = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
-            object position = getValue(parsed, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(parsed, i));
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? tokenId = this.safeString(info, "tokenId");
             if (((tokenId != null)) && (inOp(wantedTokenIds, tokenId)))

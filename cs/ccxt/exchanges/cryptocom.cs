@@ -1878,7 +1878,7 @@ public partial class cryptocom : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2294,7 +2294,7 @@ public partial class cryptocom : Exchange
         List<object> orderRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
             string? id = this.safeString(order, "id");
             string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);

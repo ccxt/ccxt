@@ -4035,7 +4035,7 @@ public partial class bingx : Exchange
         List<object> marketIds = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol", "");
             string? type = this.safeString(rawOrder, "type");
             ((IList<object>)marketIds).Add(marketId);

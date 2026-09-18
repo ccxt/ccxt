@@ -1635,7 +1635,7 @@ public partial class krakenfutures : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
@@ -2663,7 +2663,7 @@ public partial class krakenfutures : Exchange
             string vwapSum = "0.0";
             for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
             {
-                object trade = getValue(trades, i);
+                IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
                 string? tradeAmount = this.safeString(trade, "amount");
                 string? tradePrice = this.safeString(trade, "price");
                 filled2 = Precise.stringAdd(filled2, tradeAmount);

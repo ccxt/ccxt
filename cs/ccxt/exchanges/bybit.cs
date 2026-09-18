@@ -5702,7 +5702,7 @@ public partial class bybit : Exchange
         List<object> orderSymbols = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             ((IList<object>)orderSymbols).Add(marketId);
             string? type = this.safeString(rawOrder, "type");
@@ -5940,7 +5940,7 @@ public partial class bybit : Exchange
         IList<object> orderSymbols = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? symbol = this.safeString(rawOrder, "symbol");
             ((IList<object>)orderSymbols).Add(symbol);
             string? id = this.safeString(rawOrder, "id");
@@ -6260,7 +6260,7 @@ public partial class bybit : Exchange
         object category = null;
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
             string? symbol = this.safeString(order, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             object currentCategory = null;

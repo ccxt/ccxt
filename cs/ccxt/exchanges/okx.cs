@@ -4706,7 +4706,7 @@ public partial class okx : Exchange
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object rawOrder = getValue(orders, i);
+            IDictionary<string, object> rawOrder = ((IDictionary<string, object>)getValue(orders, i));
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
@@ -5174,7 +5174,7 @@ public partial class okx : Exchange
         }
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
             string? id = this.safeString(order, "id");
             string? clientOrderId = this.safeString2(order, "clOrdId", "clientOrderId");
             string? symbol = this.safeString(order, "symbol");

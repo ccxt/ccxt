@@ -576,9 +576,9 @@ public partial class deribit : ccxt.deribit
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsed, i);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsed, i));
             callDynamically(cachedTrades, "append", new object[] {trade});
-            object symbol = getValue(trade, "symbol");
+            object symbol = GetValue(trade, "symbol");
             marketIds[(string)((string)symbol)] = true;
         }
         callDynamically(client, "resolve", new object[] {cachedTrades, channel});

@@ -1995,7 +1995,7 @@ public partial class weex : ccxt.weex
         object cache = this.positions;
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             callDynamically(cache, "append", new object[] {position});
         }
         // don't remove the future from the .futures cache
