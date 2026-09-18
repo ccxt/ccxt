@@ -1142,8 +1142,8 @@ public partial class gate : ccxt.gate
         IList<object> parsedTrades = this.parseTrades(result);
         for (int i = 0; isLessThan(i, parsedTrades?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsedTrades, i);
-            object symbol = getValue(trade, "symbol");
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsedTrades, i));
+            object symbol = GetValue(trade, "symbol");
             object cachedTrades = this.safeValue(this.trades, symbol);
             if ((cachedTrades == null))
             {
@@ -1370,9 +1370,9 @@ public partial class gate : ccxt.gate
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsed, i);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsed, i));
             callDynamically(cachedTrades, "append", new object[] {trade});
-            object symbol = getValue(trade, "symbol");
+            object symbol = GetValue(trade, "symbol");
             if ((symbol != null))
             {
                 marketIds[(string)symbol] = true;
@@ -1634,7 +1634,7 @@ public partial class gate : ccxt.gate
         object cache = getValue(this.positions, type);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             double? contracts = this.safeNumber(position, "contracts", 0);
             if ((!isEqual(contracts, null)) && (isGreaterThan(contracts, 0)))
             {

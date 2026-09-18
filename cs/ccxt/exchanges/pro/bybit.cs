@@ -1767,7 +1767,7 @@ public partial class bybit : ccxt.bybit
             object positions = getValue(promises, i);
             for (int ii = 0; isLessThan(ii, getArrayLength(positions)); postFixIncrement(ref ii))
             {
-                object position = getValue(positions, ii);
+                IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, ii));
                 callDynamically(cache, "append", new object[] {position});
             }
         }

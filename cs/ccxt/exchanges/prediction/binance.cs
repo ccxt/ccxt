@@ -1455,7 +1455,7 @@ public partial class binance : PredictionExchange
         int positionsLength = getArrayLength(positions);
         for (int i = 0; isLessThan(i, positionsLength); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             string? positionOutcome = this.safeString(position, "outcome");
             if (((positionOutcome != null)) && (inOp(requestedOutcomeSymbols, positionOutcome)))
             {

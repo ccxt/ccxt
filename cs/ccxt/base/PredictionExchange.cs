@@ -1509,7 +1509,7 @@ public partial class PredictionExchange : BaseExchange
             }
             for (int i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
             {
-                object trade = getValue(trades, i);
+                IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
                 string? tradeAmount = this.safeString(trade, "amount");
                 if ((tradeAmount != null))
                 {

@@ -1980,7 +1980,7 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
             IDictionary<string, object> info = this.safeDict(trade, "info", new Dictionary<string, object>() {});
             bool belongs = (isEqual(this.safeString(trade, "order"), id)) || (isEqual(this.safeString(info, "taker_order_id"), id));
             List<object> makerOrders = this.safeList(info, "maker_orders", new List<object>() {});
@@ -2157,7 +2157,7 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
-            object position = getValue(parsed, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(parsed, i));
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? assetId = this.safeString(info, "asset");
             if (((assetId != null)) && (inOp(wantedIds, assetId)))

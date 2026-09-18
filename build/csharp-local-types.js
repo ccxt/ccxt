@@ -102,6 +102,13 @@
 //     is an object literal, which the printer boxes as `new Dictionary<string, object>()`
 //     (census: tools/U01/key-value-census.mjs — the key table below names the reject reasons for
 //     info / fees / marginModes)
+//   - a ROW-LIST element read by one of the 12 element-read local names (balance/order/rawOrder/
+//     position/rawPosition/trade/rawTrade/ticker/account/tier/chain/networkEntry): the TS checker
+//     proves the receiver's element type is a ccxt row shape (`orders: OrderRequest[]`, `trades =
+//     this.parseTrades (...)`, `positions = await this.fetchPositions ()`, `networkEntries =
+//     rawCurrency as Dict[]`, `accounts = await this.loadAccounts ()`, the tests' `Object.values
+//     (response)`), so the box is a decoded row dictionary — declared `IDictionary<string, object>`
+//     behind the same interface cast the safeValue-twin family emits (see the U06 section below)
 //   - `a + b` (printed `add(a, b)`) whose every operand is provably int / uint / long / Int64,
 //     or a double left with a provably numeric right: the typed add overloads of the hand-written
 //     base return the same unchecked sum the (object, object) overload's Int64 / double branch
@@ -5317,6 +5324,142 @@ function elementAccessLiteralKey (node) {
     return undefined;
 }
 
+// ==== U06: dictionary ROW element reads (`const rawOrder = orders[i]`) ====
+//
+// `const rawOrder = orders[i]` prints `object rawOrder = getValue(orders, i);`. The receiver is
+// almost always an untyped box or a `List<object>` (the local-types header's element-read
+// section), so the element carries no nameable type — EXCEPT when the TS checker types the
+// receiver as a list of a ccxt ROW shape: `orders: OrderRequest[]` (the createOrders parameter),
+// `trades = this.parseTrades (...)` (`Trade[]`), `positions = await this.fetchPositions ()`
+// (`Position[]`), `accounts = await this.loadAccounts ()` (`Account[]`), `networkEntries =
+// rawCurrency as Dict[]` (`Dict[]`), ... Every one of those element types is an interface (or an
+// object literal / the `Dict` index-signature shape) declared in ts/src, i.e. a JSON row: the
+// generated C# tree has no class for any of them (census: no `new OrderRequest (` / `new
+// Position (` / `new Trade (` anywhere under cs/), so the box a row can hold is the decoded
+// dictionary JsonHelper.ToObject builds (or the caller's own Dictionary<string, object> — the
+// generated createOrders id-test passes exactly that) or null; naming it `IDictionary<string,
+// object>` is therefore the box the value already is, behind the same `((IDictionary<string,
+// object>)…)` cast the safeValue-twin family emits. `GetValue`'s dict branch and this cast accept
+// every IDictionary implementation, so a caller-supplied ConcurrentDictionary row is named
+// correctly too (Dictionary<string, object> would throw on it), and a null element stays null.
+//
+// The read is keyed on the LOCAL NAME (this unit's family): the receiver-keyed families
+// (U01/U02/U03/U04) own `getValue (recv, key)` sites, so a receiver the checker proves is a
+// string-keyed dictionary (`Tickers`, `Balances`, ...) is left to U04, and only list-shaped
+// receivers reach here.
+//
+// Everything else keeps `object`: `any` / `unknown` elements (234 of the 315 corpus sites — the
+// vast majority), scalar elements (`order = success[i]` on a Strings list is a string, the string
+// family's business), array/tuple elements, union elements and class instances.
+
+const DICT_ROW_LOCAL_NAMES = new Set ([ 'balance', 'order', 'rawOrder', 'position', 'rawPosition', 'trade', 'rawTrade', 'ticker', 'account', 'tier', 'chain', 'networkEntry' ]);
+
+// a use the C# printer casts to a string (`.ToUpper ()` prints `((string)x).ToUpper ()`) or hands
+// to an arithmetic helper — both throw on a dictionary box, so they veto the declaration
+const DICT_ROW_STRING_METHODS = new Set ([ 'split', 'join', 'toUpperCase', 'toLowerCase', 'replace', 'replaceAll', 'trim', 'trimStart', 'trimEnd', 'startsWith', 'endsWith', 'indexOf', 'lastIndexOf', 'search', 'charAt', 'charCodeAt', 'codePointAt', 'repeat', 'padStart', 'padEnd', 'substring', 'substr', 'slice', 'includes', 'concat', 'match', 'matchAll', 'normalize', 'localeCompare', 'toString' ]);
+
+// every use of the local outside the one its own declaration is: a row is read through the safe*
+// helpers, an element read/write, a list push or a call argument; it is never a string receiver
+// and never an arithmetic operand
+function dictRowUsesAreConsistent (csharp, scope, declaration) {
+    const uses = indexScope (csharp, scope).identifiers.get (declaration.name.escapedText) ?? [];
+    for (const use of uses) {
+        if (use === declaration.name || isNotAUse (use)) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && DICT_ROW_STRING_METHODS.has (parent.name?.escapedText)) {
+            return false;
+        }
+        let current = use;
+        while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+            current = current.parent;
+        }
+        const owner = current.parent;
+        if (owner?.kind === ts.SyntaxKind.BinaryExpression) {
+            const operator = owner.operatorToken.kind;
+            const arithmetic = operator === ts.SyntaxKind.PlusToken
+                || operator === ts.SyntaxKind.MinusToken
+                || operator === ts.SyntaxKind.AsteriskToken
+                || operator === ts.SyntaxKind.SlashToken
+                || operator === ts.SyntaxKind.PercentToken
+                || operator === ts.SyntaxKind.AsteriskAsteriskToken
+                || (operator >= ts.SyntaxKind.FirstCompoundAssignment && operator <= ts.SyntaxKind.LastCompoundAssignment);
+            if (arithmetic) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
+// shape, or undefined (the read keeps the printer's `object`)
+function dictRowElementReadType (csharp, declaration) {
+    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.escapedText)) {
+        return undefined;
+    }
+    // the generated TESTS are not exchange classes: they hold the exchange in a parameter and
+    // call the BaseTest `getValue` bridge shim (cs/tests/BaseTest.Bridge.cs), so the S63 typed
+    // twin this declaration enables (`x["k"]` -> `GetValue (x, "k")`) does not resolve there —
+    // the farm build reports CS0103 "The name 'GetValue' does not exist in the current context"
+    // for cs/tests/Generated/**. The test tree is outside this unit's family, so it stays `object`.
+    const sourceFile = (typeof declaration.getSourceFile === 'function') ? declaration.getSourceFile ().fileName : '';
+    if (/(^|[\\/])test[\\/]/.test (sourceFile)) {
+        return undefined;
+    }
+    const initializer = declaration.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return undefined;
+    }
+    if (typeof csharp.getChecker !== 'function') {
+        return undefined;
+    }
+    let checker;
+    try {
+        checker = csharp.getChecker ();
+    } catch (error) {
+        return undefined; // in-memory program: no checker to ask
+    }
+    if (!checker) {
+        return undefined;
+    }
+    const element = checker.getTypeAtLocation (initializer);
+    if (!element || !(element.flags & ts.TypeFlags.Object)) {
+        return undefined; // any / unknown / a scalar / a union: no row proof
+    }
+    if (element.flags & (ts.TypeFlags.Union | ts.TypeFlags.Intersection | ts.TypeFlags.TypeParameter)) {
+        return undefined;
+    }
+    if (checker.isArrayType (element) || checker.isTupleType (element)) {
+        return undefined; // a nested list is not a row
+    }
+    const objectFlags = element.objectFlags ?? 0;
+    if (objectFlags & ts.ObjectFlags.Class) {
+        return undefined; // a class instance is not a decoded row
+    }
+    if (!(objectFlags & (ts.ObjectFlags.Interface | ts.ObjectFlags.ObjectLiteral | ts.ObjectFlags.Anonymous | ts.ObjectFlags.Reference | ts.ObjectFlags.Mapped))) {
+        return undefined;
+    }
+    const symbol = element.getSymbol () ?? element.aliasSymbol;
+    const declarations = symbol?.declarations ?? [];
+    if (declarations.length === 0 || !declarations.every ((each) => ts.isInterfaceDeclaration (each) || ts.isTypeLiteralNode (each))) {
+        return undefined; // only a ts/src interface or a type literal proves the row shape
+    }
+    const receiverType = checker.getTypeAtLocation (initializer.expression);
+    if (checker.getIndexTypeOfType (receiverType, ts.IndexKind.String) !== undefined) {
+        return undefined; // a string-keyed receiver belongs to the receiver-keyed families (U04)
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined || !dictRowUsesAreConsistent (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return 'IDictionary<string, object>';
+}
+
 // ==== S63: typed dict element reads -> the static GetValue twin ====
 //
 // A `recv["k"]` read whose receiver's declaration this module typed as a string-keyed dictionary
@@ -6182,6 +6325,13 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // (OPTIONS_LITERAL_STRING_KEYS above) proves a string box on every path
             csharpType = 'string?';
             cast = 'string';
+        } else if (dictRowElementReadType (csharp, declaration) !== undefined) {
+            // `const rawOrder = orders[i]`: the checker proves the receiver's element type is a
+            // ccxt row shape, so the box is the decoded row dictionary and the declaration names
+            // it behind the same interface cast the safeValue-twin family emits (see the U06
+            // section of this file)
+            csharpType = 'IDictionary<string, object>';
+            cast = 'IDictionary<string, object>';
         } else if (omitDictionaryProducer (csharp, declaration.initializer, ctx)) {
             // `const x = this.omit (<Dictionary box>, keys)`: the call binds a dict-receiver
             // overload (see the family comment above), so the call's own C# type IS the

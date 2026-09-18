@@ -2205,7 +2205,7 @@ public partial class myriad : PredictionExchange
         int ordersLength = getArrayLength(orders);
         for (int i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
         {
-            object order = getValue(orders, i);
+            IDictionary<string, object> order = ((IDictionary<string, object>)getValue(orders, i));
             ((IList<object>)trades).Add(this.orderToTrade(order));
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true));

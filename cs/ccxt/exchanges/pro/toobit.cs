@@ -269,8 +269,8 @@ public partial class toobit : ccxt.toobit
         IList<object> parsed = this.parseWsTrades(data, market);
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(parsed, i);
-            ((IDictionary<string,object>)trade)["symbol"] = symbol;
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(parsed, i));
+            trade["symbol"] = symbol;
             callDynamically(stored, "append", new object[] {trade});
         }
         string messageHash = add("trade::", symbol);
@@ -1203,7 +1203,7 @@ public partial class toobit : ccxt.toobit
         object cache = getValue(this.positions, type);
         for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
-            object position = getValue(positions, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)getValue(positions, i));
             callDynamically(cache, "append", new object[] {position});
         }
         // don't remove the future from the .futures cache

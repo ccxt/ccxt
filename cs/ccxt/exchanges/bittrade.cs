@@ -1719,8 +1719,8 @@ public partial class bittrade : Exchange
             await this.loadAccounts();
             for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
             {
-                object account = getValue(this.accounts, i);
-                if (isEqual(getValue(account, "type"), "spot"))
+                IDictionary<string, object> account = ((IDictionary<string, object>)getValue(this.accounts, i));
+                if (isEqual(GetValue(account, "type"), "spot"))
                 {
                     accountId = this.safeString(account, "id");
                     if ((accountId != null))

@@ -1359,8 +1359,8 @@ public partial class bitmex : ccxt.bitmex
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, trades?.Count ?? 0); postFixIncrement(ref j))
         {
-            object trade = getValue(trades, j);
-            object symbol = getValue(trade, "symbol");
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, j));
+            object symbol = GetValue(trade, "symbol");
             callDynamically(stored, "append", new object[] {trade});
             symbols[(string)((string)symbol)] = trade;
         }

@@ -465,7 +465,7 @@ public partial class coinbaseinternational : Exchange
         object accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
         for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
-            object account = getValue(accounts, i);
+            IDictionary<string, object> account = ((IDictionary<string, object>)getValue(accounts, i));
             IDictionary<string, object> info = this.safeDict(account, "info", new Dictionary<string, object>() {});
             if ((this.safeBool(info, "is_default") == true))
             {

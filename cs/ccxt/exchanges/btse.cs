@@ -1775,7 +1775,7 @@ public partial class btse : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)getValue(trades, i));
             Int64? timestamp = this.safeInteger(trade, "timestamp");
             if ((isEqual(timestamp, null)) || (isLessThanOrEqual(timestamp, until)))
             {
