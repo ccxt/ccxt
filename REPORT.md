@@ -43,7 +43,7 @@ Soundness: with a non-null left, `add(string, string)` computes the same concate
   `casts: … (string)=2113 … (object)=672 …` → `casts: … (string)=2106 … (object)=670 …`
 - **fixed point**: `git diff -- cs/ | sha256sum` = `e48670a1942812feefab904760320360f55ecee68b4ef86160a0a2a899de1585` before and after two full forced regens (REST + `--ws`); the farm's own `--force` build reports `branch_update=unchanged` (no local stale-disk fallback).
 - **verify-diff.py HEAD**: `files=32 pairs=87 unexpected=6` — the 6 are justified in §5; all other pairs are `object X = …` → typed, or the cast-removal shape the gate accepts.
-- **farm**: `job 706 exit=0` for the code sha (above); the final REPORT-tip sha is farmed again below.
+- **farm**: the CODE commit `b3dd1626f739a1f7cb4981f3f1269280efb8215c` → `job 706 exit=0 branch_update=unchanged`; this REPORT's own commit (the branch tip as of the last farm run, `5898dd63f98d4d10e66afb666997a399b7122926`) → `job 720 exit=0 branch_update=unchanged`; both `generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2` (the pin), i.e. the farm's own forced regen reproduced this tree byte-for-byte.
 
 ## 4. Rejected sub-cases (with reasons)
 
