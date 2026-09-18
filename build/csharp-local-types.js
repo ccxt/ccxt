@@ -112,6 +112,12 @@
 //     so every return path is a non-null string and the local is `string` behind the
 //     `(string)` identity cast (see nonNullStringDefaultCall). Without a default the call
 //     keeps its `string?` table entry.
+//   - `object x = ccxt.BaseExchange.From<Family>(await this.<core>(...))`: the typed-core funnel
+//     (build/csharpTranspiler.ts#wrapTypedCoreConsumers). Every family carries a typed overload
+//     `From<Family>(<Family> value)` / `From<Family>List(List<Family> values)` whose result IS the
+//     box the object overload's matching arm builds, and the funnel's argument IS the struct, so
+//     the call's static type is that box — read from the generated base (typedCoreFunnelType), the
+//     same on-disk source the C# compiler compiles.
 //   - method calls the printer rewrites by method name alone: x.slice(...) prints
 //     `slice(x, ...)` (string? — the helper returns null for a null receiver) and
 //     x.includes(...) prints `x.Contains(...)` (bool). The other string/array method
@@ -1898,6 +1904,138 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
     }
     const name = printedBareCalleeName (call);
     return name !== undefined && value.startsWith ('await ' + name + '(');
+}
+
+// The typed-core funnel: build/csharpTranspiler.ts#wrapTypedCoreConsumers rewrites every
+// consuming `await this.<typed core>(...)` into `ccxt.BaseExchange.From<Family>(await this.<core>
+// (...))` so the struct never lands in an `object` local. That pass runs on the PRINTED text, so
+// the classification below cannot see the funnel; it confirms it on the venue's own generated file
+// instead (the previous run's output — the same on-disk source awaitedApiReturnTypes reads).
+// The From* helper used to return `object`: it hands a non-matching value back unchanged and
+// builds a fresh dict/list on the matching path, so the funnel's static type was unnameable.
+// Each family now also carries a typed overload whose parameter IS the core's own C# type (the
+// printer wraps exactly the calls whose wrapper prints that type) and whose result IS the box the
+// matching arm builds: `From<Family>(<Family> value)` -> Dictionary<string, object>,
+// `From<Family>List(List<Family> values)` -> List<object> (the generated families are structs, so
+// the matching arm is the only reachable one; a null List passes through as null), plus the
+// hand-written identities FromDict / FromDictList / FromOHLCVDict / FromOHLCVList / FromInt64 /
+// FromStringValue / FromStringList in Exchange.TranspileHelpers.cs. The box is read from those
+// base files — the files the C# compiler compiles — so the declaration below can only name a type
+// the emitted call really carries, and a site the funnel pass never visits (a non-`public async`
+// method, a file without typed cores) has no on-disk funnel line and keeps its local `object`.
+const CSHARP_TYPED_CORE_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'base');
+const CSHARP_TYPED_CORE_FILES = ['Exchange.TypedCores.cs', 'Exchange.TranspileHelpers.cs'];
+const CSHARP_TYPED_CORE_BOXES = ['Dictionary<string, object>', 'List<object>', 'List<string>', 'Int64', 'string'];
+const CSHARP_TYPED_CORE_OVERLOAD = /^\s*public static ([A-Za-z0-9_<>,. ]+?) (From[A-Za-z0-9]+)\(([A-Za-z0-9_<>,. ]+?) [A-Za-z_]\w*\)/;
+const CSHARP_EXCHANGE_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'exchanges');
+let csharpTypedCoreFunnels;
+function csharpTypedCoreFunnelTypes () {
+    if (csharpTypedCoreFunnels !== undefined) {
+        return csharpTypedCoreFunnels;
+    }
+    const table = new Map ();
+    for (const name of CSHARP_TYPED_CORE_FILES) {
+        let content;
+        try {
+            content = fs.readFileSync (path.join (CSHARP_TYPED_CORE_FOLDER, name), 'utf8');
+        } catch (e) {
+            continue; // a checkout without the generated base is never fatal
+        }
+        for (const line of content.split ('\n')) {
+            const match = CSHARP_TYPED_CORE_OVERLOAD.exec (line);
+            if (match === null || !CSHARP_TYPED_CORE_BOXES.includes (match[1]) || match[3] === 'object') {
+                continue; // `public static object FromX(object value)` names no box
+            }
+            table.set (match[2], match[1]);
+        }
+    }
+    csharpTypedCoreFunnels = table;
+    return table;
+}
+
+// the generated files that can hold this source's funnel lines: the tier's own file first, then
+// the sibling tiers (a pro file inherits its REST wrapper, so its funnel line sits in the REST
+// file whenever the pro tier has none)
+function csharpFunnelFiles (node) {
+    const fileName = node.getSourceFile?.()?.fileName ?? '';
+    // the base classes are printed from a per-process overload-stripped copy
+    // (ts/src/base/Exchange.nooverloads.<pid>.ts), so strip that suffix before the lookup
+    const id = sourceExchangeId (node).replace (/\.nooverloads\.\d+$/, '');
+    if (id === 'Exchange') {
+        return [ path.join (CSHARP_TYPED_CORE_FOLDER, 'Exchange.TradingMethods.cs'),
+                 path.join (CSHARP_TYPED_CORE_FOLDER, 'Exchange.BaseMethods.cs') ];
+    }
+    if (id === 'PredictionExchange') {
+        return [ path.join (CSHARP_TYPED_CORE_FOLDER, 'PredictionExchange.cs') ];
+    }
+    const pro = /[\\/]pro[\\/]/.test (fileName);
+    const prediction = sourceTier (node) === 'prediction';
+    const files = [];
+    if (pro) files.push (path.join (CSHARP_EXCHANGE_FOLDER, 'pro', id + '.cs'));
+    if (prediction) files.push (path.join (CSHARP_EXCHANGE_FOLDER, 'prediction', id + '.cs'));
+    files.push (path.join (CSHARP_EXCHANGE_FOLDER, id + '.cs'));
+    if (!pro) files.push (path.join (CSHARP_EXCHANGE_FOLDER, 'pro', id + '.cs'));
+    if (!prediction) files.push (path.join (CSHARP_EXCHANGE_FOLDER, 'prediction', id + '.cs'));
+    return files;
+}
+
+const csharpFunnelFileCache = new Map ();
+function csharpFunnelFileContent (file) {
+    if (!csharpFunnelFileCache.has (file)) {
+        let content;
+        try {
+            content = fs.readFileSync (file, 'utf8');
+        } catch (e) {
+            content = undefined; // not a generated venue (tests, a brand new id) — never fatal
+        }
+        csharpFunnelFileCache.set (file, content);
+    }
+    return csharpFunnelFileCache.get (file);
+}
+
+// the funnel declaration this local had in the last generated output — `<type> <name> =
+// ccxt.BaseExchange.From<Helper>(await this.<core>(` — so the helper (and with it the box) is the
+// funnel pass's own verdict for this exact site: a site the pass did not wrap matches nothing
+function csharpFunnelHelper (content, name, core) {
+    // the emitted call site is pascalized (pascalizeTypedCores), the AST holds the TS name, so the
+    // core matches case-insensitively; the helper and the local name must match exactly
+    const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + name + ' = ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
+    for (const text of content.split ('\n')) {
+        const match = line.exec (text);
+        if (match !== null) {
+            return match[1];
+        }
+    }
+    return undefined;
+}
+
+// the box the funnel's bound overload returns, or undefined when this declaration is not a funneled
+// typed core of its venue. The awaited call has to be THIS declaration's own callee.
+function typedCoreFunnelType (csharp, declaration) {
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = declaration.initializer.expression;
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const core = callee.name?.escapedText;
+    if (core === undefined) {
+        return undefined;
+    }
+    const table = csharpTypedCoreFunnelTypes ();
+    for (const file of csharpFunnelFiles (declaration)) {
+        const content = csharpFunnelFileContent (file);
+        if (content === undefined) {
+            continue;
+        }
+        const helper = csharpFunnelHelper (content, declaration.name.escapedText, core);
+        if (helper !== undefined) {
+            return table.get (helper);
+        }
+    }
+    return undefined;
 }
 
 // The generated implicit-api wrappers (cs/ccxt/api/<id>.cs + cs/ccxt/api/prediction/<id>.cs)
@@ -5680,6 +5818,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // itself proves (see the family comment); the use-shape veto runs after the retype scan
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
     let safeValueTwinShape;
+    // the typed-core funnel: the funnel call the pass will build around this awaited core carries
+    // the box its typed overload returns (typedCoreFunnelType), so the declaration names it with no
+    // cast; the later-write join and the retype scan below then apply as for any other candidate
+    const funnelType = (csharpType === undefined) ? typedCoreFunnelType (csharp, declaration) : undefined;
     if (csharpType === undefined) {
         // `this.sum (a, b)` over the operand family its hand-written helper boxes as Int64:
         // the declaration names that box behind an exact `((Int64))` cast. `a % b` is the
@@ -5694,7 +5836,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
-        if (modTwin !== undefined) {
+        if (funnelType !== undefined) {
+            csharpType = funnelType;
+        } else if (modTwin !== undefined) {
             csharpType = modTwin;
         } else if (integerBox !== undefined) {
             csharpType = integerBox;

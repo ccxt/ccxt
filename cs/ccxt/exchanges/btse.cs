@@ -1383,7 +1383,7 @@ public partial class btse : Exchange
         {
             throw new BadRequest (add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
-        object result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToLeverageTierList(getValue(result, symbol));
     }
 

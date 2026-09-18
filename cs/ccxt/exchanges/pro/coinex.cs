@@ -703,7 +703,7 @@ public partial class coinex : ccxt.coinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, GetValue(market, "symbol")));
     }
 

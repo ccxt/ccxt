@@ -45,7 +45,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchPositionsHistory"), null) && !isEqual(getValue(this.has, "fetchPositionsHistory"), false))
         {
-            object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsHistory(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+            List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositionsHistory(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
             return ccxt.BaseExchange.ToPositionList(positions);
         } else
         {
@@ -110,7 +110,7 @@ public partial class Exchange
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            object tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolVar}, parameters));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
             {
@@ -523,7 +523,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchOrdersWs"), null) && !isEqual(getValue(this.has, "fetchOrdersWs"), false))
         {
-            object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(symbol, since, limit, parameters));
+            List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(symbol, since, limit, parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "closed"));
         }
         throw new NotSupported (add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
@@ -540,7 +540,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchOrdersWs"), null) && !isEqual(getValue(this.has, "fetchOrdersWs"), false))
         {
-            object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(symbol, since, limit, parameters));
+            List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersWs(symbol, since, limit, parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "open"));
         }
         throw new NotSupported (add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
@@ -585,7 +585,7 @@ public partial class Exchange
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolVar}, parameters));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
             {
@@ -639,7 +639,7 @@ public partial class Exchange
         {
             try
             {
-                object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+                Dictionary<string, object> orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
                 return ccxt.BaseExchange.ToOrderBook(orderBook);
             } catch(Exception e)
             {
@@ -663,7 +663,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchOpenInterests"), null) && !isEqual(getValue(this.has, "fetchOpenInterests"), false))
         {
-            object openInterests = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbol}, parameters));
+            Dictionary<string, object> openInterests = ccxt.BaseExchange.FromOpenInterests(await this.FetchOpenInterests(new List<object>() {symbol}, parameters));
             return ccxt.BaseExchange.ToOpenInterest(this.safeDict(openInterests, symbol));
         } else
         {
@@ -674,8 +674,8 @@ public partial class Exchange
     public async virtual Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderbook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "asks", this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0) },             { "bids", this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0, true) },         }));
+        Dictionary<string, object> orderbook = ccxt.BaseExchange.FromOrderBook(await this.FetchOrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+        return ccxt.BaseExchange.ToOrderBook(this.extend(orderbook, new Dictionary<string, object>() {             { "asks", this.sortBy(this.aggregate(GetValue(orderbook, "asks")), 0) },             { "bids", this.sortBy(this.aggregate(GetValue(orderbook, "bids")), 0, true) },         }));
     }
 
     public async virtual Task<ccxt.Order> EditLimitBuyOrder(string id, string symbol, object amount, object price = null, object parameters = null)
@@ -745,7 +745,7 @@ public partial class Exchange
             await this.loadMarkets();
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
+            Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
             IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if ((ticker == null))
             {
@@ -807,8 +807,8 @@ public partial class Exchange
         // TODO: TypeScript: change method signature by replacing
         // Promise<string> with Promise<Order['status']>.
         parameters ??= new Dictionary<string, object>();
-        object order = ccxt.BaseExchange.FromOrder(await this.FetchOrder(id, symbol, parameters));
-        return ccxt.BaseExchange.ToStringValue(getValue(order, "status"));
+        Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(await this.FetchOrder(id, symbol, parameters));
+        return ccxt.BaseExchange.ToStringValue(GetValue(order, "status"));
     }
 
     public async virtual Task<ccxt.Order> FetchUnifiedOrder(object order, object parameters = null)
@@ -1163,7 +1163,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchOrders"), null) && !isEqual(getValue(this.has, "fetchOrders"), false))
         {
-            object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+            List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "open"));
         }
         throw new NotSupported (add(this.id, " fetchOpenOrders() is not supported yet")) ;
@@ -1174,7 +1174,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(getValue(this.has, "fetchOrders"), null) && !isEqual(getValue(this.has, "fetchOrders"), false))
         {
-            object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
+            List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrders(symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
             return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "closed"));
         }
         throw new NotSupported (add(this.id, " fetchClosedOrders() is not supported yet")) ;
@@ -1310,7 +1310,7 @@ public partial class Exchange
         {
             throw new NotSupported (add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
-        object fees = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(parameters));
+        Dictionary<string, object> fees = ccxt.BaseExchange.FromTradingFees(await this.FetchTradingFees(parameters));
         return ccxt.BaseExchange.ToTradingFeeInterface(this.safeDict(fees, symbol));
     }
 

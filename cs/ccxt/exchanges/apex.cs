@@ -1466,7 +1466,7 @@ public partial class apex : Exchange
         string? accountId = this.safeString(this.options, "accountId", "0");
         if (accountId == "0")
         {
-            object accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
+            Dictionary<string, object> accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
             ((IDictionary<string,object>)this.options)["accountId"] = this.safeString(accountData, "id", "0");
         }
         return getValue(this.options, "accountId");

@@ -1389,8 +1389,8 @@ public partial class mudrex : Exchange
         if ((positionId == null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
+            for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
                 if (!isEqual(side, null) && !isEqual(getValue(p, "side"), side))
@@ -1451,8 +1451,8 @@ public partial class mudrex : Exchange
         string? positionId = this.safeString(parameters, "position_id");
         if ((positionId == null))
         {
-            object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
+            for (int i = 0; isLessThan(i, positions?.Count ?? 0); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
                 if (isEqual(getValue(p, "symbol"), symbol))
