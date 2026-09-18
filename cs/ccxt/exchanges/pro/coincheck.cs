@@ -62,7 +62,7 @@ public partial class coincheck : ccxt.coincheck
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", GetValue(market, "symbol"));
+        string messageHash = ("orderbook:" + GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -109,7 +109,7 @@ public partial class coincheck : ccxt.coincheck
             orderbook = this.getOrderBook(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
         }
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -135,7 +135,7 @@ public partial class coincheck : ccxt.coincheck
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add("trade:", GetValue(market, "symbol"));
+        string messageHash = ("trade:" + GetValue(market, "symbol"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -181,7 +181,7 @@ public partial class coincheck : ccxt.coincheck
             Dictionary<string, object> trade = this.parseWsTrade(data);
             callDynamically(stored, "append", new object[] {trade});
         }
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 

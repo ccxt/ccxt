@@ -987,7 +987,7 @@ public partial class coinbase : Exchange
         }
         if ((accountId == null))
         {
-            throw new ExchangeError (add(add(add(this.id, " createDepositAddress() could not find the account with matching currency code "), code), ", specify an `account_id` extra param to target specific wallet")) ;
+            throw new ExchangeError ((((this.id + " createDepositAddress() could not find the account with matching currency code ") + code) + ", specify an `account_id` extra param to target specific wallet")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -3317,7 +3317,7 @@ public partial class coinbase : Exchange
         string? accountId = this.safeString2(parameters, "account_id", "accountId");
         if ((accountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " prepareAccountRequest() method requires an account_id (or accountId) parameter")) ;
+            throw new ArgumentsRequired ((this.id + " prepareAccountRequest() method requires an account_id (or accountId) parameter")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
@@ -3338,12 +3338,12 @@ public partial class coinbase : Exchange
         {
             if (isEqual(code, null))
             {
-                throw new ArgumentsRequired (add(this.id, " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")) ;
+                throw new ArgumentsRequired ((this.id + " prepareAccountRequestWithCurrencyCode() method requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError (add(add(add(this.id, " prepareAccountRequestWithCurrencyCode() could not find account id for "), code), ". You might try to generate the deposit address in the website for that coin first.")) ;
+                throw new ExchangeError ((((this.id + " prepareAccountRequestWithCurrencyCode() could not find account id for ") + code) + ". You might try to generate the deposit address in the website for that coin first.")) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3376,7 +3376,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
@@ -3421,7 +3421,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> market = this.market(symbol);
         string id = ((string)this.safeString(this.options, "brokerId", "ccxt"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "client_order_id", add(add(id, "-"), this.uuid()) },
+            { "client_order_id", ((id + "-") + this.uuid()) },
             { "product_id", GetValue(market, "id") },
             { "side", side.ToUpper() },
         };
@@ -3454,7 +3454,7 @@ public partial class coinbase : Exchange
                 {
                     if ((endTime == null))
                     {
-                        throw new ExchangeError (add(this.id, " createOrder() requires an end_time parameter for a GTD order")) ;
+                        throw new ExchangeError ((this.id + " createOrder() requires an end_time parameter for a GTD order")) ;
                     }
                     request["order_configuration"] = new Dictionary<string, object>() {
                         { "stop_limit_stop_limit_gtd", new Dictionary<string, object>() {
@@ -3508,7 +3508,7 @@ public partial class coinbase : Exchange
                 {
                     if ((endTime == null))
                     {
-                        throw new ExchangeError (add(this.id, " createOrder() requires an end_time parameter for a GTD order")) ;
+                        throw new ExchangeError ((this.id + " createOrder() requires an end_time parameter for a GTD order")) ;
                     }
                     request["order_configuration"] = new Dictionary<string, object>() {
                         { "limit_limit_gtd", new Dictionary<string, object>() {
@@ -3549,7 +3549,7 @@ public partial class coinbase : Exchange
         {
             if (isStop || isStopLoss || isTakeProfit)
             {
-                throw new NotSupported (add(this.id, " createOrder() only stop limit orders are supported")) ;
+                throw new NotSupported ((this.id + " createOrder() only stop limit orders are supported")) ;
             }
             if ((isEqual(GetValue(market, "spot"), true)) && (isEqual(side, "buy")))
             {
@@ -3567,7 +3567,7 @@ public partial class coinbase : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -3919,7 +3919,7 @@ public partial class coinbase : Exchange
             bool? success = this.safeBool(getValue(orders, i), "success");
             if ((success != true))
             {
-                throw new BadRequest (add(this.id, " cancelOrders() has failed, check your arguments and parameters")) ;
+                throw new BadRequest ((this.id + " cancelOrders() has failed, check your arguments and parameters")) ;
             }
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orders, market));
@@ -4477,7 +4477,7 @@ public partial class coinbase : Exchange
             request["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
         } else if (!isEqual(since, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
         }
         Dictionary<string, object> response = null;
         object usePrivate = false;
@@ -4751,12 +4751,12 @@ public partial class coinbase : Exchange
         {
             if (isEqual(code, null))
             {
-                throw new ArgumentsRequired (add(this.id, " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+                throw new ArgumentsRequired ((this.id + " withdraw() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError (add(add(this.id, " withdraw() could not find account id for "), code)) ;
+                throw new ExchangeError (((this.id + " withdraw() could not find account id for ") + code)) ;
             }
             request["account_id"] = accountId;
         } else
@@ -5013,12 +5013,12 @@ public partial class coinbase : Exchange
         {
             if (isEqual(code, null))
             {
-                throw new ArgumentsRequired (add(this.id, " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+                throw new ArgumentsRequired ((this.id + " deposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError (add(add(this.id, " deposit() could not find account id for "), code)) ;
+                throw new ExchangeError (((this.id + " deposit() could not find account id for ") + code)) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5094,12 +5094,12 @@ public partial class coinbase : Exchange
         {
             if (isEqual(code, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")) ;
             }
             accountId = await this.findAccountId(code, parameters);
             if ((accountId == null))
             {
-                throw new ExchangeError (add(add(this.id, " fetchDeposit() could not find account id for "), code)) ;
+                throw new ExchangeError (((this.id + " fetchDeposit() could not find account id for ") + code)) ;
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5331,12 +5331,12 @@ public partial class coinbase : Exchange
         }
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchConvertTrade() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchConvertTrade() requires a code argument")) ;
         }
         string? toCode = this.safeString(parameters, "toCode");
         if ((toCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchConvertTrade() requires a toCode parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchConvertTrade() requires a toCode parameter")) ;
         }
         parameters = this.omit(parameters, "toCode");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5459,7 +5459,7 @@ public partial class coinbase : Exchange
         };
         if ((clientOrderId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " closePosition() requires a clientOrderId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " closePosition() requires a clientOrderId parameter")) ;
         }
         request["client_order_id"] = clientOrderId;
         Dictionary<string, object> response = await this.v3PrivatePostBrokerageOrdersClosePosition(this.extend(request, parameters));
@@ -5507,7 +5507,7 @@ public partial class coinbase : Exchange
             parameters = portfolioparametersVariable[1];
             if ((portfolio == null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
+                throw new ArgumentsRequired ((this.id + " fetchPositions() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "portfolio_uuid", portfolio },
@@ -5544,7 +5544,7 @@ public partial class coinbase : Exchange
             string? productId = this.safeString(market, "product_id");
             if ((productId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchPosition() requires a \"product_id\" in params")) ;
+                throw new ArgumentsRequired ((this.id + " fetchPosition() requires a \"product_id\" in params")) ;
             }
             Dictionary<string, object> futureRequest = new Dictionary<string, object>() {
                 { "product_id", productId },
@@ -5558,7 +5558,7 @@ public partial class coinbase : Exchange
             parameters = portfolioparametersVariable[1];
             if ((portfolio == null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
+                throw new ArgumentsRequired ((this.id + " fetchPosition() requires a \"portfolio\" value in params (eg: dbcb91e7-2bc9-515), or set as exchange.options[\"portfolio\"]. You can get a list of portfolios with fetchPortfolios()")) ;
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", GetValue(market, "id") },
@@ -5927,14 +5927,14 @@ public partial class coinbase : Exchange
         bool signed = isEqual(getValue(api, 1), "private");
         bool isV3 = isEqual(version, "v3");
         string pathPart = (isV3) ? "api/v3" : "v2";
-        string fullPath = add(add(add("/", pathPart), "/"), this.implodeParams(path, parameters));
+        string fullPath = ((("/" + pathPart) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         string savedPath = fullPath;
         if (isEqual(method, "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                fullPath = add(fullPath, add("?", this.urlencodeWithArrayRepeat(query)));
+                fullPath = add(fullPath, ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         }
         object url = add(getValue(getValue(this.urls, "api"), "rest"), fullPath);
@@ -5947,7 +5947,7 @@ public partial class coinbase : Exchange
                 authorizationString = authorization;
             } else if ((!isEqual(this.token, "")) && !isTrue(this.checkRequiredCredentials(false)))
             {
-                authorizationString = add("Bearer ", this.token);
+                authorizationString = ("Bearer " + this.token);
             } else
             {
                 this.checkRequiredCredentials();
@@ -5966,7 +5966,7 @@ public partial class coinbase : Exchange
                     {
                         if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                         {
-                            payload = add(payload, add("?", this.urlencode(query)));
+                            payload = add(payload, ("?" + this.urlencode(query)));
                         }
                     }
                 }
@@ -5981,7 +5981,7 @@ public partial class coinbase : Exchange
                 {
                     if (isCloudAPiKey && ((string)this.apiKey).StartsWith("-----BEGIN"))
                     {
-                        throw new ArgumentsRequired (add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
+                        throw new ArgumentsRequired ((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
                     }
                     // // it may not work for v2
                     // let uri = method + ' ' + url.replace ('https://', '');
@@ -6003,13 +6003,13 @@ public partial class coinbase : Exchange
                     // };
                     string token = this.createAuthToken(seconds, method, url, isV2CloudAPiKey);
                     // const token = jwt (request, this.encode (this.secret), sha256, false, { 'kid': this.apiKey, 'nonce': nonce, 'alg': 'ES256' });
-                    authorizationString = add("Bearer ", token);
+                    authorizationString = ("Bearer " + token);
                 } else
                 {
                     Int64 nonce = this.nonce();
                     Int64? timestamp = this.parseToInt(divide(nonce, 1000));
                     string timestampString = ((object)timestamp).ToString();
-                    object auth = add(add(add(timestampString, method), savedPath), payload);
+                    object auth = (((timestampString + method) + savedPath) + payload);
                     string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "CB-ACCESS-KEY", this.apiKey },
@@ -6048,7 +6048,7 @@ public partial class coinbase : Exchange
         {
             return null;  // fallback to default error handler
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         //
         //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
         //
@@ -6120,7 +6120,7 @@ public partial class coinbase : Exchange
         object advancedTrade = getValue(this.options, "advanced");
         if (!(inOp(response, "data")) && (!isEqual(advancedTrade, true)))
         {
-            throw new ExchangeError (add(add(this.id, " failed due to a malformed response "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }
         return null;
     }

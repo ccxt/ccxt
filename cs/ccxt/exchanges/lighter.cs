@@ -508,7 +508,7 @@ public partial class lighter : Exchange
         {
             if (((string)this.privateKey).Length > 66)
             {
-                throw new NotSupported (add(this.id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
+                throw new NotSupported ((this.id + " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
             }
             // load lighter library without creating lighter client
             signer = await this.loadLighterLibrary(libraryPath, chainId, "", this.parseToInt(apiKeyIndex), this.parseToInt(accountIndex), false);
@@ -582,7 +582,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         if (isEqual(accountIndex, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires accountIndex or account_index")) ;
+            throw new ArgumentsRequired ((this.id + " requires accountIndex or account_index")) ;
         }
         string? strAccountIndex = this.numberToString(accountIndex);
         string strApiKeyIndex = this.numberToString(apiKeyIndex);
@@ -625,13 +625,13 @@ public partial class lighter : Exchange
             {
                 if (((string)this.privateKey).Length > 66)
                 {
-                    throw new NotSupported (add(this.id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
+                    throw new NotSupported ((this.id + " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
                 }
                 walletAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
             }
             if ((walletAddress == null) || isEqual(walletAddress, ""))
             {
-                throw new ArgumentsRequired (add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
+                throw new ArgumentsRequired (add(add((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
             }
             Dictionary<string, object> res = await this.publicGetAccountsByL1Address(new Dictionary<string, object>() {
                 { "l1_address", walletAddress },
@@ -665,7 +665,7 @@ public partial class lighter : Exchange
                 IDictionary<string, object> account = this.safeDict(subAccounts, 0);
                 if ((account == null))
                 {
-                    throw new ArgumentsRequired (add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")) ;
+                    throw new ArgumentsRequired (add(add((((((this.id + " ") + methodName1) + "() requires an ") + optionName1) + " or "), optionName2), " parameter")) ;
                 }
                 accountIndex = GetValue(account, "index");
                 ((IDictionary<string,object>)this.options)["accountIndex"] = accountIndex;
@@ -750,7 +750,7 @@ public partial class lighter : Exchange
         Int64? c = this.parseToInt(m);
         if (isLessThan(c, 0))
         {
-            throw new BadRequest (add(this.id, " pow() requires m > 0.")) ;
+            throw new BadRequest ((this.id + " pow() requires m > 0.")) ;
         }
         if (isEqual(c, 0))
         {
@@ -758,7 +758,7 @@ public partial class lighter : Exchange
         }
         if (isGreaterThan(c, 100))
         {
-            throw new BadRequest (add(this.id, " pow() requires m < 100.")) ;
+            throw new BadRequest ((this.id + " pow() requires m < 100.")) ;
         }
         for (int i = 1; isLessThan(i, c); postFixIncrement(ref i))
         {
@@ -774,7 +774,7 @@ public partial class lighter : Exchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -784,7 +784,7 @@ public partial class lighter : Exchange
         object r = GetValue(signature, "r");
         object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return ((("0x" + (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }
 
     public virtual string? signL1AndPrepareTxInfo(object txInfo, object message, object privateKey)
@@ -906,11 +906,11 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         /**
          * @method
@@ -931,7 +931,7 @@ public partial class lighter : Exchange
          */
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument")) ;
         }
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         string orderType = ((string)type).ToUpper();
@@ -1109,7 +1109,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if ((isEqual(accountIndex, null)) || (isEqual(apiKeyIndex, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
+            throw new ArgumentsRequired ((this.id + " fetchNonce() requires accountIndex and apiKeyIndex.")) ;
         }
         if (inOp(parameters, "nonce"))
         {
@@ -1598,7 +1598,7 @@ public partial class lighter : Exchange
             { "id", id },
             { "name", code },
             { "code", code },
-            { "precision", this.parseNumber(add("1e-", decimals)) },
+            { "precision", this.parseNumber(("1e-" + decimals)) },
             { "active", true },
             { "fee", null },
             { "networks", new Dictionary<string, object>() {} },
@@ -1634,7 +1634,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrderBook() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrderBook() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1796,7 +1796,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTicker() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTicker() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1923,7 +1923,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2476,7 +2476,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2562,7 +2562,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchClosedOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2888,7 +2888,7 @@ public partial class lighter : Exchange
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amountVar)));
         } else
         {
-            throw new ExchangeError (add(this.id, " transfer() only supports USDC and ETH transfers")) ;
+            throw new ExchangeError ((this.id + " transfer() only supports USDC and ETH transfers")) ;
         }
         int fromRouteType = (isEqual(fromAccount, "perp")) ? 0 : 1; // 0: perp, 1: spot
         int toRouteType = (isEqual(toAccount, "perp")) ? 0 : 1;
@@ -3071,7 +3071,7 @@ public partial class lighter : Exchange
         parameters = addressparametersVariable[1];
         if ((address == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDeposits() requires an address parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDeposits() requires an address parameter")) ;
         }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "fetchDeposits", "accountIndex", "account_index");
@@ -3307,7 +3307,7 @@ public partial class lighter : Exchange
             amountVar = this.parseToInt(Precise.stringMul(this.pow("10", "8"), this.currencyToPrecision(code, amountVar)));
         } else
         {
-            throw new ExchangeError (add(this.id, " withdraw() only supports USDC and ETH transfers")) ;
+            throw new ExchangeError ((this.id + " withdraw() only supports USDC and ETH transfers")) ;
         }
         Int64? routeType = this.safeInteger(parameters, "routeType", 0); // 0: perp, 1: spot
         parameters = this.omit(parameters, "routeType");
@@ -3529,7 +3529,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "setLeverage", "marginMode", "margin_mode");
@@ -3537,7 +3537,7 @@ public partial class lighter : Exchange
         parameters = marginModeparametersVariable[1];
         if ((marginMode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires an marginMode parameter")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires an marginMode parameter")) ;
         }
         return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters));
     }
@@ -3559,7 +3559,7 @@ public partial class lighter : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(marginMode, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires an marginMode parameter")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires an marginMode parameter")) ;
         }
         object leverage = null;
         IList<object> leverageparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "setMarginMode", "leverage");
@@ -3567,7 +3567,7 @@ public partial class lighter : Exchange
         parameters = leverageparametersVariable[1];
         if (isEqual(leverage, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires an leverage parameter")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires an leverage parameter")) ;
         }
         return ccxt.BaseExchange.ToDict(await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, parameters));
     }
@@ -3581,7 +3581,7 @@ public partial class lighter : Exchange
         }
         if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
         {
-            throw new BadRequest (add(this.id, " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         object apiKeyIndex = null;
         IList<object> apiKeyIndexparametersVariable = (IList<object>)this.handleApiKeyIndex(parameters, "modifyLeverageAndMarginMode", "apiKeyIndex", "api_key_index");
@@ -3589,7 +3589,7 @@ public partial class lighter : Exchange
         parameters = apiKeyIndexparametersVariable[1];
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " modifyLeverageAndMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " modifyLeverageAndMarginMode() requires a symbol argument")) ;
         }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "modifyLeverageAndMarginMode", "accountIndex", "account_index");
@@ -3627,7 +3627,7 @@ public partial class lighter : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " "), method), " requires a symbol argument")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + method) + " requires a symbol argument")) ;
         }
         object apiKeyIndex = null;
         IList<object> apiKeyIndexparametersVariable = (IList<object>)this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
@@ -3658,7 +3658,7 @@ public partial class lighter : Exchange
             signRaw["order_index"] = this.parseToInt(id);
         } else
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " "), method), " requires order id or client order id")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + method) + " requires order id or client order id")) ;
         }
         var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
@@ -3765,7 +3765,7 @@ public partial class lighter : Exchange
         }
         if ((isLessThan(timeout, 300000)) || (isGreaterThan(timeout, 1296000000)))
         {
-            throw new BadRequest (add(this.id, " timeout should be between 5 minutes and 15 days.")) ;
+            throw new BadRequest ((this.id + " timeout should be between 5 minutes and 15 days.")) ;
         }
         object apiKeyIndex = null;
         IList<object> apiKeyIndexparametersVariable = (IList<object>)this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
@@ -3858,15 +3858,15 @@ public partial class lighter : Exchange
         Int64? direction = this.safeInteger(parameters, "direction"); // 1 increase margin 0 decrease margin
         if (isEqual(direction, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
+            throw new ArgumentsRequired ((this.id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
         }
         if (!this.inArray(direction, new List<object>() {0, 1}))
         {
-            throw new ArgumentsRequired (add(this.id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
+            throw new ArgumentsRequired ((this.id + " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMargin() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMargin() requires a symbol argument")) ;
         }
         object accountIndex = null;
         var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "setMargin", "accountIndex", "account_index");
@@ -3924,7 +3924,7 @@ public partial class lighter : Exchange
             url = this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         } else
         {
-            url = add(add(add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/api/"), this.version), "/"), path);
+            url = ((((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/api/") + this.version) + "/") + path);
         }
         if (isEqual(api, "private"))
         {
@@ -3942,7 +3942,7 @@ public partial class lighter : Exchange
                 body = parameters;
             } else
             {
-                url = add(url, add("?", this.rawencode(parameters)));
+                url = add(url, ("?" + this.rawencode(parameters)));
             }
         }
         return new Dictionary<string, object>() {
@@ -3969,7 +3969,7 @@ public partial class lighter : Exchange
         string? message = this.safeString(response, "msg");
         if ((code != null) && code != "0" && code != "200")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             throw new ExchangeError (feedback) ;

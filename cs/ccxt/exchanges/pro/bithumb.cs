@@ -90,7 +90,7 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = isGenerationTwo ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", GetValue(market, "symbol"));
+        string messageHash = ("ticker:" + GetValue(market, "symbol"));
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
         object request = new Dictionary<string, object>() {
@@ -140,7 +140,7 @@ public partial class bithumb : ccxt.bithumb
         int symbolsLength = (isEqual(symbols, null)) ? 0 : getArrayLength(symbols);
         if (isGenerationTwo && (isEqual(symbolsLength, 0)))
         {
-            throw new ArgumentsRequired (add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
+            throw new ArgumentsRequired ((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
         }
         if (isEqual(symbols, null))
         {
@@ -163,7 +163,7 @@ public partial class bithumb : ccxt.bithumb
                 streamMarketId = (add(add(GetValue(market, "base"), "_"), GetValue(market, "quote")));
             }
             ((IList<object>)streamMarketIds).Add(streamMarketId);
-            ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+            ((IList<object>)messageHashes).Add(("ticker:" + GetValue(market, "symbol")));
         }
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
@@ -287,7 +287,7 @@ public partial class bithumb : ccxt.bithumb
             return;
         }
         Dictionary<string, object> ticker = this.parseWsTicker(tickerMessage);
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
@@ -360,7 +360,7 @@ public partial class bithumb : ccxt.bithumb
         }
         string date = ((string)this.safeString(ticker, "date", ""));
         string time = ((string)this.safeString(ticker, "time", ""));
-        string kstDatetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
+        string kstDatetime = add(add(add(add(add((((((slice(date, 0, 4) + "-") + slice(date, 4, 6)) + "-") + slice(date, 6, 8)) + "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         object timestamp = this.parse8601(kstDatetime);
         if (!isEqual(timestamp, null))
@@ -420,7 +420,7 @@ public partial class bithumb : ccxt.bithumb
         object url = isGenerationTwo ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add(add("orderbook", ":"), symbolVar);
+        string messageHash = (("orderbook" + ":") + symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
             { "symbols", new List<object>() {add(add(GetValue(market, "base"), "_"), GetValue(market, "quote"))} },
@@ -516,7 +516,7 @@ public partial class bithumb : ccxt.bithumb
             this.handleDeltas(legacyOrderbook, list);
             ((IDictionary<string,object>)legacyOrderbook)["timestamp"] = legacyTimestamp;
             ((IDictionary<string,object>)legacyOrderbook)["datetime"] = this.iso8601(legacyTimestamp);
-            string legacyMessageHash = add(add("orderbook", ":"), legacySymbol);
+            string legacyMessageHash = (("orderbook" + ":") + legacySymbol);
             callDynamically(client, "resolve", new object[] {legacyOrderbook, legacyMessageHash});
             return;
         }
@@ -567,7 +567,7 @@ public partial class bithumb : ccxt.bithumb
         }
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        string messageHash = add(add("orderbook", ":"), symbol);
+        string messageHash = (("orderbook" + ":") + symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -627,7 +627,7 @@ public partial class bithumb : ccxt.bithumb
         object url = isGenerationTwo ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add("trade:", symbolVar);
+        string messageHash = ("trade:" + symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
             { "symbols", new List<object>() {add(add(GetValue(market, "base"), "_"), GetValue(market, "quote"))} },
@@ -728,7 +728,7 @@ public partial class bithumb : ccxt.bithumb
             }
             object trades = getValue(this.trades, symbol);
             callDynamically(trades, "append", new object[] {parsed});
-            string messageHash = add(add("trade", ":"), symbol);
+            string messageHash = (("trade" + ":") + symbol);
             callDynamically(client, "resolve", new object[] {trades, messageHash});
         }
     }
@@ -815,12 +815,12 @@ public partial class bithumb : ccxt.bithumb
             string? addedMessage = null;
             if ((errorMessage.Length > 0))
             {
-                addedMessage = (add(" ", errorMessage));
+                addedMessage = ((" " + errorMessage));
             } else
             {
                 addedMessage = "";
             }
-            client.reject(new ExchangeError(add(add(add(this.id, " websocket error "), errorName), addedMessage)));
+            client.reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
             return ((bool?)((object)(false)));
         }
         if (!(inOp(message, "status")))
@@ -837,7 +837,7 @@ public partial class bithumb : ccxt.bithumb
             if (errorCode != "0000")
             {
                 string? msg = this.safeString(message, "resmsg");
-                throw new ExchangeError (add(add(this.id, " "), msg)) ;
+                throw new ExchangeError (((this.id + " ") + msg)) ;
             }
             return ((bool?)((object)(true)));
         } catch(Exception e)
@@ -869,7 +869,7 @@ public partial class bithumb : ccxt.bithumb
         parameters = generationparametersVariable[1];
         if (!isEqual(generation, 2))
         {
-            throw new BadRequest (add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
@@ -972,7 +972,7 @@ public partial class bithumb : ccxt.bithumb
             wsOptions["token"] = jwtToken;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {
-                    { "authorization", add("Bearer ", jwtToken) },
+                    { "authorization", ("Bearer " + jwtToken) },
                 } },
             };
             ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
@@ -1010,7 +1010,7 @@ public partial class bithumb : ccxt.bithumb
         parameters = generationparametersVariable[1];
         if (!isEqual(generation, 2))
         {
-            throw new BadRequest (add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
@@ -1072,7 +1072,7 @@ public partial class bithumb : ccxt.bithumb
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         callDynamically(cachedOrders, "append", new object[] {parsed});
         callDynamically(client, "resolve", new object[] {cachedOrders, messageHash});
-        string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         callDynamically(client, "resolve", new object[] {cachedOrders, symbolSpecificMessageHash});
     }
 

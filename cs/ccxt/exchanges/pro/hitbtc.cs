@@ -233,10 +233,10 @@ public partial class hitbtc : ccxt.hitbtc
         string? speed = this.safeString(parameters, "depth", "100");
         if (name == "orderbook/{depth}/{speed}")
         {
-            name = add(add(add(add("orderbook/D", depth), "/"), speed), "ms");
+            name = (((("orderbook/D" + depth) + "/") + speed) + "ms");
         } else if (name == "orderbook/{depth}/{speed}/batch")
         {
-            name = add(add(add(add("orderbook/D", depth), "/"), speed), "ms/batch");
+            name = (((("orderbook/D" + depth) + "/") + speed) + "ms/batch");
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -283,7 +283,7 @@ public partial class hitbtc : ccxt.hitbtc
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)GetValue(market, "symbol"));
             object item = getValue(data, marketId);
-            string messageHash = add("orderbooks::", symbol);
+            string messageHash = ("orderbooks::" + symbol);
             if (!(inOp(this.orderbooks, symbol)))
             {
                 IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
@@ -460,7 +460,7 @@ public partial class hitbtc : ccxt.hitbtc
             Dictionary<string, object> ticker = this.parseWsTicker(getValue(data, marketId), market);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
-            string messageHash = add(add(topic, "::"), symbol);
+            string messageHash = ((topic + "::") + symbol);
             callDynamically(client, "resolve", new object[] {ticker, messageHash});
         }
         callDynamically(client, "resolve", new object[] {result, topic});
@@ -597,7 +597,7 @@ public partial class hitbtc : ccxt.hitbtc
             Dictionary<string, object> ticker = this.parseWsBidAsk(getValue(data, marketId), market);
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
-            string messageHash = add(add(topic, "::"), symbol);
+            string messageHash = ((topic + "::") + symbol);
             callDynamically(client, "resolve", new object[] {ticker, messageHash});
         }
         callDynamically(client, "resolve", new object[] {result, topic});
@@ -717,7 +717,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 callDynamically(stored, "append", new object[] {getValue(trades, j)});
             }
-            string messageHash = add("trades::", symbol);
+            string messageHash = ("trades::" + symbol);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
         return message;
@@ -786,7 +786,7 @@ public partial class hitbtc : ccxt.hitbtc
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string name = add("candles/", period);
+        string name = ("candles/" + period);
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
@@ -868,7 +868,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 callDynamically(stored, "append", new object[] {getValue(ohlcvs, j)});
             }
-            string messageHash = add("candles::", symbol);
+            string messageHash = ("candles::" + symbol);
             callDynamically(client, "resolve", new object[] {stored, messageHash});
         }
         return message;
@@ -1335,7 +1335,7 @@ public partial class hitbtc : ccxt.hitbtc
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", parameters));
         } else if ((marketType == "margin") || ((marginMode != null)))
         {
-            throw new NotSupported (add(this.id, " cancelAllOrdersWs is not supported for margin orders")) ;
+            throw new NotSupported ((this.id + " cancelAllOrdersWs is not supported for margin orders")) ;
         } else
         {
             return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_cancel_orders", parameters));
@@ -1551,7 +1551,7 @@ public partial class hitbtc : ccxt.hitbtc
             (future as Future).resolve(true);
         } else
         {
-            var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
+            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
             if (inOp(client.subscriptions, messageHash))
             {
@@ -1582,7 +1582,7 @@ public partial class hitbtc : ccxt.hitbtc
                 object code = this.safeValue(error, "code");
                 string? errorMessage = this.safeString(error, "message");
                 string? description = this.safeString(error, "description");
-                string feedback = add(add(this.id, " "), description);
+                string feedback = ((this.id + " ") + description);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
                 throw new ExchangeError (feedback) ;

@@ -1327,7 +1327,7 @@ public partial class coinbaseexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         object paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
@@ -2032,7 +2032,7 @@ public partial class coinbaseexchange : Exchange
         }
         if ((response == null))
         {
-            throw new ExchangeError (add(add(this.id, " withdraw() error: "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " withdraw() error: ") + this.json(response))) ;
         }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
@@ -2145,7 +2145,7 @@ public partial class coinbaseexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchLedger() requires a code param")) ;
+            throw new ArgumentsRequired ((this.id + " fetchLedger() requires a code param")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2157,7 +2157,7 @@ public partial class coinbaseexchange : Exchange
         object account = this.safeValue(accountsByCurrencyCode, code);
         if ((account == null))
         {
-            throw new ExchangeError (add(add(this.id, " fetchLedger() could not find account id for "), code)) ;
+            throw new ExchangeError (((this.id + " fetchLedger() could not find account id for ") + code)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2217,7 +2217,7 @@ public partial class coinbaseexchange : Exchange
                 object account = this.safeValue(accountsByCurrencyCode, code);
                 if ((account == null))
                 {
-                    throw new ExchangeError (add(add(this.id, " fetchDepositsWithdrawals() could not find account id for "), code)) ;
+                    throw new ExchangeError (((this.id + " fetchDepositsWithdrawals() could not find account id for ") + code)) ;
                 }
                 id = getValue(account, "id");
             }
@@ -2483,7 +2483,7 @@ public partial class coinbaseexchange : Exchange
         object account = this.safeValue(getValue(this.options, "coinbaseAccountsByCurrencyId"), currencyId);
         if ((account == null))
         {
-            throw new InvalidAddress (add(add(add(add(add(this.id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")) ;
+            throw new InvalidAddress ((((((this.id + " createDepositAddress() could not find currency code ") + code) + " with id = ") + currencyId) + " in this.options['coinbaseAccountsByCurrencyId']")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", getValue(account, "id") },
@@ -2499,16 +2499,16 @@ public partial class coinbaseexchange : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = add("/", this.implodeParams(path, parameters));
+        string request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(method, "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                request = add(request, add("?", this.urlencode(query)));
+                request = add(request, ("?" + this.urlencode(query)));
             }
         }
-        string url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), request);
+        string url = (this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + request);
         if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
@@ -2522,14 +2522,14 @@ public partial class coinbaseexchange : Exchange
                     payload = body;
                 }
             }
-            object what = add(add(add(nonce, method), request), payload);
+            object what = (((nonce + method) + request) + payload);
             object secret = null;
             try
             {
                 secret = this.base64ToBinary(this.secret);
             } catch(Exception e)
             {
-                throw new AuthenticationError (add(this.id, " sign() invalid base64 secret")) ;
+                throw new AuthenticationError ((this.id + " sign() invalid base64 secret")) ;
             }
             string signature = this.hmac(this.encode(what), secret, sha256, "base64");
             headers = new Dictionary<string, object>() {
@@ -2555,12 +2555,12 @@ public partial class coinbaseexchange : Exchange
             if (isEqual(getValue(body, 0), "{"))
             {
                 string? message = this.safeString(response, "message");
-                string feedback = add(add(this.id, " "), message);
+                string feedback = ((this.id + " ") + message);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError (feedback) ;
             }
-            throw new ExchangeError (add(add(this.id, " "), body)) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }
@@ -2576,7 +2576,7 @@ public partial class coinbaseexchange : Exchange
         {
             if (inOp(response, "message"))
             {
-                throw new ExchangeError (add(add(this.id, " "), this.json(response))) ;
+                throw new ExchangeError (((this.id + " ") + this.json(response))) ;
             }
         }
         return response;

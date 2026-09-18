@@ -1195,7 +1195,7 @@ public partial class apex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1436,7 +1436,7 @@ public partial class apex : Exchange
     {
         bool hasAccountId = (!isEqual(_accountId, null)) && (!isEqual(_accountId, ""));
         object accountId = hasAccountId ? _accountId : this.randNumber(12).ToString();
-        return add(add(add(add(add("apexomni-", accountId), "-"), this.milliseconds().ToString()), "-"), this.randNumber(6).ToString());
+        return ((((("apexomni-" + accountId) + "-") + this.milliseconds().ToString()) + "-") + this.randNumber(6).ToString());
     }
 
     public virtual string? addHyphenBeforeUsdt(object symbol)
@@ -1446,7 +1446,7 @@ public partial class apex : Exchange
         string? symbolChar = this.safeString(symbol, subtract(index, 1));
         if (isGreaterThan(index, 0) && symbolChar != "-")
         {
-            return add(add(slice(symbol, 0, index), "-"), slice(symbol, index, null));
+            return ((slice(symbol, 0, index) + "-") + slice(symbol, index, null));
         }
         return ((string?)((object)(symbol)));
     }
@@ -1456,7 +1456,7 @@ public partial class apex : Exchange
         string? seeds = this.safeString(this.options, "seeds");
         if ((seeds == null))
         {
-            throw new ArgumentsRequired (add(this.id, " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
+            throw new ArgumentsRequired ((this.id + " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")) ;
         }
         return seeds;
     }
@@ -1503,7 +1503,7 @@ public partial class apex : Exchange
         string orderType = type.ToUpper();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         string orderSide = side.ToUpper();
         string? orderSize = this.amountToPrecision(symbol, amount);
@@ -1532,7 +1532,7 @@ public partial class apex : Exchange
         bool isMarket = orderType == "MARKET";
         if (isMarket && (isEqual(price, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument for market orders")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for market orders")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         bool postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -2108,7 +2108,7 @@ public partial class apex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2209,20 +2209,20 @@ public partial class apex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/") + path);
         headers = new Dictionary<string, object>() {
             { "User-Agent", "apex-CCXT" },
             { "Accept", "application/json" },
             { "Content-Type", "application/x-www-form-urlencoded" },
         };
-        string signPath = add("/api/", path);
+        string signPath = ("/api/" + path);
         object signBody = body;
         if ((((string)method).ToUpper() != "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                signPath = add(signPath, add("?", this.rawencode(parameters)));
-                url = add(url, add("?", this.rawencode(parameters)));
+                signPath = add(signPath, ("?" + this.rawencode(parameters)));
+                url = add(url, ("?" + this.rawencode(parameters)));
             }
         } else
         {
@@ -2233,7 +2233,7 @@ public partial class apex : Exchange
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
-            object messageString = add(add(timestamp, ((string)method).ToUpper()), signPath);
+            object messageString = ((timestamp + ((string)method).ToUpper()) + signPath);
             if ((signBody != null))
             {
                 messageString = add(messageString, signBody);
@@ -2265,7 +2265,7 @@ public partial class apex : Exchange
         Int64? errorCode = this.safeInteger(response, "code");
         if (!isEqual(errorCode, null) && (errorCode != 0))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             string status = code.ToString();

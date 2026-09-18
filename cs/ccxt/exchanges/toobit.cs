@@ -1172,7 +1172,7 @@ public partial class toobit : Exchange
         bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isContract)
         {
-            symbol = add(symbol, add(":", settle));
+            symbol = add(symbol, (":" + settle));
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1833,7 +1833,7 @@ public partial class toobit : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1993,12 +1993,12 @@ public partial class toobit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         string? id = ((string)GetValue(market, "id"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2017,7 +2017,7 @@ public partial class toobit : Exchange
         {
             if ((cost == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires params[\"cost\"] for market buy order")) ;
             }
             request["quantity"] = this.costToPrecision(symbol, cost);
         } else
@@ -2043,11 +2043,11 @@ public partial class toobit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2318,7 +2318,7 @@ public partial class toobit : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType == "none")
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         if (marketType == "spot")
@@ -2332,7 +2332,7 @@ public partial class toobit : Exchange
         string? status = this.parseOrderStatus(this.safeString(response, "status"));
         if (status != "open")
         {
-            throw new OrderNotFound (add(add(add(add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
+            throw new OrderNotFound (((((this.id + " order ") + id) + " can not be canceled, ") + this.json(response))) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
@@ -2367,7 +2367,7 @@ public partial class toobit : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType == "none")
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
         Dictionary<string, object> response = null;
         if (marketType == "spot")
@@ -2413,7 +2413,7 @@ public partial class toobit : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType == "none")
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
         Dictionary<string, object> response = null;
         if (marketType == "spot")
@@ -2443,7 +2443,7 @@ public partial class toobit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2583,7 +2583,7 @@ public partial class toobit : Exchange
             response = await this.privateGetApiV1SpotTradeOrders(request);
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchOrders() is not supported for ") + marketType) + " markets")) ;
         }
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
     }
@@ -2628,7 +2628,7 @@ public partial class toobit : Exchange
         List<object> response = new List<object>() {};
         if (marketType == "spot")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchOrders() is not supported for ") + marketType) + " markets")) ;
         } else
         {
             response = await this.privateGetApiV1FuturesHistoryOrders(request);
@@ -2666,7 +2666,7 @@ public partial class toobit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2896,7 +2896,7 @@ public partial class toobit : Exchange
         parameters = marketTypeparametersVariable[1];
         if (marketType == "spot")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchTradingFees(): does not support "), marketType), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchTradingFees(): does not support ") + marketType) + " markets")) ;
         } else if (this.inArray(marketType, new List<object>() {"swap", "future"}))
         {
             string? symbol = null;
@@ -2905,7 +2905,7 @@ public partial class toobit : Exchange
             parameters = symbolparametersVariable[1];
             if ((symbol == null))
             {
-                throw new BadRequest (add(this.id, " fetchTradingFees requires a params[\"symbol\"]")) ;
+                throw new BadRequest ((this.id + " fetchTradingFees requires a params[\"symbol\"]")) ;
             }
             market = this.market(symbol);
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3138,7 +3138,7 @@ public partial class toobit : Exchange
         var paramsOmitted = networkCodeparamsOmittedVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : param[\"network\"] is required")) ;
         }
         request["chainType"] = this.networkCodeToId(networkCode, code);
         Dictionary<string, object> response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted));
@@ -3192,7 +3192,7 @@ public partial class toobit : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " withdraw() : param[\"network\"] is required")) ;
+            throw new ArgumentsRequired ((this.id + " withdraw() : param[\"network\"] is required")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3239,7 +3239,7 @@ public partial class toobit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3248,7 +3248,7 @@ public partial class toobit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "type"), "swap"))
         {
-            throw new BadSymbol (add(this.id, " setMarginMode() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " setMarginMode() supports swap contracts only")) ;
         }
         marginModeVar = marginModeVar.ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3277,7 +3277,7 @@ public partial class toobit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3367,7 +3367,7 @@ public partial class toobit : Exchange
             int length = getArrayLength(symbols);
             if (isGreaterThan(length, 1))
             {
-                throw new BadRequest (add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
+                throw new BadRequest ((this.id + " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
             }
             string? firstSymbol = this.safeString(symbols, 0);
             if ((firstSymbol != null))
@@ -3455,7 +3455,7 @@ public partial class toobit : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             }
         } else
@@ -3490,11 +3490,11 @@ public partial class toobit : Exchange
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
             if (queryString != "")
             {
-                queryString = add(queryString, add("&signature=", signature));
-                url = add(url, add("?", queryString));
+                queryString = add(queryString, ("&signature=" + signature));
+                url = add(url, ("?" + queryString));
             } else
             {
-                body = add(body, add("&signature=", signature));
+                body = add(body, ("&signature=" + signature));
             }
             headers = new Dictionary<string, object>() {
                 { "Referrer", "CCXT" },
@@ -3521,7 +3521,7 @@ public partial class toobit : Exchange
         string? message = this.safeString(response, "msg");
         if (((errorCode != null) && errorCode != "") && errorCode != "200" && errorCode != "0")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;

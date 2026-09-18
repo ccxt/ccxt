@@ -1016,12 +1016,12 @@ public partial class coinspot : Exchange
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         string sideUpper = side.ToUpper();
         if (isEqual(type, "market"))
         {
-            throw new ExchangeError (add(this.id, " createOrder() allows limit orders only")) ;
+            throw new ExchangeError ((this.id + " createOrder() allows limit orders only")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1038,7 +1038,7 @@ public partial class coinspot : Exchange
             response = await this.privatePostMySell(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " createOrder only support buy/sell side")) ;
+            throw new NotSupported ((this.id + " createOrder only support buy/sell side")) ;
         }
         //
         // status - ok, error
@@ -1063,7 +1063,7 @@ public partial class coinspot : Exchange
         string? side = this.safeString(parameters, "side");
         if (side != "buy" && side != "sell")
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
         parameters = this.omit(parameters, "side");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1092,7 +1092,7 @@ public partial class coinspot : Exchange
         string? status = this.safeString(response, "status");
         if (status == "error")
         {
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             throw new ExchangeError (feedback) ;
         }
         return null;
@@ -1106,8 +1106,8 @@ public partial class coinspot : Exchange
         bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object version = isVersionedApi ? getValue(api, 0) : null;
         object accessType = isVersionedApi ? getValue(api, 1) : api;
-        string endpoint = add("/", this.implodeParams(path, parameters));
-        string fullPath = ((version != null)) ? add(add("/", version), endpoint) : endpoint;
+        string endpoint = ("/" + this.implodeParams(path, parameters));
+        string fullPath = ((version != null)) ? (("/" + version) + endpoint) : endpoint;
         object url = add(getValue(getValue(this.urls, "api"), accessType), fullPath);
         if (isEqual(accessType, "private"))
         {

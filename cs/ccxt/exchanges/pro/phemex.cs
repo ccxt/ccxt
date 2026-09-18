@@ -314,7 +314,7 @@ public partial class phemex : ccxt.phemex
         {
             Dictionary<string, object> ticker = ((Dictionary<string, object>)getValue(tickers, i));
             object symbol = getValue(ticker, "symbol");
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + symbol);
             Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
             ticker["timestamp"] = timestamp;
             ticker["datetime"] = this.iso8601(timestamp);
@@ -347,7 +347,7 @@ public partial class phemex : ccxt.phemex
         parameters = typeparametersVariable[1];
         bool usePerpetualApi = (this.safeString(parameters, "settle") == "USDT");
         object messageHash = ":balance";
-        messageHash = usePerpetualApi ? add("perpetual", messageHash) : add(type, messageHash);
+        messageHash = usePerpetualApi ? ("perpetual" + messageHash) : add(type, messageHash);
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(type, messageHash, parameters));
     }
 
@@ -466,7 +466,7 @@ public partial class phemex : ccxt.phemex
         string? marketId = this.safeString(message, "symbol");
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        string messageHash = add(add(name, ":"), symbol);
+        string messageHash = ((name + ":") + symbol);
         object stored = this.safeValue(this.trades, symbol);
         if ((stored == null))
         {
@@ -525,7 +525,7 @@ public partial class phemex : ccxt.phemex
         string? timeframe = this.findTimeframe(interval);
         if ((timeframe != null))
         {
-            string messageHash = add(add(add("kline:", timeframe), ":"), symbol);
+            string messageHash = ((("kline:" + timeframe) + ":") + symbol);
             IList<object> ohlcvs = this.parseOHLCVs(candles, market);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -574,8 +574,8 @@ public partial class phemex : ccxt.phemex
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
-        string subscriptionHash = add(name, ".subscribe");
-        string messageHash = add("ticker:", symbolVar);
+        string subscriptionHash = (name + ".subscribe");
+        string messageHash = ("ticker:" + symbolVar);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
             { "id", requestId },
@@ -616,11 +616,11 @@ public partial class phemex : ccxt.phemex
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
-        string subscriptionHash = add(name, ".subscribe");
+        string subscriptionHash = (name + ".subscribe");
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+            ((IList<object>)messageHashes).Add(("ticker:" + getValue(symbols, i)));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", subscriptionHash },
@@ -668,8 +668,8 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = isEqual(GetValue(market, "settle"), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = isUsdtSwap ? "trade_p" : "trade";
-        string messageHash = add("trade:", symbolVar);
-        string method = add(name, ".subscribe");
+        string messageHash = ("trade:" + symbolVar);
+        string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
@@ -713,8 +713,8 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = isEqual(GetValue(market, "settle"), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = isUsdtSwap ? "orderbook_p" : "orderbook";
-        string messageHash = add("orderbook:", symbolVar);
-        string method = add(name, ".subscribe");
+        string messageHash = ("orderbook:" + symbolVar);
+        string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
@@ -758,8 +758,8 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = isEqual(GetValue(market, "settle"), "USDT");
         bool isUsdtSwap = (isEqual(isSwap, true)) && settleIsUSDT;
         string name = isUsdtSwap ? "kline_p" : "kline";
-        string messageHash = add(add(add("kline:", timeframeVar), ":"), symbolVar);
-        string method = add(name, ".subscribe");
+        string messageHash = ((("kline:" + timeframeVar) + ":") + symbolVar);
+        string method = (name + ".subscribe");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", method },
             { "id", requestId },
@@ -839,7 +839,7 @@ public partial class phemex : ccxt.phemex
         string? type = this.safeString(message, "type");
         Int64? depth = this.safeInteger(message, "depth");
         string name = "orderbook";
-        string messageHash = add(add(name, ":"), symbol);
+        string messageHash = ((name + ":") + symbol);
         Int64? nonce = this.safeInteger(message, "sequence");
         Int64? timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
         if (type == "snapshot")
@@ -1048,11 +1048,11 @@ public partial class phemex : ccxt.phemex
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
             string? market = ((string)getValue(keys, i));
-            string hash = add(add(channel, ":"), market);
+            string hash = ((channel + ":") + market);
             callDynamically(client, "resolve", new object[] {cachedTrades, hash});
         }
         // generic subscription
-        string messageHash = add(add(channel, ":"), type);
+        string messageHash = ((channel + ":") + type);
         callDynamically(client, "resolve", new object[] {cachedTrades, messageHash});
     }
 
@@ -1329,11 +1329,11 @@ public partial class phemex : ccxt.phemex
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string currentMessageHash = add(add("orders", ":"), getValue(keys, i));
+            string currentMessageHash = (("orders" + ":") + getValue(keys, i));
             callDynamically(client, "resolve", new object[] {this.orders, currentMessageHash});
         }
         // resolve generic subscription (spot or swap)
-        string messageHash = add("orders:", type);
+        string messageHash = ("orders:" + type);
         callDynamically(client, "resolve", new object[] {this.orders, messageHash});
     }
 
@@ -1676,7 +1676,7 @@ public partial class phemex : ccxt.phemex
             callDynamically(client, "resolve", new object[] {message, messageHash});
         } else
         {
-            var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
+            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
             if (inOp(client.subscriptions, messageHash))
             {

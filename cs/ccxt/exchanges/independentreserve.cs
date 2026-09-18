@@ -1245,7 +1245,7 @@ public partial class independentreserve : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode != null))
         {
-            throw new BadRequest (add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
+            throw new BadRequest ((this.id + " withdraw () does not accept params[\"networkCode\"]")) ;
         }
         Dictionary<string, object> response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters));
         //
@@ -1332,13 +1332,13 @@ public partial class independentreserve : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
             Int64 nonce = this.nonce();
-            List<object> auth = new List<object>() {url, add("apiKey=", this.apiKey), add("nonce=", nonce.ToString())};
+            List<object> auth = new List<object>() {url, ("apiKey=" + this.apiKey), ("nonce=" + nonce.ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {

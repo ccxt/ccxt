@@ -47,7 +47,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         this.checkRequiredCredentials();
         string path = "/users/self/verify";
         Int64 nonce = this.nonce();
-        string payload = add(add(nonce.ToString(), "GET"), path);
+        string payload = ((nonce.ToString() + "GET") + path);
         string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
         return new Dictionary<string, object>() {
             { "timestamp", nonce },
@@ -70,7 +70,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (!isEqual(symbol, null))
         {
             market = this.market(symbol);
-            messageHash = add(messageHash, add(":", GetValue(market, "id")));
+            messageHash = add(messageHash, (":" + GetValue(market, "id")));
             ((IList<object>)productIds).Add(GetValue(market, "id"));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -155,12 +155,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
         if (isEqual(symbols, null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchTickers() symbols is required")) ;
+            throw new ArgumentsRequired ((this.id + " watchTickers() symbols is required")) ;
         }
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
-            throw new BadSymbol (add(this.id, " watchTickers requires a non-empty symbols array")) ;
+            throw new BadSymbol ((this.id + " watchTickers requires a non-empty symbols array")) ;
         }
         string channel = "ticker";
         string messageHash = "ticker";
@@ -220,7 +220,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
-            throw new BadRequest (add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+            throw new BadRequest ((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -255,7 +255,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -354,7 +354,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
-            throw new BadSymbol (add(this.id, " watchMyTrades requires a symbol")) ;
+            throw new BadSymbol ((this.id + " watchMyTrades requires a symbol")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -387,7 +387,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
-            throw new BadRequest (add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+            throw new BadRequest ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         string name = "level2";
         if (isEqual(this.markets, null))
@@ -400,7 +400,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         for (int i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            ((IList<object>)messageHashes).Add(add(add(name, ":"), marketId));
+            ((IList<object>)messageHashes).Add(((name + ":") + marketId));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -440,7 +440,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add(add(name, ":"), GetValue(market, "id"));
+        string messageHash = ((name + ":") + GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -484,7 +484,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             // but requires 'matches' upon subscribing
             // therefore we resolve 'matches' here instead of 'match'
             string type = "matches";
-            string messageHash = add(add(type, ":"), marketId);
+            string messageHash = ((type + ":") + marketId);
             object tradesArray = this.safeValue(this.trades, symbol);
             if ((tradesArray == null))
             {
@@ -508,7 +508,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             Dictionary<string, object> trade = this.parseWsTrade(message);
             string type = "myTrades";
-            string messageHash = add(add(type, ":"), marketId);
+            string messageHash = ((type + ":") + marketId);
             ccxt.pro.ArrayCache tradesArray = this.myTrades;
             if ((tradesArray == null))
             {
@@ -712,7 +712,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         string? marketId = this.safeString(message, "product_id");
         if ((marketId != null))
         {
-            string messageHash = add("orders:", marketId);
+            string messageHash = ("orders:" + marketId);
             string? symbol = this.safeSymbol(marketId);
             string? orderId = this.safeString(message, "order_id");
             string? makerOrderId = this.safeString(message, "maker_order_id");
@@ -904,8 +904,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             {
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             }
-            string messageHash = add("ticker:", symbol);
-            string idMessageHash = add("ticker:", marketId);
+            string messageHash = ("ticker:" + symbol);
+            string idMessageHash = ("ticker:" + marketId);
             callDynamically(client, "resolve", new object[] {ticker, messageHash});
             callDynamically(client, "resolve", new object[] {ticker, idMessageHash});
         }
@@ -1015,7 +1015,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)GetValue(market, "symbol"));
         string name = "level2";
-        string messageHash = add(add(name, ":"), marketId);
+        string messageHash = ((name + ":") + marketId);
         object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         if (type == "snapshot")
@@ -1092,10 +1092,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             if (errMsg == "Authentication Failed")
             {
-                throw new AuthenticationError (add("Authentication failed: ", reason)) ;
+                throw new AuthenticationError (("Authentication failed: " + reason)) ;
             } else
             {
-                throw new ExchangeError (add(add(this.id, " "), reason)) ;
+                throw new ExchangeError (((this.id + " ") + reason)) ;
             }
         } catch(Exception error)
         {

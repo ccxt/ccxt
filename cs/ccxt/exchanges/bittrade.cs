@@ -655,7 +655,7 @@ public partial class bittrade : Exchange
         }
         if (isEqual(symbols, null))
         {
-            throw new ExchangeError (add(this.id, " markets not loaded")) ;
+            throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
@@ -743,7 +743,7 @@ public partial class bittrade : Exchange
             response = await this.publicGetCommonSymbols(parameters);
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
+            throw new NotSupported ((((this.id + " fetchMarkets() does not support the ") + method) + " method")) ;
         }
         //
         //    {
@@ -781,7 +781,7 @@ public partial class bittrade : Exchange
         int numMarkets = markets.Count;
         if (isLessThan(numMarkets, 1))
         {
-            throw new NetworkError (add(add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
+            throw new NetworkError (((this.id + " fetchMarkets() returned empty response: ") + this.json(markets))) ;
         }
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, markets.Count); postFixIncrement(ref i))
@@ -798,11 +798,11 @@ public partial class bittrade : Exchange
             double? fee = (isEqual(bs, "OMG")) ? this.parseNumber("0") : this.parseNumber("0.002");
             if ((baseId == null))
             {
-                throw new ExchangeError (add(this.id, " fetchMarkets() missing baseId")) ;
+                throw new ExchangeError ((this.id + " fetchMarkets() missing baseId")) ;
             }
             if ((quoteId == null))
             {
-                throw new ExchangeError (add(this.id, " fetchMarkets() missing quoteId")) ;
+                throw new ExchangeError ((this.id + " fetchMarkets() missing quoteId")) ;
             }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", add(baseId, quoteId) },
@@ -1001,7 +1001,7 @@ public partial class bittrade : Exchange
         {
             if ((isEqual(((IDictionary<string,object>)response)["tick"], null)) || (isEqual(((IDictionary<string,object>)response)["tick"], null)))
             {
-                throw new BadSymbol (add(add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
+                throw new BadSymbol (((this.id + " fetchOrderBook() returned empty response: ") + this.json(response))) ;
             }
             IDictionary<string, object> tick = ((IDictionary<string, object>)this.safeValue(response, "tick"));
             Int64? timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
@@ -1009,7 +1009,7 @@ public partial class bittrade : Exchange
             result["nonce"] = this.safeInteger(tick, "version");
             return ccxt.BaseExchange.ToOrderBook(result);
         }
-        throw new ExchangeError (add(add(this.id, " fetchOrderBook() returned unrecognized response: "), this.json(response))) ;
+        throw new ExchangeError (((this.id + " fetchOrderBook() returned unrecognized response: ") + this.json(response))) ;
     }
 
     /**
@@ -1514,7 +1514,7 @@ public partial class bittrade : Exchange
             }
             if ((account == null))
             {
-                throw new ExchangeError (add(this.id, " parseBalance() could not resolve account")) ;
+                throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
             if (isEqual(getValue(balance, "type"), "trade"))
             {
@@ -1522,7 +1522,7 @@ public partial class bittrade : Exchange
             }
             if ((account == null))
             {
-                throw new ExchangeError (add(this.id, " parseBalance() could not resolve account")) ;
+                throw new ExchangeError ((this.id + " parseBalance() could not resolve account")) ;
             }
             if (isEqual(getValue(balance, "type"), "frozen"))
             {
@@ -1561,7 +1561,7 @@ public partial class bittrade : Exchange
             response = await this.privateGetAccountAccountsIdBalance(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchBalance() does not support the "), method), " method")) ;
+            throw new NotSupported ((((this.id + " fetchBalance() does not support the ") + method) + " method")) ;
         }
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
@@ -1677,7 +1677,7 @@ public partial class bittrade : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrdersV1() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrdersV1() requires a symbol argument")) ;
         }
         return await this.FetchOrdersByStates("pre-submitted,submitted,partial-filled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
@@ -1880,7 +1880,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters);
@@ -1939,7 +1939,7 @@ public partial class bittrade : Exchange
             {
                 if (isEqual(price, null))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
                     // despite that cost = amount * price is in quote currency and should have quote precision
@@ -1972,7 +1972,7 @@ public partial class bittrade : Exchange
             response = await this.privatePostOrderOrdersPlace(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " createOrder() does not support the "), method), " method")) ;
+            throw new NotSupported ((((this.id + " createOrder() does not support the ") + method) + " method")) ;
         }
         string? id = this.safeString(response, "data");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "timestamp", null },             { "datetime", null },             { "lastTradeTimestamp", null },             { "status", null },             { "symbol", symbol },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", null },             { "remaining", null },             { "cost", null },             { "trades", null },             { "fee", null },             { "clientOrderId", null },             { "average", null },         }, market));
@@ -2465,7 +2465,7 @@ public partial class bittrade : Exchange
         {
             url = add(url, "v2");
         }
-        url = add(url, add("/", this.implodeParams(path, parameters)));
+        url = add(url, ("/" + this.implodeParams(path, parameters)));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "private") || isEqual(api, "v2Private"))
         {
@@ -2488,10 +2488,10 @@ public partial class bittrade : Exchange
             // eslint-disable-next-line quotes
             string payload = String.Join("\n", content.ToArray());
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
-            auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
+            auth = add(auth, ("&" + this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));
-            url = add(url, add("?", auth));
+            url = add(url, ("?" + auth));
             if (isEqual(method, "POST"))
             {
                 body = this.json(query);
@@ -2508,7 +2508,7 @@ public partial class bittrade : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         }
         url = add(this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
@@ -2537,7 +2537,7 @@ public partial class bittrade : Exchange
             if (status == "error")
             {
                 string? code = this.safeString(response, "err-code");
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 string? message = this.safeString(response, "err-msg");

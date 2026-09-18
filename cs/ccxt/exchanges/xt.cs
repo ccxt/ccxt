@@ -3043,7 +3043,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         return await this.CreateOrder(symbol, "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(1), parameters);
     }
@@ -3092,7 +3092,7 @@ public partial class xt : Exchange
             bool isTrailing = (inOp(parameters, "trailingPercent")) || (inOp(parameters, "trailingAmount")) || (inOp(parameters, "trailingTriggerPrice"));
             if (isTrailing)
             {
-                throw new NotSupported (add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+                throw new NotSupported ((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
             }
             return await this.CreateSpotOrder(symbolVar, type, side, amount, price, parameters);
         } else
@@ -3133,7 +3133,7 @@ public partial class xt : Exchange
                 {
                     if (isEqual(price, null) && ((cost == null)))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -3237,11 +3237,11 @@ public partial class xt : Exchange
         bool isTrailing = ((trailingPercent != null)) || ((trailingAmount != null));
         if (isTrailing && (!isEqual(GetValue(market, "swap"), true)))
         {
-            throw new NotSupported (add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
+            throw new NotSupported ((this.id + " createOrder() trailing orders are only supported on swap markets")) ;
         }
         if ((!isEqual(trailingTriggerPrice, null)) && !isTrailing)
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() trailingTriggerPrice requires trailingPercent or trailingAmount")) ;
         }
         if (!isEqual(price, null))
         {
@@ -3383,7 +3383,7 @@ public partial class xt : Exchange
             bool isContract = ((subType != null)) || (type == "swap") || (type == "future");
             if (!isContract)
             {
-                throw new NotSupported (add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
+                throw new NotSupported ((this.id + " fetchOrder() trailing orders are only supported on swap and future markets")) ;
             }
         }
         if ((trigger == true))
@@ -3614,7 +3614,7 @@ public partial class xt : Exchange
             bool isContract = ((subType != null)) || (type == "swap") || (type == "future");
             if (!isContract)
             {
-                throw new NotSupported (add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
+                throw new NotSupported ((this.id + " fetchOrders() trailing orders are only supported on swap and future markets")) ;
             }
         }
         if ((trigger == true))
@@ -3807,7 +3807,7 @@ public partial class xt : Exchange
             bool isContract = ((subType != null)) || (type == "swap") || (type == "future");
             if (!isContract)
             {
-                throw new NotSupported (add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
+                throw new NotSupported ((this.id + " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
             }
             // the track endpoints do not accept a state filter, and a server-side
             // size would truncate the mixed-state page before the local status
@@ -4249,7 +4249,7 @@ public partial class xt : Exchange
             bool isContract = ((subType != null)) || (type == "swap") || (type == "future");
             if (!isContract)
             {
-                throw new NotSupported (add(this.id, " cancelOrder() trailing orders are only supported on swap and future markets")) ;
+                throw new NotSupported ((this.id + " cancelOrder() trailing orders are only supported on swap and future markets")) ;
             }
         }
         if ((trigger == true))
@@ -4378,7 +4378,7 @@ public partial class xt : Exchange
             bool isContract = ((subType != null)) || (type == "swap") || (type == "future");
             if (!isContract)
             {
-                throw new NotSupported (add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
+                throw new NotSupported ((this.id + " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
             }
         }
         if ((trigger == true))
@@ -4480,7 +4480,7 @@ public partial class xt : Exchange
         parameters = subTypeparametersVariable[1];
         if ((subType != null))
         {
-            throw new NotSupported (add(this.id, " cancelOrders() does not support swap and future orders, only spot orders are accepted")) ;
+            throw new NotSupported ((this.id + " cancelOrders() does not support swap and future orders, only spot orders are accepted")) ;
         }
         Dictionary<string, object> response = await this.privateSpotDeleteBatchOrder(this.extend(request, parameters));
         //
@@ -4766,7 +4766,7 @@ public partial class xt : Exchange
             response = await this.privateLinearGetFutureUserV1BalanceBills(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(this.id, " fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported")) ;
+            throw new NotSupported ((this.id + " fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported")) ;
         }
         //
         //     {
@@ -5208,13 +5208,13 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         string? positionSide = this.safeString(parameters, "positionSide");
         this.checkRequiredArgument("setLeverage", positionSide, "positionSide", new List<object>() {"LONG", "SHORT"});
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
         {
-            throw new BadRequest (add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
+            throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 125")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5223,7 +5223,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new NotSupported (add(this.id, " setLeverage() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " setLeverage() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5556,7 +5556,7 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5573,7 +5573,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+            throw new NotSupported ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5672,7 +5672,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5762,7 +5762,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
+            throw new NotSupported ((this.id + " fetchOpenInterest() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -5835,7 +5835,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new NotSupported (add(this.id, " fetchTradingFee() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " fetchTradingFee() supports contract markets only")) ;
         }
         string? subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
@@ -5954,7 +5954,7 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+            throw new NotSupported ((this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -6055,7 +6055,7 @@ public partial class xt : Exchange
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            string key = add(add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            string key = ((this.safeString(breakEntry, "symbol") + "_") + this.safeString(breakEntry, "positionSide"));
             breakBySymbolSide[(string)key] = breakEntry;
         }
         return ((Dictionary<string, object>)((object)(breakBySymbolSide)));
@@ -6176,7 +6176,7 @@ public partial class xt : Exchange
                 return ccxt.BaseExchange.ToPosition(this.parsePosition(merged, marketInner));
             }
         }
-        throw new NullResponse (add(add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
+        throw new NullResponse (((this.id + " fetchPosition() could not find a position for ") + symbol)) ;
     }
 
     /**
@@ -6536,7 +6536,7 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -6545,12 +6545,12 @@ public partial class xt : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " setMarginMode() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " setMarginMode() supports contract markets only")) ;
         }
         marginModeVar = marginModeVar.ToLower();
         if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         if (isEqual(marginModeVar, "cross"))
         {
@@ -6616,7 +6616,7 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(amount, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -6739,7 +6739,7 @@ public partial class xt : Exchange
         string? status = this.safeStringUpper2(response, "msgInfo", "mc");
         if ((status != null) && status != "SUCCESS")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             IDictionary<string, object> error = this.safeDict(response, "error", new Dictionary<string, object>() {});
             string? spotErrorCode = this.safeString(response, "mc");
             string? errorCode = this.safeString(error, "code", spotErrorCode);
@@ -6759,16 +6759,16 @@ public partial class xt : Exchange
         parameters ??= new Dictionary<string, object>();
         bool signed = isEqual(getValue(api, 0), "private");
         object endpoint = getValue(api, 1);
-        string request = add("/", this.implodeParams(path, parameters));
+        string request = ("/" + this.implodeParams(path, parameters));
         string? payload = null;
         if ((isEqual(endpoint, "spot")) || (isEqual(endpoint, "user")))
         {
             if (signed)
             {
-                payload = add(add("/", this.version), request);
+                payload = (("/" + this.version) + request);
             } else
             {
-                payload = add(add(add("/", this.version), "/public"), request);
+                payload = ((("/" + this.version) + "/public") + request);
             }
         } else
         {
@@ -6792,14 +6792,14 @@ public partial class xt : Exchange
                 string id = "CCXT";
                 if (isEqual(body, null))
                 {
-                    throw new NullResponse (add(this.id, " sign() returned empty body")) ;
+                    throw new NullResponse ((this.id + " sign() returned empty body")) ;
                 }
                 if (getIndexOf(payload, "future") > -1)
                 {
                     ((IDictionary<string,object>)body)["clientMedia"] = id;
                     if (isEqual(body, null))
                     {
-                        throw new NullResponse (add(this.id, " sign() returned empty body")) ;
+                        throw new NullResponse ((this.id + " sign() returned empty body")) ;
                     }
                 } else
                 {
@@ -6815,39 +6815,39 @@ public partial class xt : Exchange
             object payloadString = null;
             if ((isEqual(endpoint, "spot")) || (isEqual(endpoint, "user")))
             {
-                payloadString = add(add(add(add(add(add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.apiKey), "&xt-validate-recvwindow="), recvWindow), "&xt-validate-t"), "imestamp="), timestamp);
+                payloadString = add(((((("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=" + this.apiKey) + "&xt-validate-recvwindow=") + recvWindow) + "&xt-validate-t") + "imestamp="), timestamp);
                 if (isUndefinedBody)
                 {
                     if (urlencoded != "")
                     {
-                        url = add(url, add("?", urlencoded));
-                        payloadString = add(payloadString, add(add(add(add(add("#", method), "#"), payload), "#"), this.rawencode(this.keysort(query))));
+                        url = add(url, ("?" + urlencoded));
+                        payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + this.rawencode(this.keysort(query))));
                     } else
                     {
-                        payloadString = add(payloadString, add(add(add("#", method), "#"), payload));
+                        payloadString = add(payloadString, ((("#" + method) + "#") + payload));
                     }
                 } else
                 {
-                    payloadString = add(payloadString, add(add(add(add(add("#", method), "#"), payload), "#"), body));
+                    payloadString = add(payloadString, ((((("#" + method) + "#") + payload) + "#") + body));
                 }
                 ((IDictionary<string,object>)headers)["xt-validate-algorithms"] = "HmacSHA256";
                 ((IDictionary<string,object>)headers)["xt-validate-recvwindow"] = recvWindow;
             } else
             {
-                payloadString = add(add(add(add("xt-validate-appkey=", this.apiKey), "&xt-validate-t"), "imestamp="), timestamp); // we can't glue timestamp, breaks in php
+                payloadString = (((("xt-validate-appkey=" + this.apiKey) + "&xt-validate-t") + "imestamp=") + timestamp); // we can't glue timestamp, breaks in php
                 if (isEqual(method, "GET"))
                 {
                     if (urlencoded != "")
                     {
-                        url = add(url, add("?", urlencoded));
-                        payloadString = add(payloadString, add(add(add("#", payload), "#"), urlencoded));
+                        url = add(url, ("?" + urlencoded));
+                        payloadString = add(payloadString, ((("#" + payload) + "#") + urlencoded));
                     } else
                     {
-                        payloadString = add(payloadString, add("#", payload));
+                        payloadString = add(payloadString, ("#" + payload));
                     }
                 } else
                 {
-                    payloadString = add(payloadString, add(add(add("#", payload), "#"), body));
+                    payloadString = add(payloadString, ((("#" + payload) + "#") + body));
                 }
             }
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
@@ -6858,7 +6858,7 @@ public partial class xt : Exchange
         {
             if (urlencoded != "")
             {
-                url = add(url, add("?", urlencoded));
+                url = add(url, ("?" + urlencoded));
             }
         }
         return new Dictionary<string, object>() {

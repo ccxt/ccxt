@@ -93,7 +93,7 @@ public partial class poloniex : ccxt.poloniex
         if ((future == null))
         {
             string accessPath = "/ws";
-            string requestString = add(add(add("GET\n", accessPath), "\nsignTimestamp="), timestamp);
+            string requestString = ((("GET\n" + accessPath) + "\nsignTimestamp=") + timestamp);
             string signature = this.hmac(this.encode(requestString), this.encode(this.secret), sha256, "base64");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", "subscribe" },
@@ -161,7 +161,7 @@ public partial class poloniex : ccxt.poloniex
         {
             if (isEqual(symbols, null))
             {
-                throw new ArgumentsRequired (add(this.id, " subscribe() symbols is required")) ;
+                throw new ArgumentsRequired ((this.id + " subscribe() symbols is required")) ;
             }
             messageHash = add(add(messageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
             IList<object> ids = this.marketIds(symbols);
@@ -230,7 +230,7 @@ public partial class poloniex : ccxt.poloniex
         string uppercaseType = type.ToUpper();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrderWs() side is required")) ;
+            throw new ArgumentsRequired ((this.id + " createOrderWs() side is required")) ;
         }
         string uppercaseSide = side.ToUpper();
         bool isPostOnly = this.isPostOnly(uppercaseType == "MARKET", uppercaseType == "LIMIT_MAKER", parameters);
@@ -259,7 +259,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 if (isEqual(price, null))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
                     string? amountString = this.numberToString(amount);
@@ -406,7 +406,7 @@ public partial class poloniex : ccxt.poloniex
         string? channel = this.safeString(timeframes, timeframeVar, timeframeVar);
         if ((channel == null))
         {
-            throw new BadRequest (add(add(this.id, " watchOHLCV cannot take a timeframe of "), timeframeVar)) ;
+            throw new BadRequest (((this.id + " watchOHLCV cannot take a timeframe of ") + timeframeVar)) ;
         }
         object ohlcv = await this.subscribe(channel, channel, false, new List<object>() {symbol}, parameters);
         if (isTrue(this.newUpdates))
@@ -515,7 +515,7 @@ public partial class poloniex : ccxt.poloniex
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(symbols, i)));
+                ((IList<object>)messageHashes).Add(((name + "::") + getValue(symbols, i)));
             }
         }
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
@@ -745,7 +745,7 @@ public partial class poloniex : ccxt.poloniex
                 Dictionary<string, object> trade = this.parseWsTrade(item);
                 object symbol = GetValue(trade, "symbol");
                 string type = "trades";
-                string messageHash = add(add(type, "::"), symbol);
+                string messageHash = ((type + "::") + symbol);
                 object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
                 if ((tradesArray == null))
                 {
@@ -1034,7 +1034,7 @@ public partial class poloniex : ccxt.poloniex
             string? marketId = ((string)getValue(marketIds, i));
             Dictionary<string, object> market = this.market(marketId);
             string? symbol = ((string)GetValue(market, "symbol"));
-            string messageHash = add("orders::", symbol);
+            string messageHash = ("orders::" + symbol);
             callDynamically(client, "resolve", new object[] {orders, messageHash});
         }
         callDynamically(client, "resolve", new object[] {orders, "orders"});
@@ -1235,7 +1235,7 @@ public partial class poloniex : ccxt.poloniex
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)GetValue(market, "symbol"));
             string name = "book_lv2";
-            string messageHash = add(add(name, "::"), symbol);
+            string messageHash = ((name + "::") + symbol);
             object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
             Int64? timestamp = this.safeInteger(item, "ts");
@@ -1359,7 +1359,7 @@ public partial class poloniex : ccxt.poloniex
         ccxt.pro.ArrayCache trades = this.myTrades;
         callDynamically(trades, "append", new object[] {parsedTrade});
         callDynamically(client, "resolve", new object[] {trades, messageHash});
-        string symbolMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolMessageHash = ((messageHash + ":") + symbol);
         callDynamically(client, "resolve", new object[] {trades, symbolMessageHash});
     }
 
@@ -1466,7 +1466,7 @@ public partial class poloniex : ccxt.poloniex
             {
                 string? error = this.safeString(first, "message");
                 string? code = this.safeString(first, "code");
-                string feedback = add(add(this.id, " "), this.json(message));
+                string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
                 throw new ExchangeError (feedback) ;
@@ -1508,7 +1508,7 @@ public partial class poloniex : ccxt.poloniex
             callDynamically(client, "resolve", new object[] {message, messageHash});
         } else
         {
-            var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
+            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
             if (inOp(client.subscriptions, messageHash))
             {

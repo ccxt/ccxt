@@ -112,10 +112,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if ((url == null))
         {
-            throw new NotSupported (add(this.id, " is not supported in sandbox environment")) ;
+            throw new NotSupported ((this.id + " is not supported in sandbox environment")) ;
         }
         string timestamp = this.nonce().ToString();
-        object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
+        object auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
         string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
@@ -173,7 +173,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if ((url == null))
         {
-            throw new NotSupported (add(this.id, " is not supported in sandbox environment")) ;
+            throw new NotSupported ((this.id + " is not supported in sandbox environment")) ;
         }
         object timestamp = this.numberToString(this.seconds());
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
@@ -219,7 +219,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbols, null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchFundingRates() requires an array of symbols")) ;
+            throw new ArgumentsRequired ((this.id + " watchFundingRates() requires an array of symbols")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -875,7 +875,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? errMsg = this.safeString(message, "message");
         try
         {
-            string feedback = add(add(add(this.id, " "), errMsg), reason);
+            string feedback = (((this.id + " ") + errMsg) + reason);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reason, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), reason, feedback);
             throw new ExchangeError (feedback) ;

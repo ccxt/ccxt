@@ -1025,11 +1025,11 @@ public partial class coinone : Exchange
         string orderSide = side.ToUpper(); // unified lowercase order sides, same override rule
         if (orderType != "LIMIT")
         {
-            throw new ExchangeError (add(this.id, " createOrder() allows limit orders only")) ;
+            throw new ExchangeError ((this.id + " createOrder() allows limit orders only")) ;
         }
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument for the limit orders")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for the limit orders")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1072,7 +1072,7 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1270,7 +1270,7 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ExchangeError (add(this.id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")) ;
+            throw new ExchangeError ((this.id + " fetchOpenOrders() allows fetching closed orders with a specific symbol")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1318,7 +1318,7 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1367,14 +1367,14 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
         }
         double? price = this.safeNumber(parameters, "price");
         double? qty = this.safeNumber(parameters, "qty");
         Int64? isAsk = this.safeInteger(parameters, "is_ask");
         if ((isEqual(price, null)) || (isEqual(qty, null)) || (isEqual(isAsk, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1494,7 +1494,7 @@ public partial class coinone : Exchange
             url = add(url, request);
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
@@ -1544,7 +1544,7 @@ public partial class coinone : Exchange
         string? errorCode = this.safeString(response, "error_code");
         if ((errorCode != null) && errorCode != "0")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }

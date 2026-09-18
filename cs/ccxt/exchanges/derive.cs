@@ -1549,7 +1549,7 @@ public partial class derive : Exchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -1559,7 +1559,7 @@ public partial class derive : Exchange
         object r = GetValue(signature, "r");
         object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return ((("0x" + (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -1603,7 +1603,7 @@ public partial class derive : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument")) ;
         }
         object subaccountId = null;
         IList<object> subaccountIdparametersVariable = (IList<object>)this.handleDeriveSubaccountId("createOrder", parameters);
@@ -1629,7 +1629,7 @@ public partial class derive : Exchange
         parameters = maxFeeparametersVariable[1];
         if (isEqual(maxFee, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a max_fee argument in params")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a max_fee argument in params")) ;
         }
         string? maxFeeString = this.numberToString(maxFee);
         string? amountString = this.numberToString(amount);
@@ -1657,7 +1657,7 @@ public partial class derive : Exchange
             request["reduce_only"] = reduceOnly;
             if (reduceOnly == true && ((postOnly == true)))
             {
-                throw new InvalidOrder (add(this.id, " cannot use reduce only with post only time in force")) ;
+                throw new InvalidOrder ((this.id + " cannot use reduce only with post only time in force")) ;
             }
         }
         if (!isEqual(postOnly, null))
@@ -1842,7 +1842,7 @@ public partial class derive : Exchange
             request["reduce_only"] = reduceOnly;
             if (reduceOnly == true && ((postOnly == true)))
             {
-                throw new InvalidOrder (add(this.id, " cannot use reduce only with post only time in force")) ;
+                throw new InvalidOrder ((this.id + " cannot use reduce only with post only time in force")) ;
             }
         }
         if (!isEqual(postOnly, null))
@@ -1957,7 +1957,7 @@ public partial class derive : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3197,7 +3197,7 @@ public partial class derive : Exchange
         {
             return new List<object>() {optionsWallet, parameters};
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
     public virtual List<object> handleDeriveWalletAddress(object methodName, object parameters)
@@ -3216,7 +3216,7 @@ public partial class derive : Exchange
         {
             return new List<object>() {optionsWallet, parameters};
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a deriveWalletAddress parameter inside 'params' or exchange.options['deriveWalletAddress'] = ADDRESS, the address can find in HOME => Developers tab.")) ;
     }
 
     public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -3229,7 +3229,7 @@ public partial class derive : Exchange
         if ((error != null))
         {
             string? errorCode = this.safeString(error, "code");
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

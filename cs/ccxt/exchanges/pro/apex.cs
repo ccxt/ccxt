@@ -92,7 +92,7 @@ public partial class apex : ccxt.apex
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
-            throw new ArgumentsRequired (add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
+            throw new ArgumentsRequired ((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
         string? url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
@@ -101,9 +101,9 @@ public partial class apex : ccxt.apex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = add("recentlyTrade.H.", getValue(market, "id2"));
+            string topic = ("recentlyTrade.H." + getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add("trade:", symbol);
+            string messageHash = ("trade:" + symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object trades = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -159,7 +159,7 @@ public partial class apex : ccxt.apex
             Dictionary<string, object> parsed = this.parseWsTrade(getValue(trades, index), market);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = add(add("trade", ":"), symbol);
+        string messageHash = (("trade" + ":") + symbol);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 
@@ -240,7 +240,7 @@ public partial class apex : ccxt.apex
         int symbolsLength = getArrayLength(symbols);
         if ((symbolsLength == 0))
         {
-            throw new ArgumentsRequired (add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
+            throw new ArgumentsRequired ((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         symbols = this.marketSymbols(symbols);
         string? url = this.getWsPublicUrl();
@@ -254,9 +254,9 @@ public partial class apex : ccxt.apex
             {
                 limitVar = 25;
             }
-            string topic = add(add(add("orderBook", limitVar.ToString()), ".H."), getValue(market, "id2"));
+            string topic = ((("orderBook" + limitVar.ToString()) + ".H.") + getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add("orderbook:", symbol);
+            string messageHash = ("orderbook:" + symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object orderbook = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -382,7 +382,7 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         }
-        string messageHash = add(add("orderbook", ":"), symbol);
+        string messageHash = (("orderbook" + ":") + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -421,8 +421,8 @@ public partial class apex : ccxt.apex
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string? url = this.getWsPublicUrl();
-        string messageHash = add("ticker:", symbolVar);
-        string topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
+        string messageHash = ("ticker:" + symbolVar);
+        string topic = (("instrumentInfo" + ".H.") + getValue(market, "id2"));
         List<object> topics = new List<object>() {topic};
         return ccxt.BaseExchange.ToTicker(await this.watchTopics(url, new List<object>() {messageHash}, topics, parameters));
     }
@@ -451,9 +451,9 @@ public partial class apex : ccxt.apex
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
-            string topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
+            string topic = (("instrumentInfo" + ".H.") + getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + symbol);
             ((IList<object>)messageHashes).Add(messageHash);
         }
         object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
@@ -514,7 +514,7 @@ public partial class apex : ccxt.apex
         parsed["timestamp"] = timestamp;
         parsed["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = parsed;
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
     }
 
@@ -569,8 +569,8 @@ public partial class apex : ccxt.apex
             symbolString = getValue(market, "id2");
             string? unfiedTimeframe = this.safeString(data, 1, "1");
             string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
-            ((IList<object>)rawHashes).Add(add(add(add("candle.", timeframeId), "."), symbolString));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", GetValue(market, "symbol")), "::"), unfiedTimeframe));
+            ((IList<object>)rawHashes).Add(((("candle." + timeframeId) + ".") + symbolString));
+            ((IList<object>)messageHashes).Add(((("ohlcv::" + GetValue(market, "symbol")) + "::") + unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -634,7 +634,7 @@ public partial class apex : ccxt.apex
             List<object> parsed = this.parseWsOHLCV(getValue(data, i));
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
+        string messageHash = ((("ohlcv::" + symbol) + "::") + timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         callDynamically(client, "resolve", new object[] {resolveData, messageHash});
     }
@@ -684,7 +684,7 @@ public partial class apex : ccxt.apex
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
@@ -718,10 +718,10 @@ public partial class apex : ccxt.apex
         if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = ("::" + String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         string? url = this.getWsPrivateUrl();
-        messageHash = add("positions", messageHash);
+        messageHash = ("positions" + messageHash);
         var client = this.client(url);
         await this.authenticate(url);
         this.setPositionsCache(client, symbols);
@@ -764,7 +764,7 @@ public partial class apex : ccxt.apex
         if (!isEqual(symbolVar, null))
         {
             symbolVar = this.symbol(symbolVar);
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         string? url = this.getWsPrivateUrl();
         await this.authenticate(url);
@@ -814,7 +814,7 @@ public partial class apex : ccxt.apex
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string currentMessageHash = add("myTrades:", getValue(keys, i));
+            string currentMessageHash = ("myTrades:" + getValue(keys, i));
             callDynamically(client, "resolve", new object[] {trades, currentMessageHash});
         }
         // non-symbol specific
@@ -870,7 +870,7 @@ public partial class apex : ccxt.apex
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
         for (int i = 0; isLessThan(i, symbolsArray.Count); postFixIncrement(ref i))
         {
-            string currentMessageHash = add("orders:", getValue(symbolsArray, i));
+            string currentMessageHash = ("orders:" + getValue(symbolsArray, i));
             callDynamically(client, "resolve", new object[] {orders, currentMessageHash});
         }
         string messageHash = "orders";
@@ -992,7 +992,7 @@ public partial class apex : ccxt.apex
         string timestamp = this.milliseconds().ToString();
         string request_path = "/ws/accounts";
         string http_method = "GET";
-        string messageString = (add(add(timestamp, http_method), request_path));
+        string messageString = (((timestamp + http_method) + request_path));
         string signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256, "base64");
         string messageHash = "authenticated";
         var client = this.client(url);
@@ -1070,7 +1070,7 @@ public partial class apex : ccxt.apex
         {
             if ((code != null) && code != "0")
             {
-                string feedback = add(add(this.id, " "), this.json(message));
+                string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
                 string? msg = this.safeString2(message, "retMsg", "ret_msg");
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), msg, feedback);
@@ -1094,10 +1094,10 @@ public partial class apex : ccxt.apex
                 }
                 if (op == "auth")
                 {
-                    throw new AuthenticationError (add("Authentication failed: ", ret_msg)) ;
+                    throw new AuthenticationError (("Authentication failed: " + ret_msg)) ;
                 } else
                 {
-                    throw new ExchangeError (add(add(this.id, " "), ret_msg)) ;
+                    throw new ExchangeError (((this.id + " ") + ret_msg)) ;
                 }
             }
             return ((bool?)((object)(false)));
@@ -1197,7 +1197,7 @@ public partial class apex : ccxt.apex
             });
         } catch(Exception e)
         {
-            var error = new NetworkError(add(add(this.id, " handlePing failed with error "), this.exceptionMessage(e)));
+            var error = new NetworkError(((this.id + " handlePing failed with error ") + this.exceptionMessage(e)));
             client.reset(error);
         }
     }
@@ -1263,7 +1263,7 @@ public partial class apex : ccxt.apex
             (future as Future).resolve(true);
         } else
         {
-            var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
+            var error = new AuthenticationError(((this.id + " ") + this.json(message)));
             client.reject(error, messageHash);
             if (inOp(client.subscriptions, messageHash))
             {

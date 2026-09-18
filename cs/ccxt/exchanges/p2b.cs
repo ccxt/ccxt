@@ -392,7 +392,7 @@ public partial class p2b : Exchange
         string? maxPrice = this.safeString(limits, "max_price");
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", marketId },
-            { "symbol", add(add(bs, "/"), quote) },
+            { "symbol", ((bs + "/") + quote) },
             { "base", bs },
             { "quote", quote },
             { "settle", null },
@@ -677,7 +677,7 @@ public partial class p2b : Exchange
         Int64? lastId = this.safeInteger(parameters, "lastId");
         if (isEqual(lastId, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -951,7 +951,7 @@ public partial class p2b : Exchange
         }
         if (isEqual(type, "market"))
         {
-            throw new BadRequest (add(this.id, " createOrder () can only accept orders with type \"limit\"")) ;
+            throw new BadRequest ((this.id + " createOrder () can only accept orders with type \"limit\"")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1002,7 +1002,7 @@ public partial class p2b : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1059,7 +1059,7 @@ public partial class p2b : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders () requires the symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders () requires the symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1183,7 +1183,7 @@ public partial class p2b : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1207,7 +1207,7 @@ public partial class p2b : Exchange
         }
         if (isGreaterThan((subtract(until, sinceVar)), 86400000))
         {
-            throw new BadRequest (add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            throw new BadRequest ((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Int64? sinceSec = this.parseToInt(divide(sinceVar, 1000));
@@ -1299,7 +1299,7 @@ public partial class p2b : Exchange
         }
         if (isGreaterThan((subtract(until, sinceVar)), 86400000))
         {
-            throw new BadRequest (add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
+            throw new BadRequest ((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         Int64? sinceSec = this.parseToInt(divide(sinceVar, 1000));
         Int64? untilSec = this.parseToInt(divide(until, 1000));
@@ -1436,12 +1436,12 @@ public partial class p2b : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         }
         if (isEqual(api, "private"))
         {
-            ((IDictionary<string,object>)parameters)["request"] = add("/api/v2/", path);
+            ((IDictionary<string,object>)parameters)["request"] = ("/api/v2/" + path);
             ((IDictionary<string,object>)parameters)["nonce"] = this.nonce().ToString();
             string payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new Dictionary<string, object>() {
@@ -1475,7 +1475,7 @@ public partial class p2b : Exchange
         if ((success != true))
         {
             string? errorCode = this.safeString(response, "errorCode");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             string codeAsString = code.ToString();
             if ((isLessThan(code, 400)) || !(this.httpExceptions.ContainsKey(codeAsString)))

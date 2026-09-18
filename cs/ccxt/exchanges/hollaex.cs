@@ -1100,7 +1100,7 @@ public partial class hollaex : Exchange
         object currenciesById = this.currencies_by_id;
         if ((currenciesById == null))
         {
-            throw new ExchangeError (add(this.id, " currencies not loaded")) ;
+            throw new ExchangeError ((this.id + " currencies not loaded")) ;
         }
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
@@ -1283,7 +1283,7 @@ public partial class hollaex : Exchange
         Dictionary<string, object> order = response;
         if ((order == null))
         {
-            throw new OrderNotFound (add(add(this.id, " fetchOrder() could not find order id "), id)) ;
+            throw new OrderNotFound (((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
     }
@@ -1560,7 +1560,7 @@ public partial class hollaex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2056,12 +2056,12 @@ public partial class hollaex : Exchange
         Dictionary<string, object> currency = this.currency(code);
         if (!isEqual(tagVar, null))
         {
-            addressVar = add(addressVar, add(":", tagVar));
+            addressVar = add(addressVar, (":" + tagVar));
         }
         string? network = this.safeString(parameters, "network");
         if ((network == null))
         {
-            throw new ArgumentsRequired (add(this.id, " withdraw() requires a network parameter")) ;
+            throw new ArgumentsRequired ((this.id + " withdraw() requires a network parameter")) ;
         }
         parameters = this.omit(parameters, "network");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2150,7 +2150,7 @@ public partial class hollaex : Exchange
                 string? networkCode = this.networkIdToCode(key, currencyCode);
                 if ((networkCode == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " requires a networkCode argument")) ;
+                    throw new ArgumentsRequired ((this.id + " requires a networkCode argument")) ;
                 }
                 string networkCodeUpper = networkCode.ToUpper(); // default to the upper case network code
                 double? withdrawalFee = this.safeNumber(value, "value");
@@ -2221,12 +2221,12 @@ public partial class hollaex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        path = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        path = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         if ((isEqual(method, "GET")) || (isEqual(method, "DELETE")))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                path = add(path, add("?", this.urlencode(query)));
+                path = add(path, ("?" + this.urlencode(query)));
             }
         }
         object url = add(getValue(getValue(this.urls, "api"), "rest"), path);
@@ -2279,7 +2279,7 @@ public partial class hollaex : Exchange
             //
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             string? message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             string status = code.ToString();

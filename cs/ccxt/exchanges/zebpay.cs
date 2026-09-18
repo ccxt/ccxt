@@ -436,7 +436,7 @@ public partial class zebpay : Exchange
                 ((IList<object>)promisesUnresolved).Add(this.FetchSwapMarkets(parameters));
             } else
             {
-                throw new ExchangeError (add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), type), "\" is not a supported market type")) ;
+                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + type) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesUnresolved);
@@ -799,7 +799,7 @@ public partial class zebpay : Exchange
         parameters = typeparametersVariable[1];
         if (type != "spot")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchTickers() does not support "), type), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchTickers() does not support ") + type) + " markets")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -893,7 +893,7 @@ public partial class zebpay : Exchange
         {
             if (isEqual(until, null) || isEqual(since, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a both a since and until/endtime parameter for spot markets")) ;
             }
             response = await this.publicSpotGetV2MarketKlines(this.extend(request, parameters));
         } else
@@ -1016,7 +1016,7 @@ public partial class zebpay : Exchange
         Dictionary<string, object> response = null;
         if (type == "spot")
         {
-            throw new NotSupported (add(this.id, " fetchMyTrades() does not support spot markets")) ;
+            throw new NotSupported ((this.id + " fetchMyTrades() does not support spot markets")) ;
         } else
         {
             response = await this.privateSwapGetV1TradeHistory(parameters);
@@ -1047,7 +1047,7 @@ public partial class zebpay : Exchange
         parameters = typeparametersVariable[1];
         if (type != "spot")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchOrderTrades() does not support "), type), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchOrderTrades() does not support ") + type) + " markets")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1222,7 +1222,7 @@ public partial class zebpay : Exchange
         parameters = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1262,7 +1262,7 @@ public partial class zebpay : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument for limit orders")) ;
+                        throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for limit orders")) ;
                     }
                     request["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
                 }
@@ -1296,7 +1296,7 @@ public partial class zebpay : Exchange
         {
             if ((quoteOrderQty == null))
             {
-                throw new ExchangeError (add(this.id, " spot market orders require cost in params")) ;
+                throw new ExchangeError ((this.id + " spot market orders require cost in params")) ;
             }
             ((IDictionary<string,object>)request)["quoteOrderAmount"] = this.costToPrecision(symbol, quoteOrderQty);
         } else
@@ -1342,7 +1342,7 @@ public partial class zebpay : Exchange
             string? clientOrderId = this.safeString(parameters, "clientOrderId");
             if ((clientOrderId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a clientOrderId parameter for swap orders")) ;
+                throw new ArgumentsRequired ((this.id + " cancelOrder() requires a clientOrderId parameter for swap orders")) ;
             }
             request["clientOrderId"] = clientOrderId;
             request["symbol"] = GetValue(market, "id");
@@ -1378,7 +1378,7 @@ public partial class zebpay : Exchange
         parameters = typeparametersVariable[1];
         if (type != "spot")
         {
-            throw new NotSupported (add(add(add(this.id, " cancelAllOrders() does not support "), type), " markets")) ;
+            throw new NotSupported ((((this.id + " cancelAllOrders() does not support ") + type) + " markets")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1701,7 +1701,7 @@ public partial class zebpay : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2192,7 +2192,7 @@ public partial class zebpay : Exchange
         bool isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
         string marketType = isV1 ? "swap" : "spot";
         object url = getValue(getValue(this.urls, "api"), marketType);
-        string tail = add("/api/", this.implodeParams(path, parameters));
+        string tail = ("/api/" + this.implodeParams(path, parameters));
         url = add(url, tail);
         string timestamp = this.milliseconds().ToString();
         string signature = "";
@@ -2205,7 +2205,7 @@ public partial class zebpay : Exchange
             {
                 if ((!isEqual(queryLength, null)) && ((queryLength != 0)))
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -2225,7 +2225,7 @@ public partial class zebpay : Exchange
                 // For GET/DELETE: Append params to URL and sign the query string
                 string queryString = this.urlencode(parameters);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
-                url = add(url, add("?", queryString));
+                url = add(url, ("?" + queryString));
             } else
             {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
@@ -2263,7 +2263,7 @@ public partial class zebpay : Exchange
         //
         string? errorCode = this.safeString2(response, "code", "statusCode");
         string? message = this.safeString2(response, "msg", "statusDescription");
-        string feedback = add(add(this.id, " "), message);
+        string feedback = ((this.id + " ") + message);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);

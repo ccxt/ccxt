@@ -594,7 +594,7 @@ public partial class upbit : Exchange
         string? id = this.safeString(market, "market");
         if ((id == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing id")) ;
         }
         var quoteIdbaseIdVariable = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         var quoteId = ((IList<object>) quoteIdbaseIdVariable)[0];
@@ -1362,7 +1362,7 @@ public partial class upbit : Exchange
         {
             if (isEqual(price, null) || isEqual(amount, null))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                throw new InvalidOrder ((this.id + " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }
             string? amountString = this.numberToString(amount);
             string? priceString = this.numberToString(price);
@@ -1372,13 +1372,13 @@ public partial class upbit : Exchange
         {
             if (isEqual(amount, null))
             {
-                throw new ArgumentsRequired (add(this.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
+                throw new ArgumentsRequired ((this.id + " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
             }
             quoteAmount = this.costToPrecision(symbol, amount);
         }
         if ((quoteAmount == null))
         {
-            throw new ArgumentsRequired (add(this.id, " calcOrderPrice() could not determine quote amount")) ;
+            throw new ArgumentsRequired ((this.id + " calcOrderPrice() could not determine quote amount")) ;
         }
         return quoteAmount;
     }
@@ -1420,7 +1420,7 @@ public partial class upbit : Exchange
         bool? test = this.safeBool(parameters, "test", false);
         if (postOnly && ((selfTradePrevention != null)))
         {
-            throw new ExchangeError (add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+            throw new ExchangeError ((this.id + " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
         string? orderSide = null;
         if (isEqual(side, "buy"))
@@ -1431,7 +1431,7 @@ public partial class upbit : Exchange
             orderSide = "ask";
         } else
         {
-            throw new InvalidOrder (add(this.id, " createOrder() supports only buy or sell in the side argument.")) ;
+            throw new InvalidOrder ((this.id + " createOrder() supports only buy or sell in the side argument.")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", GetValue(market, "id") },
@@ -1441,7 +1441,7 @@ public partial class upbit : Exchange
         {
             if (isEqual(price, null) || isEqual(amount, null))
             {
-                throw new ArgumentsRequired (add(this.id, " the limit type order in createOrder() is required price and amount.")) ;
+                throw new ArgumentsRequired ((this.id + " the limit type order in createOrder() is required price and amount.")) ;
             }
             request["ord_type"] = "limit";
             request["price"] = this.priceToPrecision(symbol, price);
@@ -1457,14 +1457,14 @@ public partial class upbit : Exchange
             {
                 if (isEqual(amount, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " the market sell type order in createOrder() is required amount.")) ;
+                    throw new ArgumentsRequired ((this.id + " the market sell type order in createOrder() is required amount.")) ;
                 }
                 request["ord_type"] = "market";
                 request["volume"] = this.amountToPrecision(symbol, amount);
             }
         } else
         {
-            throw new InvalidOrder (add(this.id, " createOrder() supports only limit or market types in the type argument.")) ;
+            throw new InvalidOrder ((this.id + " createOrder() supports only limit or market types in the type argument.")) ;
         }
         if (customType == "best")
         {
@@ -1478,7 +1478,7 @@ public partial class upbit : Exchange
             {
                 if (isEqual(amount, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " the best sell type order in createOrder() is required amount.")) ;
+                    throw new ArgumentsRequired ((this.id + " the best sell type order in createOrder() is required amount.")) ;
                 }
                 request["volume"] = this.amountToPrecision(symbol, amount);
             }
@@ -1491,7 +1491,7 @@ public partial class upbit : Exchange
         {
             if (!isEqual(GetValue(request, "ord_type"), "limit"))
             {
-                throw new InvalidOrder (add(this.id, " postOnly orders are only supported for limit orders")) ;
+                throw new InvalidOrder ((this.id + " postOnly orders are only supported for limit orders")) ;
             }
             request["time_in_force"] = "post_only";
         }
@@ -1504,7 +1504,7 @@ public partial class upbit : Exchange
         }
         if (isEqual(GetValue(request, "ord_type"), "best") && (timeInForce == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a timeInForce parameter for best type orders")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a timeInForce parameter for best type orders")) ;
         }
         Dictionary<string, object> response = null;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "time_in_force", "postOnly", "clientOrderId", "cost", "selfTradePrevention", "smp_type", "test"});
@@ -1619,7 +1619,7 @@ public partial class upbit : Exchange
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "new_smp_type");
         if (postOnly && ((selfTradePrevention != null)))
         {
-            throw new ExchangeError (add(this.id, " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
+            throw new ExchangeError ((this.id + " editOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
         }
         parameters = this.omit(parameters, "clientOrderId");
         if (!isEqual(id, null))
@@ -1630,13 +1630,13 @@ public partial class upbit : Exchange
             request["prev_order_identifier"] = prevClientOrderId;
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() is required id or clientOrderId.")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() is required id or clientOrderId.")) ;
         }
         if (isEqual(type, "limit"))
         {
             if (isEqual(price, null) || isEqual(amount, null))
             {
-                throw new ArgumentsRequired (add(this.id, " editOrder() is required price and amount to create limit type order.")) ;
+                throw new ArgumentsRequired ((this.id + " editOrder() is required price and amount to create limit type order.")) ;
             }
             request["new_ord_type"] = "limit";
             request["new_price"] = this.priceToPrecision(symbol, price);
@@ -1652,14 +1652,14 @@ public partial class upbit : Exchange
             {
                 if (isEqual(amount, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " editOrder() is required amount to create market sell type order.")) ;
+                    throw new ArgumentsRequired ((this.id + " editOrder() is required amount to create market sell type order.")) ;
                 }
                 request["new_ord_type"] = "market";
                 request["new_volume"] = this.amountToPrecision(symbol, amount);
             }
         } else
         {
-            throw new InvalidOrder (add(this.id, " editOrder() supports only limit or market types in the type argument.")) ;
+            throw new InvalidOrder ((this.id + " editOrder() supports only limit or market types in the type argument.")) ;
         }
         if (customType == "best")
         {
@@ -1673,7 +1673,7 @@ public partial class upbit : Exchange
             {
                 if (isEqual(amount, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " editOrder() is required amount to create best sell order.")) ;
+                    throw new ArgumentsRequired ((this.id + " editOrder() is required amount to create best sell order.")) ;
                 }
                 request["new_volume"] = this.amountToPrecision(symbol, amount);
             }
@@ -1690,7 +1690,7 @@ public partial class upbit : Exchange
         {
             if (!isEqual(GetValue(request, "new_ord_type"), "limit"))
             {
-                throw new InvalidOrder (add(this.id, " postOnly orders are only supported for limit orders")) ;
+                throw new InvalidOrder ((this.id + " postOnly orders are only supported for limit orders")) ;
             }
             request["new_time_in_force"] = "post_only";
         }
@@ -1703,7 +1703,7 @@ public partial class upbit : Exchange
         }
         if (isEqual(GetValue(request, "new_ord_type"), "best") && (timeInForce == null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a timeInForce parameter for best type orders")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a timeInForce parameter for best type orders")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type"});
         // console.log ('check the each request params: ', request);
@@ -2545,7 +2545,7 @@ public partial class upbit : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
         }
         Dictionary<string, object> response = await this.privateGetDepositsCoinAddress(this.extend(new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
@@ -2603,7 +2603,7 @@ public partial class upbit : Exchange
         string? message = this.safeString(response, "message");
         if ((message != null))
         {
-            throw new AddressPending (add(add(add(this.id, " is generating "), code), " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
+            throw new AddressPending ((((this.id + " is generating ") + code) + " deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response));
     }
@@ -2644,7 +2644,7 @@ public partial class upbit : Exchange
             string? network = this.safeStringUpper2(parameters, "network", "net_type");
             if ((network == null))
             {
-                throw new ArgumentsRequired (add(this.id, " withdraw() requires a network argument")) ;
+                throw new ArgumentsRequired ((this.id + " withdraw() requires a network argument")) ;
             }
             parameters = this.omit(parameters, new List<object>() {"network"});
             request["net_type"] = network;
@@ -2690,13 +2690,13 @@ public partial class upbit : Exchange
         object url = this.implodeParams(getValue(getValue(this.urls, "api"), api), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
-        url = add(url, add(add(add("/", this.version), "/"), this.implodeParams(path, parameters)));
+        url = add(url, ((("/" + this.version) + "/") + this.implodeParams(path, parameters)));
         object query = this.omit(parameters, this.extractParams(path));
         if (!isEqual(method, "POST"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         }
         if (isEqual(api, "private"))
@@ -2726,7 +2726,7 @@ public partial class upbit : Exchange
                 request["query_hash_alg"] = "SHA512";
             }
             string token = jwt(request, this.encode(this.secret), sha256);
-            ((IDictionary<string,object>)headers)["Authorization"] = add("Bearer ", token);
+            ((IDictionary<string,object>)headers)["Authorization"] = ("Bearer " + token);
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -2758,7 +2758,7 @@ public partial class upbit : Exchange
         {
             string? message = this.safeString(error, "message");
             string? name = this.safeString(error, "name");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), name, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

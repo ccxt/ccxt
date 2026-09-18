@@ -2106,7 +2106,7 @@ public partial class aster : Exchange
         //
         if ((response == null))
         {
-            throw new NullResponse (add(this.id, " fetchLastPrices() returned empty response")) ;
+            throw new NullResponse ((this.id + " fetchLastPrices() returned empty response")) ;
         }
         IList<object> rows = this.toArray(response);
         List<object> results = new List<object>() {};
@@ -2264,7 +2264,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRate() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRate() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2500,7 +2500,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToUpper();
         if (isEqual(marginModeVar, "CROSS"))
@@ -2509,7 +2509,7 @@ public partial class aster : Exchange
         }
         if ((!isEqual(marginModeVar, "ISOLATED")) && (!isEqual(marginModeVar, "CROSSED")))
         {
-            throw new BadRequest (add(this.id, " marginMode must be either isolated or cross")) ;
+            throw new BadRequest ((this.id + " marginMode must be either isolated or cross")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -2760,7 +2760,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -2832,7 +2832,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -2906,7 +2906,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -2995,7 +2995,7 @@ public partial class aster : Exchange
         {
             if (isEqual(getValue(getValue(this.options, "fetchOpenOrders"), "warnIfNoSymbol"), true))
             {
-                throw new ExchangeError (add(add(add(this.id, " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
+                throw new ExchangeError ((((this.id + " fetchOpenOrders(): WARNING - this method without providing \"symbol\" argument uses 40 times more rate-limit quota. If you acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnIfNoSymbol\"] = false to suppress this warning message.")) ;
             }
         } else
         {
@@ -3137,7 +3137,7 @@ public partial class aster : Exchange
         IList<object> orderSymbols = new List<object>() {};
         if (getArrayLength(orders) > 5)
         {
-            throw new InvalidOrder (add(this.id, " createOrders() order list max 5 orders")) ;
+            throw new InvalidOrder ((this.id + " createOrders() order list max 5 orders")) ;
         }
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -3157,7 +3157,7 @@ public partial class aster : Exchange
         Dictionary<string, object> market = this.market(getValue(orderSymbols, 0));
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(add(add(this.id, " createOrders() does not support "), GetValue(market, "type")), " orders")) ;
+            throw new NotSupported ((((this.id + " createOrders() does not support ") + GetValue(market, "type")) + " orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "batchOrders", ordersRequests },
@@ -3201,11 +3201,11 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         /**
          * @method
@@ -3363,7 +3363,7 @@ public partial class aster : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             string? pricePrecision = this.safeString(GetValue(market, "precision"), "price");
             bool isPricePrecisionAvailable = ((pricePrecision != null));
@@ -3379,7 +3379,7 @@ public partial class aster : Exchange
         {
             if ((stopPrice == null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a stopPrice extra param for a "), type), " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a stopPrice extra param for a ") + type) + " order")) ;
             }
             if ((stopPrice != null))
             {
@@ -3418,7 +3418,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -3460,7 +3460,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -3507,7 +3507,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -3548,11 +3548,11 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
         {
-            throw new BadRequest (add(this.id, " leverage should be between 1 and 125")) ;
+            throw new BadRequest ((this.id + " leverage should be between 1 and 125")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -3744,7 +3744,7 @@ public partial class aster : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -4279,7 +4279,7 @@ public partial class aster : Exchange
         {
             if (!((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchPositionsRisk() requires an array argument for symbols")) ;
+                throw new ArgumentsRequired ((this.id + " fetchPositionsRisk() requires an array argument for symbols")) ;
             }
         }
         await this.loadMarketsAndSignIn();
@@ -4356,7 +4356,7 @@ public partial class aster : Exchange
             return await this.FetchAccountPositions(symbols, parameters);
         } else
         {
-            throw new NotSupported (add(add(add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
+            throw new NotSupported ((((this.id + ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \"") + defaultMethod) + "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
         }
     }
 
@@ -4422,7 +4422,7 @@ public partial class aster : Exchange
             initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
             if (isEqual(leverage, null))
             {
-                throw new ExchangeError (add(this.id, " parseAccountPosition() missing leverage")) ;
+                throw new ExchangeError ((this.id + " parseAccountPosition() missing leverage")) ;
             }
             bool rational = this.isRoundNumber(mod(1000, leverage));
             if (!rational)
@@ -4552,13 +4552,13 @@ public partial class aster : Exchange
             Int64 pricePrecisionPlusOne = add(pricePrecision, 1);
             string pricePrecisionPlusOneString = pricePrecisionPlusOne.ToString();
             // round half up
-            var rounder = new Precise(add("5e-", pricePrecisionPlusOneString));
+            var rounder = new Precise(("5e-" + pricePrecisionPlusOneString));
             string rounderString = ((object)rounder).ToString();
             string? liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             string? truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if ((truncatedLiquidationPrice == null))
             {
-                throw new ExchangeError (add(this.id, " method() missing truncatedLiquidationPrice")) ;
+                throw new ExchangeError ((this.id + " method() missing truncatedLiquidationPrice")) ;
             }
             if (isEqual(getValue(truncatedLiquidationPrice, 0), "-"))
             {
@@ -4614,7 +4614,7 @@ public partial class aster : Exchange
         {
             if (!((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchPositions() requires an array argument for symbols")) ;
+                throw new ArgumentsRequired ((this.id + " fetchPositions() requires an array argument for symbols")) ;
             }
         }
         await this.loadMarketsAndSignIn();
@@ -4687,7 +4687,7 @@ public partial class aster : Exchange
 
     public virtual string keccakMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -4788,13 +4788,13 @@ public partial class aster : Exchange
         }
         if (isEqual(chainId, null))
         {
-            throw new ArgumentsRequired (add(this.id, " withdraw require chainId or network parameter")) ;
+            throw new ArgumentsRequired ((this.id + " withdraw require chainId or network parameter")) ;
         }
         request["chainId"] = chainId;
         string? fee = this.safeString(parameters, "fee");
         if ((fee == null))
         {
-            throw new ArgumentsRequired (add(this.id, " withdraw require fee parameter")) ;
+            throw new ArgumentsRequired ((this.id + " withdraw require fee parameter")) ;
         }
         request["fee"] = fee;
         parameters = this.omit(parameters, new List<object>() {"chainId", "network", "fee"});
@@ -4878,7 +4878,7 @@ public partial class aster : Exchange
         }
         if ((type == null))
         {
-            throw new ArgumentsRequired (add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
+            throw new ArgumentsRequired ((this.id + " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
         }
         string? defaultClientTranId = this.numberToString(this.milliseconds());
         string? clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
@@ -4919,7 +4919,7 @@ public partial class aster : Exchange
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
-        return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
+        return ("0x" + this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -4929,7 +4929,7 @@ public partial class aster : Exchange
         object r = GetValue(signature, "r");
         object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return ((("0x" + (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }
 
     public override Dictionary<string, object> sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -4942,7 +4942,7 @@ public partial class aster : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.rawencode(parameters)));
+                url = add(url, ("?" + this.rawencode(parameters)));
             }
         } else if (isEqual(api, "fapiPrivate") || isEqual(api, "sapiPrivate"))
         {
@@ -4963,7 +4963,7 @@ public partial class aster : Exchange
             string? signerAddress = this.safeString(this.options, "signerAddress", walletAddress); // default to user's wallet
             if ((signerAddress == null))
             {
-                throw new ArgumentsRequired (add(this.id, " requires signerAddress in options when use v3 api")) ;
+                throw new ArgumentsRequired ((this.id + " requires signerAddress in options when use v3 api")) ;
             }
             Dictionary<string, object> domain = new Dictionary<string, object>() {
                 { "name", "AsterSignTransaction" },
@@ -5026,7 +5026,7 @@ public partial class aster : Exchange
             object queryString = add(add(add(paramString, "&"), "signature="), signature);
             if (isEqual(method, "GET"))
             {
-                url = add(url, add("?", queryString));
+                url = add(url, ("?" + queryString));
             } else
             {
                 headers = new Dictionary<string, object>() {};
@@ -5092,13 +5092,13 @@ public partial class aster : Exchange
         {
             if (!isTrue(this.isEmptyString(this.apiKey)) || !isTrue(this.isEmptyString(this.secret)))
             {
-                throw new NotSupported (add(this.id, "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+                throw new NotSupported ((this.id + "after the latest upgrade (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
             }
             return false;
         }
         if (((string)this.privateKey).Length > 66)
         {
-            throw new NotSupported (add(this.id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
+            throw new NotSupported ((this.id + " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")) ;
         }
         await this.initializeClient(parameters);
         return true;
@@ -5160,7 +5160,7 @@ public partial class aster : Exchange
                 Int64? codeRes = this.safeInteger(authResponse, "code");
                 if ((codeRes != 200))
                 {
-                    throw new ExchangeError (add("Builder authorization failed, ", this.json(authResponse))) ;
+                    throw new ExchangeError (("Builder authorization failed, " + this.json(authResponse))) ;
                 }
             } catch(Exception e)
             {
@@ -5187,7 +5187,7 @@ public partial class aster : Exchange
         string? message = this.safeString(response, "msg");
         if ((code != null) && code != "200")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

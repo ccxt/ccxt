@@ -87,7 +87,7 @@ public partial class xt : ccxt.xt
             // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
             // concurrent callers each minted their own token, last write won, and the losers
             // carried an orphaned token into name + '@' + listenKey so their streams went dead
-            string messageHash = add("authenticate:", tradeType);
+            string messageHash = ("authenticate:" + tradeType);
             if (inOp(client.futures, messageHash))
             {
                 // a flight is already in progress - wake when the leader
@@ -132,7 +132,7 @@ public partial class xt : ccxt.xt
                 }
                 if ((listenKey == null))
                 {
-                    throw new AuthenticationError (add(this.id, " getListenKey() received an empty listen key")) ;
+                    throw new AuthenticationError ((this.id + " getListenKey() received an empty listen key")) ;
                 }
                 ((IDictionary<string,object>)client.subscriptions)["token"] = listenKey;
                 callDynamically(client, "resolve", new object[] {listenKey, messageHash});
@@ -379,7 +379,7 @@ public partial class xt : ccxt.xt
         string? defaultMethod = this.safeString(options, "method", "ticker");
         object method = this.safeString(parameters, "method", defaultMethod);
         object name = add(add(method, "@"), GetValue(market, "id"));
-        string messageHash = add("unsubscribe::", name);
+        string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters);
     }
 
@@ -440,9 +440,9 @@ public partial class xt : ccxt.xt
         string? name = this.safeString(parameters, "method", defaultMethod);
         if (!isEqual(symbols, null))
         {
-            throw new NotSupported (add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
+            throw new NotSupported ((this.id + " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
         }
-        string messageHash = add("unsubscribe::", name);
+        string messageHash = ("unsubscribe::" + name);
         object tickers = await this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -475,7 +475,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add(add(add("kline@", GetValue(market, "id")), ","), timeframeVar);
+        string name = ((("kline@" + GetValue(market, "id")) + ",") + timeframeVar);
         object ohlcv = await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -505,8 +505,8 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add(add(add("kline@", GetValue(market, "id")), ","), timeframeVar);
-        string messageHash = add("unsubscribe::", name);
+        string name = ((("kline@" + GetValue(market, "id")) + ",") + timeframeVar);
+        string messageHash = ("unsubscribe::" + name);
         List<object> symbolsAndTimeframes = new List<object>() {new List<object>() {GetValue(market, "symbol"), timeframeVar}};
         return await this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new List<object>() {symbol}, parameters, new Dictionary<string, object>() {
             { "symbolsAndTimeframes", symbolsAndTimeframes },
@@ -534,7 +534,7 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add("trade@", GetValue(market, "id"));
+        string name = ("trade@" + GetValue(market, "id"));
         object trades = await this.subscribe(name, "public", "watchTrades", market, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -561,8 +561,8 @@ public partial class xt : ccxt.xt
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string name = add("trade@", GetValue(market, "id"));
-        string messageHash = add("unsubscribe::", name);
+        string name = ("trade@" + GetValue(market, "id"));
+        string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new List<object>() {symbol}, parameters);
     }
 
@@ -590,10 +590,10 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
-        string name = add("depth_update@", GetValue(market, "id"));
+        string name = ("depth_update@" + GetValue(market, "id"));
         if ((levels != null))
         {
-            name = add(add(add("depth@", GetValue(market, "id")), ","), levels);
+            name = ((("depth@" + GetValue(market, "id")) + ",") + levels);
         }
         object orderbook = await this.subscribe(name, "public", "watchOrderBook", market, null, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
@@ -622,12 +622,12 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         string? levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
-        string name = add("depth_update@", GetValue(market, "id"));
+        string name = ("depth_update@" + GetValue(market, "id"));
         if ((levels != null))
         {
-            name = add(add(add("depth@", GetValue(market, "id")), ","), levels);
+            name = ((("depth@" + GetValue(market, "id")) + ",") + levels);
         }
-        string messageHash = add("unsubscribe::", name);
+        string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new List<object>() {symbol}, parameters);
     }
 
@@ -776,9 +776,9 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " watchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((this.id + " watchFundingRate() supports swap contracts only")) ;
         }
-        string name = add("fund_rate@", GetValue(market, "id"));
+        string name = ("fund_rate@" + GetValue(market, "id"));
         return ccxt.BaseExchange.ToFundingRate(await this.subscribe(name, "public", "watchFundingRate", market, null, parameters));
     }
 
@@ -801,10 +801,10 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new NotSupported (add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
+            throw new NotSupported ((this.id + " unWatchFundingRate() supports swap contracts only")) ;
         }
-        string name = add("fund_rate@", GetValue(market, "id"));
-        string messageHash = add("unsubscribe::", name);
+        string name = ("fund_rate@" + GetValue(market, "id"));
+        string messageHash = ("unsubscribe::" + name);
         return await this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters);
     }
 
@@ -1106,8 +1106,8 @@ public partial class xt : ccxt.xt
             }
             ((IList<object>)newTickers).Add(ticker);
         }
-        string messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
-        List<object> messageHashes = this.findMessageHashes(client, add(messageHashStart, "::"));
+        string messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
+        List<object> messageHashes = this.findMessageHashes(client, (messageHashStart + "::"));
         for (int i = 0; isLessThan(i, messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             string? messageHash = ((string)getValue(messageHashes, i));
@@ -1570,7 +1570,7 @@ public partial class xt : ccxt.xt
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, tradeType);
             Dictionary<string, object> parsed = this.parseWsOrder(order, market);
             callDynamically(orders, "append", new object[] {parsed});
-            callDynamically(client, "resolve", new object[] {orders, add("order::", tradeType)});
+            callDynamically(client, "resolve", new object[] {orders, ("order::" + tradeType)});
         }
         return message;
     }
@@ -1624,7 +1624,7 @@ public partial class xt : ccxt.xt
         }
         this.balance = this.safeBalance(this.balance);
         string tradeType = (data.ContainsKey("coin")) ? "contract" : "spot";
-        callDynamically(client, "resolve", new object[] {this.balance, add("balance::", tradeType)});
+        callDynamically(client, "resolve", new object[] {this.balance, ("balance::" + tradeType)});
     }
 
     public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -1680,7 +1680,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> market = this.market(tradeSymbol);
         callDynamically(stored, "append", new object[] {parsedTrade});
         string tradeType = (isEqual(GetValue(market, "contract"), true)) ? "contract" : "spot";
-        callDynamically(client, "resolve", new object[] {stored, add("trade::", tradeType)});
+        callDynamically(client, "resolve", new object[] {stored, ("trade::" + tradeType)});
     }
 
     public override void handleMessage(WebSocketClient client, object message)

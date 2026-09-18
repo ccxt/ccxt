@@ -1178,7 +1178,7 @@ public partial class bitmex : Exchange
         }
         if ((symbol == null))
         {
-            throw new ArgumentsRequired (add(this.id, " parseMarket() requires a symbol")) ;
+            throw new ArgumentsRequired ((this.id + " parseMarket() requires a symbol")) ;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1451,7 +1451,7 @@ public partial class bitmex : Exchange
         {
             return ccxt.BaseExchange.ToOrder(getValue(response, 0));
         }
-        throw new OrderNotFound (add(add(add(this.id, ": The order "), id), " not found.")) ;
+        throw new OrderNotFound ((((this.id + ": The order ") + id) + " not found.")) ;
     }
 
     /**
@@ -2004,7 +2004,7 @@ public partial class bitmex : Exchange
         object ticker = this.safeValue(response, 0);
         if ((ticker == null))
         {
-            throw new BadSymbol (add(add(add(this.id, " fetchTicker() symbol "), symbol), " not found")) ;
+            throw new BadSymbol ((((this.id + " fetchTicker() symbol ") + symbol) + " not found")) ;
         }
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
@@ -2559,7 +2559,7 @@ public partial class bitmex : Exchange
         {
             if ((!isEqual(GetValue(market, "swap"), true)) && (!isEqual(GetValue(market, "future"), true)))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() does not support reduceOnly for "), GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() does not support reduceOnly for ") + GetValue(market, "type")) + " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
         bool? postOnly = this.safeBool(parameters, "postOnly");
@@ -2625,7 +2625,7 @@ public partial class bitmex : Exchange
                 bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && ((orderType == "MarketIfTouched") || (orderType == "LimitIfTouched"));
                 if (isStopSellOrder || isBuyIfTouchedOrder)
                 {
-                    trailingAmount = add("-", trailingAmount);
+                    trailingAmount = ("-" + trailingAmount);
                 }
                 request["pegOffsetValue"] = this.parseToNumeric(trailingAmount);
                 request["pegPriceType"] = "TrailingStopPeg";
@@ -2633,7 +2633,7 @@ public partial class bitmex : Exchange
             {
                 if (isEqual(triggerPrice, null))
                 {
-                    throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a triggerPrice parameter for the "), orderType), " order type")) ;
+                    throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice parameter for the ") + orderType) + " order type")) ;
                 }
                 request["stopPx"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
             }
@@ -2696,7 +2696,7 @@ public partial class bitmex : Exchange
             bool isBuyIfTouchedOrder = (isEqual(side, "buy")) && ((orderType == "MarketIfTouched") || (orderType == "LimitIfTouched"));
             if (isStopSellOrder || isBuyIfTouchedOrder)
             {
-                trailingAmount = add("-", trailingAmount);
+                trailingAmount = ("-" + trailingAmount);
             }
             request["pegOffsetValue"] = this.parseToNumeric(trailingAmount);
             parameters = this.omit(parameters, new List<object>() {"triggerDirection", "trailingAmount"});
@@ -2765,7 +2765,7 @@ public partial class bitmex : Exchange
         {
             if (getIndexOf(error, "Unable to cancel order due to existing state") >= 0)
             {
-                throw new OrderNotFound (add(add(this.id, " cancelOrder() failed: "), error)) ;
+                throw new OrderNotFound (((this.id + " cancelOrder() failed: ") + error)) ;
             }
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order));
@@ -2888,7 +2888,7 @@ public partial class bitmex : Exchange
         }
         if (isEqual(timeout, null))
         {
-            throw new ExchangeError (add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeout", (isGreaterThan(timeout, 0)) ? this.parseToInt(divide(timeout, 1000)) : 0 },
@@ -3357,7 +3357,7 @@ public partial class bitmex : Exchange
         IDictionary<string, object> market = null;
         if (isEqual(symbolVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (inOp(this.currencies, symbolVar))
         {
@@ -3449,11 +3449,11 @@ public partial class bitmex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if ((isLessThan(leverage, 0.01)) || (isGreaterThan(leverage, 100)))
         {
-            throw new BadRequest (add(this.id, " leverage should be between 0.01 and 100")) ;
+            throw new BadRequest ((this.id + " leverage should be between 0.01 and 100")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3462,7 +3462,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "type"), "swap") && !isEqual(GetValue(market, "type"), "future"))
         {
-            throw new BadSymbol (add(this.id, " setLeverage() supports future and swap contracts only")) ;
+            throw new BadSymbol ((this.id + " setLeverage() supports future and swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -3487,12 +3487,12 @@ public partial class bitmex : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToLower();
         if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3501,7 +3501,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((!isEqual(GetValue(market, "type"), "swap")) && (!isEqual(GetValue(market, "type"), "future")))
         {
-            throw new BadSymbol (add(this.id, " setMarginMode() supports swap and future contracts only")) ;
+            throw new BadSymbol ((this.id + " setMarginMode() supports swap and future contracts only")) ;
         }
         bool enabled = (isEqual(marginModeVar, "cross")) ? false : true;
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3534,7 +3534,7 @@ public partial class bitmex : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress requires params[\"network\"]")) ;
         }
         Dictionary<string, object> currency = this.currency(code);
         parameters = this.omit(parameters, "network");
@@ -4272,13 +4272,13 @@ public partial class bitmex : Exchange
         }
         if (isEqual(code, 429))
         {
-            throw new DDoSProtection (add(add(this.id, " "), body)) ;
+            throw new DDoSProtection (((this.id + " ") + body)) ;
         }
         if (isGreaterThanOrEqual(code, 400))
         {
             object error = this.safeValue(response, "error", new Dictionary<string, object>() {});
             string? message = this.safeString(error, "message");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             if (isEqual(code, 400))
@@ -4300,19 +4300,19 @@ public partial class bitmex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string query = add(add(add("/api/", this.version), "/"), path);
+        string query = ((("/api/" + this.version) + "/") + path);
         if (isEqual(method, "GET"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                query = add(query, add("?", this.urlencode(parameters)));
+                query = add(query, ("?" + this.urlencode(parameters)));
             }
         } else
         {
             string? format = this.safeString(parameters, "_format");
             if ((format != null))
             {
-                query = add(query, add("?", this.urlencode(new Dictionary<string, object>() {
+                query = add(query, ("?" + this.urlencode(new Dictionary<string, object>() {
     { "_format", format },
 })));
                 parameters = this.omit(parameters, "_format");
@@ -4333,7 +4333,7 @@ public partial class bitmex : Exchange
             expires = this.sum(this.seconds(), expires);
             if (isEqual(expires, null))
             {
-                throw new ExchangeError (add(this.id, " sign() missing expires")) ;
+                throw new ExchangeError ((this.id + " sign() missing expires")) ;
             }
             string stringExpires = expires.ToString();
             auth = add(auth, stringExpires);

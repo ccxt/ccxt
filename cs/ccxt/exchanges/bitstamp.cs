@@ -1397,7 +1397,7 @@ public partial class bitstamp : Exchange
             string? description = this.safeString(market, "description");
             if ((description == null))
             {
-                throw new ExchangeError (add(this.id, " parseCurrencies() missing description")) ;
+                throw new ExchangeError ((this.id + " parseCurrencies() missing description")) ;
             }
             var baseDescriptionquoteDescriptionVariable = description.Split(new [] {" / "}, StringSplitOptions.None).ToList<object>();
             var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
@@ -1405,7 +1405,7 @@ public partial class bitstamp : Exchange
             string? minimumOrder = this.safeString(market, "minimum_order_value");
             if ((minimumOrder == null))
             {
-                throw new ExchangeError (add(this.id, " parseCurrencies() missing minimumOrder")) ;
+                throw new ExchangeError ((this.id + " parseCurrencies() missing minimumOrder")) ;
             }
             List<object> parts = minimumOrder.Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
             string? cost = ((string)getValue(parts, 0));
@@ -1464,7 +1464,7 @@ public partial class bitstamp : Exchange
         Int64? microtimestamp = this.safeInteger(response, "microtimestamp");
         if (isEqual(microtimestamp, null))
         {
-            throw new ExchangeError (add(this.id, " fetchOrderBook() missing microtimestamp")) ;
+            throw new ExchangeError ((this.id + " fetchOrderBook() missing microtimestamp")) ;
         }
         Int64? timestamp = this.parseToInt(divide(microtimestamp, 1000));
         Dictionary<string, object> orderbook = this.parseOrderBook(response, GetValue(market, "symbol"), timestamp);
@@ -1640,7 +1640,7 @@ public partial class bitstamp : Exchange
         int numCurrencyIds = currencyIds.Count;
         if (isGreaterThan(numCurrencyIds, 2))
         {
-            throw new ExchangeError (add(add(add(add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
+            throw new ExchangeError (((((this.id + " getMarketFromTrade() too many keys: ") + this.json(currencyIds)) + " in the trade: ") + this.json(trade))) ;
         }
         if ((numCurrencyIds == 2))
         {
@@ -3300,7 +3300,7 @@ public partial class bitstamp : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.isFiat(code)))
         {
-            throw new NotSupported (add(add(add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
+            throw new NotSupported ((((this.id + " fiat fetchDepositAddress() for ") + code) + " is not supported!")) ;
         }
         object name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -3410,7 +3410,7 @@ public partial class bitstamp : Exchange
             response = await this.privatePostTransferToMain(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest (add(this.id, " transfer() only supports from or to main")) ;
+            throw new BadRequest ((this.id + " transfer() only supports from or to main")) ;
         }
         //
         //    { status: 'ok' }
@@ -3430,7 +3430,7 @@ public partial class bitstamp : Exchange
         string? status = this.safeString(transfer, "status");
         if (isEqual(currency, null))
         {
-            throw new ExchangeError (add(this.id, " parseTransfer() could not resolve currency")) ;
+            throw new ExchangeError ((this.id + " parseTransfer() could not resolve currency")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", transfer },
@@ -3473,12 +3473,12 @@ public partial class bitstamp : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            object xAuth = add("BITSTAMP ", this.apiKey);
+            object xAuth = ("BITSTAMP " + this.apiKey);
             string xAuthNonce = this.uuid();
             string xAuthTimestamp = this.milliseconds().ToString();
             string xAuthVersion = "v2";
@@ -3572,9 +3572,9 @@ public partial class bitstamp : Exchange
             string? code = this.safeString(response, "code");
             if (code == "API0005")
             {
-                throw new AuthenticationError (add(this.id, " invalid signature, use the uid for the main account if you have subaccounts")) ;
+                throw new AuthenticationError ((this.id + " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             for (int i = 0; isLessThan(i, errors?.Count ?? 0); postFixIncrement(ref i))
             {
                 object value = getValue(errors, i);

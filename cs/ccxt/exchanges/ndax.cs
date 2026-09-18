@@ -633,7 +633,7 @@ public partial class ndax : Exchange
         this.checkRequiredCredentials();
         if (isEqual(this.login, null) || isEqual(this.password, null))
         {
-            throw new AuthenticationError (add(this.id, " signIn() requires exchange.login, exchange.password")) ;
+            throw new AuthenticationError ((this.id + " signIn() requires exchange.login, exchange.password")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "grant_type", "client_credentials" },
@@ -659,7 +659,7 @@ public partial class ndax : Exchange
         {
             if (isEqual(this.twofa, null))
             {
-                throw new AuthenticationError (add(this.id, " signIn() requires exchange.twofa credentials")) ;
+                throw new AuthenticationError ((this.id + " signIn() requires exchange.twofa credentials")) ;
             }
             ((IDictionary<string,object>)this.options)["pending2faToken"] = pending2faToken;
             request = new Dictionary<string, object>() {
@@ -1478,7 +1478,7 @@ public partial class ndax : Exchange
         parameters ??= new Dictionary<string, object>();
         if ((isEqual(this.login, null)) || (isEqual(this.login, "")))
         {
-            throw new AuthenticationError (add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
+            throw new AuthenticationError ((this.id + " fetchAccounts() requires exchange.login email credential")) ;
         }
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
         this.checkRequiredCredentials();
@@ -2932,11 +2932,11 @@ public partial class ndax : Exchange
         string? sessionToken = this.safeString(this.options, "sessionToken");
         if ((sessionToken == null))
         {
-            throw new AuthenticationError (add(this.id, " call signIn() method to obtain a session token")) ;
+            throw new AuthenticationError ((this.id + " call signIn() method to obtain a session token")) ;
         }
         if (isEqual(this.twofa, null))
         {
-            throw new AuthenticationError (add(this.id, " withdraw() requires exchange.twofa credentials")) ;
+            throw new AuthenticationError ((this.id + " withdraw() requires exchange.twofa credentials")) ;
         }
         this.checkAddress(address);
         Int64? omsId = this.safeInteger(this.options, "omsId", 1);
@@ -2971,7 +2971,7 @@ public partial class ndax : Exchange
         object firstTemplateType = this.safeValue(templateTypes, 0);
         if ((firstTemplateType == null))
         {
-            throw new ExchangeError (add(add(this.id, " withdraw() could not find a withdraw template type for "), GetValue(currency, "code"))) ;
+            throw new ExchangeError (((this.id + " withdraw() could not find a withdraw template type for ") + GetValue(currency, "code"))) ;
         }
         string? templateName = this.safeString(firstTemplateType, "TemplateName");
         Dictionary<string, object> withdrawTemplateRequest = new Dictionary<string, object>() {
@@ -2993,7 +2993,7 @@ public partial class ndax : Exchange
         string? template = this.safeString(withdrawTemplateResponse, "Template");
         if ((template == null))
         {
-            throw new ExchangeError (add(add(this.id, " withdraw() could not find a withdraw template for "), GetValue(currency, "code"))) ;
+            throw new ExchangeError (((this.id + " withdraw() could not find a withdraw template for ") + GetValue(currency, "code"))) ;
         }
         object withdrawTemplate = parseJson(template);
         ((IDictionary<string,object>)withdrawTemplate)["ExternalAddress"] = address;
@@ -3039,7 +3039,7 @@ public partial class ndax : Exchange
                 object auth = add(add(this.login, ":"), this.password);
                 string auth64 = this.stringToBase64(auth);
                 headers = new Dictionary<string, object>() {
-                    { "Authorization", add("Basic ", auth64) },
+                    { "Authorization", ("Basic " + auth64) },
                 };
             } else if (isEqual(path, "Authenticate2FA"))
             {
@@ -3054,7 +3054,7 @@ public partial class ndax : Exchange
             }
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -3063,7 +3063,7 @@ public partial class ndax : Exchange
             if ((sessionToken == null))
             {
                 string nonce = this.nonce().ToString();
-                object auth = add(add(nonce, this.uid), this.apiKey);
+                object auth = ((nonce + this.uid) + this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },
@@ -3085,7 +3085,7 @@ public partial class ndax : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             }
         }
@@ -3101,7 +3101,7 @@ public partial class ndax : Exchange
     {
         if (isEqual(code, 404))
         {
-            throw new AuthenticationError (add(add(this.id, " "), body)) ;
+            throw new AuthenticationError (((this.id + " ") + body)) ;
         }
         if (isEqual(response, null))
         {
@@ -3114,7 +3114,7 @@ public partial class ndax : Exchange
         string? message = this.safeString(response, "errormsg");
         if (((message != null)) && (message != ""))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             throw new ExchangeError (feedback) ;

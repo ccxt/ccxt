@@ -90,7 +90,7 @@ public partial class kucoinfutures : kucoin
             response = await this.futuresPrivatePostTransferIn(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest (add(this.id, " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
+            throw new BadRequest ((this.id + " transfer() only supports transfers between future/swap, spot and funding accounts")) ;
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));

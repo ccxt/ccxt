@@ -362,100 +362,100 @@ public partial class kraken : Exchange
                     { "TRX", "TRC20" },
                 } },
                 { "depositMethods", new Dictionary<string, object>() {
-                    { "1INCH", add(add("1inch", " "), "(1INCH)") },
+                    { "1INCH", (("1inch" + " ") + "(1INCH)") },
                     { "AAVE", "Aave" },
                     { "ADA", "ADA" },
                     { "ALGO", "Algorand" },
-                    { "ANKR", add(add("ANKR", " "), "(ANKR)") },
-                    { "ANT", add(add("Aragon", " "), "(ANT)") },
+                    { "ANKR", (("ANKR" + " ") + "(ANKR)") },
+                    { "ANT", (("Aragon" + " ") + "(ANT)") },
                     { "ATOM", "Cosmos" },
-                    { "AXS", add(add("Axie Infinity Shards", " "), "(AXS)") },
-                    { "BADGER", add(add("Bager DAO", " "), "(BADGER)") },
-                    { "BAL", add(add("Balancer", " "), "(BAL)") },
-                    { "BAND", add(add("Band Protocol", " "), "(BAND)") },
+                    { "AXS", (("Axie Infinity Shards" + " ") + "(AXS)") },
+                    { "BADGER", (("Bager DAO" + " ") + "(BADGER)") },
+                    { "BAL", (("Balancer" + " ") + "(BAL)") },
+                    { "BAND", (("Band Protocol" + " ") + "(BAND)") },
                     { "BAT", "BAT" },
                     { "BCH", "Bitcoin Cash" },
-                    { "BNC", add(add("Bifrost", " "), "(BNC)") },
-                    { "BNT", add(add("Bancor", " "), "(BNT)") },
+                    { "BNC", (("Bifrost" + " ") + "(BNC)") },
+                    { "BNT", (("Bancor" + " ") + "(BNT)") },
                     { "BTC", "Bitcoin" },
-                    { "CHZ", add(add("Chiliz", " "), "(CHZ)") },
-                    { "COMP", add(add("Compound", " "), "(COMP)") },
-                    { "CQT", add(add("\tCovalent Query Token", " "), "(CQT)") },
-                    { "CRV", add(add("Curve DAO Token", " "), "(CRV)") },
-                    { "CTSI", add(add("Cartesi", " "), "(CTSI)") },
+                    { "CHZ", (("Chiliz" + " ") + "(CHZ)") },
+                    { "COMP", (("Compound" + " ") + "(COMP)") },
+                    { "CQT", (("\tCovalent Query Token" + " ") + "(CQT)") },
+                    { "CRV", (("Curve DAO Token" + " ") + "(CRV)") },
+                    { "CTSI", (("Cartesi" + " ") + "(CTSI)") },
                     { "DAI", "Dai" },
                     { "DASH", "Dash" },
                     { "DOGE", "Dogecoin" },
                     { "DOT", "Polkadot" },
-                    { "DYDX", add(add("dYdX", " "), "(DYDX)") },
-                    { "ENJ", add(add("Enjin Coin", " "), "(ENJ)") },
+                    { "DYDX", (("dYdX" + " ") + "(DYDX)") },
+                    { "ENJ", (("Enjin Coin" + " ") + "(ENJ)") },
                     { "EOS", "EOS" },
-                    { "ETC", add(add("Ether Classic", " "), "(Hex)") },
-                    { "ETH", add(add("Ether", " "), "(Hex)") },
+                    { "ETC", (("Ether Classic" + " ") + "(Hex)") },
+                    { "ETH", (("Ether" + " ") + "(Hex)") },
                     { "EWT", "Energy Web Token" },
                     { "FEE", "Kraken Fee Credit" },
                     { "FIL", "Filecoin" },
                     { "FLOW", "Flow" },
-                    { "GHST", add(add("Aavegotchi", " "), "(GHST)") },
+                    { "GHST", (("Aavegotchi" + " ") + "(GHST)") },
                     { "GNO", "GNO" },
                     { "GRT", "GRT" },
                     { "ICX", "Icon" },
-                    { "INJ", add(add("Injective Protocol", " "), "(INJ)") },
-                    { "KAR", add(add("Karura", " "), "(KAR)") },
+                    { "INJ", (("Injective Protocol" + " ") + "(INJ)") },
+                    { "KAR", (("Karura" + " ") + "(KAR)") },
                     { "KAVA", "Kava" },
-                    { "KEEP", add(add("Keep Token", " "), "(KEEP)") },
-                    { "KNC", add(add("Kyber Network", " "), "(KNC)") },
+                    { "KEEP", (("Keep Token" + " ") + "(KEEP)") },
+                    { "KNC", (("Kyber Network" + " ") + "(KNC)") },
                     { "KSM", "Kusama" },
                     { "LINK", "Link" },
-                    { "LPT", add(add("Livepeer Token", " "), "(LPT)") },
-                    { "LRC", add(add("Loopring", " "), "(LRC)") },
+                    { "LPT", (("Livepeer Token" + " ") + "(LPT)") },
+                    { "LRC", (("Loopring" + " ") + "(LRC)") },
                     { "LSK", "Lisk" },
                     { "LTC", "Litecoin" },
                     { "MANA", "MANA" },
-                    { "MATIC", add(add("Polygon", " "), "(MATIC)") },
+                    { "MATIC", (("Polygon" + " ") + "(MATIC)") },
                     { "MINA", "Mina" },
-                    { "MIR", add(add("Mirror Protocol", " "), "(MIR)") },
-                    { "MKR", add(add("Maker", " "), "(MKR)") },
+                    { "MIR", (("Mirror Protocol" + " ") + "(MIR)") },
+                    { "MKR", (("Maker" + " ") + "(MKR)") },
                     { "MLN", "MLN" },
-                    { "MOVR", add(add("Moonriver", " "), "(MOVR)") },
+                    { "MOVR", (("Moonriver" + " ") + "(MOVR)") },
                     { "NANO", "NANO" },
                     { "OCEAN", "OCEAN" },
-                    { "OGN", add(add("Origin Protocol", " "), "(OGN)") },
+                    { "OGN", (("Origin Protocol" + " ") + "(OGN)") },
                     { "OMG", "OMG" },
-                    { "OXT", add(add("Orchid", " "), "(OXT)") },
-                    { "OXY", add(add("Oxygen", " "), "(OXY)") },
-                    { "PAXG", add(add("PAX", " "), "(Gold)") },
-                    { "PERP", add(add("Perpetual Protocol", " "), "(PERP)") },
-                    { "PHA", add(add("Phala", " "), "(PHA)") },
+                    { "OXT", (("Orchid" + " ") + "(OXT)") },
+                    { "OXY", (("Oxygen" + " ") + "(OXY)") },
+                    { "PAXG", (("PAX" + " ") + "(Gold)") },
+                    { "PERP", (("Perpetual Protocol" + " ") + "(PERP)") },
+                    { "PHA", (("Phala" + " ") + "(PHA)") },
                     { "QTUM", "QTUM" },
-                    { "RARI", add(add("Rarible", " "), "(RARI)") },
-                    { "RAY", add(add("Raydium", " "), "(RAY)") },
-                    { "REN", add(add("Ren Protocol", " "), "(REN)") },
+                    { "RARI", (("Rarible" + " ") + "(RARI)") },
+                    { "RAY", (("Raydium" + " ") + "(RAY)") },
+                    { "REN", (("Ren Protocol" + " ") + "(REN)") },
                     { "REP", "REPv2" },
                     { "REPV1", "REP" },
-                    { "SAND", add(add("The Sandbox", " "), "(SAND)") },
+                    { "SAND", (("The Sandbox" + " ") + "(SAND)") },
                     { "SC", "Siacoin" },
-                    { "SDN", add(add("Shiden", " "), "(SDN)") },
+                    { "SDN", (("Shiden" + " ") + "(SDN)") },
                     { "SOL", "Solana" },
-                    { "SNX", add(add("Synthetix  Network", " "), "(SNX)") },
+                    { "SNX", (("Synthetix  Network" + " ") + "(SNX)") },
                     { "SRM", "Serum" },
-                    { "STORJ", add(add("Storj", " "), "(STORJ)") },
-                    { "SUSHI", add(add("Sushiswap", " "), "(SUSHI)") },
+                    { "STORJ", (("Storj" + " ") + "(STORJ)") },
+                    { "SUSHI", (("Sushiswap" + " ") + "(SUSHI)") },
                     { "TBTC", "tBTC" },
                     { "TRX", "Tron" },
                     { "UNI", "UNI" },
                     { "USDC", "USDC" },
-                    { "USDT", add(add("Tether USD", " "), "(ERC20)") },
-                    { "USDT-TRC20", add(add("Tether USD", " "), "(TRC20)") },
+                    { "USDT", (("Tether USD" + " ") + "(ERC20)") },
+                    { "USDT-TRC20", (("Tether USD" + " ") + "(TRC20)") },
                     { "WAVES", "Waves" },
-                    { "WBTC", add(add("Wrapped Bitcoin", " "), "(WBTC)") },
+                    { "WBTC", (("Wrapped Bitcoin" + " ") + "(WBTC)") },
                     { "XLM", "Stellar XLM" },
                     { "XMR", "Monero" },
                     { "XRP", "Ripple XRP" },
                     { "XTZ", "XTZ" },
                     { "YFI", "YFI" },
-                    { "ZEC", add(add("Zcash", " "), "(Transparent)") },
-                    { "ZRX", add(add("0x", " "), "(ZRX)") },
+                    { "ZEC", (("Zcash" + " ") + "(Transparent)") },
+                    { "ZRX", (("0x" + " ") + "(ZRX)") },
                 } },
                 { "withdrawMethods", new Dictionary<string, object>() {
                     { "Lightning", "Lightning" },
@@ -777,7 +777,7 @@ public partial class kraken : Exchange
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
             if ((bs == null))
             {
-                throw new ExchangeError (add(this.id, " method() missing base")) ;
+                throw new ExchangeError ((this.id + " method() missing base")) ;
             }
             if (spot && (inOp(cachedCurrencies, bs)))
             {
@@ -786,7 +786,7 @@ public partial class kraken : Exchange
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                 if (isEqual(currencyPrecision, null))
                 {
-                    throw new ExchangeError (add(this.id, " method() missing currencyPrecision")) ;
+                    throw new ExchangeError ((this.id + " method() missing currencyPrecision")) ;
                 }
                 if (isGreaterThan(currencyPrecision, precisionAmount))
                 {
@@ -964,7 +964,7 @@ public partial class kraken : Exchange
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if ((id == null))
         {
-            throw new ExchangeError (add(this.id, " parseCurrency() missing id")) ;
+            throw new ExchangeError ((this.id + " parseCurrency() missing id")) ;
         }
         if (getIndexOf(id, ".") < 0)
         {
@@ -977,7 +977,7 @@ public partial class kraken : Exchange
             // ZUSD  |  USD
             if ((id == null))
             {
-                throw new ExchangeError (add(this.id, " parseCurrency() missing id")) ;
+                throw new ExchangeError ((this.id + " parseCurrency() missing id")) ;
             }
             if ((id != altName) && (id.StartsWith("X") || id.StartsWith("Z")))
             {
@@ -994,7 +994,7 @@ public partial class kraken : Exchange
         }
         if ((code == null))
         {
-            throw new ExchangeError (add(this.id, " parseCurrency() missing code")) ;
+            throw new ExchangeError ((this.id + " parseCurrency() missing code")) ;
         }
         bool isFiat = getIndexOf(code, ".HOLD") >= 0;
         rawCurrency = this.omit(rawCurrency, "_coin_id");
@@ -1368,7 +1368,7 @@ public partial class kraken : Exchange
             Int64? scaledSince = this.parseToInt(divide(since, 1000));
             if (isEqual(parsedTimeframe, null))
             {
-                throw new ExchangeError (add(this.id, " fetchOHLCV() missing parsedTimeframe")) ;
+                throw new ExchangeError ((this.id + " fetchOHLCV() missing parsedTimeframe")) ;
             }
             Int64? timeFrameInSeconds = multiply(parsedTimeframe, 60);
             request["since"] = this.numberToString(subtract(scaledSince, timeFrameInSeconds)); // expected to be in seconds
@@ -1985,7 +1985,7 @@ public partial class kraken : Exchange
             {
                 if (!isEqual(symbol, marketId))
                 {
-                    throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                    throw new BadRequest ((this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
             }
             market = this.market(marketId);
@@ -2487,11 +2487,11 @@ public partial class kraken : Exchange
             string? trailingPercentString = null;
             if ((trailingPercent != null))
             {
-                trailingPercentString = (((string)trailingPercent).EndsWith("%")) ? (add("+", trailingPercent)) : (add(add("+", trailingPercent), "%"));
+                trailingPercentString = (((string)trailingPercent).EndsWith("%")) ? (("+" + trailingPercent)) : ((("+" + trailingPercent) + "%"));
             }
-            string? trailingAmountString = ((trailingAmount != null)) ? add("+", trailingAmount) : null; // must use + for this
+            string? trailingAmountString = ((trailingAmount != null)) ? ("+" + trailingAmount) : null; // must use + for this
             string offset = ((string)this.safeString(parameters, "offset", "-")); // can use + or - for this
-            string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+            string? trailingLimitAmountString = ((trailingLimitAmount != null)) ? (offset + this.numberToString(trailingLimitAmount)) : null;
             string? trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
             if (isLimitOrder || ((trailingLimitAmount != null)) || ((trailingLimitPercent != null)))
@@ -2499,7 +2499,7 @@ public partial class kraken : Exchange
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop-limit";
                 if ((trailingLimitPercent != null))
                 {
-                    string trailingLimitPercentString = (((string)trailingLimitPercent).EndsWith("%")) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
+                    string trailingLimitPercentString = (((string)trailingLimitPercent).EndsWith("%")) ? ((offset + trailingLimitPercent)) : (((offset + trailingLimitPercent) + "%"));
                     ((IDictionary<string,object>)request)["price"] = trailingPercentString;
                     ((IDictionary<string,object>)request)["price2"] = trailingLimitPercentString;
                 } else if ((trailingLimitAmount != null))
@@ -2602,7 +2602,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(add(add(this.id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")) ;
+            throw new NotSupported ((((this.id + " editOrder() does not support ") + GetValue(market, "type")) + " orders, only spot orders are accepted")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txid", id },
@@ -2727,7 +2727,7 @@ public partial class kraken : Exchange
         object result = this.safeValue(response, "result", new List<object>() {});
         if (!(inOp(result, id)))
         {
-            throw new OrderNotFound (add(add(this.id, " fetchOrder() could not find order id "), id)) ;
+            throw new OrderNotFound (((this.id + " fetchOrder() could not find order id ") + id)) ;
         }
         return ccxt.BaseExchange.ToOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {             { "id", id },         }, getValue(result, id))));
     }
@@ -2752,7 +2752,7 @@ public partial class kraken : Exchange
         List<object> tradeIds = new List<object>() {};
         if ((orderTrades == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
             for (int i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
@@ -2984,7 +2984,7 @@ public partial class kraken : Exchange
             {
                 if (getIndexOf(this.last_http_response, "EOrder:Unknown order") >= 0)
                 {
-                    throw new OrderNotFound (add(add(this.id, " cancelOrder() error "), this.last_http_response)) ;
+                    throw new OrderNotFound (((this.id + " cancelOrder() error ") + this.last_http_response)) ;
                 }
             }
             throw e;
@@ -3062,11 +3062,11 @@ public partial class kraken : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(timeout, null))
         {
-            throw new ExchangeError (add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         if (isGreaterThan(timeout, 86400000))
         {
-            throw new BadRequest (add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
+            throw new BadRequest ((this.id + " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3074,7 +3074,7 @@ public partial class kraken : Exchange
         }
         if (isEqual(timeout, null))
         {
-            throw new ExchangeError (add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeout", (isGreaterThan(timeout, 0)) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
@@ -3738,7 +3738,7 @@ public partial class kraken : Exchange
                     string? entry = this.safeString(getValue(depositMethods, i), "method");
                     if ((entry == null))
                     {
-                        throw new ExchangeError (add(this.id, " fetchDepositAddress() missing entry")) ;
+                        throw new ExchangeError ((this.id + " fetchDepositAddress() missing entry")) ;
                     }
                     if (getIndexOf(entry, network) >= 0)
                     {
@@ -3771,7 +3771,7 @@ public partial class kraken : Exchange
         object firstResult = this.safeValue(result, 0, new Dictionary<string, object>() {});
         if ((firstResult == null))
         {
-            throw new InvalidAddress (add(add(this.id, " privatePostDepositAddresses() returned no addresses for "), codeVar)) ;
+            throw new InvalidAddress (((this.id + " privatePostDepositAddresses() returned no addresses for ") + codeVar)) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(firstResult, currency));
     }
@@ -3843,7 +3843,7 @@ public partial class kraken : Exchange
             IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             return ccxt.BaseExchange.ToTransaction(this.parseTransaction(result, currency));
         }
-        throw new ExchangeError (add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
+        throw new ExchangeError ((this.id + " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
     }
 
     /**
@@ -4024,7 +4024,7 @@ public partial class kraken : Exchange
         };
         if (fromAccountParsed != "Spot Wallet")
         {
-            throw new BadRequest (add(add(add(add(add(this.id, " transfer cannot transfer from "), fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")) ;
+            throw new BadRequest ((((((this.id + " transfer cannot transfer from ") + fromAccountParsed) + " to ") + toAccountParsed) + ". Use krakenfutures instead to transfer from the futures account.")) ;
         }
         Dictionary<string, object> response = await this.privatePostWalletTransfer(this.extend(request, parameters));
         //
@@ -4073,13 +4073,13 @@ public partial class kraken : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(add(add(add("/", this.version), "/"), api), "/"), path);
+        object url = ((((("/" + this.version) + "/") + api) + "/") + path);
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
-                url = add(url, add("?", this.urlencodeNested(parameters)));
+                url = add(url, ("?" + this.urlencodeNested(parameters)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -4105,7 +4105,7 @@ public partial class kraken : Exchange
                     { "nonce", nonce },
                 }, parameters));
             }
-            string? auth = this.encode(add(nonce, body));
+            string? auth = this.encode((nonce + body));
             object hash = this.hash(auth, sha256, "binary");
             string? binary = this.encode(url);
             object binhash = this.binaryConcat(binary, hash);
@@ -4124,7 +4124,7 @@ public partial class kraken : Exchange
             }
         } else
         {
-            url = add("/", path);
+            url = ("/" + path);
         }
         url = add(getValue(getValue(this.urls, "api"), api), url);
         return new Dictionary<string, object>() {
@@ -4144,7 +4144,7 @@ public partial class kraken : Exchange
     {
         if (isEqual(code, 520))
         {
-            throw new ExchangeNotAvailable (add(add(add(add(this.id, " "), code.ToString()), " "), reason)) ;
+            throw new ExchangeNotAvailable (((((this.id + " ") + code.ToString()) + " ") + reason)) ;
         }
         if (isEqual(response, null))
         {
@@ -4154,7 +4154,7 @@ public partial class kraken : Exchange
         {
             if (!(response is string))
             {
-                string message = add(add(this.id, " "), body);
+                string message = ((this.id + " ") + body);
                 if (inOp(response, "error"))
                 {
                     int numErrors = getArrayLength(getValue(response, "error"));

@@ -66,7 +66,7 @@ public partial class hollaex : ccxt.hollaex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(add("orderbook", ":"), GetValue(market, "id"));
+        string messageHash = (("orderbook" + ":") + GetValue(market, "id"));
         object orderbook = await this.watchPublic(messageHash, parameters);
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
@@ -146,7 +146,7 @@ public partial class hollaex : ccxt.hollaex
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add(add("trade", ":"), GetValue(market, "id"));
+        string messageHash = (("trade" + ":") + GetValue(market, "id"));
         object trades = await this.watchPublic(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -220,7 +220,7 @@ public partial class hollaex : ccxt.hollaex
         {
             market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", GetValue(market, "id")));
+            messageHash = add(messageHash, (":" + GetValue(market, "id")));
         }
         object trades = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -320,7 +320,7 @@ public partial class hollaex : ccxt.hollaex
         {
             market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", GetValue(market, "id")));
+            messageHash = add(messageHash, (":" + GetValue(market, "id")));
         }
         object orders = await this.watchPrivate(messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -522,7 +522,7 @@ public partial class hollaex : ccxt.hollaex
             expires = this.sum(this.seconds(), timeout);
             if ((expires == null))
             {
-                throw new ArgumentsRequired (add(this.id, " watchPrivate() expires is required")) ;
+                throw new ArgumentsRequired ((this.id + " watchPrivate() expires is required")) ;
             }
             expires = expires.ToString();
             // we need to memoize these values to avoid generating a new url on each method execution
@@ -530,7 +530,7 @@ public partial class hollaex : ccxt.hollaex
             ((IDictionary<string,object>)this.options)["ws-expires"] = expires;
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
-        string auth = add(add("CONNECT", "/stream"), expires);
+        string auth = (("CONNECT" + "/stream") + expires);
         string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
         Dictionary<string, object> authParams = new Dictionary<string, object>() {
             { "api-key", this.apiKey },
@@ -557,7 +557,7 @@ public partial class hollaex : ccxt.hollaex
         {
             if (!isEqual(error, null))
             {
-                string feedback = add(add(this.id, " "), this.json(message));
+                string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(getValue(getValue(this.exceptions, "ws"), "exact"), error, feedback);
             }
         } catch(Exception e)

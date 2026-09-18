@@ -1318,7 +1318,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1423,7 +1423,7 @@ public partial class blofin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new ExchangeError (add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
+            throw new ExchangeError ((this.id + " fetchFundingRate() is only valid for swap markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", GetValue(market, "id") },
@@ -1611,11 +1611,11 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1942,7 +1942,7 @@ public partial class blofin : Exchange
         string? marginMode = this.safeString(parameters, "marginMode", "cross"); // cross or isolated
         if (marginMode != "cross" && marginMode != "isolated")
         {
-            throw new BadRequest (add(this.id, " createTpslOrder() requires a marginMode parameter that must be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " createTpslOrder() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -1957,7 +1957,7 @@ public partial class blofin : Exchange
                 string? slLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
                 if ((slLimitPrice == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
+                    throw new ArgumentsRequired ((this.id + " createTpslOrder() requires a \"stopLossLimitPrice\" parameter (instead of \"price\" argument) for stop loss orders when the order type is not market")) ;
                 }
                 request["slOrderPrice"] = this.priceToPrecision(symbol, slLimitPrice);
                 parameters = this.omit(parameters, "stopLossLimitPrice");
@@ -1974,7 +1974,7 @@ public partial class blofin : Exchange
                 string? tpLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
                 if ((tpLimitPrice == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
+                    throw new ArgumentsRequired ((this.id + " createTpslOrder() requires a \"takeProfitLimitPrice\" parameter (instead of \"price\" argument) for take profit orders when the order type is not market")) ;
                 }
                 request["tpOrderPrice"] = this.priceToPrecision(symbol, tpLimitPrice);
                 parameters = this.omit(parameters, "takeProfitLimitPrice");
@@ -2003,7 +2003,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2455,7 +2455,7 @@ public partial class blofin : Exchange
                 request["chain"] = this.networkCodeToChainId(networkCode);
             } else if (dest == "onchain")
             {
-                throw new ArgumentsRequired (add(this.id, " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;
+                throw new ArgumentsRequired ((this.id + " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;
             }
         }
         Dictionary<string, object> response = await this.privatePostAssetWithdrawalApply(this.extend(request, parameters));
@@ -2728,7 +2728,7 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2871,7 +2871,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> position = this.safeDict(data, 0);
         if ((position == null))
         {
-            throw new NullResponse (add(this.id, " fetchPosition() returned empty position")) ;
+            throw new NullResponse ((this.id + " fetchPosition() returned empty position")) ;
         }
         return ccxt.BaseExchange.ToPosition(this.parsePosition(position, market));
     }
@@ -3146,7 +3146,7 @@ public partial class blofin : Exchange
         }
         if (isEqual(symbols, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchLeverages() requires a symbols argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchLeverages() requires a symbols argument")) ;
         }
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchLeverages", parameters);
@@ -3158,7 +3158,7 @@ public partial class blofin : Exchange
         }
         if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
         {
-            throw new BadRequest (add(this.id, " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         symbols = this.marketSymbols(symbols);
         object symbolsList = symbols;
@@ -3224,7 +3224,7 @@ public partial class blofin : Exchange
         }
         if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
         {
-            throw new BadRequest (add(this.id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3277,13 +3277,13 @@ public partial class blofin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 125)))
         {
-            throw new BadRequest (add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
+            throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 125")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3296,7 +3296,7 @@ public partial class blofin : Exchange
         parameters = marginModeparametersVariable[1];
         if ((!isEqual(marginMode, "cross")) && (!isEqual(marginMode, "isolated")))
         {
-            throw new BadRequest (add(this.id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " setLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
@@ -3648,7 +3648,7 @@ public partial class blofin : Exchange
         //
         string? code = this.safeString(response, "code");
         string? message = this.safeString(response, "msg");
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         if ((code != null) && code != "0")
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
@@ -3682,7 +3682,7 @@ public partial class blofin : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = add(add(add("/api/", this.version), "/"), this.implodeParams(path, parameters));
+        object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);
@@ -3690,7 +3690,7 @@ public partial class blofin : Exchange
         {
             if (!isTrue(this.isEmpty(query)))
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -3707,7 +3707,7 @@ public partial class blofin : Exchange
             {
                 if (!isTrue(this.isEmpty(query)))
                 {
-                    string urlencodedQuery = add("?", this.urlencode(query));
+                    string urlencodedQuery = ("?" + this.urlencode(query));
                     url = add(url, urlencodedQuery);
                     request = add(request, urlencodedQuery);
                 }

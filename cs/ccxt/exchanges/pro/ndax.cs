@@ -55,7 +55,7 @@ public partial class ndax : ccxt.ndax
         }
         Dictionary<string, object> market = this.market(symbol);
         string name = "SubscribeLevel1";
-        string messageHash = add(add(name, ":"), GetValue(market, "id"));
+        string messageHash = ((name + ":") + GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -108,7 +108,7 @@ public partial class ndax : ccxt.ndax
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
         string name = "SubscribeLevel1";
-        string messageHash = add(add(name, ":"), GetValue(market, "id"));
+        string messageHash = ((name + ":") + GetValue(market, "id"));
         callDynamically(client, "resolve", new object[] {ticker, messageHash});
     }
 
@@ -136,7 +136,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string name = "SubscribeTrades";
-        string messageHash = add(add(name, ":"), GetValue(market, "id"));
+        string messageHash = ((name + ":") + GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -208,7 +208,7 @@ public partial class ndax : ccxt.ndax
         {
             string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
-            string messageHash = add(add(name, ":"), GetValue(market, "id"));
+            string messageHash = ((name + ":") + GetValue(market, "id"));
             object tradesArray = this.safeValue(this.trades, symbol);
             callDynamically(client, "resolve", new object[] {tradesArray, messageHash});
         }
@@ -241,7 +241,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string name = "SubscribeTicker";
-        string messageHash = add(add(add(add(name, ":"), timeframeVar), ":"), GetValue(market, "id"));
+        string messageHash = ((((name + ":") + timeframeVar) + ":") + GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -373,7 +373,7 @@ public partial class ndax : ccxt.ndax
             for (int j = 0; isLessThan(j, timeframes.Count); postFixIncrement(ref j))
             {
                 string? timeframe = ((string)getValue(timeframes, j));
-                string messageHash = add(add(add(add(name, ":"), timeframe), ":"), marketId);
+                string messageHash = ((((name + ":") + timeframe) + ":") + marketId);
                 Dictionary<string, object> market = this.safeMarket(marketId);
                 string? symbol = ((string)getValue(market, "symbol"));
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
@@ -405,7 +405,7 @@ public partial class ndax : ccxt.ndax
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string name = "SubscribeLevel2";
-        string messageHash = add(add(name, ":"), GetValue(market, "id"));
+        string messageHash = ((name + ":") + GetValue(market, "id"));
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Int64 requestId = ((Int64)this.requestId());
         limitVar = (isEqual(limitVar, null)) ? 100 : limitVar;
@@ -521,7 +521,7 @@ public partial class ndax : ccxt.ndax
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         string name = "SubscribeLevel2";
-        string messageHash = add(add(name, ":"), marketId);
+        string messageHash = ((name + ":") + marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }

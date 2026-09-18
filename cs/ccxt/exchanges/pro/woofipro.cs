@@ -429,7 +429,7 @@ public partial class woofipro : ccxt.woofipro
         }
         if ((!isEqual(timeframeVar, "1m")) && (!isEqual(timeframeVar, "5m")) && (!isEqual(timeframeVar, "15m")) && (!isEqual(timeframeVar, "30m")) && (!isEqual(timeframeVar, "1h")) && (!isEqual(timeframeVar, "1d")) && (!isEqual(timeframeVar, "1w")) && (!isEqual(timeframeVar, "1M")))
         {
-            throw new NotSupported (add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
+            throw new NotSupported ((this.id + " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
@@ -759,7 +759,7 @@ public partial class woofipro : ccxt.woofipro
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -804,7 +804,7 @@ public partial class woofipro : ccxt.woofipro
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -1082,7 +1082,7 @@ public partial class woofipro : ccxt.woofipro
         }
         callDynamically(trades, "append", new object[] {trade});
         callDynamically(client, "resolve", new object[] {trades, messageHash});
-        string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         callDynamically(client, "resolve", new object[] {trades, symbolSpecificMessageHash});
     }
 
@@ -1110,16 +1110,16 @@ public partial class woofipro : ccxt.woofipro
         {
             if (isEqual(symbols, null))
             {
-                throw new ArgumentsRequired (add(this.id, " watchPositions() symbols is required")) ;
+                throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 if (isEqual(symbols, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " watchPositions() symbols is required")) ;
+                    throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
                 }
                 object symbol = getValue(symbols, i);
-                ((IList<object>)messageHashes).Add(add("positions::", symbol));
+                ((IList<object>)messageHashes).Add(("positions::" + symbol));
             }
         } else
         {
@@ -1237,7 +1237,7 @@ public partial class woofipro : ccxt.woofipro
             Dictionary<string, object> position = this.parseWsPosition(rawPosition, market);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-            string messageHash = add("positions::", GetValue(market, "symbol"));
+            string messageHash = ("positions::" + GetValue(market, "symbol"));
             callDynamically(client, "resolve", new object[] {position, messageHash});
         }
         callDynamically(client, "resolve", new object[] {newPositions, "positions"});
@@ -1423,7 +1423,7 @@ public partial class woofipro : ccxt.woofipro
         {
             if ((errorMessage != null))
             {
-                string feedback = add(add(this.id, " "), this.json(message));
+                string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             }
             return ((bool?)((object)(false)));

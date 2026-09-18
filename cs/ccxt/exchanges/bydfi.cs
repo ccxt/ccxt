@@ -747,7 +747,7 @@ public partial class bydfi : Exchange
         {
             if (isEqual(limit, null))
             {
-                throw new ArgumentsRequired (add(this.id, " getClosestLimit() requires a limit argument")) ;
+                throw new ArgumentsRequired ((this.id + " getClosestLimit() requires a limit argument")) ;
             }
             if (isLessThanOrEqual(limit, getValue(limits, i)))
             {
@@ -1022,7 +1022,7 @@ public partial class bydfi : Exchange
         {
             if (isEqual(startTime, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a since or until argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a since or until argument")) ;
             }
             until = add(startTime, timeDelta);
             if (isGreaterThan(until, now))
@@ -1279,7 +1279,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1427,16 +1427,16 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrderRequest() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrderRequest() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1489,7 +1489,7 @@ public partial class bydfi : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             request["price"] = this.priceToPrecision(symbol, price);
             if (isStopLossOrder)
@@ -1524,7 +1524,7 @@ public partial class bydfi : Exchange
             request["quantity"] = this.amountToPrecision(symbol, amount);
         } else if ((!isEqual(type, "STOP_MARKET")) && (!isEqual(type, "TAKE_PROFIT_MARKET")))
         {
-            throw new NotSupported (add(this.id, " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
+            throw new NotSupported ((this.id + " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
         }
         string? timeInForce = this.handleTimeInForce(parameters);
         bool? postOnly = false;
@@ -1583,7 +1583,7 @@ public partial class bydfi : Exchange
         int length = getArrayLength(orders);
         if (isGreaterThan(length, 5))
         {
-            throw new BadRequest (add(this.id, " createOrders() accepts a maximum of 5 orders")) ;
+            throw new BadRequest ((this.id + " createOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -1665,7 +1665,7 @@ public partial class bydfi : Exchange
         int length = getArrayLength(orders);
         if (isGreaterThan(length, 5))
         {
-            throw new BadRequest (add(this.id, " editOrders() accepts a maximum of 5 orders")) ;
+            throw new BadRequest ((this.id + " editOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -1700,7 +1700,7 @@ public partial class bydfi : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((isEqual(id, null)) && ((clientOrderId == null)))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an id argument or a clientOrderId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an id argument or a clientOrderId parameter")) ;
         } else if (!isEqual(id, null))
         {
             request["orderId"] = id;
@@ -1737,7 +1737,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1808,7 +1808,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1890,7 +1890,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1903,7 +1903,7 @@ public partial class bydfi : Exchange
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((isEqual(id, null)) && ((clientOrderId == null)))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
         } else if (!isEqual(id, null))
         {
             request["orderId"] = id;
@@ -2246,7 +2246,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2282,7 +2282,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2730,12 +2730,12 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToLower();
         if (!isEqual(marginModeVar, "isolated") && !isEqual(marginModeVar, "cross"))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2777,7 +2777,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported (add(this.id, " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")) ;
+            throw new NotSupported ((this.id + " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3061,7 +3061,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3216,7 +3216,7 @@ public partial class bydfi : Exchange
         string methodName = (isEqual(type, "deposit")) ? "fetchDeposits" : "fetchWithdrawals";
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a code argument")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3384,7 +3384,7 @@ public partial class bydfi : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), api);
-        string endpoint = add("/", path);
+        string endpoint = ("/" + path);
         string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
         if (isEqual(method, "GET"))
@@ -3392,7 +3392,7 @@ public partial class bydfi : Exchange
             query = this.urlencode(sortedParams);
             if ((query.Length != 0))
             {
-                endpoint = add(endpoint, add("?", query));
+                endpoint = add(endpoint, ("?" + query));
             }
         }
         if (isEqual(api, "private"))
@@ -3446,7 +3446,7 @@ public partial class bydfi : Exchange
         string? message = this.safeString(response, "message");
         if (code != "200")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);

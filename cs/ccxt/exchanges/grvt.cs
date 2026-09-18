@@ -876,7 +876,7 @@ public partial class grvt : Exchange
                 bool? ack = this.safeBool(authResult, "ack");
                 if ((ack != true))
                 {
-                    throw new ExchangeError (add("Builder authorization failed, ", this.json(authResponse))) ;
+                    throw new ExchangeError (("Builder authorization failed, " + this.json(authResponse))) ;
                 }
                 ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
             } catch(Exception e)
@@ -1538,7 +1538,7 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1622,7 +1622,7 @@ public partial class grvt : Exchange
         parameters = subAccountIdparametersVariable[1];
         if ((subAccountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page")) ;
+            throw new ArgumentsRequired ((this.id + " you should set \"accountId\" in options or params, which can be found in the grvt dashboard, under Api-Keys page")) ;
         }
         return subAccountId.ToString();
     }
@@ -2040,7 +2040,7 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a code argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -2158,7 +2158,7 @@ public partial class grvt : Exchange
             parameters = fundingAccountIdparametersVariable[1];
             if ((tradingAccountId == null) || (fundingAccountId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
+                throw new ArgumentsRequired ((this.id + " transfer(): you should set (in the options or params) \"tradingAccountId\" and \"fundingAccountId\" (you can use \"0\" as a main funding account id)")) ;
             }
             fromAccountVar = (isEqual(fromAccountVar, "trading")) ? tradingAccountId : fundingAccountId;
             toAccountVar = (isEqual(toAccountVar, "trading")) ? tradingAccountId : fundingAccountId;
@@ -2185,7 +2185,7 @@ public partial class grvt : Exchange
             bool isFromFundingAccount = isEqual(fromAccountVar, "funding");
             if (isFromFundingAccount && (getIndexOf(msg, "You are not authorized") >= 0))
             {
-                throw new PermissionDenied (add(add(this.id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
+                throw new PermissionDenied (((this.id + " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ") + msg)) ;
             }
             throw error;
         }
@@ -2303,11 +2303,11 @@ public partial class grvt : Exchange
             int length = subAccountIds.Count;
             if (isLessThan(length, 1))
             {
-                throw new ArgumentsRequired (add(this.id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
+                throw new ArgumentsRequired ((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
             }
             if (isGreaterThan(length, 1))
             {
-                throw new ArgumentsRequired (add(add(this.id, " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: "), this.json(subAccountIds))) ;
+                throw new ArgumentsRequired (((this.id + " loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ") + this.json(subAccountIds))) ;
             }
             string? subAccountId = this.safeString(subAccountIds, 0);
             ((IDictionary<string,object>)this.options)["accountId"] = subAccountId;
@@ -2348,7 +2348,7 @@ public partial class grvt : Exchange
         object networkId = this.networkCodeToId(networkCode, code);
         if ((networkId == null))
         {
-            throw new BadRequest (add(this.id, " withdraw() requires a network parameter")) ;
+            throw new BadRequest ((this.id + " withdraw() requires a network parameter")) ;
         }
         ((IDictionary<string,object>)GetValue(request, "signature"))["chain_id"] = networkId;
         request = this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency);
@@ -2408,12 +2408,12 @@ public partial class grvt : Exchange
             orderLeg["is_buying_asset"] = true;
         } else
         {
-            throw new InvalidOrder (add(this.id, " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
+            throw new InvalidOrder ((this.id + " createOrder(): order side must be either \"buy\" or \"sell\"")) ;
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
         {
-            clientOrderId = add(add(this.nonce().ToString(), "000"), this.requestId().ToString());
+            clientOrderId = ((this.nonce().ToString() + "000") + this.requestId().ToString());
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         bool isMarketOrder = (isEqual(type, "market"));
@@ -2498,7 +2498,7 @@ public partial class grvt : Exchange
                 string? triggerDirection = this.safeString(parameters, "triggerDirection");
                 if ((triggerDirection == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be \"ascending\" or \"descending\"")) ;
                 }
                 if ((triggerDirection != null))
                 {
@@ -2776,7 +2776,7 @@ public partial class grvt : Exchange
                 Dictionary<string, object> market = this.market(symbol);
                 if (!isEqual(GetValue(market, "contract"), true))
                 {
-                    throw new BadRequest (add(this.id, " fetchPositions() supports contract markets only")) ;
+                    throw new BadRequest ((this.id + " fetchPositions() supports contract markets only")) ;
                 }
                 ((IList<object>)GetValue(request, "base")).Add(GetValue(market, "baseId"));
                 ((IList<object>)GetValue(request, "quote")).Add(GetValue(market, "quoteId"));
@@ -2918,7 +2918,7 @@ public partial class grvt : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         await this.loadMarketsAndSignIn();
         Dictionary<string, object> market = this.market(symbol);
@@ -3670,7 +3670,7 @@ public partial class grvt : Exchange
             object amountInt = multiply(getValue(request, "num_tokens"), amountMultiplier);
             if (isEqual(currencyObj, null))
             {
-                throw new ExchangeError (add(this.id, " createSignedRequest() missing currencyObj")) ;
+                throw new ExchangeError ((this.id + " createSignedRequest() missing currencyObj")) ;
             }
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", getValue(request, "from_account_id") },
@@ -3687,7 +3687,7 @@ public partial class grvt : Exchange
             object amountMultiplier = this.convertToBigIntCustom("1000000");
             if (isEqual(currencyObj, null))
             {
-                throw new ExchangeError (add(this.id, " createSignedRequest() missing currencyObj")) ;
+                throw new ExchangeError ((this.id + " createSignedRequest() missing currencyObj")) ;
             }
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", getValue(request, "from_account_id") },
@@ -3722,7 +3722,7 @@ public partial class grvt : Exchange
         Dictionary<string, object> domainData = this.eipDomainData();
         Dictionary<string, object> definitions = this.eipDefinitions();
         byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, getValue(definitions, structureType), messageData);
-        string ethEncodedMessageHashed = add("0x", this.hash(ethEncodedMessage, keccak, "hex"));
+        string ethEncodedMessageHashed = ("0x" + this.hash(ethEncodedMessage, keccak, "hex"));
         bool usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         string? secretOrPrivkey = isTrue(usesPrivKey) ? this.privateKey : this.secret;
         object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
@@ -3730,7 +3730,7 @@ public partial class grvt : Exchange
         ((IDictionary<string,object>)getValue(request, "signature"))["r"] = this.formatSignatureRS(GetValue(signature, "r"));
         ((IDictionary<string,object>)getValue(request, "signature"))["s"] = this.formatSignatureRS(GetValue(signature, "s"));
         ((IDictionary<string,object>)getValue(request, "signature"))["v"] = this.sum(27, GetValue(signature, "v"));
-        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = (isEqual(signerAddress, null)) ? this.ethGetAddressFromPrivateKey(add("0x", privateKeyWithoutZero)) : signerAddress;
+        ((IDictionary<string,object>)getValue(request, "signature"))["signer"] = (isEqual(signerAddress, null)) ? this.ethGetAddressFromPrivateKey(("0x" + privateKeyWithoutZero)) : signerAddress;
         return ((Dictionary<string, object>)((object)(request)));
     }
 
@@ -3742,7 +3742,7 @@ public partial class grvt : Exchange
             return ((string?)((object)(padded)));
         } else
         {
-            return add("0x", padded);
+            return ("0x" + padded);
         }
     }
 
@@ -3792,7 +3792,7 @@ public partial class grvt : Exchange
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencode(query);
-                url = add(url, add("?", queryString));
+                url = add(url, ("?" + queryString));
             }
         } else if (isEqual(method, "POST"))
         {
@@ -3833,7 +3833,7 @@ public partial class grvt : Exchange
                 string? cookieValue = this.safeString(this.options, "AuthCookieValue");
                 if ((cookieValue == null) || (accountId == null))
                 {
-                    throw new AuthenticationError (add(this.id, " : at first, you need to authenticate with exchange using signIn() method.")) ;
+                    throw new AuthenticationError ((this.id + " : at first, you need to authenticate with exchange using signIn() method.")) ;
                 }
                 ((IDictionary<string,object>)headers)["Cookie"] = cookieValue;
                 ((IDictionary<string,object>)headers)["X-Grvt-Account-Id"] = accountId;
@@ -3861,14 +3861,14 @@ public partial class grvt : Exchange
             }
             if (isEqual(getValue(this.options, "AuthCookieValue"), null) || isEqual(getValue(this.options, "AuthAccountId"), null))
             {
-                throw new AuthenticationError (add(this.id, " signIn() failed to receive auth-cookie or account-id")) ;
+                throw new AuthenticationError ((this.id + " signIn() failed to receive auth-cookie or account-id")) ;
             }
         } else
         {
             string? errorCode = this.safeString(response, "code");
             if ((errorCode != null))
             {
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                 throw new ExchangeError (feedback) ;
             } else
@@ -3876,7 +3876,7 @@ public partial class grvt : Exchange
                 string? message = this.safeString(response, "message");
                 if ((message != null))
                 {
-                    string feedback = add(add(this.id, " "), body);
+                    string feedback = ((this.id + " ") + body);
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                     throw new ExchangeError (feedback) ;
                 } else
@@ -3884,7 +3884,7 @@ public partial class grvt : Exchange
                     string? status = this.safeString(response, "status");
                     if ((status != null) && status != "success")
                     {
-                        string feedback = add(add(this.id, " "), body);
+                        string feedback = ((this.id + " ") + body);
                         throw new ExchangeError (feedback) ;
                     }
                 }

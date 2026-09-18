@@ -810,12 +810,12 @@ public partial class btse : Exchange
         string? contractSize = null;
         if (!isSpot)
         {
-            symbol = add(symbol, add(":", quote));
+            symbol = add(symbol, (":" + quote));
             contractSize = this.safeString(market, "contractSize");
             if (isFuture)
             {
                 expiry = this.safeInteger(market, "contractEndTime");
-                symbol = add(symbol, add("-", this.yymmdd(expiry)));
+                symbol = add(symbol, ("-" + this.yymmdd(expiry)));
                 type = "future";
             } else
             {
@@ -1052,13 +1052,13 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchFundingRateHistory() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchFundingRateHistory() supports contract markets only")) ;
         }
         object period = null;
         IList<object> periodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
@@ -1381,7 +1381,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
         object result = ccxt.BaseExchange.FromLeverageTiers(await this.FetchLeverageTiers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToLeverageTierList(getValue(result, symbol));
@@ -1531,7 +1531,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new BadRequest (add(add(this.id, " fetchOpenInterest() symbol does not support market "), symbol)) ;
+            throw new BadRequest (((this.id + " fetchOpenInterest() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1609,7 +1609,7 @@ public partial class btse : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new BadRequest (add(this.id, " fetchFundingRate() symbol does not support spot markets")) ;
+            throw new BadRequest ((this.id + " fetchFundingRate() symbol does not support spot markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -1694,7 +1694,7 @@ public partial class btse : Exchange
         if ((!isEqual(fundingIntervalMinutes, null)) && (isGreaterThanOrEqual(fundingIntervalMinutes, 60)))
         {
             Int64? hours = this.parseToInt(divide(fundingIntervalMinutes, 60));
-            interval = add(((object)hours).ToString(), "h");
+            interval = (((object)hours).ToString() + "h");
         }
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -1836,7 +1836,7 @@ public partial class btse : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
+                throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument for spot markets")) ;
             }
             //
             //     {
@@ -1945,7 +1945,7 @@ public partial class btse : Exchange
         {
             if (isEqual(id, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrderTrades() requires an id argument or a clientOrderId parameter")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrderTrades() requires an id argument or a clientOrderId parameter")) ;
             } else
             {
                 parameters = this.extend(parameters, new Dictionary<string, object>() {
@@ -2182,7 +2182,7 @@ public partial class btse : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for ") + type) + " orders")) ;
             }
         }
         // market and trailing buys are denominated in the quote currency while
@@ -2205,7 +2205,7 @@ public partial class btse : Exchange
             {
                 if (isEqual(price, null))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
                     string? amountString = this.numberToString(amount);
@@ -2408,7 +2408,7 @@ public partial class btse : Exchange
             {
                 if (isTrue(hedged))
                 {
-                    throw new BadRequest (add(this.id, " createOrder() cannot use isolated margin with hedged positions")) ;
+                    throw new BadRequest ((this.id + " createOrder() cannot use isolated margin with hedged positions")) ;
                 }
                 request["positionMode"] = "ISOLATED";
             } else if (isTrue(hedged))
@@ -2443,7 +2443,7 @@ public partial class btse : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a price argument for "), type), " orders")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for ") + type) + " orders")) ;
             }
         }
         // here we handling with attached take profit and stop loss orders
@@ -2628,7 +2628,7 @@ public partial class btse : Exchange
             parameters = this.omit(parameters, "clientOrderId");
         } else if (isEqual(id, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOpenOrder() requires an id argument or a clientOrderId parameter")) ;
         } else
         {
             request["orderId"] = id;
@@ -2693,7 +2693,7 @@ public partial class btse : Exchange
             parameters = this.omit(parameters, "clientOrderId");
         } else if (isEqual(id, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an id argument or a clientOrderId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an id argument or a clientOrderId parameter")) ;
         } else
         {
             request["orderId"] = id;
@@ -2715,7 +2715,7 @@ public partial class btse : Exchange
         bool? isSlide = this.safeBool(parameters, "slide", false);
         if ((isEqual(amount, null)) && (isEqual(price, null)) && ((triggerPrice == null)) && ((isSlide != true)))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
         }
         List<object> response = null;
         if (isEqual(GetValue(market, "spot"), true))
@@ -2731,7 +2731,7 @@ public partial class btse : Exchange
             {
                 if ((!isEqual(amount, null)) || (!isEqual(price, null)))
                 {
-                    throw new BadRequest (add(this.id, " editOrder() can not amend the trigger price together with the price or the amount on contract markets")) ;
+                    throw new BadRequest ((this.id + " editOrder() can not amend the trigger price together with the price or the amount on contract markets")) ;
                 }
                 request["amendType"] = "TRIGGER_PRICE";
             } else if ((!isEqual(amount, null)) && (!isEqual(price, null)))
@@ -2767,7 +2767,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -2779,7 +2779,7 @@ public partial class btse : Exchange
             parameters = this.omit(parameters, "clientOrderId");
         } else if (isEqual(id, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires an id argument or a clientOrderId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires an id argument or a clientOrderId parameter")) ;
         } else
         {
             request["orderId"] = id;
@@ -2849,7 +2849,7 @@ public partial class btse : Exchange
         {
             if ((market == null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument for contract markets")) ;
+                throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument for contract markets")) ;
             }
             // the unified futures api has no cancel all endpoint, the legacy
             // endpoint cancels every order for the symbol when no order id is
@@ -3192,7 +3192,7 @@ public partial class btse : Exchange
             request["asset"] = GetValue(currency, "id");
         } else if (walletType == "SPOT")
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a code argument for the spot wallet history")) ;
+            throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a code argument for the spot wallet history")) ;
         }
         if (!isEqual(since, null))
         {
@@ -3435,7 +3435,7 @@ public partial class btse : Exchange
             request["asset"] = GetValue(currency, "id");
         } else if (walletType == "SPOT")
         {
-            throw new ArgumentsRequired (add(this.id, " fetchLedger() requires a code argument for the spot wallet history")) ;
+            throw new ArgumentsRequired ((this.id + " fetchLedger() requires a code argument for the spot wallet history")) ;
         }
         if (!isEqual(since, null))
         {
@@ -3782,7 +3782,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchPositionMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchPositionMode() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -3824,7 +3824,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setPositionMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setPositionMode() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -3906,7 +3906,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -3914,21 +3914,21 @@ public partial class btse : Exchange
         string positionMode = "ONE_WAY";
         if ((!isEqual(marginModeVar, "cross")) && (!isEqual(marginModeVar, "isolated")))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() marginMode argument should be either cross or isolated")) ;
+            throw new BadRequest ((this.id + " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
         bool? hedged = this.safeBool(parameters, "hedged");
         if (isEqual(marginModeVar, "cross"))
         {
             if (!(inOp(parameters, "hedged")))
             {
-                throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a hedged parameter for cross margin mode")) ;
+                throw new ArgumentsRequired ((this.id + " setMarginMode() requires a hedged parameter for cross margin mode")) ;
             } else if ((hedged == true))
             {
                 positionMode = "HEDGE";
             }
         } else if ((inOp(parameters, "hedged")) && ((hedged != true)))
         {
-            throw new BadRequest (add(this.id, " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
+            throw new BadRequest ((this.id + " setMarginMode() hedged parameter cannot be false for isolated margin mode")) ;
         } else
         {
             positionMode = "ISOLATED";
@@ -3963,7 +3963,7 @@ public partial class btse : Exchange
         string? positionId = this.safeString(parameters, "positionId");
         if ((positionId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " closePosition() requires a positionId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " closePosition() requires a positionId parameter")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.futuresRequestId(market) },
@@ -3979,7 +3979,7 @@ public partial class btse : Exchange
             string? price = this.safeString(parameters, "price");
             if ((price == null))
             {
-                throw new ArgumentsRequired (add(this.id, " closePosition() requires a price parameter for limit orders")) ;
+                throw new ArgumentsRequired ((this.id + " closePosition() requires a price parameter for limit orders")) ;
             }
             request["orderPrice"] = this.priceToPrecision(symbol, price);
             parameters = this.omit(parameters, "price");
@@ -4081,7 +4081,7 @@ public partial class btse : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -4126,7 +4126,7 @@ public partial class btse : Exchange
         {
             string? spotErrorCode = this.safeString(response, "code");
             string? spotMessage = this.safeString(response, "msg");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), spotErrorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), spotMessage, feedback);
             throw new ExchangeError (feedback) ;
@@ -4135,7 +4135,7 @@ public partial class btse : Exchange
         if ((errorCode != null))
         {
             string? message = this.safeString(response, "message");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;
@@ -4157,7 +4157,7 @@ public partial class btse : Exchange
         if (((legacyErrorText != null)) && ((legacyEnumCode != null)))
         {
             string? legacyMessage = this.safeString(response, "message");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), legacyEnumCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), legacyMessage, feedback);
             throw new ExchangeError (feedback) ;
@@ -4182,7 +4182,7 @@ public partial class btse : Exchange
                 {
                     message = this.safeString(embedded, "default_msg", message);
                 }
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), status, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             }
@@ -4209,7 +4209,7 @@ public partial class btse : Exchange
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 queryString = this.urlencode(query);
-                url = add(url, add("?", queryString));
+                url = add(url, ("?" + queryString));
             }
         }
         if (isEqual(api, "private"))
@@ -4231,7 +4231,7 @@ public partial class btse : Exchange
             object signPath = null;
             if ((((string)path).StartsWith("public-api/") == true))
             {
-                signPath = add("/", path);
+                signPath = ("/" + path);
             } else
             {
                 signPath = this.cleanPath(path);

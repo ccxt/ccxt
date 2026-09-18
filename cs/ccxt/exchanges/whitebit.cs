@@ -1373,7 +1373,7 @@ public partial class whitebit : Exchange
         object markets = this.markets;
         if ((markets == null))
         {
-            throw new ExchangeError (add(this.id, " markets not loaded")) ;
+            throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
@@ -1851,7 +1851,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        throw new OrderNotFound (add(add(this.id, " fetchOrder() order not found: "), id)) ;
+        throw new OrderNotFound (((this.id + " fetchOrder() order not found: ") + id)) ;
     }
 
     /**
@@ -2437,7 +2437,7 @@ public partial class whitebit : Exchange
         {
             if ((!isEqual(side, "buy")) || (!isEqual(type, "market")))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() cost is only supported for market buy orders")) ;
+                throw new InvalidOrder ((this.id + " createOrder() cost is only supported for market buy orders")) ;
             }
             request["amount"] = this.costToPrecision(symbol, cost);
         } else
@@ -2465,17 +2465,17 @@ public partial class whitebit : Exchange
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (((timeInForce != null)) && (timeInForce != "GTC") && (timeInForce != "IOC") && (timeInForce != "PO"))
         {
-            throw new NotSupported (add(add(add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
+            throw new NotSupported ((((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", only GTC, IOC and PO are allowed")) ;
         }
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         bool ioc = (timeInForce == "IOC");
         if (isStopOrder && (postOnly || ioc))
         {
-            throw new NotSupported (add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
+            throw new NotSupported ((this.id + " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
         }
         if (ioc && !isLimitOrder)
         {
-            throw new NotSupported (add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
+            throw new NotSupported ((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
         }
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("createOrder", parameters);
         var marginMode = marginModequeryVariable[0];
@@ -2490,7 +2490,7 @@ public partial class whitebit : Exchange
         }
         if ((marginMode != null) && !isEqual(marginMode, "cross"))
         {
-            throw new NotSupported (add(this.id, " createOrder() is only available for cross margin")) ;
+            throw new NotSupported ((this.id + " createOrder() is only available for cross margin")) ;
         }
         parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice", "timeInForce"});
         bool useCollateralEndpoint = (marginMode != null) || marketType == "swap";
@@ -2620,7 +2620,7 @@ public partial class whitebit : Exchange
         bool hasModifiableParam = (!isEqual(amount, null)) || (!isEqual(price, null)) || (!isEqual(triggerPrice, null)) || (!isEqual(total, null));
         if (!hasModifiableParam)
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "triggerPrice", "stopPrice", "activationPrice", "total"});
         Dictionary<string, object> response = await this.v4PrivatePostOrderModify(this.extend(request, parameters));
@@ -2642,7 +2642,7 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2724,7 +2724,7 @@ public partial class whitebit : Exchange
             ((IList<object>)requestType).Add("futures");
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " cancelAllOrders() does not support "), type), " type")) ;
+            throw new NotSupported ((((this.id + " cancelAllOrders() does not support ") + type) + " type")) ;
         }
         request["type"] = requestType;
         List<object> response = await this.v4PrivatePostOrderCancelAll(this.extend(request, parameters));
@@ -2789,13 +2789,13 @@ public partial class whitebit : Exchange
         string? symbol = this.safeString(parameters, "symbol");
         if ((symbol == null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrdersAfter() requires a symbol argument in params")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrdersAfter() requires a symbol argument in params")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         parameters = this.omit(parameters, "symbol");
         if (isEqual(timeout, null))
         {
-            throw new ExchangeError (add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         bool isBiggerThanZero = (isGreaterThan(timeout, 0));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3393,19 +3393,19 @@ public partial class whitebit : Exchange
             string? provider = this.safeString(parameters, "provider");
             if ((provider == null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires a provider when the ticker is fiat")) ;
             }
             request["provider"] = provider;
             double? amount = this.safeNumber(parameters, "amount");
             if (isEqual(amount, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires an amount when the ticker is fiat")) ;
             }
             request["amount"] = amount;
             object uniqueId = this.safeValue(parameters, "uniqueId");
             if ((uniqueId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((this.id + " fetchDepositAddress() requires an uniqueId when the ticker is fiat")) ;
             }
             response = await this.v4PrivatePostMainAccountFiatDepositUrl(this.extend(request, parameters));
         } else
@@ -3579,11 +3579,11 @@ public partial class whitebit : Exchange
         }
         if (!isEqual(symbol, null))
         {
-            throw new NotSupported (add(this.id, " setLeverage() does not allow to set per symbol")) ;
+            throw new NotSupported ((this.id + " setLeverage() does not allow to set per symbol")) ;
         }
         if ((isLessThan(leverage, 1)) || (isGreaterThan(leverage, 20)))
         {
-            throw new BadRequest (add(this.id, " setLeverage() leverage should be between 1 and 20")) ;
+            throw new BadRequest ((this.id + " setLeverage() leverage should be between 1 and 20")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
@@ -3686,7 +3686,7 @@ public partial class whitebit : Exchange
             object provider = this.safeValue(parameters, "provider");
             if ((provider == null))
             {
-                throw new ArgumentsRequired (add(this.id, " withdraw() requires a provider when the ticker is fiat")) ;
+                throw new ArgumentsRequired ((this.id + " withdraw() requires a provider when the ticker is fiat")) ;
             }
             request["provider"] = provider;
         }
@@ -4201,7 +4201,7 @@ public partial class whitebit : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4821,7 +4821,7 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         int maxLimit = 100;
         object paginate = false;
@@ -4897,14 +4897,14 @@ public partial class whitebit : Exchange
         {
             headers = new Dictionary<string, object>() {};
         }
-        ((IDictionary<string,object>)headers)["User-Agent"] = add(add(add("ccxt/", this.id), "-"), this.version);
-        string pathWithParams = add("/", this.implodeParams(path, parameters));
+        ((IDictionary<string,object>)headers)["User-Agent"] = ((("ccxt/" + this.id) + "-") + this.version);
+        string pathWithParams = ("/" + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(getValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (isEqual(accessibility, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         }
         if (isEqual(accessibility, "private"))
@@ -4912,7 +4912,7 @@ public partial class whitebit : Exchange
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
             string? secret = this.encode(this.secret);
-            string request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
+            string request = (((("/" + "api") + "/") + version) + pathWithParams);
             IList<object> nonceWindowrequestParamsVariable = (IList<object>)this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = nonceWindowrequestParamsVariable[0];
             var requestParams = nonceWindowrequestParamsVariable[1];
@@ -4942,11 +4942,11 @@ public partial class whitebit : Exchange
     {
         if ((isEqual(code, 418)) || (isEqual(code, 429)))
         {
-            throw new DDoSProtection (add(add(add(add(add(add(this.id, " "), code.ToString()), " "), reason), " "), body)) ;
+            throw new DDoSProtection (add((((((this.id + " ") + code.ToString()) + " ") + reason) + " "), body)) ;
         }
         if (isEqual(code, 404))
         {
-            throw new ExchangeError (add(add(add(this.id, " "), code.ToString()), " endpoint not found")) ;
+            throw new ExchangeError ((((this.id + " ") + code.ToString()) + " endpoint not found")) ;
         }
         if (!isEqual(response, null))
         {
@@ -4962,7 +4962,7 @@ public partial class whitebit : Exchange
             bool hasErrorStatus = (status != null) && status != "200" && (errors != null);
             if (hasErrorStatus || !isEqual(codeNew, null))
             {
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 object errorInfo = message;
                 if (hasErrorStatus)
                 {
@@ -4999,7 +4999,7 @@ public partial class whitebit : Exchange
                     int errorMessageLength = errorMessageArray.Count;
                     errorInfo = (isGreaterThan(errorMessageLength, 0)) ? getValue(errorMessageArray, 0) : body;
                 }
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorInfo, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
                 throw new ExchangeError (feedback) ;

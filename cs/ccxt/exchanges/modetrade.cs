@@ -1870,11 +1870,11 @@ public partial class modetrade : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         /**
          * @method
@@ -1894,7 +1894,7 @@ public partial class modetrade : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         string orderSide = ((string)side).ToUpper();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2069,7 +2069,7 @@ public partial class modetrade : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrders() requires a symbol for each order")) ;
+                throw new ArgumentsRequired ((this.id + " createOrders() requires a symbol for each order")) ;
             }
             string? type = this.safeString(rawOrder, "type", "");
             string? side = this.safeString(rawOrder, "side");
@@ -2082,7 +2082,7 @@ public partial class modetrade : Exchange
             bool isConditional = (triggerPrice != null) || (stopLoss != null) || (takeProfit != null) || (!isEqual(this.safeValue(orderParams, "childOrders"), null));
             if (isConditional)
             {
-                throw new NotSupported (add(this.id, " createOrders() only support non-stop order")) ;
+                throw new NotSupported ((this.id + " createOrders() only support non-stop order")) ;
             }
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
@@ -2233,7 +2233,7 @@ public partial class modetrade : Exchange
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (((trigger != true)) && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3109,7 +3109,7 @@ public partial class modetrade : Exchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -3118,7 +3118,7 @@ public partial class modetrade : Exchange
         object r = GetValue(signature, "r");
         object s = GetValue(signature, "s");
         string v = this.intToBase16(this.sum(27, GetValue(signature, "v")));
-        return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
+        return ((("0x" + (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))) + v);
     }
 
     public virtual object signMessage(object message, object privateKey)
@@ -3152,7 +3152,7 @@ public partial class modetrade : Exchange
             codeVar = codeVar.ToUpper();
             if (!isEqual(codeVar, "USDC"))
             {
-                throw new NotSupported (add(this.id, " withdraw() only support USDC")) ;
+                throw new NotSupported ((this.id + " withdraw() only support USDC")) ;
             }
         }
         Dictionary<string, object> currency = this.currency(codeVar);
@@ -3163,7 +3163,7 @@ public partial class modetrade : Exchange
         double? coinNetworkId = this.safeNumber(coinNetwork, "id");
         if (isEqual(coinNetworkId, null))
         {
-            throw new BadRequest (add(this.id, " withdraw() require chainId parameter")) ;
+            throw new BadRequest ((this.id + " withdraw() require chainId parameter")) ;
         }
         double? withdrawNonce = await this.getWithdrawNonce(parameters);
         Int64 nonce = this.nonce();
@@ -3311,7 +3311,7 @@ public partial class modetrade : Exchange
         bool isMaxLeverage = isGreaterThan(leverage, 50);
         if (isMinLeverage || isMaxLeverage)
         {
-            throw new BadRequest (add(this.id, " leverage should be between 1 and 50")) ;
+            throw new BadRequest ((this.id + " leverage should be between 1 and 50")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "leverage", leverage },
@@ -3411,7 +3411,7 @@ public partial class modetrade : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchPosition() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchPosition() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3529,7 +3529,7 @@ public partial class modetrade : Exchange
             url = add(url, pathWithParams);
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(parameters)));
+                url = add(url, ("?" + this.urlencode(parameters)));
             }
         } else
         {
@@ -3562,14 +3562,14 @@ public partial class modetrade : Exchange
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "ed25519:") < 0)
             {
-                apiKey = add("ed25519:", apiKey);
+                apiKey = ("ed25519:" + apiKey);
             }
             headers = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },
                 { "orderly-timestamp", ts },
             };
-            auth = add(add(add(add(add(ts, method), "/"), version), "/"), pathWithParams);
+            auth = (((((ts + method) + "/") + version) + "/") + pathWithParams);
             if (isEqual(method, "POST") || isEqual(method, "PUT"))
             {
                 body = this.json(parameters);
@@ -3579,8 +3579,8 @@ public partial class modetrade : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(parameters)));
-                    auth = add(auth, add("?", this.rawencode(parameters)));
+                    url = add(url, ("?" + this.urlencode(parameters)));
+                    auth = add(auth, ("?" + this.rawencode(parameters)));
                 }
                 ((IDictionary<string,object>)headers)["content-type"] = "application/x-www-form-urlencoded";
                 if (isEqual(method, "DELETE"))
@@ -3619,7 +3619,7 @@ public partial class modetrade : Exchange
         string? errorCode = this.safeString(response, "code");
         if ((success != true))
         {
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

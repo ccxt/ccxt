@@ -54,7 +54,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", GetValue(market, "symbol"));
+        string messageHash = ("trade:" + GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_trades" },
@@ -86,7 +86,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("trade:", GetValue(market, "symbol"));
+        string messageHash = ("trade:" + GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_trades" },
@@ -137,7 +137,7 @@ public partial class dydx : ccxt.dydx
             object parsed = getValue(parsedTrades, i);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        string messageHash = add(add("trade", ":"), symbol);
+        string messageHash = (("trade" + ":") + symbol);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 
@@ -191,7 +191,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", GetValue(market, "symbol"));
+        string messageHash = ("orderbook:" + GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_orderbook" },
@@ -219,7 +219,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("orderbook:", GetValue(market, "symbol"));
+        string messageHash = ("orderbook:" + GetValue(market, "symbol"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_orderbook" },
@@ -268,7 +268,7 @@ public partial class dydx : ccxt.dydx
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "message_id");
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
@@ -311,7 +311,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ohlcv:", GetValue(market, "symbol"));
+        string messageHash = ("ohlcv:" + GetValue(market, "symbol"));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -348,7 +348,7 @@ public partial class dydx : ccxt.dydx
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ohlcv:", GetValue(market, "symbol"));
+        string messageHash = ("ohlcv:" + GetValue(market, "symbol"));
         string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
@@ -420,7 +420,7 @@ public partial class dydx : ccxt.dydx
         string? symbol = ((string)GetValue(market, "symbol"));
         IDictionary<string, object> content = this.safeDict(message, "contents");
         List<object> candles = this.safeList(content, "candles");
-        string messageHash = add("ohlcv:", symbol);
+        string messageHash = ("ohlcv:" + symbol);
         IDictionary<string, object> ohlcv = this.safeDict(candles, 0, content);
         IList<object> parsed = this.parseOHLCV(ohlcv, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -440,7 +440,7 @@ public partial class dydx : ccxt.dydx
         try
         {
             string? msg = this.safeString(message, "message");
-            throw new ExchangeError (add(add(this.id, " "), msg)) ;
+            throw new ExchangeError (((this.id + " ") + msg)) ;
         } catch(Exception e)
         {
             client.reject(e);

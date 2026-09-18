@@ -516,7 +516,7 @@ public partial class kalshi : PredictionExchange
                 }
                 if ((parsed == null))
                 {
-                    throw new ExchangeError (add(this.id, " fetchOutcome() could not resolve parsed")) ;
+                    throw new ExchangeError ((this.id + " fetchOutcome() could not resolve parsed")) ;
                 }
                 ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "market")] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
@@ -620,7 +620,7 @@ public partial class kalshi : PredictionExchange
                 Dictionary<string, object> parsed = this.parseMarket(getValue(rawMarkets, i));
                 if ((parsed == null))
                 {
-                    throw new ExchangeError (add(this.id, " fetchOutcomes() could not resolve parsed")) ;
+                    throw new ExchangeError ((this.id + " fetchOutcomes() could not resolve parsed")) ;
                 }
                 ((IDictionary<string,object>)this.markets)[(string)getValue(parsed, "market")] = parsed;
                 this.indexMarketOutcomes(parsed);
@@ -651,7 +651,7 @@ public partial class kalshi : PredictionExchange
         if ((error != null))
         {
             string? errorCode = this.safeString(error, "code");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
         }
@@ -659,7 +659,7 @@ public partial class kalshi : PredictionExchange
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (isEqual(code, 400))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             throw new BadRequest (feedback) ;
         }
         return null;
@@ -1191,7 +1191,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(outcomes, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes(outcomes);
@@ -1394,7 +1394,7 @@ public partial class kalshi : PredictionExchange
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             List<object> tfKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             string supported = String.Join(", ", tfKeys.ToArray());
-            throw new BadRequest (add(add(add(add(add(this.id, " fetchOHLCV() does not support the "), timeframeVar), " timeframe (supported: "), supported), ")")) ;
+            throw new BadRequest ((((((this.id + " fetchOHLCV() does not support the ") + timeframeVar) + " timeframe (supported: ") + supported) + ")")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "series_ticker", seriesTicker },
@@ -1666,7 +1666,7 @@ public partial class kalshi : PredictionExchange
             outcomeObj = this.outcome(outcome);
             if ((outcomeObj == null))
             {
-                throw new ArgumentsRequired (add(this.id, " requires a valid outcome")) ;
+                throw new ArgumentsRequired ((this.id + " requires a valid outcome")) ;
             }
             request["ticker"] = this.safeString(GetValue(outcomeObj, "info"), "ticker");
         }
@@ -1865,7 +1865,7 @@ public partial class kalshi : PredictionExchange
         Dictionary<string, object> wantedTickers = new Dictionary<string, object>() {};
         if (isEqual(outcomes, null))
         {
-            throw new ExchangeError (add(this.id, " fetchPositions() missing outcomes")) ;
+            throw new ExchangeError ((this.id + " fetchPositions() missing outcomes")) ;
         }
         for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
@@ -2089,7 +2089,7 @@ public partial class kalshi : PredictionExchange
             outcomeObj = this.outcome(outcome);
             if ((outcomeObj == null))
             {
-                throw new ArgumentsRequired (add(this.id, " requires a valid outcome")) ;
+                throw new ArgumentsRequired ((this.id + " requires a valid outcome")) ;
             }
             request["ticker"] = this.safeString(GetValue(outcomeObj, "info"), "ticker");
         }
@@ -2124,7 +2124,7 @@ public partial class kalshi : PredictionExchange
             outcomeObj = this.outcome(outcome);
             if ((outcomeObj == null))
             {
-                throw new ArgumentsRequired (add(this.id, " requires a valid outcome")) ;
+                throw new ArgumentsRequired ((this.id + " requires a valid outcome")) ;
             }
             request["ticker"] = this.safeString(GetValue(outcomeObj, "info"), "ticker");
         }
@@ -2312,7 +2312,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price - kalshi has only limit orders (no market orders). For immediate execution pass an aggressive price with params { 'time_in_force': 'immediate_or_cancel' }")) ;
         }
         await this.loadOutcome(outcome);
         IDictionary<string, object> outcomeObj = this.outcome(outcome);
@@ -2427,11 +2427,11 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a price - kalshi has only limit orders")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a price - kalshi has only limit orders")) ;
         }
         if (isEqual(amount, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount")) ;
         }
         await this.loadOutcome(outcome);
         ccxt.BaseExchange.FromPredictionOrder(await this.CancelOrder(id,((string)outcome)));
@@ -2546,7 +2546,7 @@ public partial class kalshi : PredictionExchange
         List<object> queries = this.parseSearchQueries(parameters);
         if ((queries == null))
         {
-            throw new ExchangeError (add(this.id, " fetchEvents() missing queries")) ;
+            throw new ExchangeError ((this.id + " fetchEvents() missing queries")) ;
         }
         int queriesLength = queries?.Count ?? 0;
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
@@ -3075,7 +3075,7 @@ public partial class kalshi : PredictionExchange
         string querystring = this.urlencode(query);
         if (isEqual(method, "GET") && (querystring != ""))
         {
-            url = add(url, add("?", querystring));
+            url = add(url, ("?" + querystring));
         }
         object existingHeaders = (!isEqual(headers, null)) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
@@ -3092,7 +3092,7 @@ public partial class kalshi : PredictionExchange
             int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = slice(baseUrl, tradeApiIndex, null);
             object pathForSigning = add(add(versionPrefix, "/"), implodedPath);
-            object payload = add(add(timestamp, method), pathForSigning);
+            object payload = ((timestamp + method) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
             List<object> keyParts = ((string)this.privateKey).Split(new [] {"\\n"}, StringSplitOptions.None).ToList<object>();
             string cleanPrivateKey = String.Join("\n", keyParts.ToArray());

@@ -783,7 +783,7 @@ public partial class gemini : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object data = await this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>");
-        string error = add(this.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
+        string error = (this.id + " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         List<object> tables = ((string)data).Split(new [] {"tbody>"}, StringSplitOptions.None).ToList<object>();
         int numTables = tables.Count;
         if (isLessThan(numTables, 2))
@@ -1939,7 +1939,7 @@ public partial class gemini : Exchange
         }
         if (!isEqual(typeVar, "limit"))
         {
-            throw new ExchangeError (add(this.id, " createOrder() allows limit orders only")) ;
+            throw new ExchangeError ((this.id + " createOrder() allows limit orders only")) ;
         }
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
@@ -1964,7 +1964,7 @@ public partial class gemini : Exchange
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
         if (isEqual(typeVar, "stopLimit"))
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a triggerPrice parameter or a stop_price parameter for "), typeVar), " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice parameter or a stop_price parameter for ") + typeVar) + " orders")) ;
         }
         if ((triggerPrice != null))
         {
@@ -2092,7 +2092,7 @@ public partial class gemini : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2171,7 +2171,7 @@ public partial class gemini : Exchange
         string? result = this.safeString(response, "result");
         if (result == "error")
         {
-            throw new ExchangeError (add(add(this.id, " withdraw() failed: "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " withdraw() failed: ") + this.json(response))) ;
         }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
@@ -2357,7 +2357,7 @@ public partial class gemini : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddresses() requires a network parameter")) ;
         }
         object networkId = this.networkCodeToId(networkCode, GetValue(currency, "code"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2378,7 +2378,7 @@ public partial class gemini : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add("/", this.implodeParams(path, parameters));
+        object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "private"))
         {
@@ -2386,7 +2386,7 @@ public partial class gemini : Exchange
             object apiKey = this.apiKey;
             if (getIndexOf(apiKey, "account") < 0)
             {
-                throw new AuthenticationError (add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
+                throw new AuthenticationError ((this.id + " sign() requires an account-key, master-keys are not-supported")) ;
             }
             string nonce = this.nonce().ToString();
             object finalUrl = url;
@@ -2407,7 +2407,7 @@ public partial class gemini : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         }
         url = add(getValue(getValue(this.urls, "api"), api), url);
@@ -2429,7 +2429,7 @@ public partial class gemini : Exchange
         {
             if ((body is string))
             {
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             }
             return null;  // fallback to default error handler
@@ -2446,7 +2446,7 @@ public partial class gemini : Exchange
         {
             string? reasonInner = this.safeString(response, "reason");
             string? message = this.safeString(response, "message");
-            string feedback = add(add(this.id, " "), message);
+            string feedback = ((this.id + " ") + message);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reasonInner, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

@@ -915,7 +915,7 @@ public partial class BaseTest
             for (int i = 0; isLessThan(i, 10); postFixIncrement(ref i))
             {
                 cacheEvictBuckets.append(new Dictionary<string, object>() {
-                    { "symbol", add(add("S", ((object)i).ToString()), "/USDT") },
+                    { "symbol", (("S" + ((object)i).ToString()) + "/USDT") },
                     { "id", "x" },
                     { "i", i },
                 });

@@ -473,7 +473,7 @@ public partial class bitopro : Exchange
         string? id = this.safeString(market, "pair");
         if ((id == null))
         {
-            throw new ExchangeError (add(this.id, " parseMarket() missing id")) ;
+            throw new ExchangeError ((this.id + " parseMarket() missing id")) ;
         }
         string uppercaseId = id.ToUpper();
         string? baseId = this.safeString(market, "base");
@@ -1174,7 +1174,7 @@ public partial class bitopro : Exchange
         string? side = this.safeString(order, "action");
         if ((side == null))
         {
-            throw new ExchangeError (add(this.id, " parseOrder() returned no side")) ;
+            throw new ExchangeError ((this.id + " parseOrder() returned no side")) ;
         }
         side = side.ToLower();
         string? amount = this.safeString2(order, "amount", "originalAmount");
@@ -1270,7 +1270,7 @@ public partial class bitopro : Exchange
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice"});
             if ((triggerPrice == null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a triggerPrice parameter for "), orderType), " orders")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice parameter for ") + orderType) + " orders")) ;
             } else
             {
                 request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -1278,7 +1278,7 @@ public partial class bitopro : Exchange
             string? condition = this.safeString(parameters, "condition");
             if ((condition == null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a condition parameter for "), orderType), " orders")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a condition parameter for ") + orderType) + " orders")) ;
             } else
             {
                 request["condition"] = condition;
@@ -1318,7 +1318,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1377,7 +1377,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1461,7 +1461,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1515,7 +1515,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1634,7 +1634,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1785,7 +1785,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDeposits() requires the code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDeposits() requires the code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1843,7 +1843,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchWithdrawals() requires the code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawals() requires the code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1899,7 +1899,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchWithdrawal() requires the code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawal() requires the code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1969,7 +1969,7 @@ public partial class bitopro : Exchange
             string? networkId = ((requestedNetwork == null)) ? null : this.safeString(networks, requestedNetwork);
             if ((networkId == null))
             {
-                throw new ExchangeError (add(add(this.id, " invalid network "), requestedNetwork)) ;
+                throw new ExchangeError (((this.id + " invalid network ") + requestedNetwork)) ;
             }
             request["protocol"] = networkId;
         }
@@ -2063,7 +2063,7 @@ public partial class bitopro : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add("/", this.implodeParams(path, parameters));
+        object url = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(headers, null))
         {
@@ -2085,7 +2085,7 @@ public partial class bitopro : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
                 Int64 nonce = this.milliseconds();
                 Dictionary<string, object> rawData = new Dictionary<string, object>() {
@@ -2102,7 +2102,7 @@ public partial class bitopro : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         }
         url = add(getValue(getValue(this.urls, "api"), "rest"), url);
@@ -2124,7 +2124,7 @@ public partial class bitopro : Exchange
         {
             return null;
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         string? error = this.safeString(response, "error");
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);

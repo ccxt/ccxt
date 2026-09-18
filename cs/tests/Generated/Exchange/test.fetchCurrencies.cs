@@ -49,12 +49,12 @@ public partial class testMainClass : BaseTest
                 bool skipUsdtForMica = (isEqual(isMicaCompliant, true)) && (code == "USDT");
                 if (isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !skipMajorCurrencyCheck && ((skipUsdtForMica != true)))
                 {
-                    assert((isEqual(withdraw, true)) && (isEqual(deposit, true)), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    assert((isEqual(withdraw, true)) && (isEqual(deposit, true)), ((("Major currency " + code) + " should have withdraw and deposit flags enabled ::: ") + exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active
             object inactiveCurrenciesPercentage = multiply((divide(numInactiveCurrencies, currenciesLength)), 100);
-            assert(skipActive || (isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), add(add(add(add("Percentage of inactive currencies is too high at ", ((object)inactiveCurrenciesPercentage).ToString()), "% that is more than the allowed maximum of "), ((object)maxInactiveCurrenciesPercentage).ToString()), "%"));
+            assert(skipActive || (isLessThan(inactiveCurrenciesPercentage, maxInactiveCurrenciesPercentage)), (((("Percentage of inactive currencies is too high at " + ((object)inactiveCurrenciesPercentage).ToString()) + "% that is more than the allowed maximum of ") + ((object)maxInactiveCurrenciesPercentage).ToString()) + "%"));
             detectCurrencyConflicts(exchange, currencies);
         }
         return true;

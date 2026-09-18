@@ -1403,7 +1403,7 @@ public partial class bitvavo : Exchange
         string? direction = null;
         if ((isEqual(fromAccount, "master")) && (isEqual(toAccount, "master")))
         {
-            throw new ArgumentsRequired (add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
+            throw new ArgumentsRequired ((this.id + " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
         } else if (isEqual(fromAccount, "master"))
         {
             direction = "masterToSub";
@@ -1420,11 +1420,11 @@ public partial class bitvavo : Exchange
             }
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " transfer() requires either fromAccount or toAccount to be master")) ;
+            throw new ArgumentsRequired ((this.id + " transfer() requires either fromAccount or toAccount to be master")) ;
         }
         if ((subaccountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
+            throw new ArgumentsRequired ((this.id + " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccountId", subaccountId },
@@ -1478,7 +1478,7 @@ public partial class bitvavo : Exchange
         string? subaccountId = this.safeString(parameters, "subaccountId");
         if ((subaccountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a subaccountId parameter")) ;
         }
         if (!isEqual(since, null))
         {
@@ -1639,11 +1639,11 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1726,7 +1726,7 @@ public partial class bitvavo : Exchange
             request["operatorId"] = this.parseToInt(operatorId);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         object selfTradePrevention = null;
         IList<object> selfTradePreventionparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
@@ -1849,7 +1849,7 @@ public partial class bitvavo : Exchange
         request = this.extend(request, parameters);
         if (isTrue(this.isEmpty(request)))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId == null))
@@ -1865,7 +1865,7 @@ public partial class bitvavo : Exchange
             request["operatorId"] = this.parseToInt(operatorId);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         request["market"] = GetValue(market, "id");
         return request;
@@ -1903,7 +1903,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1923,7 +1923,7 @@ public partial class bitvavo : Exchange
             request["operatorId"] = this.parseToInt(operatorId);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         return this.extend(request, parameters);
     }
@@ -1988,7 +1988,7 @@ public partial class bitvavo : Exchange
             request["operatorId"] = this.parseToInt(operatorId);
         } else
         {
-            throw new ArgumentsRequired (add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
+            throw new ArgumentsRequired ((this.id + " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         List<object> response = await this.privateDeleteOrders(this.extend(request, parameters));
         //
@@ -2016,11 +2016,11 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isGreaterThan(timeout, 300000))
         {
-            throw new BadRequest (add(this.id, " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
+            throw new BadRequest ((this.id + " cancelAllOrdersAfter() timeout should be less than or equal to 300000 milliseconds")) ;
         }
         if ((isGreaterThan(timeout, 0)) && (isLessThan(timeout, 10000)))
         {
-            throw new BadRequest (add(this.id, " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
+            throw new BadRequest ((this.id + " cancelAllOrdersAfter() timeout should be 0 or greater than or equal to 10000 milliseconds")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2059,7 +2059,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2151,7 +2151,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2437,7 +2437,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2971,13 +2971,13 @@ public partial class bitvavo : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
-        object url = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        object url = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         bool getOrDelete = (isEqual(method, "GET")) || (isEqual(method, "DELETE"));
         if (getOrDelete)
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         }
         if (isEqual(api, "private"))
@@ -2993,7 +2993,7 @@ public partial class bitvavo : Exchange
                 }
             }
             string timestamp = this.milliseconds().ToString();
-            object auth = add(add(add(timestamp, method), url), payload);
+            object auth = (((timestamp + method) + url) + payload);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
@@ -3031,7 +3031,7 @@ public partial class bitvavo : Exchange
         string? error = this.safeString(response, "error");
         if ((errorCode != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

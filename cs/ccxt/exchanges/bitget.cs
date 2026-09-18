@@ -3610,7 +3610,7 @@ public partial class bitget : Exchange
         }
         if ((productType == null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
+            throw new ArgumentsRequired ((this.id + " requires a productType param, one of \"USDT-FUTURES\", \"USDC-FUTURES\", \"COIN-FUTURES\", \"SUSDT-FUTURES\", \"SUSDC-FUTURES\", \"SCOIN-FUTURES\" or for uta only \"SPOT\"")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"productType", "category"});
         return new List<object>() {productType, parameters};
@@ -3735,7 +3735,7 @@ public partial class bitget : Exchange
                 ((IList<object>)promises).Add(this.publicMarginGetV2MarginCurrencies(parameters));
             } else
             {
-                throw new NotSupported (add(add(add(this.id, " does not support "), type), " market")) ;
+                throw new NotSupported ((((this.id + " does not support ") + type) + " market")) ;
             }
         }
         List<object> results = await promiseAll(promises);
@@ -4332,7 +4332,7 @@ public partial class bitget : Exchange
             string? network = this.networkIdToCode(networkId, code);
             if ((network == null))
             {
-                throw new ArgumentsRequired (add(this.id, " requires a network argument")) ;
+                throw new ArgumentsRequired ((this.id + " requires a network argument")) ;
             }
             network = network.ToUpper();
             bool withdrawable = ((this.safeString(chain, "withdrawable") == "true"));
@@ -4456,7 +4456,7 @@ public partial class bitget : Exchange
             string? code = this.safeString(parameters, "code");
             if ((code == null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchMarketLeverageTiers() requires a code argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchMarketLeverageTiers() requires a code argument")) ;
             }
             parameters = this.omit(parameters, "code");
             Dictionary<string, object> currency = this.currency(((string)code));
@@ -4464,7 +4464,7 @@ public partial class bitget : Exchange
             response = await this.privateMarginGetV2MarginCrossedTierData(this.extend(request, parameters));
         } else
         {
-            throw new BadRequest (add(add(this.id, " fetchMarketLeverageTiers() symbol does not support market "), GetValue(market, "symbol"))) ;
+            throw new BadRequest (((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + GetValue(market, "symbol"))) ;
         }
         //
         // swap and future
@@ -4773,7 +4773,7 @@ public partial class bitget : Exchange
         parameters = networkCodeparametersVariable[1];
         if ((networkCode == null))
         {
-            throw new ArgumentsRequired (add(this.id, " withdraw() requires a \"network\" parameter")) ;
+            throw new ArgumentsRequired ((this.id + " withdraw() requires a \"network\" parameter")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5602,7 +5602,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " fetchMarkPrice() is not supported for spot markets")) ;
+            throw new NotSupported ((this.id + " fetchMarkPrice() is not supported for spot markets")) ;
         } else
         {
             string? productType = null;
@@ -6274,7 +6274,7 @@ public partial class bitget : Exchange
                 request["category"] = productType;
             } else
             {
-                throw new NotSupported (add(add(add(this.id, " does not support "), marketType), " market")) ;
+                throw new NotSupported ((((this.id + " does not support ") + marketType) + " market")) ;
             }
             Dictionary<string, object> utaResponse = await this.privateUtaGetV3AccountAllFeeRate(this.extend(request, parameters));
             //
@@ -6332,7 +6332,7 @@ public partial class bitget : Exchange
             response = await this.publicMixGetV2MixMarketContracts(parameters);
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " does not support "), marketType), " market")) ;
+            throw new NotSupported ((((this.id + " does not support ") + marketType) + " market")) ;
         }
         //
         // spot and margin
@@ -6766,7 +6766,7 @@ public partial class bitget : Exchange
             response = await this.privateSpotGetV2SpotAccountAssets(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchBalance() does not support "), marketType), " accounts")) ;
+            throw new NotSupported ((((this.id + " fetchBalance() does not support ") + marketType) + " accounts")) ;
         }
         // spot
         //
@@ -7404,7 +7404,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "createMarketBuyOrderRequiresPrice", false },
@@ -7543,11 +7543,11 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string? productType = null;
@@ -7711,11 +7711,11 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string? marketType = null;
@@ -7768,7 +7768,7 @@ public partial class bitget : Exchange
         //
         if (isGreaterThan(this.sum(isTriggerOrder, isStopLossTriggerOrder, isTakeProfitTriggerOrder, isTrailingPercentOrder), 1))
         {
-            throw new ExchangeError (add(this.id, " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
+            throw new ExchangeError ((this.id + " createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
         if (isEqual(type, "limit"))
         {
@@ -7825,11 +7825,11 @@ public partial class bitget : Exchange
             {
                 if (!isMarketOrder)
                 {
-                    throw new BadRequest (add(this.id, " createOrder() bitget trailing orders must be market orders")) ;
+                    throw new BadRequest ((this.id + " createOrder() bitget trailing orders must be market orders")) ;
                 }
                 if ((trailingTriggerPrice == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() bitget trailing orders must have a trailingTriggerPrice param")) ;
                 }
                 request["planType"] = "track_plan";
                 request["triggerPrice"] = this.priceToPrecision(symbol, trailingTriggerPrice);
@@ -7893,7 +7893,7 @@ public partial class bitget : Exchange
                     object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     if ((slTriggerPrice == null))
                     {
-                        throw new ArgumentsRequired (add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
+                        throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
                     }
                     request["presetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
                     object slLimitPrice = this.safeValue(stopLoss, "price");
@@ -7909,7 +7909,7 @@ public partial class bitget : Exchange
                     object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     if ((tpTriggerPrice == null))
                     {
-                        throw new ArgumentsRequired (add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
+                        throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
                     }
                     request["presetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
                     object tpLimitPrice = this.safeValue(takeProfit, "price");
@@ -7952,7 +7952,7 @@ public partial class bitget : Exchange
         {
             if (isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit)
             {
-                throw new InvalidOrder (add(this.id, " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")) ;
+                throw new InvalidOrder ((this.id + " createOrder() does not support stop loss/take profit orders on spot markets, only swap markets")) ;
             }
             request["side"] = side;
             string? quantity = null;
@@ -7973,7 +7973,7 @@ public partial class bitget : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
                         string? amountString = this.numberToString(amount);
@@ -8023,7 +8023,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " createOrder() does not support "), marketType), " orders")) ;
+            throw new NotSupported ((((this.id + " createOrder() does not support ") + marketType) + " orders")) ;
         }
         return this.extend(request, parameters);
     }
@@ -8049,7 +8049,7 @@ public partial class bitget : Exchange
             {
                 if (!isEqual(symbol, marketId))
                 {
-                    throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                    throw new BadRequest ((this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
             }
             string? type = this.safeString(rawOrder, "type");
@@ -8068,7 +8068,7 @@ public partial class bitget : Exchange
                 {
                     if (!isEqual(marginMode, currentMarginMode))
                     {
-                        throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
+                        throw new BadRequest ((this.id + " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
                     }
                 }
             }
@@ -8137,7 +8137,7 @@ public partial class bitget : Exchange
             {
                 if (!isEqual(symbol, marketId))
                 {
-                    throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                    throw new BadRequest ((this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
             }
             string? type = this.safeString(rawOrder, "type");
@@ -8156,7 +8156,7 @@ public partial class bitget : Exchange
                 {
                     if (!isEqual(marginMode, currentMarginMode))
                     {
-                        throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
+                        throw new BadRequest ((this.id + " createOrders() requires all orders to have the same margin mode (isolated or cross)")) ;
                     }
                 }
             }
@@ -8299,7 +8299,7 @@ public partial class bitget : Exchange
         // }
         if (isGreaterThan(this.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder, isTrailingPercentOrder), 1))
         {
-            throw new ExchangeError (add(this.id, " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
+            throw new ExchangeError ((this.id + " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent"});
         Dictionary<string, object> response = null;
@@ -8365,7 +8365,7 @@ public partial class bitget : Exchange
             {
                 if (isEqual(price, null) && (cost == null))
                 {
-                    throw new InvalidOrder (add(this.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
+                    throw new InvalidOrder ((this.id + " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
                 } else
                 {
                     string? amountString = this.numberToString(amount);
@@ -8403,7 +8403,7 @@ public partial class bitget : Exchange
         {
             if ((!isEqual(GetValue(market, "swap"), true)) && (!isEqual(GetValue(market, "future"), true)))
             {
-                throw new NotSupported (add(add(add(this.id, " editOrder() does not support "), GetValue(market, "type")), " orders")) ;
+                throw new NotSupported ((((this.id + " editOrder() does not support ") + GetValue(market, "type")) + " orders")) ;
             }
             request["symbol"] = GetValue(market, "id");
             request["productType"] = productType;
@@ -8422,7 +8422,7 @@ public partial class bitget : Exchange
             {
                 if (!isMarketOrder)
                 {
-                    throw new BadRequest (add(this.id, " editOrder() bitget trailing orders must be market orders")) ;
+                    throw new BadRequest ((this.id + " editOrder() bitget trailing orders must be market orders")) ;
                 }
                 if ((trailingTriggerPrice != null))
                 {
@@ -8530,7 +8530,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8634,7 +8634,7 @@ public partial class bitget : Exchange
             }
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " cancelOrder() does not support "), GetValue(market, "type")), " orders")) ;
+            throw new NotSupported ((((this.id + " cancelOrder() does not support ") + GetValue(market, "type")) + " orders")) ;
         }
         //
         // spot, swap, future and spot margin
@@ -8710,7 +8710,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8773,7 +8773,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8886,7 +8886,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8926,7 +8926,7 @@ public partial class bitget : Exchange
         {
             if ((marginMode != null))
             {
-                throw new NotSupported (add(this.id, " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
+                throw new NotSupported ((this.id + " cancelAllOrders() does not support margin markets, you can use cancelOrders() instead")) ;
             } else
             {
                 if ((trigger == true))
@@ -8998,7 +8998,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -9037,7 +9037,7 @@ public partial class bitget : Exchange
             response = await this.privateMixGetV2MixOrderDetail(this.extend(request, parameters));
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchOrder() does not support "), GetValue(market, "type")), " orders")) ;
+            throw new NotSupported ((((this.id + " fetchOrder() does not support ") + GetValue(market, "type")) + " orders")) ;
         }
         //
         // spot
@@ -9166,7 +9166,7 @@ public partial class bitget : Exchange
         int dataListLength = dataList.Count;
         if ((dataListLength == 0))
         {
-            throw new OrderNotFound (add(add(add(add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
+            throw new OrderNotFound (((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
         }
         IDictionary<string, object> first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(first, market));
@@ -9814,7 +9814,7 @@ public partial class bitget : Exchange
             {
                 if (isEqual(symbol, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
+                    throw new ArgumentsRequired ((this.id + " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                 }
                 Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
@@ -10472,7 +10472,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)utaparametersVariable)[1];
         if ((!isEqual(uta, true)) && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -10912,7 +10912,7 @@ public partial class bitget : Exchange
             {
                 if ((marginCoin == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " fetchPositions() requires a marginCoin parameter that matches the productType")) ;
+                    throw new ArgumentsRequired ((this.id + " fetchPositions() requires a marginCoin parameter that matches the productType")) ;
                 }
             }
             request["marginCoin"] = marginCoin;
@@ -11301,7 +11301,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -11421,7 +11421,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         string? productType = null;
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -11691,7 +11691,7 @@ public partial class bitget : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
         object uta = null;
         var utaparametersVariable = await this.handleUTAAndParams(parameters, "fetchFundingHistory", false);
@@ -11712,7 +11712,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
         string? productType = null;
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -11894,12 +11894,12 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isGreaterThan(amount, 0))
         {
-            throw new BadRequest (add(this.id, " reduceMargin() amount parameter must be a negative value")) ;
+            throw new BadRequest ((this.id + " reduceMargin() amount parameter must be a negative value")) ;
         }
         string? holdSide = this.safeString(parameters, "holdSide");
         if ((holdSide == null))
         {
-            throw new ArgumentsRequired (add(this.id, " reduceMargin() requires a holdSide parameter, either long or short")) ;
+            throw new ArgumentsRequired ((this.id + " reduceMargin() requires a holdSide parameter, either long or short")) ;
         }
         return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "reduce", parameters))));
     }
@@ -11920,7 +11920,7 @@ public partial class bitget : Exchange
         string? holdSide = this.safeString(parameters, "holdSide");
         if ((holdSide == null))
         {
-            throw new ArgumentsRequired (add(this.id, " addMargin() requires a holdSide parameter, either long or short")) ;
+            throw new ArgumentsRequired ((this.id + " addMargin() requires a holdSide parameter, either long or short")) ;
         }
         return ((Dictionary<string, object>)((object)(await this.modifyMarginHelper(symbol, amount, "add", parameters))));
     }
@@ -12017,7 +12017,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -12078,7 +12078,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         marginModeVar = marginModeVar.ToLower();
         if (isEqual(marginModeVar, "cross"))
@@ -12087,7 +12087,7 @@ public partial class bitget : Exchange
         }
         if ((!isEqual(marginModeVar, "isolated")) && (!isEqual(marginModeVar, "crossed")))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() marginMode must be either isolated or crossed (cross)")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -12192,7 +12192,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
         string? productType = null;
         IList<object> productTypeparametersVariable = (IList<object>)this.handleProductTypeAndParams(market, parameters);
@@ -12276,7 +12276,7 @@ public partial class bitget : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -12836,7 +12836,7 @@ public partial class bitget : Exchange
         parameters = typeparametersVariable[1];
         if (type != "spot")
         {
-            throw new NotSupported (add(this.id, " fetchMyLiquidations() supports spot margin markets only")) ;
+            throw new NotSupported ((this.id + " fetchMyLiquidations() supports spot margin markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("endTime", request, parameters);
@@ -12862,7 +12862,7 @@ public partial class bitget : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchMyLiquidations() requires a symbol argument")) ;
             }
             request["symbol"] = this.safeString(market, "id");
             response = await this.privateMarginGetV2MarginIsolatedLiquidationHistory(this.extend(request, parameters));
@@ -13285,7 +13285,7 @@ public partial class bitget : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchBorrowInterest() requires a symbol argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchBorrowInterest() requires a symbol argument")) ;
             }
             request["symbol"] = this.safeString(market, "id");
             response = await this.privateMarginGetV2MarginIsolatedInterestHistory(this.extend(request, parameters));
@@ -13701,12 +13701,12 @@ public partial class bitget : Exchange
         string? price = this.safeString2(parameters, "price", "cnvtPrice");
         if ((price == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createConvertTrade() requires a price parameter")) ;
+            throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a price parameter")) ;
         }
         string? toAmount = this.safeString2(parameters, "toAmount", "toCoinSize");
         if ((toAmount == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createConvertTrade() requires a toAmount parameter")) ;
+            throw new ArgumentsRequired ((this.id + " createConvertTrade() requires a toAmount parameter")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"price", "toAmount"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -14066,7 +14066,7 @@ public partial class bitget : Exchange
         //     {"order_id":"513468410013679613","client_oid":null,"symbol":"ethusd","result":false,"err_code":"order_no_exist_error","err_msg":"订单不存在！"}
         //
         string? message = this.safeString2(response, "err_msg", "msg");
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         bool nonEmptyMessage = (((message != null)) && (message != "") && (message != "success"));
         if (nonEmptyMessage)
         {
@@ -14099,9 +14099,9 @@ public partial class bitget : Exchange
         bool signed = isEqual(getValue(api, 0), "private");
         object endpoint = getValue(api, 1);
         string pathPart = "/api";
-        string request = add("/", this.implodeParams(path, parameters));
-        string payload = add(pathPart, request);
-        string url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), endpoint)), payload);
+        string request = ("/" + this.implodeParams(path, parameters));
+        string payload = (pathPart + request);
+        string url = (this.implodeHostname(getValue(getValue(this.urls, "api"), endpoint)) + payload);
         object query = this.omit(parameters, this.extractParams(path));
         if (!signed && (isEqual(method, "GET")))
         {
@@ -14109,14 +14109,14 @@ public partial class bitget : Exchange
             int keysLength = keys.Count;
             if (isGreaterThan(keysLength, 0))
             {
-                url = add(add(url, "?"), this.urlencode(query));
+                url = ((url + "?") + this.urlencode(query));
             }
         }
         if (signed)
         {
             this.checkRequiredCredentials();
             string timestamp = this.nonce().ToString();
-            object auth = add(add(timestamp, method), payload);
+            object auth = ((timestamp + method) + payload);
             if (isEqual(method, "POST"))
             {
                 body = this.json(parameters);
@@ -14126,7 +14126,7 @@ public partial class bitget : Exchange
                 if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
                 {
                     Dictionary<string, object> sortedParams = this.keysort(parameters);
-                    string queryInner = add("?", this.urlencode(sortedParams, true));
+                    string queryInner = ("?" + this.urlencode(sortedParams, true));
                     // check #21169 pr
                     if (getIndexOf(queryInner, "%24") > -1)
                     {
@@ -14137,7 +14137,7 @@ public partial class bitget : Exchange
                     // signature must use the decoded values (e.g. non-ascii market ids).
                     // sort explicitly (true) so the signed order matches the url order in Go,
                     // where map iteration is not ordered (keysort's order is otherwise lost)
-                    auth = add(auth, add("?", this.rawencode(sortedParams, true)));
+                    auth = add(auth, ("?" + this.rawencode(sortedParams, true)));
                 }
             }
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");

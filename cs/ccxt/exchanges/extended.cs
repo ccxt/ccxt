@@ -717,7 +717,7 @@ public partial class extended : Exchange
             type = "swap";
             settleId = quoteId;
             settle = quote;
-            symbol = add(symbol, add(":", settle));
+            symbol = add(symbol, (":" + settle));
             contractSize = this.parseNumber("1");
             linear = true;
             inverse = false;
@@ -1524,7 +1524,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         object paginate = false;
@@ -1637,7 +1637,7 @@ public partial class extended : Exchange
         string? interval = this.safeString(this.timeframes, timeframeVar);
         if (!this.inArray(interval, new List<object>() {"PT1H", "P1D"}))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
         }
         if (isEqual(limitVar, null))
         {
@@ -2099,11 +2099,11 @@ public partial class extended : Exchange
         string? chainId = this.safeStringUpper2(parameters, "chainId", "network", "STRK");
         if (chainId != "STRK")
         {
-            throw new BadRequest (add(this.id, " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
+            throw new BadRequest ((this.id + " withdraw() only supports Starknet withdrawals with chainId STRK")) ;
         }
         if (address.Length <= 42)
         {
-            throw new BadRequest (add(this.id, " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
+            throw new BadRequest ((this.id + " withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow")) ;
         }
         object account = ccxt.BaseExchange.FromDict(await this.FetchExtendedAccount());
         string? amountString = this.currencyToPrecision(code, amount);
@@ -2213,13 +2213,13 @@ public partial class extended : Exchange
             fromAccountVar = currentAccountId;
         } else if (!isEqual(fromAccountVar, currentAccountId))
         {
-            throw new BadRequest (add(this.id, " transfer() can only transfer from the authenticated account")) ;
+            throw new BadRequest ((this.id + " transfer() can only transfer from the authenticated account")) ;
         }
         string? toVault = this.safeString2(parameters, "toVault", "receiverPositionId");
         string? toL2Key = this.safeString2(parameters, "toL2Key", "receiverPublicKey");
         if ((isEqual(toAccount, null)) || ((toVault == null)) || ((toL2Key == null)))
         {
-            throw new ArgumentsRequired (add(this.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
+            throw new ArgumentsRequired ((this.id + " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")) ;
         }
         string? amountString = this.currencyToPrecision(code, amount);
         Dictionary<string, object> settlement = this.createTransferSettlementData(((string)amountString), currency, account, toVault, toL2Key, parameters);
@@ -2541,7 +2541,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -2884,7 +2884,7 @@ public partial class extended : Exchange
         string? starkKey = this.safeString(account, "l2Key");
         if (((positionId == null)) || ((collateralId == null)) || (isEqual(resolution, null)) || ((starkKey == null)))
         {
-            throw new BadRequest (add(this.id, " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
+            throw new BadRequest ((this.id + " withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         string amount = this.getExtendedStarkAmount(amountString, resolution);
         Dictionary<string, object> settlement = new Dictionary<string, object>() {
@@ -2919,7 +2919,7 @@ public partial class extended : Exchange
         Int64? resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
         if (((fromVault == null)) || ((fromL2Key == null)) || ((collateralId == null)) || (isEqual(resolution, null)))
         {
-            throw new BadRequest (add(this.id, " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
+            throw new BadRequest ((this.id + " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
         }
         string transferAmount = this.getExtendedStarkAmount(amountString, resolution);
         Dictionary<string, object> settlement = new Dictionary<string, object>() {
@@ -2946,11 +2946,11 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -2958,15 +2958,15 @@ public partial class extended : Exchange
         string uppercaseSide = ((string)((string)side)).ToUpper();
         if ((isEqual(GetValue(market, "spot"), true)) && uppercaseType != "LIMIT")
         {
-            throw new BadRequest (add(this.id, " createOrder() supports limit orders for spot markets only")) ;
+            throw new BadRequest ((this.id + " createOrder() supports limit orders for spot markets only")) ;
         }
         if (!this.inArray(uppercaseType, new List<object>() {"LIMIT", "MARKET", "CONDITIONAL", "TPSL"}))
         {
-            throw new BadRequest (add(this.id, " createOrder() supports limit, market, conditional and tpsl orders only")) ;
+            throw new BadRequest ((this.id + " createOrder() supports limit, market, conditional and tpsl orders only")) ;
         }
         if (isEqual(price, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument")) ;
         }
         string? amountString = this.amountToPrecision(symbol, amount);
         string? priceString = this.priceToPrecision(symbol, price);
@@ -3014,7 +3014,7 @@ public partial class extended : Exchange
         Int64? collateralResolution = this.safeInteger(l2Config, "collateralResolution");
         if (((syntheticId == null)) || ((collateralId == null)) || (isEqual(syntheticResolution, null)) || (isEqual(collateralResolution, null)))
         {
-            throw new BadRequest (add(this.id, " createOrder() requires l2Config in market info")) ;
+            throw new BadRequest ((this.id + " createOrder() requires l2Config in market info")) ;
         }
         Dictionary<string, object> settlementParams = new Dictionary<string, object>() {
             { "totalFee", totalFee },
@@ -3143,7 +3143,7 @@ public partial class extended : Exchange
                 string? triggerDirection = this.safeStringUpper(parameters, "triggerDirection");
                 if ((triggerDirection == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() requires triggerDirection for trigger order")) ;
                 }
                 Dictionary<string, object> trigger = new Dictionary<string, object>() {
                     { "triggerPrice", this.priceToPrecision(symbol, triggerPriceStr) },
@@ -3248,7 +3248,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(id, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an id argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an id argument")) ;
         }
         Int64? expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
         bool? postOnly = this.safeBool(parameters, "postOnly");
@@ -3287,11 +3287,11 @@ public partial class extended : Exchange
         }
         if (isEqual(amountVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount argument or an existing order with qty")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument or an existing order with qty")) ;
         }
         if (isEqual(priceVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a price argument or an existing order with price")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a price argument or an existing order with price")) ;
         }
         parameters = this.extend(new Dictionary<string, object>() {
             { "postOnly", postOnly },
@@ -3355,7 +3355,7 @@ public partial class extended : Exchange
         {
             if (isEqual(id, null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelOrder() requires an id argument")) ;
+                throw new ArgumentsRequired ((this.id + " cancelOrder() requires an id argument")) ;
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", id },
@@ -3416,7 +3416,7 @@ public partial class extended : Exchange
         }
         if (!hasOrderIds && !hasClientOrderIds)
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires an ids argument or clientOrderIds parameter")) ;
         }
         await this.v1PrivatePostUserOrderMassCancel(this.extend(request, parameters));
         //
@@ -3520,7 +3520,7 @@ public partial class extended : Exchange
         {
             if (isEqual(id, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument")) ;
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "id", id },
@@ -3866,14 +3866,14 @@ public partial class extended : Exchange
             {
                 return ((string?)((object)(signature)));
             }
-            return add("0x", this.getExtendedDecimalToBase16(signature));
+            return ("0x" + this.getExtendedDecimalToBase16(signature));
         }
         string signatureString = this.numberToString(signature);
         if ((getIndexOf(signatureString, "0x") == 0))
         {
             return signatureString;
         }
-        return add("0x", this.getExtendedDecimalToBase16(signatureString));
+        return ("0x" + this.getExtendedDecimalToBase16(signatureString));
     }
 
     public virtual object getExtendedDomainHash()
@@ -3938,7 +3938,7 @@ public partial class extended : Exchange
         {
             IDictionary<string, object> error = this.safeDict(response, "error");
             string? errorCode = this.safeString(error, "code");
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             throw new ExchangeError (feedback) ;
@@ -3953,7 +3953,7 @@ public partial class extended : Exchange
         parameters ??= new Dictionary<string, object>();
         string? version = this.safeString(api, 0);
         string? accessibility = this.safeString(api, 1);
-        string endpoint = add("/", this.implodeParams(path, parameters));
+        string endpoint = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         bool queryPost = (isEqual(path, "user/deadmanswitch"));
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), "rest"));
@@ -3962,7 +3962,7 @@ public partial class extended : Exchange
             // this.checkRequiredCredentials ();
             if (isEqual(this.apiKey, null))
             {
-                throw new AuthenticationError (add(this.id, " sign() requires an apiKey for private endpoints")) ;
+                throw new AuthenticationError ((this.id + " sign() requires an apiKey for private endpoints")) ;
             }
             headers = new Dictionary<string, object>() {
                 { "X-Api-Key", this.apiKey },
@@ -3976,7 +3976,7 @@ public partial class extended : Exchange
         url = add(add(add(url, "/api/"), version), endpoint);
         if ((isEqual(method, "GET") || isEqual(method, "DELETE") || queryPost) && ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0))
         {
-            url = add(url, add("?", this.urlencodeWithArrayRepeat(query)));
+            url = add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
         }
         return new Dictionary<string, object>() {
             { "url", url },

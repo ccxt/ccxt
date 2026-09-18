@@ -862,7 +862,7 @@ public partial class cex : Exchange
         parameters = dataTypeparametersVariable[1];
         if ((dataType == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -892,10 +892,10 @@ public partial class cex : Exchange
         }
         if (!isEqual(since, null) && !isEqual(until, null) && !isEqual(limit, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
         } else if ((!isEqual(since, null) || !isEqual(until, null)) && isEqual(limit, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
         }
         if (!isEqual(limit, null))
         {
@@ -1433,7 +1433,7 @@ public partial class cex : Exchange
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1442,7 +1442,7 @@ public partial class cex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
@@ -1544,7 +1544,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
-            { "cancelRequestId", add("c_", (this.milliseconds()).ToString()) },
+            { "cancelRequestId", ("c_" + (this.milliseconds()).ToString()) },
             { "timestamp", this.milliseconds() },
         };
         Dictionary<string, object> response = await this.privatePostDoCancelMyOrder(this.extend(request, parameters));
@@ -1971,7 +1971,7 @@ public partial class cex : Exchange
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2032,7 +2032,7 @@ public partial class cex : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -2072,20 +2072,20 @@ public partial class cex : Exchange
         {
             if (isEqual(body, null))
             {
-                throw new NullResponse (add(this.id, " returned empty response")) ;
+                throw new NullResponse ((this.id + " returned empty response")) ;
             } else if (isEqual(getValue(body, 0), "{"))
             {
                 object fixedVar = this.fixStringifiedJsonMembers(body);
                 response = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse (add(add(this.id, " returned unparsed response: "), body)) ;
+                throw new NullResponse (((this.id + " returned unparsed response: ") + body)) ;
             }
         }
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError (feedback) ;
@@ -2098,7 +2098,7 @@ public partial class cex : Exchange
             if ((rejectReason != null))
             {
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), rejectReason, rejectReason);
-                throw new ExchangeError (add(add(this.id, " createOrder() "), rejectReason)) ;
+                throw new ExchangeError (((this.id + " createOrder() ") + rejectReason)) ;
             }
         }
         return null;

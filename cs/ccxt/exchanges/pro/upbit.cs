@@ -203,9 +203,9 @@ public partial class upbit : ccxt.upbit
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(timeframeVar, "1s"))
         {
-            throw new NotSupported (add(add(add(this.id, " watchOHLCV does not support"), timeframeVar), " candle.")) ;
+            throw new NotSupported ((((this.id + " watchOHLCV does not support") + timeframeVar) + " candle.")) ;
         }
-        string timeFrameOHLCV = add("candle.", timeframeVar);
+        string timeFrameOHLCV = ("candle." + timeframeVar);
         return ccxt.BaseExchange.ToOHLCVList(await this.watchPublicMultiple(new List<object>() {symbol}, timeFrameOHLCV));
     }
 
@@ -253,7 +253,7 @@ public partial class upbit : ccxt.upbit
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         callDynamically(client, "resolve", new object[] {ticker, messageHash});
     }
 
@@ -311,7 +311,7 @@ public partial class upbit : ccxt.upbit
         string? datetime = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-        string messageHash = add("orderbook:", symbol);
+        string messageHash = ("orderbook:" + symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -345,7 +345,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        string messageHash = add("trade:", symbol);
+        string messageHash = ("trade:" + symbol);
         callDynamically(client, "resolve", new object[] {stored, messageHash});
     }
 
@@ -367,7 +367,7 @@ public partial class upbit : ccxt.upbit
         //   }
         string? marketId = this.safeString(message, "code");
         string? symbol = this.safeSymbol(marketId);
-        string messageHash = add("candle.1s:", symbol);
+        string messageHash = ("candle.1s:" + symbol);
         IList<object> ohlcv = this.parseOHLCV(message);
         callDynamically(client, "resolve", new object[] {ohlcv, messageHash});
     }
@@ -388,7 +388,7 @@ public partial class upbit : ccxt.upbit
             wsOptions["token"] = token;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {
-                    { "authorization", add("Bearer ", token) },
+                    { "authorization", ("Bearer " + token) },
                 } },
             };
             ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
@@ -667,7 +667,7 @@ public partial class upbit : ccxt.upbit
         callDynamically(myTrades, "append", new object[] {trade});
         string messageHash = "myTrades";
         callDynamically(client, "resolve", new object[] {myTrades, messageHash});
-        messageHash = add("myTrades:", GetValue(trade, "symbol"));
+        messageHash = ("myTrades:" + GetValue(trade, "symbol"));
         callDynamically(client, "resolve", new object[] {myTrades, messageHash});
     }
 

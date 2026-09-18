@@ -3012,6 +3012,14 @@ class NewTranspiler {
         if (inDictInit && /^\s*\{\s*"(?:[^"\\]|\\.)*"\s*,\s*$/.test (pre)) {
             return 'read';
         }
+        // U57 prints a native `(a + b)` for `add (a, b)`: an operand of the `+` operator reads
+        // the alias exactly the way an argument of the helper call did (the operator consumes
+        // the value), and the concat only exists where the printer proved the operands strings.
+        // Gated on newRules: a `timeframe` copy belongs to campaign unit S04 (contested sites go
+        // to the lower unit number), so only the rules already on the base fire for it.
+        if (newRules && (/\+\s*$/.test (pre) || /^\s*\+/.test (postl))) {
+            return 'read';
+        }
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
             const callee = this.coreArgShadowCallee (line, at);
             if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1], newRules)) {

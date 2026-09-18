@@ -2598,7 +2598,7 @@ public partial class kucoin : Exchange
             object symbol = add(add(bs, "/"), quote);
             if ((settle != null))
             {
-                symbol = add(symbol, add(":", settle));
+                symbol = add(symbol, (":" + settle));
             }
             string? contractType = this.safeString(market, "contractType");
             Int64? expiry = this.safeInteger(market, "expiryTime");
@@ -3144,7 +3144,7 @@ public partial class kucoin : Exchange
         if ((type == null))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)accountsByType).Keys);
-            throw new ExchangeError (add(add(this.id, " isFuturesMethod() type must be one of "), String.Join(", ", keys.ToArray()))) ;
+            throw new ExchangeError (((this.id + " isFuturesMethod() type must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         parameters = this.omit(parameters, "type");
         return (type == "contract") || (type == "future") || (type == "futures");  // * (type === 'futures') deprecated, use (type === 'future')
@@ -3931,7 +3931,7 @@ public partial class kucoin : Exchange
             string? suffix = this.safeString(priceTypes, priceType);
             if ((suffix == null))
             {
-                throw new NotSupported (add(this.id, " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
+                throw new NotSupported ((this.id + " fetchOHLCV() price parameter must be one of \"mark\", \"index\", or \"premiumIndex\"")) ;
             }
             request["symbol"] = add(add(GetValue(market, "id"), "-"), suffix);
         }
@@ -4218,7 +4218,7 @@ public partial class kucoin : Exchange
         object data = this.safeValue(response, "data");
         if ((data == null))
         {
-            throw new ExchangeError (add(this.id, " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
+            throw new ExchangeError ((this.id + " fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again")) ;
         }
         return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(data, currency));
     }
@@ -4441,7 +4441,7 @@ public partial class kucoin : Exchange
         {
             if ((level != 2) && !isEqual(level, null))
             {
-                throw new BadRequest (add(this.id, " fetchOrderBook() can only return level 2")) ;
+                throw new BadRequest ((this.id + " fetchOrderBook() can only return level 2")) ;
             }
             if (isEqual(limit, null))
             {
@@ -4475,7 +4475,7 @@ public partial class kucoin : Exchange
                 response = await this.futuresPublicGetLevel2Depth100(this.extend(request, parameters));
             } else
             {
-                throw new BadRequest (add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
+                throw new BadRequest ((this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
             }
         } else if (!isAuthenticated || !isEqual(limit, null))
         {
@@ -4489,7 +4489,7 @@ public partial class kucoin : Exchange
                         request["limit"] = limit;
                     } else
                     {
-                        throw new ExchangeError (add(this.id, " fetchOrderBook() limit argument must be 20 or 100")) ;
+                        throw new ExchangeError ((this.id + " fetchOrderBook() limit argument must be 20 or 100")) ;
                     }
                 }
                 request["limit"] = (!isEqual(limit, null)) ? limit : 100;
@@ -4554,7 +4554,7 @@ public partial class kucoin : Exchange
         bool isTakeProfit = (takeProfitPrice != null);
         if ((isStopLoss && isTakeProfit) || (((triggerPrice != null)) && ((stopLossPrice != null))) || (((triggerPrice != null)) && isTakeProfit))
         {
-            throw new ExchangeError (add(this.id, " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
+            throw new ExchangeError ((this.id + " createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice")) ;
         }
         return new List<object>() {triggerPrice, stopLossPrice, takeProfitPrice};
     }
@@ -4607,7 +4607,7 @@ public partial class kucoin : Exchange
             return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
         } else
         {
-            throw new NotSupported (add(add(this.id, " createOrder() does not support market "), GetValue(market, "type"))) ;
+            throw new NotSupported (((this.id + " createOrder() does not support market ") + GetValue(market, "type"))) ;
         }
     }
 
@@ -4748,11 +4748,11 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         // required param, cannot be used twice
@@ -4817,7 +4817,7 @@ public partial class kucoin : Exchange
             }
             if (isEqual(marginMode, "isolated"))
             {
-                throw new BadRequest (add(this.id, " createOrder does not support isolated margin for stop orders")) ;
+                throw new BadRequest ((this.id + " createOrder does not support isolated margin for stop orders")) ;
             } else if (isEqual(marginMode, "cross"))
             {
                 request["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
@@ -4846,7 +4846,7 @@ public partial class kucoin : Exchange
         string result = this.decimalToPrecision(amount, TRUNCATE, getValue(GetValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
         if (result == "0")
         {
-            throw new InvalidOrder (add(add(add(add(this.id, " amount of "), GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(getValue(GetValue(market, "precision"), "amount")))) ;
+            throw new InvalidOrder (((((this.id + " amount of ") + GetValue(market, "symbol")) + " must be greater than minimum amount precision of ") + this.numberToString(getValue(GetValue(market, "precision"), "amount")))) ;
         }
         return result;
     }
@@ -4931,11 +4931,11 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         // required param, cannot be used twice
@@ -4963,11 +4963,11 @@ public partial class kucoin : Exchange
         {
             if (isEqual(amount, null))
             {
-                throw new ArgumentsRequired (add(this.id, " requires an amount argument")) ;
+                throw new ArgumentsRequired ((this.id + " requires an amount argument")) ;
             }
             if (isLessThan(amount, 1))
             {
-                throw new InvalidOrder (add(this.id, " createOrder() minimum contract order amount is 1")) ;
+                throw new InvalidOrder ((this.id + " createOrder() minimum contract order amount is 1")) ;
             }
             string? sizeString = this.amountToPrecision(symbol, amount);
             if ((sizeString != null))
@@ -5035,7 +5035,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a price argument for limit orders")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for limit orders")) ;
             } else
             {
                 request["price"] = this.priceToPrecision(symbol, price);
@@ -5056,7 +5056,7 @@ public partial class kucoin : Exchange
         object hidden = this.safeValue(parameters, "hidden");
         if ((isEqual(postOnly, true)) && ((hidden != null)))
         {
-            throw new BadRequest (add(this.id, " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
+            throw new BadRequest ((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
         object iceberg = this.safeValue(parameters, "iceberg");
         if (((iceberg != null)) && (!isEqual(iceberg, false)))
@@ -5064,7 +5064,7 @@ public partial class kucoin : Exchange
             object visibleSize = this.safeValue(parameters, "visibleSize");
             if ((visibleSize == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a visibleSize parameter for iceberg orders")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
@@ -5158,12 +5158,12 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         bool? isSpot = ((bool?)GetValue(market, "spot"));
         bool? isContract = ((bool?)GetValue(market, "contract"));
@@ -5203,7 +5203,7 @@ public partial class kucoin : Exchange
                 request["size"] = this.marketOrderAmountToPrecision(symbol, cost);
             } else
             {
-                throw new NotSupported (add(this.id, " createOrder() with cost is supported for spot market orders only")) ;
+                throw new NotSupported ((this.id + " createOrder() with cost is supported for spot market orders only")) ;
             }
         } else
         {
@@ -5286,7 +5286,7 @@ public partial class kucoin : Exchange
             string? triggerDirection = this.safeString(parameters, "triggerDirection");
             if ((triggerDirection == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerDirection parameter for trigger orders. Provide params.tringgerDirection or use params.stopLossPrice or params.takeProfitPrice instead of params.triggerPrice")) ;
             }
             request["triggerDirection"] = (triggerDirection == "ascending") ? "UP" : "DOWN";
             request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -5294,7 +5294,7 @@ public partial class kucoin : Exchange
         {
             if (!isEqual(isContract, true))
             {
-                throw new NotSupported (add(this.id, " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
+                throw new NotSupported ((this.id + " createOrder() stopLoss and takeProfit parameters are only supported for contract orders")) ;
             }
             if (hasStopLoss)
             {
@@ -5429,7 +5429,7 @@ public partial class kucoin : Exchange
             string? symbol = this.safeString(order, "symbol");
             if ((symbol == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrders() requires a symbol for each order")) ;
+                throw new ArgumentsRequired ((this.id + " createOrders() requires a symbol for each order")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
             if (isEqual(GetValue(market, "spot"), true))
@@ -5442,7 +5442,7 @@ public partial class kucoin : Exchange
         }
         if (isSpot && isContract)
         {
-            throw new BadRequest (add(this.id, " createOrders() requires all orders to be either spot or contract")) ;
+            throw new BadRequest ((this.id + " createOrders() requires all orders to be either spot or contract")) ;
         } else if (isSpot)
         {
             return await this.CreateSpotOrders(orders, parameters);
@@ -5451,7 +5451,7 @@ public partial class kucoin : Exchange
             return await this.CreateContractOrders(orders, parameters);
         } else
         {
-            throw new NotSupported (add(this.id, " createOrders() does not support the markets of the orders provided")) ;
+            throw new NotSupported ((this.id + " createOrders() does not support the markets of the orders provided")) ;
         }
     }
 
@@ -5483,7 +5483,7 @@ public partial class kucoin : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             if ((marketId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrders() requires a symbol for each order")) ;
+                throw new ArgumentsRequired ((this.id + " createOrders() requires a symbol for each order")) ;
             }
             if ((symbol == null))
             {
@@ -5492,13 +5492,13 @@ public partial class kucoin : Exchange
             {
                 if (!isEqual(symbol, marketId))
                 {
-                    throw new BadRequest (add(this.id, " createOrders() requires all orders to have the same symbol")) ;
+                    throw new BadRequest ((this.id + " createOrders() requires all orders to have the same symbol")) ;
                 }
             }
             string? type = this.safeString(rawOrder, "type");
             if (type != "limit")
             {
-                throw new BadRequest (add(this.id, " createOrders() only supports limit orders")) ;
+                throw new BadRequest ((this.id + " createOrders() only supports limit orders")) ;
             }
             string? side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
@@ -5509,7 +5509,7 @@ public partial class kucoin : Exchange
         }
         if ((symbol == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrders() requires at least one order with a symbol")) ;
+            throw new ArgumentsRequired ((this.id + " createOrders() requires at least one order with a symbol")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5593,7 +5593,7 @@ public partial class kucoin : Exchange
             string? symbol = this.safeString(rawOrder, "symbol");
             if ((symbol == null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrders() requires a symbol for each order")) ;
+                throw new ArgumentsRequired ((this.id + " createOrders() requires a symbol for each order")) ;
             }
             string? type = this.safeString(rawOrder, "type", "");
             string? side = this.safeString(rawOrder, "side");
@@ -5796,7 +5796,7 @@ public partial class kucoin : Exchange
             {
                 if (isEqual(symbol, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol parameter for hf orders")) ;
+                    throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol parameter for hf orders")) ;
                 }
                 Dictionary<string, object> market = this.market(symbol);
                 request["symbol"] = GetValue(market, "id");
@@ -5920,7 +5920,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument when cancelling by clientOrderId")) ;
+                throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument when cancelling by clientOrderId")) ;
             }
             Dictionary<string, object> market = this.market(symbol);
             request["symbol"] = GetValue(market, "id");
@@ -5962,7 +5962,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument for uta endpoint")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument for uta endpoint")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5978,7 +5978,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(id, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument or clientOrderId parameter")) ;
             }
             request["orderId"] = id;
         }
@@ -6109,14 +6109,14 @@ public partial class kucoin : Exchange
             request["symbol"] = this.marketId(symbol);
         } else if (((trigger != true)) && isMarginOrders)
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument for margin non-trigger orders")) ;
         }
         if (isMarginOrders)
         {
             request["tradeType"] = getValue(getValue(this.options, "marginModes"), marginMode);
             if (isEqual(marginMode, "isolated") && ((trigger == true)))
             {
-                throw new BadRequest (add(this.id, " cancelAllOrders does not support isolated margin for stop orders")) ;
+                throw new BadRequest ((this.id + " cancelAllOrders does not support isolated margin for stop orders")) ;
             }
         }
         Dictionary<string, object> response = null;
@@ -6211,7 +6211,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument for uta endpoint")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument for uta endpoint")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -6369,7 +6369,7 @@ public partial class kucoin : Exchange
         parameters = hfparametersVariable[1];
         if ((isEqual(hf, true)) && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
         }
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "till", "until"});
         IList<object> marginModequeryVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
@@ -6499,7 +6499,7 @@ public partial class kucoin : Exchange
             request["status"] = status;
         } else if (!isEqual(status, "active"))
         {
-            throw new BadRequest (add(this.id, " fetchOrdersByStatus() can only fetch untriggered stop orders")) ;
+            throw new BadRequest ((this.id + " fetchOrdersByStatus() can only fetch untriggered stop orders")) ;
         }
         IDictionary<string, object> market = null;
         if (!isEqual(symbol, null))
@@ -6635,7 +6635,7 @@ public partial class kucoin : Exchange
         bool isContract = (!isEqual(marketType, "spot")) && (!isEqual(marketType, "margin"));
         if (!isContract && (isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
         }
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
@@ -6843,7 +6843,7 @@ public partial class kucoin : Exchange
         }
         if (isEqual(id, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument")) ;
         }
         object uta = await this.isUTAEnabled();
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrder", "uta", uta);
@@ -6925,7 +6925,7 @@ public partial class kucoin : Exchange
             {
                 if (isEqual(symbol, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol parameter for hf and margin orders")) ;
+                    throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol parameter for hf and margin orders")) ;
                 }
                 request["symbol"] = this.safeString(market, "id");
             }
@@ -6965,7 +6965,7 @@ public partial class kucoin : Exchange
             // https://github.com/ccxt/ccxt/issues/7234
             if (isEqual(id, null))
             {
-                throw new InvalidOrder (add(this.id, " fetchOrder() requires an order id")) ;
+                throw new InvalidOrder ((this.id + " fetchOrder() requires an order id")) ;
             }
             request["orderId"] = id;
             if ((trigger == true))
@@ -7026,7 +7026,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(id, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an order id argument or clientOrderId in params")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrder() requires an order id argument or clientOrderId in params")) ;
             }
             request["orderId"] = id;
             response = await this.futuresPrivateGetOrdersOrderId(this.extend(request, parameters));
@@ -7097,7 +7097,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument for uta orders")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument for uta orders")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
@@ -7109,7 +7109,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(id, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchOrder() requires an id argument or clientOrderId parameter")) ;
+                throw new ArgumentsRequired ((this.id + " fetchOrder() requires an id argument or clientOrderId parameter")) ;
             }
             request["orderId"] = id;
         }
@@ -7195,7 +7195,7 @@ public partial class kucoin : Exchange
                 {
                     if (tradeType == "ISOLATED")
                     {
-                        throw new NotSupported (add(this.id, " spot isolated margin is not supported for unified accountMode")) ;
+                        throw new NotSupported ((this.id + " spot isolated margin is not supported for unified accountMode")) ;
                     } else
                     {
                         tradeType = "MARGIN";
@@ -7825,7 +7825,7 @@ public partial class kucoin : Exchange
         }
         if ((isEqual(hf, true)) && isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol parameter for hf or margin orders")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol parameter for hf or margin orders")) ;
         }
         IDictionary<string, object> market = null;
         if (!isEqual(symbol, null))
@@ -7876,7 +7876,7 @@ public partial class kucoin : Exchange
             response = await this.privateGetLimitFills(this.extend(request, parameters));
         } else
         {
-            throw new ExchangeError (add(this.id, " fetchMyTradesMethod() invalid method")) ;
+            throw new ExchangeError ((this.id + " fetchMyTradesMethod() invalid method")) ;
         }
         //
         //     {
@@ -8073,7 +8073,7 @@ public partial class kucoin : Exchange
             isContract = GetValue(market, "contract");
         } else if ((marketType == "spot") || (marketType == "margin"))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyTrades() requires a symbol parameter for uta spot or margin trades")) ;
         } else
         {
             isContract = true;
@@ -9535,7 +9535,7 @@ public partial class kucoin : Exchange
         string? code = this.safeString(parameters, "code", defaultCode);
         if ((code == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchContractBalance() requires a code parameter")) ;
+            throw new ArgumentsRequired ((this.id + " fetchContractBalance() requires a code parameter")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -9804,7 +9804,7 @@ public partial class kucoin : Exchange
         {
             if ((toUserId == null))
             {
-                throw new ExchangeError (add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers")) ;
+                throw new ExchangeError ((this.id + " transfer() requires a toUserId param for PARENT_TO_SUB or SUB_TO_SUB transfers")) ;
             } else
             {
                 request["toUid"] = toUserId;
@@ -9813,7 +9813,7 @@ public partial class kucoin : Exchange
         {
             if ((fromUserId == null))
             {
-                throw new ExchangeError (add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers")) ;
+                throw new ExchangeError ((this.id + " transfer() requires a fromUserId param for SUB_TO_PARENT or SUB_TO_SUB transfers")) ;
             } else
             {
                 request["fromUid"] = fromUserId;
@@ -9904,13 +9904,13 @@ public partial class kucoin : Exchange
         {
             if (!(inOp(parameters, "toUserId")))
             {
-                throw new ExchangeError (add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
+                throw new ExchangeError ((this.id + " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
             }
         } else if (transferType == "SUB_TO_PARENT")
         {
             if (!(inOp(parameters, "fromUserId")))
             {
-                throw new ExchangeError (add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
+                throw new ExchangeError ((this.id + " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
             }
         }
         if (!(inOp(parameters, "clientOid")))
@@ -11217,7 +11217,7 @@ public partial class kucoin : Exchange
         parameters = marginModeparametersVariable[1];
         if (!isEqual(marginMode, "cross"))
         {
-            throw new NotSupported (add(this.id, " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
+            throw new NotSupported ((this.id + " fetchLeverage() currently supports only params[\"marginMode\"] = \"cross\"")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -11226,7 +11226,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new NotSupported (add(this.id, " fetchLeverage() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " fetchLeverage() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -11278,7 +11278,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " setLeverage requires a symbol argument for contract markets")) ;
+                throw new ArgumentsRequired ((this.id + " setLeverage requires a symbol argument for contract markets")) ;
             }
             market = this.market(symbol);
             if (isEqual(GetValue(market, "contract"), true))
@@ -11302,7 +11302,7 @@ public partial class kucoin : Exchange
         {
             if (isEqual(marginMode, "isolated"))
             {
-                throw new NotSupported (add(this.id, " unified trading account does not support isolated margin")) ;
+                throw new NotSupported ((this.id + " unified trading account does not support isolated margin")) ;
             }
             request["accountMode"] = "unified";
             object code = null;
@@ -11311,7 +11311,7 @@ public partial class kucoin : Exchange
             parameters = codeparametersVariable[1];
             if ((code == null))
             {
-                throw new ArgumentsRequired (add(this.id, " setLeverage requires a currency code in the params[\"code\"] for unified trading account")) ;
+                throw new ArgumentsRequired ((this.id + " setLeverage requires a currency code in the params[\"code\"] for unified trading account")) ;
             }
             request["currency"] = this.currencyId(((string)code));
             response = await this.utaPrivatePostAccountModeAccountModifyLeverageMarginCross(this.extend(request, parameters));
@@ -11319,11 +11319,11 @@ public partial class kucoin : Exchange
         {
             if ((marginMode == null))
             {
-                throw new ArgumentsRequired (add(this.id, " setLeverage requires a marginMode parameter")) ;
+                throw new ArgumentsRequired ((this.id + " setLeverage requires a marginMode parameter")) ;
             }
             if (isEqual(marginMode, "isolated") && isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " setLeverage requires a symbol parameter for isolated margin")) ;
+                throw new ArgumentsRequired ((this.id + " setLeverage requires a symbol parameter for isolated margin")) ;
             }
             if (!isEqual(symbol, null))
             {
@@ -11352,7 +11352,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         object marginMode = null;
         IList<object> marginModeparametersVariable = (IList<object>)this.handleMarginModeAndParams(symbol, parameters);
@@ -11360,7 +11360,7 @@ public partial class kucoin : Exchange
         parameters = marginModeparametersVariable[1];
         if (((marginMode != null)) && (!isEqual(marginMode, "cross")))
         {
-            throw new NotSupported (add(this.id, " setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts")) ;
+            throw new NotSupported ((this.id + " setLeverage() currently supports only params[\"marginMode\"] = \"cross\" for contracts")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -11624,7 +11624,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -11753,7 +11753,7 @@ public partial class kucoin : Exchange
             request["symbol"] = GetValue(market, "id");
         } else if (!isTrue(uta))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
         if (!isEqual(since, null))
         {
@@ -12374,7 +12374,7 @@ public partial class kucoin : Exchange
             }
         } else if (isTrue(uta))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument for uta endpoint")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument for uta endpoint")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         List<object> clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
@@ -12385,7 +12385,7 @@ public partial class kucoin : Exchange
             useClientorderId = true;
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
+                throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument when cancelling by clientOrderIds")) ;
             }
             ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
                 { "symbol", this.safeString(market, "id") },
@@ -12714,7 +12714,7 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol argument")) ;
         }
         this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new List<object>() {"cross", "isolated"});
         if (isEqual(this.markets, null))
@@ -12724,7 +12724,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new NotSupported (add(this.id, " setMarginMode() supports contract markets only")) ;
+            throw new NotSupported ((this.id + " setMarginMode() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -12859,7 +12859,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
         }
         object uta = false;
         IList<object> utaparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMarketLeverageTiers", "uta", uta);
@@ -12965,7 +12965,7 @@ public partial class kucoin : Exchange
         }
         if (isEqual(symbols, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchLeverageTiers() requires a symbols argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchLeverageTiers() requires a symbols argument")) ;
         }
         symbols = this.marketSymbols(symbols, "swap", false, true);
         object marginMode = "cross";
@@ -12975,7 +12975,7 @@ public partial class kucoin : Exchange
         marginMode = ((string)marginMode).ToUpper();
         if (!isEqual(marginMode, "CROSS"))
         {
-            throw new BadRequest (add(this.id, " fetchLeverageTiers() supports cross margin only")) ;
+            throw new BadRequest ((this.id + " fetchLeverageTiers() supports cross margin only")) ;
         }
         IList<object> marketIds = this.marketIds(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -13134,7 +13134,7 @@ public partial class kucoin : Exchange
         string? interval = this.safeString(timeframes, timeframeVar);
         if ((interval == null))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterestHistory() invalid timeframe, supported are 5m, 15m, 30m, 1h, 4h, 1d")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -13209,23 +13209,23 @@ public partial class kucoin : Exchange
         string? defaultVersion = this.safeString(methodVersions, path, getValue(this.options, "version"));
         string? version = this.safeString(parameters, "version", defaultVersion);
         parameters = this.omit(parameters, "version");
-        string endpoint = add(add(add("/api/", version), "/"), this.implodeParams(path, parameters));
+        string endpoint = ((("/api/" + version) + "/") + this.implodeParams(path, parameters));
         if (isEqual(api, "utaV2"))
         {
-            endpoint = add("/api/ua/v2/", this.implodeParams(path, parameters));
+            endpoint = ("/api/ua/v2/" + this.implodeParams(path, parameters));
         }
         if (isEqual(api, "webExchange"))
         {
-            endpoint = add("/", this.implodeParams(path, parameters));
+            endpoint = ("/" + this.implodeParams(path, parameters));
         }
         if (isEqual(api, "earn"))
         {
-            endpoint = add("/api/v1/", this.implodeParams(path, parameters));
+            endpoint = ("/api/v1/" + this.implodeParams(path, parameters));
         }
         bool isUtaPrivate = false;
         if ((isEqual(api, "uta")) || (isEqual(api, "utaPrivate")))
         {
-            endpoint = add("/api/ua/v1/", this.implodeParams(path, parameters));
+            endpoint = ("/api/ua/v1/" + this.implodeParams(path, parameters));
             if (isEqual(api, "utaPrivate"))
             {
                 isUtaPrivate = true;
@@ -13240,12 +13240,12 @@ public partial class kucoin : Exchange
         {
             if (((isEqual(method, "GET")) || (isEqual(method, "DELETE"))) && (!isEqual(path, "orders/multi-cancel")))
             {
-                endpoint = add(endpoint, add("?", this.rawencode(query)));
+                endpoint = add(endpoint, ("?" + this.rawencode(query)));
             } else
             {
                 if ((endpoint == "/api/ua/v1/classic/order/place") || (endpoint == "/api/ua/v1/classic/order/place/batch") || (endpoint == "/api/ua/v1/classic/order/cancel") || (endpoint == "/api/ua/v1/classic/order/cancel/batch"))
                 {
-                    endpoint = add(endpoint, add("?tradeType=", tradeType));
+                    endpoint = add(endpoint, ("?tradeType=" + tradeType));
                 }
                 body = this.json(query);
                 endpart = body;
@@ -13276,7 +13276,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)headers)["KC-API-PASSPHRASE"] = this.password;
             }
-            object payload = add(add(add(timestamp, method), endpoint), endpart);
+            object payload = (((timestamp + method) + endpoint) + endpart);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             ((IDictionary<string,object>)headers)["KC-API-SIGN"] = signature;
             object partner = this.safeDict(this.options, "partner", new Dictionary<string, object>() {});
@@ -13287,7 +13287,7 @@ public partial class kucoin : Exchange
             string? partnerSecret = this.safeString2(partner, "secret", "key");
             if (((partnerId != null)) && ((partnerSecret != null)))
             {
-                object partnerPayload = add(add(timestamp, partnerId), this.apiKey);
+                object partnerPayload = ((timestamp + partnerId) + this.apiKey);
                 string partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256, "base64");
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER-SIGN"] = partnerSignature;
                 ((IDictionary<string,object>)headers)["KC-API-PARTNER"] = partnerId;
@@ -13325,7 +13325,7 @@ public partial class kucoin : Exchange
         //
         string? errorCode = this.safeString(response, "code");
         string? message = this.safeString2(response, "msg", "data", "");
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);

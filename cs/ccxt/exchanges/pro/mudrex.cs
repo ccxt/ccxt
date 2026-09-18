@@ -77,7 +77,7 @@ public partial class mudrex : ccxt.mudrex
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add("ticker:", symbolVar);
+        string messageHash = ("ticker:" + symbolVar);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         this.setBrokerHeaders();
         object baseIdString = (!isEqual(GetValue(market, "baseId"), null)) ? GetValue(market, "baseId") : "";
@@ -108,7 +108,7 @@ public partial class mudrex : ccxt.mudrex
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
-                ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+                ((IList<object>)messageHashes).Add(("ticker:" + GetValue(market, "symbol")));
                 object baseIdString = (!isEqual(GetValue(market, "baseId"), null)) ? GetValue(market, "baseId") : "";
                 object quoteIdString = (!isEqual(GetValue(market, "quoteId"), null)) ? GetValue(market, "quoteId") : "";
                 ((IList<object>)assets).Add(add(((string)baseIdString).ToLower(), ((string)quoteIdString).ToLower()));
@@ -151,7 +151,7 @@ public partial class mudrex : ccxt.mudrex
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         if (interval != "1s" && interval != "1m")
         {
-            throw new NotSupported (add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
+            throw new NotSupported ((this.id + " watchOHLCV() supports 1s and 1m timeframes only")) ;
         }
         string prefix = "kline";
         if (priceType == "mark")
@@ -160,7 +160,7 @@ public partial class mudrex : ccxt.mudrex
         }
         object streamBaseId = (!isEqual(GetValue(market, "baseId"), null)) ? GetValue(market, "baseId") : "";
         object streamQuoteId = (!isEqual(GetValue(market, "quoteId"), null)) ? GetValue(market, "quoteId") : "";
-        string stream = add(add(add(add(add(prefix, "@"), interval), "@"), ((string)streamBaseId).ToLower()), ((string)streamQuoteId).ToLower());
+        string stream = (((((prefix + "@") + interval) + "@") + ((string)streamBaseId).ToLower()) + ((string)streamQuoteId).ToLower());
         string messageHash = stream;
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         this.setBrokerHeaders();
@@ -208,7 +208,7 @@ public partial class mudrex : ccxt.mudrex
         IDictionary<string, object> error = this.safeDict(message, "error", new Dictionary<string, object>() {});
         string? code = this.safeString(error, "code");
         string? msg = this.safeString(error, "msg");
-        string feedback = add(add(this.id, " "), msg);
+        string feedback = ((this.id + " ") + msg);
         if (code == "429")
         {
             throw new RateLimitExceeded (feedback) ;
@@ -275,7 +275,7 @@ public partial class mudrex : ccxt.mudrex
                 { "info", t },
             });
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
-            string messageHash = add("ticker:", symbol);
+            string messageHash = ("ticker:" + symbol);
             callDynamically(client, "resolve", new object[] {result, messageHash});
             callDynamically(client, "resolve", new object[] {result, "tickers"});
         }

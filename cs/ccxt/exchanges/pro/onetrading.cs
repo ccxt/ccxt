@@ -155,7 +155,7 @@ public partial class onetrading : ccxt.onetrading
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
         string subscriptionHash = "MARKET_TICKER";
-        string messageHash = add("ticker.", symbolVar);
+        string messageHash = ("ticker." + symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
@@ -229,7 +229,7 @@ public partial class onetrading : ccxt.onetrading
             Int64? timestamp = this.parse8601(datetime);
             ((IDictionary<string,object>)getValue(this.tickers, symbol))["timestamp"] = timestamp;
             ((IDictionary<string,object>)getValue(this.tickers, symbol))["datetime"] = this.iso8601(timestamp);
-            callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), add("ticker.", symbol)});
+            callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), ("ticker." + symbol)});
         }
         callDynamically(client, "resolve", new object[] {this.tickers, "tickers"});
     }
@@ -297,7 +297,7 @@ public partial class onetrading : ccxt.onetrading
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -345,7 +345,7 @@ public partial class onetrading : ccxt.onetrading
         }
         Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = GetValue(market, "symbol");
-        string messageHash = add("book:", symbolVar);
+        string messageHash = ("book:" + symbolVar);
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
         if (!isEqual(limit, null))
@@ -398,7 +398,7 @@ public partial class onetrading : ccxt.onetrading
         string? symbol = this.safeSymbol(marketId);
         string? dateTime = this.safeString(message, "time");
         Int64? timestamp = this.parse8601(dateTime);
-        string channel = add("book:", symbol);
+        string channel = ("book:" + symbol);
         object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if ((orderbook == null))
         {
@@ -414,7 +414,7 @@ public partial class onetrading : ccxt.onetrading
             this.handleDeltas(orderbook, changes);
         } else
         {
-            throw new NotSupported (add(add(this.id, " watchOrderBook() did not recognize message type "), type)) ;
+            throw new NotSupported (((this.id + " watchOrderBook() did not recognize message type ") + type)) ;
         }
         ((IDictionary<string,object>)orderbook)["nonce"] = timestamp;
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -440,7 +440,7 @@ public partial class onetrading : ccxt.onetrading
             (asks as IOrderBookSide).storeArray(bidAsk);
         } else
         {
-            throw new NotSupported (add(add(this.id, " watchOrderBook () received unknown change type "), this.json(delta))) ;
+            throw new NotSupported (((this.id + " watchOrderBook () received unknown change type ") + this.json(delta))) ;
         }
     }
 
@@ -484,7 +484,7 @@ public partial class onetrading : ccxt.onetrading
         {
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         }
         await this.authenticate(parameters);
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
@@ -566,7 +566,7 @@ public partial class onetrading : ccxt.onetrading
         Dictionary<string, object> order = this.parseTradingOrder(message);
         ccxt.pro.ArrayCache orders = this.orders;
         callDynamically(orders, "append", new object[] {order});
-        callDynamically(client, "resolve", new object[] {this.orders, add("orders:", GetValue(order, "symbol"))});
+        callDynamically(client, "resolve", new object[] {this.orders, ("orders:" + GetValue(order, "symbol"))});
         callDynamically(client, "resolve", new object[] {this.orders, "orders"});
     }
 
@@ -777,14 +777,14 @@ public partial class onetrading : ccxt.onetrading
             Dictionary<string, object> order = this.parseOrder(getValue(rawOrders, i));
             string? symbol = this.safeString(order, "symbol", "");
             callDynamically(orders, "append", new object[] {order});
-            callDynamically(client, "resolve", new object[] {this.orders, add("orders:", symbol)});
+            callDynamically(client, "resolve", new object[] {this.orders, ("orders:" + symbol)});
             List<object> rawTrades = this.safeList(getValue(rawOrders, i), "trades", new List<object>() {});
             for (int ii = 0; isLessThan(ii, rawTrades.Count); postFixIncrement(ref ii))
             {
                 Dictionary<string, object> trade = this.parseTrade(getValue(rawTrades, ii));
                 symbol = this.safeString(trade, "symbol", symbol);
                 callDynamically(this.myTrades, "append", new object[] {trade});
-                callDynamically(client, "resolve", new object[] {this.myTrades, add("myTrades:", symbol)});
+                callDynamically(client, "resolve", new object[] {this.myTrades, ("myTrades:" + symbol)});
             }
         }
         callDynamically(client, "resolve", new object[] {this.orders, "orders"});
@@ -1055,7 +1055,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = this.safeString(parsed, "symbol", "");
             callDynamically(orders, "append", new object[] {parsed});
         }
-        callDynamically(client, "resolve", new object[] {this.orders, add("orders:", symbol)});
+        callDynamically(client, "resolve", new object[] {this.orders, ("orders:" + symbol)});
         callDynamically(client, "resolve", new object[] {this.orders, "orders"});
         // update balance
         List<object> balanceKeys = new List<object>() {"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"};
@@ -1075,7 +1075,7 @@ public partial class onetrading : ccxt.onetrading
             symbol = this.safeString(parsed, "symbol", "");
             ccxt.pro.ArrayCache myTrades = this.myTrades;
             callDynamically(myTrades, "append", new object[] {parsed});
-            callDynamically(client, "resolve", new object[] {this.myTrades, add("myTrades:", symbol)});
+            callDynamically(client, "resolve", new object[] {this.myTrades, ("myTrades:" + symbol)});
             callDynamically(client, "resolve", new object[] {this.myTrades, "myTrades"});
         }
     }
@@ -1143,9 +1143,9 @@ public partial class onetrading : ccxt.onetrading
         object timeframeId = this.safeValue(timeframes, timeframeVar);
         if ((timeframeId == null))
         {
-            throw new NotSupported (add(this.id, " this interval is not supported, please provide one of the supported timeframes")) ;
+            throw new NotSupported ((this.id + " this interval is not supported, please provide one of the supported timeframes")) ;
         }
-        string messageHash = add(add(add("ohlcv.", symbolVar), "."), timeframeVar);
+        string messageHash = ((("ohlcv." + symbolVar) + ".") + timeframeVar);
         string subscriptionHash = "CANDLESTICKS";
         var client = this.safeValue(this.clients, url);
         string type = "SUBSCRIBE";
@@ -1251,7 +1251,7 @@ public partial class onetrading : ccxt.onetrading
         object timeframeId = this.safeValue(message, "granularity");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         string? timeframe = this.findTimeframe(timeframeId, timeframes);
-        string channel = add(add(add("ohlcv.", symbol), "."), timeframe);
+        string channel = ((("ohlcv." + symbol) + ".") + timeframe);
         List<object> parsed = new List<object> {this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -1276,7 +1276,7 @@ public partial class onetrading : ccxt.onetrading
         }
         if (isEqual(timeframes, null))
         {
-            throw new ArgumentsRequired (add(this.id, " findTimeframe() timeframes is required")) ;
+            throw new ArgumentsRequired ((this.id + " findTimeframe() timeframes is required")) ;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)timeframes).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
@@ -1321,7 +1321,7 @@ public partial class onetrading : ccxt.onetrading
 
     public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
-        throw new ExchangeError (add(add(this.id, " "), this.json(message))) ;
+        throw new ExchangeError (((this.id + " ") + this.json(message))) ;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

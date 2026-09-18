@@ -125,12 +125,12 @@ public partial class coinbase : ccxt.coinbase
         }
         if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
         {
-            throw new ExchangeError (add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
+            throw new ExchangeError ((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
         ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
         IDictionary<string, object> market = null;
         object watchMessageHash = name;
-        object unWatchMessageHash = add("unsubscribe:", name);
+        object unWatchMessageHash = ("unsubscribe:" + name);
         IList<object> productIds = new List<object>() {};
         if (((symbol is IList<object>) || (symbol.GetType().IsGenericType && symbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
@@ -236,7 +236,7 @@ public partial class coinbase : ccxt.coinbase
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.safeBool(this.options, "unSubscriptionPending", false)))
         {
-            throw new ExchangeError (add(this.id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
+            throw new ExchangeError ((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
         ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
         if (isEqual(this.markets, null))
@@ -254,7 +254,7 @@ public partial class coinbase : ccxt.coinbase
             string? marketId = ((string)GetValue(market, "id"));
             ((IList<object>)productIds).Add(marketId);
             ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
-            ((IList<object>)unWatchMessageHashes).Add(add(add(add("unsubscribe:", name), "::"), symbol));
+            ((IList<object>)unWatchMessageHashes).Add(((("unsubscribe:" + name) + "::") + symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -296,7 +296,7 @@ public partial class coinbase : ccxt.coinbase
         {
             if (((string)this.apiKey).StartsWith("-----BEGIN"))
             {
-                throw new ArgumentsRequired (add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
+                throw new ArgumentsRequired ((this.id + " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
             string? currentToken = this.safeString(this.options, "wsToken");
             Int64? tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
@@ -830,7 +830,7 @@ public partial class coinbase : ccxt.coinbase
         IDictionary<string, object> trade = this.safeDict(trades, 0);
         string? marketId = this.safeString(trade, "product_id");
         string? symbol = this.safeSymbol(marketId);
-        string messageHash = add("market_trades::", symbol);
+        string messageHash = ("market_trades::" + symbol);
         object tradesArray = this.safeValue(this.trades, symbol);
         if ((tradesArray == null))
         {
@@ -927,7 +927,7 @@ public partial class coinbase : ccxt.coinbase
         {
             string? marketId = ((string)getValue(marketIds, i));
             string? symbol = this.safeSymbol(marketId);
-            string messageHash = add("user::", symbol);
+            string messageHash = ("user::" + symbol);
             callDynamically(client, "resolve", new object[] {this.orders, messageHash});
             this.tryResolveUsdc(client, messageHash, this.orders);
         }
@@ -1044,7 +1044,7 @@ public partial class coinbase : ccxt.coinbase
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = ((string)GetValue(market, "symbol"));
-            string messageHash = add("level2::", symbol);
+            string messageHash = ("level2::" + symbol);
             object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
             string? type = this.safeString(eventVar, "type");

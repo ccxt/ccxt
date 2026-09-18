@@ -1103,7 +1103,7 @@ public partial class btcmarkets : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a price argument for a "), type), "order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a price argument for a ") + type) + "order")) ;
             } else
             {
                 request["price"] = this.priceToPrecision(symbol, price);
@@ -1115,7 +1115,7 @@ public partial class btcmarkets : Exchange
             parameters = this.omit(parameters, "triggerPrice");
             if (isEqual(triggerPrice, null))
             {
-                throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a triggerPrice parameter for a "), type), "order")) ;
+                throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice parameter for a ") + type) + "order")) ;
             } else
             {
                 request["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
@@ -1591,7 +1591,7 @@ public partial class btcmarkets : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         Dictionary<string, object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (isEqual(api, "private"))
         {
@@ -1603,7 +1603,7 @@ public partial class btcmarkets : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    request = add(request, add("?", this.urlencode(query)));
+                    request = add(request, ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -1623,7 +1623,7 @@ public partial class btcmarkets : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                request = add(request, add("?", this.urlencode(query)));
+                request = add(request, ("?" + this.urlencode(query)));
             }
         }
         object url = add(getValue(getValue(this.urls, "api"), api), request);
@@ -1649,7 +1649,7 @@ public partial class btcmarkets : Exchange
         string? message = this.safeString(response, "message");
         if ((errorCode != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

@@ -441,7 +441,7 @@ public partial class delta : Exchange
         }
         if ((expiry != null))
         {
-            expiry = add(add(slice(expiry, 4, null), slice(expiry, 2, 4)), slice(expiry, 0, 2));
+            expiry = ((slice(expiry, 4, null) + slice(expiry, 2, 4)) + slice(expiry, 0, 2));
         }
         string settle = quote;
         string? strike = this.safeString(optionParts, 2);
@@ -1790,7 +1790,7 @@ public partial class delta : Exchange
             request["end"] = end;
             if (isEqual(end, null))
             {
-                throw new ExchangeError (add(this.id, " fetchOHLCV() missing end")) ;
+                throw new ExchangeError ((this.id + " fetchOHLCV() missing end")) ;
             }
             request["start"] = subtract(end, multiply(limitVar, duration));
         } else
@@ -1802,7 +1802,7 @@ public partial class delta : Exchange
         string? price = this.safeString(parameters, "price");
         if (price == "mark")
         {
-            request["symbol"] = add("MARK:", GetValue(market, "id"));
+            request["symbol"] = ("MARK:" + GetValue(market, "id"));
         } else if (price == "index")
         {
             request["symbol"] = getValue(getValue(GetValue(market, "info"), "spot_index"), "symbol");
@@ -2322,7 +2322,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -2385,7 +2385,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelAllOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -2511,7 +2511,7 @@ public partial class delta : Exchange
         }
         if (!isEqual(since, null))
         {
-            request["start_time"] = add(((object)since).ToString(), "000");
+            request["start_time"] = (((object)since).ToString() + "000");
         }
         if (!isEqual(limit, null))
         {
@@ -2576,7 +2576,7 @@ public partial class delta : Exchange
         }
         if (!isEqual(since, null))
         {
-            request["start_time"] = add(((object)since).ToString(), "000");
+            request["start_time"] = (((object)since).ToString() + "000");
         }
         if (!isEqual(limit, null))
         {
@@ -2849,7 +2849,7 @@ public partial class delta : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -3171,7 +3171,7 @@ public partial class delta : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -3361,7 +3361,7 @@ public partial class delta : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
@@ -4378,14 +4378,14 @@ public partial class delta : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         headers ??= new Dictionary<string, object>();
-        string requestPath = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
+        string requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), requestPath);
         object query = this.omit(parameters, this.extractParams(path));
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -4400,7 +4400,7 @@ public partial class delta : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    string queryString = add("?", this.urlencode(query));
+                    string queryString = ("?" + this.urlencode(query));
                     auth = add(auth, queryString);
                     url = add(url, queryString);
                 }
@@ -4434,7 +4434,7 @@ public partial class delta : Exchange
         string? errorCode = this.safeString(error, "code");
         if ((errorCode != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorCode, feedback);
             throw new ExchangeError (feedback) ;

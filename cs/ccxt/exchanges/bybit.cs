@@ -2249,7 +2249,7 @@ public partial class bybit : Exchange
     {
         if (isTrue(this.isSandboxModeEnabled))
         {
-            throw new NotSupported (add(this.id, " demo trading does not support in sandbox environment")) ;
+            throw new NotSupported ((this.id + " demo trading does not support in sandbox environment")) ;
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if (isTrue(enable))
@@ -2411,7 +2411,7 @@ public partial class bybit : Exchange
             string? symbolQuoteAndSettle = this.safeString(symbolBase, 1);
             if ((symbolQuoteAndSettle == null))
             {
-                throw new ExchangeError (add(this.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
+                throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
             List<object> splitQuote = symbolQuoteAndSettle.Split(new [] {":"}, StringSplitOptions.None).ToList<object>();
             string? quoteAndSettle = this.safeString(splitQuote, 0);
@@ -2831,7 +2831,7 @@ public partial class bybit : Exchange
                 }
             } else
             {
-                throw new ExchangeError (add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
+                throw new ExchangeError ((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
             }
         }
         List<object> promises = await promiseAll(promisesUnresolved);
@@ -3288,7 +3288,7 @@ public partial class bybit : Exchange
             Int64? expiry = this.safeInteger(market, "deliveryTime");
             if ((id == null))
             {
-                throw new ExchangeError (add(this.id, " method() missing id")) ;
+                throw new ExchangeError ((this.id + " method() missing id")) ;
             }
             List<object> splitId = id.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
             string? strike = this.safeString(splitId, 2);
@@ -3490,7 +3490,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTicker() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTicker() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3596,13 +3596,13 @@ public partial class bybit : Exchange
                     currentType = GetValue(market, "type");
                 } else if (!isEqual(GetValue(market, "type"), currentType))
                 {
-                    throw new BadRequest (add(this.id, " fetchTickers can only accept a list of symbols of the same type")) ;
+                    throw new BadRequest ((this.id + " fetchTickers can only accept a list of symbols of the same type")) ;
                 }
                 if (isEqual(GetValue(market, "option"), true))
                 {
                     if ((code != null) && !isEqual(code, GetValue(market, "base")))
                     {
-                        throw new BadRequest (add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers")) ;
+                        throw new BadRequest ((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers")) ;
                     }
                     if ((code == null))
                     {
@@ -3732,7 +3732,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3791,7 +3791,7 @@ public partial class bybit : Exchange
                 request["category"] = "inverse";
             } else
             {
-                throw new NotSupported (add(this.id, " fetchOHLCV() is not supported for option markets")) ;
+                throw new NotSupported ((this.id + " fetchOHLCV() is not supported for option markets")) ;
             }
             if (price == "mark")
             {
@@ -3894,7 +3894,7 @@ public partial class bybit : Exchange
         if (!isEqual(fundingInterval, null))
         {
             Int64? interval = this.parseToInt(divide(fundingInterval, 60));
-            intervalString = add(((object)interval).ToString(), "h");
+            intervalString = (((object)interval).ToString() + "h");
         }
         return new Dictionary<string, object>() {
             { "info", ticker },
@@ -3952,7 +3952,7 @@ public partial class bybit : Exchange
         parameters = typeparametersVariable[1];
         if (type != "swap")
         {
-            throw new NotSupported (add(add(add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchFundingRates() does not support ") + type) + " markets")) ;
         } else
         {
             string? subType = null;
@@ -4028,7 +4028,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbolVar, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4059,7 +4059,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isEqual(type, "spot") || isEqual(type, "option"))
         {
-            throw new NotSupported (add(this.id, " fetchFundingRateHistory() only support linear and inverse market")) ;
+            throw new NotSupported ((this.id + " fetchFundingRateHistory() only support linear and inverse market")) ;
         }
         request["category"] = type;
         if (!isEqual(since, null))
@@ -4399,7 +4399,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTrades() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTrades() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4463,7 +4463,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrderBook() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrderBook() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -5200,7 +5200,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
@@ -5229,12 +5229,12 @@ public partial class bybit : Exchange
         object enableUnifiedAccount = getValue(types, 1);
         if (!isEqual(enableUnifiedAccount, true))
         {
-            throw new NotSupported (add(this.id, " createMarketSellOrderWithCost() supports UTA accounts only")) ;
+            throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
+            throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports spot orders only")) ;
         }
         Dictionary<string, object> req = new Dictionary<string, object>() {
             { "cost", cost },
@@ -5335,11 +5335,11 @@ public partial class bybit : Exchange
         isUTA ??= true;
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         symbol = GetValue(market, "symbol");
@@ -5381,7 +5381,7 @@ public partial class bybit : Exchange
         bool endpointIsTradingStop = isEqual(method, "privatePostV5PositionTradingStop");
         if ((isEqual(price, null)) && (lowerCaseType == "limit") && !endpointIsTradingStop)
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder requires a price argument for limit orders")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder requires a price argument for limit orders")) ;
         }
         // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
         if (!isTrue(Precise.stringGt(this.numberToString(amount), "0")))
@@ -5394,7 +5394,7 @@ public partial class bybit : Exchange
         {
             if (hasStopLoss || hasTakeProfit || isTriggerOrder || (isEqual(GetValue(market, "spot"), true)))
             {
-                throw new InvalidOrder (add(this.id, " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
+                throw new InvalidOrder ((this.id + " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
             }
             if (isStopLossOrder || isTakeProfitOrder)
             {
@@ -5448,7 +5448,7 @@ public partial class bybit : Exchange
                 }
                 if (isTakeProfitOrder && isStopLossOrder && !isEqual(tpslModeSl, tpslModeTp))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
                 }
                 if ((tpslModeSl != null))
                 {
@@ -5549,7 +5549,7 @@ public partial class bybit : Exchange
             {
                 if ((isEqual(price, null)) && ((cost == null)))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
                     string? quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
@@ -5591,13 +5591,13 @@ public partial class bybit : Exchange
             {
                 if ((triggerDirection != null))
                 {
-                    throw new NotSupported (add(this.id, " createOrder() : trigger order does not support triggerDirection for spot markets yet")) ;
+                    throw new NotSupported ((this.id + " createOrder() : trigger order does not support triggerDirection for spot markets yet")) ;
                 }
             } else
             {
                 if ((triggerDirection == null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger.")) ;
+                    throw new ArgumentsRequired ((this.id + " stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger.")) ;
                 }
                 bool isAsending = ((triggerDirection == "ascending") || (triggerDirection == "above") || (triggerDirection == "1"));
                 request["triggerDirection"] = isAsending ? 1 : 2;
@@ -5639,7 +5639,7 @@ public partial class bybit : Exchange
                 // for spot market, we need to add this
                 if ((isEqual(GetValue(market, "spot"), true)) && isMarketOrder)
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder(): attached stopLoss is not supported for spot market orders")) ;
+                    throw new InvalidOrder ((this.id + " createOrder(): attached stopLoss is not supported for spot market orders")) ;
                 }
             }
             if (hasTakeProfit)
@@ -5663,7 +5663,7 @@ public partial class bybit : Exchange
                 // for spot market, we need to add this
                 if ((isEqual(GetValue(market, "spot"), true)) && isMarketOrder)
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder(): attached takeProfit is not supported for spot market orders")) ;
+                    throw new InvalidOrder ((this.id + " createOrder(): attached takeProfit is not supported for spot market orders")) ;
                 }
             }
         }
@@ -5723,7 +5723,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)categoryparametersVariable)[1];
         if ((isEqual(category, "inverse")) && (isLessThan(unifiedMarginStatus, 5)))
         {
-            throw new NotSupported (add(this.id, " createOrders does not allow inverse orders for non UTA2.0 account")) ;
+            throw new NotSupported ((this.id + " createOrders does not allow inverse orders for non UTA2.0 account")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", category },
@@ -5789,11 +5789,11 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -5899,7 +5899,7 @@ public partial class bybit : Exchange
         }
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires a symbol argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
@@ -5962,7 +5962,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)categoryparametersVariable)[1];
         if ((isEqual(category, "inverse")) && (isLessThan(unifiedMarginStatus, 5)))
         {
-            throw new NotSupported (add(this.id, " editOrders does not allow inverse orders for non UTA2.0 account")) ;
+            throw new NotSupported ((this.id + " editOrders does not allow inverse orders for non UTA2.0 account")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", category },
@@ -6065,7 +6065,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -6106,7 +6106,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -6117,7 +6117,7 @@ public partial class bybit : Exchange
         object enableUnifiedAccount = getValue(types, 1);
         if (!isEqual(enableUnifiedAccount, true))
         {
-            throw new NotSupported (add(this.id, " cancelOrders() supports UTA accounts only")) ;
+            throw new NotSupported ((this.id + " cancelOrders() supports UTA accounts only")) ;
         }
         object category = null;
         var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
@@ -6125,7 +6125,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)categoryparametersVariable)[1];
         if (isEqual(category, "inverse"))
         {
-            throw new NotSupported (add(this.id, " cancelOrders does not allow inverse orders")) ;
+            throw new NotSupported ((this.id + " cancelOrders does not allow inverse orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         List<object> clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
@@ -6208,7 +6208,7 @@ public partial class bybit : Exchange
         }
         if (isEqual(timeout, null))
         {
-            throw new ExchangeError (add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            throw new ExchangeError ((this.id + " cancelAllOrdersAfter() missing timeout")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeWindow", this.parseToInt(divide(timeout, 1000)) },
@@ -6254,7 +6254,7 @@ public partial class bybit : Exchange
         object enableUnifiedAccount = getValue(types, 1);
         if (!isEqual(enableUnifiedAccount, true))
         {
-            throw new NotSupported (add(this.id, " cancelOrdersForSymbols() supports UTA accounts only")) ;
+            throw new NotSupported ((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
         }
         List<object> ordersRequests = new List<object>() {};
         object category = null;
@@ -6269,11 +6269,11 @@ public partial class bybit : Exchange
             parameters = ((IList<object>)currentCategoryparametersVariable)[1];
             if (isEqual(currentCategory, "inverse"))
             {
-                throw new NotSupported (add(this.id, " cancelOrdersForSymbols does not allow inverse orders")) ;
+                throw new NotSupported ((this.id + " cancelOrdersForSymbols does not allow inverse orders")) ;
             }
             if (((category != null)) && (!isEqual(category, currentCategory)))
             {
-                throw new ExchangeError (add(this.id, " cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))")) ;
+                throw new ExchangeError ((this.id + " cancelOrdersForSymbols requires all orders to be of the same category (linear, spot or option))")) ;
             }
             category = currentCategory;
             string? id = this.safeString(order, "id");
@@ -6374,7 +6374,7 @@ public partial class bybit : Exchange
         request["category"] = type;
         if ((isEqual(type, "option")) && !isUnifiedAccount)
         {
-            throw new NotSupported (add(add(add(this.id, " cancelAllOrders() Normal Account not support "), type), " market")) ;
+            throw new NotSupported ((((this.id + " cancelAllOrders() Normal Account not support ") + type) + " market")) ;
         }
         if ((isEqual(type, "linear")) || (isEqual(type, "inverse")))
         {
@@ -6444,7 +6444,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -6453,7 +6453,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(this.id, " fetchOrder() is not supported for spot markets")) ;
+            throw new NotSupported ((this.id + " fetchOrder() is not supported for spot markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -6464,11 +6464,11 @@ public partial class bybit : Exchange
         {
             bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             string extra = ((isTrigger == true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-            throw new OrderNotFound (add(add(add("Order ", id.ToString()), " was not found."), extra)) ;
+            throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         if (isGreaterThan(length, 1))
         {
-            throw new InvalidOrder (add(this.id, " returned more than one order")) ;
+            throw new InvalidOrder ((this.id + " returned more than one order")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.safeValue(result, 0));
     }
@@ -6505,7 +6505,7 @@ public partial class bybit : Exchange
         parameters = acknowledgeparametersVariable[1];
         if (!isTrue(acknowledge))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() can only access an order if it is in last 500 orders (of any status) for your account. Set params[\"acknowledged\"] = true to hide this warning. Alternatively, we suggest to use fetchOpenOrder or fetchClosedOrder")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         object marketType = null;
@@ -6583,7 +6583,7 @@ public partial class bybit : Exchange
         if ((innerListLength == 0))
         {
             string extra = (isEqual(isTrigger, true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-            throw new OrderNotFound (add(add(add("Order ", id.ToString()), " was not found."), extra)) ;
+            throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         IDictionary<string, object> order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
@@ -6635,7 +6635,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isEqual(type, "spot"))
         {
-            throw new NotSupported (add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
+            throw new NotSupported ((this.id + " fetchOrdersClassic() is not supported for spot markets")) ;
         }
         request["category"] = type;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -6745,11 +6745,11 @@ public partial class bybit : Exchange
         {
             bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             string extra = ((isTrigger == true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-            throw new OrderNotFound (add(add(add("Order ", id.ToString()), " was not found."), extra)) ;
+            throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         if (isGreaterThan(length, 1))
         {
-            throw new InvalidOrder (add(this.id, " returned more than one order")) ;
+            throw new InvalidOrder ((this.id + " returned more than one order")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.safeValue(result, 0));
     }
@@ -6787,11 +6787,11 @@ public partial class bybit : Exchange
         {
             bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             string extra = ((isTrigger == true)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
-            throw new OrderNotFound (add(add(add("Order ", id.ToString()), " was not found."), extra)) ;
+            throw new OrderNotFound (((("Order " + id.ToString()) + " was not found.") + extra)) ;
         }
         if (isGreaterThan(length, 1))
         {
-            throw new InvalidOrder (add(this.id, " returned more than one order")) ;
+            throw new InvalidOrder ((this.id + " returned more than one order")) ;
         }
         return ccxt.BaseExchange.ToOrder(this.safeValue(result, 0));
     }
@@ -8008,7 +8008,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchPosition() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchPosition() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8110,7 +8110,7 @@ public partial class bybit : Exchange
             int symbolsLength = getArrayLength(symbols);
             if (isGreaterThan(symbolsLength, 1))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchPositions() does not accept an array with more than one symbol")) ;
+                throw new ArgumentsRequired ((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
             } else if ((symbolsLength == 1))
             {
                 symbol = getValue(symbols, 0);
@@ -8547,7 +8547,7 @@ public partial class bybit : Exchange
                 marginModeVar = "PORTFOLIO_MARGIN";
             } else
             {
-                throw new NotSupported (add(this.id, " setMarginMode() marginMode must be either [isolated, cross, portfolio]")) ;
+                throw new NotSupported ((this.id + " setMarginMode() marginMode must be either [isolated, cross, portfolio]")) ;
             }
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "setMarginMode", marginModeVar },
@@ -8557,7 +8557,7 @@ public partial class bybit : Exchange
         {
             if (isEqual(symbol, null))
             {
-                throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a symbol parameter for non unified account")) ;
+                throw new ArgumentsRequired ((this.id + " setMarginMode() requires a symbol parameter for non unified account")) ;
             }
             market = this.market(symbol);
             bool isUsdcSettled = isEqual(GetValue(market, "settle"), "USDC");
@@ -8571,7 +8571,7 @@ public partial class bybit : Exchange
                     marginModeVar = "PORTFOLIO_MARGIN";
                 } else
                 {
-                    throw new NotSupported (add(this.id, " setMarginMode() for usdc market marginMode must be either [cross, portfolio]")) ;
+                    throw new NotSupported ((this.id + " setMarginMode() for usdc market marginMode must be either [cross, portfolio]")) ;
                 }
                 Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "setMarginMode", marginModeVar },
@@ -8592,7 +8592,7 @@ public partial class bybit : Exchange
                     tradeMode = 1;
                 } else
                 {
-                    throw new NotSupported (add(this.id, " setMarginMode() with symbol marginMode must be either [isolated, cross]")) ;
+                    throw new NotSupported ((this.id + " setMarginMode() with symbol marginMode must be either [isolated, cross]")) ;
                 }
                 object sellLeverage = null;
                 object buyLeverage = null;
@@ -8603,7 +8603,7 @@ public partial class bybit : Exchange
                     buyLeverage = this.safeString2(parameters, "buy_leverage", "buyLeverage");
                     if ((sellLeverage == null) && (buyLeverage == null))
                     {
-                        throw new ArgumentsRequired (add(this.id, " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters")) ;
+                        throw new ArgumentsRequired ((this.id + " setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters")) ;
                     }
                     if ((buyLeverage == null))
                     {
@@ -8650,7 +8650,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " setLeverage() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " setLeverage() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8677,7 +8677,7 @@ public partial class bybit : Exchange
             request["category"] = "inverse";
         } else
         {
-            throw new NotSupported (add(this.id, " setLeverage() only support linear and inverse market")) ;
+            throw new NotSupported ((this.id + " setLeverage() only support linear and inverse market")) ;
         }
         Dictionary<string, object> response = await this.privatePostV5PositionSetLeverage(this.extend(request, parameters));
         return ccxt.BaseExchange.ToDict(response);
@@ -8765,7 +8765,7 @@ public partial class bybit : Exchange
         string? interval = this.safeString(intervals, timeframeVar); // 5min,15min,30min,1h,4h,1d
         if ((interval == null))
         {
-            throw new BadRequest (add(add(add(this.id, " fetchOpenInterestHistory() cannot use the "), timeframeVar), " timeframe")) ;
+            throw new BadRequest ((((this.id + " fetchOpenInterestHistory() cannot use the ") + timeframeVar) + " timeframe")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -8844,14 +8844,14 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
         string? timeframe = this.safeString(parameters, "interval", "1h");
         IDictionary<string, object> intervals = this.safeDict(this.options, "intervals");
         string? interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
         if ((interval == null))
         {
-            throw new BadRequest (add(add(add(this.id, " fetchOpenInterest() cannot use the "), timeframe), " timeframe")) ;
+            throw new BadRequest ((((this.id + " fetchOpenInterest() cannot use the ") + timeframe) + " timeframe")) ;
         }
         string subType = (isEqual(GetValue(market, "linear"), true)) ? "linear" : "inverse";
         string? category = this.safeString(parameters, "category", subType);
@@ -8912,7 +8912,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(timeframeVar, "1m"))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -8928,7 +8928,7 @@ public partial class bybit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if ((isEqual(GetValue(market, "spot"), true)) || (isEqual(GetValue(market, "option"), true)))
         {
-            throw new BadRequest (add(add(this.id, " fetchOpenInterestHistory() symbol does not support market "), symbol)) ;
+            throw new BadRequest (((this.id + " fetchOpenInterestHistory() symbol does not support market ") + symbol)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", GetValue(market, "id") },
@@ -9550,7 +9550,7 @@ public partial class bybit : Exchange
         market = this.market(symbol);
         if ((isEqual(GetValue(market, "spot"), true)) || (isEqual(GetValue(market, "option"), true)))
         {
-            throw new BadRequest (add(add(this.id, " fetchMarketLeverageTiers() symbol does not support market "), symbol)) ;
+            throw new BadRequest (((this.id + " fetchMarketLeverageTiers() symbol does not support market ") + symbol)) ;
         }
         request["symbol"] = GetValue(market, "id");
         return await this.FetchDerivativesMarketLeverageTiers(symbol, parameters);
@@ -9649,7 +9649,7 @@ public partial class bybit : Exchange
         parameters = typeparametersVariable[1];
         if (isEqual(type, "spot"))
         {
-            throw new NotSupported (add(this.id, " fetchTradingFees() is not supported for spot market")) ;
+            throw new NotSupported ((this.id + " fetchTradingFees() is not supported for spot market")) ;
         }
         Dictionary<string, object> response = await this.privateGetV5AccountFeeRate(parameters);
         //
@@ -9837,7 +9837,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isEqual(type, "spot"))
         {
-            throw new NotSupported (add(this.id, " fetchSettlementHistory() is not supported for spot market")) ;
+            throw new NotSupported ((this.id + " fetchSettlementHistory() is not supported for spot market")) ;
         }
         request["category"] = type;
         if (!isEqual(limit, null))
@@ -9904,7 +9904,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isEqual(type, "spot"))
         {
-            throw new NotSupported (add(this.id, " fetchMySettlementHistory() is not supported for spot market")) ;
+            throw new NotSupported ((this.id + " fetchMySettlementHistory() is not supported for spot market")) ;
         }
         request["category"] = type;
         if (!isEqual(limit, null))
@@ -10498,7 +10498,7 @@ public partial class bybit : Exchange
             market = this.market(getValue(symbols, 0));
             if (isEqual(GetValue(market, "spot"), true))
             {
-                throw new NotSupported (add(this.id, " fetchLeverageTiers() is not supported for spot market")) ;
+                throw new NotSupported ((this.id + " fetchLeverageTiers() is not supported for spot market")) ;
             }
             symbol = GetValue(market, "symbol");
         }
@@ -11427,7 +11427,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)typeparametersVariable)[1];
         if (isEqual(type, "spot") || isEqual(type, "option"))
         {
-            throw new NotSupported (add(this.id, " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
+            throw new NotSupported ((this.id + " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
         }
         if (isEqual(timeframeVar, null))
         {
@@ -11504,7 +11504,7 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbols, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchPositionsADLRank() requires a symbols argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchPositionsADLRank() requires a symbols argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -11698,12 +11698,12 @@ public partial class bybit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        string url = ((this.implodeHostname(getValue(getValue(this.urls, "api"), api)) + "/") + path);
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.rawencode(parameters)));
+                url = add(url, ("?" + this.rawencode(parameters)));
             }
         } else if (isEqual(api, "private"))
         {
@@ -11724,7 +11724,7 @@ public partial class bybit : Exchange
                     // '[]' on empty arrays even when forced to use objects
                     body = "{}";
                 }
-                object payload = add(add(timestamp, this.apiKey), body);
+                object payload = ((timestamp + this.apiKey) + body);
                 string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "hex");
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/json" },
@@ -11746,7 +11746,7 @@ public partial class bybit : Exchange
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
                 string queryEncoded = this.rawencode(query);
-                object auth_base = add(add(timestamp.ToString(), this.apiKey), getValue(this.options, "recvWindow").ToString());
+                object auth_base = ((timestamp.ToString() + this.apiKey) + getValue(this.options, "recvWindow").ToString());
                 object authFull = null;
                 if (isEqual(method, "POST"))
                 {
@@ -11755,7 +11755,7 @@ public partial class bybit : Exchange
                 } else
                 {
                     authFull = add(auth_base, queryEncoded);
-                    url = add(url, add("?", queryEncoded));
+                    url = add(url, ("?" + queryEncoded));
                 }
                 string? signature = null;
                 if (getIndexOf(this.secret, "PRIVATE KEY") > -1)
@@ -11804,8 +11804,8 @@ public partial class bybit : Exchange
                     }
                 } else
                 {
-                    url = add(url, add("?", this.rawencode(sortedQuery, true)));
-                    url = add(url, add("&sign=", signature));
+                    url = add(url, ("?" + this.rawencode(sortedQuery, true)));
+                    url = add(url, ("&sign=" + signature));
                 }
             }
         }
@@ -11862,10 +11862,10 @@ public partial class bybit : Exchange
             object feedback = null;
             if (errorCode == "10005" && getIndexOf(url, "order") < 0)
             {
-                feedback = add(add(this.id, " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" "), body);
+                feedback = ((this.id + " private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: \"Account Transfer\", \"Subaccount Transfer\", \"Withdrawal\" ") + body);
             } else
             {
-                feedback = add(add(this.id, " "), body);
+                feedback = ((this.id + " ") + body);
             }
             if (getIndexOf(body, "Withdraw address chain or destination tag are not equal") > -1)
             {

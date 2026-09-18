@@ -191,7 +191,7 @@ public partial class paradex : ccxt.paradex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add(add("order_book.", GetValue(market, "id")), ".snapshot@15@100ms");
+        string messageHash = (("order_book." + GetValue(market, "id")) + ".snapshot@15@100ms");
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -299,7 +299,7 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        string messageHash = add(add(channel, "."), symbolVar);
+        string messageHash = ((channel + ".") + symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -334,7 +334,7 @@ public partial class paradex : ccxt.paradex
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                string messageHash = add(add(channel, "."), getValue(symbols, i));
+                string messageHash = ((channel + ".") + getValue(symbols, i));
                 ((IList<object>)messageHashes).Add(messageHash);
             }
         } else
@@ -379,7 +379,7 @@ public partial class paradex : ccxt.paradex
             Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = GetValue(market, "symbol");
             channel = add(channel, GetValue(market, "id"));
-            messageHash = add(messageHash, add(":", symbolVar));
+            messageHash = add(messageHash, (":" + symbolVar));
         } else
         {
             channel = add(channel, "ALL");
@@ -443,7 +443,7 @@ public partial class paradex : ccxt.paradex
         callDynamically(client, "resolve", new object[] {this.orders, messageHash});
         if ((symbol != null))
         {
-            string symbolMessageHash = add(add(messageHash, ":"), symbol);
+            string symbolMessageHash = ((messageHash + ":") + symbol);
             callDynamically(client, "resolve", new object[] {this.orders, symbolMessageHash});
         }
     }
@@ -515,7 +515,7 @@ public partial class paradex : ccxt.paradex
                 { "channel", channel },
             } },
         };
-        string messageHash = add(add(channel, "."), symbolVar);
+        string messageHash = ((channel + ".") + symbolVar);
         return ccxt.BaseExchange.ToFundingRate(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
@@ -553,7 +553,7 @@ public partial class paradex : ccxt.paradex
             {
                 for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
                 {
-                    string messageHash = add(add(channel, "."), getValue(symbols, i));
+                    string messageHash = ((channel + ".") + getValue(symbols, i));
                     ((IList<object>)messageHashes).Add(messageHash);
                 }
             } else
@@ -668,7 +668,7 @@ public partial class paradex : ccxt.paradex
             string? errorCode = this.safeString(error, "code");
             if ((errorCode != null))
             {
-                string feedback = add(add(this.id, " "), this.json(error));
+                string feedback = ((this.id + " ") + this.json(error));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), "-32600", feedback);
                 object messageString = this.safeValue(error, "message");
                 if ((messageString != null))

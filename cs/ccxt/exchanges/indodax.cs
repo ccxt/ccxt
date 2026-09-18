@@ -586,8 +586,8 @@ public partial class indodax : Exchange
         //
         string? symbol = this.safeSymbol(null, market);
         Int64? timestamp = this.safeTimestamp(ticker, "server_time");
-        string baseVolume = add("vol_", this.safeStringLower(market, "baseId"));
-        string quoteVolume = add("vol_", this.safeStringLower(market, "quoteId"));
+        string baseVolume = ("vol_" + this.safeStringLower(market, "baseId"));
+        string quoteVolume = ("vol_" + this.safeStringLower(market, "quoteId"));
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -901,12 +901,12 @@ public partial class indodax : Exchange
             {
                 baseId = "rp";
             }
-            cost = this.safeString(order, add("order_", quoteId));
-            amount = this.safeString(order, add("order_", baseId));
-            remaining = this.safeString(order, add("remain_", baseId));
+            cost = this.safeString(order, ("order_" + quoteId));
+            amount = this.safeString(order, ("order_" + baseId));
+            remaining = this.safeString(order, ("remain_" + baseId));
             // filled buy orders on idr-quoted markets carry the executed base amount
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
-            filled = this.safeString(order, add("receive_", baseId));
+            filled = this.safeString(order, ("receive_" + baseId));
         }
         Int64? timestamp = this.safeInteger(order, "submit_time");
         object fee = null;
@@ -951,7 +951,7 @@ public partial class indodax : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1039,7 +1039,7 @@ public partial class indodax : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchClosedOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchClosedOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1098,7 +1098,7 @@ public partial class indodax : Exchange
                 {
                     if (isEqual(price, null))
                     {
-                        throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
+                        throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
                     }
                     string? amountString = this.numberToString(amount);
                     string? priceString = this.numberToString(price);
@@ -1123,7 +1123,7 @@ public partial class indodax : Exchange
         {
             if (isEqual(price, null))
             {
-                throw new InvalidOrder (add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             request["price"] = price;
         }
@@ -1152,12 +1152,12 @@ public partial class indodax : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         object side = this.safeValue(parameters, "side");
         if ((side == null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrder() requires an extra \"side\" param")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrder() requires an extra \"side\" param")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1600,14 +1600,14 @@ public partial class indodax : Exchange
                     string? networkId = this.safeString(networks, marketId);
                     if ((networkId == null))
                     {
-                        throw new ExchangeError (add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                        throw new ExchangeError ((this.id + " fetchDepositAddresses() missing networkId")) ;
                     }
                     if (getIndexOf(networkId, ",") >= 0)
                     {
                         network = new List<object>() {};
                         if ((networkId == null))
                         {
-                            throw new ExchangeError (add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                            throw new ExchangeError ((this.id + " fetchDepositAddresses() missing networkId")) ;
                         }
                         List<object> networkIds = networkId.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
                         for (int j = 0; isLessThan(j, networkIds.Count); postFixIncrement(ref j))
@@ -1652,11 +1652,11 @@ public partial class indodax : Exchange
         if (isEqual(api, "public"))
         {
             object query = this.omit(parameters, this.extractParams(path));
-            string requestPath = add("/", this.implodeParams(path, parameters));
+            string requestPath = ("/" + this.implodeParams(path, parameters));
             url = add(url, requestPath);
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencodeWithArrayRepeat(query)));
+                url = add(url, ("?" + this.urlencodeWithArrayRepeat(query)));
             }
         } else
         {
@@ -1709,13 +1709,13 @@ public partial class indodax : Exchange
             // { success: 1, return: { orders: [] }}
             if (!(inOp(response, "return")))
             {
-                throw new ExchangeError (add(add(this.id, ": malformed response: "), this.json(response))) ;
+                throw new ExchangeError (((this.id + ": malformed response: ") + this.json(response))) ;
             } else
             {
                 return null;
             }
         }
-        string feedback = add(add(this.id, " "), body);
+        string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
         throw new ExchangeError (feedback) ;

@@ -1154,7 +1154,7 @@ public partial class cryptocom : Exchange
                 int symbolsLength = symbols?.Count ?? 0;
                 if (isGreaterThan(symbolsLength, 1))
                 {
-                    throw new BadRequest (add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
+                    throw new BadRequest ((this.id + " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
                 }
                 symbol = getValue(symbols, 0);
             } else
@@ -1677,11 +1677,11 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         Dictionary<string, object> market = this.market(symbol);
         string uppercaseType = ((string)type).ToUpper();
@@ -1952,11 +1952,11 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(type, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a type argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a type argument")) ;
         }
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " requires a side argument")) ;
         }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
@@ -2088,7 +2088,7 @@ public partial class cryptocom : Exchange
             {
                 if (isEqual(price, null))
                 {
-                    throw new InvalidOrder (add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
+                    throw new InvalidOrder ((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
                     string? amountString = this.numberToString(amount);
@@ -2149,7 +2149,7 @@ public partial class cryptocom : Exchange
             string? originalClientOrderId = this.safeString2(parameters, "orig_client_oid", "clientOrderId");
             if ((originalClientOrderId == null))
             {
-                throw new ArgumentsRequired (add(this.id, " editOrder() requires an id argument or orig_client_oid parameter")) ;
+                throw new ArgumentsRequired ((this.id + " editOrder() requires an id argument or orig_client_oid parameter")) ;
             } else
             {
                 request["orig_client_oid"] = originalClientOrderId;
@@ -2158,7 +2158,7 @@ public partial class cryptocom : Exchange
         }
         if ((isEqual(amount, null)) || (isEqual(price, null)))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values")) ;
         }
         request["new_quantity"] = this.amountToPrecision(symbol, amount);
         request["new_price"] = this.priceToPrecision(symbol, price);
@@ -2249,7 +2249,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2592,7 +2592,7 @@ public partial class cryptocom : Exchange
         int addressesLength = addresses.Count;
         if ((addressesLength == 0))
         {
-            throw new ExchangeError (add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
+            throw new ExchangeError ((this.id + " fetchDepositAddressesByNetwork() generating address...")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, addressesLength); postFixIncrement(ref i))
@@ -3192,7 +3192,7 @@ public partial class cryptocom : Exchange
         {
             if (!isEqual(marginMode, "cross"))
             {
-                throw new NotSupported (add(this.id, " only cross margin is supported")) ;
+                throw new NotSupported ((this.id + " only cross margin is supported")) ;
             }
         } else
         {
@@ -3659,7 +3659,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRate() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
@@ -3743,7 +3743,7 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3760,7 +3760,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "swap"), true))
         {
-            throw new BadSymbol (add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
+            throw new BadSymbol ((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
@@ -3892,7 +3892,7 @@ public partial class cryptocom : Exchange
                 int symbolsLength = getArrayLength(symbols);
                 if (isGreaterThan(symbolsLength, 1))
                 {
-                    throw new BadRequest (add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
+                    throw new BadRequest ((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
                 }
                 symbol = getValue(symbols, 0);
             } else
@@ -4230,7 +4230,7 @@ public partial class cryptocom : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
@@ -4278,9 +4278,9 @@ public partial class cryptocom : Exchange
         string? errorCode = this.safeString(response, "code");
         if (errorCode != "0")
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
-            throw new ExchangeError (add(add(this.id, " "), body)) ;
+            throw new ExchangeError (((this.id + " ") + body)) ;
         }
         return null;
     }

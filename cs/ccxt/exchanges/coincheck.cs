@@ -599,7 +599,7 @@ public partial class coincheck : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, "BTC/JPY"))
         {
-            throw new BadSymbol (add(this.id, " fetchTicker() supports BTC/JPY only")) ;
+            throw new BadSymbol ((this.id + " fetchTicker() supports BTC/JPY only")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -897,7 +897,7 @@ public partial class coincheck : Exchange
                 parameters = this.omit(parameters, "cost");
                 if (!isEqual(cost, null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
                 }
                 request["market_buy_amount"] = cost;
             }
@@ -1147,7 +1147,7 @@ public partial class coincheck : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
@@ -1158,7 +1158,7 @@ public partial class coincheck : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(this.keysort(query))));
+                    url = add(url, ("?" + this.urlencode(this.keysort(query))));
                 }
             } else
             {
@@ -1168,7 +1168,7 @@ public partial class coincheck : Exchange
                     queryString = body;
                 }
             }
-            object auth = add(add(nonce, url), queryString);
+            object auth = ((nonce + url) + queryString);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },
@@ -1198,10 +1198,10 @@ public partial class coincheck : Exchange
         if ((success != true))
         {
             string? error = this.safeString(response, "error");
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            throw new ExchangeError (add(add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;
     }

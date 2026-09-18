@@ -32,8 +32,8 @@ public partial class BaseTest
             object maxElapsed = add(sleepAmount, maxOvershoot);
             bool elapsedBiggerThanSleep = isGreaterThanOrEqual(elapsed, minElapsed);
             bool elapsedLessThanMax = isLessThanOrEqual(elapsed, maxElapsed);
-            Assert(elapsedBiggerThanSleep, add(add(add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms is less than minimum "), ((object)minElapsed).ToString()), "ms (sleep amount "), ((object)sleepAmount).ToString()), "ms)"));
-            Assert(elapsedLessThanMax, add(add(add(add("Elapsed time ", ((object)elapsed).ToString()), "ms exceeds sleep amount "), ((object)maxElapsed).ToString()), "ms"));
+            Assert(elapsedBiggerThanSleep, add(((((("Elapsed time " + ((object)elapsed).ToString()) + "ms is less than minimum ") + ((object)minElapsed).ToString()) + "ms (sleep amount ") + ((object)sleepAmount).ToString()), "ms)"));
+            Assert(elapsedLessThanMax, (((("Elapsed time " + ((object)elapsed).ToString()) + "ms exceeds sleep amount ") + ((object)maxElapsed).ToString()) + "ms"));
             return true;
         }
 }
