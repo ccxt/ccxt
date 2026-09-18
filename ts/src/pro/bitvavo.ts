@@ -331,9 +331,7 @@ export default class bitvavo extends bitvavoRest {
         const message = this.extend (request, params);
         const trades = await this.watchMultiple (url, messageHashes, message, messageHashes);
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = trades.getLimit (undefined, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
