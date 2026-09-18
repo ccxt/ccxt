@@ -2230,8 +2230,8 @@ impl MexcCore {
             //     {}
             //
             let mut keys: Value = object_keys(&response);
-            let mut length: Value = Value::Int(keys.len() as i64);
-            status = (if is_true(&(length.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { self.json(response.clone()) } else { Value::Str("ok".to_string()) });
+            let mut length: f64 = ((keys.len() as i64) as f64);
+            status = (if is_true(&(length > ((0i64) as f64))) { self.json(response.clone()) } else { Value::Str("ok".to_string()) });
         }  else if (marketType.as_str() == Some("swap")) {
             response = self.contract_public_get_ping(&[query.clone()]).await;
             //
@@ -2324,7 +2324,7 @@ impl MexcCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_938: bool = true;
-            while { if !__for_first_938 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_938 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(chains.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_938 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_938 = false; j.as_f64().unwrap_or(f64::NAN) < ((chains.len() as i64) as f64) } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut networkId: Value = self.safe_string2(chain.clone(), Value::Str("netWork".to_string()), Value::Str("network".to_string()), &[]);
@@ -2474,7 +2474,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_939: bool = true;
-            while { if !__for_first_939 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_939 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_939 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_939 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -2631,7 +2631,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_940 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_940 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
@@ -3229,8 +3229,8 @@ impl MexcCore {
         let mut market: Value = Value::Null;
         let mut isSingularMarket: bool = false;
         if (symbols != Value::Null) {
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            isSingularMarket = length.as_f64() == Some(1.0);
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            isSingularMarket = length == 1.0;
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
             market = self.market(firstSymbol.clone());
         }
@@ -3497,8 +3497,8 @@ impl MexcCore {
         let mut market: Value = Value::Null;
         let mut isSingularMarket: bool = false;
         if (symbols != Value::Null) {
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            isSingularMarket = length.as_f64() == Some(1.0);
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            isSingularMarket = length == 1.0;
             market = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
         }
         let mut marketTypequeryVariable = self.handle_market_type_and_params(Value::Str("fetchBidsAsks".to_string()), &[market.clone(), params.clone()]);
@@ -3937,7 +3937,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_941 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_941 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_941 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut rawOrder: Value = get_value(&orders, &i);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[]);
@@ -5038,7 +5038,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_942 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_942 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_942 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut account: Value = get_value(&data, &i);
             let mut account: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string2(account.clone(), Value::Str("asset".to_string()), Value::Str("currency".to_string()), &[]);
@@ -5193,7 +5193,7 @@ impl MexcCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_943: bool = true;
-                while { if !__for_first_943 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_943 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallet.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_943 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_943 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut base: Value = self.safe_value_k(entry.clone(), "baseAsset", &[Value::Map({
@@ -5219,7 +5219,7 @@ impl MexcCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_944: bool = true;
-                while { if !__for_first_944 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_944 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallet.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_944 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_944 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "currency", &[]);
@@ -5237,7 +5237,7 @@ impl MexcCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_945: bool = true;
-                while { if !__for_first_945 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_945 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallet.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_945 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_945 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallet.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut entry: Value = get_value(&wallet, &i);
                 let mut currencyId: Value = self.safe_string_k(entry.clone(), "asset", &[]);
@@ -5692,7 +5692,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_946: bool = true;
-            while { if !__for_first_946 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_946 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(resultList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_946 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_946 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "settleTime", &[]);
@@ -5905,7 +5905,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_947: bool = true;
-            while { if !__for_first_947 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_947 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_947 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_947 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -6332,7 +6332,7 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(1000).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str("This exchange supports a maximum limit of 1000".to_string())));
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -6379,7 +6379,7 @@ impl MexcCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(1000).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
                 panic!("{}", crate::exchange_errors::exchange_error(Value::Str("This exchange supports a maximum limit of 1000".to_string())));
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -6891,7 +6891,7 @@ impl MexcCore {
                 add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
             }
             if (limit != Value::Null) {
-                if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+                if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
                     panic!("{}", crate::exchange_errors::exchange_error(Value::Str("This exchange supports a maximum limit of 50".to_string())));
                 }
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
@@ -7342,7 +7342,7 @@ impl MexcCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_949: bool = true;
-            while { if !__for_first_949 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_949 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_949 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_949 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -7413,7 +7413,7 @@ impl MexcCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_950: bool = true;
-            while { if !__for_first_950 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_950 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_950 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_950 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkList.len() as i64) as f64) } {
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkEntry: Value = get_value(&networkList, &j);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "network", &[]);
@@ -7512,7 +7512,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_951: bool = true;
-            while { if !__for_first_951 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(leverage.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_951 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_951 = false; i.as_f64().unwrap_or(f64::NAN) < ((leverage.len() as i64) as f64) } {
             let mut entry: Value = get_value(&leverage, &i);
             let mut entry: Value = get_value(&leverage, &i);
             let mut openType: Value = self.safe_integer_k(entry.clone(), "openType", &[]);
@@ -7595,8 +7595,8 @@ impl MexcCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-            if (symbolsLength.as_f64() == Some(1.0)) {
+            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+            if (symbolsLength == 1.0) {
                 let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -7748,7 +7748,7 @@ impl MexcCore {
                 }
             }
             let mut paramsEncoded: Value = Value::Str("".to_string());
-            if Value::Int(object_keys(&urlParams).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&urlParams).len() as i64) as f64) > ((0i64) as f64) {
                 paramsEncoded = self.urlencode(urlParams.clone(), &[]);
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), paramsEncoded))));
             }
@@ -7774,7 +7774,7 @@ impl MexcCore {
             url = Value::Str(format!("{}{}", add(&get_value(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &section), &access), &Value::Str("/".to_string())), self.implode_params(path.clone(), params.clone())));
             params = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
             if (access.as_str() == Some("public")) {
-                if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
                 }
             }  else {
@@ -7794,7 +7794,7 @@ impl MexcCore {
                     body = auth.clone();
                 }  else {
                     params = self.keysort(params.clone(), &[]);
-                    if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                         auth = Value::Str(format!("{}{}", auth, self.urlencode(params.clone(), &[])));
                         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), auth))));
                     }

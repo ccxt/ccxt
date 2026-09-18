@@ -585,7 +585,7 @@ impl BingxCore {
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         // const marketId = messageHash.split('@')[0];
-        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut marketType: Value = (if isSwap { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -881,7 +881,7 @@ impl BingxCore {
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut rawHash: Value = self.safe_string_k(message.clone(), "dataType", &[Value::Str("".to_string())]);
         let mut marketId: Value = split(&rawHash, &Value::Str("@".to_string())).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut marketType: Value = (if isSwap { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -901,7 +901,7 @@ impl BingxCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_91: bool = true;
-            while { if !__for_first_91 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_91 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_91 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_91 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             stored.append(get_value(&trades, &j));
         }
         }
@@ -1104,7 +1104,7 @@ impl BingxCore {
         let mut firstPart: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut isAllEndpoint: bool = firstPart.as_str() == Some("all");
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[firstPart.clone()]);
-        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut marketType: Value = (if isSwap { Value::Str("swap".to_string()) } else { Value::Str("spot".to_string()) });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1233,7 +1233,7 @@ impl BingxCore {
         //         }
         //     }
         //
-        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN);
+        let mut isSwap: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("swap".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64);
         let mut dataType: Value = self.safe_string_k(message.clone(), "dataType", &[Value::Str("".to_string())]);
         let mut parts: Value = split(&dataType, &Value::Str("@".to_string()));
         let mut firstPart: Value = parts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -1286,7 +1286,7 @@ impl BingxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_92: bool = true;
-            while { if !__for_first_92 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_92 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(candles.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_92 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_92 = false; i.as_f64().unwrap_or(f64::NAN) < ((candles.len() as i64) as f64) } {
             let mut candle: Value = get_value(&candles, &i);
             let mut candle: Value = get_value(&candles, &i);
             let mut parsed: Value = self.parse_ws_ohlcv(candle.clone(), &[market.clone()]);
@@ -1794,11 +1794,11 @@ impl BingxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_93: bool = true;
-            while { if !__for_first_93 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_93 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_93 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_93 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
-            if contracts.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 cache.append(position.clone());
             }
         }
@@ -1912,7 +1912,7 @@ impl BingxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_94: bool = true;
-            while { if !__for_first_94 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_94 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawPositions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_94 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_94 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawPositions.len() as i64) as f64) } {
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut rawPosition: Value = get_value(&rawPositions, &i);
             let mut position: Value = self.parse_ws_position(rawPosition.clone(), &[]);
@@ -1931,7 +1931,7 @@ impl BingxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_95: bool = true;
-            while { if !__for_first_95 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_95 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_95 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_95 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -1992,7 +1992,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_97: bool = true;
-                while { if !__for_first_97 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_97 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(types.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_97 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_97 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
                 let mut type_var: Value = get_value(&types, &i);
                 let mut type_var: Value = get_value(&types, &i);
                 let mut baseUrl: Value = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), type_var.clone(), &[]);
@@ -2005,7 +2005,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_96: bool = true;
-                    while { if !__for_first_96 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_96 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_96 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_96 = false; j.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
                     let mut messageHash: Value = get_value(&messageHashes, &j);
                     let mut messageHash: Value = get_value(&messageHashes, &j);
                     client.reject(&[Value::from(error.clone()), messageHash.clone()]);
@@ -2343,7 +2343,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_98: bool = true;
-            while { if !__for_first_98 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_98 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_98 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_98 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "a", &[]);
@@ -2371,23 +2371,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             return;
         }
         let mut dataType: Value = self.safe_string_k(message.clone(), "dataType", &[Value::Str("".to_string())]);
-        if get_index_of(&dataType, &Value::Str("@depth".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&dataType, &Value::Str("@depth".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             self.handle_order_book(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&dataType, &Value::Str("@ticker".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&dataType, &Value::Str("@ticker".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             self.handle_ticker(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&dataType, &Value::Str("@trade".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&dataType, &Value::Str("@trade".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             self.handle_trades(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&dataType, &Value::Str("@kline".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&dataType, &Value::Str("@kline".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             self.handle_ohlcv(client.clone(), message.clone());
             return;
         }
-        if get_index_of(&dataType, &Value::Str("executionReport".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&dataType, &Value::Str("executionReport".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2456,7 +2456,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_99: bool = true;
-            while { if !__for_first_99 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_99 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_99 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut unsubHash: Value = get_value(&messageHashes, &i);
             let mut subHash: Value = get_value(&subMessageHashes, &i);

@@ -529,7 +529,7 @@ impl ParadexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_584: bool = true;
-            while { if !__for_first_584 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_584 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(inserts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_584 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_584 = false; i.as_f64().unwrap_or(f64::NAN) < ((inserts.len() as i64) as f64) } {
             let mut insert: Value = self.safe_dict(inserts.clone(), i.clone(), &[]);
             let mut side: Value = self.safe_string_k(insert.clone(), "side", &[]);
             let mut price: Value = self.safe_string_k(insert.clone(), "price", &[]);
@@ -624,7 +624,7 @@ impl ParadexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_585: bool = true;
-                while { if !__for_first_585 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_585 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), get_value(&symbols, &i)));
                 append_to_array(&mut messageHashes, messageHash.clone());
             }
@@ -872,12 +872,12 @@ impl ParadexCore {
         });
         let mut messageHashes: Value = Value::List(vec![]);
         if (symbols != Value::Null) {
-            let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-            if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+            if symbolsLength > ((0i64) as f64) {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_586: bool = true;
-                    while { if !__for_first_586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                     let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".to_string()))), get_value(&symbols, &i)));
                     append_to_array(&mut messageHashes, messageHash.clone());
                 }

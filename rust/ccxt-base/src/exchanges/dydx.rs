@@ -1358,7 +1358,7 @@ impl DydxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_655 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_655 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_655 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(entry.clone(), "effectiveAt", &[]));
@@ -2255,7 +2255,7 @@ impl DydxCore {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.".to_string())))));
         }
         let mut idString: Value = to_string_val(&id);
-        if (id != Value::Null) && get_index_of(&idString, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        if (id != Value::Null) && get_index_of(&idString, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.".to_string())))));
         }
         let mut goodTillBlock: Value = self.safe_integer_k(params.clone(), "goodTillBlock", &[]);
@@ -2274,7 +2274,7 @@ impl DydxCore {
             if (goodTillBlockTimeInSeconds == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlockTimeInSeconds is required in params for long term or conditional order.".to_string())))));
             }
-            if (goodTillBlock != Value::Null) && goodTillBlock.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if (goodTillBlock != Value::Null) && goodTillBlock.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" goodTillBlock should be 0 for long term or conditional order.".to_string())))));
             }
             goodTillBlockTime = (match (&(self.seconds()), &(goodTillBlockTimeInSeconds)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -2623,7 +2623,7 @@ impl DydxCore {
         if (feeAmount == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".to_string())))));
         }
-        if get_index_of(&feeAmount, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&feeAmount, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             feeAmount = self.number_to_string(math_ceil(&self.parse_to_numeric(feeAmount.clone())));
         }
         let mut feeObj: Value = Value::Map({
@@ -3204,7 +3204,7 @@ impl DydxCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_657 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut account: Value = get_value(&rows, &i);
             let mut account: Value = get_value(&rows, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "subaccountNumber", &[]);
@@ -3370,7 +3370,7 @@ impl DydxCore {
         params = self.keysort(params.clone(), &[]);
         url = add(&url, &Value::Str(format!("{}{}", Value::Str("/".to_string()), pathWithParams)));
         if (method.as_str() == Some("GET")) {
-            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[]))));
             }
         }  else {
@@ -3411,7 +3411,7 @@ impl DydxCore {
         }
         if is_true(&(Value::Bool(errorCode != Value::Null))) && is_true(&(Value::Bool(errorCode.as_str() != Some("")))) {
             let mut errorCodeNum: Value = self.parse_to_numeric(errorCode.clone());
-            if errorCodeNum.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if errorCodeNum.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), self.json(response.clone())));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone(), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body.clone(), feedback.clone());

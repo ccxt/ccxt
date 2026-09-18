@@ -1235,7 +1235,7 @@ impl UpbitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1096: bool = true;
-            while { if !__for_first_1096 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1096 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderbooks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1096 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1096 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderbooks.len() as i64) as f64) } {
             let mut orderbook: Value = get_value(&orderbooks, &i);
             let mut orderbook: Value = get_value(&orderbooks, &i);
             let mut marketId: Value = self.safe_string_k(orderbook.clone(), "market", &[]);
@@ -1374,7 +1374,7 @@ impl UpbitCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1097: bool = true;
-                while { if !__for_first_1097 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1097 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1097 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketSymbols.len() as i64) as f64) } {
                 let mut market: Value = self.market(get_value(&marketSymbols, &i));
                 let mut quoteId: Value = market.as_map().and_then(|__m| __m.get("quoteId")).cloned().unwrap_or(Value::Null);
                 if !is_true(&self.in_array(quoteId.clone(), quoteIds.clone())) {
@@ -1408,7 +1408,7 @@ impl UpbitCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1099: bool = true;
-                while { if !__for_first_1099 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1099 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(queries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1099 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1099 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
                 let mut idsQuery: Value = get_value(&queries, &i);
                 let mut idsQuery: Value = get_value(&queries, &i);
                 let __ws_arg_4 = self.extend(Value::Map({
@@ -1436,14 +1436,14 @@ impl UpbitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1100: bool = true;
-            while { if !__for_first_1100 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1100 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1100 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1100 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if (idsString.as_str() != Some("")) {
                 idsString = Value::Str(format!("{}{}", idsString, Value::Str(",".to_string())));
             }
             idsString = Value::Str(format!("{}{}", idsString, id));
-            if Value::Int(idsString.len() as i64).as_f64().unwrap_or(f64::NAN) >= maxQueryLength.as_f64().unwrap_or(f64::NAN) {
+            if ((idsString.len() as i64) as f64) >= maxQueryLength.as_f64().unwrap_or(f64::NAN) {
                 append_to_array(&mut queries, idsString.clone());
                 idsString = Value::Str("".to_string());
             }
@@ -1699,7 +1699,7 @@ impl UpbitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1101: bool = true;
-            while { if !__for_first_1101 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1101 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(fetchMarketResponse.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1101 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1101 = false; i.as_f64().unwrap_or(f64::NAN) < ((fetchMarketResponse.len() as i64) as f64) } {
             let mut element: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2520,7 +2520,7 @@ impl UpbitCore {
     m
 })]);
         let mut numTrades: Value = Value::Int(trades.len() as i64);
-        if numTrades.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if numTrades.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             // the timestamp in fetchOrder trades is missing
             lastTradeTimestamp = crate::value::get_value_k(&get_value(&trades, &(match (&(numTrades), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })), "timestamp");
             let mut getFeesFromTrades: bool = false;
@@ -2979,7 +2979,7 @@ impl UpbitCore {
         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("/".to_string()), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())))));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         if (method.as_str() != Some("POST")) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }
         }

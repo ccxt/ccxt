@@ -972,7 +972,7 @@ impl DeepcoinCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_613: bool = true;
-            while { if !__for_first_613 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_613 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(types.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_613 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_613 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
             append_to_array(&mut promises, self.fetch_markets_by_type(get_value(&types, &i), &[params.clone()]).await);
         }
         }
@@ -980,7 +980,7 @@ impl DeepcoinCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_614: bool = true;
-            while { if !__for_first_614 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(promises.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_614 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_614 = false; i.as_f64().unwrap_or(f64::NAN) < ((promises.len() as i64) as f64) } {
             result = self.array_concat(result.clone(), get_value(&promises, &i));
         }
         }
@@ -1192,7 +1192,7 @@ impl DeepcoinCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_615: bool = true;
-            while { if !__for_first_615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_615 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&result, &symbol);
@@ -1678,7 +1678,7 @@ impl DeepcoinCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_616: bool = true;
-            while { if !__for_first_616 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_616 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_616 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut symbol: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -1914,8 +1914,8 @@ impl DeepcoinCore {
         if (codes == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses requires a list with one currency code".to_string())))));
         }
-        let mut length: Value = Value::Int(codes.len() as i64);
-        if (length.as_f64() != Some(1.0)) {
+        let mut length: f64 = ((codes.len() as i64) as f64);
+        if (length != 1.0) {
             panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses requires a list with one currency code".to_string())))));
         }
         let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
@@ -1998,16 +1998,16 @@ impl DeepcoinCore {
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
         }
         let mut addressess: Value = self.fetch_deposit_addresses(&[Value::List(vec![code.clone()]), params.clone()]).await;
-        let mut length: Value = Value::Int(addressess.len() as i64);
+        let mut length: f64 = ((addressess.len() as i64) as f64);
         let mut address: Value = self.safe_dict(addressess.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        if is_true(&(Value::Bool(network != Value::Null))) && is_true(&(length.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(network != Value::Null))) && is_true(&(length > ((1i64) as f64))) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_617: bool = true;
-                while { if !__for_first_617 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_617 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_617 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
                 let mut entry: Value = get_value(&addressess, &i);
                 let mut entry: Value = get_value(&addressess, &i);
                 if (entry.as_map().and_then(|__m| __m.get("network")).cloned().unwrap_or(Value::Null).as_str() == network.as_str()) {
@@ -2828,8 +2828,8 @@ impl DeepcoinCore {
         let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_get_deepcoin_trade_order_by_id(&[__ws_arg_20]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut length: Value = Value::Int(data.len() as i64);
-        if (length.as_f64() == Some(0.0)) {
+        let mut length: f64 = ((data.len() as i64) as f64);
+        if (length == 0.0) {
             panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrder() could not find order id ".to_string()))), id))));
         }
         let mut entry: Value = self.safe_dict(data.clone(), Value::Int(0), &[Value::Map({
@@ -3495,7 +3495,7 @@ impl DeepcoinCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_integer_k(order.clone(), "cTime", &[]);
         let mut timestampString: Value = self.safe_string_k(order.clone(), "cTime", &[Value::Str("".to_string())]);
-        if Value::Int(timestampString.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(13).as_f64().unwrap_or(f64::NAN) {
+        if ((timestampString.len() as i64) as f64) < ((13i64) as f64) {
             timestamp = self.safe_timestamp(order.clone(), Value::Str("cTime".to_string()), &[]);
         }
         let mut state: Value = self.safe_string_k(order.clone(), "state", &[]);
@@ -3771,7 +3771,7 @@ impl DeepcoinCore {
         }
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+        if leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be minimum 1".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -4247,7 +4247,7 @@ impl DeepcoinCore {
         let mut requestPath: Value = path.clone();
         if (method.as_str() == Some("GET")) {
             let mut query: Value = self.urlencode(params.clone(), &[]);
-            if Value::Int(query.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((query.len() as i64) as f64) > ((0i64) as f64) {
                 requestPath = add(&requestPath, &Value::Str(format!("{}{}", Value::Str("?".to_string()), query)));
             }
         }
@@ -4303,7 +4303,7 @@ impl DeepcoinCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_618: bool = true;
-                while { if !__for_first_618 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(errorList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_618 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_618 = false; i.as_f64().unwrap_or(f64::NAN) < ((errorList.len() as i64) as f64) } {
                 let mut entry: Value = self.safe_dict(errorList.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

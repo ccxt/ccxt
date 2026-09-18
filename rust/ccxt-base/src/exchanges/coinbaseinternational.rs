@@ -839,7 +839,7 @@ impl CoinbaseinternationalCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_543: bool = true;
-            while { if !__for_first_543 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_543 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_543 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_543 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut info: Value = self.safe_dict_k(account.clone(), "info", &[Value::Map({
@@ -1406,7 +1406,7 @@ impl CoinbaseinternationalCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_544: bool = true;
-            while { if !__for_first_544 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_544 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networksArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_544 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_544 = false; i.as_f64().unwrap_or(f64::NAN) < ((networksArray.len() as i64) as f64) } {
             let mut info: Value = crate::value::get_value_k(&get_value(&networksArray, &i), "info");
             let mut is_default: Value = self.safe_bool_k(info.clone(), "is_default", &[Value::Bool(false)]);
             if (is_default.as_bool() == Some(true)) {
@@ -2237,7 +2237,7 @@ impl CoinbaseinternationalCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_546: bool = true;
-            while { if !__for_first_546 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_546 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_546 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_546 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut instrument: Value = get_value(&rows, &i);
             let mut instrument: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(instrument.clone(), "symbol", &[]);
@@ -2867,7 +2867,7 @@ impl CoinbaseinternationalCore {
             add_element_to_object(&mut request, &Value::Str("instrument".to_string()), symbol.clone());
         }
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() maximum limit is 100".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("result_limit".to_string()), limit.clone());
@@ -2961,7 +2961,7 @@ impl CoinbaseinternationalCore {
             m
         });
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() maximum limit is 100. Consider setting paginate to true to fetch more trades.".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("result_limit".to_string()), limit.clone());
@@ -3096,7 +3096,7 @@ impl CoinbaseinternationalCore {
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         let mut savedPath: Value = Value::Str(format!("{}{}", Value::Str("/api".to_string()), fullPath));
         if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 fullPath = Value::Str(format!("{}{}", fullPath, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode_with_array_repeat(query.clone())))));
             }
         }
@@ -3106,7 +3106,7 @@ impl CoinbaseinternationalCore {
             let mut nonce: Value = to_string_val(&self.nonce());
             let mut payload: Value = Value::Str("".to_string());
             if (method.as_str() != Some("GET")) {
-                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     body = self.json(query.clone());
                     payload = body.clone();
                 }

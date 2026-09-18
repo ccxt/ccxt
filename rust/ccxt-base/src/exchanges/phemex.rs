@@ -1933,7 +1933,7 @@ impl PhemexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1054: bool = true;
-            while { if !__for_first_1054 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(products.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1054 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < ((products.len() as i64) as f64) } {
             let mut market: Value = get_value(&products, &i);
             let mut market: Value = get_value(&products, &i);
             let mut type_var: Value = self.safe_string_lower(market.clone(), Value::Str("type".to_string()), &[]);
@@ -2096,7 +2096,7 @@ impl PhemexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(sides.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1056 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1056 = false; i.as_f64().unwrap_or(f64::NAN) < ((sides.len() as i64) as f64) } {
             let mut side: Value = get_value(&sides, &i);
             let mut side: Value = get_value(&sides, &i);
             let mut orders: Value = Value::List(vec![]);
@@ -2149,7 +2149,7 @@ impl PhemexCore {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.v2_get_md_v2_orderbook(&[__ws_arg_0]).await;
         }  else {
-            if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) <= Value::Int(30).as_f64().unwrap_or(f64::NAN))) {
+            if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) <= ((30i64) as f64))) {
                 let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
                 response = self.v1_get_md_orderbook(&[__ws_arg_1]).await;
             }  else {
@@ -2900,7 +2900,7 @@ impl PhemexCore {
         if is_true(&Value::Bool(is_array(&trade))) {
             let mut tradeLength: Value = Value::Int(trade.len() as i64);
             timestamp = self.safe_integer_product(trade.clone(), Value::Int(0), Value::Float(0.000001), &[]);
-            if tradeLength.as_f64().unwrap_or(f64::NAN) > Value::Int(4).as_f64().unwrap_or(f64::NAN) {
+            if tradeLength.as_f64().unwrap_or(f64::NAN) > ((4i64) as f64) {
                 id = self.safe_string(trade.clone(), (match (&(tradeLength), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
             }
             side = self.safe_string_lower(trade.clone(), (match (&(tradeLength), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
@@ -3039,7 +3039,7 @@ impl PhemexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1057 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1057 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut balance: Value = get_value(&data, &i);
             let mut balance: Value = get_value(&data, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -3443,7 +3443,7 @@ impl PhemexCore {
         //
         let mut id: Value = self.safe_string_k(order.clone(), "orderID", &[]);
         let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clOrdID", &[]);
-        if is_true(&(Value::Bool(clientOrderId != Value::Null))) && is_true(&(Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(clientOrderId != Value::Null))) && is_true(&(((clientOrderId.len() as i64) as f64) < ((1i64) as f64))) {
             clientOrderId = Value::Null;
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -3618,7 +3618,7 @@ impl PhemexCore {
         //
         let mut id: Value = self.safe_string2(order.clone(), Value::Str("orderID".to_string()), Value::Str("orderId".to_string()), &[]);
         let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clOrdID".to_string()), Value::Str("clOrdId".to_string()), &[]);
-        if is_true(&(Value::Bool(clientOrderId != Value::Null))) && is_true(&(Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(clientOrderId != Value::Null))) && is_true(&(((clientOrderId.len() as i64) as f64) < ((1i64) as f64))) {
             clientOrderId = Value::Null;
         }
         let mut marketId: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -4280,8 +4280,8 @@ impl PhemexCore {
         })]);
         let mut order: Value = data.clone();
         if is_true(&Value::Bool(is_array(&data))) {
-            let mut numOrders: Value = Value::Int(data.len() as i64);
-            if numOrders.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            let mut numOrders: f64 = ((data.len() as i64) as f64);
+            if numOrders < ((1i64) as f64) {
                 if (clientOrderId != Value::Null) {
                     panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() ".to_string()))), symbol)), Value::Str(" order with clientOrderId ".to_string()))), clientOrderId)), Value::Str(" not found".to_string())))));
                 }  else {
@@ -4294,8 +4294,8 @@ impl PhemexCore {
 })]);
         }  else if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
             let mut rows: Value = self.safe_list_k(data.clone(), "rows", &[Value::List(vec![])]);
-            let mut numRows: Value = Value::Int(rows.len() as i64);
-            if numRows.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            let mut numRows: f64 = ((rows.len() as i64) as f64);
+            if numRows < ((1i64) as f64) {
                 if (clientOrderId != Value::Null) {
                     panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOrder() ".to_string()))), symbol)), Value::Str(" order with clientOrderId ".to_string()))), clientOrderId)), Value::Str(" not found".to_string())))));
                 }  else {
@@ -5207,7 +5207,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1058 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1058 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1058 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             append_to_array(&mut result, self.parse_position(position.clone(), &[]));
@@ -5499,7 +5499,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(200).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() limit argument cannot exceed 200".to_string())))));
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -5544,7 +5544,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1059: bool = true;
-            while { if !__for_first_1059 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1059 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "createTime", &[]);
@@ -6081,7 +6081,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Value = requestPath.clone();
         let mut queryString: Value = Value::Str("".to_string());
         if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) || is_true(&(Value::Bool(url.as_str() == Some("/positions/assign")))) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 queryString = self.urlencode_with_array_repeat(query.clone());
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString))));
             }
@@ -6151,7 +6151,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
         }
-        if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(-100).as_f64().unwrap_or(f64::NAN))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < ((-100i64) as f64))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() leverage should be between -100 and 100".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -7086,7 +7086,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1062 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ranks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1062 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1062 = false; i.as_f64().unwrap_or(f64::NAN) < ((ranks.len() as i64) as f64) } {
             let mut rank: Value = get_value(&ranks, &i);
             let mut rank: Value = get_value(&ranks, &i);
             append_to_array(&mut result, self.parse_adl_rank(rank.clone(), &[]));

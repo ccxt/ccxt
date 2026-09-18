@@ -1071,9 +1071,9 @@ impl PolymarketCore {
 }));
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         let mut rest: Value = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string())]), &[]);
-        let mut queriesLength: Value = Value::Int(queries.len() as i64);
+        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         let mut rawEvents: Value = Value::List(vec![]);
-        if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if queriesLength > ((0i64) as f64) {
             rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[rest.clone()]).await;
         }  else {
             rawEvents = self.fetch_raw_events_list(&[rest.clone()]).await;
@@ -1086,14 +1086,14 @@ impl PolymarketCore {
         {
                         let mut rei: Value = Value::Int(0);
             let mut __for_first_1363: bool = true;
-            while { if !__for_first_1363 { rei = (match (&(rei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1363 = false; rei.as_f64().unwrap_or(f64::NAN) < Value::Int(rawEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1363 { rei = (match (&(rei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1363 = false; rei.as_f64().unwrap_or(f64::NAN) < ((rawEvents.len() as i64) as f64) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut ccxtMarkets: Value = self.parse_event_to_markets(rawEvent.clone());
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1362: bool = true;
-                while { if !__for_first_1362 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1362 = false; mi.as_f64().unwrap_or(f64::NAN) < Value::Int(ccxtMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1362 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1362 = false; mi.as_f64().unwrap_or(f64::NAN) < ((ccxtMarkets.len() as i64) as f64) } {
                 append_to_array(&mut flatMarkets, get_value(&ccxtMarkets, &mi));
             }
             }
@@ -1157,7 +1157,7 @@ impl PolymarketCore {
         {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1370: bool = true;
-            while { if !__for_first_1370 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1370 = false; qi.as_f64().unwrap_or(f64::NAN) < Value::Int(queries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1370 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1370 = false; qi.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
             let mut q: Value = get_value(&queries, &qi);
             let mut q: Value = get_value(&queries, &qi);
             let mut baseRequest: Value = Value::Map({
@@ -1213,7 +1213,7 @@ impl PolymarketCore {
             {
                                 let mut pi: Value = Value::Int(0);
                 let mut __for_first_1365: bool = true;
-                while { if !__for_first_1365 { pi = (match (&(pi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1365 = false; pi.as_f64().unwrap_or(f64::NAN) < Value::Int(remainingPages.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1365 { pi = (match (&(pi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1365 = false; pi.as_f64().unwrap_or(f64::NAN) < ((remainingPages.len() as i64) as f64) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("page".to_string(), get_value(&remainingPages, &pi));
@@ -1229,19 +1229,19 @@ impl PolymarketCore {
             {
                                 let mut fi: Value = Value::Int(0);
                 let mut __for_first_1366: bool = true;
-                while { if !__for_first_1366 { fi = (match (&(fi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1366 = false; fi.as_f64().unwrap_or(f64::NAN) < Value::Int(firstEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1366 { fi = (match (&(fi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1366 = false; fi.as_f64().unwrap_or(f64::NAN) < ((firstEvents.len() as i64) as f64) } {
                 append_to_array(&mut allEvents, get_value(&firstEvents, &fi));
             }
             }
             {
                                 let mut ri: Value = Value::Int(0);
                 let mut __for_first_1368: bool = true;
-                while { if !__for_first_1368 { ri = (match (&(ri), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1368 = false; ri.as_f64().unwrap_or(f64::NAN) < Value::Int(restResponses.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1368 { ri = (match (&(ri), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1368 = false; ri.as_f64().unwrap_or(f64::NAN) < ((restResponses.len() as i64) as f64) } {
                 let mut pageEvents: Value = self.safe_list_k(get_value(&restResponses, &ri), "events", &[Value::List(vec![])]);
                 {
                                         let mut ei: Value = Value::Int(0);
                     let mut __for_first_1367: bool = true;
-                    while { if !__for_first_1367 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1367 = false; ei.as_f64().unwrap_or(f64::NAN) < Value::Int(pageEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1367 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1367 = false; ei.as_f64().unwrap_or(f64::NAN) < ((pageEvents.len() as i64) as f64) } {
                     append_to_array(&mut allEvents, get_value(&pageEvents, &ei));
                 }
                 }
@@ -1250,7 +1250,7 @@ impl PolymarketCore {
             {
                                 let mut ei: Value = Value::Int(0);
                 let mut __for_first_1369: bool = true;
-                while { if !__for_first_1369 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1369 = false; ei.as_f64().unwrap_or(f64::NAN) < Value::Int(allEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1369 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1369 = false; ei.as_f64().unwrap_or(f64::NAN) < ((allEvents.len() as i64) as f64) } {
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut rawEvent: Value = get_value(&allEvents, &ei);
                 let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
@@ -1284,10 +1284,10 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1371: bool = true;
-            while { if !__for_first_1371 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1371 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(chars.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1371 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1371 = false; i.as_f64().unwrap_or(f64::NAN) < ((chars.len() as i64) as f64) } {
             let mut ch: Value = get_value(&chars, &i);
             let mut ch: Value = get_value(&chars, &i);
-            if get_index_of(&allowed, &ch).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&allowed, &ch).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 if pendingSep && is_true(&(Value::Bool(slug.as_str() != Some("")))) {
                     slug = Value::Str(format!("{}{}", slug, Value::Str("-".to_string())));
                 }
@@ -1351,8 +1351,8 @@ impl PolymarketCore {
         // fetchEvents returns the tagged events rather than filtering the top-volume listing down
         // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
         let mut requestedTags: Value = self.safe_list_k(params.clone(), "tags", &[Value::List(vec![])]);
-        let mut requestedTagsLength: Value = Value::Int(requestedTags.len() as i64);
-        if requestedTagsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+        let mut requestedTagsLength: f64 = ((requestedTags.len() as i64) as f64);
+        if requestedTagsLength > ((1i64) as f64) {
             let mut seen: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1361,7 +1361,7 @@ impl PolymarketCore {
             {
                                 let mut ti: Value = Value::Int(0);
                 let mut __for_first_1373: bool = true;
-                while { if !__for_first_1373 { ti = (match (&(ti), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1373 = false; ti.as_f64().unwrap_or(f64::NAN) < requestedTagsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1373 { ti = (match (&(ti), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1373 = false; ti.as_f64().unwrap_or(f64::NAN) < requestedTagsLength } {
                 let mut singleTagParams: Value = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1371,7 +1371,7 @@ impl PolymarketCore {
                 {
                                         let mut ei: Value = Value::Int(0);
                     let mut __for_first_1372: bool = true;
-                    while { if !__for_first_1372 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1372 = false; ei.as_f64().unwrap_or(f64::NAN) < Value::Int(tagEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1372 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1372 = false; ei.as_f64().unwrap_or(f64::NAN) < ((tagEvents.len() as i64) as f64) } {
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut rawEvent: Value = get_value(&tagEvents, &ei);
                     let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
@@ -1385,7 +1385,7 @@ impl PolymarketCore {
             }
             return unioned;
         }
-        if requestedTagsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if requestedTagsLength > ((0i64) as f64) {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
             add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".to_string()), self.tag_to_slug(self.safe_string(requestedTags.clone(), Value::Int(0), &[])));
@@ -1408,16 +1408,16 @@ impl PolymarketCore {
         let mut firstPageResponse: Value = self.gamma_public_get_events(&[firstPageRequest.clone()]).await;
         let mut firstPageIsArray: bool = is_array(&firstPageResponse);
         let mut firstPage: Value = (if (firstPageIsArray) { firstPageResponse.clone() } else { Value::List(vec![]) });
-        let mut firstPageLength: Value = Value::Int(firstPage.len() as i64);
+        let mut firstPageLength: f64 = ((firstPage.len() as i64) as f64);
         let mut allRawEvents: Value = Value::List(vec![]);
         {
                         let mut fi: Value = Value::Int(0);
             let mut __for_first_1374: bool = true;
-            while { if !__for_first_1374 { fi = (match (&(fi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1374 = false; fi.as_f64().unwrap_or(f64::NAN) < firstPageLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1374 { fi = (match (&(fi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1374 = false; fi.as_f64().unwrap_or(f64::NAN) < firstPageLength } {
             append_to_array(&mut allRawEvents, get_value(&firstPage, &fi));
         }
         }
-        if firstPageLength.as_f64().unwrap_or(f64::NAN) >= pageSize.as_f64().unwrap_or(f64::NAN) {
+        if firstPageLength >= pageSize.as_f64().unwrap_or(f64::NAN) {
             let mut offsets: Value = Value::List(vec![]);
             {
                                 let mut p: Value = Value::Int(1);
@@ -1430,7 +1430,7 @@ impl PolymarketCore {
             {
                                 let mut oi: Value = Value::Int(0);
                 let mut __for_first_1376: bool = true;
-                while { if !__for_first_1376 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1376 = false; oi.as_f64().unwrap_or(f64::NAN) < Value::Int(offsets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1376 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1376 = false; oi.as_f64().unwrap_or(f64::NAN) < ((offsets.len() as i64) as f64) } {
                 let mut pageRequest: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("offset".to_string(), get_value(&offsets, &oi));
@@ -1444,7 +1444,7 @@ impl PolymarketCore {
             {
                                 let mut ri: Value = Value::Int(0);
                 let mut __for_first_1378: bool = true;
-                while { if !__for_first_1378 { ri = (match (&(ri), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1378 = false; ri.as_f64().unwrap_or(f64::NAN) < Value::Int(restPages.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1378 { ri = (match (&(ri), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1378 = false; ri.as_f64().unwrap_or(f64::NAN) < ((restPages.len() as i64) as f64) } {
                 let mut page: Value = (if is_true(&(Value::Bool(get_value(&restPages, &ri) != Value::Null))) { get_value(&restPages, &ri) } else { Value::List(vec![]) });
                 let mut pageLength: Value = get_array_length(&page);
                 {
@@ -1457,8 +1457,8 @@ impl PolymarketCore {
             }
             }
         }
-        let mut allRawEventsLength: Value = Value::Int(allRawEvents.len() as i64);
-        if allRawEventsLength.as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN) {
+        let mut allRawEventsLength: f64 = ((allRawEvents.len() as i64) as f64);
+        if allRawEventsLength > limit.as_f64().unwrap_or(f64::NAN) {
             return self.array_slice(allRawEvents.clone(), Value::Int(0), &[limit.clone()]);
         }
         return allRawEvents;
@@ -1473,7 +1473,7 @@ impl PolymarketCore {
         {
                         let mut mi: Value = Value::Int(0);
             let mut __for_first_1380: bool = true;
-            while { if !__for_first_1380 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1380 = false; mi.as_f64().unwrap_or(f64::NAN) < Value::Int(rawMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1380 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1380 = false; mi.as_f64().unwrap_or(f64::NAN) < ((rawMarkets.len() as i64) as f64) } {
             let mut market: Value = get_value(&rawMarkets, &mi);
             let mut market: Value = get_value(&rawMarkets, &mi);
             let mut conditionId: Value = self.safe_string_k(market.clone(), "conditionId", &[]);
@@ -1519,9 +1519,9 @@ impl PolymarketCore {
             if is_true(&(Value::Bool(parsedPrices != Value::Null))) && is_true(&(Value::Bool(parsedPricesLength != Value::Null))) {
                 outcomePrices = parsedPrices.clone();
             }
-            let mut outcomeLabelsLength: Value = Value::Int(outcomeLabels.len() as i64);
-            let mut clobTokenIdsLength: Value = Value::Int(clobTokenIds.len() as i64);
-            if (outcomeLabelsLength.as_f64() == Some(0.0)) || (clobTokenIdsLength.as_f64() == Some(0.0)) {
+            let mut outcomeLabelsLength: f64 = ((outcomeLabels.len() as i64) as f64);
+            let mut clobTokenIdsLength: f64 = ((clobTokenIds.len() as i64) as f64);
+            if (outcomeLabelsLength == 0.0) || (clobTokenIdsLength == 0.0) {
                 continue;
             }
             // Market outcome (no outcome suffix)
@@ -1531,7 +1531,7 @@ impl PolymarketCore {
             {
                                 let mut oi: Value = Value::Int(0);
                 let mut __for_first_1379: bool = true;
-                while { if !__for_first_1379 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1379 = false; oi.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomeLabels.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1379 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1379 = false; oi.as_f64().unwrap_or(f64::NAN) < ((outcomeLabels.len() as i64) as f64) } {
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
                 let mut outcomeLabel: Value = get_value(&outcomeLabels, &oi);
                 let mut clobTokenId: Value = get_value(&clobTokenIds, &oi);
@@ -1548,11 +1548,11 @@ impl PolymarketCore {
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
                     // outcome-level fields undefined until a decisive price exists
-                    if outcomePrice.as_f64().unwrap_or(f64::NAN) >= Value::Float(0.99).as_f64().unwrap_or(f64::NAN) {
+                    if outcomePrice.as_f64().unwrap_or(f64::NAN) >= (0.99) {
                         winnerRaw = Value::Bool(true);
                         settleFractionRaw = Value::Int(1);
                         resolvedOutcome = outcomeHandle.clone();
-                    }  else if outcomePrice.as_f64().unwrap_or(f64::NAN) <= Value::Float(0.01).as_f64().unwrap_or(f64::NAN) {
+                    }  else if outcomePrice.as_f64().unwrap_or(f64::NAN) <= (0.01) {
                         winnerRaw = Value::Bool(false);
                         settleFractionRaw = Value::Int(0);
                     }
@@ -1584,7 +1584,7 @@ impl PolymarketCore {
             }
             }
             let mut baseId: Value = (if is_true(&(Value::Bool(conditionId != Value::Null))) { conditionId.clone() } else { marketId.clone() });
-            let mut marketType: Value = (if is_true(&(outcomeLabelsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN))) { Value::Str("categorical".to_string()) } else { Value::Str("binary".to_string()) });
+            let mut marketType: Value = (if is_true(&(outcomeLabelsLength > ((2i64) as f64))) { Value::Str("categorical".to_string()) } else { Value::Str("binary".to_string()) });
             // effectively-final copy for the market object literal below (reassigned in the loop)
             let mut marketResolvedOutcome: Value = resolvedOutcome.clone();
             append_to_array(&mut result, Value::Map({
@@ -1687,15 +1687,15 @@ impl PolymarketCore {
         // non-ids) and falls through to the search path and its local BadSymbol below.
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
-        if is_true(&(get_index_of(&outcomeSymbol, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(self.outcome_search_query(outcomeSymbol.clone()) == Value::Null))) {
+        if is_true(&(get_index_of(&outcomeSymbol, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) && is_true(&(Value::Bool(self.outcome_search_query(outcomeSymbol.clone()) == Value::Null))) {
             let mut response: Value = self.gamma_public_get_markets(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
                 m
             })]).await;
             let mut rawMarkets: Value = (if is_true(&(Value::Bool(response != Value::Null))) { response.clone() } else { Value::List(vec![]) });
-            let mut rawMarketsLength: Value = Value::Int(rawMarkets.len() as i64);
-            if rawMarketsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
+            if rawMarketsLength > ((0i64) as f64) {
                 if (self.markets.clone() == Value::Null) {
                     { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
                 }
@@ -1704,11 +1704,11 @@ impl PolymarketCore {
                         m.insert("markets".to_string(), rawMarkets.clone());
                     m
                 }));
-                let mut ccxtMarketsLength: Value = Value::Int(ccxtMarkets.len() as i64);
+                let mut ccxtMarketsLength: f64 = ((ccxtMarkets.len() as i64) as f64);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1381: bool = true;
-                    while { if !__for_first_1381 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1381 = false; i.as_f64().unwrap_or(f64::NAN) < ccxtMarketsLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1381 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1381 = false; i.as_f64().unwrap_or(f64::NAN) < ccxtMarketsLength } {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     if (mkt == Value::Null) {
@@ -1743,20 +1743,20 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1382: bool = true;
-            while { if !__for_first_1382 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1382 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomeSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1382 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1382 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
             let mut outcomeSymbol: Value = get_value(&outcomeSymbols, &i);
             let mut outcomeSymbol: Value = get_value(&outcomeSymbols, &i);
             // only id-like symbols (no ':', no searchable words) belong in the by-id batch —
             // see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
             // maps that to `=== false`, while a literal `=== -1` passes through and never
             // matches mb_strpos's false return
-            if is_true(&(get_index_of(&outcomeSymbol, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(self.outcome_search_query(outcomeSymbol.clone()) == Value::Null))) {
+            if is_true(&(get_index_of(&outcomeSymbol, &Value::Str(":".to_string())).as_f64().unwrap_or(f64::NAN) < ((0i64) as f64))) && is_true(&(Value::Bool(self.outcome_search_query(outcomeSymbol.clone()) == Value::Null))) {
                 append_to_array(&mut tokenIds, outcomeSymbol.clone());
             }
         }
         }
         let mut tokenIdsLength: Value = Value::Int(tokenIds.len() as i64);
-        if tokenIdsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if tokenIdsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             if (self.markets.clone() == Value::Null) {
                 { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
             }
@@ -1793,7 +1793,7 @@ impl PolymarketCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1384: bool = true;
-                    while { if !__for_first_1384 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1384 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ccxtMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1384 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1384 = false; i.as_f64().unwrap_or(f64::NAN) < ((ccxtMarkets.len() as i64) as f64) } {
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     let mut mkt: Value = get_value(&ccxtMarkets, &i);
                     if (mkt == Value::Null) {
@@ -1809,7 +1809,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1385: bool = true;
-            while { if !__for_first_1385 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1385 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomeSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1385 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1385 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomeSymbols.len() as i64) as f64) } {
             if !is_true(&self.has_outcome(get_value(&outcomeSymbols, &i))) {
                 self.fetch_outcome(get_value(&outcomeSymbols, &i)).await;
             }
@@ -1893,7 +1893,7 @@ impl PolymarketCore {
         {
                         let mut oi: Value = Value::Int(0);
             let mut __for_first_1386: bool = true;
-            while { if !__for_first_1386 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1386 = false; oi.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1386 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1386 = false; oi.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
             append_to_array(&mut targets, get_value(&outcomes, &oi));
         }
         }
@@ -1905,7 +1905,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1387: bool = true;
-            while { if !__for_first_1387 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1387 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(targets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1387 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1387 = false; i.as_f64().unwrap_or(f64::NAN) < ((targets.len() as i64) as f64) } {
             let mut outcomeObj: Value = self.outcome(get_value(&targets, &i));
             let mut tokenId: Value = self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]);
             if is_true(&(Value::Bool(tokenId != Value::Null))) && !is_true(&(Value::Bool(in_op(&outcomesByTokenId, &tokenId)))) {
@@ -1951,11 +1951,11 @@ impl PolymarketCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut lastTradesLength: Value = Value::Int(lastTrades.len() as i64);
+            let mut lastTradesLength: f64 = ((lastTrades.len() as i64) as f64);
             {
                                 let mut li: Value = Value::Int(0);
                 let mut __for_first_1389: bool = true;
-                while { if !__for_first_1389 { li = (match (&(li), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1389 = false; li.as_f64().unwrap_or(f64::NAN) < lastTradesLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1389 { li = (match (&(li), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1389 = false; li.as_f64().unwrap_or(f64::NAN) < lastTradesLength } {
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeEntry: Value = get_value(&lastTrades, &li);
                 let mut lastTradeTokenId: Value = self.safe_string_k(lastTradeEntry.clone(), "token_id", &[]);
@@ -1964,11 +1964,11 @@ impl PolymarketCore {
                 }
             }
             }
-            let mut booksLength: Value = Value::Int(books.len() as i64);
+            let mut booksLength: f64 = ((books.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1390: bool = true;
-                while { if !__for_first_1390 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1390 = false; i.as_f64().unwrap_or(f64::NAN) < booksLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1390 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1390 = false; i.as_f64().unwrap_or(f64::NAN) < booksLength } {
                 let mut book: Value = get_value(&books, &i);
                 let mut book: Value = get_value(&books, &i);
                 let mut tokenId: Value = self.safe_string_k(book.clone(), "asset_id", &[]);
@@ -2062,8 +2062,8 @@ impl PolymarketCore {
         let mut bidsLength: Value = Value::Int(bids.len() as i64);
         let mut asksLength: Value = Value::Int(asks.len() as i64);
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
-        let mut bestBid: Value = (if is_true(&(bidsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { get_value(&bids, &(match (&(bidsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { Value::Null });
-        let mut bestAsk: Value = (if is_true(&(asksLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { get_value(&asks, &(match (&(asksLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { Value::Null });
+        let mut bestBid: Value = (if is_true(&(bidsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) { get_value(&bids, &(match (&(bidsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { Value::Null });
+        let mut bestAsk: Value = (if is_true(&(asksLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) { get_value(&asks, &(match (&(asksLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })) } else { Value::Null });
         // book.last_trade_price is market-level and denominated in whichever token traded last —
         // on the complementary token it is the OTHER side's price, so only the per-token
         // last-trade-price endpoint value is usable here; that endpoint reports "0" for a
@@ -2246,7 +2246,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1391: bool = true;
-            while { if !__for_first_1391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1391 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(history.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1391 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1391 = false; i.as_f64().unwrap_or(f64::NAN) < ((history.len() as i64) as f64) } {
             let mut item: Value = get_value(&history, &i);
             let mut item: Value = get_value(&history, &i);
             let mut t: Value = self.safe_integer_k(item.clone(), "t", &[]);
@@ -2284,13 +2284,13 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1392: bool = true;
-            while { if !__for_first_1392 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1392 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(bucketKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1392 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1392 = false; i.as_f64().unwrap_or(f64::NAN) < ((bucketKeys.len() as i64) as f64) } {
             append_to_array(&mut unsortedCandles, get_value(&buckets, &get_value(&bucketKeys, &i)));
         }
         }
         let mut candles: Value = self.sort_by(unsortedCandles.clone(), Value::Int(0), &[]);
-        let mut candlesLength: Value = Value::Int(candles.len() as i64);
-        if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(candlesLength.as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN))) {
+        let mut candlesLength: f64 = ((candles.len() as i64) as f64);
+        if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(candlesLength > limit.as_f64().unwrap_or(f64::NAN))) {
             return self.array_slice(candles.clone(), negate(&limit), &[]);
         }
         return candles;
@@ -2522,7 +2522,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1393: bool = true;
-            while { if !__for_first_1393 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1393 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1393 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1393 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut trade: Value = get_value(&rawTrades, &i);
             let mut tradeAsset: Value = self.safe_string_k(trade.clone(), "asset", &[]);
@@ -2600,7 +2600,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1395: bool = true;
-            while { if !__for_first_1395 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1395 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1395 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1395 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut info: Value = self.safe_dict_k(trade.clone(), "info", &[Value::Map({
@@ -2612,7 +2612,7 @@ impl PolymarketCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1394: bool = true;
-                while { if !__for_first_1394 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1394 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(makerOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1394 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1394 = false; j.as_f64().unwrap_or(f64::NAN) < ((makerOrders.len() as i64) as f64) } {
                 if (self.safe_string_k(get_value(&makerOrders, &j), "order_id", &[]).as_str() == id.as_str()) {
                     belongs = true;
                 }
@@ -2801,7 +2801,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1396: bool = true;
-            while { if !__for_first_1396 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1396 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1396 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1396 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             add_element_to_object(&mut wantedIds, &crate::value::get_value_k(&outcomeObj, "outcomeId"), Value::Bool(true));
         }
@@ -2810,7 +2810,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1397: bool = true;
-            while { if !__for_first_1397 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1397 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parsed.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1397 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1397 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             let mut position: Value = get_value(&parsed, &i);
             let mut position: Value = get_value(&parsed, &i);
             let mut info: Value = self.safe_dict_k(position.clone(), "info", &[Value::Map({
@@ -3132,7 +3132,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1398: bool = true;
-            while { if !__for_first_1398 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1398 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1398 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1398 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut __oc: Value = self.safe_string_k(o.clone(), "outcome", &[]);
@@ -3149,7 +3149,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1399: bool = true;
-            while { if !__for_first_1399 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1399 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1399 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1399 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut o: Value = get_value(&orders, &i);
             let mut o: Value = get_value(&orders, &i);
             let mut orderParams: Value = self.safe_dict_k(o.clone(), "params", &[Value::Map({
@@ -3186,7 +3186,7 @@ impl PolymarketCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1400: bool = true;
-                while { if !__for_first_1400 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1400 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1400 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1400 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 // request echo first so the response's real orderID/status win on overlap
                 let mut enriched: Value = self.extend(get_value(&requests, &i), &[get_value(&response, &i)]);
                 let mut parsedItem: Value = self.parse_prediction_order(enriched.clone(), &[get_value(&outcomes, &i)]);
@@ -3711,7 +3711,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1401: bool = true;
-            while { if !__for_first_1401 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1401 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(canceled.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1401 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1401 = false; i.as_f64().unwrap_or(f64::NAN) < ((canceled.len() as i64) as f64) } {
             append_to_array(&mut orders, self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone(), i.clone(), &[]));
@@ -3763,7 +3763,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1402: bool = true;
-            while { if !__for_first_1402 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1402 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(canceled.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1402 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1402 = false; i.as_f64().unwrap_or(f64::NAN) < ((canceled.len() as i64) as f64) } {
             append_to_array(&mut orders, self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(canceled.clone(), i.clone(), &[]));
@@ -3811,7 +3811,7 @@ impl PolymarketCore {
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchEvents() missing queries".to_string())))));
         }
-        let mut queriesLength: Value = Value::Int(queries.len() as i64);
+        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         let mut rawEvents: Value = Value::List(vec![]);
         if is_true(&(Value::Bool(requestedEventId != Value::Null))) || is_true(&(Value::Bool(requestedSlug != Value::Null))) {
             // direct lookup by event id or slug via the events endpoint (returns a list)
@@ -3827,7 +3827,7 @@ impl PolymarketCore {
             let mut response: Value = self.gamma_public_get_events(&[lookup.clone()]).await;
             let mut responseIsArray: bool = is_array(&response);
             rawEvents = (if (responseIsArray) { response.clone() } else { Value::List(vec![]) });
-        }  else if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        }  else if queriesLength > ((0i64) as f64) {
             rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[rest.clone()]).await;
         }  else {
             rawEvents = self.fetch_raw_events_list(&[rest.clone()]).await;
@@ -3846,13 +3846,13 @@ impl PolymarketCore {
         {
                         let mut rei: Value = Value::Int(0);
             let mut __for_first_1404: bool = true;
-            while { if !__for_first_1404 { rei = (match (&(rei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1404 = false; rei.as_f64().unwrap_or(f64::NAN) < Value::Int(rawEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1404 { rei = (match (&(rei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1404 = false; rei.as_f64().unwrap_or(f64::NAN) < ((rawEvents.len() as i64) as f64) } {
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut rawEvent: Value = get_value(&rawEvents, &rei);
             let mut eventForParsing: Value = rawEvent.clone();
             let mut ccxtMarkets: Value = self.parse_event_to_markets(eventForParsing.clone());
-            let mut ccxtMarketsLength: Value = Value::Int(ccxtMarkets.len() as i64);
-            if (ccxtMarketsLength.as_f64() == Some(0.0)) {
+            let mut ccxtMarketsLength: f64 = ((ccxtMarkets.len() as i64) as f64);
+            if (ccxtMarketsLength == 0.0) {
                 // search results may omit the nested markets, fall back to the detail endpoint
                 let mut eventId: Value = self.safe_string_k(rawEvent.clone(), "id", &[]);
                 let mut rawEventSlug: Value = self.safe_string_k(rawEvent.clone(), "slug", &[]);
@@ -3878,7 +3878,7 @@ impl PolymarketCore {
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1403: bool = true;
-                while { if !__for_first_1403 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1403 = false; mi.as_f64().unwrap_or(f64::NAN) < Value::Int(ccxtMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1403 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1403 = false; mi.as_f64().unwrap_or(f64::NAN) < ((ccxtMarkets.len() as i64) as f64) } {
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 let mut m: Value = get_value(&ccxtMarkets, &mi);
                 if (m == Value::Null) {
@@ -3896,7 +3896,7 @@ impl PolymarketCore {
         // eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
         self.populate_outcomes();
         let mut effectiveParams: Value = params.clone();
-        if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if queriesLength > ((0i64) as f64) {
             // the gamma search endpoint is fuzzy, so default to refining by active status and a
             // title match (the caller can override); the other venues search exactly and need no
             // such default. inject the defaults as explicit params so the shared pipeline stays
@@ -3929,7 +3929,7 @@ impl PolymarketCore {
     m
 }));
         let mut response: Value = Value::Null;
-        if get_index_of(&id, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&id, &Value::Str("-".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("slug".to_string(), id.clone());
@@ -4036,12 +4036,12 @@ impl PolymarketCore {
         // prefer the human-readable label ("Fed Rates") over the slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
         let mut rawTags: Value = self.safe_list_k(rawEvent.clone(), "tags", &[Value::List(vec![])]);
-        let mut rawTagsLength: Value = Value::Int(rawTags.len() as i64);
+        let mut rawTagsLength: f64 = ((rawTags.len() as i64) as f64);
         let mut parsedTags: Value = Value::List(vec![]);
         {
                         let mut ti: Value = Value::Int(0);
             let mut __for_first_1405: bool = true;
-            while { if !__for_first_1405 { ti = (match (&(ti), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1405 = false; ti.as_f64().unwrap_or(f64::NAN) < rawTagsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1405 { ti = (match (&(ti), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1405 = false; ti.as_f64().unwrap_or(f64::NAN) < rawTagsLength } {
             let mut tagLabel: Value = self.safe_string2(get_value(&rawTags, &ti), Value::Str("label".to_string()), Value::Str("slug".to_string()), &[]);
             if (tagLabel != Value::Null) {
                 append_to_array(&mut parsedTags, tagLabel.clone());
@@ -4099,7 +4099,7 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1406: bool = true;
-            while { if !__for_first_1406 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1406 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1406 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1406 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawEvents.len() as i64) as f64) } {
             let mut rawEvent: Value = get_value(&rawEvents, &i);
             let mut rawEvent: Value = get_value(&rawEvents, &i);
             append_to_array(&mut result, self.parse_event(rawEvent.clone()));
@@ -4161,8 +4161,8 @@ impl PolymarketCore {
         let mut isArrayBody: bool = false;
         if is_true(&Value::Bool(is_array(&params))) {
             let mut paramsList: Value = params.clone();
-            let mut paramsListLength: Value = Value::Int(paramsList.len() as i64);
-            isArrayBody = paramsListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN);
+            let mut paramsListLength: f64 = ((paramsList.len() as i64) as f64);
+            isArrayBody = paramsListLength > ((0i64) as f64);
         }
         let mut query: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4180,7 +4180,7 @@ impl PolymarketCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1407: bool = true;
-                while { if !__for_first_1407 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1407 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(queryKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1407 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1407 = false; i.as_f64().unwrap_or(f64::NAN) < ((queryKeys.len() as i64) as f64) } {
                 if is_true(&Value::Bool(is_array(&get_value(&query, &get_value(&queryKeys, &i))))) {
                     hasArrayParam = true;
                 }
@@ -4194,8 +4194,8 @@ impl PolymarketCore {
             body = self.json(params.clone());
         }  else {
             let mut queryKeys: Value = object_keys(&query);
-            let mut queryKeysLength: Value = Value::Int(queryKeys.len() as i64);
-            if queryKeysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut queryKeysLength: f64 = ((queryKeys.len() as i64) as f64);
+            if queryKeysLength > ((0i64) as f64) {
                 body = self.json(query.clone());
             }
         }
@@ -4304,10 +4304,10 @@ impl PolymarketCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1408: bool = true;
-            while { if !__for_first_1408 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1408 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(addrChars.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1408 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1408 = false; i.as_f64().unwrap_or(f64::NAN) < ((addrChars.len() as i64) as f64) } {
             let mut ch: Value = get_value(&addrChars, &i);
             let mut ch: Value = get_value(&addrChars, &i);
-            if get_index_of(&upperNibbles, &get_value(&hashChars, &i)).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&upperNibbles, &get_value(&hashChars, &i)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 result = Value::Str(format!("{}{}", result, to_upper(&ch)));
             }  else {
                 result = Value::Str(format!("{}{}", result, ch));
@@ -4528,7 +4528,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1409: bool = true;
-            while { if !__for_first_1409 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1409 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(events.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1409 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1409 = false; i.as_f64().unwrap_or(f64::NAN) < ((events.len() as i64) as f64) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             if is_true(&(Value::Bool(event == Value::Null))) || is_true(&(Value::Bool(event == Value::Null))) || (!is_object(&event)) {
@@ -4571,7 +4571,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1410: bool = true;
-            while { if !__for_first_1410 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1410 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawBids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1410 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1410 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBids.len() as i64) as f64) } {
             let mut b: Value = get_value(&rawBids, &i);
             let mut b: Value = get_value(&rawBids, &i);
             append_to_array(&mut bids, Value::List(vec![self.safe_number_k(b.clone(), "price", &[]), self.safe_number_k(b.clone(), "size", &[])]));
@@ -4581,7 +4581,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1411: bool = true;
-            while { if !__for_first_1411 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1411 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(rawAsks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1411 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1411 = false; j.as_f64().unwrap_or(f64::NAN) < ((rawAsks.len() as i64) as f64) } {
             let mut a: Value = get_value(&rawAsks, &j);
             let mut a: Value = get_value(&rawAsks, &j);
             append_to_array(&mut asks, Value::List(vec![self.safe_number_k(a.clone(), "price", &[]), self.safe_number_k(a.clone(), "size", &[])]));
@@ -4613,7 +4613,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1412: bool = true;
-            while { if !__for_first_1412 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1412 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(changes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1412 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1412 = false; i.as_f64().unwrap_or(f64::NAN) < ((changes.len() as i64) as f64) } {
             let mut change: Value = get_value(&changes, &i);
             let mut change: Value = get_value(&changes, &i);
             let mut tokenId: Value = self.safe_string_k(change.clone(), "asset_id", &[]);
@@ -4638,7 +4638,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut k: Value = Value::Int(0);
             let mut __for_first_1413: bool = true;
-            while { if !__for_first_1413 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1413 = false; k.as_f64().unwrap_or(f64::NAN) < Value::Int(updatedSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1413 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1413 = false; k.as_f64().unwrap_or(f64::NAN) < ((updatedSymbols.len() as i64) as f64) } {
             let mut outcome: Value = get_value(&updatedSymbols, &k);
             let mut outcome: Value = get_value(&updatedSymbols, &k);
             let mut orderbook: Value = get_value(&self.orderbooks, &outcome);
@@ -4808,7 +4808,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (bids != Value::Null) {
             bidsLength = get_array_length(&bids);
         }
-        if is_true(&(Value::Bool(bids != Value::Null))) && is_true(&(bidsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(bids != Value::Null))) && is_true(&(bidsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
             bestBid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0));
             bestBidVolume = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(1));
         }
@@ -4818,7 +4818,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (asks != Value::Null) {
             asksLength = get_array_length(&asks);
         }
-        if is_true(&(Value::Bool(asks != Value::Null))) && is_true(&(asksLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(asks != Value::Null))) && is_true(&(asksLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
             bestAsk = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(0));
             bestAskVolume = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(1));
         }

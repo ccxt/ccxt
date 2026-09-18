@@ -1831,7 +1831,7 @@ impl DeriveCore {
             add_element_to_object(&mut request, &Value::Str("instrument_name".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(1000).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
                 limit = Value::Int(1000);
             }
             add_element_to_object(&mut request, &Value::Str("page_size".to_string()), limit.clone()); // default 100, max 1000
@@ -1901,7 +1901,7 @@ impl DeriveCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_635: bool = true;
-            while { if !__for_first_635 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tradesArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_635 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_635 = false; i.as_f64().unwrap_or(f64::NAN) < ((tradesArray.len() as i64) as f64) } {
             let mut rawTrade: Value = get_value(&tradesArray, &i);
             let mut rawTrade: Value = get_value(&tradesArray, &i);
             let mut isFetchTrades: bool = !is_true(&(Value::Bool(in_op(&rawTrade, &Value::Str("order_id".to_string())))));
@@ -2043,7 +2043,7 @@ impl DeriveCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_636: bool = true;
-            while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_636 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "timestamp", &[]);
@@ -3661,7 +3661,7 @@ impl DeriveCore {
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_637: bool = true;
-                while { if !__for_first_637 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_637 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(collaterals.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_637 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_637 = false; j.as_f64().unwrap_or(f64::NAN) < ((collaterals.len() as i64) as f64) } {
                 let mut balance: Value = get_value(&collaterals, &j);
                 let mut balance: Value = get_value(&collaterals, &j);
                 let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "currency", &[]), &[]);

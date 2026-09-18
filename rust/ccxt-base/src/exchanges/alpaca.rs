@@ -1516,8 +1516,8 @@ impl AlpacaCore {
                                         let mut i: Value = Value::Int(1);
                     let mut __for_first_212: bool = true;
                     while { if !__for_first_212 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_212 = false; i.as_f64().unwrap_or(f64::NAN) < paginationCalls.as_f64().unwrap_or(f64::NAN) } {
-                    let mut ohlcvsLength: Value = Value::Int(ohlcvs.len() as i64);
-                    if is_true(&(Value::Bool(pageToken == Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(ohlcvsLength.as_f64().unwrap_or(f64::NAN) >= limit.as_f64().unwrap_or(f64::NAN)))))) {
+                    let mut ohlcvsLength: f64 = ((ohlcvs.len() as i64) as f64);
+                    if is_true(&(Value::Bool(pageToken == Value::Null))) || is_true(&(Value::Bool(is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(ohlcvsLength >= limit.as_f64().unwrap_or(f64::NAN)))))) {
                         break;
                     }
                     add_element_to_object(&mut request, &Value::Str("page_token".to_string()), pageToken.clone());
@@ -1528,8 +1528,8 @@ impl AlpacaCore {
     m
 })]);
                     let mut page: Value = self.safe_list(bars.clone(), marketId.clone(), &[Value::List(vec![])]);
-                    let mut pageLength: Value = Value::Int(page.len() as i64);
-                    if (pageLength.as_f64() == Some(0.0)) {
+                    let mut pageLength: f64 = ((page.len() as i64) as f64);
+                    if (pageLength == 0.0) {
                         break;
                     }
                     ohlcvs = self.array_concat(ohlcvs.clone(), page.clone());
@@ -1716,7 +1716,7 @@ impl AlpacaCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_213: bool = true;
-            while { if !__for_first_213 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_213 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_213 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_213 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1911,7 +1911,7 @@ impl AlpacaCore {
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stop_price".to_string()), &[]);
         if (triggerPrice != Value::Null) {
             let mut newType: Value = Value::Null;
-            if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 newType = Value::Str("stop_limit".to_string());
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support stop orders for ".to_string()))), type_var)), Value::Str(" orders, only stop_limit orders are supported".to_string())))));
@@ -1919,7 +1919,7 @@ impl AlpacaCore {
             add_element_to_object(&mut request, &Value::Str("stop_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             add_element_to_object(&mut request, &Value::Str("type".to_string()), newType.clone());
         }
-        if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&type_var, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
@@ -2279,7 +2279,7 @@ impl AlpacaCore {
         }
         let mut orderType: Value = self.safe_string_k(order.clone(), "order_type", &[]);
         if (orderType != Value::Null) {
-            if get_index_of(&orderType, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&orderType, &Value::Str("limit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 // might be limit or stop-limit
                 orderType = Value::Str("limit".to_string());
             }
@@ -2616,7 +2616,7 @@ impl AlpacaCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_214: bool = true;
-                while { if !__for_first_214 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_214 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ledger.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_214 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_214 = false; i.as_f64().unwrap_or(f64::NAN) < ((ledger.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut activityType: Value = self.safe_string_k(entry.clone(), "activity_type", &[]);
@@ -2656,7 +2656,7 @@ impl AlpacaCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_215: bool = true;
-            while { if !__for_first_215 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_215 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(transfers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_215 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_215 = false; i.as_f64().unwrap_or(f64::NAN) < ((transfers.len() as i64) as f64) } {
             let mut entry: Value = get_value(&transfers, &i);
             let mut entry: Value = get_value(&transfers, &i);
             let mut direction: Value = self.safe_string_k(entry.clone(), "direction", &[]);
@@ -3018,7 +3018,7 @@ impl AlpacaCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_216: bool = true;
-            while { if !__for_first_216 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_216 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_216 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_216 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut positionSymbol: Value = self.safe_string_k(position.clone(), "symbol", &[]);
@@ -3026,13 +3026,13 @@ impl AlpacaCore {
                 continue;
             }
             let mut baseId: Value = Value::Null;
-            if get_index_of(&positionSymbol, &Value::Str("/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&positionSymbol, &Value::Str("/".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut parts: Value = split(&positionSymbol, &Value::Str("/".to_string()));
                 baseId = self.safe_string(parts.clone(), Value::Int(0), &[]);
             }  else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 let mut baseLength: Value = (match (&(Value::Int(positionSymbol.len() as i64)), &(Value::Int(3))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                if is_true(&(baseLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(slice(&positionSymbol, &baseLength, &Value::Null).as_str() == Some("USD")))) {
+                if is_true(&(baseLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) && is_true(&(Value::Bool(slice(&positionSymbol, &baseLength, &Value::Null).as_str() == Some("USD")))) {
                     baseId = slice(&positionSymbol, &Value::Int(0), &baseLength);
                 }
             }
@@ -3074,7 +3074,7 @@ impl AlpacaCore {
             add_element_to_object(&mut headers, &Value::Str("APCA-API-SECRET-KEY".to_string()), self.secret.clone());
         }
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
             if is_true(&(Value::Bool(method.as_str() == Some("GET")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
                 endpoint = Value::Str(format!("{}{}", endpoint, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
             }  else {
@@ -3113,7 +3113,7 @@ impl AlpacaCore {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone(), feedback.clone());
             let mut codeAsString: Value = to_string_val(&code);
-            if is_true(&(code.as_f64().unwrap_or(f64::NAN) < Value::Int(400).as_f64().unwrap_or(f64::NAN))) || !is_true(&(Value::Bool(in_op(&self.httpExceptions, &codeAsString)))) {
+            if is_true(&(code.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64))) || !is_true(&(Value::Bool(in_op(&self.httpExceptions, &codeAsString)))) {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

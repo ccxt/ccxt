@@ -438,7 +438,7 @@ impl CoinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_277: bool = true;
-            while { if !__for_first_277 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_277 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_277 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_277 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTickers.len() as i64) as f64) } {
             let mut entry: Value = get_value(&rawTickers, &i);
             let mut entry: Value = get_value(&rawTickers, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[]);
@@ -453,7 +453,7 @@ impl CoinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_278: bool = true;
-            while { if !__for_first_278 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_278 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_278 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_278 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut parts: Value = split(&messageHash, &Value::Str("::".to_string()));
@@ -461,8 +461,8 @@ impl CoinexCore {
             let mut symbols: Value = split(&symbolsString, &Value::Str(",".to_string()));
             let mut tickers: Value = self.filter_by_array(newTickers.clone(), Value::Str("symbol".to_string()), &[symbols.clone()]);
             let mut tickersSymbols: Value = object_keys(&tickers);
-            let mut numTickers: Value = Value::Int(tickersSymbols.len() as i64);
-            if numTickers.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut numTickers: f64 = ((tickersSymbols.len() as i64) as f64);
+            if numTickers > ((0i64) as f64) {
                 client.resolve(&[tickers.clone(), messageHash.clone()]);
             }
         }
@@ -656,7 +656,7 @@ impl CoinexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_279: bool = true;
-                while { if !__for_first_279 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_279 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_279 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_279 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
                 rawBalances = self.array_concat(rawBalances.clone(), balances.clone());
             }
             }
@@ -667,7 +667,7 @@ impl CoinexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_280: bool = true;
-                while { if !__for_first_280 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_280 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_280 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_280 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
                 rawBalances = self.array_concat(rawBalances.clone(), balances.clone());
             }
             }
@@ -676,7 +676,7 @@ impl CoinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_281: bool = true;
-            while { if !__for_first_281 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_281 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawBalances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_281 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_281 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawBalances.len() as i64) as f64) } {
             let mut entry: Value = get_value(&rawBalances, &i);
             let mut entry: Value = get_value(&rawBalances, &i);
             self.parse_ws_balance(entry.clone(), &[account.clone()]);
@@ -834,7 +834,7 @@ impl CoinexCore {
             m
         })]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
-        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
+        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, defaultType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -899,7 +899,7 @@ impl CoinexCore {
         })]);
         let mut trades: Value = self.safe_list_k(data.clone(), "deal_list", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string_k(data.clone(), "market", &[]);
-        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
+        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, defaultType.clone()]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -913,7 +913,7 @@ impl CoinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_282: bool = true;
-            while { if !__for_first_282 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_282 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_282 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_282 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_ws_trade(trade.clone(), &[market.clone()]);
@@ -1055,7 +1055,7 @@ impl CoinexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_283: bool = true;
-                while { if !__for_first_283 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_283 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_283 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_283 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 market = self.market(symbol.clone());
@@ -1148,7 +1148,7 @@ impl CoinexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_284: bool = true;
-                while { if !__for_first_284 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_284 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_284 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_284 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 market = self.market(symbol.clone());
@@ -1238,7 +1238,7 @@ impl CoinexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_285: bool = true;
-            while { if !__for_first_285 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_285 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_285 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_285 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             market = self.market(symbol.clone());
@@ -1337,7 +1337,7 @@ impl CoinexCore {
         //         "id": null
         //     }
         //
-        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN);
+        let mut isSpot: bool = get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64);
         let mut defaultType: Value = (if isSpot { Value::Str("spot".to_string()) } else { Value::Str("swap".to_string()) });
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1780,7 +1780,7 @@ impl CoinexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_287: bool = true;
-                while { if !__for_first_287 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_287 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_287 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_287 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 market = self.market(symbol.clone());

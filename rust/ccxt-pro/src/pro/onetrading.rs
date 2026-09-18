@@ -523,7 +523,7 @@ impl OnetradingCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_560 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_560 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
             let mut marketId: Value = self.safe_string_k(ticker.clone(), "instrument", &[]);
@@ -1082,15 +1082,15 @@ impl OnetradingCore {
             self.myTrades = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut rawOrders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
-        let mut rawOrdersLength: Value = Value::Int(rawOrders.len() as i64);
-        if (rawOrdersLength.as_f64() == Some(0.0)) {
+        let mut rawOrdersLength: f64 = ((rawOrders.len() as i64) as f64);
+        if (rawOrdersLength == 0.0) {
             return;
         }
         let mut orders: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_563: bool = true;
-            while { if !__for_first_563 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_563 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawOrders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_563 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_563 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawOrders.len() as i64) as f64) } {
             let mut order: Value = self.parse_order(get_value(&rawOrders, &i), &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[Value::Str("".to_string())]);
             orders.append(order.clone());
@@ -1099,7 +1099,7 @@ impl OnetradingCore {
             {
                                 let mut ii: Value = Value::Int(0);
                 let mut __for_first_562: bool = true;
-                while { if !__for_first_562 { ii = (match (&(ii), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_562 = false; ii.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTrades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_562 { ii = (match (&(ii), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_562 = false; ii.as_f64().unwrap_or(f64::NAN) < ((rawTrades.len() as i64) as f64) } {
                 let mut trade: Value = self.parse_trade(get_value(&rawTrades, &ii), &[]);
                 symbol = self.safe_string_k(trade.clone(), "symbol", &[symbol.clone()]);
                 self.myTrades.append(trade.clone());
@@ -1385,7 +1385,7 @@ impl OnetradingCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_564: bool = true;
-            while { if !__for_first_564 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_564 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balanceKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_564 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_564 = false; i.as_f64().unwrap_or(f64::NAN) < ((balanceKeys.len() as i64) as f64) } {
             let mut newBalance: Value = self.safe_value(update.clone(), get_value(&balanceKeys, &i), &[]);
             if (newBalance != Value::Null) {
                 self.update_balance(newBalance.clone());
@@ -1516,12 +1516,12 @@ impl OnetradingCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_566: bool = true;
-            while { if !__for_first_566 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_566 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_566 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_566 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketIdtimeframes: Value = object_keys(&get_value(&subscription, &get_value(&marketIds, &i)));
             {
                                 let mut ii: Value = Value::Int(0);
                 let mut __for_first_565: bool = true;
-                while { if !__for_first_565 { ii = (match (&(ii), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_565 = false; ii.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIdtimeframes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_565 { ii = (match (&(ii), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_565 = false; ii.as_f64().unwrap_or(f64::NAN) < ((marketIdtimeframes.len() as i64) as f64) } {
                 let mut marketTimeframeId: Value = self.safe_value(timeframes.clone(), timeframe.clone(), &[]);
                 let mut property: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1629,7 +1629,7 @@ impl OnetradingCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_567 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_567 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_567 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             if is_equal(&crate::value::get_value_k(&get_value(&timeframes, &key), "unit"), &crate::value::get_value_k(&timeframe, "unit")) && is_equal(&crate::value::get_value_k(&get_value(&timeframes, &key), "period"), &crate::value::get_value_k(&timeframe, "period")) {
@@ -1731,8 +1731,8 @@ impl OnetradingCore {
     m
 }));
         let mut marketIds: Value = Value::List(vec![]);
-        let mut numSymbols: Value = Value::Int(symbols.len() as i64);
-        if (numSymbols.as_f64() == Some(0.0)) {
+        let mut numSymbols: f64 = ((symbols.len() as i64) as f64);
+        if (numSymbols == 0.0) {
             let mut marketsById: Value = self.markets_by_id.clone();
             if (marketsById == Value::Null) {
                 return Value::List(vec![]);
@@ -1754,7 +1754,7 @@ impl OnetradingCore {
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_568: bool = true;
-                    while { if !__for_first_568 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_568 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_568 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_568 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketId: Value = get_value(&marketIds, &i);
                     let mut marketSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
@@ -1774,7 +1774,7 @@ impl OnetradingCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_569 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_569 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_569 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             add_element_to_object(&mut subscription, &marketId, Value::Bool(true));

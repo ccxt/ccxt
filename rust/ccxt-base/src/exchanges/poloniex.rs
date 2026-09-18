@@ -1895,10 +1895,10 @@ impl PoloniexCore {
         });
         if (symbols != Value::Null) {
             symbols = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(false)]);
-            let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-            if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+            if symbolsLength > ((0i64) as f64) {
                 market = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
-                if (symbolsLength.as_f64() == Some(1.0)) {
+                if (symbolsLength == 1.0) {
                     add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 }
             }
@@ -1971,11 +1971,11 @@ impl PoloniexCore {
             m
         });
         let mut chains: Value = self.safe_list_k(entry.clone(), "networkList", &[Value::List(vec![])]);
-        let mut chainsLength: Value = Value::Int(chains.len() as i64);
+        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1063 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1063 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1063 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = get_value(&chains, &j);
             let mut chain: Value = get_value(&chains, &j);
             let mut chainId: Value = self.safe_string_k(chain.clone(), "blockchain", &[]);
@@ -3305,7 +3305,7 @@ impl PoloniexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1065: bool = true;
-                while { if !__for_first_1065 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1065 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(details.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1065 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1065 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
                 let mut balance: Value = get_value(&details, &i);
                 let mut balance: Value = get_value(&details, &i);
                 let mut currencyId: Value = self.safe_string_k(balance.clone(), "ccy", &[]);
@@ -3323,7 +3323,7 @@ impl PoloniexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1067: bool = true;
-            while { if !__for_first_1067 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1067 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1067 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1067 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
             let mut account: Value = self.safe_value(response.clone(), i.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -3456,7 +3456,7 @@ impl PoloniexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1068: bool = true;
-            while { if !__for_first_1068 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1068 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1068 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1068 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -3548,7 +3548,7 @@ impl PoloniexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1069: bool = true;
             while { if !__for_first_1069 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1069 = false; is_less_than(&i, &get_array_length(&asks)) } {
-            if (mod_val(&i, &Value::Int(2))).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            if (mod_val(&i, &Value::Int(2))).as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
                 let mut price: Value = self.safe_number(asks.clone(), i.clone(), &[]);
                 let mut amount: Value = self.safe_number(asks.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
                 append_to_array(&mut asksResult, Value::List(vec![price.clone(), amount.clone()]));
@@ -3559,7 +3559,7 @@ impl PoloniexCore {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1070: bool = true;
             while { if !__for_first_1070 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1070 = false; is_less_than(&i, &get_array_length(&bids)) } {
-            if (mod_val(&i, &Value::Int(2))).as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            if (mod_val(&i, &Value::Int(2))).as_f64().unwrap_or(f64::NAN) < ((1i64) as f64) {
                 let mut price: Value = self.safe_number(bids.clone(), i.clone(), &[]);
                 let mut amount: Value = self.safe_number(bids.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
                 append_to_array(&mut bidsResult, Value::List(vec![price.clone(), amount.clone()]));
@@ -3637,8 +3637,8 @@ impl PoloniexCore {
         //     }
         //
         let mut keys: Value = object_keys(&response);
-        let mut length: Value = Value::Int(keys.len() as i64);
-        if length.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+        let mut length: f64 = ((keys.len() as i64) as f64);
+        if length < ((1i64) as f64) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"".to_string())))));
         }
         return self.parse_deposit_address_special(response.clone(), currency.clone(), networkEntry.clone());
@@ -3955,7 +3955,7 @@ impl PoloniexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1071: bool = true;
-            while { if !__for_first_1071 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1071 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(entries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1071 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1071 = false; i.as_f64().unwrap_or(f64::NAN) < ((entries.len() as i64) as f64) } {
             let mut entry: Value = get_value(&entries, &i);
             let mut entry: Value = get_value(&entries, &i);
             let mut currencies: Value = object_keys(&entry);
@@ -4001,7 +4001,7 @@ impl PoloniexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1073: bool = true;
-            while { if !__for_first_1073 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1073 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(responseKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1073 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1073 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseKeys.len() as i64) as f64) } {
             let mut currencyId: Value = get_value(&responseKeys, &i);
             let mut currencyId: Value = get_value(&responseKeys, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -4326,7 +4326,7 @@ impl PoloniexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1074 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1074 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1074 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             marketId = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -4695,7 +4695,7 @@ impl PoloniexCore {
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
         if (api.as_str() == Some("public")) || (api.as_str() == Some("swapPublic")) {
             url = add(&url, &Value::Str(format!("{}{}", Value::Str("/".to_string()), implodedPath)));
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
             }
         }  else {
@@ -4706,7 +4706,7 @@ impl PoloniexCore {
             auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("/".to_string()), implodedPath))));
             if is_true(&(Value::Bool(method.as_str() == Some("POST")))) || is_true(&(Value::Bool(method.as_str() == Some("PUT")))) || is_true(&(Value::Bool(method.as_str() == Some("DELETE")))) {
                 auth = Value::Str(format!("{}{}", auth, Value::Str("\n".to_string()))); // eslint-disable-line quotes
-                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     body = self.json(query.clone());
                     auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("requestBody=".to_string()), body)), Value::Str("&".to_string())))));
                 }
@@ -4719,7 +4719,7 @@ impl PoloniexCore {
                 }), &[query.clone()]);
                 sortedQuery = self.keysort(sortedQuery.clone(), &[]);
                 auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("\n".to_string()), self.urlencode(sortedQuery.clone(), &[]))))); // eslint-disable-line quotes
-                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[]))));
                 }
             }

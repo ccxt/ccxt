@@ -1198,8 +1198,8 @@ impl BitrueCore {
         //     {}
         //
         let mut keys: Value = object_keys(&response);
-        let mut keysLength: Value = Value::Int(keys.len() as i64);
-        let mut formattedStatus: Value = (if is_true(&(keysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
+        let mut keysLength: f64 = ((keys.len() as i64) as f64);
+        let mut formattedStatus: Value = (if is_true(&(keysLength > ((0i64) as f64))) { Value::Str("maintenance".to_string()) } else { Value::Str("ok".to_string()) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), formattedStatus.clone());
@@ -1309,7 +1309,7 @@ impl BitrueCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_395: bool = true;
-            while { if !__for_first_395 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_395 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkDetails.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_395 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_395 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkDetails.len() as i64) as f64) } {
             let mut entry: Value = get_value(&networkDetails, &j);
             let mut entry: Value = get_value(&networkDetails, &j);
             let mut networkId: Value = self.safe_string_k(entry.clone(), "chain", &[]);
@@ -1398,7 +1398,7 @@ impl BitrueCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_396: bool = true;
-            while { if !__for_first_396 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_396 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(types.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_396 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_396 = false; i.as_f64().unwrap_or(f64::NAN) < ((types.len() as i64) as f64) } {
             let mut marketType: Value = get_value(&types, &i);
             let mut marketType: Value = get_value(&types, &i);
             if (marketType.as_str() == Some("spot")) {
@@ -1677,7 +1677,7 @@ impl BitrueCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_397: bool = true;
-            while { if !__for_first_397 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_397 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string2(balance.clone(), Value::Str("asset".to_string()), Value::Str("marginCoin".to_string()), &[]);
@@ -1779,7 +1779,7 @@ impl BitrueCore {
                 m
             });
             if (limit != Value::Null) {
-                if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+                if limit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
                     limit = Value::Int(100);
                 }
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 100, see https://www.bitrue.com/api-docs#order-book
@@ -1798,7 +1798,7 @@ impl BitrueCore {
                 m
             });
             if (limit != Value::Null) {
-                if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(1000).as_f64().unwrap_or(f64::NAN) {
+                if limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
                     limit = Value::Int(1000);
                 }
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100, max 1000, see https://github.com/Bitrue-exchange/bitrue-official-api-docs#order-book
@@ -2272,7 +2272,7 @@ impl BitrueCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_398: bool = true;
-            while { if !__for_first_398 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_398 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_398 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_398 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut ticker: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3060,7 +3060,7 @@ impl BitrueCore {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
         }
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(1000).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
                 limit = Value::Int(1000);
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -3480,7 +3480,7 @@ impl BitrueCore {
         //   }
         //
         let mut chainDetails: Value = self.safe_list_k(fee.clone(), "chainDetail", &[Value::List(vec![])]);
-        let mut chainDetailLength: Value = Value::Int(chainDetails.len() as i64);
+        let mut chainDetailLength: f64 = ((chainDetails.len() as i64) as f64);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), fee.clone());
@@ -3502,11 +3502,11 @@ impl BitrueCore {
 }));
             m
         });
-        if (chainDetailLength.as_f64() != Some(0.0)) {
+        if (chainDetailLength != 0.0) {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_399: bool = true;
-                while { if !__for_first_399 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_399 = false; i.as_f64().unwrap_or(f64::NAN) < chainDetailLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_399 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_399 = false; i.as_f64().unwrap_or(f64::NAN) < chainDetailLength } {
                 let mut chainDetail: Value = get_value(&chainDetails, &i);
                 let mut chainDetail: Value = get_value(&chainDetails, &i);
                 let mut networkId: Value = self.safe_string_k(chainDetail.clone(), "chain", &[]);
@@ -3530,7 +3530,7 @@ impl BitrueCore {
     m
 }));
                 }
-                if (chainDetailLength.as_f64() == Some(1.0)) {
+                if (chainDetailLength == 1.0) {
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("fee".to_string()), self.safe_number_k(chainDetail.clone(), "withdrawFee", &[]));
                     add_element_to_object(get_value_mut(&mut result, &Value::Str("withdraw".to_string())), &Value::Str("percentage".to_string()), Value::Bool(false));
                 }
@@ -3650,7 +3650,7 @@ impl BitrueCore {
             add_element_to_object(&mut request, &Value::Str("beginTime".to_string()), since.clone());
         }
         if (limit != Value::Null) {
-            if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(200).as_f64().unwrap_or(f64::NAN) {
+            if limit.as_f64().unwrap_or(f64::NAN) > ((200i64) as f64) {
                 limit = Value::Int(200);
             }
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
@@ -3754,7 +3754,7 @@ impl BitrueCore {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".to_string())))));
         }
-        if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > Value::Int(125).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64))) || is_true(&(leverage.as_f64().unwrap_or(f64::NAN) > ((125i64) as f64))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" leverage should be between 1 and 125".to_string())))));
         }
         if (self.markets.clone() == Value::Null) {
@@ -3904,8 +3904,8 @@ impl BitrueCore {
                 let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method)), signPath));
                 if (method.as_str() == Some("GET")) {
                     let mut keys: Value = object_keys(&params);
-                    let mut keysLength: Value = Value::Int(keys.len() as i64);
-                    if keysLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    let mut keysLength: f64 = ((keys.len() as i64) as f64);
+                    if keysLength > ((0i64) as f64) {
                         signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
                     }
                     let mut signature: Value = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
@@ -3937,7 +3937,7 @@ impl BitrueCore {
                 }
             }
         }  else {
-            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             }
         }
@@ -3960,14 +3960,14 @@ impl BitrueCore {
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
-        if code.as_f64().unwrap_or(f64::NAN) >= Value::Int(400).as_f64().unwrap_or(f64::NAN) {
-            if get_index_of(&body, &Value::Str("Price * QTY is zero or less".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
+            if get_index_of(&body, &Value::Str("Price * QTY is zero or less".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order cost = amount * price is zero or less ".to_string()))), body))));
             }
-            if get_index_of(&body, &Value::Str("LOT_SIZE".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&body, &Value::Str("LOT_SIZE".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order amount should be evenly divisible by lot size ".to_string()))), body))));
             }
-            if get_index_of(&body, &Value::Str("PRICE_FILTER".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&body, &Value::Str("PRICE_FILTER".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::invalid_order(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ".to_string()))), body))));
             }
         }
@@ -4037,7 +4037,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_400: bool = true;
-                while { if !__for_first_400 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_400 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(byLimit.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_400 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_400 = false; i.as_f64().unwrap_or(f64::NAN) < ((byLimit.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {

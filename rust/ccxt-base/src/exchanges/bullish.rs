@@ -2066,7 +2066,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_475 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(result.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_475 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_475 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
             let mut entry: Value = get_value(&result, &i);
             let mut entry: Value = get_value(&result, &i);
             let mut datetime: Value = self.safe_string_k(entry.clone(), "updatedAtDatetime", &[]);
@@ -2244,11 +2244,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn get_closest_limit(&self, mut limit: Value) -> Value {
         let mut pageSize: Value = Value::Int(5);
-        if is_true(&(limit.as_f64().unwrap_or(f64::NAN) > Value::Int(5).as_f64().unwrap_or(f64::NAN))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) < Value::Int(26).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(limit.as_f64().unwrap_or(f64::NAN) > ((5i64) as f64))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) < ((26i64) as f64))) {
             pageSize = Value::Int(25);
-        }  else if is_true(&(limit.as_f64().unwrap_or(f64::NAN) > Value::Int(25).as_f64().unwrap_or(f64::NAN))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) < Value::Int(51).as_f64().unwrap_or(f64::NAN))) {
+        }  else if is_true(&(limit.as_f64().unwrap_or(f64::NAN) > ((25i64) as f64))) && is_true(&(limit.as_f64().unwrap_or(f64::NAN) < ((51i64) as f64))) {
             pageSize = Value::Int(50);
-        }  else if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(50).as_f64().unwrap_or(f64::NAN) {
+        }  else if limit.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64) {
             pageSize = Value::Int(100);
         }
         return pageSize;
@@ -3020,7 +3020,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_476: bool = true;
-                while { if !__for_first_476 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_476 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_476 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_476 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
                 let mut account: Value = get_value(&accounts, &i);
                 let mut account: Value = get_value(&accounts, &i);
                 let mut name: Value = self.safe_string_k(account.clone(), "tradingAccountName", &[]);
@@ -3107,7 +3107,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     ]
         //
         let mut safeResponse: Value = self.to_array(response.clone());
-        let mut length: Value = Value::Int(safeResponse.len() as i64);
+        let mut length: f64 = ((safeResponse.len() as i64) as f64);
         let mut data: Value = self.safe_dict(safeResponse.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3115,7 +3115,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut network: Value = Value::Null;
         { let __destr_tmp = self.handle_network_code_and_params(params.clone()); network = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         let mut networkDefinedByUser: bool = network != Value::Null;
-        if is_true(&(length.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN))) || (networkDefinedByUser) {
+        if is_true(&(length > ((1i64) as f64))) || (networkDefinedByUser) {
             // some currencies have multiple networks
             if (network == Value::Null) {
                 // use default network if not specified and multiple are available
@@ -3125,7 +3125,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_477: bool = true;
-                    while { if !__for_first_477 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_477 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(safeResponse.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_477 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_477 = false; i.as_f64().unwrap_or(f64::NAN) < ((safeResponse.len() as i64) as f64) } {
                     let mut entry: Value = self.safe_dict(safeResponse.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3786,7 +3786,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         if (method.as_str() == Some("GET")) {
             let mut query: Value = self.urlencode(request.clone(), &[]);
-            if Value::Int(query.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((query.len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
             }
         }

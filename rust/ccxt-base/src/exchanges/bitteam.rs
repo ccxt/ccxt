@@ -1045,7 +1045,7 @@ impl BitteamCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_423: bool = true;
-            while { if !__for_first_423 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_423 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(networkIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_423 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_423 = false; j.as_f64().unwrap_or(f64::NAN) < ((networkIds.len() as i64) as f64) } {
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkId: Value = get_value(&networkIds, &j);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1986,7 +1986,7 @@ impl BitteamCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_424: bool = true;
-            while { if !__for_first_424 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawTickers.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_424 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_424 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawTickers.len() as i64) as f64) } {
             let mut rawTicker: Value = get_value(&rawTickers, &i);
             let mut rawTicker: Value = get_value(&rawTickers, &i);
             let mut ticker: Value = self.parse_ticker(rawTicker.clone(), &[]);
@@ -2772,7 +2772,7 @@ impl BitteamCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_425: bool = true;
-            while { if !__for_first_425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_425 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawCurrencyIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_425 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_425 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrencyIds.len() as i64) as f64) } {
             let mut rawCurrencyId: Value = get_value(&rawCurrencyIds, &i);
             let mut rawCurrencyId: Value = get_value(&rawCurrencyIds, &i);
             let mut currencyBalance: Value = self.safe_value(result.clone(), rawCurrencyId.clone(), &[]);
@@ -3103,12 +3103,12 @@ impl BitteamCore {
         }
         if (code.as_f64() != Some(200.0)) {
             if (code.as_f64() == Some(404.0)) {
-                if is_true(&(get_index_of(&url, &Value::Str("/ccxt/order/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
+                if is_true(&(get_index_of(&url, &Value::Str("/ccxt/order/".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) && is_true(&(Value::Bool(method.as_str() == Some("GET")))) {
                     let mut parts: Value = split(&url, &Value::Str("/order/".to_string()));
                     let mut orderId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" order ".to_string()))), &orderId), Value::Str(" not found".to_string())))));
                 }
-                if get_index_of(&url, &Value::Str("/cmc/orderbook/".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if get_index_of(&url, &Value::Str("/cmc/orderbook/".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     let mut parts: Value = split(&url, &Value::Str("/cmc/orderbook/".to_string()));
                     let mut symbolId: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
                     panic!("{}", crate::exchange_errors::bad_symbol(Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbolId ".to_string()))), &symbolId), Value::Str(" not found".to_string())))));

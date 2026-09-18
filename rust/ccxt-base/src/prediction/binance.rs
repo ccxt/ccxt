@@ -385,22 +385,22 @@ impl BinanceCore {
     m
 }));
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        let mut queriesLength: Value = Value::Int(queries.len() as i64);
-        if queriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
+        if queriesLength > ((0i64) as f64) {
             let mut eventParams: Value = self.omit(params.clone(), Value::List(vec![Value::Str("limit".to_string())]), &[]);
             let mut events: Value = self.fetch_events(&[eventParams.clone()]).await;
-            let mut eventsLength: Value = Value::Int(events.len() as i64);
+            let mut eventsLength: f64 = ((events.len() as i64) as f64);
             let mut queryMarkets: Value = Value::List(vec![]);
             {
                                 let mut ei: Value = Value::Int(0);
                 let mut __for_first_1167: bool = true;
-                while { if !__for_first_1167 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1167 = false; ei.as_f64().unwrap_or(f64::NAN) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1167 { ei = (match (&(ei), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1167 = false; ei.as_f64().unwrap_or(f64::NAN) < eventsLength } {
                 let mut eventMarkets: Value = self.safe_list_k(get_value(&events, &ei), "markets", &[Value::List(vec![])]);
-                let mut eventMarketsLength: Value = Value::Int(eventMarkets.len() as i64);
+                let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
                 {
                                         let mut mi: Value = Value::Int(0);
                     let mut __for_first_1166: bool = true;
-                    while { if !__for_first_1166 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1166 = false; mi.as_f64().unwrap_or(f64::NAN) < eventMarketsLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1166 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1166 = false; mi.as_f64().unwrap_or(f64::NAN) < eventMarketsLength } {
                     append_to_array(&mut queryMarkets, get_value(&eventMarkets, &mi));
                 }
                 }
@@ -413,19 +413,19 @@ impl BinanceCore {
         let mut rawTopics: Value = self.fetch_raw_topics(maxMarkets.clone(), &[rest.clone()]).await;
         let mut parsedEvents: Value = Value::List(vec![]);
         let mut flatMarkets: Value = Value::List(vec![]);
-        let mut rawTopicsLength: Value = Value::Int(rawTopics.len() as i64);
+        let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1169: bool = true;
-            while { if !__for_first_1169 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1169 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1169 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1169 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength } {
             let mut parsedEvent: Value = self.parse_event(get_value(&rawTopics, &i));
             append_to_array(&mut parsedEvents, parsedEvent.clone());
             let mut eventMarkets: Value = self.safe_list_k(parsedEvent.clone(), "markets", &[Value::List(vec![])]);
-            let mut eventMarketsLength: Value = Value::Int(eventMarkets.len() as i64);
+            let mut eventMarketsLength: f64 = ((eventMarkets.len() as i64) as f64);
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1168: bool = true;
-                while { if !__for_first_1168 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1168 = false; mi.as_f64().unwrap_or(f64::NAN) < eventMarketsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1168 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1168 = false; mi.as_f64().unwrap_or(f64::NAN) < eventMarketsLength } {
                 append_to_array(&mut flatMarkets, get_value(&eventMarkets, &mi));
             }
             }
@@ -456,7 +456,7 @@ impl BinanceCore {
             maxTopics = self.safe_integer_k(self.options.clone(), "maxFetchMarketsLimit", &[Value::Int(200)]);
         }
         let mut pageLimit: Value = self.safe_integer_k(self.options.clone(), "marketsPageLimit", &[Value::Int(100)]);
-        if pageLimit.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+        if pageLimit.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
             pageLimit = Value::Int(100);
         }
         let mut collected: Value = Value::List(vec![]);
@@ -468,7 +468,7 @@ impl BinanceCore {
             if remaining.as_f64().unwrap_or(f64::NAN) < reqLimit.as_f64().unwrap_or(f64::NAN) {
                 reqLimit = remaining.clone();
             }
-            if reqLimit.as_f64().unwrap_or(f64::NAN) <= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if reqLimit.as_f64().unwrap_or(f64::NAN) <= ((0i64) as f64) {
                 break;
             }
             let mut request: Value = Value::Map({
@@ -566,24 +566,24 @@ impl BinanceCore {
  */
     pub async fn complete_raw_topics(&mut self, mut rawTopics: Value) -> Value {
         let mut result: Value = Value::List(vec![]);
-        let mut rawTopicsLength: Value = Value::Int(rawTopics.len() as i64);
+        let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1171 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1171 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength } {
             let mut rawTopic: Value = get_value(&rawTopics, &i);
             let mut rawTopic: Value = get_value(&rawTopics, &i);
             let mut rawMarkets: Value = self.safe_list_k(rawTopic.clone(), "markets", &[Value::List(vec![])]);
-            let mut rawMarketsLength: Value = Value::Int(rawMarkets.len() as i64);
+            let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
             let mut hasOutcomes: bool = false;
-            if rawMarketsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if rawMarketsLength > ((0i64) as f64) {
                 let mut firstMarket: Value = self.safe_dict(rawMarkets.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
                 let mut firstOutcomes: Value = self.safe_list_k(firstMarket.clone(), "outcomes", &[Value::List(vec![])]);
-                let mut firstOutcomesLength: Value = Value::Int(firstOutcomes.len() as i64);
-                hasOutcomes = firstOutcomesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN);
+                let mut firstOutcomesLength: f64 = ((firstOutcomes.len() as i64) as f64);
+                hasOutcomes = firstOutcomesLength > ((0i64) as f64);
             }
             if hasOutcomes {
                 append_to_array(&mut result, rawTopic.clone());
@@ -632,23 +632,23 @@ impl BinanceCore {
         let mut queries: Value = self.parse_search_queries(&[params.clone()]);
         // binance has no tag taxonomy — resolve requested tags through the semantic search too
         let mut tags: Value = self.safe_list_k(params.clone(), "tags", &[Value::List(vec![])]);
-        let mut tagsLength: Value = Value::Int(tags.len() as i64);
+        let mut tagsLength: f64 = ((tags.len() as i64) as f64);
         let mut allQueries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1172 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(queries.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1172 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1172 = false; i.as_f64().unwrap_or(f64::NAN) < ((queries.len() as i64) as f64) } {
             append_to_array(&mut allQueries, get_value(&queries, &i));
         }
         }
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1173 = false; i.as_f64().unwrap_or(f64::NAN) < tagsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1173 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1173 = false; i.as_f64().unwrap_or(f64::NAN) < tagsLength } {
             append_to_array(&mut allQueries, get_value(&tags, &i));
         }
         }
-        let mut allQueriesLength: Value = Value::Int(allQueries.len() as i64);
+        let mut allQueriesLength: f64 = ((allQueries.len() as i64) as f64);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("query".to_string()), Value::Str("queries".to_string())]), &[]);
         let mut userLimit: Value = self.safe_integer_k(params.clone(), "limit", &[]);
         let mut fetchCap: Value = self.safe_integer_k(self.options.clone(), "maxFetchEventsResults", &[Value::Int(100)]);
@@ -663,7 +663,7 @@ impl BinanceCore {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
         let mut rawTopics: Value = Value::List(vec![]);
-        if allQueriesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if allQueriesLength > ((0i64) as f64) {
             rawTopics = self.fetch_events_by_query(allQueries.clone(), fetchCap.clone(), &[rest.clone()]).await;
         }  else if (eventId != Value::Null) {
             let mut detail: Value = self.fetch_raw_topic_detail(eventId.clone(), &[rest.clone()]).await;
@@ -699,20 +699,20 @@ impl BinanceCore {
             let mut listed: Value = self.fetch_raw_topics(fetchCap.clone(), &[__ws_arg_2]).await;
             rawTopics = self.complete_raw_topics(listed.clone()).await;
         }
-        let mut rawTopicsLength: Value = Value::Int(rawTopics.len() as i64);
+        let mut rawTopicsLength: f64 = ((rawTopics.len() as i64) as f64);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1175: bool = true;
-            while { if !__for_first_1175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1175 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1175 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1175 = false; i.as_f64().unwrap_or(f64::NAN) < rawTopicsLength } {
             let mut parsedEvent: Value = self.parse_event(get_value(&rawTopics, &i));
             append_to_array(&mut result, parsedEvent.clone());
             let mut parsedMarkets: Value = self.safe_list_k(parsedEvent.clone(), "markets", &[Value::List(vec![])]);
-            let mut parsedMarketsLength: Value = Value::Int(parsedMarkets.len() as i64);
+            let mut parsedMarketsLength: f64 = ((parsedMarkets.len() as i64) as f64);
             {
                                 let mut mi: Value = Value::Int(0);
                 let mut __for_first_1174: bool = true;
-                while { if !__for_first_1174 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1174 = false; mi.as_f64().unwrap_or(f64::NAN) < parsedMarketsLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1174 { mi = (match (&(mi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1174 = false; mi.as_f64().unwrap_or(f64::NAN) < parsedMarketsLength } {
                 let mut m: Value = get_value(&parsedMarkets, &mi);
                 let mut m: Value = get_value(&parsedMarkets, &mi);
                 // prediction market rows are keyed by the unified 'market' handle
@@ -755,16 +755,16 @@ impl BinanceCore {
             m
         });
         let mut collected: Value = Value::List(vec![]);
-        let mut queriesLength: Value = Value::Int(queries.len() as i64);
+        let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         if (limit == Value::Null) {
             limit = Value::Int(20);
-        }  else if limit.as_f64().unwrap_or(f64::NAN) > Value::Int(50).as_f64().unwrap_or(f64::NAN) {
+        }  else if limit.as_f64().unwrap_or(f64::NAN) > ((50i64) as f64) {
             limit = Value::Int(50);
         }
         {
                         let mut qi: Value = Value::Int(0);
             let mut __for_first_1177: bool = true;
-            while { if !__for_first_1177 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1177 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1177 { qi = (match (&(qi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1177 = false; qi.as_f64().unwrap_or(f64::NAN) < queriesLength } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("query".to_string(), get_value(&queries, &qi));
@@ -785,11 +785,11 @@ impl BinanceCore {
             //         }
             //     ]
             //
-            let mut responseLength: Value = Value::Int(response.len() as i64);
+            let mut responseLength: f64 = ((response.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1176: bool = true;
-                while { if !__for_first_1176 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1176 = false; i.as_f64().unwrap_or(f64::NAN) < responseLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1176 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1176 = false; i.as_f64().unwrap_or(f64::NAN) < responseLength } {
                 let mut rawTopic: Value = get_value(&response, &i);
                 let mut rawTopic: Value = get_value(&response, &i);
                 let mut topicId: Value = self.safe_string_k(rawTopic.clone(), "marketTopicId", &[]);
@@ -805,8 +805,8 @@ impl BinanceCore {
         }
         }
         let mut capped: Value = collected.clone();
-        let mut collectedLength: Value = Value::Int(collected.len() as i64);
-        if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(collectedLength.as_f64().unwrap_or(f64::NAN) > limit.as_f64().unwrap_or(f64::NAN))) {
+        let mut collectedLength: f64 = ((collected.len() as i64) as f64);
+        if is_true(&(Value::Bool(limit != Value::Null))) && is_true(&(collectedLength > limit.as_f64().unwrap_or(f64::NAN))) {
             capped = self.array_slice(collected.clone(), Value::Int(0), &[limit.clone()]);
         }
         return self.complete_raw_topics(capped.clone()).await;
@@ -879,11 +879,11 @@ impl BinanceCore {
         let mut rawMarkets: Value = self.safe_list_k(rawTopic.clone(), "markets", &[Value::List(vec![])]);
         let mut marketsList: Value = Value::List(vec![]);
         let mut anyActive: Value = Value::Bool(false);
-        let mut rawMarketsLength: Value = Value::Int(rawMarkets.len() as i64);
+        let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1178: bool = true;
-            while { if !__for_first_1178 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1178 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1178 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1178 = false; i.as_f64().unwrap_or(f64::NAN) < rawMarketsLength } {
             let mut parsed: Value = self.parse_topic_market(get_value(&rawMarkets, &i), rawTopic.clone());
             append_to_array(&mut marketsList, parsed.clone());
             if is_true(&self.safe_bool_k(parsed.clone(), "active", &[Value::Bool(false)])) {
@@ -898,7 +898,7 @@ impl BinanceCore {
         let mut created: Value = self.safe_integer2(rawTopic.clone(), Value::Str("publishedAt".to_string()), Value::Str("startDate".to_string()), &[]);
         let mut status: Value = self.safe_string_k(rawTopic.clone(), "status", &[]);
         let mut active: Value = anyActive.clone();
-        if (rawMarketsLength.as_f64() == Some(0.0)) {
+        if (rawMarketsLength == 0.0) {
             active = Value::Bool(is_true(&(Value::Bool(status.as_str() == Some("REGISTERED")))) || is_true(&(Value::Bool(status.as_str() == Some("OPEN")))));
         }
         let mut resolved: Value = Value::Null;
@@ -989,11 +989,11 @@ impl BinanceCore {
         let mut rawOutcomes: Value = self.safe_list_k(rawMarket.clone(), "outcomes", &[Value::List(vec![])]);
         let mut outcomes: Value = Value::List(vec![]);
         let mut resolvedOutcomeRaw: Value = Value::Null;
-        let mut rawOutcomesLength: Value = Value::Int(rawOutcomes.len() as i64);
+        let mut rawOutcomesLength: f64 = ((rawOutcomes.len() as i64) as f64);
         {
                         let mut oi: Value = Value::Int(0);
             let mut __for_first_1179: bool = true;
-            while { if !__for_first_1179 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1179 = false; oi.as_f64().unwrap_or(f64::NAN) < rawOutcomesLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1179 { oi = (match (&(oi), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1179 = false; oi.as_f64().unwrap_or(f64::NAN) < rawOutcomesLength } {
             let mut rawOutcome: Value = get_value(&rawOutcomes, &oi);
             let mut rawOutcome: Value = get_value(&rawOutcomes, &oi);
             let mut label: Value = self.safe_string_upper(rawOutcome.clone(), Value::Str("name".to_string()), &[]);
@@ -1260,11 +1260,11 @@ impl BinanceCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut outcomesLength: Value = Value::Int(outcomes.len() as i64);
+        let mut outcomesLength: f64 = ((outcomes.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1180: bool = true;
-            while { if !__for_first_1180 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1180 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1180 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1180 = false; i.as_f64().unwrap_or(f64::NAN) < outcomesLength } {
             let mut outcomeObj: Value = self.outcome(get_value(&outcomes, &i));
             let mut info: Value = self.safe_dict_k(outcomeObj.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1379,7 +1379,7 @@ impl BinanceCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1181: bool = true;
-            while { if !__for_first_1181 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1181 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1181 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1181 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut accountType: Value = self.safe_string_k(balance.clone(), "accountType", &[]);
@@ -1538,7 +1538,7 @@ impl BinanceCore {
             m
         });
         let mut offSet: Value = self.safe_integer_k(params.clone(), "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             add_element_to_object(&mut request, &Value::Str("offset".to_string()), offSet.clone());
         }
         let mut outcomeObj: Value = Value::Null;
@@ -1634,7 +1634,7 @@ impl BinanceCore {
             m
         });
         let mut offSet: Value = self.safe_integer_k(params.clone(), "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             add_element_to_object(&mut request, &Value::Str("offset".to_string()), offSet.clone());
         }
         let mut outcomeObj: Value = Value::Null;
@@ -1724,7 +1724,7 @@ impl BinanceCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1182: bool = true;
-                while { if !__for_first_1182 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1182 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(outcomes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1182 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1182 = false; i.as_f64().unwrap_or(f64::NAN) < ((outcomes.len() as i64) as f64) } {
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requested: Value = get_value(&outcomes, &i);
                 let mut requestedOutcomeObj: Value = self.safe_outcome(requested.clone(), &[]);
@@ -1796,11 +1796,11 @@ impl BinanceCore {
             return positions;
         }
         let mut filtered: Value = Value::List(vec![]);
-        let mut positionsLength: Value = Value::Int(positions.len() as i64);
+        let mut positionsLength: f64 = ((positions.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1183: bool = true;
-            while { if !__for_first_1183 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1183 = false; i.as_f64().unwrap_or(f64::NAN) < positionsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1183 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1183 = false; i.as_f64().unwrap_or(f64::NAN) < positionsLength } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut positionOutcome: Value = self.safe_string_k(position.clone(), "outcome", &[]);
@@ -1951,7 +1951,7 @@ impl BinanceCore {
             m
         });
         let mut offSet: Value = self.safe_integer_k(params.clone(), "offset", &[(match (&(page), &(maxEntriesPerRequest)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
-        if offSet.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if offSet.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
             add_element_to_object(&mut request, &Value::Str("offset".to_string()), offSet.clone());
         }
         let mut outcomeObj: Value = Value::Null;
@@ -2146,11 +2146,11 @@ impl BinanceCore {
             add_element_to_object(&mut self.options, &Value::Str("wallet".to_string()), cachedWallet.clone());
             return cachedWallet;
         }
-        let mut walletLength: Value = Value::Int(wallets.len() as i64);
+        let mut walletLength: f64 = ((wallets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1184: bool = true;
-            while { if !__for_first_1184 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1184 = false; i.as_f64().unwrap_or(f64::NAN) < walletLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1184 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1184 = false; i.as_f64().unwrap_or(f64::NAN) < walletLength } {
             let mut w: Value = self.safe_string_k(get_value(&wallets, &i), "walletAddress", &[Value::Str("".to_string())]);
             if (w.as_str() == walletAddress.as_str()) {
                 cachedWallet = get_value(&wallets, &i);
@@ -2199,7 +2199,7 @@ impl BinanceCore {
     m
 })]), Value::Str("price".to_string()), &[Value::Float(0.0001)]);
         let mut decimals: Value = Value::Int(4);
-        if is_true(&(Value::Bool(prec != Value::Null))) && is_true(&(prec.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(prec != Value::Null))) && is_true(&(prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
         }
         return self.decimal_to_precision(price.clone(), Value::Int(crate::runtime::ROUND), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
@@ -2214,7 +2214,7 @@ impl BinanceCore {
     m
 })]), Value::Str("amount".to_string()), &[Value::Float(0.01)]);
         let mut decimals: Value = Value::Int(2);
-        if is_true(&(Value::Bool(prec != Value::Null))) && is_true(&(prec.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(prec != Value::Null))) && is_true(&(prec.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
             decimals = self.precision_from_string(self.number_to_string(prec.clone()));
         }
         return self.decimal_to_precision(amount.clone(), Value::Int(crate::runtime::TRUNCATE), decimals.clone(), &[Value::Int(crate::runtime::DECIMAL_PLACES), self.paddingMode.clone()]);
@@ -2433,7 +2433,7 @@ impl BinanceCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1185: bool = true;
-            while { if !__for_first_1185 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1185 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1185 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1185 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut key: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("cancelInfoList[".to_string()), self.number_to_string(i.clone()))), Value::Str("].orderId".to_string())));
             add_element_to_object(&mut request, &key, get_value(&ids, &i));
         }
@@ -2456,18 +2456,18 @@ impl BinanceCore {
         let mut canceledOrders: Value = self.safe_list_k(response.clone(), "canceled", &[Value::List(vec![])]);
         let mut outcomeSymbol: Value = self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome.clone()]);
         let mut failedOrders: Value = self.safe_list_k(response.clone(), "failed", &[Value::List(vec![])]);
-        let mut failedOrdersLength: Value = Value::Int(failedOrders.len() as i64);
-        if failedOrdersLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        let mut failedOrdersLength: f64 = ((failedOrders.len() as i64) as f64);
+        if failedOrdersLength > ((0i64) as f64) {
             let mut failedDetails: Value = Value::Str("".to_string());
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1186: bool = true;
-                while { if !__for_first_1186 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1186 = false; i.as_f64().unwrap_or(f64::NAN) < failedOrdersLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1186 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1186 = false; i.as_f64().unwrap_or(f64::NAN) < failedOrdersLength } {
                 let mut failedOrder: Value = get_value(&failedOrders, &i);
                 let mut failedOrder: Value = get_value(&failedOrders, &i);
                 let mut failedOrderId: Value = self.safe_string_k(failedOrder.clone(), "orderId", &[]);
                 let mut failedReason: Value = self.safe_string_k(failedOrder.clone(), "reason", &[]);
-                if i.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if i.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                     failedDetails = Value::Str(format!("{}{}", failedDetails, Value::Str(", ".to_string())));
                 }
                 failedDetails = add(&Value::Str(format!("{}{}", add(&failedDetails, &failedOrderId), Value::Str(": ".to_string()))), &failedReason);
@@ -2476,11 +2476,11 @@ impl BinanceCore {
             panic!("{}", crate::exchange_errors::order_not_found(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() failed for ".to_string()))), failedDetails))));
         }
         let mut orders: Value = Value::List(vec![]);
-        let mut canceledOrdersLength: Value = Value::Int(canceledOrders.len() as i64);
+        let mut canceledOrdersLength: f64 = ((canceledOrders.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1187: bool = true;
-            while { if !__for_first_1187 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1187 = false; i.as_f64().unwrap_or(f64::NAN) < canceledOrdersLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1187 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1187 = false; i.as_f64().unwrap_or(f64::NAN) < canceledOrdersLength } {
             let mut status: Value = get_value(&canceledOrders, &i);
             let mut status: Value = get_value(&canceledOrders, &i);
             let mut order: Value = Value::Map({

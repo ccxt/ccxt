@@ -817,7 +817,7 @@ impl LunoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_929 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawCurrency.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_929 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_929 = false; i.as_f64().unwrap_or(f64::NAN) < ((rawCurrency.len() as i64) as f64) } {
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkEntry: Value = get_value(&rawCurrency, &i);
             let mut networkId: Value = self.safe_string_k(networkEntry.clone(), "name", &[]);
@@ -927,7 +927,7 @@ impl LunoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_930: bool = true;
-            while { if !__for_first_930 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_930 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(markets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_930 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_930 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -1053,7 +1053,7 @@ impl LunoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_931 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_931 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_931 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
             let mut account: Value = get_value(&wallets, &i);
             let mut account: Value = get_value(&wallets, &i);
             let mut accountId: Value = self.safe_string_k(account.clone(), "account_id", &[]);
@@ -1086,7 +1086,7 @@ impl LunoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_932: bool = true;
-            while { if !__for_first_932 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_932 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(wallets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_932 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_932 = false; i.as_f64().unwrap_or(f64::NAN) < ((wallets.len() as i64) as f64) } {
             let mut wallet: Value = get_value(&wallets, &i);
             let mut wallet: Value = get_value(&wallets, &i);
             let mut currencyId: Value = self.safe_string_k(wallet.clone(), "asset", &[]);
@@ -1161,7 +1161,7 @@ impl LunoCore {
             m
         });
         let mut response: Value = Value::Null;
-        if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) <= Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+        if (limit != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) <= ((100i64) as f64) {
             let __ws_arg_0 = self.extend(request.clone(), &[params.clone()]);
             response = self.public_get_orderbook_top(&[__ws_arg_0]).await;
         }  else {
@@ -1475,7 +1475,7 @@ impl LunoCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_933 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_933 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_933 = false; i.as_f64().unwrap_or(f64::NAN) < ((ids.len() as i64) as f64) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             let mut market: Value = self.safe_market(&[id.clone()]);
@@ -2018,7 +2018,7 @@ impl LunoCore {
                 max_row = add(&min_row, &limit);
             }
         }
-        if subtract(&max_row, &min_row).as_f64().unwrap_or(f64::NAN) > Value::Int(1000).as_f64().unwrap_or(f64::NAN) {
+        if subtract(&max_row, &min_row).as_f64().unwrap_or(f64::NAN) > ((1000i64) as f64) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() requires the params 'max_row' - 'min_row' <= 1000".to_string())))));
         }
         let mut request: Value = Value::Map({
@@ -2288,7 +2288,7 @@ impl LunoCore {
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &Value::Str("/".to_string())), &self.version), Value::Str("/".to_string()))), self.implode_params(path.clone(), params.clone())));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
         }
         if is_true(&(Value::Bool(api.as_str() == Some("private")))) || is_true(&(Value::Bool(api.as_str() == Some("exchangePrivate")))) {

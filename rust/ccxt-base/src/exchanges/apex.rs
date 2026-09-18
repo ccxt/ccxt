@@ -920,7 +920,7 @@ impl ApexCore {
             {
                                 let mut f: Value = Value::Int(0);
                 let mut __for_first_217: bool = true;
-                while { if !__for_first_217 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; f.as_f64().unwrap_or(f64::NAN) < Value::Int(tokens.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_217 { f = (match (&(f), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_217 = false; f.as_f64().unwrap_or(f64::NAN) < ((tokens.len() as i64) as f64) } {
                 let mut token: Value = get_value(&tokens, &f);
                 let mut token: Value = get_value(&tokens, &f);
                 let mut tokenName: Value = self.safe_string_k(token.clone(), "token", &[]);
@@ -963,8 +963,8 @@ impl ApexCore {
         }
         }
         let mut networkKeys: Value = object_keys(&networks);
-        let mut networksLength: Value = Value::Int(networkKeys.len() as i64);
-        let mut emptyChains: bool = networksLength.as_f64() == Some(0.0); // non-functional coins
+        let mut networksLength: f64 = ((networkKeys.len() as i64) as f64);
+        let mut emptyChains: bool = networksLength == 0.0; // non-functional coins
         let mut valueForEmpty: Value = (if emptyChains { Value::Bool(false) } else { Value::Null });
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1615,7 +1615,7 @@ impl ApexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_219: bool = true;
-            while { if !__for_first_219 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(resultList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_219 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_219 = false; i.as_f64().unwrap_or(f64::NAN) < ((resultList.len() as i64) as f64) } {
             let mut entry: Value = get_value(&resultList, &i);
             let mut entry: Value = get_value(&resultList, &i);
             let mut timestamp: Value = self.safe_integer_k(entry.clone(), "fundingTimestamp", &[]);
@@ -1837,7 +1837,7 @@ impl ApexCore {
         let mut uppercaseSymbol: Value = to_upper(&symbol);
         let mut index: Value = get_index_of(&uppercaseSymbol, &Value::Str("USDT".to_string()));
         let mut symbolChar: Value = self.safe_string(symbol.clone(), (match (&(index), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &[]);
-        if index.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) && (symbolChar.as_str() != Some("-")) {
+        if index.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) && (symbolChar.as_str() != Some("-")) {
             return Value::Str(format!("{}{}", Value::Str(format!("{}{}", slice(&symbol, &Value::Int(0), &index), Value::Str("-".to_string()))), slice(&symbol, &index, &Value::Null)));
         }
         return symbol;
@@ -2052,7 +2052,7 @@ impl ApexCore {
         let mut subAccountId: Value = self.safe_string_k(spotAccount.clone(), "defaultSubAccountId", &[Value::Str("0".to_string())]);
         let mut subAccounts: Value = self.safe_list_k(spotAccount.clone(), "subAccounts", &[Value::List(vec![])]);
         let mut nonce: Value = Value::Str("0".to_string());
-        if Value::Int(subAccounts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if ((subAccounts.len() as i64) as f64) > ((0i64) as f64) {
             nonce = self.safe_string(subAccounts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("nonce".to_string()), &[Value::Str("0".to_string())]);
         }
         let mut finalNonce: Value = nonce.clone(); // java req
@@ -2071,7 +2071,7 @@ impl ApexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_220 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_220 = false; i.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
             if (self.safe_string_k(get_value(&assets, &i), "token", &[Value::Str("".to_string())]).as_str() == code.as_str()) {
                 currency = get_value(&assets, &i);
             }
@@ -2780,7 +2780,7 @@ impl ApexCore {
         let mut signPath: Value = add(&Value::Str("/api/".to_string()), &path);
         let mut signBody: Value = body.clone();
         if (to_upper(&method).as_str() != Some("POST")) {
-            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 signPath = Value::Str(format!("{}{}", signPath, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.rawencode(params.clone(), &[])))));
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.rawencode(params.clone(), &[])))));
             }

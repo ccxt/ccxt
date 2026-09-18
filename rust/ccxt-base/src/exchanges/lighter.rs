@@ -864,7 +864,7 @@ impl LighterCore {
         }
         let mut privateKeyIsSet: bool = is_true(&(Value::Bool(self.privateKey.clone() != Value::Null))) && is_true(&(Value::Bool(self.privateKey.as_str() != Some(""))));
         if privateKeyIsSet && is_true(&(Value::Bool(apiKeyIndex != Value::Null))) && is_true(&(Value::Bool(accountIndex != Value::Null))) {
-            if Value::Int(self.privateKey.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(66).as_f64().unwrap_or(f64::NAN) {
+            if ((self.privateKey.len() as i64) as f64) > ((66i64) as f64) {
                 panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt".to_string())))));
             }
             // load lighter library without creating lighter client
@@ -959,7 +959,7 @@ impl LighterCore {
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut apiKeyIndex: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params2(params.clone(), methodName1.clone(), optionName1.clone(), optionName2.clone(), &[defaultValue.clone()]); apiKeyIndex = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
-        if is_true(&(Value::Bool(apiKeyIndex == Value::Null))) || is_true(&(apiKeyIndex.as_f64().unwrap_or(f64::NAN) < Value::Int(4).as_f64().unwrap_or(f64::NAN))) || is_true(&(apiKeyIndex.as_f64().unwrap_or(f64::NAN) > Value::Int(254).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(apiKeyIndex == Value::Null))) || is_true(&(apiKeyIndex.as_f64().unwrap_or(f64::NAN) < ((4i64) as f64))) || is_true(&(apiKeyIndex.as_f64().unwrap_or(f64::NAN) > ((254i64) as f64))) {
             // apiKeyIndex = this.randNumber (2);
             apiKeyIndex = Value::Int(254);
             add_element_to_object(&mut self.options.clone(), &Value::Str("apiKeyIndex".to_string()), apiKeyIndex.clone()); // default to a value to avoid overriding other keys
@@ -976,7 +976,7 @@ impl LighterCore {
         if (accountIndex == Value::Null) {
             let mut walletAddress: Value = self.walletAddress.clone();
             if (self.privateKey.clone() != Value::Null) {
-                if Value::Int(self.privateKey.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(66).as_f64().unwrap_or(f64::NAN) {
+                if ((self.privateKey.len() as i64) as f64) > ((66i64) as f64) {
                     panic!("{}", crate::exchange_errors::not_supported(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt".to_string())))));
                 }
                 walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
@@ -1113,13 +1113,13 @@ impl LighterCore {
     pub fn pow(&self, mut n: Value, mut m: Value) -> Value {
         let mut r: Value = crate::precise::Precise::stringMul(&n, &Value::Str("1".to_string()));
         let mut c: Value = self.parse_to_int(m.clone());
-        if c.as_f64().unwrap_or(f64::NAN) < Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if c.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" pow() requires m > 0.".to_string())))));
         }
         if (c.as_f64() == Some(0.0)) {
             return Value::Str("1".to_string());
         }
-        if c.as_f64().unwrap_or(f64::NAN) > Value::Int(100).as_f64().unwrap_or(f64::NAN) {
+        if c.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" pow() requires m < 100.".to_string())))));
         }
         {
@@ -1524,10 +1524,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut groupingType: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), method.clone(), Value::Str("groupingType".to_string()), &[Value::Int(3)]); groupingType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); params = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         let mut orderRequests: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
-        let mut totalOrderRequests: Value = Value::Int(orderRequests.len() as i64);
+        let mut totalOrderRequests: f64 = ((orderRequests.len() as i64) as f64);
         let mut apiKeyIndex: Value = Value::Null;
         let mut order: Value = Value::Null;
-        if totalOrderRequests.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if totalOrderRequests > ((0i64) as f64) {
             order = orderRequests.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             apiKeyIndex = order.as_map().and_then(|__m| __m.get("api_key_index")).cloned().unwrap_or(Value::Null);
         }
@@ -1540,7 +1540,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut txType: Value = Value::Null;
         let mut txInfo: Value = Value::Null;
-        if totalOrderRequests.as_f64().unwrap_or(f64::NAN) < Value::Int(2).as_f64().unwrap_or(f64::NAN) {
+        if totalOrderRequests < ((2i64) as f64) {
             { let __destr_tmp = self.lighter_sign_create_order(signer.clone(), order.clone()); txType = __destr_tmp.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null); txInfo = __destr_tmp.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null); }
         }  else {
             let mut signingPayload: Value = Value::Map({
@@ -1846,7 +1846,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_922: bool = true;
-            while { if !__for_first_922 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_922 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(markets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_922 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_922 = false; i.as_f64().unwrap_or(f64::NAN) < ((markets.len() as i64) as f64) } {
             let mut market: Value = get_value(&markets, &i);
             let mut market: Value = get_value(&markets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "market_id", &[]);
@@ -2489,7 +2489,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_923: bool = true;
-            while { if !__for_first_923 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_923 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_923 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_923 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut exchange: Value = self.safe_string_k(get_value(&data, &i), "exchange", &[]);
             if (exchange.as_str() == Some("lighter")) {
                 append_to_array(&mut result, get_value(&data, &i));
@@ -2585,7 +2585,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_925: bool = true;
-            while { if !__for_first_925 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_925 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_925 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_925 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             if (type_var.as_str() == Some("spot")) {
@@ -2593,7 +2593,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_924: bool = true;
-                    while { if !__for_first_924 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_924 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(assets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_924 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_924 = false; j.as_f64().unwrap_or(f64::NAN) < ((assets.len() as i64) as f64) } {
                     let mut asset: Value = get_value(&assets, &j);
                     let mut asset: Value = get_value(&assets, &j);
                     let mut codeId: Value = self.safe_string_k(asset.clone(), "symbol", &[]);
@@ -2732,14 +2732,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_927: bool = true;
-            while { if !__for_first_927 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_927 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(accounts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_927 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_927 = false; i.as_f64().unwrap_or(f64::NAN) < ((accounts.len() as i64) as f64) } {
             let mut account: Value = get_value(&accounts, &i);
             let mut account: Value = get_value(&accounts, &i);
             let mut positions: Value = self.safe_list_k(account.clone(), "positions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_926: bool = true;
-                while { if !__for_first_926 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_926 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_926 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_926 = false; j.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 append_to_array(&mut allPositions, get_value(&positions, &j));
             }
             }
@@ -2787,7 +2787,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut leverage: Value = Value::Null;
         if (imfStr != Value::Null) {
             let mut imf: Value = self.parse_to_int(imfStr.clone());
-            if imf.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if imf.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 leverage = (match ((Value::Int(100)).as_f64(), (imf).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null });
             }
         }
@@ -3172,10 +3172,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
         if (type_var != Value::Null) {
-            if get_index_of(&type_var, &Value::Str("stop-loss".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&type_var, &Value::Str("stop-loss".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 stopLossPrice = triggerPrice.clone();
             }
-            if get_index_of(&type_var, &Value::Str("take-profit".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&type_var, &Value::Str("take-profit".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 takeProfitPrice = triggerPrice.clone();
             }
         }
@@ -3917,7 +3917,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_928 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_928 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_928 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut data, &i), &Value::Str("account_index".to_string()), accountIndex.clone());
         }
         }
@@ -4276,7 +4276,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) < Value::Int(300000).as_f64().unwrap_or(f64::NAN))) || is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(1296000000).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) < ((300000i64) as f64))) || is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > ((1296000000i64) as f64))) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" timeout should be between 5 minutes and 15 days.".to_string())))));
         }
         let mut apiKeyIndex: Value = Value::Null;
@@ -4469,7 +4469,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m
             });
         }
-        if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
             if (method.as_str() == Some("POST")) {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();

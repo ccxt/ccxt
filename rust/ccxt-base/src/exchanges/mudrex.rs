@@ -525,7 +525,7 @@ impl MudrexCore {
 });
             }
         }
-        if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
         }
         return Value::Map({
@@ -558,13 +558,13 @@ impl MudrexCore {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), text)));
             let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".to_string()))), text));
             let mut low: Value = to_lower(&text);
-            if (code.as_f64() == Some(401.0)) || get_index_of(&low, &Value::Str("auth".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if (code.as_f64() == Some(401.0)) || get_index_of(&low, &Value::Str("auth".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::authentication_error(msg));
             }
-            if (code.as_f64() == Some(429.0)) || get_index_of(&low, &Value::Str("rate".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if (code.as_f64() == Some(429.0)) || get_index_of(&low, &Value::Str("rate".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg));
             }
-            if get_index_of(&low, &Value::Str("insufficient".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&low, &Value::Str("insufficient".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 panic!("{}", crate::exchange_errors::insufficient_funds(msg));
             }
             if (code.as_f64() == Some(400.0)) {
@@ -776,7 +776,7 @@ impl MudrexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_958: bool = true;
-            while { if !__for_first_958 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_958 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_958 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_958 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut t: Value = get_value(&rows, &i);
             let mut t: Value = get_value(&rows, &i);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
@@ -894,7 +894,7 @@ impl MudrexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_960: bool = true;
-            while { if !__for_first_960 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_960 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(aggregated.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_960 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_960 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
             append_to_array(&mut result, self.parse_market(get_value(&aggregated, &i)));
         }
         }
@@ -1511,7 +1511,7 @@ impl MudrexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_961: bool = true;
-            while { if !__for_first_961 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_961 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_961 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_961 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             append_to_array(&mut orders, self.parse_order(get_value(&rows, &i), &[market.clone()]));
         }
         }
@@ -1626,7 +1626,7 @@ impl MudrexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_962: bool = true;
-            while { if !__for_first_962 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_962 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_962 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_962 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut p: Value = get_value(&rows, &i);
             let mut p: Value = get_value(&rows, &i);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
@@ -1788,7 +1788,7 @@ impl MudrexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_963: bool = true;
-                while { if !__for_first_963 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_963 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_963 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_963 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if (side != Value::Null) && (p.as_map().and_then(|__m| __m.get("side")).cloned().unwrap_or(Value::Null).as_str() != side.as_str()) {
@@ -1855,7 +1855,7 @@ impl MudrexCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_964: bool = true;
-                while { if !__for_first_964 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_964 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_964 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_964 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if (p.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null).as_str() == symbol.as_str()) {
@@ -1947,7 +1947,7 @@ impl MudrexCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            if pageSize.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if pageSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                 add_element_to_object(&mut request, &Value::Str("limit".to_string()), pageSize.clone());
                 add_element_to_object(&mut request, &Value::Str("offset".to_string()), offset.clone());
             }
@@ -1987,7 +1987,7 @@ impl MudrexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_966: bool = true;
-            while { if !__for_first_966 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_966 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(allRows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_966 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_966 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
             let mut entry: Value = get_value(&allRows, &i);
             let mut entry: Value = get_value(&allRows, &i);
             let mut feeType: Value = self.safe_string_k(entry.clone(), "fee_type", &[]);
@@ -2005,12 +2005,12 @@ impl MudrexCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_968: bool = true;
-            while { if !__for_first_968 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_968 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(transactions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_968 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_968 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
             let mut rebate: Value = Value::Null;
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_967: bool = true;
-                while { if !__for_first_967 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_967 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(rebateKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_967 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_967 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
                 if (get_value(&rebateKeys, &j).as_str() == get_value(&transactionKeys, &i).as_str()) {
                     rebate = get_value(&rebateAmounts, &j);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

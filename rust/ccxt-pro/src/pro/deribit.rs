@@ -365,7 +365,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencies.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_310 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_310 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencies.len() as i64) as f64) } {
             let mut currencyCode: Value = get_value(&currencies, &i);
             let mut currencyCode: Value = get_value(&currencies, &i);
             append_to_array(&mut channels, add(&Value::Str("user.portfolio.".to_string()), &currencyCode));
@@ -532,7 +532,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_311: bool = true;
-            while { if !__for_first_311 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_311 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_311 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_311 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, Value::Str(format!("{}{}", Value::Str(format!("{}{}", add(&Value::Str("ticker.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)), Value::Str(".".to_string()))), interval)));
         }
@@ -634,7 +634,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_312: bool = true;
-            while { if !__for_first_312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_312 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_312 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut market: Value = self.market(get_value(&symbols, &i));
             append_to_array(&mut channels, add(&Value::Str("quote.".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
         }
@@ -821,7 +821,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_313: bool = true;
-            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_313 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_313 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut parsed: Value = self.parse_trade(trade.clone(), &[market.clone()]);
@@ -933,7 +933,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_314: bool = true;
-            while { if !__for_first_314 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parsed.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_314 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_314 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsed.len() as i64) as f64) } {
             let mut trade: Value = get_value(&parsed, &i);
             let mut trade: Value = get_value(&parsed, &i);
             cachedTrades.append(trade.clone());
@@ -1063,8 +1063,8 @@ impl DeribitCore {
         let mut channel: Value = self.safe_string_k(params.clone(), "channel", &[]);
         let mut parts: Value = split(&channel, &Value::Str(".".to_string()));
         let mut descriptor: Value = Value::Str("".to_string());
-        let mut partsLength: Value = Value::Int(parts.len() as i64);
-        let mut isDetailed: bool = partsLength.as_f64() == Some(5.0);
+        let mut partsLength: f64 = ((parts.len() as i64) as f64);
+        let mut isDetailed: bool = partsLength == 5.0;
         if isDetailed {
             let mut group: Value = self.safe_string(parts.clone(), Value::Int(2), &[]);
             let mut depth: Value = self.safe_string(parts.clone(), Value::Int(3), &[]);
@@ -1101,7 +1101,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_315: bool = true;
-            while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(bids.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_315 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_315 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
             append_to_array(&mut cleanedBids, Value::List(vec![get_value(&get_value(&bids, &i), &Value::Int(1)), get_value(&get_value(&bids, &i), &Value::Int(2))]));
         }
         }
@@ -1109,7 +1109,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(asks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_316 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_316 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
             append_to_array(&mut cleanedAsks, Value::List(vec![get_value(&get_value(&asks, &i), &Value::Int(1)), get_value(&get_value(&asks, &i), &Value::Int(2))]));
         }
         }
@@ -1253,7 +1253,7 @@ impl DeribitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_318: bool = true;
-            while { if !__for_first_318 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orders.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_318 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_318 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             cachedOrders.append(get_value(&orders, &i));
         }
         }
@@ -1308,8 +1308,8 @@ impl DeribitCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut symbolsLength: Value = Value::Int(symbolsAndTimeframes.len() as i64);
-        if (symbolsLength.as_f64() == Some(0.0)) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
+        let mut symbolsLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
+        if (symbolsLength == 0.0) || !is_true(&Value::Bool(is_array(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)))) {
             panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]".to_string())))));
         }
         let mut symboltimeframecandlesVariable = self.watch_multiple_wrapper(Value::Str("chart.trades".to_string()), Value::Null, &[symbolsAndTimeframes.clone(), params.clone()]).await;
@@ -1448,7 +1448,7 @@ impl DeribitCore {
         let mut extendedRequest: Value = self.deep_extend(request.clone(), &[params.clone()]);
         let mut maxMessageByteLimit: Value = (match (&(Value::Int(32768)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 'Message Too Big: limit 32768B'
         let mut jsonedText: Value = self.json(extendedRequest.clone());
-        if Value::Int(jsonedText.len() as i64).as_f64().unwrap_or(f64::NAN) >= maxMessageByteLimit.as_f64().unwrap_or(f64::NAN) {
+        if ((jsonedText.len() as i64) as f64) >= maxMessageByteLimit.as_f64().unwrap_or(f64::NAN) {
             panic!("{}", crate::exchange_errors::exchange_error(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" requested subscription length over limit, try to reduce symbols amount".to_string())))));
         }
         return self.watch_multiple(url.clone(), messageHashes.clone(), &[extendedRequest.clone(), rawSubscriptions.clone()]).await;

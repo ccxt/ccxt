@@ -1373,12 +1373,12 @@ impl GrvtCore {
         //
         let mut currentBuilders: Value = results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         let mut approvedBuilder: Value = self.safe_list_k(currentBuilders.clone(), "results", &[Value::List(vec![])]);
-        let mut length: Value = Value::Int(approvedBuilder.len() as i64);
+        let mut length: f64 = ((approvedBuilder.len() as i64) as f64);
         let mut found: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_718: bool = true;
-            while { if !__for_first_718 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_718 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_718 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_718 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
             let mut builderInfo: Value = self.safe_dict(approvedBuilder.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1840,7 +1840,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (limit == Value::Null) {
             limit = Value::Int(100);
         }
-        if limit.as_f64().unwrap_or(f64::NAN) <= Value::Int(500).as_f64().unwrap_or(f64::NAN) {
+        if limit.as_f64().unwrap_or(f64::NAN) <= ((500i64) as f64) {
             add_element_to_object(&mut request, &Value::Str("depth".to_string()), self.find_nearest_ceiling(Value::List(vec![Value::Int(10), Value::Int(50), Value::Int(100), Value::Int(500)]), limit.clone()));
         }
         let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
@@ -2323,7 +2323,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_719: bool = true;
-            while { if !__for_first_719 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_719 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(spotBalances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_719 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_719 = false; i.as_f64().unwrap_or(f64::NAN) < ((spotBalances.len() as i64) as f64) } {
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut balance: Value = get_value(&spotBalances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -2811,7 +2811,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
             let mut msg: Value = self.exception_message(error.clone(), &[]);
             let mut isFromFundingAccount: bool = fromAccount.as_str() == Some("funding");
-            if isFromFundingAccount && is_true(&(get_index_of(&msg, &Value::Str("You are not authorized".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+            if isFromFundingAccount && is_true(&(get_index_of(&msg, &Value::Str("You are not authorized".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
                 panic!("{}", crate::exchange_errors::permission_denied(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ".to_string()))), msg))));
             }
             panic!("{}", error);
@@ -2935,11 +2935,11 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         add_element_to_object(&mut self.options, &Value::Str("userMainAccountId".to_string()), mainAccountId.clone());
         if accountIsUndefined {
             let mut subAccountIds: Value = self.safe_list(responses.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), Value::Str("sub_account_ids".to_string()), &[Value::List(vec![])]);
-            let mut length: Value = Value::Int(subAccountIds.len() as i64);
-            if length.as_f64().unwrap_or(f64::NAN) < Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            let mut length: f64 = ((subAccountIds.len() as i64) as f64);
+            if length < ((1i64) as f64) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website".to_string())))));
             }
-            if length.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            if length > ((1i64) as f64) {
                 panic!("{}", crate::exchange_errors::arguments_required(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" loadAccountInfos(): multiple sub accounts found, please set the exchange.options[\"accountId\"] to your preferred sub_account_id from this list: ".to_string()))), self.json(subAccountIds.clone())))));
             }
             let mut subAccountId: Value = self.safe_string(subAccountIds.clone(), Value::Int(0), &[]);
@@ -3254,7 +3254,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderLegs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_721 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderLegs.len() as i64) as f64) } {
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut leg: Value = get_value(&orderLegs, &i);
             let mut market: Value = self.market(crate::value::get_value_k(&leg, "instrument"));
@@ -3426,7 +3426,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_722: bool = true;
-                while { if !__for_first_722 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_722 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_722 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_722 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
@@ -4227,10 +4227,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let mut timestamp: Value = self.safe_integer_product(metadata.clone(), Value::Str("create_time".to_string()), Value::Float(0.000001), &[]);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        let mut legsLength: Value = Value::Int(legs.len() as i64);
+        let mut legsLength: f64 = ((legs.len() as i64) as f64);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("isMultiLeg".to_string(), (Value::Bool(legsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN))));
+        m.insert("isMultiLeg".to_string(), (Value::Bool(legsLength > ((1i64) as f64))));
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "order_id", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(metadata.clone(), "client_order_id", &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -4556,7 +4556,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut url: Value = add(&get_value(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), &api), &path);
         let mut queryString: Value = Value::Str("".to_string());
         if (method.as_str() == Some("GET")) {
-            if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                 queryString = self.urlencode(query.clone(), &[]);
                 url = add(&url, &Value::Str(format!("{}{}", Value::Str("?".to_string()), queryString)));
             }
@@ -4571,8 +4571,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
             let mut paramsKeys: Value = object_keys(&params);
-            let mut paramsKeysLength: Value = Value::Int(paramsKeys.len() as i64);
-            if (paramsKeysLength.as_f64() == Some(0.0)) {
+            let mut paramsKeysLength: f64 = ((paramsKeys.len() as i64) as f64);
+            if (paramsKeysLength == 0.0) {
                 body = Value::Str("{}".to_string());
             }  else {
                 body = self.json(params.clone());

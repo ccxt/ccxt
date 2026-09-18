@@ -1848,7 +1848,7 @@ impl WooCore {
         let mut timestampString: Value = self.safe_string2(trade.clone(), Value::Str("executed_timestamp".to_string()), Value::Str("executedTimestamp".to_string()), &[]);
         let mut timestamp: Value = Value::Null;
         if (timestampString != Value::Null) {
-            if get_index_of(&timestampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&timestampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 timestamp = self.safe_timestamp2(trade.clone(), Value::Str("executed_timestamp".to_string()), Value::Str("executedTimestamp".to_string()), &[]);
             }  else {
                 timestamp = self.safe_integer_k(trade.clone(), "executedTimestamp", &[]);
@@ -2042,7 +2042,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1126: bool = true;
-            while { if !__for_first_1126 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1126 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1126 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1126 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
@@ -2165,7 +2165,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1127 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(currencyIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1127 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1127 = false; i.as_f64().unwrap_or(f64::NAN) < ((currencyIds.len() as i64) as f64) } {
             let mut id: Value = get_value(&currencyIds, &i);
             let mut id: Value = get_value(&currencyIds, &i);
             let mut customCurrency: Value = Value::Map({
@@ -2200,7 +2200,7 @@ impl WooCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1128: bool = true;
-            while { if !__for_first_1128 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1128 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1128 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1128 = false; j.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut networkId: Value = get_value(&keys, &j);
             let mut networkId: Value = get_value(&keys, &j);
             let mut tokenEntry: Value = self.safe_dict(tokensByNetworkId.clone(), networkId.clone(), &[Value::Map({
@@ -2884,7 +2884,7 @@ impl WooCore {
         }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("triggerAfter".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { crate::runtime::Math::min(&timeout, &Value::Int(900000)) } else { Value::Int(0) }));
+                m.insert("triggerAfter".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) { crate::runtime::Math::min(&timeout, &Value::Int(900000)) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
@@ -3200,7 +3200,7 @@ impl WooCore {
         let mut timestamp: Value = Value::Null;
         let mut timestrampString: Value = self.safe_string_k(order.clone(), "createdTime", &[]);
         if (timestrampString != Value::Null) {
-            if get_index_of(&timestrampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&timestrampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 timestamp = self.safe_timestamp(order.clone(), Value::Str("createdTime".to_string()), &[]); // algo orders
             }  else {
                 timestamp = self.safe_integer_k(order.clone(), "createdTime", &[]); // regular orders
@@ -3229,7 +3229,7 @@ impl WooCore {
         let mut lastUpdateTimestampString: Value = self.safe_string_k(order.clone(), "updatedTime", &[]);
         let mut lastUpdateTimestamp: Value = Value::Null;
         if (lastUpdateTimestampString != Value::Null) {
-            if get_index_of(&lastUpdateTimestampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&lastUpdateTimestampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 lastUpdateTimestamp = self.safe_timestamp(order.clone(), Value::Str("updatedTime".to_string()), &[]); // algo orders
             }  else {
                 lastUpdateTimestamp = self.safe_integer_k(order.clone(), "updatedTime", &[]); // regular orders
@@ -3506,8 +3506,8 @@ impl WooCore {
             self.load_markets(&[]).await;
         }
         if (symbols != Value::Null) {
-            let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-            if symbolsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+            if symbolsLength > ((0i64) as f64) {
                 // the type gate throws NotSupported rather than letting marketSymbols raise
                 // BadRequest, so callers (and the live test harness) can tell "wrong market
                 // type" apart from a malformed request, marketSymbols still enforces that the
@@ -3540,7 +3540,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1129: bool = true;
-            while { if !__for_first_1129 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1129 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1129 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1129 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[]);
@@ -3942,7 +3942,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1130: bool = true;
-            while { if !__for_first_1130 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1130 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1130 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1130 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
@@ -4794,12 +4794,12 @@ impl WooCore {
         params = self.keysort(params.clone(), &[]);
         if (access.as_str() == Some("public")) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str(format!("{}{}", access, Value::Str("/".to_string()))), pathWithParams))));
-            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             }
         }  else if (access.as_str() == Some("pub")) {
             url = Value::Str(format!("{}{}", url, pathWithParams));
-            if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                 url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(params.clone(), &[])))));
             }
         }  else {
@@ -4834,7 +4834,7 @@ impl WooCore {
                     auth = Value::Str(format!("{}{}", auth, body));
                     add_element_to_object(&mut headers, &Value::Str("content-type".to_string()), Value::Str("application/json".to_string()));
                 }  else {
-                    if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                         let mut query: Value = self.urlencode(params.clone(), &[]);
                         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
                         auth = Value::Str(format!("{}{}", auth, Value::Str(format!("{}{}", Value::Str("?".to_string()), query))));
@@ -4845,7 +4845,7 @@ impl WooCore {
                 if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || (method.as_str() == Some("DELETE")) {
                     body = auth.clone();
                 }  else {
-                    if Value::Int(object_keys(&params).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                    if ((object_keys(&params).len() as i64) as f64) > ((0i64) as f64) {
                         url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), auth))));
                     }
                 }
@@ -5276,7 +5276,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1131: bool = true;
-            while { if !__for_first_1131 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1131 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rows.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1131 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1131 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut entry: Value = get_value(&rows, &i);
             let mut entry: Value = get_value(&rows, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -5394,7 +5394,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1132: bool = true;
-            while { if !__for_first_1132 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1132 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(details.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1132 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1132 = false; i.as_f64().unwrap_or(f64::NAN) < ((details.len() as i64) as f64) } {
             let mut position: Value = self.safe_dict(details.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5631,8 +5631,8 @@ impl WooCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-            if (symbolsLength.as_f64() == Some(1.0)) {
+            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+            if (symbolsLength == 1.0) {
                 let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -5744,7 +5744,7 @@ impl WooCore {
         let mut timestampString: Value = self.safe_string_k(position.clone(), "timestamp", &[]);
         let mut timestamp: Value = Value::Null;
         if (timestampString != Value::Null) {
-            if get_index_of(&timestampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&timestampString, &Value::Str(".".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
                 timestamp = self.safe_timestamp(position.clone(), Value::Str("timestamp".to_string()), &[]);
             }  else {
                 timestamp = self.safe_integer_k(position.clone(), "timestamp", &[]);
@@ -6120,7 +6120,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1133: bool = true;
-            while { if !__for_first_1133 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1133 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1133 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1133 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(entry.clone(), "token", &[]);
@@ -6196,8 +6196,8 @@ impl WooCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut symbolsLength: Value = Value::Int(symbols.len() as i64);
-            if (symbolsLength.as_f64() == Some(1.0)) {
+            let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
+            if (symbolsLength == 1.0) {
                 let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -6296,7 +6296,7 @@ impl WooCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1134: bool = true;
-            while { if !__for_first_1134 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1134 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(networkKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1134 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1134 = false; i.as_f64().unwrap_or(f64::NAN) < ((networkKeys.len() as i64) as f64) } {
             let mut network: Value = get_value(&networkKeys, &i);
             let mut network: Value = get_value(&networkKeys, &i);
             if (network.as_str() == Some("ETH")) {

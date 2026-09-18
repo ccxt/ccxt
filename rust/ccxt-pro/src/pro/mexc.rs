@@ -638,7 +638,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_490 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_490 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut ticker: Value = Value::Null;
@@ -758,7 +758,7 @@ impl MexcCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_491 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_491 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             if isSpot {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
@@ -1494,7 +1494,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_494 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(trades.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_494 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_494 = false; j.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             let mut parsedTrade: Value = Value::Null;
             if (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) {
                 parsedTrade = self.parse_ws_trade(get_value(&trades, &j), &[market.clone()]);
@@ -2337,7 +2337,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_495: bool = true;
-            while { if !__for_first_495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_495 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             if isSpot {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut topics, add(&Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".to_string()), &market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)));
@@ -2504,52 +2504,52 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_497: bool = true;
-            while { if !__for_first_497 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_497 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messageHashes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_497 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_497 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut messageHash: Value = get_value(&messageHashes, &i);
             let mut subMessageHash: Value = replace_str(&messageHash, &Value::Str("unsubscribe:".to_string()), &Value::Str("".to_string()));
             self.clean_unsubscription(client.clone(), subMessageHash.clone(), messageHash.clone(), &[]);
-            if get_index_of(&messageHash, &Value::Str("ticker".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            if get_index_of(&messageHash, &Value::Str("ticker".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:ticker:".to_string()), &Value::Str("".to_string()));
-                if get_index_of(&symbol, &Value::Str("unsubscribe".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if get_index_of(&symbol, &Value::Str("unsubscribe".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     // unWatchTickers
                     let mut symbols: Value = object_keys(&self.tickers);
                     {
                                                 let mut j: Value = Value::Int(0);
                         let mut __for_first_496: bool = true;
-                        while { if !__for_first_496 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_496 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                        while { if !__for_first_496 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_496 = false; j.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                         remove(&mut self.tickers, &get_value(&symbols, &j));
                     }
                     }
                 }  else if is_true(&Value::Bool(in_op(&self.tickers, &symbol))) {
                     remove(&mut self.tickers, &symbol);
                 }
-            }  else if get_index_of(&messageHash, &Value::Str("bidask".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&messageHash, &Value::Str("bidask".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:bidask:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.bidsasks, &symbol))) {
                     remove(&mut self.bidsasks, &symbol);
                 }
-            }  else if get_index_of(&messageHash, &Value::Str("candles".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&messageHash, &Value::Str("candles".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut splitHashes: Value = split(&messageHash, &Value::Str(":".to_string()));
                 let mut symbol: Value = self.safe_string(splitHashes.clone(), Value::Int(2), &[]);
-                let mut splitHashesLength: Value = Value::Int(splitHashes.len() as i64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
-                if splitHashesLength.as_f64().unwrap_or(f64::NAN) > Value::Int(4).as_f64().unwrap_or(f64::NAN) {
+                let mut splitHashesLength: f64 = ((splitHashes.len() as i64) as f64); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                if splitHashesLength > ((4i64) as f64) {
                     symbol = add(&symbol, &add(&Value::Str(":".to_string()), &self.safe_string(splitHashes.clone(), Value::Int(3), &[])));
                 }
                 if is_true(&(Value::Bool(symbol != Value::Null))) && is_true(&(Value::Bool(in_op(&self.ohlcvs, &symbol)))) {
                     remove(&mut self.ohlcvs, &symbol);
                 }
-            }  else if get_index_of(&messageHash, &Value::Str("orderbook".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&messageHash, &Value::Str("orderbook".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:orderbook:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.orderbooks, &symbol))) {
                     remove(&mut self.orderbooks, &symbol);
                 }
-            }  else if get_index_of(&messageHash, &Value::Str("trades".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&messageHash, &Value::Str("trades".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:trades:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.trades, &symbol))) {
                     remove(&mut self.trades, &symbol);
                 }
-            }  else if get_index_of(&messageHash, &Value::Str("fundingRate".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            }  else if get_index_of(&messageHash, &Value::Str("fundingRate".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 let mut symbol: Value = replace_str(&messageHash, &Value::Str("unsubscribe:fundingRate:".to_string()), &Value::Str("".to_string()));
                 if is_true(&Value::Bool(in_op(&self.fundingRates, &symbol))) {
                     remove(&mut self.fundingRates, &symbol);
@@ -2656,7 +2656,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut msg: Value = self.safe_string_k(message.clone(), "msg", &[Value::Str("".to_string())]);
         if (msg.as_str() == Some("PONG")) {
             self.handle_pong(client.clone(), message.clone());
-        }  else if get_index_of(&msg, &Value::Str("@".to_string())).as_f64().unwrap_or(f64::NAN) > Value::Int(-1).as_f64().unwrap_or(f64::NAN) {
+        }  else if get_index_of(&msg, &Value::Str("@".to_string())).as_f64().unwrap_or(f64::NAN) > ((-1i64) as f64) {
             let mut parts: Value = split(&msg, &Value::Str("@".to_string()));
             let mut channel: Value = self.safe_string(parts.clone(), Value::Int(1), &[]);
             let mut methods: Value = Value::Map({

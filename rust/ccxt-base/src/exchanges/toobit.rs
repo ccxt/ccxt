@@ -1386,7 +1386,7 @@ impl ToobitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1089: bool = true;
-            while { if !__for_first_1089 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1089 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(coins.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1089 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1089 = false; i.as_f64().unwrap_or(f64::NAN) < ((coins.len() as i64) as f64) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut parsed: Value = self.parse_currency(coin.clone());
@@ -1412,7 +1412,7 @@ impl ToobitCore {
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1090: bool = true;
-            while { if !__for_first_1090 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1090 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(rawNetworks.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1090 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1090 = false; j.as_f64().unwrap_or(f64::NAN) < ((rawNetworks.len() as i64) as f64) } {
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut rawNetwork: Value = get_value(&rawNetworks, &j);
             let mut networkId: Value = self.safe_string_k(rawNetwork.clone(), "chainType", &[]);
@@ -1640,7 +1640,7 @@ impl ToobitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1091: bool = true;
-            while { if !__for_first_1091 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1091 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(all.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1091 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1091 = false; i.as_f64().unwrap_or(f64::NAN) < ((all.len() as i64) as f64) } {
             let mut market: Value = get_value(&all, &i);
             let mut market: Value = get_value(&all, &i);
             let mut parsed: Value = self.parse_market(market.clone());
@@ -2066,8 +2066,8 @@ impl ToobitCore {
             if (symbol != Value::Null) {
                 market = self.market(symbol.clone());
             }
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            if is_true(&(Value::Bool(length.as_f64() == Some(1.0)))) && is_true(&(Value::Bool(market != Value::Null))) {
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            if is_true(&(Value::Bool(length == 1.0))) && is_true(&(Value::Bool(market != Value::Null))) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
         }
@@ -2149,8 +2149,8 @@ impl ToobitCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            if (length.as_f64() == Some(1.0)) {
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            if (length == 1.0) {
                 let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -2205,8 +2205,8 @@ impl ToobitCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            if (length.as_f64() == Some(1.0)) {
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            if (length == 1.0) {
                 let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -2286,8 +2286,8 @@ impl ToobitCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            if (length.as_f64() == Some(1.0)) {
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            if (length == 1.0) {
                 let mut market: Value = self.market(symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -2438,7 +2438,7 @@ impl ToobitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1093: bool = true;
-            while { if !__for_first_1093 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(balances.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1093 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1093 = false; i.as_f64().unwrap_or(f64::NAN) < ((balances.len() as i64) as f64) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
@@ -3143,7 +3143,7 @@ impl ToobitCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1094: bool = true;
-            while { if !__for_first_1094 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1094 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(responseList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1094 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1094 = false; i.as_f64().unwrap_or(f64::NAN) < ((responseList.len() as i64) as f64) } {
             append_to_array(&mut ordersList, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), get_value(&responseList, &i));
@@ -3906,8 +3906,8 @@ impl ToobitCore {
         });
         let mut market: Value = Value::Null;
         if (symbols != Value::Null) {
-            let mut length: Value = Value::Int(symbols.len() as i64);
-            if length.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
+            let mut length: f64 = ((symbols.len() as i64) as f64);
+            if length > ((1i64) as f64) {
                 panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchPositions() only accepts an array with a single symbol or without symbols argument".to_string())))));
             }
             let mut firstSymbol: Value = self.safe_string(symbols.clone(), Value::Int(0), &[]);
@@ -3982,7 +3982,7 @@ impl ToobitCore {
         if (api.as_str() != Some("private")) {
             // Public endpoints
             if !isPost {
-                if Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+                if ((object_keys(&query).len() as i64) as f64) > ((0i64) as f64) {
                     url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode(query.clone(), &[])))));
                 }
             }

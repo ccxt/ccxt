@@ -903,7 +903,7 @@ impl ExtendedCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_658 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut item: Value = get_value(&input, &key);
@@ -1090,7 +1090,7 @@ impl ExtendedCore {
 })]);
         let mut marketId: Value = self.safe_string_k(market.clone(), "name", &[]);
         let mut baseId: Value = self.safe_string_k(market.clone(), "assetName", &[Value::Str("".to_string())]);
-        if get_index_of(&baseId, &Value::Str("SPOT".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+        if get_index_of(&baseId, &Value::Str("SPOT".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
             baseId = replace_str(&baseId, &Value::Str("SPOT".to_string()), &Value::Str("".to_string()));
         }
         let mut quoteId: Value = self.safe_string_k(market.clone(), "collateralAssetName", &[]);
@@ -1267,7 +1267,7 @@ impl ExtendedCore {
         //     }
         //
         let mut currencyId: Value = self.safe_string_k(currency.clone(), "symbol", &[]);
-        if is_true(&(Value::Bool(currencyId != Value::Null))) && is_true(&(get_index_of(&currencyId, &Value::Str("SPOT".to_string())).as_f64().unwrap_or(f64::NAN) >= Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool(currencyId != Value::Null))) && is_true(&(get_index_of(&currencyId, &Value::Str("SPOT".to_string())).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64))) {
             currencyId = replace_str(&currencyId, &Value::Str("SPOT".to_string()), &Value::Str("".to_string()));
         }
         let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1390,7 +1390,7 @@ impl ExtendedCore {
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_659: bool = true;
-                while { if !__for_first_659 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_659 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_659 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 append_to_array(&mut marketIds, market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -1424,7 +1424,7 @@ impl ExtendedCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_660: bool = true;
-            while { if !__for_first_660 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_660 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_660 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut marketData: Value = get_value(&data, &i);
             let mut marketData: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(marketData.clone(), "name", &[]);
@@ -2719,7 +2719,7 @@ impl ExtendedCore {
         if (chainId.as_str() != Some("STRK")) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only supports Starknet withdrawals with chainId STRK".to_string())))));
         }
-        if Value::Int(address.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(42).as_f64().unwrap_or(f64::NAN) {
+        if ((address.len() as i64) as f64) <= ((42i64) as f64) {
             panic!("{}", crate::exchange_errors::bad_request(Value::Str(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a Starknet address for STRK withdrawals, EVM withdrawals require the bridge quote flow".to_string())))));
         }
         let mut account: Value = self.fetch_extended_account(&[]).await;
@@ -3164,7 +3164,7 @@ impl ExtendedCore {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_669 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut fee: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4250,8 +4250,8 @@ impl ExtendedCore {
         });
         let mut hasOrderIds: bool = ids != Value::Null;
         if hasOrderIds {
-            let mut idsLength: Value = Value::Int(ids.len() as i64);
-            if idsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut idsLength: f64 = ((ids.len() as i64) as f64);
+            if idsLength > ((0i64) as f64) {
                 add_element_to_object(&mut request, &Value::Str("orderIds".to_string()), ids.clone());
             }
         }
@@ -4260,8 +4260,8 @@ impl ExtendedCore {
         }
         let mut hasClientOrderIds: bool = clientOrderIds != Value::Null;
         if (clientOrderIds != Value::Null) {
-            let mut clientOrderIdsLength: Value = Value::Int(clientOrderIds.len() as i64);
-            if clientOrderIdsLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
+            let mut clientOrderIdsLength: f64 = ((clientOrderIds.len() as i64) as f64);
+            if clientOrderIdsLength > ((0i64) as f64) {
                 add_element_to_object(&mut request, &Value::Str("externalOrderIds".to_string()), clientOrderIds.clone());
             }
         }
@@ -4325,7 +4325,7 @@ impl ExtendedCore {
         self.load_markets(&[]).await;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("countdownTime".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
+                m.insert("countdownTime".to_string(), (if is_true(&(timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) { self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })) } else { Value::Int(0) }));
             m
         });
         let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
@@ -4903,7 +4903,7 @@ impl ExtendedCore {
             }
         }
         url = Value::Str(format!("{}{}", add(&Value::Str(format!("{}{}", url, Value::Str("/api/".to_string()))), &version), endpoint));
-        if is_true(&(Value::Bool((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || queryPost))) && is_true(&(Value::Int(object_keys(&query).len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN))) {
+        if is_true(&(Value::Bool((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) || queryPost))) && is_true(&(((object_keys(&query).len() as i64) as f64) > ((0i64) as f64))) {
             url = Value::Str(format!("{}{}", url, Value::Str(format!("{}{}", Value::Str("?".to_string()), self.urlencode_with_array_repeat(query.clone())))));
         }
         return Value::Map({
