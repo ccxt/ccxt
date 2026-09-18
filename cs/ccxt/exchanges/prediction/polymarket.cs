@@ -829,8 +829,8 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 singleTagParams["tags"] = new List<object>() {getValue(requestedTags, ti)};
-                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
-                for (int ei = 0; isLessThan(ei, getArrayLength(tagEvents)); postFixIncrement(ref ei))
+                List<object> tagEvents = ((List<object>)ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams)));
+                for (int ei = 0; isLessThan(ei, tagEvents?.Count ?? 0); postFixIncrement(ref ei))
                 {
                     object rawEvent = getValue(tagEvents, ei);
                     string? eventId = this.safeString(rawEvent, "id");
@@ -1976,9 +1976,9 @@ public partial class polymarket : PredictionExchange
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
         parameters ??= new Dictionary<string, object>();
-        object trades = ccxt.BaseExchange.FromPredictionTradeList(await this.FetchMyTrades(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> trades = ((List<object>)ccxt.BaseExchange.FromPredictionTradeList(await this.FetchMyTrades(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters)));
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             IDictionary<string, object> info = this.safeDict(trade, "info", new Dictionary<string, object>() {});
@@ -2139,7 +2139,7 @@ public partial class polymarket : PredictionExchange
         List<object> positions = this.safeList(response, "data", new List<object>() {});
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        object parsed = this.parsePredictionPositions(positions);
+        List<object> parsed = this.parsePredictionPositions(positions);
         if (isEqual(outcomesLength, 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
@@ -2155,7 +2155,7 @@ public partial class polymarket : PredictionExchange
             wantedIds[(string)GetValue(outcomeObj, "outcomeId")] = true;
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
             object position = getValue(parsed, i);
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
@@ -2180,7 +2180,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<ccxt.PredictionPosition> FetchPosition(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(new List<object>() {outcome}, parameters));
+        List<object> positions = ((List<object>)ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(new List<object>() {outcome}, parameters)));
         return ccxt.BaseExchange.ToPredictionPosition(this.safeDict(positions, 0));
     }
 
@@ -2193,7 +2193,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         string? tokenId = this.safeString(position, "asset");
         IDictionary<string, object> marketData = this.safeOutcome(tokenId, market);
@@ -2205,7 +2205,7 @@ public partial class polymarket : PredictionExchange
         {
             notional = multiply(size, curPrice);
         }
-        return this.safePredictionPosition(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", this.safeString(position, "id") },
             { "outcome", this.safeString(marketData, "outcome") },
             { "outcomeId", this.safeString(marketData, "outcomeId") },
@@ -2235,7 +2235,7 @@ public partial class polymarket : PredictionExchange
             { "marginType", "cross" },
             { "percentage", null },
             { "info", position },
-        });
+        }))));
     }
 
     /**
@@ -3372,7 +3372,7 @@ public partial class polymarket : PredictionExchange
                 string? secret = this.safeString(this.options, "l2Secret", this.secret);
                 string? passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                object address = (!isEqual(this.privateKey, null)) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                string? address = (!isEqual(this.privateKey, null)) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
                 string timestamp = this.seconds().ToString();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
@@ -3589,9 +3589,9 @@ public partial class polymarket : PredictionExchange
             }
             return;
         }
-        object apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
-        object passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
+        string? apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+        string? secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         bool hasL2 = ((apiKey != null)) && ((secret != null)) && ((passphrase != null));
         if (hasL2)
         {
@@ -3969,9 +3969,9 @@ public partial class polymarket : PredictionExchange
     {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         parameters ??= new Dictionary<string, object>();
-        object apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
-        object passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
+        string? apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+        string? secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "apiKey", apiKey },
             { "secret", secret },

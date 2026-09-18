@@ -320,7 +320,7 @@ public partial class hyperliquid : PredictionExchange
                     Int64? index = this.parseToInt(indexStr);
                     if (isGreaterThan(thresholdsLength, 0) && !isEqual(index, null))
                     {
-                        object bucketLabel = null;
+                        string? bucketLabel = null;
                         if (isLessThanOrEqual(index, 0))
                         {
                             bucketLabel = add("BELOW_", getValue(thresholds, 0));
@@ -470,7 +470,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
             Int64? outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
             IDictionary<string, object> linkedQuestion = this.safeDict(outcomesToQuestions, ((object)outcomeId).ToString(), new Dictionary<string, object>() {});
-            object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            Dictionary<string, object> market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
             ((IList<object>)markets).Add(market);
             // Build outcomes dictionary from market outcomes
             List<object> marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
@@ -502,7 +502,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual object parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, object question = null)
+    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, object question = null)
     {
         question ??= new Dictionary<string, object>();
         string? description = this.safeString(outcomeInfo, "description", "");
@@ -643,7 +643,7 @@ public partial class hyperliquid : PredictionExchange
         });
         // omit the deprecated 'symbol' key the safeMarketStructure template injects —
         // prediction market rows carry only the unified 'market' handle
-        return this.omit(marketRow, "symbol");
+        return ((Dictionary<string, object>)((object)(this.omit(marketRow, "symbol"))));
     }
 
     /**
@@ -829,7 +829,7 @@ public partial class hyperliquid : PredictionExchange
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         string? parentSymbol = this.safeString(mkt, "market");
         Dictionary<string, object> parentMarket = ((parentSymbol != null)) ? this.safeMarket(parentSymbol) : null;
-        object ctx = ((parentMarket != null)) ? this.safeDict(this.safeDict(parentMarket, "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        IDictionary<string, object> ctx = ((parentMarket != null)) ? this.safeDict(this.safeDict(parentMarket, "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         double? dayVolume = this.safeNumber(ctx, "dayNtlVlm");
         return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
@@ -1164,7 +1164,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
@@ -1190,7 +1190,7 @@ public partial class hyperliquid : PredictionExchange
                 unrealizedPnl = this.parseNumber(Precise.stringSub(notionalStr, entryNtlStr));
             }
         }
-        return this.safePredictionPosition(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safePredictionPosition(new Dictionary<string, object>() {
             { "id", null },
             { "outcome", this.safeString(outcomeObj, "outcome") },
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
@@ -1218,7 +1218,7 @@ public partial class hyperliquid : PredictionExchange
             { "marginMode", "cross" },
             { "percentage", null },
             { "info", position },
-        });
+        }))));
     }
 
     public virtual IDictionary<string, object> findOutcomeInMarket(object market, object sideHint = null)
@@ -1331,7 +1331,7 @@ public partial class hyperliquid : PredictionExchange
         {
             Dictionary<string, object> market = this.safeMarket(outcomeInput);
             string? sideHintOrDefault = ((sideHint != null)) ? sideHint : "YES";
-            object found = this.findOutcomeInMarket(market, sideHintOrDefault);
+            IDictionary<string, object> found = this.findOutcomeInMarket(market, sideHintOrDefault);
             if ((new List<object>(((IDictionary<string,object>)found).Keys)).Count > 0)
             {
                 return ((IDictionary<string, object>)((object)(found)));
@@ -1501,7 +1501,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},((string)outcome), parameters));
+        List<object> orders = ((List<object>)ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},((string)outcome), parameters)));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
 

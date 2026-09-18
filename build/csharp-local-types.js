@@ -894,6 +894,22 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     // sites pass `this.balance` (a ccxt.pro.CustomConcurrentDictionary, NOT a Dictionary), so a
     // Dictionary spelling would throw/null those boxes.
     'parseOutcomeDescription': 'Dictionary<string, object>', 'parsePublicDepositWithdrawFees': 'Dictionary<string, object>', 'parseSettlement': 'Dictionary<string, object>', 'parseSpotMarket': 'Dictionary<string, object>',
+    // the prediction sweep's own helper names (cs/ccxt/base/PredictionExchange.cs and the seven
+    // venue files — no other tree declares any of them; census: 0 hits in cs/ccxt/exchanges/*.cs
+    // and cs/ccxt/exchanges/pro/*.cs). Return-path proofs, read from those declarations:
+    //   parsePredictionPositions  one return, the `List<object> results` local it fills
+    //   safePredictionPosition    one return, the fresh `Dictionary` result literal it builds
+    //   parsePredictionPosition   base throws NotSupported; all 7 overrides return
+    //                             this.safePredictionPosition ({...}) or a dict literal (limitless)
+    //   parseMyriadMarket / parseTopicMarket  single return of a dict literal
+    //   parseOutcomeMarket        single return, this.omit (<Dictionary local>, "symbol")
+    //   getOutcomeBySlugAndLabel  the `IDictionary<string, object> outcome` local (this.safeDict
+    //                             result) or null
+    //   opinionOutcomeByMarketIdSide  this.safeDict (outcomes, index) or null
+    //   getPositionFromClobEntry  null or this.safePredictionPosition (parsed)
+    'parsePredictionPositions': 'List<object>', 'parsePredictionPosition': 'Dictionary<string, object>', 'safePredictionPosition': 'Dictionary<string, object>',
+    'parseMyriadMarket': 'Dictionary<string, object>', 'parseTopicMarket': 'Dictionary<string, object>', 'parseOutcomeMarket': 'Dictionary<string, object>',
+    'getOutcomeBySlugAndLabel': 'IDictionary<string, object>', 'opinionOutcomeByMarketIdSide': 'IDictionary<string, object>', 'getPositionFromClobEntry': 'Dictionary<string, object>',
     // prediction tier only (no other tree declares the name): every one of the 7
     // declarations (binance, hyperliquid, kalshi, limitless, myriad, opinion, polymarket)
     // has a single return path — a fresh `{...}` object literal in binance, `this.extend
@@ -1916,6 +1932,141 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
 const CSHARP_API_METHOD = /^\s*public async Task<(.+)> (\w+) \(object parameters = null\)/;
 const CSHARP_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'api');
 const awaitedApiTables = new Map ();
+
+// ===== U44: prediction-tier shard =====
+// (1) the typed-core funnel in the prediction tree: build/csharpTranspiler.ts#wrapTypedCoreConsumers
+// rewrites every `await this.<core>(...)` whose core declares a struct return into
+// `ccxt.BaseExchange.From<Family>(await this.<Core>(...))`. The helper's object overload
+// (Exchange.TypedCores.cs / Exchange.TranspileHelpers.cs) hands the argument back unchanged on a
+// non-matching arm and builds the box below on the matching one — and the funnel wraps only the
+// cores whose C# return type IS that argument type, so the box is what the call returns at runtime:
+//   FromDict                  -> the typed `Dictionary<string, object> FromDict(Dictionary<string, object>)`
+//                                overload in Exchange.TranspileHelpers.cs (no cast: the call's own
+//                                C# type already is the box)
+//   FromDictList              -> List<object> (arm `values is List<Dictionary<string, object>>` ->
+//                                `new List<object>(typed)`)
+//   FromTradeList / FromPredictionTradeList / FromPredictionOrderList / FromPredictionEventList /
+//   FromPredictionPositionList -> List<object> (arm `values is List<T>` -> a fresh List<object>)
+//   FromPredictionOrder / FromPredictionEvent / FromPredictionOrderBook / FromPredictionPosition
+//                             -> Dictionary<string, object> (arm `value is T` -> a fresh dict)
+// A null argument matches no arm and comes back null, which every one of these boxes holds.
+// The funnel line itself is read from the generated prediction file on disk — the same file the
+// C# compiler compiles — exactly as awaitedApiReturnTypes reads the implicit-api wrappers, so the
+// declaration can only name a helper the pass really emitted for this site.
+const CSHARP_PREDICTION_FUNNEL_BOXES = {
+    'FromDict': { type: 'Dictionary<string, object>', cast: undefined },
+    'FromDictList': { type: 'List<object>', cast: 'List<object>' },
+    'FromTradeList': { type: 'List<object>', cast: 'List<object>' },
+    'FromPredictionTradeList': { type: 'List<object>', cast: 'List<object>' },
+    'FromPredictionOrderList': { type: 'List<object>', cast: 'List<object>' },
+    'FromPredictionEventList': { type: 'List<object>', cast: 'List<object>' },
+    'FromPredictionPositionList': { type: 'List<object>', cast: 'List<object>' },
+    'FromPredictionOrder': { type: 'Dictionary<string, object>', cast: 'Dictionary<string, object>' },
+    'FromPredictionEvent': { type: 'Dictionary<string, object>', cast: 'Dictionary<string, object>' },
+    'FromPredictionOrderBook': { type: 'Dictionary<string, object>', cast: 'Dictionary<string, object>' },
+    'FromPredictionPosition': { type: 'Dictionary<string, object>', cast: 'Dictionary<string, object>' },
+};
+const CSHARP_PREDICTION_EXCHANGE_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'cs', 'ccxt', 'exchanges', 'prediction');
+const predictionFunnelFileCache = new Map ();
+function predictionFunnelFileContent (node) {
+    const match = /[\\/]prediction[\\/]([A-Za-z0-9_]+)\.ts$/.exec (node.getSourceFile?.()?.fileName ?? '');
+    if (match === null) {
+        return undefined;
+    }
+    if (!predictionFunnelFileCache.has (match[1])) {
+        let content;
+        try {
+            content = fs.readFileSync (path.join (CSHARP_PREDICTION_EXCHANGE_FOLDER, match[1] + '.cs'), 'utf8');
+        } catch (e) {
+            content = undefined; // a checkout without the generated tree is never fatal
+        }
+        predictionFunnelFileCache.set (match[1], content);
+    }
+    return predictionFunnelFileCache.get (match[1]);
+}
+
+function predictionFunnelCallType (csharp, declaration) {
+    if (!isPredictionSource (declaration) || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const initializer = declaration.initializer;
+    if (initializer?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = initializer.expression;
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const core = callee.name?.escapedText;
+    if (core === undefined) {
+        return undefined;
+    }
+    const content = predictionFunnelFileContent (declaration);
+    if (content === undefined) {
+        return undefined;
+    }
+    // the emitted call site is pascalized, the AST holds the TS name: match the core
+    // case-insensitively, the helper and the local name exactly
+    // the declaration may already carry the cast this rule emits (a second run reads its own
+    // output), so the cast is optional: the helper and the core decide, not the prefix
+    const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + declaration.name.escapedText + ' = (?:\\(\\([A-Za-z][\\w<>,.? ]*\\))?ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
+    for (const text of content.split ('\n')) {
+        const match = line.exec (text);
+        if (match !== null) {
+            return CSHARP_PREDICTION_FUNNEL_BOXES[match[1]];
+        }
+    }
+    return undefined;
+}
+
+// (2) base-property string reads: Exchange.Options.cs declares apiKey / secret / password /
+// walletAddress / privateKey as `public string <name> { get; set; }`, so a read of one of them has
+// the C# static type `string` (null while unset) — a declaration initialised from that read, or
+// from an arm of a conditional that reads it, holds that string or null. Prediction tier only:
+// the same names are read in the crypto tree, where the local families belong to the REST units.
+const CSHARP_PREDICTION_STRING_MEMBERS = new Set ([ 'apiKey', 'secret', 'password', 'walletAddress', 'privateKey' ]);
+
+function predictionMemberStringRead (declaration) {
+    if (!isPredictionSource (declaration)) {
+        return undefined;
+    }
+    const read = declaration.initializer;
+    if (read?.kind !== ts.SyntaxKind.PropertyAccessExpression || read.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    return CSHARP_PREDICTION_STRING_MEMBERS.has (read.name?.escapedText) ? 'string?' : undefined;
+}
+
+// (3) a prediction-tier local fed by a venue helper whose DECLARATION this module already
+// retypes: CSHARP_STRING_RETURN_METHODS / CSHARP_COLLECTION_RETURN_METHODS /
+// CSHARP_WS_ROW_BUILDER_RETURNS / CSHARP_NUMERIC_RETURN_TYPES / CSHARP_METHOD_RETURN_TYPES all
+// drive installCsharp*Returns, which rewrites the printed signature to the table's box — so the
+// call's own C# static type is that box and the declaration names it without a cast. Only the
+// string-valued rows are consulted (the per-declaration maps hold objects). Scoped to the
+// prediction tier: the REST and pro trees' local families belong to the units that landed those
+// tables, and an ungated fallback would retype their locals too.
+// the tables are declared further down the module, so the list is built on first use
+function predictionRetypedCallTables () {
+    return [ CSHARP_STRING_RETURN_METHODS, CSHARP_COLLECTION_RETURN_METHODS, CSHARP_WS_ROW_BUILDER_RETURNS, CSHARP_NUMERIC_RETURN_TYPES, CSHARP_METHOD_RETURN_TYPES ];
+}
+
+function predictionRetypedCallType (initializer) {
+    if (!isPredictionSource (initializer) || initializer?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const methodName = callee.name?.escapedText;
+    for (const table of predictionRetypedCallTables ()) {
+        if (Object.prototype.hasOwnProperty.call (table, methodName) && typeof table[methodName] === 'string') {
+            return table[methodName];
+        }
+    }
+    return undefined;
+}
 
 function isPredictionSource (node) {
     const fileName = node.getSourceFile?.()?.fileName ?? '';
@@ -3432,9 +3583,6 @@ function callReturnType (csharp, initializer) {
                 return read;
             }
         }
-        if (CSHARP_PREDICTION_OWNED_RETURNS.has (methodName) && isPredictionSource (initializer)) {
-            return undefined; // the prediction tree owns this family
-        }
         // a per-declaration request builder: the local's type must equal the return type the
         // declaration being called prints, so both sides read the same return-path proof
         const perDeclaration = CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION[methodName];
@@ -3452,7 +3600,14 @@ function callReturnType (csharp, initializer) {
         if (methodName === 'safeIntegerProductN') {
             return (initializer.arguments?.length === 3) ? 'Int64?' : undefined;
         }
-        return CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
+        const localType = CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
+        if (localType !== undefined) {
+            return localType;
+        }
+        // a prediction-tier local fed by a venue helper whose DECLARATION this module already
+        // retypes (installCsharp*Returns): the call's own C# static type IS the table's box, so
+        // the declaration names it with no cast (see predictionRetypedCallType)
+        return predictionRetypedCallType (initializer);
     }
     if (target?.kind === ts.SyntaxKind.Identifier) {
         const staticType = CSHARP_LOCAL_STATIC_RETURN_TYPES[target.escapedText + '.' + methodName];
@@ -3466,9 +3621,6 @@ function callReturnType (csharp, initializer) {
         // Object.prototype.toString).
         // only a helper name chases the checker (one receiver proof per call site)
         if (Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, methodName) && receiverIsExchange (csharp, target)) {
-            if (CSHARP_PREDICTION_OWNED_RETURNS.has (methodName) && isPredictionSource (initializer)) {
-                return undefined; // the prediction tree owns this family
-            }
             return CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
         }
     }
@@ -3706,7 +3858,9 @@ export function csharpTypeOfValue (csharp, node, context) {
         // `c ? a : b` prints `((bool) isTrue(c)) ? A : B`; typeable when both arms agree
         const whenTrue = conditionalArmType (csharp, node.whenTrue, context);
         const whenFalse = conditionalArmType (csharp, node.whenFalse, context);
-        return unifyArms (whenTrue, whenFalse, !isPredictionTierSource (node));
+        // the Dictionary/IDictionary arm pair has the interface as its natural C# type in every
+        // tier: the conditional's own type is the interface, so the declaration names it
+        return unifyArms (whenTrue, whenFalse, true);
     }
     case ts.SyntaxKind.BinaryExpression: {
         // `a + b` prints `add(a, b)`; with `a` statically a non-null string the call
@@ -3802,7 +3956,13 @@ function thisMemberArmType (node) {
     if (node?.kind !== ts.SyntaxKind.PropertyAccessExpression || node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
     }
-    return CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES[node.name?.escapedText];
+    const name = node.name?.escapedText;
+    const known = CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES[name];
+    if (known !== undefined) {
+        return known;
+    }
+    // the prediction tier's `string` credential properties (see CSHARP_PREDICTION_STRING_MEMBERS)
+    return (isPredictionSource (node) && CSHARP_PREDICTION_STRING_MEMBERS.has (name)) ? 'string?' : undefined;
 }
 
 // an arm of `c ? a : b`: the value's own proven type, a base-property read (thisMemberArmType),
@@ -3817,12 +3977,11 @@ function conditionalArmType (csharp, node, context) {
     while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
         arm = arm.expression;
     }
-    // the `this.<member>` rule is keyed to a non-prediction source (see isPredictionTierSource)
-    if (!isPredictionTierSource (node)) {
-        const memberType = thisMemberArmType (arm);
-        if (memberType !== undefined) {
-            return memberType;
-        }
+    // the `this.<member>` rule applies to every tier: a read of a base property with a concrete
+    // C# declared type has that static type at the arm, prediction tier included
+    const memberType = thisMemberArmType (arm);
+    if (memberType !== undefined) {
+        return memberType;
     }
     if (arm?.kind !== ts.SyntaxKind.Identifier) {
         return undefined;
@@ -5654,7 +5813,13 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     // family joins; consulted for a collection annotation or a union the table cannot name
     // (the writes then decide the box); a scalar annotation keeps the printer's `object`
     const noInitAnnotation = annotationType (declaration);
-    if (declaration.initializer === undefined && !(declaration.type !== undefined
+    // a PREDICTION-tier `let x: Num;` / `: Str;` / `: Int;` / `: Bool;` (no initialiser) prints
+    // `object x = null;`: the annotation names the box the later writes all store, and the retype
+    // scan below still rejects a write that box cannot hold (see the scalar-annotation arm in
+    // csharpLocalTypeOf). The crypto/pro trees keep the printer's `object` — their null-declared
+    // families belong to the units that own those tiers.
+    const noInitScalar = noInitAnnotation !== undefined && !COLLECTION_LOCAL_TYPES.includes (noInitAnnotation) && isPredictionSource (declaration);
+    if (declaration.initializer === undefined && !noInitScalar && !(declaration.type !== undefined
             && (noInitAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitAnnotation)))) {
         return undefined;
     }
@@ -5679,6 +5844,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // `this.safeValue (recv, 'key')` with a same-file dict / list twin: the box the file
     // itself proves (see the family comment); the use-shape veto runs after the retype scan
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
+    // the prediction-tier funnel call (predictionFunnelCallType): the box its bound overload
+    // returns; the later-write join and the retype scan below then apply as for any candidate
+    const funnelType = (csharpType === undefined) ? predictionFunnelCallType (csharp, declaration) : undefined;
     let safeValueTwinShape;
     if (csharpType === undefined) {
         // `this.sum (a, b)` over the operand family its hand-written helper boxes as Int64:
@@ -5694,7 +5862,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         // is `object`, so the declaration needs the cast the printer does not emit by itself.
         // Nullable when the box is a string (it is null off the end of the list).
         const elementType = (integerBox === undefined) ? elementAccessElementType (csharp, declaration.initializer, ctx) : undefined;
-        if (modTwin !== undefined) {
+        if (funnelType !== undefined) {
+            csharpType = funnelType.type;
+            cast = funnelType.cast;
+        } else if (modTwin !== undefined) {
             csharpType = modTwin;
         } else if (integerBox !== undefined) {
             csharpType = integerBox;
@@ -5713,6 +5884,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // null-exact unboxing Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
+        } else if (predictionMemberStringRead (declaration) !== undefined) {
+            // `const apiKey = this.apiKey`: the hand-written property is a `string`, so the box
+            // is that string or null (no cast: the property's own C# type IS `string`)
+            csharpType = 'string?';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above
@@ -5789,7 +5964,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // the join's starting type) is then resolved by the null-declared join below
     const noInitGateAnnotation = annotationType (declaration);
     if (csharpType === undefined && declaration.initializer === undefined && declaration.type !== undefined
-            && (noInitGateAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitGateAnnotation))) {
+            && (noInitGateAnnotation === undefined || COLLECTION_LOCAL_TYPES.includes (noInitGateAnnotation)
+                || (isPredictionSource (declaration) && noInitGateAnnotation !== undefined))) {
+        // the prediction tier's scalar annotations reach the same join (see the guard above)
         csharpType = 'null';
     }
     // a safeString* call with a proven non-null string default is a proven non-null string
@@ -5858,7 +6035,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     // `object x = this.safeString (obj, key, <default>)`: the proven non-null string default
     // (nonNullStringDefaultCall) lets the scan accept the non-null spelling with its identity
     // `(string)` cast — retried only after `string?` was rejected, never in the prediction tree
-    if (!safe && csharpType === 'string?' && !predictionTreeSource (declaration.initializer) && nonNullStringDefaultCall (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
+    if (!safe && csharpType === 'string?' && nonNullStringDefaultCall (csharp, declaration.initializer, ctx) && csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, 'string', ctx)) {
         csharpType = 'string';
         cast = 'string';
         safe = true;
