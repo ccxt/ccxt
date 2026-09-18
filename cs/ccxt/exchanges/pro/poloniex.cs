@@ -153,10 +153,10 @@ public partial class poloniex : ccxt.poloniex
             { "event", "subscribe" },
             { "channel", new List<object>() {name} },
         };
-        object marketIds = new List<object>() {};
+        IList<object> marketIds = new List<object>() {};
         if (isTrue(this.isEmpty(symbols)))
         {
-            ((IList<object>)marketIds).Add("all");
+            marketIds.Add("all");
         } else
         {
             if (isEqual(symbols, null))
@@ -246,16 +246,16 @@ public partial class poloniex : ccxt.poloniex
         if ((uppercaseType == "MARKET") && (uppercaseSide == "BUY"))
         {
             string? quoteAmount = null;
-            object createMarketBuyOrderRequiresPrice = true;
+            bool? createMarketBuyOrderRequiresPrice = true;
             IList<object> createMarketBuyOrderRequiresPriceparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
-            createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparametersVariable[0];
+            createMarketBuyOrderRequiresPrice = (bool?)createMarketBuyOrderRequiresPriceparametersVariable[0];
             parameters = createMarketBuyOrderRequiresPriceparametersVariable[1];
             double? cost = this.safeNumber(parameters, "cost");
             parameters = this.omit(parameters, "cost");
-            if (!isEqual(cost, null))
+            if ((cost != null))
             {
                 quoteAmount = this.costToPrecision(symbol, cost);
-            } else if (isTrue(createMarketBuyOrderRequiresPrice))
+            } else if (createMarketBuyOrderRequiresPrice == true)
             {
                 if (isEqual(price, null))
                 {
@@ -302,10 +302,10 @@ public partial class poloniex : ccxt.poloniex
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if ((clientOrderId != null))
         {
-            object clientOrderIds = this.safeValue(parameters, "clientOrderId", new List<object>() {});
+            List<object> clientOrderIds = this.safeList(parameters, "clientOrderId", new List<object>() {});
             ((IDictionary<string,object>)parameters)["clientOrderIds"] = this.arrayConcat(clientOrderIds, new List<object>() {clientOrderId});
         }
-        object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id}, symbol, parameters));
         IDictionary<string, object> order = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(order);
     }
@@ -375,7 +375,7 @@ public partial class poloniex : ccxt.poloniex
         {
             object order = data[i];
             Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-            ((IList<object>)orders).Add(parsedOrder);
+            orders.Add(parsedOrder);
         }
         callDynamically(client, "resolve", new object[] {orders, messageHash});
     }
@@ -394,8 +394,8 @@ public partial class poloniex : ccxt.poloniex
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
-        object limitVar = limit;
+        string timeframeVar = timeframe;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -411,7 +411,7 @@ public partial class poloniex : ccxt.poloniex
         object ohlcv = await this.subscribe(channel, channel, false, new List<object>() {symbol}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -434,7 +434,7 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbolVar}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeValue(tickers, symbolVar));
     }
 
@@ -494,7 +494,7 @@ public partial class poloniex : ccxt.poloniex
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -515,15 +515,15 @@ public partial class poloniex : ccxt.poloniex
         {
             for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(((name + "::") + getValue(symbols, i)));
+                messageHashes.Add(((name + "::") + getValue(symbols, i)));
             }
         }
         object trades = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            object first = this.safeValue(trades, 0);
+            IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -550,7 +550,7 @@ public partial class poloniex : ccxt.poloniex
         IList<object> nameparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
         name = nameparametersVariable[0];
         parameters = nameparametersVariable[1];
-        object orderbook = await this.subscribe(name, name, false, new List<object>() {symbol}, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, name, false, new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -568,7 +568,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -584,7 +584,7 @@ public partial class poloniex : ccxt.poloniex
         object orders = await this.subscribe(name, name, true, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
@@ -603,7 +603,7 @@ public partial class poloniex : ccxt.poloniex
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -620,7 +620,7 @@ public partial class poloniex : ccxt.poloniex
         object trades = await this.subscribe(name, messageHash, true, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -665,7 +665,7 @@ public partial class poloniex : ccxt.poloniex
         return new List<object> {this.safeInteger(ohlcv, "startTime"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "quantity")};
     }
 
-    public virtual object handleOHLCV(WebSocketClient client, object message)
+    public virtual object handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -716,7 +716,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public virtual object handleTrade(WebSocketClient client, object message)
+    public virtual object handleTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -743,7 +743,7 @@ public partial class poloniex : ccxt.poloniex
             if ((marketId != null))
             {
                 Dictionary<string, object> trade = this.parseWsTrade(item);
-                object symbol = GetValue(trade, "symbol");
+                string? symbol = ((string)GetValue(trade, "symbol"));
                 string type = "trades";
                 string messageHash = ((type + "::") + symbol);
                 object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
@@ -898,7 +898,7 @@ public partial class poloniex : ccxt.poloniex
         }, market);
     }
 
-    public virtual object handleOrder(WebSocketClient client, object message)
+    public virtual object handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // Order is created
@@ -969,7 +969,7 @@ public partial class poloniex : ccxt.poloniex
                         // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
                         callDynamically(orders, "append", new object[] {parsedOrder});
-                        ((IList<object>)marketIds).Add(marketId);
+                        marketIds.Add(marketId);
                         continue;
                     }
                     if (isEqual(getValue(previousOrder, "trades"), null))
@@ -1026,7 +1026,7 @@ public partial class poloniex : ccxt.poloniex
                     // update the newUpdates count
                     callDynamically(orders, "append", new object[] {previousOrder});
                 }
-                ((IList<object>)marketIds).Add(marketId);
+                marketIds.Add(marketId);
             }
         }
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
@@ -1082,7 +1082,7 @@ public partial class poloniex : ccxt.poloniex
         {
             trades = new List<object>() {};
             Dictionary<string, object> trade = this.parseWsOrderTrade(order);
-            ((IList<object>)trades).Add(trade);
+            trades.Add(trade);
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
@@ -1114,7 +1114,7 @@ public partial class poloniex : ccxt.poloniex
         });
     }
 
-    public virtual object handleTicker(WebSocketClient client, object message)
+    public virtual object handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1147,7 +1147,7 @@ public partial class poloniex : ccxt.poloniex
             if ((marketId != null))
             {
                 Dictionary<string, object> ticker = this.parseTicker(item);
-                object symbol = GetValue(ticker, "symbol");
+                string? symbol = ((string)GetValue(ticker, "symbol"));
                 if ((symbol != null))
                 {
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -1165,7 +1165,7 @@ public partial class poloniex : ccxt.poloniex
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
+            Dictionary<string, object> tickers = ((Dictionary<string, object>)this.filterByArray(newTickers, "symbol", symbols));
             if (!isTrue(this.isEmpty(tickers)))
             {
                 callDynamically(client, "resolve", new object[] {tickers, messageHash});
@@ -1175,7 +1175,7 @@ public partial class poloniex : ccxt.poloniex
         return message;
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // snapshot
@@ -1270,15 +1270,15 @@ public partial class poloniex : ccxt.poloniex
                         (asksSide as IOrderBookSide).store(price, amount);
                     }
                 }
-                ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
-                ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-                ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+                orderbook["symbol"] = symbol;
+                orderbook["timestamp"] = timestamp;
+                orderbook["datetime"] = this.iso8601(timestamp);
                 callDynamically(client, "resolve", new object[] {orderbook, messageHash});
             }
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1343,10 +1343,10 @@ public partial class poloniex : ccxt.poloniex
                 result[(string)code] = newAccount;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, object parsedTrade)
+    public virtual void handleMyTrades(WebSocketClient client, IDictionary<string, object> parsedTrade)
     {
         // emulated using the orders' stream
         string messageHash = "myTrades";

@@ -89,9 +89,9 @@ public partial class coinex : ccxt.coinex
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.options["requestId"] = requestId;
         this.unlockId();
-        return ((Int64)((object)(requestId))!);
+        return requestId;
     }
 
     public virtual void handleTicker(WebSocketClient client, Dictionary<string, object> message)
@@ -172,7 +172,7 @@ public partial class coinex : ccxt.coinex
             List<object> parts = messageHash.Split(new [] {"::"}, StringSplitOptions.None).ToList<object>();
             string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = symbolsString.Split(new [] {","}, StringSplitOptions.None).ToList<object>();
-            object tickers = this.filterByArray(newTickers, "symbol", symbols);
+            Dictionary<string, object> tickers = ((Dictionary<string, object>)this.filterByArray(newTickers, "symbol", symbols));
             List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
             int numTickers = tickersSymbols.Count;
             if (isGreaterThan(numTickers, 0))
@@ -275,7 +275,7 @@ public partial class coinex : ccxt.coinex
         // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
         List<object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
         Dictionary<string, object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
-        List<object> currencies = new List<object>(activeCurrenciesById.Keys);
+        List<object> currencies = new List<object>(((IDictionary<string,object>)activeCurrenciesById).Keys);
         if ((currencies == null))
         {
             currencies = new List<object>() {};
@@ -349,7 +349,7 @@ public partial class coinex : ccxt.coinex
         object firstEntry = getValue(balances, 0);
         Int64? updated = this.safeInteger(firstEntry, "updated_at");
         string? unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
-        bool isSpot = (!isEqual(updated, null));
+        bool isSpot = ((updated != null));
         bool isSwap = ((unrealizedPnl != null));
         List<object> info = null;
         string? account = null;
@@ -454,8 +454,8 @@ public partial class coinex : ccxt.coinex
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object limitVar = limit;
+        string symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -465,7 +465,7 @@ public partial class coinex : ccxt.coinex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
@@ -478,7 +478,7 @@ public partial class coinex : ccxt.coinex
         if ((market != null))
         {
             messageHash = add(messageHash, (":" + symbolVar));
-            ((IList<object>)subscribedSymbols).Add(GetValue(market, "id"));
+            subscribedSymbols.Add(GetValue(market, "id"));
         } else
         {
             if (type == "spot")
@@ -500,7 +500,7 @@ public partial class coinex : ccxt.coinex
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolVar, since, limitVar, true));
     }
@@ -534,7 +534,7 @@ public partial class coinex : ccxt.coinex
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = ("myTrades:" + symbol);
         string messageWithType = ("myTrades:" + GetValue(market, "type"));
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -597,7 +597,7 @@ public partial class coinex : ccxt.coinex
         Dictionary<string, object> market = this.safeMarket(marketId, null, null, defaultType);
         string? symbol = ((string)GetValue(market, "symbol"));
         string messageHash = ("trades:" + symbol);
-        object stored = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -703,7 +703,7 @@ public partial class coinex : ccxt.coinex
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickers(await this.WatchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(getValue(tickers, GetValue(market, "symbol")));
     }
 
@@ -734,12 +734,12 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(("tickers::" + GetValue(market, "symbol")));
+                messageHashes.Add(("tickers::" + GetValue(market, "symbol")));
             }
         } else
         {
             marketIds = new List<object>() {};
-            ((IList<object>)messageHashes).Add("tickers");
+            messageHashes.Add("tickers");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchTickers", market, parameters);
@@ -814,12 +814,12 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)subscribedSymbols).Add(GetValue(market, "id"));
-                ((IList<object>)messageHashes).Add(("trades:" + GetValue(market, "symbol")));
+                subscribedSymbols.Add(GetValue(market, "id"));
+                messageHashes.Add(("trades:" + GetValue(market, "symbol")));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add("trades");
+            messageHashes.Add("trades");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, parameters);
@@ -896,13 +896,13 @@ public partial class coinex : ccxt.coinex
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
-            ((IList<object>)messageHashes).Add(("orderbook:" + GetValue(market, "symbol")));
+            messageHashes.Add(("orderbook:" + GetValue(market, "symbol")));
             watchOrderBookSubscriptions[(string)symbol] = new List<object>() {GetValue(market, "id"), limitVar, aggregation, true};
         }
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams(callerMethodName, market, parameters);
         type = (string)typeparametersVariable[0];
         parameters = typeparametersVariable[1];
-        List<object> marketList = new List<object>(watchOrderBookSubscriptions.Values);
+        List<object> marketList = new List<object>(((IDictionary<string,object>)watchOrderBookSubscriptions).Values);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "depth.subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -1010,9 +1010,9 @@ public partial class coinex : ccxt.coinex
             List<object> bids = this.safeList(depth, "bids", new List<object>() {});
             this.handleDeltas(getValue(currentOrderBook, "asks"), asks);
             this.handleDeltas(getValue(currentOrderBook, "bids"), bids);
-            ((IDictionary<string,object>)currentOrderBook)["nonce"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)currentOrderBook)["datetime"] = this.iso8601(timestamp);
+            currentOrderBook["nonce"] = timestamp;
+            currentOrderBook["timestamp"] = timestamp;
+            currentOrderBook["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = currentOrderBook;
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
@@ -1034,8 +1034,8 @@ public partial class coinex : ccxt.coinex
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object limitVar = limit;
+        string symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1049,7 +1049,7 @@ public partial class coinex : ccxt.coinex
         if (!isEqual(symbolVar, null))
         {
             market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
@@ -1091,7 +1091,7 @@ public partial class coinex : ccxt.coinex
         object orders = await this.watch(url, messageHash, request, messageHash, request);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1219,7 +1219,7 @@ public partial class coinex : ccxt.coinex
             { "status", this.safeString(data, "event") },
         }, this.safeDict2(data, "order", "stop", new Dictionary<string, object>() {}));
         Dictionary<string, object> parsedOrder = this.parseWsOrder(order);
-        object symbol = GetValue(parsedOrder, "symbol");
+        string? symbol = ((string)GetValue(parsedOrder, "symbol"));
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(this.orders, null))
         {
@@ -1408,11 +1408,11 @@ public partial class coinex : ccxt.coinex
             {
                 object symbol = getValue(symbols, i);
                 market = this.market(symbol);
-                ((IList<object>)messageHashes).Add(("bidsasks:" + GetValue(market, "symbol")));
+                messageHashes.Add(("bidsasks:" + GetValue(market, "symbol")));
             }
         } else
         {
-            ((IList<object>)messageHashes).Add("bidsasks");
+            messageHashes.Add("bidsasks");
         }
         string? type = null;
         IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
@@ -1453,8 +1453,8 @@ public partial class coinex : ccxt.coinex
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> parsedTicker = this.parseWsBidAsk(data);
-        object symbol = GetValue(parsedTicker, "symbol");
-        ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = parsedTicker;
+        string? symbol = ((string)GetValue(parsedTicker, "symbol"));
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
         string messageHash = ("bidsasks:" + symbol);
         callDynamically(client, "resolve", new object[] {parsedTicker, messageHash});
     }
@@ -1505,7 +1505,7 @@ public partial class coinex : ccxt.coinex
             { "stop.update", this.handleOrders },
             { "bbo.update", this.handleBidAsk },
         };
-        object handler = this.safeValue(handlers, method);
+        Delegate handler = ((Delegate)this.safeValue(handlers, method));
         if ((handler != null))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
@@ -1563,7 +1563,7 @@ public partial class coinex : ccxt.coinex
         string messageHash = "authenticated";
         if ((status == "ok") || (errorCode == "0"))
         {
-            var future = this.safeValue(client.futures, messageHash);
+            Future future = ((Future)this.safeValue(client.futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -1583,7 +1583,7 @@ public partial class coinex : ccxt.coinex
         if ((subscription != null))
         {
             string? futureIndex = this.safeString(subscription, "future");
-            var future = this.safeValue(client.futures, futureIndex);
+            Future future = ((Future)this.safeValue(client.futures, futureIndex));
             if ((future != null))
             {
                 (future as Future).resolve(true);
@@ -1605,7 +1605,7 @@ public partial class coinex : ccxt.coinex
         {
             return await (future as Exchange.Future);
         }
-        Int64 requestId = ((Int64)this.requestId());
+        Int64 requestId = this.requestId();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "id", requestId },
             { "future", messageHash },

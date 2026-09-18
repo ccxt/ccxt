@@ -107,7 +107,7 @@ public partial class derive : ccxt.derive
             { "limit", limitVar },
             { "params", parameters },
         };
-        object orderbook = await this.watchPublic(topic, request, subscription);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(topic, request, subscription));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -280,7 +280,7 @@ public partial class derive : ccxt.derive
         {
             ticker = this.parseTicker(data);
         }
-        object tickerSymbol = GetValue(ticker, "symbol");
+        string? tickerSymbol = ((string)GetValue(ticker, "symbol"));
         if ((tickerSymbol != null))
         {
             ((IDictionary<string,object>)this.tickers)[(string)tickerSymbol] = ticker;
@@ -422,7 +422,7 @@ public partial class derive : ccxt.derive
         IDictionary<string, object> status = this.safeDict(result, "status");
         if ((status != null))
         {
-            List<object> topics = new List<object>(status.Keys);
+            List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
             for (int i = 0; isLessThan(i, topics.Count); postFixIncrement(ref i))
             {
                 string? topic = ((string)topics[i]);
@@ -489,7 +489,7 @@ public partial class derive : ccxt.derive
         string? marketId = this.safeString(parsedTopic, 1);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)GetValue(market, "symbol"));
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -568,7 +568,7 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -584,7 +584,7 @@ public partial class derive : ccxt.derive
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, (":" + symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -706,7 +706,7 @@ public partial class derive : ccxt.derive
      */
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -722,7 +722,7 @@ public partial class derive : ccxt.derive
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
+            symbolVar = ((string)GetValue(market, "symbol"));
             messageHash = add(messageHash, (":" + symbolVar));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {

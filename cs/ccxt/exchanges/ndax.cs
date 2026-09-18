@@ -651,7 +651,7 @@ public partial class ndax : Exchange
         string? sessionToken = this.safeString(response, "SessionToken");
         if ((sessionToken != null))
         {
-            ((IDictionary<string,object>)this.options)["sessionToken"] = sessionToken;
+            this.options["sessionToken"] = sessionToken;
             return response;
         }
         string? pending2faToken = this.safeString(response, "Pending2FaToken");
@@ -661,7 +661,7 @@ public partial class ndax : Exchange
             {
                 throw new AuthenticationError ((this.id + " signIn() requires exchange.twofa credentials")) ;
             }
-            ((IDictionary<string,object>)this.options)["pending2faToken"] = pending2faToken;
+            this.options["pending2faToken"] = pending2faToken;
             request = new Dictionary<string, object>() {
                 { "Code", totp(this.twofa) },
             };
@@ -674,7 +674,7 @@ public partial class ndax : Exchange
             //     }
             //
             sessionToken = this.safeString(responseInner, "SessionToken");
-            ((IDictionary<string,object>)this.options)["sessionToken"] = sessionToken;
+            this.options["sessionToken"] = sessionToken;
             return responseInner;
         }
         return response;
@@ -907,7 +907,7 @@ public partial class ndax : Exchange
             } else
             {
                 Int64? newTimestamp = this.safeInteger(level, 2);
-                if (!isEqual(newTimestamp, null))
+                if ((newTimestamp != null))
                 {
                     timestamp = mathMax(timestamp, newTimestamp);
                 }
@@ -918,18 +918,18 @@ public partial class ndax : Exchange
             } else
             {
                 Int64? newNonce = this.safeInteger(level, 0);
-                if (!isEqual(newNonce, null))
+                if ((newNonce != null))
                 {
                     nonce = mathMax(nonce, newNonce);
                 }
             }
             List<object> bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Int64? levelSide = this.safeInteger(level, 9);
-            object side = (!isEqual(levelSide, null) && (levelSide != 0)) ? asksKey : bidsKey;
+            object side = ((levelSide != null) && (levelSide != 0)) ? asksKey : bidsKey;
             ((IList<object>)getValue(result, side)).Add(bidask);
         }
-        result["bids"] = this.sortBy(result["bids"], 0, true);
-        result["asks"] = this.sortBy(result["asks"], 0);
+        result["bids"] = this.sortBy(((IDictionary<string,object>)result)["bids"], 0, true);
+        result["asks"] = this.sortBy(((IDictionary<string,object>)result)["asks"], 0);
         result["timestamp"] = timestamp;
         result["datetime"] = this.iso8601(timestamp);
         result["nonce"] = nonce;
@@ -1107,7 +1107,7 @@ public partial class ndax : Exchange
         //         }
         //     ]
         //
-        object tickers = this.parseTickers(response);
+        Dictionary<string, object> tickers = this.parseTickers(response);
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbols));
     }
 
@@ -1495,7 +1495,7 @@ public partial class ndax : Exchange
         for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
         {
             string? accountId = this.safeString(response, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", accountId },
                 { "type", null },
                 { "currency", null },
@@ -1528,7 +1528,7 @@ public partial class ndax : Exchange
                 }
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1550,7 +1550,7 @@ public partial class ndax : Exchange
         await this.loadAccounts();
         Int64? defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId");
         Int64? accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
-        if (isEqual(accountId, null))
+        if ((accountId == null))
         {
             accountId = this.parseToInt(getValue(getValue(this.accounts, 0), "id"));
         }
@@ -1909,7 +1909,7 @@ public partial class ndax : Exchange
             }
             request["LimitPrice"] = parseFloat(limitPriceString);
         }
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["ClientOrderId"] = clientOrderId;
         }
@@ -1978,7 +1978,7 @@ public partial class ndax : Exchange
             }
             request["LimitPrice"] = parseFloat(limitPriceString);
         }
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["ClientOrderId"] = clientOrderId;
         }
@@ -2156,7 +2156,7 @@ public partial class ndax : Exchange
             { "omsId", omsId },
         };
         Int64? clientOrderId = this.safeInteger2(parameters, "clientOrderId", "ClOrderId");
-        if (!isEqual(clientOrderId, null))
+        if ((clientOrderId != null))
         {
             request["ClOrderId"] = clientOrderId;
         } else
@@ -2879,7 +2879,7 @@ public partial class ndax : Exchange
         double? feeCost = this.safeNumber(transaction, "FeeAmount");
         string? transactionStatus = this.safeString(transaction, "TicketStatus");
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "currency", code },
@@ -2923,10 +2923,10 @@ public partial class ndax : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         // this method required login, password and twofa key
         string? sessionToken = this.safeString(this.options, "sessionToken");
@@ -2967,7 +2967,7 @@ public partial class ndax : Exchange
         //         ]
         //     }
         //
-        object templateTypes = this.safeValue(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
+        List<object> templateTypes = this.safeList(withdrawTemplateTypesResponse, "TemplateTypes", new List<object>() {});
         object firstTemplateType = this.safeValue(templateTypes, 0);
         if ((firstTemplateType == null))
         {
@@ -3036,7 +3036,7 @@ public partial class ndax : Exchange
         {
             if (isEqual(path, "Authenticate"))
             {
-                object auth = add(add(this.login, ":"), this.password);
+                string? auth = add(add(this.login, ":"), this.password);
                 string auth64 = this.stringToBase64(auth);
                 headers = new Dictionary<string, object>() {
                     { "Authorization", ("Basic " + auth64) },
@@ -3063,7 +3063,7 @@ public partial class ndax : Exchange
             if ((sessionToken == null))
             {
                 string nonce = this.nonce().ToString();
-                object auth = ((nonce + this.uid) + this.apiKey);
+                string auth = ((nonce + this.uid) + this.apiKey);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },

@@ -61,7 +61,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
         // check if empty networks should be skipped
         IDictionary<string, object> networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
-        List<object> networkKeys = new List<object>(networks.Keys);
+        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networkKeysLength = networkKeys.Count;
         if ((networkKeysLength == 0) && (inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {

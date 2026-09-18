@@ -819,7 +819,7 @@ public partial class deribit : Exchange
         object splitBase = bs;
         if ((bs == null))
         {
-            throw new ExchangeError (add(this.id, " createExpiredOptionMarket() missing base")) ;
+            throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing base")) ;
         }
         if (getIndexOf(bs, "_") > -1)
         {
@@ -884,9 +884,9 @@ public partial class deribit : Exchange
         if (isOption && ((isEqual(this.markets_by_id, null)) || !(inOp(this.markets_by_id, marketId))))
         {
             // handle expired option contracts
-            return ((Dictionary<string, object>)((object)(this.createExpiredOptionMarket(marketId))));
+            return this.createExpiredOptionMarket(marketId);
         }
-        return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
+        return base.safeMarket(marketId, market, delimiter, marketType);
     }
 
     /**
@@ -987,13 +987,13 @@ public partial class deribit : Exchange
         });
     }
 
-    public virtual object codeFromOptions(object methodName, object parameters = null)
+    public virtual string? codeFromOptions(object methodName, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object defaultCode = this.safeValue(this.options, "code", "BTC");
+        string defaultCode = ((string)this.safeValue(this.options, "code", "BTC"));
         object options = this.safeValue(this.options, methodName, new Dictionary<string, object>() {});
         object code = this.safeValue(options, "code", defaultCode);
-        return this.safeValue(parameters, "code", code);
+        return ((string?)((object)(this.safeValue(parameters, "code", code))));
     }
 
     /**
@@ -1020,7 +1020,7 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        object result = this.safeValue(response, "result");
+        IDictionary<string, object> result = this.safeDict(response, "result");
         string? locked = this.safeString(result, "locked");
         Int64? updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", (locked == "false") ? "ok" : "maintenance" },             { "updated", updateTime },             { "eta", null },             { "url", null },             { "info", response },         });
@@ -1126,7 +1126,7 @@ public partial class deribit : Exchange
         if (isTrue(fetchAllMarkets))
         {
             Dictionary<string, object> instrumentsResponse = await this.publicGetGetInstruments(parameters);
-            ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+            instrumentsResponses.Add(instrumentsResponse);
         } else
         {
             Dictionary<string, object> currenciesResponse = await this.publicGetGetCurrencies(parameters);
@@ -1235,7 +1235,7 @@ public partial class deribit : Exchange
                 //         "testnet":false
                 //     }
                 //
-                ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
+                instrumentsResponses.Add(instrumentsResponse);
             }
         }
         for (int i = 0; isLessThan(i, instrumentsResponses.Count); postFixIncrement(ref i))
@@ -1257,17 +1257,17 @@ public partial class deribit : Exchange
                 bool swap = (isEqual(settlementPeriod, "perpetual"));
                 if ((kind == null))
                 {
-                    throw new ExchangeError (add(this.id, " method() missing kind")) ;
+                    throw new ExchangeError ((this.id + " method() missing kind")) ;
                 }
                 bool future = !swap && (getIndexOf(kind, "future") >= 0);
                 if ((kind == null))
                 {
-                    throw new ExchangeError (add(this.id, " method() missing kind")) ;
+                    throw new ExchangeError ((this.id + " method() missing kind")) ;
                 }
                 bool option = (getIndexOf(kind, "option") >= 0);
                 if ((kind == null))
                 {
-                    throw new ExchangeError (add(this.id, " method() missing kind")) ;
+                    throw new ExchangeError ((this.id + " method() missing kind")) ;
                 }
                 bool isComboMarket = getIndexOf(kind, "combo") >= 0;
                 Int64? expiry = this.safeInteger(market, "expiration_timestamp");
@@ -1318,7 +1318,7 @@ public partial class deribit : Exchange
                 }
                 double? minTradeAmount = this.safeNumber(market, "min_trade_amount");
                 double? tickSize = this.safeNumber(market, "tick_size");
-                ((IList<object>)result).Add(new Dictionary<string, object>() {
+                result.Add(new Dictionary<string, object>() {
                     { "id", id },
                     { "symbol", symbol },
                     { "base", bs },
@@ -1401,7 +1401,7 @@ public partial class deribit : Exchange
                 result[(string)currencyCode] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1725,7 +1725,7 @@ public partial class deribit : Exchange
                 Dictionary<string, object> market = this.market(getValue(symbols, i));
                 if ((code != null) && !isEqual(code, GetValue(market, "base")))
                 {
-                    throw new BadRequest (add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
+                    throw new BadRequest ((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
                 }
                 if ((code == null))
                 {
@@ -1736,7 +1736,7 @@ public partial class deribit : Exchange
         }
         if ((code == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1796,7 +1796,7 @@ public partial class deribit : Exchange
         for (int i = 0; isLessThan(i, result.Count); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(result[i]);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 tickers[(string)symbol] = ticker;
@@ -1823,18 +1823,18 @@ public partial class deribit : Exchange
     {
         string timeframeVar = timeframe;
         object sinceVar = since;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, sinceVar, limitVar,timeframeVar, parameters, 5000));
         }
@@ -1849,7 +1849,7 @@ public partial class deribit : Exchange
         {
             if (isEqual(limitVar, null))
             {
-                limitVar = 1000; // at max, it provides 5000 bars, but we set generous default here
+                limitVar = ((Int64?)1000); // at max, it provides 5000 bars, but we set generous default here
             }
             request["start_timestamp"] = subtract(now, multiply(multiply((subtract(limitVar, 1)), duration), 1000));
             request["end_timestamp"] = now;
@@ -1866,7 +1866,7 @@ public partial class deribit : Exchange
             }
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["end_timestamp"] = until;
@@ -2024,7 +2024,7 @@ public partial class deribit : Exchange
             request["count"] = mathMin(limit, 1000); // default 10
         }
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_timestamp"] = until;
@@ -2082,8 +2082,8 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        object code = this.codeFromOptions("fetchTradingFees", parameters);
-        Dictionary<string, object> currency = this.currency(((string)code));
+        string? code = this.codeFromOptions("fetchTradingFees", parameters);
+        Dictionary<string, object> currency = this.currency(code);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", GetValue(currency, "id") },
             { "extended", true },
@@ -2513,7 +2513,7 @@ public partial class deribit : Exchange
         bool isTakeProfitOrder = isTakeLimit || isTakeMarket || ((takeProfitPrice != null));
         if (isStopLossOrder && isTakeProfitOrder)
         {
-            throw new InvalidOrder (add(this.id, " createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified")) ;
+            throw new InvalidOrder ((this.id + " createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified")) ;
         }
         bool isStopOrder = isStopLossOrder || isTakeProfitOrder;
         bool isLimitOrder = (isEqual(type, "limit")) || isStopLimit || isTakeLimit;
@@ -2674,7 +2674,7 @@ public partial class deribit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(amount, null))
         {
-            throw new ArgumentsRequired (add(this.id, " editOrder() requires an amount argument")) ;
+            throw new ArgumentsRequired ((this.id + " editOrder() requires an amount argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2793,8 +2793,8 @@ public partial class deribit : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(symbol, null))
         {
-            object code = this.codeFromOptions("fetchOpenOrders", parameters);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = this.codeFromOptions("fetchOpenOrders", parameters);
+            Dictionary<string, object> currency = this.currency(code);
             request["currency"] = GetValue(currency, "id");
             response = await this.privateGetGetOpenOrdersByCurrency(this.extend(request, parameters));
         } else
@@ -2838,8 +2838,8 @@ public partial class deribit : Exchange
         }
         if (isEqual(symbol, null))
         {
-            object code = this.codeFromOptions("fetchClosedOrders", parameters);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = this.codeFromOptions("fetchClosedOrders", parameters);
+            Dictionary<string, object> currency = this.currency(code);
             request["currency"] = GetValue(currency, "id");
             response = await this.privateGetGetOrderHistoryByCurrency(this.extend(request, parameters));
         } else
@@ -2944,8 +2944,8 @@ public partial class deribit : Exchange
         Dictionary<string, object> response = null;
         if (isEqual(symbol, null))
         {
-            object code = this.codeFromOptions("fetchMyTrades", parameters);
-            Dictionary<string, object> currency = this.currency(((string)code));
+            string? code = this.codeFromOptions("fetchMyTrades", parameters);
+            Dictionary<string, object> currency = this.currency(code);
             request["currency"] = GetValue(currency, "id");
             if (isEqual(since, null))
             {
@@ -3022,7 +3022,7 @@ public partial class deribit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDeposits() requires a currency code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDeposits() requires a currency code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3078,7 +3078,7 @@ public partial class deribit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchWithdrawals() requires a currency code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawals() requires a currency code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3171,7 +3171,7 @@ public partial class deribit : Exchange
         double? feeCost = this.safeNumber(transaction, "fee");
         string type = "deposit";
         Dictionary<string, object> fee = null;
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             type = "withdrawal";
             fee = new Dictionary<string, object>() {
@@ -3203,7 +3203,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override Dictionary<string, object> parsePosition(object position, object market = null)
+    public override Dictionary<string, object> parsePosition(object position, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3444,14 +3444,14 @@ public partial class deribit : Exchange
         {
             Int64? timestamp = this.safeInteger(volatilityResult[i], 0);
             double? volatilityObj = this.safeNumber(volatilityResult[i], 1);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "info", volatilityObj },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "volatility", volatilityObj },
             });
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -3470,7 +3470,7 @@ public partial class deribit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(code, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTransfers() requires a currency code argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTransfers() requires a currency code argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -3643,10 +3643,10 @@ public partial class deribit : Exchange
      */
     public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tagVar = tag;
+        string tagVar = tag;
         parameters ??= new Dictionary<string, object>();
         IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = tagparametersVariable[0];
+        tagVar = (string)tagparametersVariable[0];
         parameters = tagparametersVariable[1];
         this.checkAddress(address);
         if (isEqual(this.markets, null))
@@ -3799,13 +3799,13 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
         int maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
         string eachItemDuration = "1h";
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             // fix for: https://github.com/ccxt/ccxt/issues/25040
             Dictionary<string, object> paginationParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -3828,7 +3828,7 @@ public partial class deribit : Exchange
             { "start_timestamp", subtract(sinceVar, 1) },
         };
         Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
             request["end_timestamp"] = until;
@@ -3841,7 +3841,7 @@ public partial class deribit : Exchange
             parameters = this.omit(parameters, "isDeribitPaginationCall");
             if (isEqual(limit, null))
             {
-                throw new ArgumentsRequired (add(this.id, " fetchFundingRateHistory() requires a limit argument")) ;
+                throw new ArgumentsRequired ((this.id + " fetchFundingRateHistory() requires a limit argument")) ;
             }
             object maxUntil = this.sum(sinceVar, multiply(limit, duration));
             request["end_timestamp"] = mathMin(GetValue(request, "end_timestamp"), maxUntil);
@@ -3868,7 +3868,7 @@ public partial class deribit : Exchange
         {
             object fr = result[i];
             Dictionary<string, object> rate = this.parseFundingRate(fr, market);
-            ((IList<object>)rates).Add(rate);
+            rates.Add(rate);
         }
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(rates, symbol, sinceVar, limit));
     }
@@ -3937,18 +3937,18 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = false;
+        bool? paginate = false;
         IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
-        paginate = paginateparametersVariable[0];
+        paginate = (bool?)paginateparametersVariable[0];
         parameters = paginateparametersVariable[1];
-        if (isTrue(paginate))
+        if (paginate == true)
         {
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null));
         }
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(add(add(this.id, " fetchLiquidations() does not support "), GetValue(market, "type")), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchLiquidations() does not support ") + GetValue(market, "type")) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
@@ -3989,7 +3989,7 @@ public partial class deribit : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         string? cursor = this.safeString(result, "continuation");
-        List<object> settlements = ((List<object>)this.safeValue(result, "settlements", new List<object>() {}));
+        List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
         return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlementsWithCursor, market, since, limit));
     }
@@ -4028,7 +4028,7 @@ public partial class deribit : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(symbol, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchMyLiquidations() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((this.id + " fetchMyLiquidations() requires a symbol argument")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -4037,7 +4037,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(GetValue(market, "spot"), true))
         {
-            throw new NotSupported (add(add(add(this.id, " fetchMyLiquidations() does not support "), GetValue(market, "type")), " markets")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + GetValue(market, "type")) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
@@ -4224,7 +4224,7 @@ public partial class deribit : Exchange
         Int64? timestamp = this.safeInteger(greeks, "timestamp");
         string? marketId = this.safeString(greeks, "instrument_name");
         string? symbol = this.safeSymbol(marketId, market);
-        object stats = this.safeValue(greeks, "greeks", new Dictionary<string, object>() {});
+        IDictionary<string, object> stats = this.safeDict(greeks, "greeks", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -4434,7 +4434,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (!isEqual(GetValue(market, "contract"), true))
         {
-            throw new BadRequest (add(this.id, " fetchOpenInterest() supports contract markets only")) ;
+            throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", GetValue(market, "id") },
@@ -4535,12 +4535,12 @@ public partial class deribit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string request = add(add(add(add(add(add("/", "api/"), this.version), "/"), api), "/"), path);
+        string request = add(((((("/" + "api/") + this.version) + "/") + api) + "/"), path);
         if (isEqual(api, "public"))
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                request = add(request, add("?", this.urlencode(parameters)));
+                request = add(request, ("?" + this.urlencode(parameters)));
             }
         }
         if (isEqual(api, "private"))
@@ -4551,13 +4551,13 @@ public partial class deribit : Exchange
             string requestBody = "";
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
-                request = add(request, add("?", this.urlencode(parameters)));
+                request = add(request, ("?" + this.urlencode(parameters)));
             }
             object requestData = add(add(add(add(add(method, "\n"), request), "\n"), requestBody), "\n"); // eslint-disable-line quotes
-            string auth = add(add(add(add(timestamp, "\n"), nonce), "\n"), requestData); // eslint-disable-line quotes
+            string auth = ((((timestamp + "\n") + nonce) + "\n") + requestData); // eslint-disable-line quotes
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             headers = new Dictionary<string, object>() {
-                { "Authorization", add(add(add(add(add(add(add(add("deri-hmac-sha256 id=", this.apiKey), ",ts="), timestamp), ",sig="), signature), ","), "nonce="), nonce) },
+                { "Authorization", add(add(add(((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature), ","), "nonce="), nonce) },
             };
         }
         object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
@@ -4593,7 +4593,7 @@ public partial class deribit : Exchange
         if ((error != null))
         {
             string? errorCode = this.safeString(error, "code");
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }

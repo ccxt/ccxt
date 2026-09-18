@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
             }
             // 1) ensure 'networks' dictionary exists in options
             assert(exchange.isDictionary(networks), "exchange.options[\"networks\"] is not a dict");
-            if (((new List<object>(networks.Keys)).Count == 0))
+            if (((new List<object>(((IDictionary<string,object>)networks).Keys)).Count == 0))
             {
                 return;
             }
@@ -44,7 +44,7 @@ public partial class testMainClass : BaseTest
             List<object> collectedNetworkIds = new List<object>() {};
             for (int i = 0; isLessThan(i, networkCodes.Count); postFixIncrement(ref i))
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
@@ -56,17 +56,17 @@ public partial class testMainClass : BaseTest
             List<object> collectedNetworkCodes = new List<object>() {};
             for (int i = 0; isLessThan(i, networkCodes.Count); postFixIncrement(ref i))
             {
-                string networkCodeLower = ((string)(getValue(networkCodes, i))).ToLower();
-                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + getValue(networkCodes, i)) + "\" in different uppercase/lowercase format"));
+                string networkCodeLower = ((string)(networkCodes[i])).ToLower();
+                assert(!isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + networkCodes[i]) + "\" in different uppercase/lowercase format"));
                 ((IList<object>)collectedNetworkCodes).Add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
             for (int i = 0; isLessThan(i, networkCodes.Count); postFixIncrement(ref i))
             {
-                string? networkCode = ((string)getValue(networkCodes, i));
+                string? networkCode = ((string)networkCodes[i]);
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
-                object networkIdConverted = exchange.networkCodeToId(networkCode);
+                string? networkIdConverted = exchange.networkCodeToId(networkCode);
                 assert(isEqual(networkId, networkIdConverted), add(add(add(((((("exchange.networkCodeToId (\"" + networkCode) + "\")=\"") + networkIdConverted) + "\" does not match exchange.options[\"networks\"][\"") + networkCode), "\"]=\""), networkId), "\""));
                 // ensure it exists in networksById
                 assert(inOp(getValue(exchange.options, "networksById"), networkId), (("exchange.options[\"networksById\"] does not contain networkId \"" + networkId) + "\""));

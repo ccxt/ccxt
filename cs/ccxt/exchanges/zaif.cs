@@ -400,7 +400,7 @@ public partial class zaif : Exchange
             { "datetime", null },
         };
         IDictionary<string, object> funds = this.safeDict(balances, "funds", new Dictionary<string, object>() {});
-        List<object> currencyIds = new List<object>(funds.Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
         for (int i = 0; isLessThan(i, currencyIds.Count); postFixIncrement(ref i))
         {
             string? currencyId = ((string)currencyIds[i]);
@@ -624,7 +624,7 @@ public partial class zaif : Exchange
         if ((numTrades == 1))
         {
             IDictionary<string, object> firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
-            if (((new List<object>(firstTrade.Keys)).Count == 0))
+            if (((new List<object>(((IDictionary<string,object>)firstTrade).Keys)).Count == 0))
             {
                 trades = new List<object>() {};
             }

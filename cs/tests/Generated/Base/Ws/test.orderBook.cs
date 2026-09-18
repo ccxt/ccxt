@@ -392,7 +392,7 @@ public partial class BaseTest
             List<object> desyncSides = new List<object>() {getValue(desyncBook, "bids"), getValue(desyncBook, "asks")};
             for (int i = 0; isLessThan(i, (desyncSides?.Count ?? 0)); postFixIncrement(ref i))
             {
-                object side = getValue(desyncSides, i);
+                object side = desyncSides[i];
                 for (int k = 0; isLessThan(k, getArrayLength(side)); postFixIncrement(ref k))
                 {
                     object row = getValue(side, k);

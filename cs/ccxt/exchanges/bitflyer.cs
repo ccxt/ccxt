@@ -661,7 +661,7 @@ public partial class bitflyer : Exchange
         object order = null;
         if ((side != null))
         {
-            string idInner = add(side, "_child_order_acceptance_id");
+            string idInner = (side + "_child_order_acceptance_id");
             if (inOp(trade, idInner))
             {
                 order = getValue(trade, idInner);

@@ -29,7 +29,7 @@ public partial class BaseTest
                 { "c", 3 },
             };
             Dictionary<string, object> result1 = exchange.keysort(unsortedDict1);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result1.Keys), new List<object>(expectedSorted1.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result1).Keys), new List<object>(((IDictionary<string,object>)expectedSorted1).Keys));
             // Test 2: Already sorted dictionary
             Dictionary<string, object> unsortedDict2 = new Dictionary<string, object>() {
                 { "alpha", "first" },
@@ -42,7 +42,7 @@ public partial class BaseTest
                 { "gamma", "third" },
             };
             Dictionary<string, object> result2 = exchange.keysort(unsortedDict2);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result2.Keys), new List<object>(expectedSorted2.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result2).Keys), new List<object>(((IDictionary<string,object>)expectedSorted2).Keys));
             // Test 3: Reverse sorted input
             Dictionary<string, object> unsortedDict3 = new Dictionary<string, object>() {
                 { "z", "last" },
@@ -55,12 +55,12 @@ public partial class BaseTest
                 { "z", "last" },
             };
             Dictionary<string, object> result3 = exchange.keysort(unsortedDict3);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result3.Keys), new List<object>(expectedSorted3.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result3).Keys), new List<object>(((IDictionary<string,object>)expectedSorted3).Keys));
             // Test 4: Empty dictionary
             Dictionary<string, object> unsortedDict4 = new Dictionary<string, object>() {};
             Dictionary<string, object> expectedSorted4 = new Dictionary<string, object>() {};
             Dictionary<string, object> result4 = exchange.keysort(unsortedDict4);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result4.Keys), new List<object>(expectedSorted4.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result4).Keys), new List<object>(((IDictionary<string,object>)expectedSorted4).Keys));
             // Test 5: Single key dictionary
             Dictionary<string, object> unsortedDict5 = new Dictionary<string, object>() {
                 { "only", "one" },
@@ -69,7 +69,7 @@ public partial class BaseTest
                 { "only", "one" },
             };
             Dictionary<string, object> result5 = exchange.keysort(unsortedDict5);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result5.Keys), new List<object>(expectedSorted5.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result5).Keys), new List<object>(((IDictionary<string,object>)expectedSorted5).Keys));
             // Test 6: Numeric string keys
             Dictionary<string, object> unsortedDict6 = new Dictionary<string, object>() {
                 { "10", "ten" },
@@ -82,7 +82,7 @@ public partial class BaseTest
                 { "2", "two" },
             };
             Dictionary<string, object> result6 = exchange.keysort(unsortedDict6);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result6.Keys), new List<object>(expectedSorted6.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result6).Keys), new List<object>(((IDictionary<string,object>)expectedSorted6).Keys));
             // Test 7: Mixed case keys (lexicographic sort)
             Dictionary<string, object> unsortedDict7 = new Dictionary<string, object>() {
                 { "Banana", 1 },
@@ -95,6 +95,6 @@ public partial class BaseTest
                 { "apple", 2 },
             };
             Dictionary<string, object> result7 = exchange.keysort(unsortedDict7);
-            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(result7.Keys), new List<object>(expectedSorted7.Keys));
+            AssertDeepEqual(exchange, null, "testKeysort", new List<object>(((IDictionary<string,object>)result7).Keys), new List<object>(((IDictionary<string,object>)expectedSorted7).Keys));
         }
 }

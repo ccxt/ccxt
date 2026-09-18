@@ -47,7 +47,7 @@ public partial class bitopro : ccxt.bitopro
 
     public async virtual Task<object> watchPublic(object path, string? messageHash, object marketId)
     {
-        object url = add(add(add(add(getValue(getValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId);
+        string? url = ((string)add(add(add(add(getValue(getValue(this.urls, "ws"), "public"), "/"), path), "/"), marketId));
         return await this.watch(url, messageHash, null, messageHash);
     }
 
@@ -63,7 +63,7 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(limit, null))
         {
@@ -77,7 +77,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = (("ORDER_BOOK" + ":") + symbolVar);
         object endPart = null;
         if (isEqual(limit, null))
@@ -87,7 +87,7 @@ public partial class bitopro : ccxt.bitopro
         {
             endPart = add(add(GetValue(market, "id"), ":"), this.numberToString(limit));
         }
-        object orderbook = await this.watchPublic("order-books", messageHash, endPart);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic("order-books", messageHash, endPart));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -143,7 +143,7 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -151,7 +151,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = (("TRADE" + ":") + symbolVar);
         object trades = await this.watchPublic("trades", messageHash, GetValue(market, "id"));
         if (isTrue(this.newUpdates))
@@ -189,7 +189,7 @@ public partial class bitopro : ccxt.bitopro
         object messageHash = add(add(eventVar, ":"), symbol);
         object rawData = this.safeValue(message, "data", new List<object>() {});
         IList<object> trades = this.parseTrades(rawData, market);
-        object tradesCache = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesCache = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesCache == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -223,13 +223,13 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object messageHash = "USER_TRADE";
+        string messageHash = "USER_TRADE";
         if (!isEqual(symbol, null))
         {
             Dictionary<string, object> market = this.market(symbol);
-            messageHash = add(add(messageHash, ":"), GetValue(market, "symbol"));
+            messageHash = ((messageHash + ":") + GetValue(market, "symbol"));
         }
-        object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "user-trades");
+        string? url = ((string)add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "user-trades"));
         this.authenticate(url);
         object trades = await this.watch(url, messageHash, null, messageHash);
         if (isTrue(this.newUpdates))
@@ -377,14 +377,14 @@ public partial class bitopro : ccxt.bitopro
      */
     public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         string messageHash = (("TICKER" + ":") + symbolVar);
         return ccxt.BaseExchange.ToTicker(await this.watchPublic("tickers", messageHash, GetValue(market, "id")));
     }
@@ -481,7 +481,7 @@ public partial class bitopro : ccxt.bitopro
             await this.loadMarkets();
         }
         string messageHash = "ACCOUNT_BALANCE";
-        object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
+        string? url = ((string)add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance"));
         this.authenticate(url);
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, null, messageHash));
     }
@@ -542,7 +542,7 @@ public partial class bitopro : ccxt.bitopro
             { "USER_TRADE", this.handleMyTrade },
         };
         string? eventVar = this.safeString(message, "event");
-        object method = this.safeValue(methods, eventVar);
+        Delegate method = ((Delegate)this.safeValue(methods, eventVar));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -68,8 +68,8 @@ public partial class deribit : ccxt.deribit
     public virtual Int64 requestId()
     {
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
-        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
-        return ((Int64)((object)(requestId))!);
+        this.options["requestId"] = requestId;
+        return requestId;
     }
 
     /**
@@ -91,7 +91,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; isLessThan(i, currencies.Count); postFixIncrement(ref i))
         {
             object currencyCode = currencies[i];
-            ((IList<object>)channels).Add(add("user.portfolio.", currencyCode));
+            channels.Add(("user.portfolio." + currencyCode));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -193,12 +193,12 @@ public partial class deribit : ccxt.deribit
         {
             await this.authenticate();
         }
-        string channel = add(add(add("ticker.", GetValue(market, "id")), "."), interval);
+        string channel = ((("ticker." + GetValue(market, "id")) + ".") + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "public/subscribe" },
             { "params", new Dictionary<string, object>() {
-                { "channels", new List<object>() {add(add(add("ticker.", GetValue(market, "id")), "."), interval)} },
+                { "channels", new List<object>() {((("ticker." + GetValue(market, "id")) + ".") + interval)} },
             } },
             { "id", this.requestId() },
         };
@@ -239,7 +239,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add(add(add("ticker.", GetValue(market, "id")), "."), interval));
+            channels.Add(((("ticker." + GetValue(market, "id")) + ".") + interval));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -323,7 +323,7 @@ public partial class deribit : ccxt.deribit
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = this.market(getValue(symbols, i));
-            ((IList<object>)channels).Add(add("quote.", GetValue(market, "id")));
+            channels.Add(("quote." + GetValue(market, "id")));
         }
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -366,8 +366,8 @@ public partial class deribit : ccxt.deribit
         IDictionary<string, object> parameters = this.safeDict(message, "params", new Dictionary<string, object>() {});
         IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsBidAsk(data);
-        object symbol = GetValue(ticker, "symbol");
-        ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
+        string? symbol = ((string)GetValue(ticker, "symbol"));
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         string? messageHash = this.safeString(parameters, "channel");
         callDynamically(client, "resolve", new object[] {ticker, messageHash});
     }
@@ -422,7 +422,7 @@ public partial class deribit : ccxt.deribit
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object interval = null;
         IList<object> intervalparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
@@ -437,7 +437,7 @@ public partial class deribit : ccxt.deribit
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -478,7 +478,7 @@ public partial class deribit : ccxt.deribit
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
-        object stored = getValue(this.trades, symbol);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         for (int i = 0; isLessThan(i, trades.Count); postFixIncrement(ref i))
         {
             object trade = trades[i];
@@ -486,7 +486,7 @@ public partial class deribit : ccxt.deribit
             callDynamically(stored, "append", new object[] {parsed});
         }
         ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
-        string messageHash = add(add(add("trades|", symbol), "|"), interval);
+        string messageHash = ((("trades|" + symbol) + "|") + interval);
         callDynamically(client, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
@@ -515,7 +515,7 @@ public partial class deribit : ccxt.deribit
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         string? interval = this.safeString(parameters, "interval", "raw");
         parameters = this.omit(parameters, "interval");
-        string channel = add("user.trades.any.any.", interval);
+        string channel = ("user.trades.any.any." + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "private/subscribe" },
@@ -576,10 +576,10 @@ public partial class deribit : ccxt.deribit
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = parsed[i];
+            IDictionary<string, object> trade = ((IDictionary<string, object>)parsed[i]);
             callDynamically(cachedTrades, "append", new object[] {trade});
-            object symbol = getValue(trade, "symbol");
-            marketIds[(string)((string)symbol)] = true;
+            string? symbol = ((string)GetValue(trade, "symbol"));
+            marketIds[(string)symbol] = true;
         }
         callDynamically(client, "resolve", new object[] {cachedTrades, channel});
     }
@@ -643,7 +643,7 @@ public partial class deribit : ccxt.deribit
         {
             descriptor = interval;
         }
-        object orderbook = await this.watchMultipleWrapper("book", descriptor, symbols, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultipleWrapper("book", descriptor, symbols, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -724,12 +724,12 @@ public partial class deribit : ccxt.deribit
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
-        ((IDictionary<string,object>)storedOrderBook)["nonce"] = timestamp;
-        ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-        ((IDictionary<string,object>)storedOrderBook)["symbol"] = symbol;
+        storedOrderBook["nonce"] = timestamp;
+        storedOrderBook["timestamp"] = timestamp;
+        storedOrderBook["datetime"] = this.iso8601(timestamp);
+        storedOrderBook["symbol"] = symbol;
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = storedOrderBook;
-        string messageHash = add(add(add("book|", symbol), "|"), descriptor);
+        string messageHash = ((("book|" + symbol) + "|") + descriptor);
         callDynamically(client, "resolve", new object[] {storedOrderBook, messageHash});
     }
 
@@ -740,12 +740,12 @@ public partial class deribit : ccxt.deribit
         List<object> cleanedBids = new List<object>() {};
         for (int i = 0; isLessThan(i, bids.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)cleanedBids).Add(new List<object>() {getValue(bids[i], 1), getValue(bids[i], 2)});
+            cleanedBids.Add(new List<object>() {getValue(bids[i], 1), getValue(bids[i], 2)});
         }
         List<object> cleanedAsks = new List<object>() {};
         for (int i = 0; isLessThan(i, asks.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)cleanedAsks).Add(new List<object>() {getValue(asks[i], 1), getValue(asks[i], 2)});
+            cleanedAsks.Add(new List<object>() {getValue(asks[i], 1), getValue(asks[i], 2)});
         }
         ((IDictionary<string,object>)data)["bids"] = cleanedBids;
         ((IDictionary<string,object>)data)["asks"] = cleanedAsks;
@@ -787,7 +787,7 @@ public partial class deribit : ccxt.deribit
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -803,7 +803,7 @@ public partial class deribit : ccxt.deribit
         string? interval = this.safeString(parameters, "interval", "raw");
         string? kind = this.safeString(parameters, "kind", "any");
         parameters = this.omit(parameters, "interval", "currency", "kind");
-        string channel = add(add(add(add(add("user.orders.", kind), "."), currency), "."), interval);
+        string channel = ((((("user.orders." + kind) + ".") + currency) + ".") + interval);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
             { "method", "private/subscribe" },
@@ -816,7 +816,7 @@ public partial class deribit : ccxt.deribit
         object orders = await this.watch(url, channel, request, channel, request);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -905,7 +905,7 @@ public partial class deribit : ccxt.deribit
             await this.loadMarkets();
         }
         symbolVar = this.symbol(symbolVar);
-        object ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
+        Dictionary<string, object> ohlcvs = ccxt.BaseExchange.FromOHLCVDict(await this.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbolVar, timeframeVar}}, since, limit, parameters));
         return ccxt.BaseExchange.ToOHLCVList(getValue(getValue(ohlcvs, symbolVar), timeframeVar));
     }
 
@@ -926,7 +926,7 @@ public partial class deribit : ccxt.deribit
         int symbolsLength = getArrayLength(symbolsAndTimeframes);
         if ((symbolsLength == 0) || !((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            throw new ArgumentsRequired (add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
+            throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
         var symboltimeframecandlesVariable = await this.watchMultipleWrapper("chart.trades", null, symbolsAndTimeframes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
@@ -976,14 +976,14 @@ public partial class deribit : ccxt.deribit
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), unifiedTimeframe));
         IDictionary<string, object> ohlcv = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         // data contains a single OHLCV candle
         List<object> parsed = this.parseWsOHLCV(ohlcv, market);
         callDynamically(stored, "append", new object[] {parsed});
         ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         List<object> resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
-        string messageHash = add(add(add("chart.trades|", symbol), "|"), rawTimeframe);
+        string messageHash = ((("chart.trades|" + symbol) + "|") + rawTimeframe);
         callDynamically(client, "resolve", new object[] {resolveData, messageHash});
     }
 
@@ -1018,13 +1018,13 @@ public partial class deribit : ccxt.deribit
         this.marketSymbols(symbols, null, false);
         if (isEqual(symbolsArray, null))
         {
-            throw new ArgumentsRequired (add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
+            throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
         }
         for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
         {
             if (isEqual(symbolsArray, null))
             {
-                throw new ArgumentsRequired (add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
+                throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
             object current = getValue(symbolsArray, i);
             IDictionary<string, object> market = null;
@@ -1039,8 +1039,8 @@ public partial class deribit : ccxt.deribit
                 market = this.market(current);
             }
             object message = add(add(add(add(channelName, "."), GetValue(market, "id")), "."), channelDescriptor);
-            ((IList<object>)rawSubscriptions).Add(message);
-            ((IList<object>)messageHashes).Add(add(add(add(add(channelName, "|"), GetValue(market, "symbol")), "|"), channelDescriptor));
+            rawSubscriptions.Add(message);
+            messageHashes.Add(add(add(add(add(channelName, "|"), GetValue(market, "symbol")), "|"), channelDescriptor));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "jsonrpc", "2.0" },
@@ -1055,7 +1055,7 @@ public partial class deribit : ccxt.deribit
         string jsonedText = this.json(extendedRequest);
         if (isGreaterThanOrEqual(jsonedText.Length, maxMessageByteLimit))
         {
-            throw new ExchangeError (add(this.id, " requested subscription length over limit, try to reduce symbols amount")) ;
+            throw new ExchangeError ((this.id + " requested subscription length over limit, try to reduce symbols amount")) ;
         }
         return await this.watchMultiple(url, messageHashes, extendedRequest, rawSubscriptions);
     }
@@ -1124,7 +1124,7 @@ public partial class deribit : ccxt.deribit
         object error = this.safeValue(message, "error");
         if ((error != null))
         {
-            throw new ExchangeError (add(add(this.id, " "), this.json(error))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(error))) ;
         }
         IDictionary<string, object> parameters = ((IDictionary<string, object>)this.safeValue(message, "params"));
         string? channel = this.safeString(parameters, "channel");
@@ -1151,9 +1151,9 @@ public partial class deribit : ccxt.deribit
                 DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
                 return;
             }
-            throw new NotSupported (add(add(this.id, " no handler found for this message "), this.json(message))) ;
+            throw new NotSupported (((this.id + " no handler found for this message ") + this.json(message))) ;
         }
-        object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
+        IDictionary<string, object> result = this.safeDict(message, "result", new Dictionary<string, object>() {});
         string? accessToken = this.safeString(result, "access_token");
         if ((accessToken != null))
         {
@@ -1198,7 +1198,7 @@ public partial class deribit : ccxt.deribit
         if ((future == null))
         {
             this.checkRequiredCredentials();
-            Int64 requestId = ((Int64)this.requestId());
+            Int64 requestId = this.requestId();
             string lineBreak = "\n"; // eslint-disable-line quotes
             string signature = this.hmac(this.encode(add(add(add(timeString, lineBreak), nonce), lineBreak)), this.encode(this.secret), sha256);
             Dictionary<string, object> request = new Dictionary<string, object>() {

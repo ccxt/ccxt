@@ -1181,7 +1181,7 @@ public partial class coinone : Exchange
         string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = add(add(bs, "/"), quote);
+            symbol = ((bs + "/") + quote);
             market = this.safeMarket(symbol, market, "/");
         }
         Int64? timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
@@ -1428,7 +1428,7 @@ public partial class coinone : Exchange
         //     }
         //
         IDictionary<string, object> walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(walletAddress.Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {

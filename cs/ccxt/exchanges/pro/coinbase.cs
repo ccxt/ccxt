@@ -127,7 +127,7 @@ public partial class coinbase : ccxt.coinbase
         {
             throw new ExchangeError ((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
+        this.options["unSubscriptionPending"] = true;
         IDictionary<string, object> market = null;
         object watchMessageHash = name;
         object unWatchMessageHash = ("unsubscribe:" + name);
@@ -170,10 +170,10 @@ public partial class coinbase : ccxt.coinbase
         {
             message = this.extend(message, this.createWSAuth(name, productIds));
         }
-        ((IDictionary<string,object>)this.options)["unSubscription"] = subscription;
+        this.options["unSubscription"] = subscription;
         object res = await this.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription);
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = false;
-        ((IDictionary<string,object>)this.options)["unSubscription"] = null;
+        this.options["unSubscriptionPending"] = false;
+        this.options["unSubscription"] = null;
         return res;
     }
 
@@ -203,8 +203,8 @@ public partial class coinbase : ccxt.coinbase
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)GetValue(market, "id"));
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
+            productIds.Add(marketId);
+            messageHashes.Add(add(add(name, "::"), symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -238,7 +238,7 @@ public partial class coinbase : ccxt.coinbase
         {
             throw new ExchangeError ((this.id + " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")) ;
         }
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = true;
+        this.options["unSubscriptionPending"] = true;
         if (isEqual(this.markets, null))
         {
             await this.loadMarkets();
@@ -249,12 +249,12 @@ public partial class coinbase : ccxt.coinbase
         symbols = this.marketSymbols(symbols, null, false);
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
+            string? symbol = ((string)getValue(symbols, i));
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)GetValue(market, "id"));
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)watchMessageHashes).Add(add(add(name, "::"), symbol));
-            ((IList<object>)unWatchMessageHashes).Add(((("unsubscribe:" + name) + "::") + symbol));
+            productIds.Add(marketId);
+            watchMessageHashes.Add(add(add(name, "::"), symbol));
+            unWatchMessageHashes.Add(((("unsubscribe:" + name) + "::") + symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         Dictionary<string, object> message = new Dictionary<string, object>() {
@@ -273,10 +273,10 @@ public partial class coinbase : ccxt.coinbase
             { "unsubscribe", true },
             { "symbols", symbols },
         };
-        ((IDictionary<string,object>)this.options)["unSubscription"] = subscription;
+        this.options["unSubscription"] = subscription;
         object res = await this.watchMultiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription);
-        ((IDictionary<string,object>)this.options)["unSubscriptionPending"] = false;
-        ((IDictionary<string,object>)this.options)["unSubscription"] = null;
+        this.options["unSubscriptionPending"] = false;
+        this.options["unSubscription"] = null;
         return res;
     }
 
@@ -305,12 +305,12 @@ public partial class coinbase : ccxt.coinbase
             {
                 // we should generate new token
                 string token = this.createAuthToken(seconds);
-                ((IDictionary<string,object>)this.options)["wsToken"] = token;
-                ((IDictionary<string,object>)this.options)["wsTokenTimestamp"] = seconds;
+                this.options["wsToken"] = token;
+                this.options["wsTokenTimestamp"] = seconds;
             }
             subscribe["jwt"] = this.safeString(this.options, "wsToken");
         }
-        return ((Dictionary<string, object>)((object)(subscribe)));
+        return subscribe;
     }
 
     /**
@@ -519,12 +519,12 @@ public partial class coinbase : ccxt.coinbase
                 Dictionary<string, object> result = this.parseWsTicker(ticker);
                 result["timestamp"] = timestamp;
                 result["datetime"] = datetime;
-                object symbol = GetValue(result, "symbol");
+                string? symbol = ((string)GetValue(result, "symbol"));
                 if ((symbol != null))
                 {
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 }
-                ((IList<object>)newTickers).Add(result);
+                newTickers.Add(result);
                 object messageHash = add(add(channel, "::"), symbol);
                 callDynamically(client, "resolve", new object[] {result, messageHash});
                 this.tryResolveUsdc(client, messageHash, result);
@@ -593,7 +593,7 @@ public partial class coinbase : ccxt.coinbase
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string symbolVar = symbol;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -604,7 +604,7 @@ public partial class coinbase : ccxt.coinbase
         object trades = await this.subscribe(name, false, symbolVar, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -642,7 +642,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -654,7 +654,7 @@ public partial class coinbase : ccxt.coinbase
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -692,7 +692,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -702,7 +702,7 @@ public partial class coinbase : ccxt.coinbase
         object orders = await this.subscribe(name, true, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbol, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitVar, "timestamp", true));
     }
@@ -739,7 +739,7 @@ public partial class coinbase : ccxt.coinbase
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -747,8 +747,8 @@ public partial class coinbase : ccxt.coinbase
         }
         string name = "level2";
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
-        object orderbook = await this.subscribe(name, false, symbolVar, parameters);
+        symbolVar = ((string)GetValue(market, "symbol"));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribe(name, false, symbolVar, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -791,7 +791,7 @@ public partial class coinbase : ccxt.coinbase
             await this.loadMarkets();
         }
         string name = "level2";
-        object orderbook = await this.subscribeMultiple(name, false, symbols, parameters);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribeMultiple(name, false, symbols, parameters));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -825,13 +825,13 @@ public partial class coinbase : ccxt.coinbase
         {
             return;
         }
-        object eventVar = this.safeValue(events, 0);
+        IDictionary<string, object> eventVar = this.safeDict(events, 0);
         List<object> trades = this.safeList(eventVar, "trades");
         IDictionary<string, object> trade = this.safeDict(trades, 0);
         string? marketId = this.safeString(trade, "product_id");
         string? symbol = this.safeSymbol(marketId);
         string messageHash = ("market_trades::" + symbol);
-        object tradesArray = this.safeValue(this.trades, symbol);
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((tradesArray == null))
         {
             Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -917,7 +917,7 @@ public partial class coinbase : ccxt.coinbase
                 {
                     if (!(inOp(marketIds, marketId)))
                     {
-                        ((IList<object>)marketIds).Add(marketId);
+                        marketIds.Add(marketId);
                     }
                 }
                 callDynamically(cachedOrders, "append", new object[] {parsed});
@@ -1059,9 +1059,9 @@ public partial class coinbase : ccxt.coinbase
             }
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
             this.handleOrderBookHelper(orderbook, updates);
-            ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
-            ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["timestamp"] = this.parse8601(datetime);
+            orderbook["datetime"] = datetime;
+            orderbook["symbol"] = symbol;
             callDynamically(client, "resolve", new object[] {orderbook, messageHash});
             this.tryResolveUsdc(client, messageHash, orderbook);
         }
@@ -1110,7 +1110,7 @@ public partial class coinbase : ccxt.coinbase
             for (int i = 0; isLessThan(i, messageHashes.Count); postFixIncrement(ref i))
             {
                 object messageHash = messageHashes[i];
-                object subHash = getValue(subMessageHashes, i);
+                string? subHash = ((string)getValue(subMessageHashes, i));
                 this.cleanUnsubscription(client, subHash, messageHash);
             }
             this.cleanCache(unSubObject);
@@ -1159,7 +1159,7 @@ public partial class coinbase : ccxt.coinbase
             string? errorMessageValue = ((errorMessage != null)) ? errorMessage : "unknown error";
             throw new ExchangeError (errorMessageValue) ;
         }
-        object method = this.safeValue(methods, channel);
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

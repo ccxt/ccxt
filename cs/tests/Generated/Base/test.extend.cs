@@ -57,23 +57,23 @@ public partial class BaseTest
                 { "other2", "y" },
             };
             // snapshot originals for mutation checks
-            object obj1SnapshotA = obj1["a"];
-            object obj1SnapshotB0 = getValue(obj1["b"], 0);
-            object obj1SnapshotOther1 = obj1["other1"];
-            object obj2SnapshotA = obj2["a"];
-            object obj2SnapshotB0 = getValue(obj2["b"], 0);
-            object obj2SnapshotOther2 = obj2["other2"];
+            object obj1SnapshotA = ((IDictionary<string,object>)obj1)["a"];
+            object obj1SnapshotB0 = getValue(((IDictionary<string,object>)obj1)["b"], 0);
+            object obj1SnapshotOther1 = ((IDictionary<string,object>)obj1)["other1"];
+            object obj2SnapshotA = ((IDictionary<string,object>)obj2)["a"];
+            object obj2SnapshotB0 = getValue(((IDictionary<string,object>)obj2)["b"], 0);
+            object obj2SnapshotOther2 = ((IDictionary<string,object>)obj2)["other2"];
             // --- test 1: basic extend ---
             Dictionary<string, object> extended = exchange.extend(obj1, obj2);
             tbfeCheckExtended(extended, true);
             // --- mutation check: obj1 must NOT be mutated ---
-            Assert(isEqual(obj1["a"], obj1SnapshotA), "obj1.a was mutated after extend");
-            Assert(isEqual(getValue(obj1["b"], 0), obj1SnapshotB0), "obj1.b[0] was mutated after extend");
-            Assert(isEqual(obj1["other1"], obj1SnapshotOther1), "obj1['other1'] was mutated after extend");
+            Assert(isEqual(((IDictionary<string,object>)obj1)["a"], obj1SnapshotA), "obj1.a was mutated after extend");
+            Assert(isEqual(getValue(((IDictionary<string,object>)obj1)["b"], 0), obj1SnapshotB0), "obj1.b[0] was mutated after extend");
+            Assert(isEqual(((IDictionary<string,object>)obj1)["other1"], obj1SnapshotOther1), "obj1['other1'] was mutated after extend");
             // --- mutation check: obj2 must NOT be mutated ---
-            Assert(isEqual(obj2["a"], obj2SnapshotA), "obj2.a was mutated after extend");
-            Assert(isEqual(getValue(obj2["b"], 0), obj2SnapshotB0), "obj2.b[0] was mutated after extend");
-            Assert(isEqual(obj2["other2"], obj2SnapshotOther2), "obj2['other2'] was mutated after extend");
+            Assert(isEqual(((IDictionary<string,object>)obj2)["a"], obj2SnapshotA), "obj2.a was mutated after extend");
+            Assert(isEqual(getValue(((IDictionary<string,object>)obj2)["b"], 0), obj2SnapshotB0), "obj2.b[0] was mutated after extend");
+            Assert(isEqual(((IDictionary<string,object>)obj2)["other2"], obj2SnapshotOther2), "obj2['other2'] was mutated after extend");
             // --- test 2: multi-step extend – apply a third patch on top of the first result ---
             Dictionary<string, object> obj3 = new Dictionary<string, object>() {
                 { "a", 3 },
@@ -129,7 +129,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(r3, "p2"), true), "chain: r3['p2'] should be present");
             Assert(isEqual(getValue(r3, "p3"), true), "chain: r3['p3'] should be present");
             // --- mutation check: each intermediate must be unaffected ---
-            Assert(isEqual(bs["x"], 0), "base['x'] was mutated during chain");
+            Assert(isEqual(((IDictionary<string,object>)bs)["x"], 0), "base['x'] was mutated during chain");
             Assert(isEqual(getValue(r1, "x"), 1), "r1['x'] was mutated during chain");
             Assert(isEqual(getValue(r2, "x"), 2), "r2['x'] was mutated during chain");
             Assert(!((r1?.ContainsKey("p3") == true)), "r1['p3'] leaked into r1");
@@ -150,8 +150,8 @@ public partial class BaseTest
             Assert(isEqual(getValue(extUndef, "keep2"), null), "extend: extUndef['keep2'] should be undefined");
             Assert(isEqual(getValue(extUndef, "newKey"), "C"), "extend: extUndef['newKey'] should be added");
             // original must not be touched
-            Assert(isEqual(withValues["keep1"], "A"), "withValues['keep1'] was mutated");
-            Assert(isEqual(withValues["keep2"], "B"), "withValues['keep2'] was mutated");
+            Assert(isEqual(((IDictionary<string,object>)withValues)["keep1"], "A"), "withValues['keep1'] was mutated");
+            Assert(isEqual(((IDictionary<string,object>)withValues)["keep2"], "B"), "withValues['keep2'] was mutated");
         }
         public void tbfeCheckExtended(object extended, object hasSub)
         {

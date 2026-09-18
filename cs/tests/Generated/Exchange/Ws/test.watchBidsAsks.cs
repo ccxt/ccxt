@@ -64,7 +64,7 @@ public partial class testMainClass : BaseTest
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
                 {
-                    object ticker = getValue(values, i);
+                    object ticker = values[i];
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
                 }
                 if (isGreaterThan((subtract(now, startTime)), maxIdleTime))

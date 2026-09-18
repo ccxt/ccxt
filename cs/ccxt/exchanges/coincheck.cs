@@ -352,7 +352,7 @@ public partial class coincheck : Exchange
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (int i = 0; isLessThan(i, codes.Count); postFixIncrement(ref i))
         {
-            string? code = ((string)getValue(codes, i));
+            string? code = ((string)codes[i]);
             Dictionary<string, object> currency = this.currency(code);
             object currencyId = GetValue(currency, "id");
             if (inOp(response, currencyId))
@@ -364,7 +364,7 @@ public partial class coincheck : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -400,9 +400,9 @@ public partial class coincheck : Exchange
         Int64? updated = null;
         for (int i = 0; isLessThan(i, exchangeStatuses.Count); postFixIncrement(ref i))
         {
-            object exchangeStatus = getValue(exchangeStatuses, i);
+            object exchangeStatus = exchangeStatuses[i];
             string? rawStatus = this.safeString(exchangeStatus, "status");
-            if (isEqual(updated, null))
+            if ((updated == null))
             {
                 updated = this.safeTimestamp(exchangeStatus, "timestamp");
             }
@@ -463,7 +463,7 @@ public partial class coincheck : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
+            result.Add(this.extend(parsedOrders[i], new Dictionary<string, object>() {
                 { "status", "open" },
             }));
         }
@@ -599,7 +599,7 @@ public partial class coincheck : Exchange
         parameters ??= new Dictionary<string, object>();
         if (!isEqual(symbol, "BTC/JPY"))
         {
-            throw new BadSymbol (add(this.id, " fetchTicker() supports BTC/JPY only")) ;
+            throw new BadSymbol ((this.id + " fetchTicker() supports BTC/JPY only")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -661,9 +661,9 @@ public partial class coincheck : Exchange
         string? priceString = this.safeString(trade, "rate");
         string? marketId = this.safeString(trade, "pair");
         market = this.safeMarket(marketId, market, "_");
-        object baseId = getValue(market, "baseId");
-        object quoteId = getValue(market, "quoteId");
-        object symbol = getValue(market, "symbol");
+        string? baseId = ((string)getValue(market, "baseId"));
+        string? quoteId = ((string)getValue(market, "quoteId"));
+        string? symbol = ((string)getValue(market, "symbol"));
         string? takerOrMaker = null;
         string? amountString = null;
         string? costString = null;
@@ -846,7 +846,7 @@ public partial class coincheck : Exchange
         }
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             Dictionary<string, object> market = this.market(symbol);
             object fee = this.safeValue(fees, GetValue(market, "id"), new Dictionary<string, object>() {});
             result[(string)symbol] = new Dictionary<string, object>() {
@@ -895,9 +895,9 @@ public partial class coincheck : Exchange
             {
                 double? cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                if (!isEqual(cost, null))
+                if ((cost != null))
                 {
-                    throw new ArgumentsRequired (add(this.id, " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
+                    throw new ArgumentsRequired ((this.id + " createOrder() : you should use \"cost\" parameter instead of \"amount\" argument to create market buy orders")) ;
                 }
                 request["market_buy_amount"] = cost;
             }
@@ -1100,7 +1100,7 @@ public partial class coincheck : Exchange
         Int64? updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Dictionary<string, object> fee = null;
         double? feeCost = this.safeNumber(transaction, "fee");
-        if (!isEqual(feeCost, null))
+        if ((feeCost != null))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -1147,7 +1147,7 @@ public partial class coincheck : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else
         {
@@ -1158,7 +1158,7 @@ public partial class coincheck : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(this.keysort(query))));
+                    url = add(url, ("?" + this.urlencode(this.keysort(query))));
                 }
             } else
             {
@@ -1168,7 +1168,7 @@ public partial class coincheck : Exchange
                     queryString = body;
                 }
             }
-            object auth = add(add(nonce, url), queryString);
+            object auth = ((nonce + url) + queryString);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "ACCESS-KEY", this.apiKey },
@@ -1198,10 +1198,10 @@ public partial class coincheck : Exchange
         if ((success != true))
         {
             string? error = this.safeString(response, "error");
-            string feedback = add(add(this.id, " "), this.json(response));
+            string feedback = ((this.id + " ") + this.json(response));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-            throw new ExchangeError (add(add(this.id, " "), this.json(response))) ;
+            throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;
     }

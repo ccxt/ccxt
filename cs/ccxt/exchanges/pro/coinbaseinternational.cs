@@ -101,7 +101,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             productIds = marketIds;
             for (int i = 0; isLessThan(i, parsedSymbols?.Count ?? 0); postFixIncrement(ref i))
             {
-                ((IList<object>)messageHashes).Add(add(add(name, "::"), parsedSymbols[i]));
+                messageHashes.Add(add(add(name, "::"), parsedSymbols[i]));
             }
         } else if ((symbolsLength == 1))
         {
@@ -115,7 +115,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             throw new NotSupported ((this.id + " is not supported in sandbox environment")) ;
         }
         string timestamp = this.nonce().ToString();
-        object auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
+        string auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
         string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
@@ -167,8 +167,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             string? marketId = this.marketId(getValue(symbols, i));
             string? symbol = this.symbol(marketId);
-            ((IList<object>)productIds).Add(marketId);
-            ((IList<object>)messageHashes).Add(add(add(name, "::"), symbol));
+            productIds.Add(marketId);
+            messageHashes.Add(add(add(name, "::"), symbol));
         }
         string? url = ((string)getValue(getValue(this.urls, "api"), "ws"));
         if ((url == null))
@@ -270,10 +270,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             Dictionary<string, object> market = this.market(symbol);
             if (isEqual(GetValue(market, "active"), true))
             {
-                ((IList<object>)output).Add(symbol);
+                output.Add(symbol);
             }
         }
-        return ((List<object>)((object)(output)));
+        return output;
     }
 
     /**
@@ -508,9 +508,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      */
     public async override Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -518,13 +518,13 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
+        symbolVar = ((string)GetValue(market, "symbol"));
         IDictionary<string, object> options = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         string? interval = this.safeString(options, timeframeVar, timeframeVar);
         object ohlcv = await this.subscribe(interval, new List<object>() {symbolVar}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(ohlcv, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitVar, 0, true));
     }
@@ -560,7 +560,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[timeframe] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)getValue(getValue(this.ohlcvs, symbol), timeframe));
         List<object> data = this.safeList(message, "candles", new List<object>() {});
         for (int i = 0; isLessThan(i, data.Count); postFixIncrement(ref i))
         {
@@ -600,7 +600,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      */
     public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(object symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -612,7 +612,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             IDictionary<string, object> first = this.safeDict(trades, 0);
             string? tradeSymbol = this.safeString(first, "symbol");
-            limitVar = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {tradeSymbol, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -633,17 +633,17 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         //    }
         //
         Dictionary<string, object> trade = this.parseWsTrade(message);
-        object symbol = GetValue(trade, "symbol");
+        string? symbol = ((string)GetValue(trade, "symbol"));
         object channel = this.safeString(message, "channel");
-        if (!(((IDictionary<string, object>)this.trades).ContainsKey(((string)symbol))))
+        if (!(((IDictionary<string, object>)this.trades).ContainsKey(symbol)))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArrayCache;
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
-        object tradesArray = getValue(this.trades, ((string)symbol));
+        ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
         callDynamically(tradesArray, "append", new object[] {trade});
-        ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
+        ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         callDynamically(client, "resolve", new object[] {tradesArray, channel});
         callDynamically(client, "resolve", new object[] {tradesArray, add(add(channel, "::"), GetValue(trade, "symbol"))});
         return message;
@@ -766,15 +766,15 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             Dictionary<string, object> parsedSnapshot = this.parseOrderBook(message, symbol, null, "bids", "asks");
             (orderbook as IOrderBook).reset(parsedSnapshot);
-            ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+            orderbook["symbol"] = symbol;
         } else
         {
             List<object> changes = this.safeList(message, "changes", new List<object>() {});
             this.handleDeltas(orderbook, changes);
         }
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "sequence");
-        ((IDictionary<string,object>)orderbook)["datetime"] = datetime;
-        ((IDictionary<string,object>)orderbook)["timestamp"] = this.parse8601(datetime);
+        orderbook["nonce"] = this.safeInteger(message, "sequence");
+        orderbook["datetime"] = datetime;
+        orderbook["timestamp"] = this.parse8601(datetime);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, add(add(channel, "::"), symbol)});
     }
@@ -912,7 +912,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             this.handleOHLCV(client, (Dictionary<string, object>)message);
         }
-        object method = this.safeValue(methods, channel);
+        Delegate method = ((Delegate)this.safeValue(methods, channel));
         if ((method != null))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

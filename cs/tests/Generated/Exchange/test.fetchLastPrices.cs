@@ -28,8 +28,8 @@ public partial class testMainClass : BaseTest
         for (int i = 0; isLessThan(i, values.Count); postFixIncrement(ref i))
         {
             // todo: symbol check here
-            testLastPrice(exchange, skippedProperties, method, getValue(values, i), ((string)checkedSymbol));
-            atLeastOnePassed = atLeastOnePassed || (isGreaterThan(exchange.safeNumber(getValue(values, i), "price"), 0));
+            testLastPrice(exchange, skippedProperties, method, values[i], ((string)checkedSymbol));
+            atLeastOnePassed = atLeastOnePassed || (isGreaterThan(exchange.safeNumber(values[i], "price"), 0));
         }
         assert(atLeastOnePassed, add(add(add(add(add(exchange.id, " "), method), " "), checkedSymbol), " at least one symbol should pass the test"));
         return true;

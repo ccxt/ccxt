@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         assert(orderBookKeys.Count > 0, add(add(add(exchange.id, " "), method), " returned 0 length data"));
         for (int i = 0; isLessThan(i, orderBookKeys.Count); postFixIncrement(ref i))
         {
-            string? symbolInner = ((string)getValue(orderBookKeys, i));
+            string? symbolInner = ((string)orderBookKeys[i]);
             testOrderBook(exchange, skippedProperties, method, getValue(orderBooks, symbolInner), symbolInner);
         }
         return true;

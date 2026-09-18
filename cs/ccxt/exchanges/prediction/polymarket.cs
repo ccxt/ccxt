@@ -599,7 +599,7 @@ public partial class polymarket : PredictionExchange
             List<object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
             for (int mi = 0; isLessThan(mi, ccxtMarkets?.Count ?? 0); postFixIncrement(ref mi))
             {
-                ((IList<object>)flatMarkets).Add(getValue(ccxtMarkets, mi));
+                flatMarkets.Add(ccxtMarkets[mi]);
             }
             Dictionary<string, object> parsedEvent = this.parseEvent(rawEvent);
             string? eventSlug = this.safeString(rawEvent, "slug");
@@ -680,7 +680,7 @@ public partial class polymarket : PredictionExchange
             object totalPages = Math.Ceiling(Convert.ToDouble(divide(totalResults, pageSize)));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
-            if (!isEqual(resultLimit, null))
+            if ((resultLimit != null))
             {
                 double limitPages = Math.Ceiling(Convert.ToDouble(divide(resultLimit, pageSize)));
                 if (isLessThan(limitPages, totalPages))
@@ -699,39 +699,39 @@ public partial class polymarket : PredictionExchange
             List<object> remainingPages = new List<object>() {};
             for (int p = 2; isLessThanOrEqual(p, totalPages); postFixIncrement(ref p))
             {
-                ((IList<object>)remainingPages).Add(p);
+                remainingPages.Add(p);
             }
             List<object> restPromises = new List<object>() {};
             for (int pi = 0; isLessThan(pi, remainingPages.Count); postFixIncrement(ref pi))
             {
                 Dictionary<string, object> pageRequest = new Dictionary<string, object>() {
-                    { "page", getValue(remainingPages, pi) },
+                    { "page", remainingPages[pi] },
                 };
                 pageRequest = this.extend(this.extend(pageRequest, baseRequest), rest);
-                ((IList<object>)restPromises).Add(this.gammaPublicGetPublicSearch(pageRequest));
+                restPromises.Add(this.gammaPublicGetPublicSearch(pageRequest));
             }
             List<object> restResponses = await promiseAll(restPromises);
             List<object> allEvents = new List<object>() {};
             for (int fi = 0; isLessThan(fi, firstEvents.Count); postFixIncrement(ref fi))
             {
-                ((IList<object>)allEvents).Add(getValue(firstEvents, fi));
+                allEvents.Add(firstEvents[fi]);
             }
             for (int ri = 0; isLessThan(ri, restResponses?.Count ?? 0); postFixIncrement(ref ri))
             {
-                IList<object> pageEvents = (IList<object>)(this.safeList(getValue(restResponses, ri), "events", new List<object>() {}));
+                IList<object> pageEvents = (IList<object>)(this.safeList(restResponses[ri], "events", new List<object>() {}));
                 for (int ei = 0; isLessThan(ei, pageEvents.Count); postFixIncrement(ref ei))
                 {
-                    ((IList<object>)allEvents).Add(getValue(pageEvents, ei));
+                    allEvents.Add(pageEvents[ei]);
                 }
             }
             for (int ei = 0; isLessThan(ei, allEvents.Count); postFixIncrement(ref ei))
             {
-                object rawEvent = getValue(allEvents, ei);
+                object rawEvent = allEvents[ei];
                 string? eventId = this.safeString(rawEvent, "id");
-                if (((eventId != null) && eventId != "") && !(inOp(seen, eventId)))
+                if (((eventId != null) && eventId != "") && !(((eventId != null) && (seen?.ContainsKey(eventId) == true))))
                 {
                     seen[(string)eventId] = true;
-                    ((IList<object>)rawEvents).Add(rawEvent);
+                    rawEvents.Add(rawEvent);
                 }
             }
         }
@@ -750,31 +750,31 @@ public partial class polymarket : PredictionExchange
     {
         string lower = ((string)tag).ToLower();
         string allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
-        object chars = this.stringToCharsArray(lower);
-        object slug = "";
+        List<object> chars = this.stringToCharsArray(lower);
+        string slug = "";
         bool pendingSep = false;
-        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chars?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? ch = ((string)getValue(chars, i));
+            string? ch = ((string)chars[i]);
             if (getIndexOf(allowed, ch) >= 0)
             {
-                if (pendingSep && (!isEqual(slug, "")))
+                if (pendingSep && (slug != ""))
                 {
-                    slug = add(slug, "-");
+                    slug = (slug + "-");
                 }
-                slug = add(slug, ch);
+                slug = (slug + ch);
                 pendingSep = false;
             } else
             {
                 pendingSep = true;
             }
         }
-        if (isEqual(slug, ""))
+        if (slug == "")
         {
             // a tag with no alphanumerics at all — pass it through so gamma just returns no match
             return lower;
         }
-        return ((string?)((object)(slug)));
+        return slug;
     }
 
     /**
@@ -829,15 +829,15 @@ public partial class polymarket : PredictionExchange
             {
                 Dictionary<string, object> singleTagParams = this.extend(new Dictionary<string, object>() {}, parameters);
                 singleTagParams["tags"] = new List<object>() {getValue(requestedTags, ti)};
-                object tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
-                for (int ei = 0; isLessThan(ei, getArrayLength(tagEvents)); postFixIncrement(ref ei))
+                List<object> tagEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsList(singleTagParams));
+                for (int ei = 0; isLessThan(ei, tagEvents?.Count ?? 0); postFixIncrement(ref ei))
                 {
-                    object rawEvent = getValue(tagEvents, ei);
+                    object rawEvent = tagEvents[ei];
                     string? eventId = this.safeString(rawEvent, "id");
-                    if (((eventId != null)) && !(inOp(seen, eventId)))
+                    if (((eventId != null)) && !(((eventId != null) && (seen?.ContainsKey(eventId) == true))))
                     {
                         seen[(string)eventId] = true;
-                        ((IList<object>)unioned).Add(rawEvent);
+                        unioned.Add(rawEvent);
                     }
                 }
             }
@@ -866,37 +866,37 @@ public partial class polymarket : PredictionExchange
         firstPageRequest = this.extend(firstPageRequest, baseRequest);
         List<object> firstPageResponse = await this.gammaPublicGetEvents(firstPageRequest);
         bool firstPageIsArray = ((firstPageResponse is IList<object>) || (firstPageResponse.GetType().IsGenericType && firstPageResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        List<object> firstPage = (firstPageIsArray) ? firstPageResponse : new List<object>() {};
+        List<object> firstPage = firstPageIsArray ? firstPageResponse : new List<object>() {};
         int firstPageLength = firstPage?.Count ?? 0;
         List<object> allRawEvents = new List<object>() {};
         for (int fi = 0; isLessThan(fi, firstPageLength); postFixIncrement(ref fi))
         {
-            ((IList<object>)allRawEvents).Add(getValue(firstPage, fi));
+            allRawEvents.Add(getValue(firstPage, fi));
         }
         if (isGreaterThanOrEqual(firstPageLength, pageSize))
         {
             List<object> offsets = new List<object>() {};
             for (int p = 1; isLessThan(p, maxPages); postFixIncrement(ref p))
             {
-                ((IList<object>)offsets).Add(multiply(p, pageSize));
+                offsets.Add(multiply(p, pageSize));
             }
             List<object> restPromises = new List<object>() {};
             for (int oi = 0; isLessThan(oi, offsets.Count); postFixIncrement(ref oi))
             {
                 Dictionary<string, object> pageRequest = new Dictionary<string, object>() {
-                    { "offset", getValue(offsets, oi) },
+                    { "offset", offsets[oi] },
                 };
                 pageRequest = this.extend(pageRequest, baseRequest);
-                ((IList<object>)restPromises).Add(this.gammaPublicGetEvents(pageRequest));
+                restPromises.Add(this.gammaPublicGetEvents(pageRequest));
             }
             List<object> restPages = await promiseAll(restPromises);
             for (int ri = 0; isLessThan(ri, restPages?.Count ?? 0); postFixIncrement(ref ri))
             {
-                object page = (!isEqual(getValue(restPages, ri), null)) ? getValue(restPages, ri) : new List<object>() {};
+                object page = (!isEqual(restPages[ri], null)) ? restPages[ri] : new List<object>() {};
                 int pageLength = getArrayLength(page);
                 for (int pi = 0; isLessThan(pi, pageLength); postFixIncrement(ref pi))
                 {
-                    ((IList<object>)allRawEvents).Add(getValue(page, pi));
+                    allRawEvents.Add(getValue(page, pi));
                 }
             }
         }
@@ -1001,7 +1001,7 @@ public partial class polymarket : PredictionExchange
         //
         for (int mi = 0; isLessThan(mi, rawMarkets.Count); postFixIncrement(ref mi))
         {
-            object market = getValue(rawMarkets, mi);
+            object market = rawMarkets[mi];
             string? conditionId = this.safeString(market, "conditionId");
             string? marketId = this.safeString(market, "id");
             string? marketSlug = this.safeString(market, "slug", conditionId);
@@ -1039,15 +1039,15 @@ public partial class polymarket : PredictionExchange
             {
                 parsedPricesLength = (((IList<object>)(parsedPrices))?.Count ?? 0);
             }
-            if (((parsedOutcomes != null)) && (!isEqual(parsedOutcomesLength, null)))
+            if (((parsedOutcomes != null)) && ((parsedOutcomesLength != null)))
             {
                 outcomeLabels = (IList<object>)(parsedOutcomes);
             }
-            if (((parsedTokenIds != null)) && (!isEqual(parsedTokenIdsLength, null)))
+            if (((parsedTokenIds != null)) && ((parsedTokenIdsLength != null)))
             {
                 clobTokenIds = (IList<object>)(parsedTokenIds);
             }
-            if (((parsedPrices != null)) && (!isEqual(parsedPricesLength, null)))
+            if (((parsedPrices != null)) && ((parsedPricesLength != null)))
             {
                 outcomePrices = parsedPrices;
             }
@@ -1063,7 +1063,7 @@ public partial class polymarket : PredictionExchange
             List<object> outcomes = new List<object>() {};
             for (int oi = 0; isLessThan(oi, outcomeLabels?.Count ?? 0); postFixIncrement(ref oi))
             {
-                object outcomeLabel = getValue(outcomeLabels, oi);
+                object outcomeLabel = outcomeLabels[oi];
                 object clobTokenId = getValue(clobTokenIds, oi);
                 double? outcomePrice = this.safeNumber(outcomePrices, oi);
                 if (((clobTokenId == null)) || (isEqual(clobTokenId, "")))
@@ -1073,7 +1073,7 @@ public partial class polymarket : PredictionExchange
                 string? outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
                 bool? winnerRaw = null;
                 int? settleFractionRaw = null;
-                if (marketResolved && (!isEqual(outcomePrice, null)))
+                if (marketResolved && ((outcomePrice != null)))
                 {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
@@ -1094,7 +1094,7 @@ public partial class polymarket : PredictionExchange
                 // inner class, which cannot capture a reassigned local
                 bool? winner = winnerRaw;
                 int? settleFraction = settleFractionRaw;
-                ((IList<object>)outcomes).Add(new Dictionary<string, object>() {
+                outcomes.Add(new Dictionary<string, object>() {
                     { "outcome", outcomeHandle },
                     { "outcomeId", clobTokenId },
                     { "market", marketSymbol },
@@ -1115,7 +1115,7 @@ public partial class polymarket : PredictionExchange
             string marketType = (isGreaterThan(outcomeLabelsLength, 2)) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
             string? marketResolvedOutcome = resolvedOutcome;
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            result.Add(new Dictionary<string, object>() {
                 { "id", conditionId },
                 { "market", marketSymbol },
                 { "marketType", marketType },
@@ -1177,7 +1177,7 @@ public partial class polymarket : PredictionExchange
                 { "created", null },
             });
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -1221,7 +1221,7 @@ public partial class polymarket : PredictionExchange
                     object mkt = getValue(ccxtMarkets, i);
                     if ((mkt == null))
                     {
-                        throw new ExchangeError (add(this.id, " fetchOutcome() could not resolve mkt")) ;
+                        throw new ExchangeError ((this.id + " fetchOutcome() could not resolve mkt")) ;
                     }
                     ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
                 }
@@ -1257,7 +1257,7 @@ public partial class polymarket : PredictionExchange
             // matches mb_strpos's false return
             if ((getIndexOf(outcomeSymbol, ":") < 0) && (isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))
             {
-                ((IList<object>)tokenIds).Add(outcomeSymbol);
+                tokenIds.Add(outcomeSymbol);
             }
         }
         int tokenIdsLength = tokenIds.Count;
@@ -1280,7 +1280,7 @@ public partial class polymarket : PredictionExchange
                 List<object> chunk = new List<object>() {};
                 for (object i = startIndex; isLessThan(i, endIndex); postFixIncrement(ref i))
                 {
-                    ((IList<object>)chunk).Add(getValue(tokenIds, i));
+                    chunk.Add(getValue(tokenIds, i));
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
@@ -1294,10 +1294,10 @@ public partial class polymarket : PredictionExchange
                 });
                 for (int i = 0; isLessThan(i, ccxtMarkets?.Count ?? 0); postFixIncrement(ref i))
                 {
-                    object mkt = getValue(ccxtMarkets, i);
+                    object mkt = ccxtMarkets[i];
                     if ((mkt == null))
                     {
-                        throw new ExchangeError (add(this.id, " fetchOutcomes() could not resolve mkt")) ;
+                        throw new ExchangeError ((this.id + " fetchOutcomes() could not resolve mkt")) ;
                     }
                     ((IDictionary<string,object>)this.markets)[(string)getValue(mkt, "market")] = mkt;
                 }
@@ -1399,25 +1399,25 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         if (isEqual(outcomes, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
+            throw new ArgumentsRequired ((this.id + " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())")) ;
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         await this.loadOutcomes(outcomes);
         List<object> targets = new List<object>() {};
         for (int oi = 0; isLessThan(oi, outcomes?.Count ?? 0); postFixIncrement(ref oi))
         {
-            ((IList<object>)targets).Add(getValue(outcomes, oi));
+            targets.Add(getValue(outcomes, oi));
         }
         Dictionary<string, object> outcomesByTokenId = new Dictionary<string, object>() {};
         List<object> tokenIds = new List<object>() {};
         for (int i = 0; isLessThan(i, targets.Count); postFixIncrement(ref i))
         {
-            IDictionary<string, object> outcomeObj = this.outcome(getValue(targets, i));
+            IDictionary<string, object> outcomeObj = this.outcome(targets[i]);
             string? tokenId = this.safeString(outcomeObj, "outcomeId");
-            if (((tokenId != null)) && !(inOp(outcomesByTokenId, tokenId)))
+            if (((tokenId != null)) && !(((tokenId != null) && (outcomesByTokenId?.ContainsKey(tokenId) == true))))
             {
                 outcomesByTokenId[(string)tokenId] = outcomeObj;
-                ((IList<object>)tokenIds).Add(tokenId);
+                tokenIds.Add(tokenId);
             }
         }
         Int64? chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
@@ -1434,7 +1434,7 @@ public partial class polymarket : PredictionExchange
             List<object> bookParams = new List<object>() {};
             for (object i = startIndex; isLessThan(i, endIndex); postFixIncrement(ref i))
             {
-                ((IList<object>)bookParams).Add(new Dictionary<string, object>() {
+                bookParams.Add(new Dictionary<string, object>() {
                     { "token_id", getValue(tokenIds, i) },
                 });
             }
@@ -1444,9 +1444,9 @@ public partial class polymarket : PredictionExchange
             object midpoints = getValue(responses, 1);
             object lastTradesResponse = getValue(responses, 2);
             bool booksIsArray = ((booksResponse is IList<object>) || (booksResponse.GetType().IsGenericType && booksResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object books = (booksIsArray) ? booksResponse : new List<object>() {};
+            object books = booksIsArray ? booksResponse : new List<object>() {};
             bool lastTradesIsArray = ((lastTradesResponse is IList<object>) || (lastTradesResponse.GetType().IsGenericType && lastTradesResponse.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            object lastTrades = (lastTradesIsArray) ? lastTradesResponse : new List<object>() {};
+            object lastTrades = lastTradesIsArray ? lastTradesResponse : new List<object>() {};
             Dictionary<string, object> lastTradesByTokenId = new Dictionary<string, object>() {};
             int lastTradesLength = getArrayLength(lastTrades);
             for (int li = 0; isLessThan(li, lastTradesLength); postFixIncrement(ref li))
@@ -1463,7 +1463,7 @@ public partial class polymarket : PredictionExchange
             {
                 object book = getValue(books, i);
                 string? tokenId = this.safeString(book, "asset_id");
-                if (((tokenId == null)) || !(inOp(outcomesByTokenId, tokenId)))
+                if (((tokenId == null)) || !(((tokenId != null) && (outcomesByTokenId?.ContainsKey(tokenId) == true))))
                 {
                     continue;
                 }
@@ -1545,7 +1545,7 @@ public partial class polymarket : PredictionExchange
         // never-traded token, which also falls back to the mid
         IDictionary<string, object> lastTradeData = this.safeDict(ticker, "lastTrade", new Dictionary<string, object>() {});
         double? last = this.safeNumber(lastTradeData, "price");
-        if ((isEqual(last, null)) || (isEqual(last, 0)))
+        if (((last == null)) || (isEqual(last, 0)))
         {
             last = mid;
         }
@@ -1556,7 +1556,7 @@ public partial class polymarket : PredictionExchange
         {
             quoteVolume = this.safeNumber2(getValue(market, "info"), "volume24hr", "volume");
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
             { "outcomeId", this.safeString(market, "outcomeId") },
             { "label", this.safeString(market, "label") },
@@ -1580,7 +1580,7 @@ public partial class polymarket : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -1641,15 +1641,15 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         object limitVar = limit;
         // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (!(inOp(this.timeframes, timeframeVar)))
         {
-            List<object> supportedKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
-            throw new BadRequest (add(add(add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframeVar), ", supported timeframes are "), String.Join(", ", supportedKeys.ToArray()))) ;
+            List<object> supportedKeys = new List<object>(this.timeframes.Keys);
+            throw new BadRequest (((((this.id + " fetchOHLCV() unsupported timeframe ") + timeframeVar) + ", supported timeframes are ") + String.Join(", ", supportedKeys.ToArray()))) ;
         }
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcome);
         object tokenId = GetValue(outcomeObj, "outcomeId");
@@ -1706,10 +1706,10 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> buckets = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, history.Count); postFixIncrement(ref i))
         {
-            object item = getValue(history, i);
+            object item = history[i];
             Int64? t = this.safeInteger(item, "t");
             double? price = this.safeNumber(item, "p");
-            if ((isEqual(t, null)) || (isEqual(price, null)))
+            if (((t == null)) || ((price == null)))
             {
                 continue;
             }
@@ -1718,12 +1718,12 @@ public partial class polymarket : PredictionExchange
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             double? vol = this.safeNumber(item, "s");
-            if (isEqual(vol, null))
+            if ((vol == null))
             {
                 vol = this.safeNumber(item, "v");
             }
             string bucketKey = snappedMs.ToString();
-            if (!(inOp(buckets, bucketKey)))
+            if (!(((bucketKey != null) && (buckets?.ContainsKey(bucketKey) == true))))
             {
                 buckets[(string)bucketKey] = new List<object>() {snappedMs, price, price, price, price, vol};
             } else
@@ -1732,7 +1732,7 @@ public partial class polymarket : PredictionExchange
                 ((List<object>)candle)[Convert.ToInt32(2)] = mathMax(getValue(candle, 2), price); // high
                 ((List<object>)candle)[Convert.ToInt32(3)] = mathMin(getValue(candle, 3), price); // low
                 ((List<object>)candle)[Convert.ToInt32(4)] = price; // close (last tick wins)
-                if (!isEqual(vol, null))
+                if ((vol != null))
                 {
                     object prevVol = getValue(candle, 5);
                     ((List<object>)candle)[Convert.ToInt32(5)] = (isEqual(prevVol, null)) ? vol : this.sum(prevVol, vol); // volume
@@ -1744,7 +1744,7 @@ public partial class polymarket : PredictionExchange
         List<object> unsortedCandles = new List<object>() {};
         for (int i = 0; isLessThan(i, bucketKeys.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)unsortedCandles).Add(getValue(buckets, getValue(bucketKeys, i)));
+            unsortedCandles.Add(getValue(buckets, bucketKeys[i]));
         }
         List<object> candles = this.sortBy(unsortedCandles, 0);
         int candlesLength = candles?.Count ?? 0;
@@ -1822,7 +1822,7 @@ public partial class polymarket : PredictionExchange
         string? conditionId = this.safeString(outcomeInfo, "conditionId");
         if ((conditionId == null))
         {
-            throw new BadRequest (add(add(this.id, " fetchOpenInterest() requires outcome.info.conditionId for "), outcome)) ;
+            throw new BadRequest (((this.id + " fetchOpenInterest() requires outcome.info.conditionId for ") + outcome)) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", conditionId },
@@ -1904,7 +1904,7 @@ public partial class polymarket : PredictionExchange
         string? conditionId = this.safeString(outcomeInfo, "conditionId");
         if ((conditionId == null))
         {
-            throw new BadRequest (add(add(this.id, " fetchTrades() requires outcome.info.conditionId for an outcome "), tokenId)) ;
+            throw new BadRequest (((this.id + " fetchTrades() requires outcome.info.conditionId for an outcome ") + tokenId)) ;
         }
         // the endpoint filters by market conditionId (which spans BOTH outcome tokens), then we narrow
         // to the requested token client-side below. applying the user's `limit` to this request and
@@ -1920,11 +1920,11 @@ public partial class polymarket : PredictionExchange
         List<object> filteredTrades = new List<object>() {};
         for (int i = 0; isLessThan(i, rawTrades.Count); postFixIncrement(ref i))
         {
-            object trade = getValue(rawTrades, i);
+            object trade = rawTrades[i];
             string? tradeAsset = this.safeString(trade, "asset");
             if (isEqual(tradeAsset, tokenId))
             {
-                ((IList<object>)filteredTrades).Add(trade);
+                filteredTrades.Add(trade);
             }
         }
         // the trades are already narrowed to this outcome by asset id above;
@@ -1976,24 +1976,24 @@ public partial class polymarket : PredictionExchange
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
         parameters ??= new Dictionary<string, object>();
-        object trades = ccxt.BaseExchange.FromPredictionTradeList(await this.FetchMyTrades(outcome,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
+        List<object> trades = ccxt.BaseExchange.FromPredictionTradeList(await this.FetchMyTrades(outcome,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters));
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, trades?.Count ?? 0); postFixIncrement(ref i))
         {
-            object trade = getValue(trades, i);
+            IDictionary<string, object> trade = ((IDictionary<string, object>)trades[i]);
             IDictionary<string, object> info = this.safeDict(trade, "info", new Dictionary<string, object>() {});
             bool belongs = (isEqual(this.safeString(trade, "order"), id)) || (isEqual(this.safeString(info, "taker_order_id"), id));
             List<object> makerOrders = this.safeList(info, "maker_orders", new List<object>() {});
             for (int j = 0; isLessThan(j, makerOrders.Count); postFixIncrement(ref j))
             {
-                if (isEqual(this.safeString(getValue(makerOrders, j), "order_id"), id))
+                if (isEqual(this.safeString(makerOrders[j], "order_id"), id))
                 {
                     belongs = true;
                 }
             }
             if (belongs)
             {
-                ((IList<object>)result).Add(trade);
+                result.Add(trade);
             }
         }
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterBySinceLimit(result, since, limit));
@@ -2014,7 +2014,7 @@ public partial class polymarket : PredictionExchange
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         string? id = this.safeStringN(trade, new List<object>() {"transactionHash", "transaction_hash", "id"});
         Int64? timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.safeIntegerProduct(trade, "match_time", 1000);
         }
@@ -2036,7 +2036,7 @@ public partial class polymarket : PredictionExchange
                 { "rate", this.parseNumber(Precise.stringDiv(feeRateBps, "10000")) },
             };
         }
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", timestamp },
@@ -2053,7 +2053,7 @@ public partial class polymarket : PredictionExchange
             { "amount", amount },
             { "cost", null },
             { "fee", fee },
-        }, mkt))));
+        }, mkt);
     }
 
     /**
@@ -2105,7 +2105,7 @@ public partial class polymarket : PredictionExchange
             { "used", null },
             { "total", total },
         };
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -2130,7 +2130,7 @@ public partial class polymarket : PredictionExchange
         // labels resolve cache-only via safeOutcome (raw token ids when the cache is cold)
         if (isEqual(this.walletAddress, null))
         {
-            throw new ArgumentsRequired (add(this.id, " walletAddress is required to fetchPositions")) ;
+            throw new ArgumentsRequired ((this.id + " walletAddress is required to fetchPositions")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "user", this.walletAddress },
@@ -2139,7 +2139,7 @@ public partial class polymarket : PredictionExchange
         List<object> positions = this.safeList(response, "data", new List<object>() {});
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        object parsed = this.parsePredictionPositions(positions);
+        List<object> parsed = this.parsePredictionPositions(positions);
         if (isEqual(outcomesLength, 0))
         {
             return ccxt.BaseExchange.ToPredictionPositionList(parsed);
@@ -2147,7 +2147,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> wantedIds = new Dictionary<string, object>() {};
         if (isEqual(outcomes, null))
         {
-            throw new ExchangeError (add(this.id, " fetchPositions() missing outcomes")) ;
+            throw new ExchangeError ((this.id + " fetchPositions() missing outcomes")) ;
         }
         for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
         {
@@ -2155,14 +2155,14 @@ public partial class polymarket : PredictionExchange
             wantedIds[(string)GetValue(outcomeObj, "outcomeId")] = true;
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, parsed?.Count ?? 0); postFixIncrement(ref i))
         {
-            object position = getValue(parsed, i);
+            IDictionary<string, object> position = ((IDictionary<string, object>)parsed[i]);
             IDictionary<string, object> info = this.safeDict(position, "info", new Dictionary<string, object>() {});
             string? assetId = this.safeString(info, "asset");
-            if (((assetId != null)) && (inOp(wantedIds, assetId)))
+            if (((assetId != null)) && (((assetId != null) && (wantedIds?.ContainsKey(assetId) == true))))
             {
-                ((IList<object>)result).Add(position);
+                result.Add(position);
             }
         }
         return ccxt.BaseExchange.ToPredictionPositionList(result);
@@ -2180,7 +2180,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<ccxt.PredictionPosition> FetchPosition(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(new List<object>() {outcome}, parameters));
+        List<object> positions = ccxt.BaseExchange.FromPredictionPositionList(await this.FetchPositions(new List<object>() {outcome}, parameters));
         return ccxt.BaseExchange.ToPredictionPosition(this.safeDict(positions, 0));
     }
 
@@ -2193,7 +2193,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         string? tokenId = this.safeString(position, "asset");
         IDictionary<string, object> marketData = this.safeOutcome(tokenId, market);
@@ -2201,7 +2201,7 @@ public partial class polymarket : PredictionExchange
         double? entryPrice = this.safeNumber(position, "avgPrice");
         double? curPrice = this.safeNumber(position, "currentPrice");
         object notional = null;
-        if ((!isEqual(size, null)) && (!isEqual(curPrice, null)))
+        if (((size != null)) && ((curPrice != null)))
         {
             notional = multiply(size, curPrice);
         }
@@ -2319,7 +2319,7 @@ public partial class polymarket : PredictionExchange
         double? amount = this.safeNumber(order, "original_size");
         double? filled = this.safeNumber(order, "size_matched", 0);
         Int64? ts = this.safeIntegerProduct(order, "created_at", 1000);
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
             { "info", order },
@@ -2345,7 +2345,7 @@ public partial class polymarket : PredictionExchange
             { "remaining", null },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, mkt))));
+        }, mkt);
     }
 
     /**
@@ -2433,7 +2433,7 @@ public partial class polymarket : PredictionExchange
             string? __oc = this.safeString(o, "outcome");
             if ((__oc != null))
             {
-                ((IList<object>)orderOutcomes).Add(__oc);
+                orderOutcomes.Add(__oc);
             }
         }
         await this.loadOutcomes(orderOutcomes);
@@ -2453,9 +2453,9 @@ public partial class polymarket : PredictionExchange
                 });
             }
             Dictionary<string, object> built = this.buildClobOrderBody(this.safeString(o, "outcome"), this.safeString(o, "type"), this.safeString(o, "side"), this.safeNumber(o, "amount"), this.safeNumber(o, "price"), orderParams);
-            ((IList<object>)bodies).Add(this.safeDict(built, "body", new Dictionary<string, object>() {}));
-            ((IList<object>)outcomes).Add(this.safeDict(built, "outcome", new Dictionary<string, object>() {}));
-            ((IList<object>)requests).Add(this.safeDict(built, "request", new Dictionary<string, object>() {}));
+            bodies.Add(this.safeDict(built, "body", new Dictionary<string, object>() {}));
+            outcomes.Add(this.safeDict(built, "outcome", new Dictionary<string, object>() {}));
+            requests.Add(this.safeDict(built, "request", new Dictionary<string, object>() {}));
         }
         List<object> response = await this.clobPrivatePostOrders(bodies);
         List<object> result = new List<object>() {};
@@ -2464,14 +2464,14 @@ public partial class polymarket : PredictionExchange
             for (int i = 0; isLessThan(i, response?.Count ?? 0); postFixIncrement(ref i))
             {
                 // request echo first so the response's real orderID/status win on overlap
-                Dictionary<string, object> enriched = this.extend(getValue(requests, i), getValue(response, i));
+                Dictionary<string, object> enriched = this.extend(getValue(requests, i), response[i]);
                 Dictionary<string, object> parsedItem = this.parsePredictionOrder(enriched, ((object)getValue(outcomes, i)));
-                parsedItem["info"] = getValue(response, i); // keep info the raw exchange response
-                ((IList<object>)result).Add(parsedItem);
+                parsedItem["info"] = response[i]; // keep info the raw exchange response
+                result.Add(parsedItem);
             }
         } else
         {
-            ((IList<object>)result).Add(this.parsePredictionOrder(response));
+            result.Add(this.parsePredictionOrder(response));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
     }
@@ -2523,13 +2523,13 @@ public partial class polymarket : PredictionExchange
         {
             if (!isMarket)
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a price for limit orders")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a price for limit orders")) ;
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
             price = this.safeNumber(outcomeObj, "price");
             if (isEqual(price, null))
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() could not determine a price from the outcome, pass an explicit price")) ;
             }
         }
         // tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
@@ -2583,7 +2583,7 @@ public partial class polymarket : PredictionExchange
             {
                 builderHex = (builderHex as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
             }
-            builderBytes32 = add("0x", builderHex);
+            builderBytes32 = ("0x" + builderHex);
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
@@ -2641,7 +2641,7 @@ public partial class polymarket : PredictionExchange
             { "time_in_force", orderTypeStr },
             { "postOnly", postOnly },
         };
-        if (isEqual(cost, null))
+        if ((cost == null))
         {
             // a cost-sized market buy specifies spend, not shares — leave size to the fill
             requestEcho["original_size"] = amount;
@@ -2794,20 +2794,20 @@ public partial class polymarket : PredictionExchange
             object eoaSig = this.signMessage(encoded, this.privateKey);
             // lowercase: intToBase16 emits uppercase hex in some target languages, but the
             // signature is case-insensitive bytes and the rest of the hex is lowercase
-            string eoaSignature = add(add(add("0x", this.remove0xPrefix(getValue(eoaSig, "r"))), this.remove0xPrefix(getValue(eoaSig, "s"))), this.intToBase16(getValue(eoaSig, "v")));
+            string eoaSignature = ((("0x" + this.remove0xPrefix(getValue(eoaSig, "r"))) + this.remove0xPrefix(getValue(eoaSig, "s"))) + this.intToBase16(getValue(eoaSig, "v")));
             return eoaSignature.ToLower();
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
-        object orderTypeHash = this.hash(this.encode(orderTypeString), keccak, "binary");
+        byte[] orderTypeHash = ((byte[])this.hash(this.encode(orderTypeString), keccak, "binary"));
         object contentsData = this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32"}, new List<object>() {orderTypeHash, this.convertToBigInt(getValue(message, "salt")), getValue(message, "maker"), getValue(message, "signer"), this.convertToBigInt(getValue(message, "tokenId")), this.convertToBigInt(getValue(message, "makerAmount")), this.convertToBigInt(getValue(message, "takerAmount")), getValue(message, "side"), getValue(message, "signatureType"), this.convertToBigInt(getValue(message, "timestamp")), this.base16ToBinary(this.remove0xPrefix(getValue(message, "metadata"))), this.base16ToBinary(this.remove0xPrefix(getValue(message, "builder")))});
-        string contentsHash = add("0x", this.hash(contentsData, keccak, "hex"));
-        object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary");
-        object nameHash = this.hash(this.encode(domainName), keccak, "binary");
-        object versionHash = this.hash(this.encode(domainVersion), keccak, "binary");
+        string contentsHash = ("0x" + this.hash(contentsData, keccak, "hex"));
+        byte[] domainTypeHash = ((byte[])this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak, "binary"));
+        byte[] nameHash = ((byte[])this.hash(this.encode(domainName), keccak, "binary"));
+        byte[] versionHash = ((byte[])this.hash(this.encode(domainVersion), keccak, "binary"));
         object appDomainData = this.ethAbiEncode(new List<object>() {"bytes32", "bytes32", "bytes32", "uint256", "address"}, new List<object>() {domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress});
-        string appDomainSep = add("0x", this.hash(appDomainData, keccak, "hex"));
+        string appDomainSep = ("0x" + this.hash(appDomainData, keccak, "hex"));
         List<object> typedDataSignStruct = new List<object>() {new Dictionary<string, object>() {
     { "name", "contents" },
     { "type", "Order" },
@@ -2841,7 +2841,7 @@ public partial class polymarket : PredictionExchange
             { "Order", orderStruct },
         }, innerValue);
         object innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        object innerSig = add(add(this.remove0xPrefix(getValue(innerSigObj, "r")), this.remove0xPrefix(getValue(innerSigObj, "s"))), this.intToBase16(getValue(innerSigObj, "v")));
+        string innerSig = ((this.remove0xPrefix(getValue(innerSigObj, "r")) + this.remove0xPrefix(getValue(innerSigObj, "s"))) + this.intToBase16(getValue(innerSigObj, "v")));
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -2850,7 +2850,7 @@ public partial class polymarket : PredictionExchange
         // simple identifier) picks it up instead of leaking a padStart() function call
         object lenHex = (ctLenHex as String).PadLeft(Convert.ToInt32(4), Convert.ToChar("0"));
         object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
-        string wrappedSignature = add(add(add(add(add("0x", innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
+        string wrappedSignature = ((((("0x" + innerSig) + this.remove0xPrefix(appDomainSep)) + this.remove0xPrefix(contentsHash)) + orderTypeStringHex) + lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit
         // uppercase hex in some targets); the signature is case-insensitive bytes
         return wrappedSignature.ToLower();
@@ -2903,7 +2903,7 @@ public partial class polymarket : PredictionExchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, canceled.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)orders).Add(this.safePredictionOrder(new Dictionary<string, object>() {
+            orders.Add(this.safePredictionOrder(new Dictionary<string, object>() {
                 { "id", this.safeString(canceled, i) },
                 { "status", "canceled" },
                 { "info", response },
@@ -2944,7 +2944,7 @@ public partial class polymarket : PredictionExchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, canceled.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)orders).Add(this.safePredictionOrder(new Dictionary<string, object>() {
+            orders.Add(this.safePredictionOrder(new Dictionary<string, object>() {
                 { "id", this.safeString(canceled, i) },
                 { "status", "canceled" },
                 { "info", response },
@@ -2983,7 +2983,7 @@ public partial class polymarket : PredictionExchange
         object rest = this.omit(parameters, new List<object>() {"query", "queries", "eventId", "slug"});
         if ((queries == null))
         {
-            throw new ExchangeError (add(this.id, " fetchEvents() missing queries")) ;
+            throw new ExchangeError ((this.id + " fetchEvents() missing queries")) ;
         }
         int queriesLength = queries?.Count ?? 0;
         object rawEvents = new List<object>() {};
@@ -3000,7 +3000,7 @@ public partial class polymarket : PredictionExchange
             }
             List<object> response = await this.gammaPublicGetEvents(lookup);
             bool responseIsArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-            rawEvents = (responseIsArray) ? response : new List<object>() {};
+            rawEvents = responseIsArray ? response : new List<object>() {};
         } else if (isGreaterThan(queriesLength, 0))
         {
             rawEvents = ccxt.BaseExchange.FromDictList(await this.FetchRawEventsBySearch(queries, rest));
@@ -3049,15 +3049,15 @@ public partial class polymarket : PredictionExchange
             }
             for (int mi = 0; isLessThan(mi, ccxtMarkets?.Count ?? 0); postFixIncrement(ref mi))
             {
-                object m = getValue(ccxtMarkets, mi);
+                object m = ccxtMarkets[mi];
                 if ((m == null))
                 {
-                    throw new ExchangeError (add(this.id, " fetchEvents() missing m")) ;
+                    throw new ExchangeError ((this.id + " fetchEvents() missing m")) ;
                 }
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
             }
             Dictionary<string, object> parsedEvent = this.parseEvent(eventForParsing);
-            ((IList<object>)result).Add(parsedEvent);
+            result.Add(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
         // shared applyEventFetchParams then caches (setEvents) and applies the unified
@@ -3183,7 +3183,7 @@ public partial class polymarket : PredictionExchange
         bool? rawActive = this.safeBool(rawEvent, "active");
         bool? closed = this.safeBool(rawEvent, "closed", false);
         bool? active = null;
-        if (!isEqual(rawActive, null))
+        if ((rawActive != null))
         {
             active = ((rawActive == true)) && ((closed != true));
         }
@@ -3199,7 +3199,7 @@ public partial class polymarket : PredictionExchange
             string? tagLabel = this.safeString2(getValue(rawTags, ti), "label", "slug");
             if ((tagLabel != null))
             {
-                ((IList<object>)parsedTags).Add(tagLabel);
+                parsedTags.Add(tagLabel);
             }
         }
         return this.extend(new Dictionary<string, object>() {
@@ -3239,9 +3239,9 @@ public partial class polymarket : PredictionExchange
         for (int i = 0; isLessThan(i, getArrayLength(rawEvents)); postFixIncrement(ref i))
         {
             object rawEvent = getValue(rawEvents, i);
-            ((IList<object>)result).Add(this.parseEvent(rawEvent));
+            result.Add(this.parseEvent(rawEvent));
         }
-        return ((List<object>)((object)(result)));
+        return result;
     }
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
@@ -3256,7 +3256,7 @@ public partial class polymarket : PredictionExchange
         string? errorMessage = this.safeString2(response, "error", "errorMsg");
         if ((errorMessage != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
         }
@@ -3310,7 +3310,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; isLessThan(i, queryKeys.Count); postFixIncrement(ref i))
             {
-                if (((getValue(query, getValue(queryKeys, i)) is IList<object>) || (getValue(query, getValue(queryKeys, i)).GetType().IsGenericType && getValue(query, getValue(queryKeys, i)).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+                if (((getValue(query, queryKeys[i]) is IList<object>) || (getValue(query, queryKeys[i]).GetType().IsGenericType && getValue(query, queryKeys[i]).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
                 {
                     hasArrayParam = true;
                 }
@@ -3318,7 +3318,7 @@ public partial class polymarket : PredictionExchange
             string querystring = hasArrayParam ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
             if (querystring != "")
             {
-                url = add(url, add("?", querystring));
+                url = add(url, ("?" + querystring));
             }
         } else if (isArrayBody)
         {
@@ -3343,14 +3343,14 @@ public partial class polymarket : PredictionExchange
             // string-literal boundary: the php regex transpiler rewrites a bare "api" flanked by
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
-            string deriveApiKeyPath = add("auth/derive-", "api-key");
+            string deriveApiKeyPath = ("auth/derive-" + "api-key");
             bool isL1Auth = (isEqual(path, "auth/api-key")) || (isEqual(path, deriveApiKeyPath)) || (isEqual(path, "auth/api-keys"));
             if (isL1Auth)
             {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if (isEqual(this.privateKey, null))
                 {
-                    throw new ArgumentsRequired (add(add(add(this.id, " "), path), " requires a privateKey")) ;
+                    throw new ArgumentsRequired ((((this.id + " ") + path) + " requires a privateKey")) ;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 string address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
@@ -3372,11 +3372,11 @@ public partial class polymarket : PredictionExchange
                 string? secret = this.safeString(this.options, "l2Secret", this.secret);
                 string? passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                object address = (!isEqual(this.privateKey, null)) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                string address = (!isEqual(this.privateKey, null)) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
                 string timestamp = this.seconds().ToString();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
-                string requestPath = add("/", this.implodeParams(path, parameters));
+                string requestPath = ("/" + this.implodeParams(path, parameters));
                 object auth = add(add(timestamp, method), requestPath);
                 if (!isEqual(body, null))
                 {
@@ -3388,7 +3388,7 @@ public partial class polymarket : PredictionExchange
                 string normalizedSecret = secret;
                 normalizedSecret = normalizedSecret.Replace("-", (string)"+");
                 normalizedSecret = normalizedSecret.Replace("_", (string)"/");
-                object secretBytes = this.base64ToBinary(normalizedSecret);
+                byte[] secretBytes = this.base64ToBinary(normalizedSecret);
                 string signature = this.hmac(this.encode(auth), secretBytes, sha256, "base64");
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.Replace("+", (string)"-");
@@ -3412,7 +3412,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual string ethChecksumAddress(object address)
@@ -3420,36 +3420,36 @@ public partial class polymarket : PredictionExchange
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
         string cleaned = ((string)this.remove0xPrefix(address)).ToLower();
-        object hashHex = this.hash(this.encode(cleaned), keccak, "hex");
-        object addrChars = this.stringToCharsArray(cleaned);
-        object hashChars = this.stringToCharsArray(hashHex);
+        string hashHex = ((string)this.hash(this.encode(cleaned), keccak, "hex"));
+        List<object> addrChars = this.stringToCharsArray(cleaned);
+        List<object> hashChars = this.stringToCharsArray(hashHex);
         string upperNibbles = "89abcdef";
-        object result = "";
-        for (int i = 0; isLessThan(i, getArrayLength(addrChars)); postFixIncrement(ref i))
+        string result = "";
+        for (int i = 0; isLessThan(i, addrChars?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? ch = ((string)getValue(addrChars, i));
+            string? ch = ((string)addrChars[i]);
             if (getIndexOf(upperNibbles, getValue(hashChars, i)) >= 0)
             {
-                result = add(result, ch.ToUpper());
+                result = (result + ch.ToUpper());
             } else
             {
-                result = add(result, ch);
+                result = (result + ch);
             }
         }
-        return add("0x", result);
+        return ("0x" + result);
     }
 
     public virtual object signHash(object hash, object privateKey)
     {
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        object rRaw = GetValue(signature, "r");
-        object sRaw = GetValue(signature, "s");
+        string? rRaw = ((string)GetValue(signature, "r"));
+        string? sRaw = ((string)GetValue(signature, "s"));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
-            { "r", add("0x", r) },
-            { "s", add("0x", s) },
+            { "r", ("0x" + r) },
+            { "s", ("0x" + s) },
             { "v", this.sum(27, GetValue(signature, "v")) },
         };
     }
@@ -3490,7 +3490,7 @@ public partial class polymarket : PredictionExchange
         };
         byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         object sig = this.signMessage(encoded, this.privateKey);
-        return add(add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))), this.intToBase16(getValue(sig, "v")));
+        return ((("0x" + this.remove0xPrefix(getValue(sig, "r"))) + this.remove0xPrefix(getValue(sig, "s"))) + this.intToBase16(getValue(sig, "v")));
     }
 
     /**
@@ -3506,7 +3506,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.clobPrivateGetAuthDeriveApiKey(parameters);
-        return ((Dictionary<string, object>)((object)(this.setApiCredentials(response))));
+        return this.setApiCredentials(response);
     }
 
     /**
@@ -3546,7 +3546,7 @@ public partial class polymarket : PredictionExchange
         }
         if ((creds == null))
         {
-            throw new ExchangeError (add(this.id, " createOrDeriveApiKey() returned no credentials")) ;
+            throw new ExchangeError ((this.id + " createOrDeriveApiKey() returned no credentials")) ;
         }
         return ccxt.BaseExchange.ToDict(creds);
     }
@@ -3563,10 +3563,10 @@ public partial class polymarket : PredictionExchange
         };
         // cache in options rather than the typed apiKey/secret/password fields so the
         // assignment is valid in the struct-based languages (C#/Go/Java)
-        ((IDictionary<string,object>)this.options)["l2ApiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
-        ((IDictionary<string,object>)this.options)["l2Secret"] = ((IDictionary<string,object>)creds)["secret"];
-        ((IDictionary<string,object>)this.options)["l2Passphrase"] = ((IDictionary<string,object>)creds)["passphrase"];
-        return ((Dictionary<string, object>)((object)(creds)));
+        this.options["l2ApiKey"] = ((IDictionary<string,object>)creds)["apiKey"];
+        this.options["l2Secret"] = ((IDictionary<string,object>)creds)["secret"];
+        this.options["l2Passphrase"] = ((IDictionary<string,object>)creds)["passphrase"];
+        return creds;
     }
 
     /**
@@ -3589,15 +3589,15 @@ public partial class polymarket : PredictionExchange
             }
             return;
         }
-        object apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
-        object passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
+        string? apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+        string? secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         bool hasL2 = ((apiKey != null)) && ((secret != null)) && ((passphrase != null));
         if (hasL2)
         {
             return;
         }
-        throw new AuthenticationError (add(this.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
+        throw new AuthenticationError ((this.id + " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")) ;
     }
 
     public override object ping(WebSocketClient client)
@@ -3665,14 +3665,14 @@ public partial class polymarket : PredictionExchange
         List<object> bids = new List<object>() {};
         for (int i = 0; isLessThan(i, rawBids.Count); postFixIncrement(ref i))
         {
-            object b = getValue(rawBids, i);
-            ((IList<object>)bids).Add(new List<object> {this.safeNumber(b, "price"), this.safeNumber(b, "size")});
+            object b = rawBids[i];
+            bids.Add(new List<object> {this.safeNumber(b, "price"), this.safeNumber(b, "size")});
         }
         List<object> asks = new List<object>() {};
         for (int j = 0; isLessThan(j, rawAsks.Count); postFixIncrement(ref j))
         {
-            object a = getValue(rawAsks, j);
-            ((IList<object>)asks).Add(new List<object> {this.safeNumber(a, "price"), this.safeNumber(a, "size")});
+            object a = rawAsks[j];
+            asks.Add(new List<object> {this.safeNumber(a, "price"), this.safeNumber(a, "size")});
         }
         IDictionary<string, object> outcomeObj = this.safeOutcome(outcome);
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {
@@ -3684,8 +3684,8 @@ public partial class polymarket : PredictionExchange
             { "outcomeId", tokenId },
             { "market", this.safeString(outcomeObj, "market") },
         });
-        callDynamically(client, "resolve", new object[] {orderbook, add("orderbook::", outcome)});
-        callDynamically(client, "resolve", new object[] {orderbook, add("ticker::", outcome)});
+        callDynamically(client, "resolve", new object[] {orderbook, ("orderbook::" + outcome)});
+        callDynamically(client, "resolve", new object[] {orderbook, ("ticker::" + outcome)});
     }
 
     public virtual void handleOrderBookDelta(WebSocketClient client, object eventVar)
@@ -3695,7 +3695,7 @@ public partial class polymarket : PredictionExchange
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, changes.Count); postFixIncrement(ref i))
         {
-            object change = getValue(changes, i);
+            object change = changes[i];
             string? tokenId = this.safeString(change, "asset_id");
             string? outcome = this.tokenIdToSymbol(tokenId);
             if (((outcome == null)) || !(inOp(this.orderbooks, outcome)))
@@ -3710,17 +3710,17 @@ public partial class polymarket : PredictionExchange
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             object sideRef = side;
             (sideRef as IOrderBookSide).storeArray(new List<object>() {price, size});
-            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            orderbook["timestamp"] = timestamp;
+            orderbook["datetime"] = this.iso8601(timestamp);
             updated[(string)outcome] = true;
         }
         List<object> updatedSymbols = new List<object>(((IDictionary<string,object>)updated).Keys);
         for (int k = 0; isLessThan(k, updatedSymbols.Count); postFixIncrement(ref k))
         {
-            string? outcome = ((string)getValue(updatedSymbols, k));
+            string? outcome = ((string)updatedSymbols[k]);
             ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, outcome);
-            callDynamically(client, "resolve", new object[] {orderbook, add("orderbook::", outcome)});
-            callDynamically(client, "resolve", new object[] {orderbook, add("ticker::", outcome)});
+            callDynamically(client, "resolve", new object[] {orderbook, ("orderbook::" + outcome)});
+            callDynamically(client, "resolve", new object[] {orderbook, ("ticker::" + outcome)});
         }
     }
 
@@ -3758,7 +3758,7 @@ public partial class polymarket : PredictionExchange
         {
             this.trades = new Dictionary<string, object>() {};
         }
-        object stored = this.safeValue(this.trades, outcome);
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, outcome));
         if ((stored == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -3766,7 +3766,7 @@ public partial class polymarket : PredictionExchange
             ((IDictionary<string,object>)this.trades)[(string)outcome] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
-        callDynamically(client, "resolve", new object[] {stored, add("trades::", outcome)});
+        callDynamically(client, "resolve", new object[] {stored, ("trades::" + outcome)});
     }
 
     /**
@@ -3785,14 +3785,14 @@ public partial class polymarket : PredictionExchange
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
-        string messageHash = add("orderbook::", outcomeVar);
-        string subscribeHash = add("subscribe::", tokenId);
+        string messageHash = ("orderbook::" + outcomeVar);
+        string subscribeHash = ("subscribe::" + tokenId);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, subscribeMsg, subscribeHash));
         return ccxt.BaseExchange.ToPredictionOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -3813,8 +3813,8 @@ public partial class polymarket : PredictionExchange
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
-        string messageHash = add("trades::", outcomeVar);
-        string subscribeHash = add("subscribe::", tokenId);
+        string messageHash = ("trades::" + outcomeVar);
+        string subscribeHash = ("subscribe::" + tokenId);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
@@ -3834,20 +3834,20 @@ public partial class polymarket : PredictionExchange
      */
     public async override Task<ccxt.Ticker> WatchTicker(string outcome, object parameters = null)
     {
-        object outcomeVar = outcome;
+        string outcomeVar = outcome;
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
         string? tokenId = this.safeString(outcomeObj, "outcomeId");
         outcomeVar = this.safeString(outcomeObj, "outcome");
-        string messageHash = add("ticker::", outcomeVar);
-        string subscribeHash = add("subscribe::", tokenId);
+        string messageHash = ("ticker::" + outcomeVar);
+        string subscribeHash = ("subscribe::" + tokenId);
         Dictionary<string, object> subscribeMsg = new Dictionary<string, object>() {
             { "assets_ids", new List<object>() {tokenId} },
             { "type", "market" },
         };
         if (isEqual(outcomeVar, null))
         {
-            throw new ExchangeError (add(this.id, " watchTicker() missing outcome")) ;
+            throw new ExchangeError ((this.id + " watchTicker() missing outcome")) ;
         }
         if (!(inOp(this.orderbooks, outcomeVar)))
         {
@@ -3915,7 +3915,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<List<ccxt.Order>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string outcomeVar = outcome;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         string messageHash = "orders";
@@ -3923,12 +3923,12 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
             outcomeVar = this.safeString(outcomeObj, "outcome");
-            messageHash = add("orders::", outcomeVar);
+            messageHash = ("orders::" + outcomeVar);
         }
         object orders = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {outcomeVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {outcomeVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterByOutcomeSinceLimit(orders, outcomeVar, since, limitVar, true));
     }
@@ -3947,7 +3947,7 @@ public partial class polymarket : PredictionExchange
     public async override Task<List<ccxt.Trade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string outcomeVar = outcome;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         string messageHash = "myTrades";
@@ -3955,12 +3955,12 @@ public partial class polymarket : PredictionExchange
         {
             IDictionary<string, object> outcomeObj = await this.loadOutcome(outcomeVar);
             outcomeVar = this.safeString(outcomeObj, "outcome");
-            messageHash = add("myTrades::", outcomeVar);
+            messageHash = ("myTrades::" + outcomeVar);
         }
         object trades = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {outcomeVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {outcomeVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterByOutcomeSinceLimit(trades, outcomeVar, since, limitVar, true));
     }
@@ -3969,9 +3969,9 @@ public partial class polymarket : PredictionExchange
     {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         parameters ??= new Dictionary<string, object>();
-        object apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
-        object secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
-        object passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
+        string? apiKey = (!isEqual(this.apiKey, null)) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
+        string? secret = (!isEqual(this.secret, null)) ? this.secret : this.safeString(this.options, "l2Secret");
+        string? passphrase = (!isEqual(this.password, null)) ? this.password : this.safeString(this.options, "l2Passphrase");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "apiKey", apiKey },
             { "secret", secret },
@@ -4002,7 +4002,7 @@ public partial class polymarket : PredictionExchange
         string? outcome = this.safeString(parsed, "outcome");
         if ((outcome != null))
         {
-            callDynamically(client, "resolve", new object[] {stored, add("orders::", outcome)});
+            callDynamically(client, "resolve", new object[] {stored, ("orders::" + outcome)});
         }
     }
 
@@ -4020,7 +4020,7 @@ public partial class polymarket : PredictionExchange
         string? outcome = this.safeString(parsed, "outcome");
         if ((outcome != null))
         {
-            callDynamically(client, "resolve", new object[] {stored, add("myTrades::", outcome)});
+            callDynamically(client, "resolve", new object[] {stored, ("myTrades::" + outcome)});
         }
     }
 
@@ -4050,7 +4050,7 @@ public partial class polymarket : PredictionExchange
             return this.milliseconds();
         }
         Int64? n = this.parseToInt(raw);
-        if (isEqual(n, null))
+        if ((n == null))
         {
             return this.milliseconds();
         }

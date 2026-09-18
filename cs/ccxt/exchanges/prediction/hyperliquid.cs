@@ -142,7 +142,7 @@ public partial class hyperliquid : PredictionExchange
     public override void setSandboxMode(object enabled)
     {
         base.setSandboxMode(enabled);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enabled;
+        this.options["sandboxMode"] = enabled;
     }
 
     /**
@@ -182,7 +182,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string outcomeCoin(object encoding)
     {
-        return add("#", encoding.ToString());
+        return ("#" + encoding.ToString());
     }
 
     /**
@@ -195,7 +195,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string outcomeToken(object encoding)
     {
-        return add("+", encoding.ToString());
+        return ("+" + encoding.ToString());
     }
 
     /**
@@ -216,7 +216,7 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, parts.Count); postFixIncrement(ref i))
         {
-            string? part = ((string)getValue(parts, i));
+            string? part = ((string)parts[i]);
             int colonIndex = getIndexOf(part, ":");
             if (isGreaterThan(colonIndex, -1))
             {
@@ -225,7 +225,7 @@ public partial class hyperliquid : PredictionExchange
                 result[(string)key] = value;
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     /**
@@ -240,7 +240,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual string? buildOutcomeSymbol(object desc, object side, object outcomeId)
     {
-        string? underlying = this.safeString(desc, "underlying", add("OUTCOME", outcomeId.ToString()));
+        string? underlying = this.safeString(desc, "underlying", ("OUTCOME" + outcomeId.ToString()));
         string? targetPrice = this.safeString(desc, "targetPrice");
         string? expiry = this.safeString(desc, "expiry", "");
         // Parse expiry: "20260503-0600" → "20260503"
@@ -310,27 +310,27 @@ public partial class hyperliquid : PredictionExchange
                     List<object> thresholds = new List<object>() {};
                     for (int i = 0; isLessThan(i, thresholdParts.Count); postFixIncrement(ref i))
                     {
-                        string trimmed = ((string)getValue(thresholdParts, i)).Trim();
+                        string trimmed = ((string)thresholdParts[i]).Trim();
                         if (trimmed.Length > 0)
                         {
-                            ((IList<object>)thresholds).Add(trimmed);
+                            thresholds.Add(trimmed);
                         }
                     }
                     int thresholdsLength = thresholds.Count;
                     Int64? index = this.parseToInt(indexStr);
-                    if (isGreaterThan(thresholdsLength, 0) && !isEqual(index, null))
+                    if (isGreaterThan(thresholdsLength, 0) && (index != null))
                     {
-                        object bucketLabel = null;
+                        string? bucketLabel = null;
                         if (isLessThanOrEqual(index, 0))
                         {
-                            bucketLabel = add("BELOW_", getValue(thresholds, 0));
+                            bucketLabel = ("BELOW_" + getValue(thresholds, 0));
                         } else if (isGreaterThanOrEqual(index, thresholdsLength))
                         {
                             object lastIdx = subtract(thresholdsLength, 1);
-                            bucketLabel = add("ABOVE_", getValue(thresholds, lastIdx));
+                            bucketLabel = ("ABOVE_" + getValue(thresholds, lastIdx));
                         } else
                         {
-                            bucketLabel = add(add(add("BETWEEN_", getValue(thresholds, subtract(index, 1))), "_"), getValue(thresholds, index));
+                            bucketLabel = ((("BETWEEN_" + getValue(thresholds, subtract(index, 1))) + "_") + getValue(thresholds, index));
                         }
                         object bs = add(add(questionUnderlying.ToUpper(), "_"), bucketLabel);
                         if (((expiryDate != null)) && (!isEqual(expiryDate, "")))
@@ -376,17 +376,17 @@ public partial class hyperliquid : PredictionExchange
                 }
                 if (((outcomeSlug != null)) && (outcomeSlug != ""))
                 {
-                    return add(add(add(add(questionSlug, "_"), outcomeSlug), "_"), outcomeId.ToString());
+                    return ((((questionSlug + "_") + outcomeSlug) + "_") + outcomeId.ToString());
                 }
-                return add(add(questionSlug, "_"), outcomeId.ToString());
+                return ((questionSlug + "_") + outcomeId.ToString());
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
         if ((!isEqual(name, null)) && (!isEqual(name, "")))
         {
-            return add(add(this.shortenSlug(name), "_"), outcomeId.ToString());
+            return ((this.shortenSlug(name) + "_") + outcomeId.ToString());
         }
-        return add("OUTCOME_", outcomeId.ToString());
+        return ("OUTCOME_" + outcomeId.ToString());
     }
 
     /**
@@ -440,7 +440,7 @@ public partial class hyperliquid : PredictionExchange
         {
             IDictionary<string, object> question = this.safeDict(questionsList, qi, new Dictionary<string, object>() {});
             Int64? fallbackOutcome = this.safeInteger(question, "fallbackOutcome");
-            if (!isEqual(fallbackOutcome, null))
+            if ((fallbackOutcome != null))
             {
                 string fallbackKey = ((object)fallbackOutcome).ToString();
                 outcomesToQuestions[(string)fallbackKey] = question;
@@ -449,7 +449,7 @@ public partial class hyperliquid : PredictionExchange
             for (int ni = 0; isLessThan(ni, namedOutcomes.Count); postFixIncrement(ref ni))
             {
                 Int64? namedOutcomeId = this.safeInteger(namedOutcomes, ni);
-                if (!isEqual(namedOutcomeId, null))
+                if ((namedOutcomeId != null))
                 {
                     string namedKey = ((object)namedOutcomeId).ToString();
                     outcomesToQuestions[(string)namedKey] = question;
@@ -470,8 +470,8 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> outcomeInfo = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
             Int64? outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
             IDictionary<string, object> linkedQuestion = this.safeDict(outcomesToQuestions, ((object)outcomeId).ToString(), new Dictionary<string, object>() {});
-            object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
-            ((IList<object>)markets).Add(market);
+            Dictionary<string, object> market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
+            markets.Add(market);
             // Build outcomes dictionary from market outcomes
             List<object> marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
             for (int oi = 0; isLessThan(oi, marketOutcomes.Count); postFixIncrement(ref oi))
@@ -502,7 +502,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [question] linked question object from outcomeMeta questions array
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    public virtual object parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, object question = null)
+    public virtual Dictionary<string, object> parseOutcomeMarket(IDictionary<string, object> outcomeInfo, object outcomeId, object question = null)
     {
         question ??= new Dictionary<string, object>();
         string? description = this.safeString(outcomeInfo, "description", "");
@@ -527,7 +527,7 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? ymd = ((string)getValue(expParts, 0));
                 object hm = (isGreaterThanOrEqual(expPartsLength, 2)) ? getValue(expParts, 1) : "0000";
-                string isoStr = add(add(add(add(add(add(add(add(add(slice(ymd, 0, 4), "-"), slice(ymd, 4, 6)), "-"), slice(ymd, 6, 8)), "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
+                string isoStr = add(add(add(add((((((slice(ymd, 0, 4) + "-") + slice(ymd, 4, 6)) + "-") + slice(ymd, 6, 8)) + "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
@@ -643,7 +643,7 @@ public partial class hyperliquid : PredictionExchange
         });
         // omit the deprecated 'symbol' key the safeMarketStructure template injects —
         // prediction market rows carry only the unified 'market' handle
-        return this.omit(marketRow, "symbol");
+        return ((Dictionary<string, object>)((object)(this.omit(marketRow, "symbol"))));
     }
 
     /**
@@ -671,9 +671,9 @@ public partial class hyperliquid : PredictionExchange
         object zeroCount = subtract(pricePrecisionDecimals, 1);
         for (int zi = 0; isLessThan(zi, zeroCount); postFixIncrement(ref zi))
         {
-            zeros = add(zeros, "0");
+            zeros = (zeros + "0");
         }
-        return this.parseToNumeric(add(add("0.", zeros), "1"));
+        return this.parseToNumeric((("0." + zeros) + "1"));
     }
 
     /**
@@ -734,7 +734,7 @@ public partial class hyperliquid : PredictionExchange
             await this.loadOutcomes(outcomes);
             for (int i = 0; isLessThan(i, outcomes?.Count ?? 0); postFixIncrement(ref i))
             {
-                object requested = getValue(outcomes, i);
+                string? requested = ((string)getValue(outcomes, i));
                 IDictionary<string, object> requestedOutcomeObj = this.safeOutcome(requested);
                 string? requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols[(string)requestedOutcome] = true;
@@ -761,7 +761,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> outcomeHandles = new List<object>(((IDictionary<string,object>)outcomesMap).Keys);
         for (int i = 0; isLessThan(i, outcomeHandles.Count); postFixIncrement(ref i))
         {
-            string? outcomeHandle = ((string)getValue(outcomeHandles, i));
+            string? outcomeHandle = ((string)outcomeHandles[i]);
             if (!isEqual(outcomes, null) && !(((outcomeHandle != null) && (requestedOutcomeSymbols?.ContainsKey(outcomeHandle) == true))))
             {
                 continue;
@@ -770,7 +770,7 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
             string? coin = this.safeString(info, "coinName");
             double? mid = this.safeNumber(mids, coin);
-            if (isEqual(mid, null))
+            if ((mid == null))
             {
                 continue;
             }
@@ -822,16 +822,16 @@ public partial class hyperliquid : PredictionExchange
         double? askVolume = ((topAsk != null)) ? this.safeNumber(topAsk, "sz") : null;
         // Use synthetic mid if no l2Book
         object mid = this.safeNumber(raw, "mid");
-        if (isEqual(mid, null) && !isEqual(bid, null) && !isEqual(ask, null))
+        if (isEqual(mid, null) && (bid != null) && (ask != null))
         {
             mid = divide(this.sum(bid, ask), 2);
         }
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         string? parentSymbol = this.safeString(mkt, "market");
         Dictionary<string, object> parentMarket = ((parentSymbol != null)) ? this.safeMarket(parentSymbol) : null;
-        object ctx = ((parentMarket != null)) ? this.safeDict(this.safeDict(parentMarket, "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        IDictionary<string, object> ctx = ((parentMarket != null)) ? this.safeDict(this.safeDict(parentMarket, "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         double? dayVolume = this.safeNumber(ctx, "dayNtlVlm");
-        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
+        return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
             { "outcomeId", this.safeString2(mkt, "outcomeId", "id") },
             { "label", this.safeString(mkt, "label") },
@@ -855,7 +855,7 @@ public partial class hyperliquid : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", dayVolume },
             { "info", raw },
-        }, market))));
+        }, market);
     }
 
     /**
@@ -897,13 +897,13 @@ public partial class hyperliquid : PredictionExchange
         List<object> asks = new List<object>() {};
         for (int i = 0; isLessThan(i, rawBids.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(rawBids, i);
-            ((IList<object>)bids).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
+            object entry = rawBids[i];
+            bids.Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
         for (int i = 0; isLessThan(i, rawAsks.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(rawAsks, i);
-            ((IList<object>)asks).Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
+            object entry = rawAsks[i];
+            asks.Add(new List<object> {this.safeNumber(entry, "px"), this.safeNumber(entry, "sz")});
         }
         Dictionary<string, object> orderbook = this.parseOrderBook(new Dictionary<string, object>() {
             { "bids", bids },
@@ -945,7 +945,7 @@ public partial class hyperliquid : PredictionExchange
             startTime = this.sum(until, startOffset);
             if (isEqual(startTime, null))
             {
-                throw new ExchangeError (add(this.id, " fetchOHLCV() missing startTime")) ;
+                throw new ExchangeError ((this.id + " fetchOHLCV() missing startTime")) ;
             }
             if (isLessThan(startTime, 0))
             {
@@ -1051,7 +1051,7 @@ public partial class hyperliquid : PredictionExchange
         List<object> balances = this.safeList(response, "balances", new List<object>() {});
         for (int i = 0; isLessThan(i, balances.Count); postFixIncrement(ref i))
         {
-            object balance = getValue(balances, i);
+            object balance = balances[i];
             string? coin = this.safeString(balance, "coin");
             string? total = this.safeString(balance, "total");
             string? used = this.safeString(balance, "hold");
@@ -1137,7 +1137,7 @@ public partial class hyperliquid : PredictionExchange
                 continue;
             }
             // the trade/orderbook form ("#<encoding>") resolves the outcome and the mid price
-            string tradeCoin = add("#", slice(coin, 1, null));
+            string tradeCoin = ("#" + slice(coin, 1, null));
             IDictionary<string, object> outcomeObj = this.safeOutcome(tradeCoin);
             if (!isEqual(outcomes, null))
             {
@@ -1150,7 +1150,7 @@ public partial class hyperliquid : PredictionExchange
             Dictionary<string, object> enriched = this.extend(balance, new Dictionary<string, object>() {
                 { "markPx", this.safeString(mids, tradeCoin) },
             });
-            ((IList<object>)positions).Add(this.parsePredictionPosition(enriched, outcomeObj));
+            positions.Add(this.parsePredictionPosition(enriched, outcomeObj));
         }
         return ccxt.BaseExchange.ToPredictionPositionList(positions);
     }
@@ -1164,7 +1164,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public override object parsePredictionPosition(object position, object market = null)
+    public override Dictionary<string, object> parsePredictionPosition(object position, object market = null)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
@@ -1221,7 +1221,7 @@ public partial class hyperliquid : PredictionExchange
         });
     }
 
-    public virtual IDictionary<string, object> findOutcomeInMarket(object market, object sideHint = null)
+    public virtual IDictionary<string, object> findOutcomeInMarket(IDictionary<string, object> market, object sideHint = null)
     {
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
         string? normalizedHint = (!isEqual(sideHint, null) && !isEqual(sideHint, "")) ? ((string)sideHint).ToUpper() : null;
@@ -1232,9 +1232,9 @@ public partial class hyperliquid : PredictionExchange
                 IDictionary<string, object> oc = this.safeDict(outcomesList, i, new Dictionary<string, object>() {});
                 string? ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
                 string? ocLabel = this.safeStringUpper(oc, "label");
-                if (isEqual(ocLabel, normalizedHint) || ocSymbol.EndsWith(add(":", normalizedHint)))
+                if (isEqual(ocLabel, normalizedHint) || ocSymbol.EndsWith((":" + normalizedHint)))
                 {
-                    return ((IDictionary<string, object>)((object)(oc)));
+                    return oc;
                 }
             }
         }
@@ -1244,10 +1244,10 @@ public partial class hyperliquid : PredictionExchange
             IDictionary<string, object> info = this.safeDict(oc, "info", new Dictionary<string, object>() {});
             if ((this.safeInteger(info, "side") == 0))
             {
-                return ((IDictionary<string, object>)((object)(oc)));
+                return oc;
             }
         }
-        return ((IDictionary<string, object>)((object)(this.safeDict(outcomesList, 0, new Dictionary<string, object>() {}))));
+        return this.safeDict(outcomesList, 0, new Dictionary<string, object>() {});
     }
 
     public virtual string? parseOutcomeInputSideHint(object outcomeInput)
@@ -1281,25 +1281,25 @@ public partial class hyperliquid : PredictionExchange
     {
         if (isEqual(outcomeInput, null))
         {
-            throw new ArgumentsRequired (add(this.id, " resolveOutcomeInput() requires an outcome symbol or id")) ;
+            throw new ArgumentsRequired ((this.id + " resolveOutcomeInput() requires an outcome symbol or id")) ;
         }
         if (isEqual(this.outcomes, null) || isEqual(this.outcomes_by_id, null))
         {
-            throw new ExchangeError (add(this.id, " outcomes not loaded")) ;
+            throw new ExchangeError ((this.id + " outcomes not loaded")) ;
         }
         string? sideHint = this.parseOutcomeInputSideHint(outcomeInput);
         List<object> candidates = new List<object>() {outcomeInput};
         if (((string)outcomeInput).StartsWith("+"))
         {
-            ((IList<object>)candidates).Add(add("#", slice(outcomeInput, 1, null)));
+            candidates.Add(("#" + slice(outcomeInput, 1, null)));
         }
         string digitChars = "0123456789";
-        object inputChars = this.stringToCharsArray(outcomeInput);
-        int inputCharsLength = getArrayLength(inputChars);
+        List<object> inputChars = this.stringToCharsArray(outcomeInput);
+        int inputCharsLength = inputChars?.Count ?? 0;
         bool isNumericInput = isGreaterThan(inputCharsLength, 0);
-        for (int di = 0; isLessThan(di, getArrayLength(inputChars)); postFixIncrement(ref di))
+        for (int di = 0; isLessThan(di, inputChars?.Count ?? 0); postFixIncrement(ref di))
         {
-            if (getIndexOf(digitChars, getValue(inputChars, di)) < 0)
+            if (getIndexOf(digitChars, inputChars[di]) < 0)
             {
                 isNumericInput = false;
                 break;
@@ -1307,37 +1307,37 @@ public partial class hyperliquid : PredictionExchange
         }
         if (isNumericInput)
         {
-            ((IList<object>)candidates).Add(add("#", outcomeInput)); // encoding id without #
+            candidates.Add(("#" + outcomeInput)); // encoding id without #
             Int64? numeric = this.parseToInt(outcomeInput);
-            if (!isEqual(numeric, null))
+            if ((numeric != null))
             {
-                ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
-                ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
+                candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
+                candidates.Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
             }
         }
         for (int i = 0; isLessThan(i, candidates.Count); postFixIncrement(ref i))
         {
-            object key = getValue(candidates, i);
+            object key = candidates[i];
             if (inOp(this.outcomes, key))
             {
-                return ((IDictionary<string, object>)((object)(this.safeDict(this.outcomes, key, new Dictionary<string, object>() {}))));
+                return this.safeDict(this.outcomes, key, new Dictionary<string, object>() {});
             }
             if (inOp(this.outcomes_by_id, key))
             {
-                return ((IDictionary<string, object>)((object)(this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {}))));
+                return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
         }
         if (((!isEqual(this.markets, null)) && (inOp(this.markets, outcomeInput))) || ((!isEqual(this.markets_by_id, null)) && (inOp(this.markets_by_id, outcomeInput))))
         {
             Dictionary<string, object> market = this.safeMarket(outcomeInput);
             string? sideHintOrDefault = ((sideHint != null)) ? sideHint : "YES";
-            object found = this.findOutcomeInMarket(market, sideHintOrDefault);
+            IDictionary<string, object> found = this.findOutcomeInMarket(market, sideHintOrDefault);
             if ((new List<object>(((IDictionary<string,object>)found).Keys)).Count > 0)
             {
-                return ((IDictionary<string, object>)((object)(found)));
+                return found;
             }
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " cannot resolve outcome from input: "), outcomeInput), ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
+        throw new ArgumentsRequired ((((this.id + " cannot resolve outcome from input: ") + outcomeInput) + ". Provide an outcome symbol (e.g. MARKET:YES), outcome id (#<encoding>), or market id with side.")) ;
     }
 
     /**
@@ -1389,9 +1389,9 @@ public partial class hyperliquid : PredictionExchange
         {
             if (isMarket)
             {
-                throw new ArgumentsRequired (add(this.id, " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.")) ;
+                throw new ArgumentsRequired ((this.id + " createOrder() requires a reference price for market orders on outcome markets in between 0 and 1. The exchange uses this reference price together with the configured slippage to derive the execution price.")) ;
             }
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a limit price for outcome markets in between 0 and 1.")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a limit price for outcome markets in between 0 and 1.")) ;
         }
         string? px = null;
         if (isMarket)
@@ -1405,7 +1405,7 @@ public partial class hyperliquid : PredictionExchange
         }
         if ((px == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() could not determine price")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() could not determine price")) ;
         }
         string? sz = this.amountToPrecision(marketSymbol, amount);
         Dictionary<string, object> orderType = new Dictionary<string, object>() {
@@ -1501,7 +1501,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},outcome, parameters));
+        List<object> orders = ccxt.BaseExchange.FromPredictionOrderList(await this.CancelOrders(new List<object>() {id},outcome, parameters));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
 
@@ -1521,7 +1521,7 @@ public partial class hyperliquid : PredictionExchange
         this.checkRequiredCredentials();
         if (isEqual(outcome, null))
         {
-            throw new ArgumentsRequired (add(this.id, " cancelOrders() requires an outcome argument")) ;
+            throw new ArgumentsRequired ((this.id + " cancelOrders() requires an outcome argument")) ;
         }
         await this.initializeClient();
         await this.loadOutcome(outcome);
@@ -1542,7 +1542,7 @@ public partial class hyperliquid : PredictionExchange
             cancelAction["type"] = "cancelByCloid";
             for (int i = 0; isLessThan(i, getArrayLength(cloids)); postFixIncrement(ref i))
             {
-                ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
+                cancelReq.Add(new Dictionary<string, object>() {
                     { "asset", assetId },
                     { "cloid", getValue(cloids, i) },
                 });
@@ -1552,7 +1552,7 @@ public partial class hyperliquid : PredictionExchange
             cancelAction["type"] = "cancel";
             for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
-                ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
+                cancelReq.Add(new Dictionary<string, object>() {
                     { "a", assetId },
                     { "o", this.parseToNumeric(getValue(ids, i)) },
                 });
@@ -1593,16 +1593,16 @@ public partial class hyperliquid : PredictionExchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, statuses.Count); postFixIncrement(ref i))
         {
-            object status = getValue(statuses, i);
+            object status = statuses[i];
             string? error = this.safeString(status, "error");
             if ((error != null))
             {
-                throw new OrderNotFound (add(add(add(add(this.id, " cancelOrders() failed for "), this.safeString(requestIds, i, this.safeString(requestIds, 0))), ": "), error)) ;
+                throw new OrderNotFound (((((this.id + " cancelOrders() failed for ") + this.safeString(requestIds, i, this.safeString(requestIds, 0))) + ": ") + error)) ;
             }
             bool success = (isEqual(status, "success")) || ((this.safeString(status, "status") == "success"));
             if (!success)
             {
-                throw new ExchangeError (add(add(this.id, " cancelOrders() received an unexpected status: "), this.json(status))) ;
+                throw new ExchangeError (((this.id + " cancelOrders() received an unexpected status: ") + this.json(status))) ;
             }
             string? requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
             Dictionary<string, object> order = new Dictionary<string, object>() {
@@ -1617,7 +1617,7 @@ public partial class hyperliquid : PredictionExchange
                 { "timestamp", this.milliseconds() },
                 { "datetime", this.iso8601(this.milliseconds()) },
             };
-            ((IList<object>)orders).Add(this.safePredictionOrder(order));
+            orders.Add(this.safePredictionOrder(order));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(orders);
     }
@@ -1660,7 +1660,7 @@ public partial class hyperliquid : PredictionExchange
         for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object order = getValue(rawOrders, i);
-            ((IList<object>)ordersWithStatus).Add(this.extend(order, new Dictionary<string, object>() {
+            ordersWithStatus.Add(this.extend(order, new Dictionary<string, object>() {
                 { "ccxtStatus", "open" },
             }));
         }
@@ -1724,7 +1724,7 @@ public partial class hyperliquid : PredictionExchange
                 {
                     Int64? existingTs = this.safeInteger(getValue(deduped, oid), "statusTimestamp");
                     Int64? currentTs = this.safeInteger(raw, "statusTimestamp");
-                    if (!isEqual(currentTs, null) && (isEqual(existingTs, null) || isGreaterThan(currentTs, existingTs)))
+                    if ((currentTs != null) && ((existingTs == null) || isGreaterThan(currentTs, existingTs)))
                     {
                         deduped[(string)oid] = raw;
                     }
@@ -1791,7 +1791,7 @@ public partial class hyperliquid : PredictionExchange
             string? expected = this.safeString(outcomeObj, "outcome");
             if ((this.safeString(parsed, "outcome") != expected))
             {
-                throw new OrderNotFound (add(add(add(add(this.id, " fetchOrder() order "), id), " is not in outcome "), expected)) ;
+                throw new OrderNotFound (((((this.id + " fetchOrder() order ") + id) + " is not in outcome ") + expected)) ;
             }
         }
         return ccxt.BaseExchange.ToPredictionOrder(parsed);
@@ -1848,7 +1848,7 @@ public partial class hyperliquid : PredictionExchange
         bool postOnly = (tif == "PO");
         bool isTrigger = ((this.safeBool(entry, "isTrigger") == true));
         double? triggerPrice = isTrigger ? this.safeNumber(entry, "triggerPx") : null;
-        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
+        return this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(entry, "oid") },
             { "clientOrderId", this.safeString(entry, "cloid") },
             { "info", order },
@@ -1874,7 +1874,7 @@ public partial class hyperliquid : PredictionExchange
             { "remaining", this.parseNumber(remaining) },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, resolvedMarket))));
+        }, resolvedMarket);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -2002,7 +2002,7 @@ public partial class hyperliquid : PredictionExchange
         }
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["endTime"] = until;
         }
@@ -2064,7 +2064,7 @@ public partial class hyperliquid : PredictionExchange
         string? feeCurrency = this.safeString(trade, "feeToken", "USDC");
         string? outcomeSymbol = this.safeString(outcomeObj, "outcome");
         Dictionary<string, object> feeObject = null;
-        if (!isEqual(fee, null))
+        if ((fee != null))
         {
             feeObject = new Dictionary<string, object>() {
                 { "cost", fee },
@@ -2078,7 +2078,7 @@ public partial class hyperliquid : PredictionExchange
         }
         bool crossed = ((this.safeBool(trade, "crossed") == true));
         string takerOrMaker = crossed ? "taker" : "maker";
-        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
+        return this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "tid") },
             { "info", trade },
             { "timestamp", timestamp },
@@ -2095,7 +2095,7 @@ public partial class hyperliquid : PredictionExchange
             { "amount", this.parseNumber(amount) },
             { "cost", cost },
             { "fee", feeObject },
-        }, resolvedMarket))));
+        }, resolvedMarket);
     }
 
     /**
@@ -2122,18 +2122,18 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> groupMap = new Dictionary<string, object>() {};
         if ((queries == null))
         {
-            throw new ExchangeError (add(this.id, " fetchEvents() missing queries")) ;
+            throw new ExchangeError ((this.id + " fetchEvents() missing queries")) ;
         }
         List<object> lowerQueries = new List<object>() {};
         for (int i = 0; isLessThan(i, queries?.Count ?? 0); postFixIncrement(ref i))
         {
-            string queryString = ((string)getValue(queries, i));
-            ((IList<object>)lowerQueries).Add(queryString.ToLower());
+            string queryString = ((string)queries[i]);
+            lowerQueries.Add(queryString.ToLower());
         }
         int lowerQueriesLength = lowerQueries.Count;
         for (int i = 0; isLessThan(i, marketValues?.Count ?? 0); postFixIncrement(ref i))
         {
-            object mkt = getValue(marketValues, i);
+            object mkt = marketValues[i];
             if (!isTrue(this.safeBool(mkt, "prediction", false)))
             {
                 continue;
@@ -2148,11 +2148,11 @@ public partial class hyperliquid : PredictionExchange
                 string symLower = parentSymbolOrEmpty.ToLower();
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
-                string haystack = add(add(description, " "), symLower);
+                string haystack = ((description + " ") + symLower);
                 bool matches = false;
                 for (int qi = 0; isLessThan(qi, lowerQueries.Count); postFixIncrement(ref qi))
                 {
-                    List<object> words = ((string)getValue(lowerQueries, qi)).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
+                    List<object> words = ((string)lowerQueries[qi]).Split(new [] {" "}, StringSplitOptions.None).ToList<object>();
                     int wordsLength = words.Count;
                     bool allWords = true;
                     for (int wi = 0; isLessThan(wi, wordsLength); postFixIncrement(ref wi))
@@ -2178,7 +2178,7 @@ public partial class hyperliquid : PredictionExchange
             }
             if ((parentSymbol == null))
             {
-                throw new ExchangeError (add(this.id, " fetchEvents() missing parentSymbol")) ;
+                throw new ExchangeError ((this.id + " fetchEvents() missing parentSymbol")) ;
             }
             if (!(((parentSymbol != null) && (groupMap?.ContainsKey(parentSymbol) == true))))
             {
@@ -2201,13 +2201,13 @@ public partial class hyperliquid : PredictionExchange
         List<object> groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);
         for (int gi = 0; isLessThan(gi, groupKeys.Count); postFixIncrement(ref gi))
         {
-            string? key = ((string)getValue(groupKeys, gi));
+            string? key = ((string)groupKeys[gi]);
             object groupMarkets = getValue(groupMap, key);
             Dictionary<string, object> eventVar = this.parseEvent(new Dictionary<string, object>() {
                 { "parentSymbol", key },
                 { "markets", groupMarkets },
             });
-            ((IList<object>)events).Add(eventVar);
+            events.Add(eventVar);
         }
         // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
         // so getEvent() resolves these events by any of the three keys
@@ -2231,7 +2231,7 @@ public partial class hyperliquid : PredictionExchange
         object firstMarket = (isGreaterThan(marketsLength, 0)) ? getValue(markets, 0) : new Dictionary<string, object>() {};
         IDictionary<string, object> firstInfo = this.safeDict(firstMarket, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> desc = this.safeDict(firstInfo, "parsedDescription", new Dictionary<string, object>() {});
-        object underlying = this.safeString(desc, "underlying");
+        string? underlying = this.safeString(desc, "underlying");
         string? targetPrice = this.safeString(desc, "targetPrice");
         string? expiryRaw = this.safeString(desc, "expiry");
         Int64? expiryMs = null;
@@ -2244,27 +2244,27 @@ public partial class hyperliquid : PredictionExchange
             {
                 string? ymd = ((string)getValue(parts, 0));
                 object hm = (isGreaterThanOrEqual(partsLength, 2)) ? getValue(parts, 1) : "0000";
-                string isoStr = add(add(add(add(add(add(add(add(add(slice(ymd, 0, 4), "-"), slice(ymd, 4, 6)), "-"), slice(ymd, 6, 8)), "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
+                string isoStr = add(add(add(add((((((slice(ymd, 0, 4) + "-") + slice(ymd, 4, 6)) + "-") + slice(ymd, 6, 8)) + "T"), slice(hm, 0, 2)), ":"), slice(hm, 2, 4)), ":00Z");
                 expiryMs = this.parse8601(isoStr);
                 expiryDatetime = isoStr;
             }
         }
         Int64? firstExpiry = this.safeInteger(firstMarket, "expiry");
-        object title = parentSymbol;
+        string? title = parentSymbol;
         if ((underlying != null))
         {
-            object titleSuffix = "";
+            string titleSuffix = "";
             if (((targetPrice != null)) && (targetPrice != ""))
             {
-                titleSuffix = add(add(titleSuffix, " ABOVE "), targetPrice);
+                titleSuffix = ((titleSuffix + " ABOVE ") + targetPrice);
             }
             if (((expiryRaw != null)) && (expiryRaw != ""))
             {
-                titleSuffix = add(add(titleSuffix, " @ "), expiryRaw);
+                titleSuffix = ((titleSuffix + " @ ") + expiryRaw);
             }
-            title = add(underlying, titleSuffix);
+            title = (underlying + titleSuffix);
         }
-        Int64? endValue = (!isEqual(expiryMs, null)) ? expiryMs : firstExpiry;
+        Int64? endValue = ((expiryMs != null)) ? expiryMs : firstExpiry;
         return this.extend(new Dictionary<string, object>() {
             { "id", parentSymbol },
             { "slug", parentSymbol },
@@ -2295,9 +2295,9 @@ public partial class hyperliquid : PredictionExchange
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
         // Convert precision to decimal places
         int decimals = 4;
-        if (isEqual(prec, null))
+        if ((prec == null))
         {
-            throw new ExchangeError (add(this.id, " amountToPrecision() missing prec")) ;
+            throw new ExchangeError ((this.id + " amountToPrecision() missing prec")) ;
         }
         if (isGreaterThan(prec, 0))
         {
@@ -2311,9 +2311,9 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> market = this.market(outcome);
         double? prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
         int decimals = 4;
-        if (isEqual(prec, null))
+        if ((prec == null))
         {
-            throw new ExchangeError (add(this.id, " priceToPrecision() missing prec")) ;
+            throw new ExchangeError ((this.id + " priceToPrecision() missing prec")) ;
         }
         if (isGreaterThan(prec, 0))
         {
@@ -2324,7 +2324,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object hashMessage(object message)
     {
-        return add("0x", this.hash(message, keccak, "hex"));
+        return ("0x" + this.hash(message, keccak, "hex"));
     }
 
     public virtual object signHash(object hash, object privateKey)
@@ -2332,13 +2332,13 @@ public partial class hyperliquid : PredictionExchange
         Dictionary<string, object> signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         // assign to a bare local before padStart — `expr['key'].padStart()` leaks an undefined
         // padStart() call in the PHP transpiler (it only rewrites padStart on a bare identifier)
-        object rRaw = GetValue(signature, "r");
-        object sRaw = GetValue(signature, "s");
+        string? rRaw = ((string)GetValue(signature, "r"));
+        string? sRaw = ((string)GetValue(signature, "s"));
         object r = (rRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         object s = (sRaw as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"));
         return new Dictionary<string, object>() {
-            { "r", add("0x", r) },
-            { "s", add("0x", s) },
+            { "r", ("0x" + r) },
+            { "s", ("0x" + s) },
             { "v", this.sum(27, GetValue(signature, "v")) },
         };
     }
@@ -2363,7 +2363,7 @@ public partial class hyperliquid : PredictionExchange
         object dataBinary = this.packb(action);
         object dataHex = this.binaryToBase16(dataBinary);
         object data = dataHex;
-        data = add(data, add("00000", this.intToBase16(nonce)));
+        data = add(data, ("00000" + this.intToBase16(nonce)));
         if (isEqual(vaultAddress, null))
         {
             data = add(data, "00");
@@ -2495,10 +2495,10 @@ public partial class hyperliquid : PredictionExchange
             // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
             string? maxFeeRate = this.safeString(this.options, "feeRate", "0%");
             await this.approveBuilderFee(builder, maxFeeRate);
-            ((IDictionary<string,object>)this.options)["approvedBuilderFee"] = true;
+            this.options["approvedBuilderFee"] = true;
         } catch(Exception e)
         {
-            ((IDictionary<string,object>)this.options)["builderFee"] = false; // disable builder fee if an error occurs
+            this.options["builderFee"] = false; // disable builder fee if an error occurs
         }
         return null;
     }
@@ -2521,7 +2521,7 @@ public partial class hyperliquid : PredictionExchange
         {
             return new List<object>() {this.walletAddress, parameters};
         }
-        throw new ArgumentsRequired (add(add(add(this.id, " "), methodName), "() requires a user parameter or walletAddress to be set")) ;
+        throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a user parameter or walletAddress to be set")) ;
     }
 
     public virtual string? formatVaultAddress(object address = null)
@@ -2581,7 +2581,7 @@ public partial class hyperliquid : PredictionExchange
         if (status == "err")
         {
             string? message = this.safeString(response, "response", body);
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;
@@ -2592,10 +2592,10 @@ public partial class hyperliquid : PredictionExchange
         List<object> statuses = this.safeList(data, "statuses", new List<object>() {});
         for (int i = 0; isLessThan(i, statuses.Count); postFixIncrement(ref i))
         {
-            string? message = this.safeString(getValue(statuses, i), "error");
+            string? message = this.safeString(statuses[i], "error");
             if ((message != null))
             {
-                string feedback = add(add(this.id, " "), body);
+                string feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
                 throw new ExchangeError (feedback) ;

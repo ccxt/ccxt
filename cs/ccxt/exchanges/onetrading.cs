@@ -677,7 +677,7 @@ public partial class onetrading : Exchange
             return await this.FetchPublicTradingFees(parameters);
         } else
         {
-            throw new NotSupported (add(add(add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
+            throw new NotSupported ((((this.id + " fetchTradingFees() does not support ") + method) + ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
         }
     }
 
@@ -844,8 +844,8 @@ public partial class onetrading : Exchange
             string? maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
             taker = Precise.stringDiv(taker, "100");
-            ((IList<object>)makerFees).Add(new List<object>() {volume, this.parseNumber(maker)});
-            ((IList<object>)takerFees).Add(new List<object>() {volume, this.parseNumber(taker)});
+            makerFees.Add(new List<object>() {volume, this.parseNumber(maker)});
+            takerFees.Add(new List<object>() {volume, this.parseNumber(taker)});
         }
         return new Dictionary<string, object>() {
             { "maker", makerFees },
@@ -992,7 +992,7 @@ public partial class onetrading : Exchange
         for (int i = 0; isLessThan(i, rawTickers?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(rawTickers[i]);
-            object symbol = GetValue(ticker, "symbol");
+            string? symbol = ((string)GetValue(ticker, "symbol"));
             if ((symbol != null))
             {
                 result[(string)symbol] = ticker;
@@ -1102,9 +1102,9 @@ public partial class onetrading : Exchange
         //         "last_sequence":461123
         //     }
         //
-        object granularity = this.safeValue(ohlcv, "granularity");
+        IDictionary<string, object> granularity = this.safeDict(ohlcv, "granularity");
         string? unit = this.safeString(granularity, "unit");
-        object period = this.safeString(granularity, "period");
+        string? period = this.safeString(granularity, "period");
         Dictionary<string, object> units = new Dictionary<string, object>() {
             { "MINUTES", "m" },
             { "HOURS", "h" },
@@ -1115,15 +1115,15 @@ public partial class onetrading : Exchange
         string? lowercaseUnit = this.safeString(units, unit);
         if (((period == null)) || ((lowercaseUnit == null)))
         {
-            throw new ExchangeError (add(this.id, " parseOHLCV() missing period/unit")) ;
+            throw new ExchangeError ((this.id + " parseOHLCV() missing period/unit")) ;
         }
-        object timeframe = add(period, lowercaseUnit);
+        string timeframe = (period + lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
         Int64 duration = multiply(durationInSeconds, 1000);
         Int64? timestamp = this.parse8601(this.safeString(ohlcv, "time"));
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
-            throw new ExchangeError (add(this.id, " parseOHLCV() missing timestamp")) ;
+            throw new ExchangeError ((this.id + " parseOHLCV() missing timestamp")) ;
         }
         Int64? alignedTimestamp = multiply(duration, this.parseToInt(divide(timestamp, duration)));
         object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
@@ -1146,7 +1146,7 @@ public partial class onetrading : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -1157,16 +1157,16 @@ public partial class onetrading : Exchange
         string? periodUnit = this.safeString(this.timeframes, timeframeVar);
         if ((periodUnit == null))
         {
-            throw new ExchangeError (add(this.id, " fetchOHLCV() missing periodUnit")) ;
+            throw new ExchangeError ((this.id + " fetchOHLCV() missing periodUnit")) ;
         }
         var periodunitVariable = periodUnit.Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        var period = ((IList<object>) periodunitVariable)[0];
-        var unit = ((IList<object>) periodunitVariable)[1];
+        var period = periodunitVariable[0];
+        var unit = periodunitVariable[1];
         int durationInSeconds = this.parseTimeframe(timeframeVar);
         Int64 duration = multiply(durationInSeconds, 1000);
         if (isEqual(limitVar, null))
         {
-            limitVar = 1500;
+            limitVar = ((Int64?)1500);
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_code", GetValue(market, "id") },
@@ -1235,10 +1235,10 @@ public partial class onetrading : Exchange
         //         }
         //     }
         //
-        object feeInfo = this.safeValue(trade, "fee", new Dictionary<string, object>() {});
+        IDictionary<string, object> feeInfo = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
         trade = this.safeValue(trade, "trade", trade);
         Int64? timestamp = this.safeInteger(trade, "trade_timestamp");
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.parse8601(this.safeString(trade, "time"));
         }
@@ -1299,7 +1299,7 @@ public partial class onetrading : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1499,7 +1499,7 @@ public partial class onetrading : Exchange
         string uppercaseType = type.ToUpper();
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_code", GetValue(market, "id") },
@@ -1513,18 +1513,18 @@ public partial class onetrading : Exchange
             priceIsRequired = true;
         }
         double? triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "trigger_price", "stopPrice"});
-        if (!isEqual(triggerPrice, null))
+        if ((triggerPrice != null))
         {
             if (uppercaseType == "MARKET")
             {
-                throw new BadRequest (add(this.id, " createOrder() cannot place stop market orders, only stop limit")) ;
+                throw new BadRequest ((this.id + " createOrder() cannot place stop market orders, only stop limit")) ;
             }
             request["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             request["type"] = "STOP";
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "trigger_price", "stopPrice"});
         } else if (uppercaseType == "STOP")
         {
-            throw new ArgumentsRequired (add(add(add(this.id, " createOrder() requires a triggerPrice param for "), type), " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder() requires a triggerPrice param for ") + type) + " orders")) ;
         }
         if (priceIsRequired)
         {
@@ -1761,7 +1761,7 @@ public partial class onetrading : Exchange
             request["from"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["to"] = this.iso8601(until);
@@ -1972,7 +1972,7 @@ public partial class onetrading : Exchange
             request["from"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             parameters = this.omit(parameters, "until");
             request["to"] = this.iso8601(until);
@@ -2027,14 +2027,14 @@ public partial class onetrading : Exchange
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
-                url = add(url, add("?", this.urlencode(query)));
+                url = add(url, ("?" + this.urlencode(query)));
             }
         } else if (isEqual(api, "private"))
         {
             this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
-                { "Authorization", add("Bearer ", this.apiKey) },
+                { "Authorization", ("Bearer " + this.apiKey) },
             };
             if (isEqual(method, "POST"))
             {
@@ -2044,7 +2044,7 @@ public partial class onetrading : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             }
         }
@@ -2070,7 +2070,7 @@ public partial class onetrading : Exchange
         string? message = this.safeString(response, "error");
         if ((message != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError (feedback) ;

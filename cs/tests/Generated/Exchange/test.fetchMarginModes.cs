@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (int i = 0; isLessThan(i, marginModeKeys.Count); postFixIncrement(ref i))
         {
-            object marginMode = getValue(marginModes, getValue(marginModeKeys, i));
+            object marginMode = getValue(marginModes, marginModeKeys[i]);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);
             testMarginMode(exchange, skippedProperties, method, marginMode);
         }

@@ -43,7 +43,7 @@ public partial class bithumb : ccxt.bithumb
     public async virtual Task pong(WebSocketClient client, object message)
     {
         Int64? ping = this.safeInteger(message, "ping");
-        if (!isEqual(ping, null))
+        if ((ping != null))
         {
             await client.send(new Dictionary<string, object>() {
                 { "pong", ping },
@@ -90,7 +90,7 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = isGenerationTwo ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbol);
-        string messageHash = add("ticker:", GetValue(market, "symbol"));
+        string messageHash = ("ticker:" + GetValue(market, "symbol"));
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
         object request = new Dictionary<string, object>() {
@@ -140,7 +140,7 @@ public partial class bithumb : ccxt.bithumb
         int symbolsLength = (isEqual(symbols, null)) ? 0 : getArrayLength(symbols);
         if (isGenerationTwo && (isEqual(symbolsLength, 0)))
         {
-            throw new ArgumentsRequired (add(this.id, " watchTickers() requires symbols for the generation 2 API")) ;
+            throw new ArgumentsRequired ((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
         }
         if (isEqual(symbols, null))
         {
@@ -162,8 +162,8 @@ public partial class bithumb : ccxt.bithumb
             {
                 streamMarketId = (add(add(GetValue(market, "base"), "_"), GetValue(market, "quote")));
             }
-            ((IList<object>)streamMarketIds).Add(streamMarketId);
-            ((IList<object>)messageHashes).Add(add("ticker:", GetValue(market, "symbol")));
+            streamMarketIds.Add(streamMarketId);
+            messageHashes.Add(("ticker:" + GetValue(market, "symbol")));
         }
         string? tickTypes = this.safeString(parameters, "tickTypes", "24H");
         parameters = this.omit(parameters, "tickTypes");
@@ -287,7 +287,7 @@ public partial class bithumb : ccxt.bithumb
             return;
         }
         Dictionary<string, object> ticker = this.parseWsTicker(tickerMessage);
-        string messageHash = add("ticker:", symbol);
+        string messageHash = ("ticker:" + symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
@@ -360,7 +360,7 @@ public partial class bithumb : ccxt.bithumb
         }
         string date = this.safeString(ticker, "date", "");
         string time = this.safeString(ticker, "time", "");
-        string kstDatetime = add(add(add(add(add(add(add(add(add(add(slice(date, 0, 4), "-"), slice(date, 4, 6)), "-"), slice(date, 6, 8)), "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
+        string kstDatetime = add(add(add(add(add((((((slice(date, 0, 4) + "-") + slice(date, 4, 6)) + "-") + slice(date, 6, 8)) + "T"), slice(time, 0, 2)), ":"), slice(time, 2, 4)), ":"), slice(time, 4, 6));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
         object timestamp = this.parse8601(kstDatetime);
         if (!isEqual(timestamp, null))
@@ -406,7 +406,7 @@ public partial class bithumb : ccxt.bithumb
      */
     public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
+        string symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -419,8 +419,8 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = isGenerationTwo ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
-        string messageHash = add(add("orderbook", ":"), symbolVar);
+        symbolVar = ((string)GetValue(market, "symbol"));
+        string messageHash = (("orderbook" + ":") + symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "orderbookdepth" },
             { "symbols", new List<object>() {add(add(GetValue(market, "base"), "_"), GetValue(market, "quote"))} },
@@ -438,7 +438,7 @@ public partial class bithumb : ccxt.bithumb
         {
             request = this.extend(request, parameters);
         }
-        object orderbook = await this.watch(url, messageHash, request, messageHash);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, request, messageHash));
         return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
     }
 
@@ -509,14 +509,14 @@ public partial class bithumb : ccxt.bithumb
             if (!(inOp(this.orderbooks, legacySymbol)))
             {
                 ccxt.pro.OrderBook ob = this.orderBook();
-                ((IDictionary<string,object>)ob)["symbol"] = legacySymbol;
+                ob["symbol"] = legacySymbol;
                 ((IDictionary<string,object>)this.orderbooks)[(string)legacySymbol] = ob;
             }
             ccxt.pro.IOrderBook legacyOrderbook = this.getOrderBook(this.orderbooks, legacySymbol);
             this.handleDeltas(legacyOrderbook, list);
-            ((IDictionary<string,object>)legacyOrderbook)["timestamp"] = legacyTimestamp;
-            ((IDictionary<string,object>)legacyOrderbook)["datetime"] = this.iso8601(legacyTimestamp);
-            string legacyMessageHash = add(add("orderbook", ":"), legacySymbol);
+            legacyOrderbook["timestamp"] = legacyTimestamp;
+            legacyOrderbook["datetime"] = this.iso8601(legacyTimestamp);
+            string legacyMessageHash = (("orderbook" + ":") + legacySymbol);
             callDynamically(client, "resolve", new object[] {legacyOrderbook, legacyMessageHash});
             return;
         }
@@ -535,22 +535,22 @@ public partial class bithumb : ccxt.bithumb
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         List<object> units = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; isLessThan(i, units.Count); postFixIncrement(ref i))
         {
-            object entry = getValue(units, i);
+            object entry = units[i];
             double? bidPrice = this.safeNumber(entry, "bid_price");
             double? bidSize = this.safeNumber(entry, "bid_size");
             double? askPrice = this.safeNumber(entry, "ask_price");
             double? askSize = this.safeNumber(entry, "ask_size");
-            if ((!isEqual(bidPrice, null)) && (!isEqual(bidSize, null)))
+            if (((bidPrice != null)) && ((bidSize != null)))
             {
                 (bids as IOrderBookSide).store(bidPrice, bidSize);
             }
-            if ((!isEqual(askPrice, null)) && (!isEqual(askSize, null)))
+            if (((askPrice != null)) && ((askSize != null)))
             {
                 (asks as IOrderBookSide).store(askPrice, askSize);
             }
@@ -561,13 +561,13 @@ public partial class bithumb : ccxt.bithumb
         {
             timestamp = this.parseToInt(slice(gen2TimestampStr, 0, 13));
         }
-        if (isEqual(timestamp, null))
+        if ((timestamp == null))
         {
             timestamp = this.milliseconds();
         }
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        string messageHash = add(add("orderbook", ":"), symbol);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
+        string messageHash = (("orderbook" + ":") + symbol);
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -612,8 +612,8 @@ public partial class bithumb : ccxt.bithumb
      */
     public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object limitVar = limit;
+        string symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -626,8 +626,8 @@ public partial class bithumb : ccxt.bithumb
         bool isGenerationTwo = (isEqual(generation, 2));
         object url = isGenerationTwo ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         Dictionary<string, object> market = this.market(symbolVar);
-        symbolVar = GetValue(market, "symbol");
-        string messageHash = add("trade:", symbolVar);
+        symbolVar = ((string)GetValue(market, "symbol"));
+        string messageHash = ("trade:" + symbolVar);
         object request = new Dictionary<string, object>() {
             { "type", "transaction" },
             { "symbols", new List<object>() {add(add(GetValue(market, "base"), "_"), GetValue(market, "quote"))} },
@@ -648,7 +648,7 @@ public partial class bithumb : ccxt.bithumb
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(trades, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitVar, "timestamp", true));
     }
@@ -702,7 +702,7 @@ public partial class bithumb : ccxt.bithumb
         }
         for (int i = 0; isLessThan(i, rawTrades?.Count ?? 0); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(rawTrades, i);
+            object rawTrade = rawTrades[i];
             string? marketId = this.safeString2(rawTrade, "symbol", "code");
             if ((marketId == null))
             {
@@ -726,9 +726,9 @@ public partial class bithumb : ccxt.bithumb
                 var stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            object trades = getValue(this.trades, symbol);
+            ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)getValue(this.trades, symbol));
             callDynamically(trades, "append", new object[] {parsed});
-            string messageHash = add(add("trade", ":"), symbol);
+            string messageHash = (("trade" + ":") + symbol);
             callDynamically(client, "resolve", new object[] {trades, messageHash});
         }
     }
@@ -815,12 +815,12 @@ public partial class bithumb : ccxt.bithumb
             string? addedMessage = null;
             if ((errorMessage.Length > 0))
             {
-                addedMessage = (add(" ", errorMessage));
+                addedMessage = ((" " + errorMessage));
             } else
             {
                 addedMessage = "";
             }
-            client.reject(new ExchangeError(add(add(add(this.id, " websocket error "), errorName), addedMessage)));
+            client.reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
             return ((bool?)((object)(false)));
         }
         if (!(inOp(message, "status")))
@@ -837,7 +837,7 @@ public partial class bithumb : ccxt.bithumb
             if (errorCode != "0000")
             {
                 string? msg = this.safeString(message, "resmsg");
-                throw new ExchangeError (add(add(this.id, " "), msg)) ;
+                throw new ExchangeError (((this.id + " ") + msg)) ;
             }
             return ((bool?)((object)(true)));
         } catch(Exception e)
@@ -869,7 +869,7 @@ public partial class bithumb : ccxt.bithumb
         parameters = generationparametersVariable[1];
         if (!isEqual(generation, 2))
         {
-            throw new BadRequest (add(this.id, " watchBalance() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
@@ -906,7 +906,7 @@ public partial class bithumb : ccxt.bithumb
         }
         for (int i = 0; isLessThan(i, assets.Count); postFixIncrement(ref i))
         {
-            object asset = getValue(assets, i);
+            object asset = assets[i];
             string? currencyId = this.safeString(asset, "currency");
             string? code = this.safeCurrencyCode(currencyId);
             Dictionary<string, object> account = this.account();
@@ -943,16 +943,16 @@ public partial class bithumb : ccxt.bithumb
         IDictionary<string, object> subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new Dictionary<string, object>() {});
         subscriptions[(string)subscriptionType] = subscription;
         wsOptions["gen2Subscriptions"] = subscriptions;
-        ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+        this.options["ws"] = wsOptions;
         List<object> request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }};
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            ((IList<object>)request).Add(getValue(subscriptions, getValue(keys, i)));
+            request.Add(getValue(subscriptions, keys[i]));
         }
-        return ((List<object>)((object)(request)));
+        return request;
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -972,10 +972,10 @@ public partial class bithumb : ccxt.bithumb
             wsOptions["token"] = jwtToken;
             wsOptions["options"] = new Dictionary<string, object>() {
                 { "headers", new Dictionary<string, object>() {
-                    { "authorization", add("Bearer ", jwtToken) },
+                    { "authorization", ("Bearer " + jwtToken) },
                 } },
             };
-            ((IDictionary<string,object>)this.options)["ws"] = wsOptions;
+            this.options["ws"] = wsOptions;
         }
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
         var client = this.client(url);
@@ -997,8 +997,8 @@ public partial class bithumb : ccxt.bithumb
      */
     public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object symbolVar = symbol;
-        object limitVar = limit;
+        string symbolVar = symbol;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1010,11 +1010,11 @@ public partial class bithumb : ccxt.bithumb
         parameters = generationparametersVariable[1];
         if (!isEqual(generation, 2))
         {
-            throw new BadRequest (add(this.id, " watchOrders() is only supported for the generation 2 API")) ;
+            throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
         string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2"));
-        object messageHash = "myOrder";
+        string messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
             { "type", messageHash },
@@ -1023,13 +1023,13 @@ public partial class bithumb : ccxt.bithumb
         if (!isEqual(symbolVar, null))
         {
             Dictionary<string, object> market = this.market(symbolVar);
-            symbolVar = GetValue(market, "symbol");
-            messageHash = add(add(messageHash, ":"), symbolVar);
+            symbolVar = ((string)GetValue(market, "symbol"));
+            messageHash = ((messageHash + ":") + symbolVar);
         }
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar});
+            limitVar = ((Int64?)callDynamically(orders, "getLimit", new object[] {symbolVar, limitVar}));
         }
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limitVar, true));
     }
@@ -1072,7 +1072,7 @@ public partial class bithumb : ccxt.bithumb
         ccxt.pro.ArrayCache cachedOrders = this.orders;
         callDynamically(cachedOrders, "append", new object[] {parsed});
         callDynamically(client, "resolve", new object[] {cachedOrders, messageHash});
-        string symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
+        string symbolSpecificMessageHash = ((messageHash + ":") + symbol);
         callDynamically(client, "resolve", new object[] {cachedOrders, symbolSpecificMessageHash});
     }
 
@@ -1229,7 +1229,7 @@ public partial class bithumb : ccxt.bithumb
                 { "myAsset", this.handleBalance },
                 { "myOrder", this.handleOrders },
             };
-            object method = this.safeValue(methods, topic);
+            Delegate method = ((Delegate)this.safeValue(methods, topic));
             if ((method != null))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

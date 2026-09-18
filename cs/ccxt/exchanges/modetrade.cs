@@ -1961,7 +1961,7 @@ public partial class modetrade : Exchange
                 { "algo_type", "POSITIONAL_TP_SL" },
                 { "child_orders", new List<object>() {} },
             };
-            object childOrders = outterOrder["child_orders"];
+            object childOrders = ((IDictionary<string,object>)outterOrder)["child_orders"];
             string closeSide = (orderSide == "BUY") ? "SELL" : "BUY";
             if (hasStopLoss)
             {

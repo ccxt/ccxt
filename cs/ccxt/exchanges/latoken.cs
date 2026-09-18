@@ -546,7 +546,7 @@ public partial class latoken : Exchange
                 string? status = this.safeString(market, "status");
                 result.Add(new Dictionary<string, object>() {
                     { "id", id },
-                    { "symbol", add(add(bs, "/"), quote) },
+                    { "symbol", ((bs + "/") + quote) },
                     { "base", bs },
                     { "quote", quote },
                     { "settle", null },
@@ -1320,7 +1320,7 @@ public partial class latoken : Exchange
         string? symbol = null;
         if (((bs != null)) && ((quote != null)))
         {
-            symbol = add(add(bs, "/"), quote);
+            symbol = ((bs + "/") + quote);
             if ((!isEqual(this.markets, null)) && (inOp(this.markets, symbol)))
             {
                 market = this.market(symbol);

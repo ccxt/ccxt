@@ -572,7 +572,7 @@ public partial class apex : Exchange
         List<object> chains = this.safeList(multiChain, "chains", new List<object>() {});
         this.options["_temp_currencies_chains"] = chains;
         Dictionary<string, object> result = this.parseCurrencies(rows);
-        ((IDictionary<string,object>)this.options).Remove("_temp_currencies_chains");
+        this.options.Remove("_temp_currencies_chains");
         return ((IDictionary<string, object>)((object)(result)));
     }
 
@@ -621,7 +621,7 @@ public partial class apex : Exchange
                 }
             }
         }
-        List<object> networkKeys = new List<object>(networks.Keys);
+        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         int networksLength = networkKeys.Count;
         bool emptyChains = (networksLength == 0); // non-functional coins
         bool? valueForEmpty = emptyChains ? false : null;
@@ -736,7 +736,7 @@ public partial class apex : Exchange
         string? bs = this.safeCurrencyCode(baseId);
         string? settleId = this.safeString(market, "settleAssetId");
         string? settle = this.safeCurrencyCode(settleId);
-        object symbol = add(add(add(add(baseId, "/"), quote), ":"), settle);
+        string? symbol = ((string)add(add(add(add(baseId, "/"), quote), ":"), settle));
         int expiry = 0;
         double? takerFee = this.parseNumber("0.0002");
         double? makerFee = this.parseNumber("0.0005");
@@ -913,7 +913,7 @@ public partial class apex : Exchange
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         string timeframeVar = timeframe;
-        object limitVar = limit;
+        Int64? limitVar = limit;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
@@ -927,7 +927,7 @@ public partial class apex : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 200; // default is 200 when requested with `since`
+            limitVar = ((Int64?)200); // default is 200 when requested with `since`
         }
         request["limit"] = limitVar; // max 200, default 200
         IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end", request, parameters, 0.001);
@@ -973,7 +973,7 @@ public partial class apex : Exchange
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -985,7 +985,7 @@ public partial class apex : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 100; // default is 200 when requested with `since`
+            limitVar = ((Int64?)100); // default is 200 when requested with `since`
         }
         request["limit"] = limitVar; // max 100, default 100
         Dictionary<string, object> response = await this.publicGetV3Depth(this.extend(request, parameters));
@@ -1037,7 +1037,7 @@ public partial class apex : Exchange
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object limitVar = limit;
+        Int64? limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isEqual(this.markets, null))
         {
@@ -1049,7 +1049,7 @@ public partial class apex : Exchange
         };
         if (isEqual(limitVar, null))
         {
-            limitVar = 500; // default is 50
+            limitVar = ((Int64?)500); // default is 50
         }
         request["limit"] = limitVar;
         Dictionary<string, object> response = await this.publicGetV3Trades(this.extend(request, parameters));
@@ -1318,7 +1318,7 @@ public partial class apex : Exchange
         string? clientOrderId = this.safeString(order, "clientId");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "size");
         string? orderType = this.safeString(order, "type");
@@ -1404,7 +1404,7 @@ public partial class apex : Exchange
     {
         if (isEqual(market, null) && !isEqual(marketId, null))
         {
-            object marketsMap = this.markets;
+            IDictionary<string, object> marketsMap = ((IDictionary<string, object>)this.markets);
             IDictionary<string, object> marketsById = this.markets_by_id;
             if (((marketsMap != null)) && (inOp(marketsMap, marketId)))
             {
@@ -1415,7 +1415,7 @@ public partial class apex : Exchange
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (((marketsById != null)) && (inOp(marketsById, newMarketId)))
+                if (((marketsById != null)) && (((newMarketId != null) && (marketsById?.ContainsKey(newMarketId) == true))))
                 {
                     object markets = getValue(marketsById, newMarketId);
                     int numMarkets = getArrayLength(markets);
@@ -1466,7 +1466,7 @@ public partial class apex : Exchange
         string? accountId = this.safeString(this.options, "accountId", "0");
         if (accountId == "0")
         {
-            object accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
+            Dictionary<string, object> accountData = ccxt.BaseExchange.FromAccount(await this.FetchAccount());
             this.options["accountId"] = this.safeString(accountData, "id", "0");
         }
         return getValue(this.options, "accountId");
@@ -2167,7 +2167,7 @@ public partial class apex : Exchange
         // }
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? side = this.safeStringLower(position, "side");
         string? quantity = this.safeString(position, "size");
         Int64? timestamp = this.safeInteger(position, "updatedTime");

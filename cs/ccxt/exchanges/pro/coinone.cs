@@ -122,13 +122,13 @@ public partial class coinone : ccxt.coinone
         {
             (orderbook as IOrderBook).reset();
         }
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         List<object> asks = this.safeList(data, "asks", new List<object>() {});
         List<object> bids = this.safeList(data, "bids", new List<object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
-        ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
-        ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+        orderbook["timestamp"] = timestamp;
+        orderbook["datetime"] = this.iso8601(timestamp);
         string messageHash = ("orderbook:" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});
@@ -205,9 +205,9 @@ public partial class coinone : ccxt.coinone
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> ticker = this.parseWsTicker(data);
         string? symbol = ((string)GetValue(ticker, "symbol"));
-        ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
+        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         string messageHash = ("ticker:" + symbol);
-        callDynamically(client, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
+        callDynamically(client, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
 
     public virtual Dictionary<string, object> parseWsTicker(object ticker, object market = null)
@@ -332,7 +332,7 @@ public partial class coinone : ccxt.coinone
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(limit);
-            ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = stored;
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         callDynamically(stored, "append", new object[] {trade});
         string messageHash = ("trade:" + symbol);
@@ -427,7 +427,7 @@ public partial class coinone : ccxt.coinone
                 DynamicInvoker.InvokeMethod(exacMethod, new object[] { client, message});
                 return;
             }
-            List<object> keys = new List<object>(methods.Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
             {
                 string? key = ((string)keys[i]);

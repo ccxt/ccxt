@@ -365,7 +365,7 @@ public partial class cex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object>() {};
-        ((IList<object>)promises).Add(this.publicPostGetCurrenciesInfo(parameters));
+        promises.Add(this.publicPostGetCurrenciesInfo(parameters));
         //
         //    {
         //        "ok": "ok",
@@ -380,7 +380,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        ((IList<object>)promises).Add(this.publicPostGetProcessingInfo(parameters));
+        promises.Add(this.publicPostGetProcessingInfo(parameters));
         //
         //    {
         //        "ok": "ok",
@@ -422,7 +422,7 @@ public partial class cex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (int j = 0; isLessThan(j, keys.Count); postFixIncrement(ref j))
         {
-            string? networkId = ((string)getValue(keys, j));
+            string? networkId = ((string)keys[j]);
             object rawNetwork = getValue(rawNetworks, networkId);
             string? networkCode = this.networkIdToCode(networkId, code);
             bool deposit = (this.safeString(rawNetwork, "deposit") == "enabled");
@@ -521,7 +521,7 @@ public partial class cex : Exchange
         string? quoteId = this.safeString(market, "quote");
         string? quote = this.safeCurrencyCode(quoteId);
         object id = add(add(bs, "-"), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        object symbol = add(add(bs, "/"), quote);
+        string? symbol = ((string)add(add(bs, "/"), quote));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -617,7 +617,7 @@ public partial class cex : Exchange
         {
             await this.loadMarkets();
         }
-        object response = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
+        Dictionary<string, object> response = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
         return ccxt.BaseExchange.ToTicker(this.safeDict(response, symbol, new Dictionary<string, object>() {}));
     }
 
@@ -731,7 +731,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["toDateISO"] = this.iso8601(until);
         }
@@ -862,7 +862,7 @@ public partial class cex : Exchange
         parameters = dataTypeparametersVariable[1];
         if ((dataType == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -882,7 +882,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["toISO"] = this.iso8601(until);
         } else if (isEqual(since, null))
@@ -890,12 +890,12 @@ public partial class cex : Exchange
             // exchange still requires that we provide one of them
             request["toISO"] = this.iso8601(this.milliseconds());
         }
-        if (!isEqual(since, null) && !isEqual(until, null) && !isEqual(limit, null))
+        if (!isEqual(since, null) && (until != null) && !isEqual(limit, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
-        } else if ((!isEqual(since, null) || !isEqual(until, null)) && isEqual(limit, null))
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV does not support fetching candles with both a limit and since/until")) ;
+        } else if ((!isEqual(since, null) || (until != null)) && isEqual(limit, null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
+            throw new ArgumentsRequired ((this.id + " fetchOHLCV requires a limit parameter when fetching candles with since or until")) ;
         }
         if (!isEqual(limit, null))
         {
@@ -966,7 +966,7 @@ public partial class cex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> market = null;
             if (isTrue(useKeyAsId))
             {
@@ -981,14 +981,14 @@ public partial class cex : Exchange
         List<object> symbols = this.symbols;
         for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
         {
-            string? symbol = ((string)getValue(symbols, i));
+            string? symbol = ((string)symbols[i]);
             if (!(((symbol != null) && (result?.ContainsKey(symbol) == true))))
             {
                 Dictionary<string, object> market = this.market(symbol);
                 result[(string)symbol] = this.parseTradingFee(response, market);
             }
         }
-        return ((Dictionary<string, object>)((object)(result)));
+        return result;
     }
 
     public virtual Dictionary<string, object> parseTradingFee(object fee, IDictionary<string, object> market = null)
@@ -1116,7 +1116,7 @@ public partial class cex : Exchange
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
-            string? key = ((string)getValue(keys, i));
+            string? key = ((string)keys[i]);
             IDictionary<string, object> balance = this.safeDict(response, key, new Dictionary<string, object>() {});
             string? code = this.safeCurrencyCode(key);
             Dictionary<string, object> account = new Dictionary<string, object>() {
@@ -1128,7 +1128,7 @@ public partial class cex : Exchange
                 result[(string)code] = account;
             }
         }
-        return ((Dictionary<string, object>)((object)(this.safeBalance(result))));
+        return this.safeBalance(result);
     }
 
     /**
@@ -1179,7 +1179,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["serverCreateTimestampTo"] = until;
         }
@@ -1282,7 +1282,7 @@ public partial class cex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
-        object result = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
+        List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
         return ccxt.BaseExchange.ToOrder(getValue(result, 0));
     }
 
@@ -1306,7 +1306,7 @@ public partial class cex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
-        object result = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
+        List<object> result = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
         return ccxt.BaseExchange.ToOrder(getValue(result, 0));
     }
 
@@ -1359,19 +1359,19 @@ public partial class cex : Exchange
         //                "expireTime": null,
         //                "effectiveTime": null
         //
-        object currency1 = this.safeString(order, "currency1");
+        string? currency1 = this.safeString(order, "currency1");
         string? currency2 = this.safeString(order, "currency2");
-        object marketId = null;
+        string? marketId = null;
         if ((currency1 != null) && (currency2 != null))
         {
-            marketId = add(add(currency1, "-"), currency2);
+            marketId = ((currency1 + "-") + currency2);
         }
         market = this.safeMarket(marketId, market);
-        object symbol = getValue(market, "symbol");
+        string? symbol = ((string)getValue(market, "symbol"));
         string? status = this.parseOrderStatus(this.safeString(order, "status"));
         Dictionary<string, object> fee = new Dictionary<string, object>() {};
         double? feeAmount = this.safeNumber(order, "feeAmount");
-        if (!isEqual(feeAmount, null))
+        if ((feeAmount != null))
         {
             string? currencyId = this.safeString(order, "feeCurrency");
             string? feeCode = this.safeCurrencyCode(currencyId);
@@ -1433,7 +1433,7 @@ public partial class cex : Exchange
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -1442,7 +1442,7 @@ public partial class cex : Exchange
         Dictionary<string, object> market = this.market(symbol);
         if (isEqual(side, null))
         {
-            throw new ArgumentsRequired (add(this.id, " createOrder() requires a side argument")) ;
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a side argument")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
@@ -1544,7 +1544,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
-            { "cancelRequestId", add("c_", (this.milliseconds()).ToString()) },
+            { "cancelRequestId", ("c_" + (this.milliseconds()).ToString()) },
             { "timestamp", this.milliseconds() },
         };
         Dictionary<string, object> response = await this.privatePostDoCancelMyOrder(this.extend(request, parameters));
@@ -1587,8 +1587,8 @@ public partial class cex : Exchange
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, ids.Count); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            ((IList<object>)orders).Add(new Dictionary<string, object>() {
+            object id = ids[i];
+            orders.Add(new Dictionary<string, object>() {
                 { "clientOrderId", id },
             });
         }
@@ -1633,7 +1633,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["dateTo"] = until;
         }
@@ -1740,7 +1740,7 @@ public partial class cex : Exchange
         IList<object> untilparametersVariable = (IList<object>)this.handleParamInteger2(parameters, "until", "till");
         until = (Int64?)untilparametersVariable[0];
         parameters = untilparametersVariable[1];
-        if (!isEqual(until, null))
+        if ((until != null))
         {
             request["dateTo"] = until;
         }
@@ -1835,7 +1835,7 @@ public partial class cex : Exchange
         {
             transfer = ccxt.BaseExchange.FromTransferEntry(await this.TransferBetweenMainAndSubAccount(code, amount,fromAccount,toAccount, parameters));
         }
-        object fillResponseFromRequest = this.handleOption("transfer", "fillResponseFromRequest", true);
+        bool fillResponseFromRequest = ((bool)this.handleOption("transfer", "fillResponseFromRequest", true));
         if (isEqual(fillResponseFromRequest, true))
         {
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
@@ -1971,7 +1971,7 @@ public partial class cex : Exchange
         parameters = accountIdparametersVariable[1];
         if ((accountId == null))
         {
-            throw new ArgumentsRequired (add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
+            throw new ArgumentsRequired ((this.id + " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
         if (isEqual(this.markets, null))
         {
@@ -2032,7 +2032,7 @@ public partial class cex : Exchange
             {
                 if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
                 {
-                    url = add(url, add("?", this.urlencode(query)));
+                    url = add(url, ("?" + this.urlencode(query)));
                 }
             } else
             {
@@ -2072,20 +2072,20 @@ public partial class cex : Exchange
         {
             if (isEqual(body, null))
             {
-                throw new NullResponse (add(this.id, " returned empty response")) ;
+                throw new NullResponse ((this.id + " returned empty response")) ;
             } else if (isEqual(getValue(body, 0), "{"))
             {
                 object fixedVar = this.fixStringifiedJsonMembers(body);
                 response = this.parseJson(fixedVar);
             } else
             {
-                throw new NullResponse (add(add(this.id, " returned unparsed response: "), body)) ;
+                throw new NullResponse (((this.id + " returned unparsed response: ") + body)) ;
             }
         }
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            string feedback = add(add(this.id, " "), body);
+            string feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError (feedback) ;
@@ -2098,7 +2098,7 @@ public partial class cex : Exchange
             if ((rejectReason != null))
             {
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), rejectReason, rejectReason);
-                throw new ExchangeError (add(add(this.id, " createOrder() "), rejectReason)) ;
+                throw new ExchangeError (((this.id + " createOrder() ") + rejectReason)) ;
             }
         }
         return null;

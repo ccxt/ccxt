@@ -584,7 +584,7 @@ public partial class independentreserve : Exchange
         string? defaultMarketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
-            defaultMarketId = add(add(baseId, "/"), quoteId);
+            defaultMarketId = ((baseId + "/") + quoteId);
         }
         market = this.safeMarket(defaultMarketId, market, "/");
         string? symbol = ((string)getValue(market, "symbol"));
@@ -953,7 +953,7 @@ public partial class independentreserve : Exchange
         string? marketId = null;
         if (((baseId != null)) && ((quoteId != null)))
         {
-            marketId = add(add(baseId, "/"), quoteId);
+            marketId = ((baseId + "/") + quoteId);
         }
         string? symbol = this.safeSymbol(marketId, market, "/");
         string? side = this.safeString(trade, "OrderType");

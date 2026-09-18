@@ -388,7 +388,7 @@ public partial class revolutx : Exchange
         //     }
         //
         IDictionary<string, object> markets = this.safeDict(response, "data", response);
-        List<object> keys = new List<object>(markets.Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
@@ -479,7 +479,7 @@ public partial class revolutx : Exchange
         //     }
         //
         IDictionary<string, object> currencies = this.safeDict(response, "data", response);
-        List<object> keys = new List<object>(currencies.Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, keys.Count); postFixIncrement(ref i))
         {
@@ -622,7 +622,7 @@ public partial class revolutx : Exchange
             for (int i = 0; isLessThan(i, symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 string? s = ((string)getValue(symbols, i));
-                if (inOp(result, s))
+                if (((s != null) && (result?.ContainsKey(s) == true)))
                 {
                     filtered[(string)s] = getValue(result, s);
                 }

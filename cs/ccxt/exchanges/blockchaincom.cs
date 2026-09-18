@@ -338,7 +338,7 @@ public partial class blockchaincom : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> markets = await this.publicGetSymbols(parameters);
-        List<object> marketIds = new List<object>(markets.Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, marketIds.Count); postFixIncrement(ref i))
         {

@@ -66,7 +66,7 @@ public partial class BaseTest
             List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
             for (int i = 0; isLessThan(i, (neededProps?.Count ?? 0)); postFixIncrement(ref i))
             {
-                AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, getValue(neededProps, i)), emptyExchange.getProperty(exchange2, getValue(neededProps, i)));
+                AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, neededProps[i]), emptyExchange.getProperty(exchange2, neededProps[i]));
             }
             // Verify that modifying one exchange's markets modifies the other
             // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };

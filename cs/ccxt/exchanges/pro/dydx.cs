@@ -262,12 +262,12 @@ public partial class dydx : ccxt.dydx
         {
             orderbook = this.orderBook();
         }
-        ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
+        orderbook["symbol"] = symbol;
         List<object> asks = this.safeList(content, "asks", new List<object>() {});
         List<object> bids = this.safeList(content, "bids", new List<object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), asks);
         this.handleDeltas(getValue(orderbook, "bids"), bids);
-        ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(message, "message_id");
+        orderbook["nonce"] = this.safeInteger(message, "message_id");
         string messageHash = ("orderbook:" + symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client, "resolve", new object[] {orderbook, messageHash});

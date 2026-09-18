@@ -3102,7 +3102,7 @@ public partial class poloniex : Exchange
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        List<object> keys = new List<object>(response.Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         int length = keys.Count;
         if (isLessThan(length, 1))
         {
