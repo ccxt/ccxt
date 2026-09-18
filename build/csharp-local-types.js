@@ -5584,14 +5584,94 @@ function marketRowDictReadType (csharp, initializer) {
 //   - a chain of length 1 (`this.urls['api']`, the section dictionary itself): every file that
 //     has one also has a list-valued section ('doc'), so a whole-section swap could put a
 //     List<object> box where the literal spells a dictionary
-//   - `this.options['key']`: `options` is a ConcurrentDictionary the whole codebase assigns
-//     into (`this.options['chainId'] = 11155111` in ts/src/dydx.ts, `['requestId']` = Int64
+//   - `this.options['key']` for every key EXCEPT the ones in OPTIONS_LITERAL_STRING_KEYS
+//     below: `options` is a ConcurrentDictionary the whole codebase assigns into
+//     (`this.options['chainId'] = 11155111` in ts/src/dydx.ts, `['requestId']` = Int64
 //     in the ws clients, `['tickerSubs']` = a safe dictionary, user config at construction),
 //     so a describe()-literal type says nothing about the box at the read
+//
+// ---- this.options reads with a per-key writer census (U05) -----------------------------
+// `const chainName = this.options['chainName']` prints `getValue(this.options, "chainName")`.
+// The key is the ONE options key whose whole-corpus writer census is a string on every path:
+//   - ts/src/dydx.ts describe(): options.chainName = 'dydx-mainnet-1' (a string literal);
+//   - ts/src/dydx.ts setSandboxMode(): this.options['chainName'] = 'dydx-testnet-4' (a string).
+// No other `options['chainName']` / `options[<literal>]` writer exists in ts/src (all
+// `this.options['<name>'] = ` sites censused), and the three DYNAMIC write shapes cannot
+// produce that key: `this.options[cacheKey] = cached` with cacheKey = 'tradeMarketsById'
+// (ts/src/prediction/opinion.ts), `this.options[marketType|type] = ...` with a market type
+// (ts/src/pro/binance.ts), and `this.options[helper] = sourceExchange.options[helper]` with
+// helper from a `marketHelperProps` list — the corpus defines exactly three such lists
+// (hyperliquid ['hip3TokensByName','cachedCurrenciesById'], kraken ['marketsByAltname',
+// 'delistedMarketsById'], pacifica []). The base C# has no other options write
+// (Exchange.Options.cs#initializeProperties: describe() + user config). Every value the key
+// can hold is therefore a string, so the read is `string?` behind the `(string)` cast —
+// null only when a file's literal does not spell the key, which the rule requires it to.
+const OPTIONS_LITERAL_STRING_KEYS = [ 'chainName' ];
+
+// `this.options['<census key>']` in a file whose own describe() literal spells that key as a
+// string. The receiver is the literal `this.options` property (never a copy).
+function optionsLiteralStringProducer (initializer) {
+    if (initializer?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return false;
+    }
+    const key = elementAccessLiteralKey (initializer.argumentExpression);
+    if (key === undefined || !OPTIONS_LITERAL_STRING_KEYS.includes (key)) {
+        return false;
+    }
+    const receiver = initializer.expression;
+    if (receiver?.kind !== ts.SyntaxKind.PropertyAccessExpression
+        || receiver.name?.escapedText !== 'options'
+        || receiver.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const options = describeLiteralProperty (ownDescribeLiteral (initializer.getSourceFile ()), 'options');
+    const spelled = describeLiteralProperty (options, key);
+    return spelled !== undefined && describeLiteralKind (spelled) === 'string';
+}
 
 // the file's own describe() literal — the object the generated describe() merges into
 // base.describe(). Cached per source file: one entry per file the classifier asks about.
 const describeOwnLiterals = new WeakMap ();
+
+// `return this.deepExtend (super.describe (), this.describeData ())`: the urls literal then lives
+// in a SIBLING method of the same file. Resolve it through a zero-argument `this.<name>()` call
+// when the file defines that method exactly once and its body returns an object literal — the
+// merge target is the same object the literal would have been, so the value census is unchanged.
+// A method defined more than once (or not returning a literal) keeps the local `object`.
+function describeOwnLiteralMethodCall (sourceFile, expression) {
+    if (expression?.kind !== ts.SyntaxKind.CallExpression
+        || expression.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression
+        || expression.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword
+        || (expression.arguments?.length ?? 0) !== 0) {
+        return undefined;
+    }
+    const name = expression.expression.name?.escapedText;
+    if (name === undefined) {
+        return undefined;
+    }
+    const definitions = [];
+    const collect = (node) => {
+        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.escapedText === name) {
+            definitions.push (node);
+        }
+        ts.forEachChild (node, collect);
+    };
+    collect (sourceFile);
+    if (definitions.length !== 1) {
+        return undefined;
+    }
+    // the body must be exactly `return <object literal>;` — an early/conditional return or a
+    // body that also mutates would make "the literal" ambiguous
+    const statements = definitions[0].body?.statements ?? [];
+    if (statements.length !== 1 || statements[0].kind !== ts.SyntaxKind.ReturnStatement) {
+        return undefined;
+    }
+    let node = statements[0].expression;
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    return (node?.kind === ts.SyntaxKind.ObjectLiteralExpression) ? node : undefined;
+}
 
 function ownDescribeLiteral (sourceFile) {
     if (describeOwnLiterals.has (sourceFile)) {
@@ -5616,6 +5696,10 @@ function ownDescribeLiteral (sourceFile) {
             }
             if (expression?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
                 literal = expression;
+            } else {
+                // `this.deepExtend (super.describe (), this.describeData ())` — the literal is
+                // the sibling method's returned object literal (see describeOwnLiteralMethodCall)
+                literal = describeOwnLiteralMethodCall (sourceFile, expression);
             }
         }
         ts.forEachChild (node, visit);
@@ -5689,14 +5773,42 @@ function describeLiteralPathKind (literal, keys) {
     return describeLiteralKind (node);
 }
 
+// `x as Dict` / `x as List` / `x as unknown` / an interface or class assertion print the BARE
+// operand (ast-transpiler printAsExpression falls through for every type it does not cast), so
+// `(this.urls['api'] as Dict)['ws']` emits exactly the `getValue(getValue(this.urls, "api"), "ws")`
+// chain — the read's value box is untouched by the assertion. Only the three spellings that DO
+// print a cast (`as any` -> ((object)x), `as string` -> ((string)x), `as any[]` -> (IList<object>)(x))
+// keep the chain unreachable here.
+function asExpressionPrintsBare (node) {
+    const type = node.type;
+    if (type === undefined) {
+        return false;
+    }
+    if (type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword) {
+        return false;
+    }
+    if (type.kind === ts.SyntaxKind.ArrayType && type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+        return false;
+    }
+    return true;
+}
+
 // the chain of string-literal keys of `this.urls[k1][k2]...`, or undefined. A dynamic key is
 // rejected outright, as is an all-digit key (a numeric index into a list-shaped section would
 // hand back an arbitrary element box) and a chain shorter than 2 keys.
 function urlsLiteralChain (initializer) {
     let node = initializer;
     const keys = [];
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.ElementAccessExpression) {
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression || node?.kind === ts.SyntaxKind.ElementAccessExpression
+            || node?.kind === ts.SyntaxKind.AsExpression) {
         if (node.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            node = node.expression;
+            continue;
+        }
+        if (node.kind === ts.SyntaxKind.AsExpression) {
+            if (!asExpressionPrintsBare (node)) {
+                return undefined;
+            }
             node = node.expression;
             continue;
         }
@@ -6063,6 +6175,11 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above
+            csharpType = 'string?';
+            cast = 'string';
+        } else if (optionsLiteralStringProducer (declaration.initializer)) {
+            // `const x = this.options['chainName']`: the per-key writer census
+            // (OPTIONS_LITERAL_STRING_KEYS above) proves a string box on every path
             csharpType = 'string?';
             cast = 'string';
         } else if (omitDictionaryProducer (csharp, declaration.initializer, ctx)) {

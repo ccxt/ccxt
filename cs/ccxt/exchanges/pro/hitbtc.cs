@@ -89,7 +89,7 @@ public partial class hitbtc : ccxt.hitbtc
     public async virtual Task<object> authenticate()
     {
         this.checkRequiredCredentials();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
@@ -131,7 +131,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         symbols = this.marketSymbols(symbols);
         bool isBatch = getIndexOf(name, "batch") >= 0;
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "public"));
         List<object> messageHashes = new List<object>() {};
         if (!isEqual(symbols, null) && !isBatch)
         {
@@ -167,7 +167,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         List<object> splitName = ((string)name).Split(new [] {"_subscribe"}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitName, 0, "");
         if (!isEqual(symbol, null))
@@ -196,7 +196,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         await this.authenticate();
-        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
+        string? url = ((string)getValue(getValue(getValue(this.urls, "api"), "ws"), "private"));
         string messageHash = this.nonce().ToString();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
