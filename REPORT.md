@@ -158,10 +158,29 @@ rejects keeps `object` (and is therefore not a diff line).
 ## Farm
 
 ```
-ccxt-farm build --targets cs --wait     # for the code+report commit — job id/exit filled in below
+$ ccxt-farm build --targets cs --wait          # for the code+report commit
+HEAD bf835f3333d1c12b2cc2b3b037cd6e4d9e300b6f job=688 exit=0 branch_update=unchanged
+     generator=404e9daa7f0ab58d085ed04aaa61a19546dfeda2
+
+$ ccxt-farm status 688
+{"job": 688, "source": "bf835f3333d1c12b2cc2b3b037cd6e4d9e300b6f",
+ "state": "succeeded", "exit_code": 0, "targets": "cs", "skipped_exchanges": 0,
+ "branch_update": "unchanged", "failing_step": "", "failing_files": []}
+
+$ ccxt-farm log 688 --step buildCS --tail 25
+  Build succeeded.
+    0 Warning(s)
+    0 Error(s)
 ```
 
-(filled in after the gate)
+`branch_update=unchanged` is the fixed point: the farm's own regeneration of the committed tree
+produced no changes, and `buildCS` compiled the whole solution (ccxt + tests + cli) with 0 warnings.
+The report-carrying tip is gated the same way below (the only delta over `bf835f3333d1c` is this
+file).
+
+```
+$ ccxt-farm build --targets cs --wait          # for the tip that carries this report
+```
 
 ## Tooling (nothing new under `build/`)
 
