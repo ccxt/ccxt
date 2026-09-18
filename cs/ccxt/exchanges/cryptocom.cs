@@ -3701,7 +3701,7 @@ public partial class cryptocom : Exchange
         object fundingTimestamp = null;
         if (!isEqual(timestamp, null))
         {
-            fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble(divide(timestamp, 3600000))), 3600000); // end of the next hour
+            fundingTimestamp = multiply(Math.Ceiling(Convert.ToDouble((timestamp / 3600000))), 3600000); // end of the next hour
         }
         return new Dictionary<string, object>() {
             { "info", contract },

@@ -3748,7 +3748,7 @@ public partial class grvt : Exchange
 
     public virtual Dictionary<string, object> defaultSignature()
     {
-        object expiration = add((this.milliseconds() * 1000000), multiply(multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
+        object expiration = add((this.milliseconds() * 1000000), ((1000000 * this.safeInteger(this.options, "expirationSeconds", 30)) * 1000));
         return new Dictionary<string, object>() {
             { "signer", "" },
             { "r", "" },

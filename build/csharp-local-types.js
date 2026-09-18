@@ -5815,9 +5815,31 @@ const NATIVE_ARITHMETIC_SYMBOLS = {
 };
 
 function nativeArithmeticKindOfType (type) {
-    return (type !== undefined && Object.prototype.hasOwnProperty.call (NATIVE_ARITHMETIC_KIND_BY_TYPE, type))
-        ? NATIVE_ARITHMETIC_KIND_BY_TYPE[type]
-        : undefined;
+    if (type === undefined) {
+        return undefined;
+    }
+    if (Object.prototype.hasOwnProperty.call (NATIVE_ARITHMETIC_KIND_BY_TYPE, type)) {
+        return NATIVE_ARITHMETIC_KIND_BY_TYPE[type];
+    }
+    // `Int64?` / `double?` / `int?` are the nullable spellings this module gives the locals and
+    // parameters it narrows from `object` (safeInteger / safeNumber / parseToInt); the width
+    // family is the non-nullable twin's, and the kind keeps the `?` so the pair rules can apply
+    // the null branch the helper itself takes for a nullable operand
+    if (type.endsWith ('?')) {
+        const base = NATIVE_ARITHMETIC_KIND_BY_TYPE[type.slice (0, -1)];
+        return (base === undefined || base === 'string') ? undefined : base + '?';
+    }
+    return undefined;
+}
+
+// the width family of an operand kind, with the nullable mark stripped: `Int64?` -> `Int64`
+function nativeArithmeticBaseKind (kind) {
+    return (kind !== undefined && kind.endsWith ('?')) ? kind.slice (0, -1) : kind;
+}
+
+// can this operand hold a null at runtime?
+function nativeArithmeticIsNullableKind (kind) {
+    return (kind !== undefined) && kind.endsWith ('?');
 }
 
 // C# static kind of one operand: literals by their literal type, `this.id` / `.length`
@@ -5841,6 +5863,21 @@ function nativeArithmeticOperandKind (csharp, node) {
             ? nativeArithmeticKindOfType (integerOperandKind (node.operand.text, true) ?? numericLiteralType (node.operand.text))
             : undefined;
     case ts.SyntaxKind.ParenthesizedExpression:
+        return nativeArithmeticOperandKind (csharp, node.expression);
+    case ts.SyntaxKind.AsExpression:
+        // the printer casts only `as string` / `as any` / `as any[]`; every other assertion
+        // (`as number`, `as Int`, `as Num`, ...) prints the BARE operand (the rule
+        // csharpTypeOfValue documents), so the operand kind is the inner expression's. A
+        // string assertion is left to the string family's own classifier.
+        if (node.type?.kind === ts.SyntaxKind.StringKeyword) {
+            return undefined;
+        }
+        if (node.type?.kind === ts.SyntaxKind.AnyKeyword) {
+            return undefined;
+        }
+        if (node.type?.kind === ts.SyntaxKind.ArrayType && node.type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
+            return undefined;
+        }
         return nativeArithmeticOperandKind (csharp, node.expression);
     case ts.SyntaxKind.PropertyAccessExpression:
         // only the member reads the printer/module can name: `this.id` (string) and `.length` (int)
@@ -5896,40 +5933,57 @@ function nativeArithmeticResultKind (csharp, node) {
 // (add / subtract cast the RIGHT operand to Int64 and throw; multiply re-boxes a
 // whole-number double product as Int64), every mixed kind (string vs numeric) and every
 // unproven operand.
+//
+// A nullable operand (`Int64?`, `double?`, `int?`) is the same width family, and the pair is
+// emitted only where the helper's own null branch is the lifted operator's:
+//   *  and /  null-check first and return null, exactly what `T? * T` / `T? / T` answer, and
+//      the non-null path is the same overload (Int64 pair, or the Convert.ToDouble division)
+//   -  has no null branch at all — subtract() calls a.GetType() on the normalized operand and
+//      throws on a null one, where `T? - T` answers null — so a nullable operand keeps it
+//   `int?` with `int`/`uint` is int-typed arithmetic (the lifted (int?, int?) operator) whose
+//   Int32 box the helper's Int64 normalization does not reproduce, so the int32 pair rule
+//   above covers the nullable spelling too
 function nativeArithmeticIsProven (op, left, right) {
     if (left === undefined || right === undefined) {
         return false;
     }
-    const bothSmall = NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (left) && NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right);
-    const bothInt32 = (left === 'int' && right === 'int') || (left === 'uint' && right === 'uint');
-    const doubleLeft = (left === 'double') && (right === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (right));
+    const leftBase = nativeArithmeticBaseKind (left);
+    const rightBase = nativeArithmeticBaseKind (right);
+    const nullable = nativeArithmeticIsNullableKind (left) || nativeArithmeticIsNullableKind (right);
+    const bothSmall = NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (leftBase) && NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase);
+    const bothInt32 = (leftBase === 'int' && rightBase === 'int') || (leftBase === 'uint' && rightBase === 'uint');
+    const doubleLeft = (leftBase === 'double') && (rightBase === 'double' || NATIVE_ARITHMETIC_SMALL_INT_KINDS.includes (rightBase));
     if (op === ts.SyntaxKind.PlusToken) {
-        return (left === 'string' && right === 'string') || doubleLeft || (bothSmall && !bothInt32);
+        // a nullable operand keeps the helper here: add(object, object) returns the other
+        // operand for a null one, where the lifted `+` answers null (the add family's own rule)
+        return !nullable && ((leftBase === 'string' && rightBase === 'string') || doubleLeft || (bothSmall && !bothInt32));
     }
     if (op === ts.SyntaxKind.MinusToken) {
-        return doubleLeft || (bothSmall && !(left === 'uint' && right === 'uint'));
+        return !nullable && (doubleLeft || (bothSmall && !(leftBase === 'uint' && rightBase === 'uint')));
     }
     if (op === ts.SyntaxKind.AsteriskToken) {
         return bothSmall && !bothInt32;
     }
     if (op === ts.SyntaxKind.SlashToken) {
-        return (left === 'double' || right === 'double') || (bothSmall && !bothInt32);
+        return (leftBase === 'double' || rightBase === 'double') || (bothSmall && !bothInt32);
     }
     return false;
 }
 
-// the C# static type of an emitted native expression (the small-int pairs promote to long)
+// the C# static type of an emitted native expression (the small-int pairs promote to long,
+// and the lifted operator of a nullable pair stays nullable)
 function nativeArithmeticPairResultKind (op, left, right) {
+    const mark = (kind) => (nativeArithmeticIsNullableKind (left) || nativeArithmeticIsNullableKind (right)) ? kind + '?' : kind;
     if (left === 'string') {
         return 'string';
     }
-    if (left === 'double' || right === 'double') {
-        return 'double';
+    if (nativeArithmeticBaseKind (left) === 'double' || nativeArithmeticBaseKind (right) === 'double') {
+        return mark ('double');
     }
     if (op === ts.SyntaxKind.MinusToken && left === 'int' && right === 'int') {
         return 'int';
     }
-    return 'Int64';
+    return mark ('Int64');
 }
 
 // the printed native expression, parenthesised: it is one operand of its context (the

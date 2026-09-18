@@ -1370,7 +1370,7 @@ public partial class kraken : Exchange
             {
                 throw new ExchangeError ((string)(this.id + " fetchOHLCV() missing parsedTimeframe")) ;
             }
-            object timeFrameInSeconds = multiply(parsedTimeframe, 60);
+            object timeFrameInSeconds = (parsedTimeframe * 60);
             ((IDictionary<string,object>)request)["since"] = this.numberToString(subtract(scaledSince, timeFrameInSeconds)); // expected to be in seconds
         }
         Dictionary<string, object> response = await this.publicGetOHLC(this.extend(request, parameters));
@@ -2778,7 +2778,7 @@ public partial class kraken : Exchange
         object options = this.safeValue(this.options, "fetchOrderTrades", new Dictionary<string, object>() {});
         Int64? batchSize = this.safeInteger(options, "batchSize", 20);
         int numTradeIds = getArrayLength(tradeIds);
-        object numBatches = this.parseToInt(divide(numTradeIds, batchSize));
+        object numBatches = this.parseToInt((numTradeIds / batchSize));
         numBatches = this.sum(numBatches, 1);
         List<object> result = new List<object>() {};
         for (int j = 0; isLessThan(j, numBatches); postFixIncrement(ref j))
@@ -2786,7 +2786,7 @@ public partial class kraken : Exchange
             List<object> requestIds = new List<object>() {};
             for (int k = 0; isLessThan(k, batchSize); postFixIncrement(ref k))
             {
-                object index = this.sum(multiply(j, batchSize), k);
+                object index = this.sum((j * batchSize), k);
                 if (isLessThan(index, numTradeIds))
                 {
                     ((IList<object>)requestIds).Add(getValue(tradeIds, index));

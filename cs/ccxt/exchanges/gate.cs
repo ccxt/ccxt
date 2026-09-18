@@ -4443,7 +4443,7 @@ public partial class gate : Exchange
         Int64? until = this.safeInteger(parameters, "until");
         if (!isEqual(until, null))
         {
-            until = this.parseToInt(divide(until, 1000));
+            until = this.parseToInt((until / 1000));
             parameters = this.omit(parameters, "until");
         }
         if (!isEqual(since, null))
@@ -4566,7 +4566,7 @@ public partial class gate : Exchange
         if (!isEqual(until, null))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000));
         }
         List<object> response = await this.publicFuturesGetSettleFundingRate(this.extend(request, parameters));
         //
@@ -4688,7 +4688,7 @@ public partial class gate : Exchange
         if (!isEqual(until, null))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000));
         }
         if (!isEqual(limit, null))
         {
@@ -4888,7 +4888,7 @@ public partial class gate : Exchange
         }
         if (!isEqual(until, null))
         {
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000));
         }
         object response = null;
         if (isEqual(type, "spot") || isEqual(type, "margin"))
@@ -6733,7 +6733,7 @@ public partial class gate : Exchange
         if (!isEqual(until, null))
         {
             parameters = this.omit(parameters, "until");
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000));
         }
         if (!isEqual(limit, null))
         {
@@ -6788,7 +6788,7 @@ public partial class gate : Exchange
             if (!isEqual(until, null))
             {
                 parameters = this.omit(parameters, "until");
-                ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+                ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000));
             }
         }
         IList<object> lastIdfinalParamsVariable = (IList<object>)this.handleParamString2(parameters, "lastId", "last_id");
@@ -10196,7 +10196,7 @@ public partial class gate : Exchange
         }
         if (!isEqual(until, null))
         {
-            ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000));
+            ((IDictionary<string,object>)request)["to"] = this.parseToInt((until / 1000));
         }
         object response = null;
         if (isEqual(marketType, "swap"))

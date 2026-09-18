@@ -4383,7 +4383,7 @@ public partial class coinbase : Exchange
         ((IDictionary<string,object>)request)["start"] = sinceString;
         if (!isEqual(until, null))
         {
-            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt(divide(until, 1000)));
+            ((IDictionary<string,object>)request)["end"] = this.numberToString(this.parseToInt((until / 1000)));
         } else
         {
             // 300 candles max
