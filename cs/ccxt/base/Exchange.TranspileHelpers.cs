@@ -1000,8 +1000,12 @@ public partial class BaseExchange
         }
         // reflective callers (callDynamically, fetchPaginatedCall*, promiseAll) feed the
         // untyped object pipeline, so any typed struct/list coming back from a typed core
-        // is de-typed here into the plain dictionaries/rows that pipeline reads keys from
-        return FromTyped(resultProperty.GetValue(task));
+        // is de-typed here into the plain dictionaries/rows that pipeline reads keys from.
+        // FromTyped's switch is generated from the struct families only, so a core declared
+        // List<Dictionary<string, object>> falls through it untouched and the generated
+        // safeList's (List<object>) cast then throws on the invariant list - FromDictList
+        // reboxes that one shape and passes everything else through, so it composes safely.
+        return FromDictList(FromTyped(resultProperty.GetValue(task)));
     }
 
     public static async Task<List<object>> PromiseAll(object promisesObj)

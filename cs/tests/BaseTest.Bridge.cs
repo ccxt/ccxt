@@ -245,8 +245,8 @@ public partial class BaseTest
         // hand-written C#-only: dual-stack (IPv4 + IPv6) transport checks (offline)
         testDualStack();
 
-        // hand-written C#-only: FromTyped must rebox typed dict lists for the untyped pipeline (offline)
-        testFromTypedRebox();
+        // hand-written C#-only: the reflective await must rebox typed dict lists for the untyped pipeline (offline)
+        await testFromTypedRebox();
 
         // Run throttler performance test
         await testThrottlerPerformance();
