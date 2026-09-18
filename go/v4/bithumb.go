@@ -665,7 +665,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			})
 		}
 	} else {
-		var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
+		var quoteCurrencies map[string]any = SafeMapTyped(this.Options, "quoteCurrencies")
 		var quotes []string = ObjectKeys(quoteCurrencies)
 		var promises any = []any{}
 		for i := 0; i < len(quotes); i++ {
@@ -679,7 +679,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var quote any = GetValue(quotes, i)
 			var quoteId any = quote
 			var response any = GetValue(results, i)
-			var data any = this.SafeDict(response, "data", map[string]any{})
+			var data map[string]any = SafeMapTyped(response, "data")
 			var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
 			var currencyIds []string = ObjectKeys(data)
 			for j := 0; j < len(currencyIds); j++ {
@@ -687,7 +687,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				if currencyId == "date" {
 					continue
 				}
-				var market any = GetValue(data, currencyId)
+				var market any = data[currencyId]
 				var base *string = this.SafeCurrencyCode(currencyId)
 				var active bool = true
 				if IsArray(market) {
@@ -917,7 +917,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		//         }
 		//     ]
 		//
-		var result any = this.SafeDict(response, 0, map[string]any{})
+		var result map[string]any = SafeMapTyped(response, 0)
 		timestamp = this.SafeInteger(result, "timestamp")
 		var orderBookUnits any = this.SafeList(result, "orderbook_units", []any{})
 		var bids any = []any{}
@@ -3300,7 +3300,7 @@ func (this *Bithumb) ParseTransactionStatusByType(status any, optionalArgs ...an
 			"CANCELLED":  "canceled",
 		},
 	}
-	var statuses any = this.SafeDict(statusesByType, typeVar, map[string]any{})
+	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
 

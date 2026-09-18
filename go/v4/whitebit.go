@@ -991,18 +991,18 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) any {
 	var code *string = this.SafeCurrencyCode(id)
 	var hasProvider bool = (InOp(rawCurrency, "providers"))
 	var networks map[string]any = map[string]any{}
-	var rawNetworks any = this.SafeDict(rawCurrency, "networks", map[string]any{})
+	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "networks")
 	var depositsNetworks any = this.SafeList(rawNetworks, "deposits", []any{})
 	var withdrawsNetworks any = this.SafeList(rawNetworks, "withdraws", []any{})
-	var networkLimits any = this.SafeDict(rawCurrency, "limits", map[string]any{})
-	var depositLimits any = this.SafeDict(networkLimits, "deposit", map[string]any{})
-	var withdrawLimits any = this.SafeDict(networkLimits, "withdraw", map[string]any{})
+	var networkLimits map[string]any = SafeMapTyped(rawCurrency, "limits")
+	var depositLimits map[string]any = SafeMapTyped(networkLimits, "deposit")
+	var withdrawLimits map[string]any = SafeMapTyped(networkLimits, "withdraw")
 	var allNetworks []any = this.ArrayConcat(depositsNetworks, withdrawsNetworks)
 	for j := 0; j < len(allNetworks); j++ {
 		var networkId any = GetValue(allNetworks, j)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var networkDepositLimits any = this.SafeDict(depositLimits, networkId, map[string]any{})
-		var networkWithdrawLimits any = this.SafeDict(withdrawLimits, networkId, map[string]any{})
+		var networkDepositLimits map[string]any = SafeMapTyped(depositLimits, networkId)
+		var networkWithdrawLimits map[string]any = SafeMapTyped(withdrawLimits, networkId)
 		if networkCode != nil {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -1119,7 +1119,7 @@ func (this *Whitebit) fetchTransactionFeesBody(ch chan any, optionalArgs ...any)
 	var depositFees map[string]any = map[string]any{}
 	for i := 0; i < len(currenciesIds); i++ {
 		var currency string = GetValue(currenciesIds, i).(string)
-		var data any = this.SafeDict(response, currency, map[string]any{})
+		var data map[string]any = SafeMapTyped(response, currency)
 		var code *string = this.SafeCurrencyCode(currency)
 		var withdraw any = this.SafeValue(data, "withdraw", map[string]any{})
 		if code != nil {
@@ -1490,7 +1490,7 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan any, optionalArgs ...any) a
 			}
 		}
 		// Extract trading limits
-		var limits any = this.SafeDict(market, "limits")
+		var limits map[string]any = SafeMapTyped(market, "limits")
 		var amountLimits any = this.SafeDict(limits, "amount")
 		var priceLimits any = this.SafeDict(limits, "price")
 		var costLimits any = this.SafeDict(limits, "cost")
@@ -1633,15 +1633,15 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan any, optionalArgs ...any) a
 			}
 		}
 		// Build comprehensive funding limits
-		var currencyLimits any = this.SafeDict(currency, "limits", map[string]any{})
+		var currencyLimits map[string]any = SafeMapTyped(currency, "limits")
 		var limits map[string]any = map[string]any{
 			"deposit": map[string]any{
-				"min": GetValue(GetValue(currencyLimits, "deposit"), "min"),
-				"max": GetValue(GetValue(currencyLimits, "deposit"), "max"),
+				"min": GetValue(currencyLimits["deposit"], "min"),
+				"max": GetValue(currencyLimits["deposit"], "max"),
 			},
 			"withdraw": map[string]any{
-				"min": GetValue(GetValue(currencyLimits, "withdraw"), "min"),
-				"max": GetValue(GetValue(currencyLimits, "withdraw"), "max"),
+				"min": GetValue(currencyLimits["withdraw"], "min"),
+				"max": GetValue(currencyLimits["withdraw"], "max"),
 			},
 		}
 		// Add fee information if available
@@ -5173,7 +5173,7 @@ func (this *Whitebit) ParseConversion(conversion any, optionalArgs ...any) any {
 	toCurrency := GetArg(optionalArgs, 1, nil)
 	_ = toCurrency
 	var path any = this.SafeList(conversion, "path", []any{})
-	var first any = this.SafeDict(path, 0, map[string]any{})
+	var first map[string]any = SafeMapTyped(path, 0)
 	var fromPath *string = this.SafeString(first, "from")
 	var toPath *string = this.SafeString(first, "to")
 	var timestamp *int64 = this.SafeTimestamp2(conversion, "date", "expireAt")
@@ -5432,8 +5432,8 @@ func (this *Whitebit) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
 	var timestamp *int64 = this.SafeTimestamp(position, "openDate")
-	var tpsl any = this.SafeDict(position, "tpsl", map[string]any{})
-	var orderDetail any = this.SafeDict(position, "orderDetail", map[string]any{})
+	var tpsl map[string]any = SafeMapTyped(position, "tpsl")
+	var orderDetail map[string]any = SafeMapTyped(position, "orderDetail")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "positionId"),
@@ -5644,7 +5644,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 			if hasErrorStatus {
 				errorInfo = status
 			} else {
-				var errorObject any = this.SafeDict(response, "errors", map[string]any{})
+				var errorObject map[string]any = SafeMapTyped(response, "errors")
 				var errorKeys []string = ObjectKeys(errorObject)
 				var errorsLength int = len(errorKeys)
 				if errorsLength > 0 {
@@ -5666,7 +5666,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 		// {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
 		var success *bool = this.SafeBool(response, "success", true)
 		if success == nil || *success != true {
-			var errMsg any = this.SafeDict(response, "message", map[string]any{})
+			var errMsg map[string]any = SafeMapTyped(response, "message")
 			var errKeys []string = ObjectKeys(errMsg)
 			var errKeysLength int = len(errKeys)
 			var errorInfo any = body

@@ -190,7 +190,7 @@ func (this *Pacifica) createOrderWsBody(ch chan any, symbol any, typeVar any, si
 	} else {
 		status = "open"
 	}
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = ccxt.SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
@@ -280,7 +280,7 @@ func (this *Pacifica) editOrderWsBody(ch chan any, id any, symbol any, typeVar a
 	} else {
 		status = "open"
 	}
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = ccxt.SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
@@ -368,7 +368,7 @@ func (this *Pacifica) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...a
 	//   "type": "batch_orders"
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var results any = this.SafeList(data, "results", []any{})
 	var ordersToReturn any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(results); i++ {
@@ -473,7 +473,7 @@ func (this *Pacifica) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any
 	} else {
 		status = "open"
 	}
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = ccxt.SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(order, "i")
 	var clientOrderId *string = this.SafeString(order, "I")
 
@@ -699,7 +699,7 @@ func (this *Pacifica) HandleOrderBook(client any, message any) {
 	//   }
 	// }
 	//
-	var entry any = this.SafeDict(message, "data", map[string]any{})
+	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(entry, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1208,7 +1208,7 @@ func (this *Pacifica) HandleTrades(client any, message any) {
 	// }
 	//
 	var entry any = this.SafeList(message, "data", []any{})
-	var first any = this.SafeDict(entry, 0, map[string]any{})
+	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var marketId *string = this.SafeString(first, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1784,7 +1784,7 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message any) {
 	//      }
 	//  }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var method *string = this.SafeString(message, "channel")
 	if method != nil && *method == "unsubscribe" {
 		var subscription any = this.SafeDict(data, "data", map[string]any{})

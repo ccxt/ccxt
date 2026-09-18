@@ -1277,7 +1277,7 @@ func (this *Backpack) HandleBidAsks(bookSide any, bidAsks any) {
 func (this *Backpack) GetCacheIndex(orderbook any, cache any) any {
 	//
 	// {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
-	var firstDelta any = this.SafeDict(cache, 0)
+	var firstDelta map[string]any = ccxt.SafeMapTyped(cache, 0)
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDeltaStart *int64 = this.SafeInteger(firstDelta, "U")
 	if nonce == nil {
@@ -1765,7 +1765,7 @@ func (this *Backpack) HandleMessage(client any, message any) {
 	if !ccxt.IsEqual(this.HandleErrorMessage(client, message), true) {
 		return
 	}
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var event *string = this.SafeString(data, "e")
 	if event != nil && *event == "ticker" {
 		this.HandleTicker(client, message)
@@ -1793,7 +1793,7 @@ func (this *Backpack) HandleErrorMessage(client any, message any) any {
 	//         }
 	//     }
 	//
-	var error any = this.SafeDict(message, "error", map[string]any{})
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	var code *int64 = this.SafeInteger(error, "code")
 
 	{

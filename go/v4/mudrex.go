@@ -243,7 +243,7 @@ func (this *Mudrex) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var apiUrls any = this.SafeDict(this.Urls, "api", map[string]any{})
+	var apiUrls map[string]any = SafeMapTyped(this.Urls, "api")
 	var base *string = this.SafeString(apiUrls, api)
 	if base == nil {
 		panic(ExchangeError(Add(this.Id+" unknown API namespace: ", api)))
@@ -306,7 +306,7 @@ func (this *Mudrex) HandleErrors(code any, reason any, url any, method any, head
 	var success *bool = this.SafeBool(response, "success", true)
 	if success == nil || *success != true {
 		var errors any = this.SafeList(response, "errors", []any{})
-		var first any = this.SafeDict(errors, 0, map[string]any{})
+		var first map[string]any = SafeMapTyped(errors, 0)
 		var text *string = this.SafeString(first, "text", this.Json(response))
 		var errCode *string = this.SafeString(first, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], text, Add(this.Id+" ", text))
@@ -430,8 +430,8 @@ func (this *Mudrex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	var assetTicks any = this.SafeDict(data, "asset_ticks", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var assetTicks map[string]any = SafeMapTyped(data, "asset_ticks")
 	var ohlcvs any = this.SafeList(assetTicks, ToLower(assetPair), []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -793,7 +793,7 @@ func (this *Mudrex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Mudrex) ParseBalance(response any) any {
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var currency *string = this.SafeString(response, "currency", "USDT")
 	var result map[string]any = map[string]any{
 		"info": response,
@@ -845,7 +845,7 @@ func (this *Mudrex) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...a
 
 	response := (<-this.PrivateGetFuturesAssetIdLeverage(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- map[string]any{
 		"info":          response,

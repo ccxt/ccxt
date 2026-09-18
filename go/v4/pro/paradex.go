@@ -183,7 +183,7 @@ func (this *Paradex) HandleTrade(client any, message any) any {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var parsedTrade any = this.ParseTrade(data)
 	var symbol any = ccxt.GetValue(parsedTrade, "symbol")
@@ -272,8 +272,8 @@ func (this *Paradex) HandleOrderBook(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
-	var data any = this.SafeDict(params, "data", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var marketId *string = this.SafeString(data, "market")
 	var market any = this.SafeMarket(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
@@ -287,7 +287,7 @@ func (this *Paradex) HandleOrderBook(client any, message any) {
 	}
 	var inserts any = this.SafeList(data, "inserts")
 	for i := 0; i < ccxt.GetArrayLength(inserts); i++ {
-		var insert any = this.SafeDict(inserts, i)
+		var insert map[string]any = ccxt.SafeMapTyped(inserts, i)
 		var side *string = this.SafeString(insert, "side")
 		var price *string = this.SafeString(insert, "price")
 		var size *string = this.SafeString(insert, "size")
@@ -500,7 +500,7 @@ func (this *Paradex) HandleOrder(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var parsed any = this.ParseOrder(data)
 	var symbol *string = this.SafeString(parsed, "symbol")
@@ -541,7 +541,7 @@ func (this *Paradex) HandleTicker(client any, message any) any {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
@@ -680,7 +680,7 @@ func (this *Paradex) HandleFundingRate(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol any = ccxt.GetValue(fundingRate, "symbol")

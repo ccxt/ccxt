@@ -584,7 +584,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Coinmate) ParseBalance(response any) any {
-	var balances any = this.SafeDict(response, "data", map[string]any{})
+	var balances map[string]any = SafeMapTyped(response, "data")
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -778,7 +778,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var keys []string = ObjectKeys(data)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
@@ -1011,7 +1011,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	var currency any = this.Currency(code)
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
-	var methods any = this.SafeDict(withdrawOptions, "methods", map[string]any{})
+	var methods map[string]any = SafeMapTyped(withdrawOptions, "methods")
 	var method *string = this.SafeString(methods, code)
 	if method == nil {
 		var allowedCurrencies []string = ObjectKeys(methods)

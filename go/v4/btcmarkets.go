@@ -587,7 +587,7 @@ func (this *Btcmarkets) ParseTransaction(transaction any, optionalArgs ...any) a
 	if IsEqual(typeVar, "withdraw") {
 		typeVar = "withdrawal"
 	}
-	var cryptoPaymentDetail any = this.SafeDict(transaction, "paymentDetail", map[string]any{})
+	var cryptoPaymentDetail map[string]any = SafeMapTyped(transaction, "paymentDetail")
 	var txid *string = this.SafeString(cryptoPaymentDetail, "txId")
 	var address any = DerefScalar(this.SafeString(cryptoPaymentDetail, "address"))
 	var tag any = nil

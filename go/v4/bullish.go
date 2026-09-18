@@ -2873,7 +2873,7 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var timestamp *int64 = this.Parse8601(this.SafeString(transaction, "createdAtDateTime"))
 	var updated *int64 = this.Parse8601(this.SafeString(transaction, "updatedAtDateTime"))
 	var network *string = this.SafeString(transaction, "network")
-	var transactionDetails any = this.SafeDict(transaction, "transactionDetails")
+	var transactionDetails map[string]any = SafeMapTyped(transaction, "transactionDetails")
 	var txid *string = this.SafeString(transactionDetails, "blockchainTxId")
 	var address *string = this.SafeString(transactionDetails, "address")
 	var amount *float64 = this.SafeNumber(transaction, "quantity")
@@ -2881,7 +2881,7 @@ func (this *Bullish) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.SafeString(transaction, "status")
 	var sources any = this.SafeList(transactionDetails, "sources", []any{})
-	var source any = this.SafeDict(sources, 0, map[string]any{})
+	var source map[string]any = SafeMapTyped(sources, 0)
 	var sourceAddress *string = this.SafeString(source, "address")
 	var fee map[string]any = map[string]any{
 		"currency": nil,
@@ -3527,7 +3527,7 @@ func (this *Bullish) transferBody(ch chan any, code any, amount any, fromAccount
 	//         "requestId": "633909659774222336"
 	//     }
 	//
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	var transfer any = this.ParseTransfer(response, currency)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {

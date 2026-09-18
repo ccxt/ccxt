@@ -2395,7 +2395,7 @@ func (this *Okx) HandleMarketTypeAndParams(methodName any, optionalArgs ...any) 
 	return this.Exchange.HandleMarketTypeAndParams(methodName, market, params, defaultValue)
 }
 func (this *Okx) ConvertToInstrumentType(typeVar any) any {
-	var exchangeTypes any = this.SafeDict(this.Options, "exchangeType", map[string]any{})
+	var exchangeTypes map[string]any = SafeMapTyped(this.Options, "exchangeType")
 	return this.SafeString(exchangeTypes, typeVar, typeVar)
 }
 func (this *Okx) CreateExpiredOptionMarket(symbol any) any {
@@ -2967,7 +2967,7 @@ func (this *Okx) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs .
 		PanicOnError(promisesResult)
 		var markets []any = []any{}
 		for i := 0; i < GetArrayLength(promisesResult); i++ {
-			var res any = this.SafeDict(promisesResult, i, map[string]any{})
+			var res map[string]any = SafeMapTyped(promisesResult, i)
 			var options any = this.SafeList(res, "data", []any{})
 			markets = this.ArrayConcat(markets, options)
 		}
@@ -3121,7 +3121,7 @@ func (this *Okx) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *Okx) ParseCurrency(currency any) any {
 	var chains any = currency
 	// currencies are grouped by chain entries, so there is at least one entry
-	var firstChain any = this.SafeDict(chains, 0, map[string]any{})
+	var firstChain map[string]any = SafeMapTyped(chains, 0)
 	var currencyId *string = this.SafeString(firstChain, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var networks map[string]any = map[string]any{}
@@ -4127,7 +4127,7 @@ func (this *Okx) ParseTradingBalance(response any) any {
 		"info": response,
 	}
 	var data any = this.SafeList(response, "data", []any{})
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var first map[string]any = SafeMapTyped(data, 0)
 	var timestamp *int64 = this.SafeInteger(first, "uTime")
 	var details any = this.SafeList(first, "details", []any{})
 	for i := 0; i < GetArrayLength(details); i++ {
@@ -7057,7 +7057,7 @@ func (this *Okx) ParseDepositAddress(depositAddress any, optionalArgs ...any) an
 	var address *string = this.SafeString(depositAddress, "addr")
 	var tag *string = this.SafeStringN(depositAddress, []any{"tag", "pmtId", "memo"})
 	if tag == nil {
-		var addrEx any = this.SafeDict(depositAddress, "addrEx", map[string]any{})
+		var addrEx map[string]any = SafeMapTyped(depositAddress, "addrEx")
 		tag = this.SafeString(addrEx, "comment")
 	}
 	var currencyId *string = this.SafeString(depositAddress, "ccy")
@@ -7289,7 +7289,7 @@ func (this *Okx) withdrawBody(ch chan any, code any, amount any, address any, op
 	}
 	var network *string = this.SafeString(params, "network") // this line allows the user to specify either ERC20 or ETH
 	if network != nil {
-		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		network = this.SafeString(networks, ToUpper(network), network) // handle ETH>ERC20 alias
 		request["chain"] = Add(Add(GetValue(currency, "id"), "-"), network)
 		params = this.Omit(params, "network")
@@ -8041,7 +8041,7 @@ func (this *Okx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			request["instId"] = Join(marketIds, ",")
 		}
 	}
-	var fetchPositionsOptions any = this.SafeDict(this.Options, "fetchPositions", map[string]any{})
+	var fetchPositionsOptions map[string]any = SafeMapTyped(this.Options, "fetchPositions")
 	var method *string = this.SafeString(fetchPositionsOptions, "method", "privateGetAccountPositions")
 	var response any = nil
 	if method != nil && *method == "privateGetAccountPositionsHistory" {
@@ -8344,7 +8344,7 @@ func (this *Okx) transferBody(ch chan any, code any, amount any, fromAccount any
 		PanicOnError(retRes649012)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -8450,7 +8450,7 @@ func (this *Okx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var amount any = DerefScalar(this.SafeNumber(transfer, "amt"))
 	var fromAccountId *string = this.SafeString(transfer, "from")
 	var toAccountId *string = this.SafeString(transfer, "to")
-	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var timestamp *int64 = this.SafeInteger(transfer, "ts")
 	var balanceChange *string = this.SafeString(transfer, "sz")
 	if balanceChange != nil {
@@ -8832,7 +8832,7 @@ func (this *Okx) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes689612)
 	}
 	var market any = this.Market(symbol)
-	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var ruleType *string = this.SafeString(marketInfo, "ruleType")
 	var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
 	if (!IsEqual(GetValue(market, "swap"), true)) && !isExtendedPerpetual {
@@ -8897,7 +8897,7 @@ func (this *Okx) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	if !IsEqual(symbols, nil) {
 		for i := 0; i < GetArrayLength(symbols); i++ {
 			var market any = this.Market(GetValue(symbols, i))
-			var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+			var marketInfo map[string]any = SafeMapTyped(market, "info")
 			var ruleType *string = this.SafeString(marketInfo, "ruleType")
 			var isExtendedPerpetual bool = (ruleType != nil && *ruleType == "xperp") // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
 			if (!IsEqual(GetValue(market, "swap"), true)) && !isExtendedPerpetual {
@@ -10339,7 +10339,7 @@ func (this *Okx) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalA
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 	var options any = this.SafeDict(this.Options, "fetchOpenInterestHistory", map[string]any{})
-	var timeframes any = this.SafeDict(options, "timeframes", map[string]any{})
+	var timeframes map[string]any = SafeMapTyped(options, "timeframes")
 	timeframe = DerefScalar(this.SafeString(timeframes, timeframe, timeframe))
 	if (!IsEqual(timeframe, "5m")) && (!IsEqual(timeframe, "1H")) && (!IsEqual(timeframe, "1D")) {
 		panic(BadRequest(this.Id + " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe"))

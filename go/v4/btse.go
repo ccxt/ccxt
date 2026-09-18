@@ -745,7 +745,7 @@ func (this *Btse) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetPublicApiMarketV1Markets(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 
 	ch <- this.ParseMarkets(markets)
@@ -4109,9 +4109,9 @@ func (this *Btse) ParsePosition(position any, optionalArgs ...any) any {
 	var side *string = this.SafeStringLower2(position, "positionDirection", "side")
 	var positionMode *string = this.SafeString(position, "positionMode")
 	var hedged bool = (positionMode != nil && *positionMode == "HEDGE") || (positionMode != nil && *positionMode == "ISOLATED")
-	var takeProfitOrder any = this.SafeDict(position, "takeProfitOrder", map[string]any{})
+	var takeProfitOrder map[string]any = SafeMapTyped(position, "takeProfitOrder")
 	var takeProfitPrice *string = this.SafeString(takeProfitOrder, "triggerPrice")
-	var stopLossOrder any = this.SafeDict(position, "stopLossOrder", map[string]any{})
+	var stopLossOrder map[string]any = SafeMapTyped(position, "stopLossOrder")
 	var stopLossPrice *string = this.SafeString(stopLossOrder, "triggerPrice")
 	return this.SafePosition(map[string]any{
 		"info":                        position,

@@ -430,7 +430,7 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan any, client any, message any
 	return nil
 }
 func (this *Woo) HandleOrderBookMessage(client any, message any, orderbook any) any {
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeValue(data, "asks", []any{}))
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeValue(data, "bids", []any{}))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
@@ -1812,7 +1812,7 @@ func (this *Woo) HandlePositions(client any, message any) {
 	//    }
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
-	var rawPositions any = this.SafeDict(data, "positions", map[string]any{})
+	var rawPositions map[string]any = ccxt.SafeMapTyped(data, "positions")
 	var postitionsIds []string = ccxt.ObjectKeys(rawPositions)
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
@@ -1822,7 +1822,7 @@ func (this *Woo) HandlePositions(client any, message any) {
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = ccxt.GetValue(postitionsIds, i).(string)
 		var market any = this.SafeMarket(marketId)
-		var rawPosition any = ccxt.GetValue(rawPositions, marketId)
+		var rawPosition any = rawPositions[marketId]
 		var position any = this.ParsePosition(rawPosition, market)
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)

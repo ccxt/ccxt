@@ -421,7 +421,7 @@ func (this *Deribit) HandleBidAsk(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var ticker any = this.ParseWsBidAsk(data)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
@@ -520,7 +520,7 @@ func (this *Deribit) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	trades := (<-this.WatchMultipleWrapperAsync("trades", interval, symbols, params))
 	ccxt.PanicOnError(trades)
 	if ccxt.EvalTruthy(this.NewUpdates) {
-		var first any = this.SafeDict(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -550,7 +550,7 @@ func (this *Deribit) HandleTrades(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
 	var parts []string = ccxt.Split(channel, ".")
 	var marketId *string = this.SafeString(parts, 1)
@@ -1101,14 +1101,14 @@ func (this *Deribit) HandleOHLCV(client any, message any) {
 	//         }
 	//     }
 	//
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var channel *string = this.SafeString(params, "channel", "")
 	var parts []string = ccxt.Split(channel, ".")
 	var marketId *string = this.SafeString(parts, 2)
 	var rawTimeframe *string = this.SafeString(parts, 3)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var timeframes any = this.SafeDict(wsOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))

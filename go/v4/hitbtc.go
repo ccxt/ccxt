@@ -1260,7 +1260,7 @@ func (this *Hitbtc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var typeVar *string = this.SafeStringLower(params, "type", "spot")
 	params = this.Omit(params, []any{"type"})
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var account any = func() any {
 		if typeVar == nil {
 			return nil
@@ -3469,7 +3469,7 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any
 	if !IsEqual(code, "USDT") {
 		panic(ExchangeError(this.Id + " convertCurrencyNetwork() only supports USDT currently"))
 	}
-	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	fromNetwork = ToUpper(fromNetwork)
 	toNetwork = ToUpper(toNetwork)
 	fromNetwork = DerefScalar(this.SafeString(networks, fromNetwork)) // handle ETH>ERC20 alias

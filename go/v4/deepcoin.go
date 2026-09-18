@@ -535,7 +535,7 @@ func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...
 	return this.Exchange.HandleMarketTypeAndParams(methodName, market, params, defaultValue)
 }
 func (this *Deepcoin) ConvertToInstrumentType(typeVar any) any {
-	var exchangeTypes any = this.SafeDict(this.Options, "exchangeType", map[string]any{})
+	var exchangeTypes map[string]any = SafeMapTyped(this.Options, "exchangeType")
 	return this.SafeString(exchangeTypes, typeVar, typeVar)
 }
 
@@ -1356,7 +1356,7 @@ func (this *Deepcoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetDeepcoinAssetDepositList(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "data", []any{})
 	var transactionParams map[string]any = map[string]any{
 		"type": "deposit",
@@ -1431,7 +1431,7 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.PrivateGetDeepcoinAssetWithdrawList(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "data", []any{})
 	var transactionParams map[string]any = map[string]any{
 		"type": "withdrawal",
@@ -1564,7 +1564,7 @@ func (this *Deepcoin) fetchDepositAddressesBody(ch chan any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var list any = this.SafeList(data, "list", []any{})
 	var additionalParams map[string]any = map[string]any{
 		"currency": code,
@@ -1600,7 +1600,7 @@ func (this *Deepcoin) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		PanicOnError(retRes122612)
 	}
 	var network any = DerefScalar(this.SafeString(params, "network"))
-	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks", map[string]any{})
+	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 	var defaultNetwork *string = this.SafeString(defaultNetworks, code)
 	network = func() any {
 		if !IsEqual(network, nil) && !IsEqual(network, "") {
@@ -1850,7 +1850,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 		PanicOnError(retRes142012)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -1876,7 +1876,7 @@ func (this *Deepcoin) transferBody(ch chan any, code any, amount any, fromAccoun
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var transfer any = this.ParseTransfer(data, currency)
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		AddElementToObject(transfer, "fromAccount", fromAccount)
@@ -2072,13 +2072,13 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol any, typeVar any, side an
 		request["clOrdId"] = clientOrderId
 		params = this.Omit(params, "clientOrderId")
 	}
-	var stopLoss any = this.SafeDict(params, "stopLoss", map[string]any{})
+	var stopLoss map[string]any = SafeMapTyped(params, "stopLoss")
 	var stopLossPrice *string = this.SafeString(stopLoss, "triggerPrice")
 	if stopLossPrice != nil {
 		params = this.Omit(params, []any{"stopLoss"})
 		request["slTriggerPx"] = this.PriceToPrecision(symbol, stopLossPrice)
 	}
-	var takeProfit any = this.SafeDict(params, "takeProfit", map[string]any{})
+	var takeProfit map[string]any = SafeMapTyped(params, "takeProfit")
 	var takeProfitPrice *string = this.SafeString(takeProfit, "triggerPrice")
 	if takeProfitPrice != nil {
 		params = this.Omit(params, []any{"takeProfit"})
@@ -3598,7 +3598,7 @@ func (this *Deepcoin) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rates any = this.SafeList(data, "current_fund_rates", []any{})
 
 	ch <- this.ParseFundingRates(rates, symbols)
@@ -3654,7 +3654,7 @@ func (this *Deepcoin) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rates any = this.SafeList(data, "current_fund_rates", []any{})
 	var entry any = this.SafeDict(rates, 0, map[string]any{})
 
@@ -3762,7 +3762,7 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseFundingRateHistories(rows, market, since, limit)
@@ -4059,7 +4059,7 @@ func (this *Deepcoin) HandleErrors(code any, reason any, url any, method any, he
 	var errorList any = this.SafeList(data, "errorList")
 	if !IsEqual(errorList, nil) {
 		for i := 0; i < GetArrayLength(errorList); i++ {
-			var entry any = this.SafeDict(errorList, i, map[string]any{})
+			var entry map[string]any = SafeMapTyped(errorList, i)
 			errorCode = this.SafeString(entry, "errorCode")
 		}
 	}

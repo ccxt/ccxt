@@ -1247,7 +1247,7 @@ func (this *Coinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Coinex) ParseCurrency(coin any) any {
-	var asset any = this.SafeDict(coin, "asset", map[string]any{})
+	var asset map[string]any = SafeMapTyped(coin, "asset")
 	var currencyId *string = this.SafeString(asset, "ccy")
 	var chains any = this.SafeList(coin, "chains", []any{})
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -1859,7 +1859,7 @@ func (this *Coinex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//         "message": "OK"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeInteger(data, "timestamp")
 	return nil
@@ -1912,7 +1912,7 @@ func (this *Coinex) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		response = (<-this.V2PublicGetSpotDepth(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var depth any = this.SafeDict(data, "depth", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(depth, "updated_at")
 
@@ -2326,10 +2326,10 @@ func (this *Coinex) fetchMarginBalanceBody(ch chan any, optionalArgs ...any) any
 	var balances any = this.SafeList(response, "data", []any{})
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var entry any = GetValue(balances, i)
-		var free any = this.SafeDict(entry, "available", map[string]any{})
-		var used any = this.SafeDict(entry, "frozen", map[string]any{})
-		var loan any = this.SafeDict(entry, "repaid", map[string]any{})
-		var interest any = this.SafeDict(entry, "interest", map[string]any{})
+		var free map[string]any = SafeMapTyped(entry, "available")
+		var used map[string]any = SafeMapTyped(entry, "frozen")
+		var loan map[string]any = SafeMapTyped(entry, "repaid")
+		var interest map[string]any = SafeMapTyped(entry, "interest")
 		var baseAccount any = this.Account()
 		var baseCurrencyId *string = this.SafeString(entry, "base_ccy")
 		var baseCurrencyCode *string = this.SafeCurrencyCode(baseCurrencyId)
@@ -5481,7 +5481,7 @@ func (this *Coinex) transferBody(ch chan any, code any, amount any, fromAccount 
 	}
 	var currency any = this.Currency(code)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -6288,7 +6288,7 @@ func (this *Coinex) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...an
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(data); i++ {
 		var item any = GetValue(data, i)
-		var asset any = this.SafeDict(item, "asset", map[string]any{})
+		var asset map[string]any = SafeMapTyped(item, "asset")
 		var currencyId *string = this.SafeString(asset, "ccy")
 		if currencyId == nil {
 			continue
@@ -6349,7 +6349,7 @@ func (this *Coinex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 		"networks": map[string]any{},
 	}
 	var chains any = this.SafeList(fee, "chains", []any{})
-	var asset any = this.SafeDict(fee, "asset", map[string]any{})
+	var asset map[string]any = SafeMapTyped(fee, "asset")
 	for i := 0; i < GetArrayLength(chains); i++ {
 		var entry any = GetValue(chains, i)
 		var isWithdrawEnabled *bool = this.SafeBool(entry, "withdraw_enabled")

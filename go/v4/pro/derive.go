@@ -156,7 +156,7 @@ func (this *Derive) HandleOrderBook(client any, message any) {
 	//     }
 	// }
 	//
-	var params any = this.SafeDict(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var marketId *string = this.SafeString(data, "instrument_name")
 	var market any = this.SafeMarket(marketId)
@@ -288,7 +288,7 @@ func (this *Derive) HandleTicker(client any, message any) any {
 	//     }
 	// }
 	//
-	var params any = this.SafeDict(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var rawData any = this.SafeDict(params, "data")
 	var data any = this.SafeDict(rawData, "instrument_ticker", map[string]any{})
 	var topic *string = this.SafeString(params, "channel")
@@ -299,7 +299,7 @@ func (this *Derive) HandleTicker(client any, message any) any {
 		var parts []string = ccxt.Split(topic, ".")
 		var marketId *string = this.SafeString(parts, 1)
 		var market any = this.SafeMarket(marketId)
-		var stats any = this.SafeDict(data, "stats", map[string]any{})
+		var stats map[string]any = ccxt.SafeMapTyped(data, "stats")
 		ticker = this.SafeTicker(map[string]any{
 			"symbol":      ccxt.GetValue(market, "symbol"),
 			"timestamp":   this.SafeInteger(data, "t"),
@@ -479,7 +479,7 @@ func (this *Derive) HandleUnSubscribe(client any, message any) any {
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(message, "result")
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var status any = this.SafeDict(result, "status")
 	if !ccxt.IsEqual(status, nil) {
 		var topics []string = ccxt.ObjectKeys(status)
@@ -551,7 +551,7 @@ func (this *Derive) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 func (this *Derive) HandleTrade(client any, message any) {
 	//
 	//
-	var params any = this.SafeDict(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data any = this.SafeDict(params, "data", map[string]any{})
 	var topic any = this.SafeValue(params, "channel")
 	var parsedTopic []string = ccxt.Split(topic, ".")
@@ -748,7 +748,7 @@ func (this *Derive) HandleOrder(client any, message any) {
 	//     }
 	// }
 	//
-	var params any = this.SafeDict(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var topic *string = this.SafeString(params, "channel")
 	var rawOrders any = this.SafeList(params, "data", []any{})
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
@@ -863,7 +863,7 @@ func (this *Derive) HandleMyTrade(client any, message any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var params any = this.SafeDict(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var topic *string = this.SafeString(params, "channel")
 	var rawTrades any = this.SafeList(params, "data", []any{})
 	for i := 0; i < ccxt.GetArrayLength(rawTrades); i++ {
@@ -884,7 +884,7 @@ func (this *Derive) HandleErrorMessage(client any, message any) any {
 	if !(ccxt.InOp(message, "error")) {
 		return false
 	}
-	var errorMessage any = this.SafeDict(message, "error")
+	var errorMessage map[string]any = ccxt.SafeMapTyped(message, "error")
 	var errorCode *string = this.SafeString(errorMessage, "code")
 
 	{

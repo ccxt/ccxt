@@ -537,7 +537,7 @@ func (this *Woofipro) HandleOHLCV(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var topic *string = this.SafeString(message, "topic")
 	var marketId *string = this.SafeString(data, "symbol")
 	var market any = this.SafeMarket(marketId)
@@ -1364,7 +1364,7 @@ func (this *Woofipro) HandlePositions(client any, message any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawPositions any = this.SafeList(data, "positions", []any{})
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
@@ -1523,7 +1523,7 @@ func (this *Woofipro) HandleBalance(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
-	var balances any = this.SafeDict(data, "balances", map[string]any{})
+	var balances map[string]any = ccxt.SafeMapTyped(data, "balances")
 	var keys []string = ccxt.ObjectKeys(balances)
 	var ts *int64 = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(this.Balance, "info", data)
@@ -1531,7 +1531,7 @@ func (this *Woofipro) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(ts))
 	for i := 0; i < len(keys); i++ {
 		var key string = ccxt.GetValue(keys, i).(string)
-		var value any = ccxt.GetValue(balances, key)
+		var value any = balances[key]
 		var code *string = this.SafeCurrencyCode(key)
 		var account any = this.Account()
 		if (code != nil) && (ccxt.InOp(this.Balance, code)) {

@@ -772,7 +772,7 @@ func (this *Bybit) HandleTicker(client any, message any) {
 		var market any = this.SafeMarket(marketId, nil, nil, typeVar)
 		symbol = ccxt.GetValue(market, "symbol")
 		// update the info in place
-		var ticker any = this.SafeDict(this.Tickers, symbol, map[string]any{})
+		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = this.ParseTicker(merged)
@@ -3016,7 +3016,7 @@ func (this *Bybit) watchTopicsBody(ch chan any, url any, messageHashes any, topi
 		var subscribedTopics map[string]any = map[string]any{}
 		var subscriptionHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptionHashes); i++ {
-			var existing any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(subscriptionHashes, i), map[string]any{})
+			var existing map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), ccxt.GetValue(subscriptionHashes, i))
 			var recordedTopics any = this.SafeList(existing, "topics", []any{})
 			var recordedLength int = ccxt.GetArrayLength(recordedTopics)
 			for j := 0; j < recordedLength; j++ {
@@ -3182,7 +3182,7 @@ func (this *Bybit) HandleErrorMessage(client any, message any) any {
 								if !(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 									continue
 								}
-								var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 								var subId *string = this.SafeString(subscription, "id")
 								if reqId == subId || (reqId != nil && subId != nil && *reqId == *subId) {
 									foundSubscription = true

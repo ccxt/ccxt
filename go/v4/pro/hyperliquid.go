@@ -106,8 +106,8 @@ func (this *Hyperliquid) createOrdersWsBody(ch chan any, orders any, optionalArg
 
 	response := (<-this.Watch(url, requestId, request, requestId))
 	ccxt.PanicOnError(response)
-	var responseOjb any = this.SafeDict(response, "response", map[string]any{})
-	var data any = this.SafeDict(responseOjb, "data", map[string]any{})
+	var responseOjb map[string]any = ccxt.SafeMapTyped(response, "response")
+	var data map[string]any = ccxt.SafeMapTyped(responseOjb, "data")
 	var statuses any = this.SafeList(data, "statuses", []any{})
 
 	ch <- this.ParseOrders(statuses, nil)
@@ -222,8 +222,8 @@ func (this *Hyperliquid) editOrderWsBody(ch chan any, id any, symbol any, typeVa
 	response := (<-this.Watch(url, requestId, request, requestId))
 	ccxt.PanicOnError(response)
 	// response is the same as in this.editOrder
-	var responseObject any = this.SafeDict(response, "response", map[string]any{})
-	var dataObject any = this.SafeDict(responseObject, "data", map[string]any{})
+	var responseObject map[string]any = ccxt.SafeMapTyped(response, "response")
+	var dataObject map[string]any = ccxt.SafeMapTyped(responseObject, "data")
 	var statuses any = this.SafeList(dataObject, "statuses", []any{})
 	var first any = this.SafeDict(statuses, 0, map[string]any{})
 	var parsedOrder any = this.ParseOrder(first, market)
@@ -270,8 +270,8 @@ func (this *Hyperliquid) cancelOrdersWsBody(ch chan any, ids any, optionalArgs .
 
 	response := (<-this.Watch(url, requestId, wsRequest, requestId))
 	ccxt.PanicOnError(response)
-	var responseObj any = this.SafeDict(response, "response", map[string]any{})
-	var data any = this.SafeDict(responseObj, "data", map[string]any{})
+	var responseObj map[string]any = ccxt.SafeMapTyped(response, "response")
+	var data map[string]any = ccxt.SafeMapTyped(responseObj, "data")
 	var statuses any = this.SafeList(data, "statuses", []any{})
 	var orders any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(statuses); i++ {
@@ -446,7 +446,7 @@ func (this *Hyperliquid) HandleOrderBook(client any, message any) {
 	//         }
 	//     }
 	//
-	var entry any = this.SafeDict(message, "data", map[string]any{})
+	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market any = this.Market(marketId)
@@ -806,7 +806,7 @@ func (this *Hyperliquid) HandleWsTickers(client any, message any) any {
 	// }
 	//
 	// handle hip3 mids
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var mids any = this.SafeDict(data, "mids", map[string]any{})
 	if !ccxt.IsEqual(mids, nil) {
 		var keys []string = ccxt.ObjectKeys(mids)
@@ -852,7 +852,7 @@ func (this *Hyperliquid) HandleActiveAssetCtx(client any, message any) any {
 	// the spot variant arrives on the activeSpotAssetCtx channel and carries
 	// "circulatingSupply" instead of the swap-only fields
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var coin *string = this.SafeString(data, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market any = this.SafeMarket(marketId)
@@ -898,7 +898,7 @@ func (this *Hyperliquid) HandleMyTrades(client any, message any) {
 	//         }
 	//     }
 	//
-	var entry any = this.SafeDict(message, "data", map[string]any{})
+	var entry map[string]any = ccxt.SafeMapTyped(message, "data")
 	if ccxt.IsEqual(this.MyTrades, nil) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -1055,7 +1055,7 @@ func (this *Hyperliquid) HandleTrades(client any, message any) {
 	if entryLength == 0 {
 		return
 	}
-	var first any = this.SafeDict(entry, 0, map[string]any{})
+	var first map[string]any = ccxt.SafeMapTyped(entry, 0)
 	var coin *string = this.SafeString(first, "coin")
 	var marketId any = this.CoinToMarketId(coin)
 	var market any = this.Market(marketId)
@@ -1309,9 +1309,9 @@ func (this *Hyperliquid) HandleWsPost(client any, message any) {
 	//                  payload: { ... }
 	//         }
 	//    }
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var id *string = this.SafeString(data, "id")
-	var response any = this.SafeDict(data, "response")
+	var response map[string]any = ccxt.SafeMapTyped(data, "response")
 	var payload any = this.SafeDict(response, "payload")
 	client.(ccxt.ClientInterface).Resolve(payload, id)
 }
@@ -1514,7 +1514,7 @@ func (this *Hyperliquid) HandleBalance(client any, message any) {
 	var timestamp *int64 = nil
 	var data any = this.SafeValue(message, "data", []any{})
 	if ccxt.IsEqual(topic, "spotState") {
-		var spotState any = this.SafeDict(data, "spotState")
+		var spotState map[string]any = ccxt.SafeMapTyped(data, "spotState")
 		rawBalances = this.SafeList(spotState, "balances", []any{})
 		account = "spot"
 		info = rawBalances
@@ -1576,7 +1576,7 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	var code any = nil
 	if currencyId == nil {
 		code = "USDC"
-		var marginSummary any = this.SafeDict(balance, "marginSummary", map[string]any{})
+		var marginSummary map[string]any = ccxt.SafeMapTyped(balance, "marginSummary")
 		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "withdrawable"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(marginSummary, "totalMarginUsed"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(marginSummary, "accountValue"))
@@ -1684,8 +1684,8 @@ func (this *Hyperliquid) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var data any = this.SafeDict(message, "data", map[string]any{})
-	var clearinghouseState any = this.SafeDict(data, "clearinghouseState", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+	var clearinghouseState map[string]any = ccxt.SafeMapTyped(data, "clearinghouseState")
 	var newPositions any = []any{}
 	var rawPositions any = this.SafeList(clearinghouseState, "assetPositions", []any{})
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {
@@ -1977,12 +1977,12 @@ func (this *Hyperliquid) HandleErrorMessage(client any, message any) any {
 		client.(ccxt.ClientInterface).Reject(error)
 		return true
 	}
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
 		id = this.SafeString(data, "id")
 	}
-	var response any = this.SafeDict(data, "response", map[string]any{})
+	var response map[string]any = ccxt.SafeMapTyped(data, "response")
 	var payload any = this.SafeDict(response, "payload", map[string]any{})
 	var status *string = this.SafeString(payload, "status")
 	if (status != nil) && (status == nil || *status != "ok") {
@@ -2170,7 +2170,7 @@ func (this *Hyperliquid) HandleSubscriptionResponse(client any, message any) {
 	//      }
 	//  }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var method *string = this.SafeString(data, "method")
 	if method != nil && *method == "unsubscribe" {
 		var subscription any = this.SafeDict(data, "subscription", map[string]any{})

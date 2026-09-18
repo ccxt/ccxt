@@ -1307,8 +1307,8 @@ func (this *Krakenfutures) fetchTradesBody(ch chan any, symbol any, optionalArgs
 		for i := 0; i < length; i++ {
 			var index any = Subtract(Subtract(length, 1), i)
 			var element any = GetValue(elements, index)
-			var event any = this.SafeDict(element, "event", map[string]any{})
-			var executionContainer any = this.SafeDict(event, "Execution", map[string]any{})
+			var event map[string]any = SafeMapTyped(element, "event")
+			var executionContainer map[string]any = SafeMapTyped(event, "Execution")
 			var rawTrade any = this.SafeDict(executionContainer, "execution", map[string]any{})
 			AppendToArray(&rawTrades, rawTrade)
 		}
@@ -2017,11 +2017,11 @@ func (this *Krakenfutures) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 	//        serverTime: '2024-06-06T01:12:44.814Z'
 	//    }
 	//
-	var cancelStatus any = this.SafeDict(response, "cancelStatus")
+	var cancelStatus map[string]any = SafeMapTyped(response, "cancelStatus")
 	var orderEvents any = this.SafeList(cancelStatus, "orderEvents", []any{})
 	var orders any = []any{}
 	for i := 0; i < GetArrayLength(orderEvents); i++ {
-		var orderEvent any = this.SafeDict(orderEvents, 0)
+		var orderEvent map[string]any = SafeMapTyped(orderEvents, 0)
 		var order any = this.SafeDict(orderEvent, "order", map[string]any{})
 		AppendToArray(&orders, order)
 	}
@@ -2273,7 +2273,7 @@ func (this *Krakenfutures) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	var closedOrders any = []any{}
 	for i := 0; i < GetArrayLength(allOrders); i++ {
 		var order any = GetValue(allOrders, i)
-		var event any = this.SafeDict(order, "event", map[string]any{})
+		var event map[string]any = SafeMapTyped(order, "event")
 		var orderPlaced any = this.SafeDict2(event, "OrderPlaced", "OrderTriggerActivated")
 		var orderUpdated any = this.SafeDict(event, "OrderUpdated")
 		if !IsEqual(orderPlaced, nil) {
@@ -2766,7 +2766,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 		//
 		var datetime *string = this.SafeString(orderDictFromFetchOrder, "timestamp")
 		var innerStatus *string = this.SafeString(order, "status")
-		var fetchOrderPriceTriggerOptions any = this.SafeDict(orderDictFromFetchOrder, "priceTriggerOptions", map[string]any{})
+		var fetchOrderPriceTriggerOptions map[string]any = SafeMapTyped(orderDictFromFetchOrder, "priceTriggerOptions")
 		var fetchOrderTriggerPrice *string = this.SafeString(fetchOrderPriceTriggerOptions, "triggerPrice")
 		var unifiedSymbol *string = this.SafeSymbol(this.SafeString(orderDictFromFetchOrder, "symbol"), market)
 		return this.SafeOrder(map[string]any{
@@ -2926,7 +2926,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 		timeInForce = "ioc"
 	}
 	var ts *int64 = this.SafeInteger(details, "timestamp", timestamp)
-	var priceTriggerOptions any = this.SafeDict(details, "priceTriggerOptions", map[string]any{})
+	var priceTriggerOptions map[string]any = SafeMapTyped(details, "priceTriggerOptions")
 	var triggerPrice *string = this.SafeString2(details, "triggerPrice", "stopPrice")
 	if triggerPrice == nil {
 		triggerPrice = this.SafeString(priceTriggerOptions, "triggerPrice")

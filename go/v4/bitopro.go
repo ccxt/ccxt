@@ -935,7 +935,7 @@ func (this *Bitopro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.PublicGetProvisioningLimitationsAndFees(params))
 	PanicOnError(response)
-	var tradingFeeRate any = this.SafeDict(response, "tradingFeeRate", map[string]any{})
+	var tradingFeeRate map[string]any = SafeMapTyped(response, "tradingFeeRate")
 	var first any = this.SafeValue(tradingFeeRate, 0)
 	//
 	//     {
@@ -2230,7 +2230,7 @@ func (this *Bitopro) withdrawBody(ch chan any, code any, amount any, address any
 		"address":  address,
 	}
 	if InOp(params, "network") {
-		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+		var networks map[string]any = SafeMapTyped(this.Options, "networks")
 		var requestedNetwork *string = this.SafeStringUpper(params, "network")
 		params = this.Omit(params, []any{"network"})
 		var networkId any = func() any {

@@ -822,7 +822,7 @@ func (this *Grvt) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 	retRes6288 := (<-this.SignInAsync())
 	ccxt.PanicOnError(retRes6288)
-	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
+	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
 	var authenticated *string = this.SafeString(wsOptions, "token")
 	if authenticated == nil {
 		var accountId *string = this.SafeString(this.Options, "AuthAccountId")
@@ -1226,7 +1226,7 @@ func (this *Grvt) HandleErrorMessage(client any, response any) any {
 	//        "method": "subscribe"
 	//    }
 	//
-	var error any = this.SafeDict(response, "error")
+	var error map[string]any = ccxt.SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
 		var body any = this.Json(response)

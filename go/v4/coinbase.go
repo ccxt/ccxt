@@ -828,7 +828,7 @@ func (this *Coinbase) fetchAccountsV2Body(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "next_starting_after")
 	var accounts any = this.SafeList(response, "data", []any{})
 	var length int = GetArrayLength(accounts)
@@ -1012,7 +1012,7 @@ func (this *Coinbase) ParseAccount(account any) any {
 	//
 	var active *bool = this.SafeBool(account, "active")
 	var currencyIdV3 *string = this.SafeString(account, "currency")
-	var currency any = this.SafeDict(account, "currency", map[string]any{})
+	var currency map[string]any = SafeMapTyped(account, "currency")
 	var currencyId *string = this.SafeString(currency, "code", currencyIdV3)
 	var typeV3 *string = this.SafeString(account, "name")
 	var typeV2 *string = this.SafeString(account, "type")
@@ -1108,7 +1108,7 @@ func (this *Coinbase) createDepositAddressBody(ch chan any, code any, optionalAr
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var tag *string = this.SafeString(data, "destination_tag")
 	var address *string = this.SafeString(data, "address")
 
@@ -1557,7 +1557,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 	var transactionType *string = this.SafeString(transaction, "type")
 	var amountAndCurrencyObject any = nil
 	var feeObject any = nil
-	var network any = this.SafeDict(transaction, "network", map[string]any{})
+	var network map[string]any = SafeMapTyped(transaction, "network")
 	if transactionType != nil && *transactionType == "send" {
 		amountAndCurrencyObject = this.SafeDict(network, "transaction_amount")
 		feeObject = this.SafeDict(network, "transaction_fee", map[string]any{})
@@ -1593,7 +1593,7 @@ func (this *Coinbase) ParseTransaction(transaction any, optionalArgs ...any) any
 			typeVar = "withdrawal"
 		}
 	}
-	var toObject any = this.SafeDict(transaction, "to")
+	var toObject map[string]any = SafeMapTyped(transaction, "to")
 	var addressTo *string = this.SafeString(toObject, "address")
 	var networkId *string = this.SafeString(network, "network_name")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -1686,10 +1686,10 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = nil
-	var totalObject any = this.SafeDict(trade, "total", map[string]any{})
-	var amountObject any = this.SafeDict(trade, "amount", map[string]any{})
-	var subtotalObject any = this.SafeDict(trade, "subtotal", map[string]any{})
-	var feeObject any = this.SafeDict(trade, "fee", map[string]any{})
+	var totalObject map[string]any = SafeMapTyped(trade, "total")
+	var amountObject map[string]any = SafeMapTyped(trade, "amount")
+	var subtotalObject map[string]any = SafeMapTyped(trade, "subtotal")
+	var feeObject map[string]any = SafeMapTyped(trade, "fee")
 	var marketId *string = this.SafeString(trade, "product_id")
 	market = this.SafeMarket(marketId, market, "-")
 	if !IsEqual(market, nil) {
@@ -1819,11 +1819,11 @@ func (this *Coinbase) fetchMarketsV2Body(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.FetchCurrenciesFromCacheAsync(params))
 	PanicOnError(response)
-	var currencies any = this.SafeDict(response, "currencies", map[string]any{})
-	var exchangeRates any = this.SafeDict(response, "exchangeRates", map[string]any{})
+	var currencies map[string]any = SafeMapTyped(response, "currencies")
+	var exchangeRates map[string]any = SafeMapTyped(response, "exchangeRates")
 	var data any = this.SafeList(currencies, "data", []any{})
 	var dataById map[string]any = this.IndexBy(data, "id")
-	var rates any = this.SafeDict(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates", map[string]any{})
+	var rates map[string]any = SafeMapTyped(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates")
 	var baseIds []string = ObjectKeys(rates)
 	var result any = []any{}
 	for i := 0; i < len(baseIds); i++ {
@@ -2041,12 +2041,12 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan any, optionalArgs ...any) any {
 		}(this)
 
 	}
-	var spot any = this.SafeDict(promises, 0, map[string]any{})
-	var fees any = this.SafeDict(promises, 1, map[string]any{})
-	var expiringFutures any = this.SafeDict(contractPromises, 0, map[string]any{})
-	var perpetualFutures any = this.SafeDict(contractPromises, 1, map[string]any{})
-	var expiringFees any = this.SafeDict(contractPromises, 0, map[string]any{})
-	var perpetualFees any = this.SafeDict(contractPromises, 1, map[string]any{})
+	var spot map[string]any = SafeMapTyped(promises, 0)
+	var fees map[string]any = SafeMapTyped(promises, 1)
+	var expiringFutures map[string]any = SafeMapTyped(contractPromises, 0)
+	var perpetualFutures map[string]any = SafeMapTyped(contractPromises, 1)
+	var expiringFees map[string]any = SafeMapTyped(contractPromises, 0)
+	var perpetualFees map[string]any = SafeMapTyped(contractPromises, 1)
 	//
 	//     {
 	//         "total_volume": 0,
@@ -2324,7 +2324,7 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier any) any {
 	//        }
 	//
 	var id *string = this.SafeString(market, "product_id")
-	var futureProductDetails any = this.SafeDict(market, "future_product_details", map[string]any{})
+	var futureProductDetails map[string]any = SafeMapTyped(market, "future_product_details")
 	var contractExpiryType *string = this.SafeString(futureProductDetails, "contract_expiry_type")
 	var contractSize *float64 = this.SafeNumber(futureProductDetails, "contract_size")
 	var contractExpire *string = this.SafeString(futureProductDetails, "contract_expiry")
@@ -2430,7 +2430,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 
 		promisesResult := (<-promiseAll(promises))
 		PanicOnError(promisesResult)
-		var fiatResponse any = this.SafeDict(promisesResult, 0, map[string]any{})
+		var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
 		//
 		//    [
 		//        "data": {
@@ -2441,7 +2441,7 @@ func (this *Coinbase) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs ...
 		//        ...
 		//    ]
 		//
-		var cryptoResponse any = this.SafeDict(promisesResult, 1, map[string]any{})
+		var cryptoResponse map[string]any = SafeMapTyped(promisesResult, 1)
 		//
 		//    {
 		//        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
@@ -2493,7 +2493,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 
 	promisesResult := (<-promiseAll(promises))
 	PanicOnError(promisesResult)
-	var fiatResponse any = this.SafeDict(promisesResult, 0, map[string]any{})
+	var fiatResponse map[string]any = SafeMapTyped(promisesResult, 0)
 	//
 	//    [
 	//        "data": [
@@ -2504,7 +2504,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//            },
 	//        ...
 	//
-	var cryptoResponse any = this.SafeDict(promisesResult, 1, map[string]any{})
+	var cryptoResponse map[string]any = SafeMapTyped(promisesResult, 1)
 	//
 	//     [
 	//        "data": [
@@ -2520,11 +2520,11 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//           },
 	//          ...
 	//
-	var ratesResponse any = this.SafeDict(promisesResult, 2, map[string]any{})
+	var ratesResponse map[string]any = SafeMapTyped(promisesResult, 2)
 	var fiatData any = this.SafeList(fiatResponse, "data", []any{})
 	var cryptoData any = this.SafeList(cryptoResponse, "data", []any{})
-	var ratesData any = this.SafeDict(ratesResponse, "data", map[string]any{})
-	var rates any = this.SafeDict(ratesData, "rates", map[string]any{})
+	var ratesData map[string]any = SafeMapTyped(ratesResponse, "data")
+	var rates map[string]any = SafeMapTyped(ratesData, "rates")
 	var ratesIds []string = ObjectKeys(rates)
 	var currencies []any = this.ArrayConcat(fiatData, cryptoData)
 	var result map[string]any = map[string]any{}
@@ -2676,8 +2676,8 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	var rates any = this.SafeDict(data, "rates", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var rates map[string]any = SafeMapTyped(data, "rates")
 	var quoteId *string = this.SafeString(data, "currency")
 	var result map[string]any = map[string]any{}
 	var baseIds []string = ObjectKeys(rates)
@@ -2687,7 +2687,7 @@ func (this *Coinbase) fetchTickersV2Body(ch chan any, optionalArgs ...any) any {
 		var marketId any = Add(baseId+delimiter, quoteId)
 		var market any = this.SafeMarket(marketId, nil, delimiter)
 		var symbol any = GetValue(market, "symbol")
-		AddElementToObject(result, symbol, this.ParseTicker(GetValue(rates, baseId), market))
+		AddElementToObject(result, symbol, this.ParseTicker(rates[baseId], market))
 	}
 
 	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
@@ -2865,9 +2865,9 @@ func (this *Coinbase) fetchTickerV2Body(ch chan any, symbol any, optionalArgs ..
 	//
 	//     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
 	//
-	var spotData any = this.SafeDict(spot, "data", map[string]any{})
-	var askData any = this.SafeDict(ask, "data", map[string]any{})
-	var bidData any = this.SafeDict(bid, "data", map[string]any{})
+	var spotData map[string]any = SafeMapTyped(spot, "data")
+	var askData map[string]any = SafeMapTyped(ask, "data")
+	var bidData map[string]any = SafeMapTyped(bid, "data")
 	var bidAskLast map[string]any = map[string]any{
 		"bid":   this.SafeNumber(bidData, "amount"),
 		"ask":   this.SafeNumber(askData, "amount"),
@@ -3038,8 +3038,8 @@ func (this *Coinbase) ParseTicker(ticker any, optionalArgs ...any) any {
 	if InOp(ticker, "bids") {
 		var bids any = this.SafeList(ticker, "bids", []any{})
 		var asks any = this.SafeList(ticker, "asks", []any{})
-		var firstBid any = this.SafeDict(bids, 0, map[string]any{})
-		var firstAsk any = this.SafeDict(asks, 0, map[string]any{})
+		var firstBid map[string]any = SafeMapTyped(bids, 0)
+		var firstAsk map[string]any = SafeMapTyped(asks, 0)
 		bid = this.SafeNumber(firstBid, "price")
 		bidVolume = this.SafeNumber(firstBid, "size")
 		ask = this.SafeNumber(firstAsk, "price")
@@ -3330,7 +3330,7 @@ func (this *Coinbase) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	}
 	var lastIndex int64 = Subtract(length, 1).(int64)
 	var last any = this.SafeDict(ledger, lastIndex)
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "next_starting_after")
 	if (cursor != nil) && (cursor == nil || *cursor != "") {
 		AddElementToObject(GetValue(last, "info"), "next_starting_after", cursor)
@@ -3606,7 +3606,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var amountInfo any = this.SafeDict(item, "amount", map[string]any{})
+	var amountInfo map[string]any = SafeMapTyped(item, "amount")
 	var amount *string = this.SafeString(amountInfo, "amount")
 	var direction string
 	if Precise.StringLt(amount, "0") {
@@ -3628,7 +3628,7 @@ func (this *Coinbase) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//     let txid = undefined;
 	//
 	var fee any = nil
-	var networkInfo any = this.SafeDict(item, "network", map[string]any{})
+	var networkInfo map[string]any = SafeMapTyped(item, "network")
 	// txid = network['hash']; // txid does not belong to the unified ledger structure
 	var feeInfo any = this.SafeDict(networkInfo, "transaction_fee")
 	if !IsEqual(feeInfo, nil) {
@@ -4155,13 +4155,13 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.SafeMarket(symbol, market)
 	}
-	var orderConfiguration any = this.SafeDict(order, "order_configuration", map[string]any{})
+	var orderConfiguration map[string]any = SafeMapTyped(order, "order_configuration")
 	var limitGTC any = this.SafeDict(orderConfiguration, "limit_limit_gtc")
 	var limitGTD any = this.SafeDict(orderConfiguration, "limit_limit_gtd")
 	var limitIOC any = this.SafeDict(orderConfiguration, "sor_limit_ioc")
 	var stopLimitGTC any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtc")
 	var stopLimitGTD any = this.SafeDict(orderConfiguration, "stop_limit_stop_limit_gtd")
-	var marketIOC any = this.SafeDict(orderConfiguration, "market_market_ioc")
+	var marketIOC map[string]any = SafeMapTyped(orderConfiguration, "market_market_ioc")
 	var isLimit bool = ((!IsEqual(limitGTC, nil)) || (!IsEqual(limitGTD, nil)) || (!IsEqual(limitIOC, nil)))
 	var isStop bool = ((!IsEqual(stopLimitGTC, nil)) || (!IsEqual(stopLimitGTD, nil)))
 	var price any = nil
@@ -5610,7 +5610,7 @@ func (this *Coinbase) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	} else {
 		currencyId = DerefScalar(this.SafeString(depositAddress, "currency"))
 	}
-	var addressInfo any = this.SafeDict(depositAddress, "address_info")
+	var addressInfo map[string]any = SafeMapTyped(depositAddress, "address_info")
 	return map[string]any{
 		"info":     depositAddress,
 		"currency": this.SafeCurrencyCode(currencyId, currency),
@@ -6073,9 +6073,9 @@ func (this *Coinbase) ParseConversion(conversion any, optionalArgs ...any) any {
 	var fromCode *string = this.SafeCurrencyCode(fromCoin, fromCurrency)
 	var to *string = this.SafeString(conversion, "target_currency")
 	var toCode *string = this.SafeCurrencyCode(to, toCurrency)
-	var fromAmountStructure any = this.SafeDict(conversion, "user_entered_amount")
-	var feeStructure any = this.SafeDict(conversion, "total_fee")
-	var feeAmountStructure any = this.SafeDict(feeStructure, "amount")
+	var fromAmountStructure map[string]any = SafeMapTyped(conversion, "user_entered_amount")
+	var feeStructure map[string]any = SafeMapTyped(conversion, "total_fee")
+	var feeAmountStructure map[string]any = SafeMapTyped(feeStructure, "amount")
 	return map[string]any{
 		"info":         conversion,
 		"timestamp":    nil,
@@ -6439,7 +6439,7 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 			return "isolated"
 		}()
 	}
-	var notionalObject any = this.SafeDict(position, "position_notional", map[string]any{})
+	var notionalObject map[string]any = SafeMapTyped(position, "position_notional")
 	var positionSide *string = this.SafeString(position, "position_side")
 	var side any = func() any {
 		if positionSide != nil && *positionSide == "POSITION_SIDE_LONG" {
@@ -6447,11 +6447,11 @@ func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) any {
 		}
 		return "short"
 	}()
-	var unrealizedPNLObject any = this.SafeDict(position, "unrealized_pnl", map[string]any{})
-	var liquidationPriceObject any = this.SafeDict(position, "liquidation_price", map[string]any{})
+	var unrealizedPNLObject map[string]any = SafeMapTyped(position, "unrealized_pnl")
+	var liquidationPriceObject map[string]any = SafeMapTyped(position, "liquidation_price")
 	var liquidationPrice *float64 = this.SafeNumber(liquidationPriceObject, "value")
-	var vwapObject any = this.SafeDict(position, "vwap", map[string]any{})
-	var summaryObject any = this.SafeDict(position, "portfolio_summary", map[string]any{})
+	var vwapObject map[string]any = SafeMapTyped(position, "vwap")
+	var summaryObject map[string]any = SafeMapTyped(position, "portfolio_summary")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "product_id"),
@@ -6548,7 +6548,7 @@ func (this *Coinbase) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//     has_promo_fee: false
 	// }
 	//
-	var data any = this.SafeDict(response, "fee_tier", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "fee_tier")
 	var taker_fee *float64 = this.SafeNumber(data, "taker_fee_rate")
 	var maker_fee *float64 = this.SafeNumber(data, "maker_fee_rate")
 	var result map[string]any = map[string]any{}
@@ -6607,7 +6607,7 @@ func (this *Coinbase) fetchPortfolioDetailsBody(ch chan any, portfolioUuid any, 
 }
 func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 	var breakdown any = GetValue(portfolioData, "breakdown")
-	var portfolioInfo any = this.SafeDict(breakdown, "portfolio", map[string]any{})
+	var portfolioInfo map[string]any = SafeMapTyped(breakdown, "portfolio")
 	var portfolioName *string = this.SafeString(portfolioInfo, "name", "Unknown")
 	var portfolioUuid *string = this.SafeString(portfolioInfo, "uuid", "")
 	var spotPositions any = this.SafeList(breakdown, "spot_positions", []any{})
@@ -6620,9 +6620,9 @@ func (this *Coinbase) ParsePortfolioDetails(portfolioData any) any {
 		var totalBalanceFiatStr *string = this.SafeString(position, "total_balance_fiat", "0")
 		var totalBalanceFiat any = this.ParseNumber(totalBalanceFiatStr)
 		var holdAmount any = Subtract(totalBalanceFiat, availableBalance)
-		var costBasisDict any = this.SafeDict(position, "cost_basis", map[string]any{})
+		var costBasisDict map[string]any = SafeMapTyped(position, "cost_basis")
 		var costBasisStr *string = this.SafeString(costBasisDict, "value", "0")
-		var averageEntryPriceDict any = this.SafeDict(position, "average_entry_price", map[string]any{})
+		var averageEntryPriceDict map[string]any = SafeMapTyped(position, "average_entry_price")
 		var averageEntryPriceStr *string = this.SafeString(averageEntryPriceDict, "value", "0")
 		var positionData map[string]any = map[string]any{
 			"currency":          currencyCode,

@@ -2272,7 +2272,7 @@ func (this *Bybit) Nonce() any {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
 }
 func (this *Bybit) AddPaginationCursorToResult(response any) any {
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeListN(result, []any{"list", "rows", "data", "dataList"}, []any{})
 	var paginationCursor *string = this.SafeString2(result, "nextPageCursor", "cursor")
 	var dataLength int = GetArrayLength(data)
@@ -2380,8 +2380,8 @@ func (this *Bybit) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) any {
 		//         }
 		//     }
 		//
-		var result any = this.SafeDict(response, "result", map[string]any{})
-		var accountResult any = this.SafeDict(accountInfo, "result", map[string]any{})
+		var result map[string]any = SafeMapTyped(response, "result")
+		var accountResult map[string]any = SafeMapTyped(accountInfo, "result")
 		AddElementToObject(this.Options, "enableUnifiedMargin", IsEqual(this.SafeInteger(result, "unified"), 1))
 		AddElementToObject(this.Options, "enableUnifiedAccount", IsEqual(this.SafeInteger(result, "uta"), 1))
 		AddElementToObject(this.Options, "unifiedMarginStatus", this.SafeInteger(accountResult, "unifiedMarginStatus", 6)) // default to uta 2.0 pro if not found
@@ -2628,7 +2628,7 @@ func (this *Bybit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//         "time": 1751858399649
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var list any = this.SafeList(result, "list", []any{})
 	var status string = "ok"
 	var eta *int64 = nil
@@ -2756,7 +2756,7 @@ func (this *Bybit) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//         "time": 1672194582264
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseCurrencies(rows)
@@ -2958,7 +2958,7 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 	//         "time": 1672712468011
 	//     }
 	//
-	var responseResult any = this.SafeDict(response, "result", map[string]any{})
+	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var markets any = this.SafeList(responseResult, "list", []any{})
 	var result any = []any{}
 	var takerFee any = this.ParseNumber("0.001")
@@ -2973,8 +2973,8 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan any, params any) any {
 		var symbol any = Add(Add(base, "/"), quote)
 		var status *string = this.SafeString(market, "status")
 		var active bool = (status != nil && *status == "Trading")
-		var lotSizeFilter any = this.SafeDict(market, "lotSizeFilter")
-		var priceFilter any = this.SafeDict(market, "priceFilter")
+		var lotSizeFilter map[string]any = SafeMapTyped(market, "lotSizeFilter")
+		var priceFilter map[string]any = SafeMapTyped(market, "priceFilter")
 		var quotePrecision *float64 = this.SafeNumber(lotSizeFilter, "quotePrecision")
 		var marginTrading *string = this.SafeString(market, "marginTrading", "none")
 		var allowsMargin bool = (marginTrading == nil || *marginTrading != "none")
@@ -3063,7 +3063,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 		response = this.SafeDict(promises, 0, map[string]any{})
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var markets any = this.SafeList(data, "list", []any{})
 	var paginationCursor *string = this.SafeString(data, "nextPageCursor")
 	if paginationCursor != nil {
@@ -3079,7 +3079,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 				responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(params))
 				PanicOnError(responseInner)
 			}
-			var dataNew any = this.SafeDict(responseInner, "result", map[string]any{})
+			var dataNew map[string]any = SafeMapTyped(responseInner, "result")
 			var rawMarkets any = this.SafeList(dataNew, "list", []any{})
 			var rawMarketsLength int = GetArrayLength(rawMarkets)
 			if rawMarketsLength == 0 {
@@ -3133,7 +3133,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 	//         "time": 1672712495660
 	//     }
 	//
-	var preLaunchData any = this.SafeDict(preLaunchMarkets, "result", map[string]any{})
+	var preLaunchData map[string]any = SafeMapTyped(preLaunchMarkets, "result")
 	var preLaunchMarketsList any = this.SafeList(preLaunchData, "list", []any{})
 	markets = this.ArrayConcat(markets, preLaunchMarketsList)
 	var result any = []any{}
@@ -3169,9 +3169,9 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) any 
 			settle = DerefScalar(this.SafeCurrencyCode(settleId))
 		}
 		var symbol any = Add(Add(base, "/"), quote)
-		var lotSizeFilter any = this.SafeDict(market, "lotSizeFilter", map[string]any{})
-		var priceFilter any = this.SafeDict(market, "priceFilter", map[string]any{})
-		var leverage any = this.SafeDict(market, "leverageFilter", map[string]any{})
+		var lotSizeFilter map[string]any = SafeMapTyped(market, "lotSizeFilter")
+		var priceFilter map[string]any = SafeMapTyped(market, "priceFilter")
+		var leverage map[string]any = SafeMapTyped(market, "leverageFilter")
 		var status *string = this.SafeString(market, "status")
 		var swap bool = linearPerpetual || inversePerpetual
 		var future bool = inverseFutures || linearFutures
@@ -3284,7 +3284,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 		response = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var markets any = this.SafeList(data, "list", []any{})
 	var loadAllOptions any = this.HandleOption("fetchMarkets", "loadAllOptions")
 	if loadAllOptions == true {
@@ -3303,7 +3303,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 					responseInner = (<-this.PublicGetV5MarketInstrumentsInfo(this.Extend(request, params)))
 					PanicOnError(responseInner)
 				}
-				var dataNew any = this.SafeDict(responseInner, "result", map[string]any{})
+				var dataNew map[string]any = SafeMapTyped(responseInner, "result")
 				var rawMarkets any = this.SafeList(dataNew, "list", []any{})
 				var rawMarketsLength int = GetArrayLength(rawMarkets)
 				if rawMarketsLength == 0 {
@@ -3359,8 +3359,8 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan any, params any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var settle *string = this.SafeCurrencyCode(settleId)
-		var lotSizeFilter any = this.SafeDict(market, "lotSizeFilter", map[string]any{})
-		var priceFilter any = this.SafeDict(market, "priceFilter", map[string]any{})
+		var lotSizeFilter map[string]any = SafeMapTyped(market, "lotSizeFilter")
+		var priceFilter map[string]any = SafeMapTyped(market, "priceFilter")
 		var status *string = this.SafeString(market, "status")
 		var expiry *int64 = this.SafeInteger(market, "deliveryTime")
 		if id == nil {
@@ -3635,7 +3635,7 @@ func (this *Bybit) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "time": 1672376496682
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var tickers any = this.SafeList(result, "list", []any{})
 	var rawTicker any = this.SafeDict(tickers, 0, map[string]any{})
 
@@ -3761,7 +3761,7 @@ func (this *Bybit) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         "time": 1672376496682
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var tickerList any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseTickers(tickerList, parsedSymbols)
@@ -3978,7 +3978,7 @@ func (this *Bybit) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) 
 	//         "time": 1672025956592
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var ohlcvs any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
@@ -4020,7 +4020,7 @@ func (this *Bybit) ParseFundingRate(ticker any, optionalArgs ...any) any {
 	var fundingTimestamp *int64 = this.SafeInteger(ticker, "nextFundingTime")
 	var markPrice *float64 = this.SafeNumber(ticker, "markPrice")
 	var indexPrice *float64 = this.SafeNumber(ticker, "indexPrice")
-	var info any = this.SafeDict(this.SafeMarket(marketId, market, nil, "swap"), "info")
+	var info map[string]any = SafeMapTyped(this.SafeMarket(marketId, market, nil, "swap"), "info")
 	var fundingInterval *int64 = this.SafeInteger(info, "fundingInterval")
 	var intervalString any = nil
 	if fundingInterval != nil {
@@ -4137,7 +4137,7 @@ func (this *Bybit) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//         "time": 1663670053454
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var tickerList any = this.SafeList(data, "list", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	for i := 0; i < GetArrayLength(tickerList); i++ {
@@ -4254,7 +4254,7 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var rates any = []any{}
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 	var resultList any = this.SafeList(result, "list", []any{})
 	for i := 0; i < GetArrayLength(resultList); i++ {
 		var entry any = GetValue(resultList, i)
@@ -4615,7 +4615,7 @@ func (this *Bybit) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "time": 1672053054358
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -4822,7 +4822,7 @@ func (this *Bybit) ParseBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var responseResult any = this.SafeDict(response, "result", map[string]any{})
+	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var currencyList any = this.SafeListN(responseResult, []any{"loanAccountList", "list", "balance"})
 	if IsEqual(currencyList, nil) {
 		// usdc wallet
@@ -4955,7 +4955,7 @@ func (this *Bybit) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			typeVar = "contract"
 		}
 	}
-	var accountTypes any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var unifiedType *string = this.SafeStringUpper(accountTypes, typeVar, typeVar)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
@@ -5281,7 +5281,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) any {
 	var rawStatus *string = this.SafeString(order, "orderStatus")
 	var status *string = this.ParseOrderStatus(rawStatus)
 	var fee any = nil
-	var cumFeeDetail any = this.SafeDict(order, "cumFeeDetail", map[string]any{})
+	var cumFeeDetail map[string]any = SafeMapTyped(order, "cumFeeDetail")
 	var feeCoins []string = ObjectKeys(cumFeeDetail)
 	var feeCoinId *string = this.SafeString(feeCoins, 0)
 	if feeCoinId != nil {
@@ -5928,9 +5928,9 @@ func (this *Bybit) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 
 	response := (<-this.PrivatePostV5OrderCreateBatch(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
-	var retInfo any = this.SafeDict(response, "retExtInfo", map[string]any{})
+	var retInfo map[string]any = SafeMapTyped(response, "retExtInfo")
 	var codes any = this.SafeList(retInfo, "list", []any{})
 	// extend the error with the unsuccessful orders
 	for i := 0; i < GetArrayLength(codes); i++ {
@@ -6139,7 +6139,7 @@ func (this *Bybit) editOrderBody(ch chan any, id any, symbol any, typeVar any, s
 	//         "time": 1672217093461
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.SafeOrder(map[string]any{
 		"info":          response,
@@ -6206,9 +6206,9 @@ func (this *Bybit) editOrdersBody(ch chan any, orders any, optionalArgs ...any) 
 
 	response := (<-this.PrivatePostV5OrderAmendBatch(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
-	var retInfo any = this.SafeDict(response, "retExtInfo", map[string]any{})
+	var retInfo map[string]any = SafeMapTyped(response, "retExtInfo")
 	var codes any = this.SafeList(retInfo, "list", []any{})
 	// extend the error with the unsuccessful orders
 	for i := 0; i < GetArrayLength(codes); i++ {
@@ -6447,7 +6447,7 @@ func (this *Bybit) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	//         "time": "1709796158501"
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var row any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseOrders(row, market)
@@ -6617,7 +6617,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalA
 	//         "time": "1709796158501"
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var row any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseOrders(row)
@@ -6717,7 +6717,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "time": 1676962409398
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(result, "list")
 	if !IsArray(orders) {
 
@@ -6905,7 +6905,7 @@ func (this *Bybit) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any 
 	//         "time": 1672219526294
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var innerList any = this.SafeList(result, "list", []any{})
 	// the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
 	// see https://github.com/ccxt/ccxt/pull/29602
@@ -7821,7 +7821,7 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan any, code any, opt
 	//         "time": 1672192792860
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var chains any = this.SafeList(result, "chains", []any{})
 	var coin *string = this.SafeString(result, "coin")
 	var currencyFromResponse any = this.Currency(coin)
@@ -8661,7 +8661,7 @@ func (this *Bybit) fetchPositionBody(ch chan any, symbol any, optionalArgs ...an
 	//         "time": 1672280219169
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var positions any = this.SafeList2(result, "list", "dataList", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "time")
 	var first any = this.SafeDict(positions, 0, map[string]any{})
@@ -9414,7 +9414,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 		return "inverse"
 	}()
 	var category *string = this.SafeString(params, "category", subType)
-	var intervals any = this.SafeDict(this.Options, "intervals")
+	var intervals map[string]any = SafeMapTyped(this.Options, "intervals")
 	var interval *string = this.SafeString(intervals, timeframe) // 5min,15min,30min,1h,4h,1d
 	if interval == nil {
 		panic(BadRequest(Add(Add(this.Id+" fetchOpenInterestHistory() cannot use the ", timeframe), " timeframe")))
@@ -9471,7 +9471,7 @@ func (this *Bybit) fetchDerivativesOpenInterestHistoryBody(ch chan any, symbol a
 	//         "time": 1672053548579
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.AddPaginationCursorToResult(response)
 	var id *string = this.SafeString(result, "symbol")
 	var safeMarketObj any = this.SafeMarket(id, market, nil, "contract")
@@ -9511,7 +9511,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 		panic(BadRequest(this.Id + " fetchOpenInterest() supports contract markets only"))
 	}
 	var timeframe *string = this.SafeString(params, "interval", "1h")
-	var intervals any = this.SafeDict(this.Options, "intervals")
+	var intervals map[string]any = SafeMapTyped(this.Options, "intervals")
 	var interval *string = this.SafeString(intervals, timeframe) // 5min,15min,30min,1h,4h,1d
 	if interval == nil {
 		panic(BadRequest(Add(Add(this.Id+" fetchOpenInterest() cannot use the ", timeframe), " timeframe")))
@@ -9554,7 +9554,7 @@ func (this *Bybit) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs .
 	//         "time": 1672053548579
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var id *string = this.SafeString(result, "symbol")
 	var safeMarketObj any = this.SafeMarket(id, market, nil, "contract")
 	var data any = this.AddPaginationCursorToResult(response)
@@ -9723,9 +9723,9 @@ func (this *Bybit) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs 
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var vipCoinList any = this.SafeList(data, "vipCoinList", []any{})
-	var firstVip any = this.SafeDict(vipCoinList, 0, map[string]any{})
+	var firstVip map[string]any = SafeMapTyped(vipCoinList, 0)
 	var coins any = this.SafeList(firstVip, "list", []any{})
 	var coin any = this.SafeDict(coins, 0, map[string]any{})
 	AddElementToObject(coin, "timestamp", timestamp)
@@ -9840,7 +9840,7 @@ func (this *Bybit) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var rows any = this.SafeList(data, "loanAccountList", []any{})
 	var interest any = this.ParseBorrowInterests(rows)
 
@@ -9914,7 +9914,7 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArg
 	//       "time": 1721899048991
 	//   }
 	//
-	var data any = this.SafeDict(response, "result")
+	var data map[string]any = SafeMapTyped(response, "result")
 	var rows any = this.SafeList(data, "list", []any{})
 
 	ch <- this.ParseBorrowRateHistory(rows, code, since, limit)
@@ -9975,7 +9975,7 @@ func (this *Bybit) transferBody(ch chan any, code any, amount any, fromAccount a
 		PanicOnError(retRes775212)
 	}
 	var transferId *string = this.SafeString(params, "transferId", this.Uuid())
-	var accountTypes any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountTypes, toAccount, toAccount)
 	var currency any = this.Currency(code)
@@ -10273,7 +10273,7 @@ func (this *Bybit) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
 	var fromAccountId *string = this.SafeString(transfer, "fromAccountType")
 	var toAccountId *string = this.SafeString(transfer, "toAccountType")
-	var accountIds any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var accountIds map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var fromAccount *string = this.SafeString(accountIds, fromAccountId, fromAccountId)
 	var toAccount *string = this.SafeString(accountIds, toAccountId, toAccountId)
 	return map[string]any{
@@ -10338,7 +10338,7 @@ func (this *Bybit) fetchDerivativesMarketLeverageTiersBody(ch chan any, symbol a
 	//         "time": 1672054488010
 	//     }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 	var tiers any = this.SafeList(result, "list")
 
 	ch <- this.ParseMarketLeverageTiers(tiers, market)
@@ -10463,7 +10463,7 @@ func (this *Bybit) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 	//         "time": 1676360412576
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var fees any = this.SafeList(result, "list", []any{})
 	var first any = this.SafeDict(fees, 0, map[string]any{})
 
@@ -10660,7 +10660,7 @@ func (this *Bybit) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any
 	//         "time": 1672194582264
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseDepositWithdrawFees(rows, codes, "coin")
@@ -10740,7 +10740,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) 
 	//         "time": 1689043527231
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
@@ -10827,7 +10827,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan any, optionalArgs ...any
 	//         "time": 1689043527231
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
@@ -11049,7 +11049,7 @@ func (this *Bybit) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any)
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 	var greeks any = this.ParseGreeks(GetValue(data, 0), market)
 
@@ -11144,7 +11144,7 @@ func (this *Bybit) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
 	//         "time": 1699584008326
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseAllGreeks(data, symbols)
@@ -11416,7 +11416,7 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan any, optionalArgs ...an
 	response := (<-this.PublicGetV5MarketRiskLimit(this.Extend(request, params)))
 	PanicOnError(response)
 	var result any = this.AddPaginationCursorToResult(response)
-	var first any = this.SafeDict(result, 0)
+	var first map[string]any = SafeMapTyped(result, 0)
 	var total int = GetArrayLength(result)
 	var lastIndex int64 = Subtract(total, 1).(int64)
 	var last any = this.SafeDict(result, lastIndex, map[string]any{})
@@ -11766,7 +11766,7 @@ func (this *Bybit) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "time": 1711162003672
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var resultList any = this.SafeList(result, "list", []any{})
 	var chain any = this.SafeDict(resultList, 0, map[string]any{})
 
@@ -11846,7 +11846,7 @@ func (this *Bybit) fetchOptionChainBody(ch chan any, code any, optionalArgs ...a
 	//         "time": 1711162003672
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var resultList any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseOptionChain(resultList, nil, "symbol")
@@ -12008,7 +12008,7 @@ func (this *Bybit) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) a
 	//        time: '1712717286073'
 	//    }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 	var rawPositions any = this.SafeList(result, "list")
 	var rawPositionsList any = []any{}
 	if !IsEqual(rawPositions, nil) {
@@ -12098,7 +12098,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var coins any = this.SafeList(data, "coins", []any{})
 	for i := 0; i < GetArrayLength(coins); i++ {
 		var entry any = GetValue(coins, i)
@@ -12353,7 +12353,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...an
 	//         "time": 1727258257216
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var result any = this.SafeDict(data, "result", map[string]any{})
 	var fromCurrencyId *string = this.SafeString(result, "fromCoin")
 	var toCurrencyId *string = this.SafeString(result, "toCoin")
@@ -12437,7 +12437,7 @@ func (this *Bybit) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any
 	//         "time": 1727258761874
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var dataList any = this.SafeList(data, "list", []any{})
 
 	ch <- this.ParseConversions(dataList, code, "fromCoin", "toCoin", since, limit)
@@ -12583,7 +12583,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...a
 	//         "time": 1729147842516
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseLongShortRatioHistory(data, market)
@@ -12708,7 +12708,7 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) a
 	//         "time": 1767085741416
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var ranks any = this.SafeList(result, "list", []any{})
 
 	ch <- this.ParseADLRanks(ranks, symbols)

@@ -1230,9 +1230,9 @@ func (this *Aster) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	results := (<-promiseAll(promises))
 	PanicOnError(results)
-	var sapiResult any = this.SafeDict(results, 0, map[string]any{})
+	var sapiResult map[string]any = SafeMapTyped(results, 0)
 	var sapiRows any = this.SafeList(sapiResult, "symbols", []any{})
-	var fapiResult any = this.SafeDict(results, 1, map[string]any{})
+	var fapiResult map[string]any = SafeMapTyped(results, 1)
 	var fapiRows any = this.SafeList(fapiResult, "symbols", []any{})
 	//
 	// example:
@@ -1377,9 +1377,9 @@ func (this *Aster) ParseMarket(market any) any {
 	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var filterNotional any = this.SafeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL")
-	var filterPrice any = this.SafeDict(filtersByType, "PRICE_FILTER")
+	var filterPrice map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
 	var filterLotSize any = this.SafeDict(filtersByType, "LOT_SIZE")
-	var filterMarketLotSize any = this.SafeDict(filtersByType, "MARKET_LOT_SIZE", map[string]any{})
+	var filterMarketLotSize map[string]any = SafeMapTyped(filtersByType, "MARKET_LOT_SIZE")
 	var pricePrecision any = DerefScalar(this.SafeNumber(filterPrice, "tickSize"))
 	if IsEqual(pricePrecision, nil) {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
@@ -4598,7 +4598,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var symbol *string = this.SafeString(market, "symbol")
 	var isolatedMarginString *string = this.SafeString(position, "isolatedMargin")
-	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets", map[string]any{})
+	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
 	var notionalString *string = this.SafeString2(position, "notional", "notionalValue")
 	var notionalStringAbs *string = Precise.StringAbs(notionalString)
@@ -4641,7 +4641,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var linear bool = (InOp(position, "notional"))
 	if IsEqual(marginMode, "cross") {
 		// calculate collateral
-		var precision any = this.SafeDict(market, "precision", map[string]any{})
+		var precision map[string]any = SafeMapTyped(market, "precision")
 		var basePrecisionValue *string = this.SafeString(precision, "base")
 		var quotePrecisionValue *string = this.SafeString2(precision, "quote", "price")
 		var precisionIsUndefined bool = (basePrecisionValue == nil) && (quotePrecisionValue == nil)
@@ -4966,7 +4966,7 @@ func (this *Aster) ParseAccountPosition(position any, optionalArgs ...any) any {
 		contractsStringAbs = Precise.StringDiv(Precise.StringAdd(contractsString, "0.5"), "1", 0)
 	}
 	var contracts any = this.ParseNumber(contractsStringAbs)
-	var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets", map[string]any{})
+	var leverageBrackets map[string]any = SafeMapTyped(this.Options, "leverageBrackets")
 	var leverageBracket any = this.SafeList(leverageBrackets, symbol, []any{})
 	var maintenanceMarginPercentageString any = nil
 	for i := 0; i < GetArrayLength(leverageBracket); i++ {
@@ -5313,11 +5313,11 @@ func (this *Aster) withdrawBody(ch chan any, code any, amount any, address any, 
 	}
 	var chainId *int64 = this.SafeInteger(params, "chainId")
 	// TODO: check how ARBI signature would work
-	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper(params, "network")
 	network = this.SafeString(networks, network, network)
 	if (chainId == nil) && (network != nil) {
-		var chainIds any = this.SafeDict(this.Options, "networksToChainId", map[string]any{})
+		var chainIds map[string]any = SafeMapTyped(this.Options, "networksToChainId")
 		chainId = this.SafeInteger(chainIds, network)
 	}
 	if chainId == nil {
@@ -5693,7 +5693,7 @@ func (this *Aster) initializeClientBody(ch chan any, optionalArgs ...any) any {
 	var length int = GetArrayLength(approvedBuilders)
 	var found bool = false
 	for i := 0; i < length; i++ {
-		var builderInfo any = this.SafeDict(approvedBuilders, i, map[string]any{})
+		var builderInfo map[string]any = SafeMapTyped(approvedBuilders, i)
 		var builderAccountId *string = this.SafeString(builderInfo, "builderAddress")
 		if IsEqual(builderAccountId, this.SafeString(this.Options, "builder")) {
 			found = true

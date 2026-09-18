@@ -361,7 +361,7 @@ func (this *Hitbtc) HandleOrderBook(client any, message any) {
 		var item any = ccxt.GetValue(data, marketId)
 		var messageHash any = ccxt.Add("orderbooks::", symbol)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}
@@ -535,7 +535,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var result any = []any{}
 	var topic string = "tickers"
@@ -543,7 +543,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var ticker any = this.ParseWsTicker(ccxt.GetValue(data, marketId), market)
+		var ticker any = this.ParseWsTicker(data[marketId], market)
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AppendToArray(&result, ticker)
 		var messageHash any = ccxt.Add(topic+"::", symbol)
@@ -683,7 +683,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var result any = []any{}
 	var topic string = "bidask"
@@ -691,7 +691,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message any) {
 		var marketId string = ccxt.GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var ticker any = this.ParseWsBidAsk(ccxt.GetValue(data, marketId), market)
+		var ticker any = this.ParseWsBidAsk(data[marketId], market)
 		ccxt.AddElementToObject(this.Bidsasks, symbol, ticker)
 		ccxt.AppendToArray(&result, ticker)
 		var messageHash any = ccxt.Add(topic+"::", symbol)

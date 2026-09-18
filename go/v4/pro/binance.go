@@ -3635,7 +3635,7 @@ func (this *Binance) HandleUserDataStreamSubscribe(client any, message any) {
 	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
 	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
 	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
-	var result any = this.SafeDict(message, "result", map[string]any{})
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var subscriptionId *int64 = this.SafeInteger(result, "subscriptionId")
 	if subscriptionId == nil {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), accountType)
@@ -4119,7 +4119,7 @@ func (this *Binance) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) an
 	}
 	for i := 0; i < len(clients); i++ {
 		var client any = ccxt.GetValue(clients, i)
-		var clientSubscriptions any = this.SafeDict(client, "subscriptions", map[string]any{})
+		var clientSubscriptions map[string]any = ccxt.SafeMapTyped(client, "subscriptions")
 		var subscriptionKeys []string = ccxt.ObjectKeys(clientSubscriptions)
 		for j := 0; j < len(subscriptionKeys); j++ {
 			var subscribeType string = ccxt.GetValue(subscriptionKeys, j).(string)
@@ -4253,7 +4253,7 @@ func (this *Binance) HandleBalanceWs(client any, message any) {
 		rawBalance = this.SafeList(message, "result", []any{})
 	} else {
 		// account.status
-		var result any = this.SafeDict(message, "result", map[string]any{})
+		var result map[string]any = ccxt.SafeMapTyped(message, "result")
 		rawBalance = this.SafeList(result, "assets", []any{})
 	}
 	var parsedBalances any = this.ParseBalanceCustom(rawBalance)
@@ -5530,7 +5530,7 @@ func (this *Binance) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			"type": "stock",
 		})))
 		ccxt.PanicOnError(retRes432012)
-		var stockOptions any = this.SafeDict(this.Options, "stock", map[string]any{})
+		var stockOptions map[string]any = ccxt.SafeMapTyped(this.Options, "stock")
 		var stockListenKey *string = this.SafeString(stockOptions, "listenKey")
 		if stockListenKey == nil {
 			panic(ccxt.BadRequest(this.Id + " watchOrders() failed to initialize stock listenKey"))
@@ -6381,7 +6381,7 @@ func (this *Binance) HandlePositions(client any, message any) {
 		ccxt.AddElementToObject(this.Positions, accountType, ccxt.NewArrayCacheBySymbolBySide())
 	}
 	var cache any = ccxt.GetValue(this.Positions, accountType)
-	var data any = this.SafeDict(message, "a", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "a")
 	var rawPositions any = this.SafeList(data, "P", []any{})
 	var newPositions any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {

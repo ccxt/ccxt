@@ -698,7 +698,7 @@ func (this *Extended) ParseMarket(market any) any {
 	//       "createdAt": 1752829532673
 	//     }
 	//
-	var tradingConfig any = this.SafeDict(market, "tradingConfig", map[string]any{})
+	var tradingConfig map[string]any = SafeMapTyped(market, "tradingConfig")
 	var marketId *string = this.SafeString(market, "name")
 	var baseId any = DerefScalar(this.SafeString(market, "assetName", ""))
 	if GetIndexOf(baseId, "SPOT") >= 0 {
@@ -1308,7 +1308,7 @@ func (this *Extended) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -1408,7 +1408,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -1750,7 +1750,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -1949,7 +1949,7 @@ func (this *Extended) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = this.SafeDict(response, i, map[string]any{})
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "asset")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -2130,7 +2130,7 @@ func (this *Extended) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -2285,7 +2285,7 @@ func (this *Extended) fetchTransactionsBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -2521,7 +2521,7 @@ func (this *Extended) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.V1PrivateGetUserAssetOperations(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -2605,7 +2605,7 @@ func (this *Extended) transferBody(ch chan any, code any, amount any, fromAccoun
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var validSignature *bool = this.SafeBool(data, "validSignature")
 	var now int64 = this.Milliseconds()
 	var status any = "pending"
@@ -2682,7 +2682,7 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId any, optionalArgs ...a
 	if assetId == nil {
 		return this.SafeString(currency, "code")
 	}
-	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId", map[string]any{})
+	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	var currencyByNumericId any = this.SafeDict(currenciesByNumericId, assetId)
 	if !IsEqual(currencyByNumericId, nil) {
 		return this.SafeString(currencyByNumericId, "code")
@@ -3189,7 +3189,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -3360,7 +3360,7 @@ func (this *Extended) CreateWithdrawalSettlementData(address any, amountString a
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var positionId *string = this.SafeString2(params, "positionId", "l2Vault", this.SafeString(account, "l2Vault"))
 	var recipient *string = this.SafeString(params, "recipient", address)
-	var currencyInfo any = this.SafeDict(currency, "info", map[string]any{})
+	var currencyInfo map[string]any = SafeMapTyped(currency, "info")
 	var collateralId *string = this.SafeString(params, "collateralId", this.SafeString2(currencyInfo, "starkexId", "l1Id"))
 	var resolution *int64 = this.SafeInteger(params, "resolution", this.SafeValue2(currencyInfo, "starkexResolution", "l1Resolution"))
 	var starkKey *string = this.SafeString(account, "l2Key")
@@ -3394,7 +3394,7 @@ func (this *Extended) CreateTransferSettlementData(amountString any, currency an
 	var nonce *int64 = this.SafeInteger(params, "nonce", this.Nonce())
 	var fromVault *string = this.SafeString2(params, "fromVault", "senderPositionId", this.SafeString(account, "l2Vault"))
 	var fromL2Key *string = this.SafeString2(params, "fromL2Key", "senderPublicKey", this.SafeString(account, "l2Key"))
-	var currencyInfo any = this.SafeDict(currency, "info", map[string]any{})
+	var currencyInfo map[string]any = SafeMapTyped(currency, "info")
 	var collateralId *string = this.SafeString2(params, "assetId", "collateralId", this.SafeString2(currencyInfo, "starkexId", "l1Id"))
 	var resolution *int64 = this.SafeInteger(params, "resolution", this.SafeValue2(currencyInfo, "starkexResolution", "l1Resolution"))
 	if (fromVault == nil) || (fromL2Key == nil) || (collateralId == nil) || (resolution == nil) {
@@ -3493,8 +3493,8 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan any, symbol any, ty
 	PanicOnError(account)
 	var starkKey *string = this.SafeString(account, "l2Key")
 	var collateralPosition *string = this.SafeString(account, "l2Vault")
-	var info any = this.SafeDict(market, "info", map[string]any{})
-	var l2Config any = this.SafeDict(info, "l2Config", map[string]any{})
+	var info map[string]any = SafeMapTyped(market, "info")
+	var l2Config map[string]any = SafeMapTyped(info, "l2Config")
 	var syntheticId *string = this.SafeString(l2Config, "syntheticId")
 	var collateralId *string = this.SafeString(l2Config, "collateralId")
 	var syntheticResolution *int64 = this.SafeInteger(l2Config, "syntheticResolution")
@@ -3777,7 +3777,7 @@ func (this *Extended) editOrderBody(ch chan any, id any, symbol any, typeVar any
 			"id": id,
 		}))
 		PanicOnError(response)
-		var order any = this.SafeDict(response, "data", map[string]any{})
+		var order map[string]any = SafeMapTyped(response, "data")
 		if IsEqual(amount, nil) {
 			amount = DerefScalar(this.SafeNumber(order, "qty"))
 		}
@@ -4293,7 +4293,7 @@ func (this *Extended) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
+	var pagination map[string]any = SafeMapTyped(response, "pagination")
 	var cursor *string = this.SafeString(pagination, "cursor")
 	var result any = []any{}
 	var dataLength int = GetArrayLength(data)
@@ -4451,9 +4451,9 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) any {
 	var amount *string = this.SafeString(order, "qty")
 	var filled *string = this.SafeString(order, "filledQty")
 	var feeCost *string = this.SafeString(order, "payedFee")
-	var trigger any = this.SafeDict(order, "trigger", map[string]any{})
-	var takeProfit any = this.SafeDict(order, "takeProfit", map[string]any{})
-	var stopLoss any = this.SafeDict(order, "stopLoss", map[string]any{})
+	var trigger map[string]any = SafeMapTyped(order, "trigger")
+	var takeProfit map[string]any = SafeMapTyped(order, "takeProfit")
+	var stopLoss map[string]any = SafeMapTyped(order, "stopLoss")
 	var fee map[string]any = map[string]any{
 		"cost": feeCost,
 		"currency": func() any {
@@ -4569,7 +4569,7 @@ func (this *Extended) GetExtendedOrderMsgHash(settlement any) any {
 func (this *Extended) GetExtendedWithdrawalMsgHash(settlement any, starkKey any) any {
 	var withdrawalTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"Withdrawal\"(\"recipient\":\"felt\",\"position_id\":\"PositionId\",\"collateral_id\":\"AssetId\",\"amount\":\"u64\",\"expiration\":\"Timestamp\",\"salt\":\"felt\")\"PositionId\"(\"value\":\"u32\")\"AssetId\"(\"value\":\"felt\")\"Timestamp\"(\"seconds\":\"u64\")"))
 	var domainHash any = this.GetExtendedDomainHash()
-	var expiration any = this.SafeDict(settlement, "expiration", map[string]any{})
+	var expiration map[string]any = SafeMapTyped(settlement, "expiration")
 	var withdrawalHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{withdrawalTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "recipient", "0")), this.ConvertToBigInt(this.SafeString(settlement, "positionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "collateralId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(expiration, "seconds", "0")), this.ConvertToBigInt(this.SafeString(settlement, "salt", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, this.ConvertToBigInt(starkKey), withdrawalHash})
 }
@@ -4589,7 +4589,7 @@ func (this *Extended) HandleErrors(httpCode any, reason any, url any, method any
 	//
 	var status *string = this.SafeStringLower(response, "status")
 	if status != nil && *status == "error" {
-		var error any = this.SafeDict(response, "error")
+		var error map[string]any = SafeMapTyped(response, "error")
 		var errorCode *string = this.SafeString(error, "code")
 		var feedback any = Add(this.Id+" ", this.Json(response))
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, feedback)

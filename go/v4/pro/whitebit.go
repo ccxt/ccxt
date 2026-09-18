@@ -1039,7 +1039,7 @@ func (this *Whitebit) HandleBalance(client any, message any) {
 			var keys []string = ccxt.ObjectKeys(balanceDict)
 			for j := 0; j < len(keys); j++ {
 				var currencyId string = ccxt.GetValue(keys, j).(string)
-				var rawBalance any = this.SafeDict(balanceDict, currencyId, map[string]any{})
+				var rawBalance map[string]any = ccxt.SafeMapTyped(balanceDict, currencyId)
 				var code *string = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
 				ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))

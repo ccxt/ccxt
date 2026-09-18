@@ -494,7 +494,7 @@ func (this *Bydfi) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes an
 		var marketId *string = this.SafeString(symbolAndTimeframe, 0)
 		var market any = this.Market(marketId)
 		var tf *string = this.SafeString(symbolAndTimeframe, 1)
-		var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+		var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 		var interval *string = this.SafeString(timeframes, tf, tf)
 		ccxt.AppendToArray(&channels, ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@kline_"), interval))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), interval))
@@ -1092,7 +1092,7 @@ func (this *Bydfi) HandlePositions(client any, message any) {
 	//         "e": "ACCOUNT_UPDATE"
 	//     }
 	//
-	var data any = this.SafeDict(message, "a", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "a")
 	var positionsData any = this.SafeList(data, "p", []any{})
 	var rawPosition any = this.SafeDict(positionsData, 0, map[string]any{})
 	var marketId *string = this.SafeString(rawPosition, "s")
@@ -1292,7 +1292,7 @@ func (this *Bydfi) HandleBalance(client any, message any) {
 	//
 	var messageHash string = "balance"
 	if ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash) {
-		var data any = this.SafeDict(message, "a", map[string]any{})
+		var data map[string]any = ccxt.SafeMapTyped(message, "a")
 		var balances any = this.SafeList(data, "B", []any{})
 		var timestamp *int64 = this.SafeInteger(message, "T")
 		var result map[string]any = map[string]any{
@@ -1388,7 +1388,7 @@ func (this *Bydfi) HandleMessage(client any, message any) {
 		} else if event != nil && *event == "ORDER_TRADE_UPDATE" {
 			this.HandleOrder(client, message)
 		} else if event != nil && *event == "ACCOUNT_UPDATE" {
-			var account any = this.SafeDict(message, "a", map[string]any{})
+			var account map[string]any = ccxt.SafeMapTyped(message, "a")
 			var balances any = this.SafeList(account, "B", []any{})
 			var balancesLength int = ccxt.GetArrayLength(balances)
 			if balancesLength > 0 {

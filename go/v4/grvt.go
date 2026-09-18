@@ -887,7 +887,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 	var length int = GetArrayLength(approvedBuilder)
 	var found bool = false
 	for i := 0; i < length; i++ {
-		var builderInfo any = this.SafeDict(approvedBuilder, i, map[string]any{})
+		var builderInfo map[string]any = SafeMapTyped(approvedBuilder, i)
 		var builderAccountId *string = this.SafeString(builderInfo, "builder_account_id")
 		if IsEqual(builderAccountId, this.SafeString(this.Options, "builder")) {
 			found = true
@@ -933,7 +933,7 @@ func (this *Grvt) initializeClientBody(ch chan any, optionalArgs ...any) any {
 				//     }
 				// }
 				//
-				var authResult any = this.SafeDict(authResponse, "result")
+				var authResult map[string]any = SafeMapTyped(authResponse, "result")
 				var ack *bool = this.SafeBool(authResult, "ack")
 				if ack == nil || *ack != true {
 					panic(ExchangeError(Add("Builder authorization failed, ", this.Json(authResponse))))
@@ -2571,7 +2571,7 @@ func (this *Grvt) loadAccountInfosBody(ch chan any) any {
 
 	responses := (<-promiseAll(promises))
 	PanicOnError(responses)
-	var result1 any = this.SafeDict(GetValue(responses, 0), "result", map[string]any{})
+	var result1 map[string]any = SafeMapTyped(GetValue(responses, 0), "result")
 	var mainAccountId *string = this.SafeString(result1, "main_account_id")
 	AddElementToObject(this.Options, "userMainAccountId", mainAccountId)
 	if accountIsUndefined {
@@ -3945,8 +3945,8 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) any {
 	var filled any = nil
 	var avgPrice any = nil
 	var legs any = this.SafeList(order, "legs", []any{})
-	var metadata any = this.SafeDict(order, "metadata", map[string]any{})
-	var stateObj any = this.SafeDict(order, "state", map[string]any{})
+	var metadata map[string]any = SafeMapTyped(order, "metadata")
+	var stateObj map[string]any = SafeMapTyped(order, "state")
 	var filledAmounts any = this.SafeList(stateObj, "traded_size", []any{})
 	var avgPrices any = this.SafeList(stateObj, "avg_fill_price", []any{})
 	var primaryOrderIndex int = 0

@@ -159,7 +159,7 @@ func (this *Coinex) HandleTicker(client any, message any) {
 	//     }
 	//
 	var defaultType *string = this.SafeString(this.Options, "defaultType")
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var rawTickers any = this.SafeList(data, "state_list", []any{})
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawTickers); i++ {
@@ -356,7 +356,7 @@ func (this *Coinex) HandleBalance(client any, message any) {
 	if ccxt.IsEqual(this.Balance, nil) {
 		this.Balance = map[string]any{}
 	}
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var balances any = this.SafeList(data, "balance_list", []any{})
 	var firstEntry any = ccxt.GetValue(balances, 0)
 	var updated *int64 = this.SafeInteger(firstEntry, "updated_at")
@@ -601,7 +601,7 @@ func (this *Coinex) HandleTrades(client any, message any) {
 	//         "id": null
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var trades any = this.SafeList(data, "deal_list", []any{})
 	var marketId *string = this.SafeString(data, "market")
 	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), -1)
@@ -1075,7 +1075,7 @@ func (this *Coinex) HandleOrderBook(client any, message any) {
 		}
 		return "swap"
 	}()
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var depth any = this.SafeDict(data, "depth", map[string]any{})
 	var marketId *string = this.SafeString(data, "market")
 	var market any = this.SafeMarket(marketId, nil, nil, defaultType)
@@ -1310,7 +1310,7 @@ func (this *Coinex) HandleOrders(client any, message any) {
 	//         "id": null
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var order map[string]any = this.Extend(map[string]any{
 		"status": this.SafeString(data, "event"),
 	}, this.SafeDict2(data, "order", "stop", map[string]any{}))

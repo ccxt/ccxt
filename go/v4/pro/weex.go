@@ -1000,7 +1000,7 @@ func (this *Weex) HandleOHLCV(client any, message any) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
 	var data any = this.SafeList(message, "d", []any{})
-	var firstEntry any = this.SafeDict(data, 0, map[string]any{})
+	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe any = this.FindTimeframe(interval)
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
@@ -1245,7 +1245,7 @@ func (this *Weex) HandleOrderBook(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("orderbook::", symbol)
 	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+		var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 		var limit *int64 = this.SafeInteger(subscription, "limit")
 		if limit != nil {
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -2207,7 +2207,7 @@ func (this *Weex) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(ccxt.GetValue(this.Balance, accountType), "info", message)
 	var balanceUpdates any = this.SafeList(message, "d", []any{})
 	for i := 0; i < ccxt.GetArrayLength(balanceUpdates); i++ {
-		var entry any = this.SafeDict(balanceUpdates, i)
+		var entry map[string]any = ccxt.SafeMapTyped(balanceUpdates, i)
 		var currencyId *string = this.SafeString(entry, "coin")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()

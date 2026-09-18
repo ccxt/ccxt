@@ -979,7 +979,7 @@ func (this *Okx) HandleBidAsk(client any, message any) {
 	//         ]
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var marketId *string = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var data any = this.SafeList(message, "data", []any{})
@@ -1307,7 +1307,7 @@ func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any 
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var posData any = this.SafeList(liquidation, "posData", []any{})
-	var firstPosData any = this.SafeDict(posData, 0, map[string]any{})
+	var firstPosData map[string]any = ccxt.SafeMapTyped(posData, 0)
 	var marketId *string = this.SafeString(firstPosData, "instId")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(firstPosData, "uTIme")
@@ -1347,7 +1347,7 @@ func (this *Okx) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var details any = this.SafeList(liquidation, "details", []any{})
-	var liquidationDetails any = this.SafeDict(details, 0, map[string]any{})
+	var liquidationDetails map[string]any = ccxt.SafeMapTyped(details, 0)
 	var marketId *string = this.SafeString(liquidation, "instId")
 	market = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(liquidationDetails, "ts")
@@ -1979,7 +1979,7 @@ func (this *Okx) HandleOrderBook(client any, message any) any {
 	//         ]
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel")
 	var action *string = this.SafeString(message, "action")
 	var data any = this.SafeList(message, "data", []any{})
@@ -3409,7 +3409,7 @@ func (this *Okx) HandleUnsubscription(client any, message any) {
 	//     "connId": "a4d3ae55"
 	// }
 	// arg might be an array or list
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString(arg, "channel", "")
 	var marketId *string = this.SafeString(arg, "instId")
 	var symbol *string = this.SafeSymbol(marketId)

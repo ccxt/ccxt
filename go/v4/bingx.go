@@ -1248,7 +1248,7 @@ func (this *Bingx) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeInteger(data, "serverTime")
 	return nil
@@ -1426,7 +1426,7 @@ func (this *Bingx) fetchSpotMarketsBody(ch chan any, params any) any {
 	//         }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 
 	ch <- this.ParseMarkets(markets)
@@ -3428,7 +3428,7 @@ func (this *Bingx) ParseBalance(response any) any {
 	var contractBalances any = this.SafeList(response, "data")
 	var firstContractBalances any = this.SafeDict(contractBalances, 0)
 	var isContract bool = !IsEqual(firstContractBalances, nil)
-	var spotData any = this.SafeDict(response, "data", map[string]any{})
+	var spotData map[string]any = SafeMapTyped(response, "data")
 	var spotBalances any = this.SafeList2(spotData, "balances", "assets", []any{})
 	if isContract {
 		for i := 0; i < GetArrayLength(contractBalances); i++ {
@@ -3542,7 +3542,7 @@ func (this *Bingx) fetchPositionHistoryBody(ch chan any, symbol any, optionalArg
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var records any = this.SafeList(data, "positionHistory", []any{})
 	var positions any = this.ParsePositions(records)
 
@@ -4458,7 +4458,7 @@ func (this *Bingx) createOrdersBody(ch chan any, orders any, optionalArgs ...any
 		var parsedResponse any = this.ParseJson(response)
 		response = parsedResponse
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var result any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseOrders(result, market)
@@ -5139,7 +5139,7 @@ func (this *Bingx) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	} else {
 		panic(BadRequest(this.Id + " cancelAllOrders is only supported for spot and swap markets."))
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList2(data, "success", "orders", []any{})
 
 	ch <- this.ParseOrders(orders)
@@ -5220,7 +5220,7 @@ func (this *Bingx) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 		response = (<-this.SwapV2PrivateDeleteTradeBatchOrders(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var success any = this.SafeList2(data, "success", "orders", []any{})
 
 	ch <- this.ParseOrders(success)
@@ -5502,7 +5502,7 @@ func (this *Bingx) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//       }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -5720,7 +5720,7 @@ func (this *Bingx) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList2(data, "orders", "list", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -5919,7 +5919,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ..
 			PanicOnError(response)
 		}
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList2(data, "orders", "list", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -5954,7 +5954,7 @@ func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount a
 		PanicOnError(retRes529212)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("transfer", nil, params)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -5984,7 +5984,7 @@ func (this *Bingx) transferBody(ch chan any, code any, amount any, fromAccount a
 
 	response := (<-this.ApiAssetV1PrivatePostTransfer(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 
 	//
@@ -6053,7 +6053,7 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromAccount *string = this.SafeString(params, "fromAccount")
 	var toAccount *string = this.SafeString(params, "toAccount")
 	var transferId *string = this.SafeString(params, "transferId")
@@ -6122,7 +6122,7 @@ func (this *Bingx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transfer, "asset")
 	var currencyCode *string = this.SafeCurrencyCode(currencyId, currency)
 	var status *string = this.SafeString(transfer, "status")
-	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var fromId *string = this.SafeString(transfer, "fromAccount")
 	var toId *string = this.SafeString(transfer, "toAccount")
 	var fromAccount *string = this.SafeString(accountsById, fromId, fromId)
@@ -7311,7 +7311,7 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan any, optionalArgs ...any) any
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		liquidations = this.SafeList(data, "orders", []any{})
 	}
 
@@ -7472,7 +7472,7 @@ func (this *Bingx) closeAllPositionsBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.SwapV2PrivatePostTradeCloseAllPositions(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var success any = this.SafeList(data, "success", []any{})
 	var positions any = []any{}
 	for i := 0; i < GetArrayLength(success); i++ {
@@ -7534,7 +7534,7 @@ func (this *Bingx) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var dualSidePosition *string = this.SafeString(data, "dualSidePosition")
 
 	ch <- map[string]any{
@@ -7824,7 +7824,7 @@ func (this *Bingx) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...
 			//         }
 			//     }
 			//
-			var data any = this.SafeDict(response, "data", map[string]any{})
+			var data map[string]any = SafeMapTyped(response, "data")
 			commission = this.SafeDict(data, "commission", map[string]any{})
 		}
 	}

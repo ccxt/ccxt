@@ -390,7 +390,7 @@ func (this *Limitless) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			var data any = this.SafeList(response, "data", []any{})
 			allRaw = this.ArrayConcat(allRaw, data)
 		}
-		var lastPageResponse any = this.SafeDict(responses, ccxt.Subtract(length, 1))
+		var lastPageResponse map[string]any = ccxt.SafeMapTyped(responses, ccxt.Subtract(length, 1))
 		var lastPageData any = this.SafeList(lastPageResponse, "data", []any{})
 		var lastPageLength int = ccxt.GetArrayLength(lastPageData)
 		var allRawLength int = ccxt.GetArrayLength(allRaw)
@@ -563,7 +563,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, slug)
 	// CTF condition id — needed to redeem a resolved winning position
 	var conditionId *string = this.SafeString(raw, "conditionId")
-	var tokens any = this.SafeDict(raw, "tokens", map[string]any{})
+	var tokens map[string]any = ccxt.SafeMapTyped(raw, "tokens")
 	// the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
 	// market is tradeable only while it is FUNDED and not yet expired
 	var isExpired *bool = this.SafeBool(raw, "expired", false)
@@ -580,7 +580,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	var marketSymbol any = this.SlugToMarketSymbol(groupId, slug)
 	// amount precision comes from the collateral token decimals (USDC, 6); limitless does not
 	// expose a price tick, so 0.001 is the platform convention
-	var collateralToken any = this.SafeDict(raw, "collateralToken", map[string]any{})
+	var collateralToken map[string]any = ccxt.SafeMapTyped(raw, "collateralToken")
 	var collateralDecimals *int64 = this.SafeInteger(collateralToken, "decimals", this.SafeInteger(this.Options, "usdcDecimals", 6))
 	var precision map[string]any = map[string]any{
 		"amount": this.ParseNumber(this.ParsePrecision(this.NumberToString(collateralDecimals))),
@@ -590,7 +590,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	var tokenEntries []string = ccxt.ObjectKeys(tokens)
 	for i := 0; i < len(tokenEntries); i++ {
 		var outcomeLabel string = ccxt.GetValue(tokenEntries, i).(string)
-		var tokenData any = ccxt.GetValue(tokens, outcomeLabel)
+		var tokenData any = tokens[outcomeLabel]
 		var tokenId any = tokenData
 		var outcomeHandle any = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
 		// winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
@@ -1872,7 +1872,7 @@ func (this *Limitless) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	retRes15068 := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(retRes15068)
 	var outcomeObj any = this.Outcome(outcome)
-	var info any = this.SafeDict(outcomeObj, "info")
+	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"slug":     this.SafeString(info, "slug"),
 		"statuses": []any{"LIVE", "MATCHED"},
@@ -2311,7 +2311,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	//     }
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data any = this.SafeDict(order, "data")
+	var data map[string]any = ccxt.SafeMapTyped(order, "data")
 	var rawOrder any = this.SafeDict(data, "order", order)
 	// createOrder returns the order nested under an 'order' key
 	var wrappedOrder any = this.SafeDict(rawOrder, "order")
@@ -2349,7 +2349,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) any 
 	var cost any = nil
 	if !ccxt.IsEqual(execution, nil) {
 		rawStatus = this.SafeString(execution, "settlementStatus")
-		var totals any = this.SafeDict(execution, "totalsRaw")
+		var totals map[string]any = ccxt.SafeMapTyped(execution, "totalsRaw")
 		cost = ccxt.DerefScalar(this.SafeString(totals, "usdGross"))
 		filled = ccxt.DerefScalar(this.SafeString(totals, "contractsGross"))
 		var feeCurrency any = "USDC"
@@ -2524,8 +2524,8 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 	retRes20448 := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(retRes20448)
 	var outcomeObj any = this.Outcome(outcome)
-	var account any = this.SafeDict(accounts, 0)
-	var accountInfo any = this.SafeDict(account, "info")
+	var account map[string]any = ccxt.SafeMapTyped(accounts, 0)
+	var accountInfo map[string]any = ccxt.SafeMapTyped(account, "info")
 	// the trade wallet is chosen by `tradeWalletOption`: 'smartWallet' profiles trade through
 	// the `smartWallet` address, plain 'eoa' profiles trade directly from `account`. the
 	// smartWallet field can stay populated after switching to eoa, so key off the option here
@@ -2634,7 +2634,7 @@ func (this *Limitless) createOrderBody(ch chan any, outcome any, typeVar any, si
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a side argument"))
 	}
 	var sideValue *int64 = this.SafeInteger(sides, ccxt.ToLower(side))
-	var rank any = this.SafeDict(accountInfo, "rank")
+	var rank map[string]any = ccxt.SafeMapTyped(accountInfo, "rank")
 	// signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
 	var signatureType any = func() any {
 		if isSmartWallet {
@@ -2761,8 +2761,8 @@ func (this *Limitless) SignOrderRequest(signRequest any, marketSymbol any) any {
 		panic(ccxt.ArgumentsRequired(this.Id + " createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders"))
 	}
 	var market any = this.Market(marketSymbol)
-	var info any = this.SafeDict(market, "info")
-	var venue any = this.SafeDict(info, "venue")
+	var info map[string]any = ccxt.SafeMapTyped(market, "info")
+	var venue map[string]any = ccxt.SafeMapTyped(info, "venue")
 	var exchange *string = this.SafeString(venue, "exchange")
 	var domain map[string]any = map[string]any{
 		"chainId":           8453,
@@ -3358,7 +3358,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 		typeVar = "market"
 		takerOrMaker = "taker"
 	}
-	var rawMarket any = this.SafeDict(trade, "market", map[string]any{})
+	var rawMarket map[string]any = ccxt.SafeMapTyped(trade, "market")
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeIndex *int64 = this.SafeInteger(trade, "outcomeIndex")
 	var label any = func() any {
@@ -3541,19 +3541,19 @@ func (this *Limitless) GetPositionFromClobEntry(label any, optionalArgs ...any) 
 	if ccxt.IsEqual(entry, nil) {
 		return nil
 	}
-	var tokensBalance any = this.SafeDict(entry, "tokensBalance")
+	var tokensBalance map[string]any = ccxt.SafeMapTyped(entry, "tokensBalance")
 	var contracts any = this.OmitZero(this.SafeString(tokensBalance, label))
 	if contracts == nil {
 		return nil
 	}
-	var positions any = this.SafeDict(entry, "positions")
+	var positions map[string]any = ccxt.SafeMapTyped(entry, "positions")
 	var position any = this.SafeDict(positions, label, map[string]any{})
-	var rawMarket any = this.SafeDict(entry, "market")
+	var rawMarket map[string]any = ccxt.SafeMapTyped(entry, "market")
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeObj any = this.GetOutcomeBySlugAndLabel(slug, label)
 	var parsed any = this.ParsePredictionPosition(position, outcomeObj)
 	ccxt.AddElementToObject(parsed, "contracts", this.ParseNumber(this.ApplyScale(contracts)))
-	var latestTrade any = this.SafeDict(entry, "latestTrade")
+	var latestTrade map[string]any = ccxt.SafeMapTyped(entry, "latestTrade")
 	var key string = "latestYesPrice"
 	if ccxt.IsEqual(label, "no") {
 		key = "latestNoPrice"

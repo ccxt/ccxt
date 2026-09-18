@@ -1275,7 +1275,7 @@ func (this *Bitfinex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		retRes98712 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes98712)
 	}
-	var accountsByType any = this.SafeDict(this.Options, "v2AccountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "v2AccountsByType")
 	var requestedType *string = this.SafeString(params, "type", "exchange")
 	var accountType *string = this.SafeString(accountsByType, requestedType, requestedType)
 	if accountType == nil {
@@ -1347,7 +1347,7 @@ func (this *Bitfinex) transferBody(ch chan any, code any, amount any, fromAccoun
 		retRes104212 := (<-this.LoadMarketsAsync())
 		PanicOnError(retRes104212)
 	}
-	var accountsByType any = this.SafeDict(this.Options, "v2AccountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "v2AccountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount)
 	if fromId == nil {
 		var keys []string = ObjectKeys(accountsByType)

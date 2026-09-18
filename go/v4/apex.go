@@ -390,7 +390,7 @@ func (this *Apex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetV3Time(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	//
 	// {
@@ -524,9 +524,9 @@ func (this *Apex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetV3Symbols(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	var spotConfig any = this.SafeDict(data, "spotConfig", map[string]any{})
-	var multiChain any = this.SafeDict(spotConfig, "multiChain", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var spotConfig map[string]any = SafeMapTyped(data, "spotConfig")
+	var multiChain map[string]any = SafeMapTyped(spotConfig, "multiChain")
 	// "spotConfig": {
 	//     "assets": [
 	//         {
@@ -724,8 +724,8 @@ func (this *Apex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetV3Symbols(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	var contractConfig any = this.SafeDict(data, "contractConfig", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var contractConfig map[string]any = SafeMapTyped(data, "contractConfig")
 	var perpetualContract any = this.SafeList(contractConfig, "perpetualContract", []any{})
 
 	// {
@@ -1043,7 +1043,7 @@ func (this *Apex) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) a
 
 	response := (<-this.PublicGetV3Klines(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var OHLCVs any = this.SafeList(data, this.SafeString(market, "id2"), []any{})
 
 	ch <- this.ParseOHLCVs(OHLCVs, market, timeframe, since, limit)
@@ -1394,7 +1394,7 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	// }
 	//
 	var rates any = []any{}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var resultList any = this.SafeList(data, "historyFunds", []any{})
 	for i := 0; i < GetArrayLength(resultList); i++ {
 		var entry any = GetValue(resultList, i)
@@ -1799,12 +1799,12 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 
 	configResponse := (<-this.PublicGetV3Symbols(params))
 	PanicOnError(configResponse)
-	var configData any = this.SafeDict(configResponse, "data", map[string]any{})
-	var contractConfig any = this.SafeDict(configData, "contractConfig", map[string]any{})
+	var configData map[string]any = SafeMapTyped(configResponse, "data")
+	var contractConfig map[string]any = SafeMapTyped(configData, "contractConfig")
 	var contractAssets any = this.SafeList(contractConfig, "assets", []any{})
-	var spotConfig any = this.SafeDict(configData, "spotConfig", map[string]any{})
+	var spotConfig map[string]any = SafeMapTyped(configData, "spotConfig")
 	var spotAssets any = this.SafeList(spotConfig, "assets", []any{})
-	var globalConfig any = this.SafeDict(spotConfig, "global", map[string]any{})
+	var globalConfig map[string]any = SafeMapTyped(spotConfig, "global")
 	var receiverAddress *string = this.SafeString(globalConfig, "contractAssetPoolEthAddress", "")
 	var receiverZkAccountId *string = this.SafeString(globalConfig, "contractAssetPoolZkAccountId", "")
 	var receiverSubAccountId *string = this.SafeString(globalConfig, "contractAssetPoolSubAccount", "")
@@ -1812,8 +1812,8 @@ func (this *Apex) transferBody(ch chan any, code any, amount any, fromAccount an
 
 	accountResponse := (<-this.PrivateGetV3Account(params))
 	PanicOnError(accountResponse)
-	var accountData any = this.SafeDict(accountResponse, "data", map[string]any{})
-	var spotAccount any = this.SafeDict(accountData, "spotAccount", map[string]any{})
+	var accountData map[string]any = SafeMapTyped(accountResponse, "data")
+	var spotAccount map[string]any = SafeMapTyped(accountData, "spotAccount")
 	var zkAccountId *string = this.SafeString(spotAccount, "zkAccountId", "")
 	var subAccountId *string = this.SafeString(spotAccount, "defaultSubAccountId", "0")
 	var subAccounts any = this.SafeList(spotAccount, "subAccounts", []any{})
@@ -2042,7 +2042,7 @@ func (this *Apex) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any 
 		response = (<-this.PrivatePostV3DeleteOrder(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeOrder(data)
 	return nil
@@ -2197,7 +2197,7 @@ func (this *Apex) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetV3HistoryOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -2248,7 +2248,7 @@ func (this *Apex) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any)
 
 	response := (<-this.PrivateGetV3OrderFills(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseTrades(orders, nil, since, limit)
@@ -2311,7 +2311,7 @@ func (this *Apex) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetV3Fills(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseTrades(orders, market, since, limit)
@@ -2373,7 +2373,7 @@ func (this *Apex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 
 	response := (<-this.PrivateGetV3Funding(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var fundingValues any = this.SafeList(data, "fundingValues", []any{})
 
 	ch <- this.ParseIncomes(fundingValues, market, since, limit)
@@ -2487,7 +2487,7 @@ func (this *Apex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetV3Account(params))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(data, "positions", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)

@@ -186,7 +186,7 @@ func (this *Hashkey) HandleOHLCV(client any, message any) {
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	var params any = this.SafeDict(message, "params")
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var klineType *string = this.SafeString(params, "klineType")
 	var timeframe any = this.FindTimeframe(klineType)
 	if !(ccxt.InOp(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)) {
@@ -1013,7 +1013,7 @@ func (this *Hashkey) HandleBalance(client any, message any) {
 	//
 	var event *string = this.SafeString(message, "e")
 	var data any = this.SafeList(message, "B", []any{})
-	var balanceUpdate any = this.SafeDict(data, 0)
+	var balanceUpdate map[string]any = ccxt.SafeMapTyped(data, 0)
 	var isSpot bool = (event != nil && *event == "outboundAccountInfo")
 	var typeVar any = func() any {
 		if isSpot {

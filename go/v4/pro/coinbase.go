@@ -778,7 +778,7 @@ func (this *Coinbase) watchTradesForSymbolsBody(ch chan any, symbols any, option
 	trades := (<-this.SubscribeMultipleAsync(name, false, symbols, params))
 	ccxt.PanicOnError(trades)
 	if ccxt.EvalTruthy(this.NewUpdates) {
-		var first any = this.SafeDict(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1033,7 +1033,7 @@ func (this *Coinbase) HandleTrade(client any, message any) {
 	}
 	var event any = this.SafeValue(events, 0)
 	var trades any = this.SafeList(event, "trades")
-	var trade any = this.SafeDict(trades, 0)
+	var trade map[string]any = ccxt.SafeMapTyped(trades, 0)
 	var marketId *string = this.SafeString(trade, "product_id")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("market_trades::", symbol)

@@ -2135,7 +2135,7 @@ func (this *Kucoin) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PublicGetStatus(params))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var status *string = this.SafeString2(data, "status", "serverStatus")
 
 	ch <- map[string]any{
@@ -2190,7 +2190,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		return nil
 	}
 	var defaultTypes []any = []any{"spot", "swap", "future", "contract"}
-	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
 	var credentialsSet bool = this.CheckRequiredCredentials(false)
 	var requestMarginables bool = credentialsSet && EvalTruthy(this.SafeBool(params, "marginables", true))
@@ -2321,7 +2321,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		// const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-		var ticker any = this.SafeDict(tickersById, id, map[string]any{})
+		var ticker map[string]any = SafeMapTyped(tickersById, id)
 		var makerFeeRate *string = this.SafeString(ticker, "makerFeeRate")
 		var takerFeeRate *string = this.SafeString(ticker, "takerFeeRate")
 		var makerCoefficient *string = this.SafeString(ticker, "makerCoefficient")
@@ -2657,8 +2657,8 @@ func (this *Kucoin) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) any {
 
 	responses := (<-promiseAll(promises))
 	PanicOnError(responses)
-	var data any = this.SafeDict(GetValue(responses, 0), "data", map[string]any{})
-	var contractData any = this.SafeDict(GetValue(responses, 1), "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(GetValue(responses, 0), "data")
+	var contractData map[string]any = SafeMapTyped(GetValue(responses, 1), "data")
 	var spotData any = this.SafeList(data, "list", []any{})
 	var contractSymbolsData any = this.SafeList(contractData, "list", []any{})
 	var symbolsData []any = this.ArrayConcat(spotData, contractSymbolsData)
@@ -3101,7 +3101,7 @@ func (this *Kucoin) fetchTransactionFeeBody(ch chan any, code any, optionalArgs 
 
 	response := (<-this.PrivateGetWithdrawalsQuotas(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var withdrawFees map[string]any = map[string]any{}
 	AddElementToObject(withdrawFees, code, this.SafeNumber(data, "withdrawMinFee"))
 
@@ -3267,7 +3267,7 @@ func (this *Kucoin) IsFuturesMethod(methodName any, params any) any {
 	//
 	var defaultType *string = this.SafeString2(this.Options, methodName, "defaultType", "trade")
 	var requestedType *string = this.SafeString(params, "type", defaultType)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var typeVar *string = this.SafeString(accountsByType, requestedType)
 	if typeVar == nil {
 		var keys []string = ObjectKeys(accountsByType)
@@ -3630,7 +3630,7 @@ func (this *Kucoin) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PublicGetMarketAllTickers(params))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var tickers any = this.SafeList2(data, "ticker", "list", []any{})
 	var time *int64 = this.SafeInteger2(data, "time", "ts")
 	var result map[string]any = map[string]any{}
@@ -4163,7 +4163,7 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var result any = this.SafeList(data, "list", []any{})
 
 	ch <- this.ParseOHLCVs(result, market, timeframe, since, limit)
@@ -4306,8 +4306,8 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var timeframeOptions any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var swapTimeframes any = this.SafeDict(timeframeOptions, "swap", map[string]any{})
+	var timeframeOptions map[string]any = SafeMapTyped(this.Options, "timeframes")
+	var swapTimeframes map[string]any = SafeMapTyped(timeframeOptions, "swap")
 	var parsedTimeframe *int64 = this.SafeInteger(swapTimeframes, timeframe)
 	if parsedTimeframe != nil {
 		request["granularity"] = parsedTimeframe
@@ -4440,7 +4440,7 @@ func (this *Kucoin) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchDepositAddress", "accountType", accountType)
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = GetValue(accountTypeparamsVariable, 1)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 
 	uta := (<-this.IsUTAEnabledAsync())
@@ -4535,7 +4535,7 @@ func (this *Kucoin) fetchContractDepositAddressBody(ch chan any, code any, optio
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var address *string = this.SafeString(data, "address")
 	if !IsEqual(currencyId, "NIM") {
 		// contains spaces
@@ -5827,7 +5827,7 @@ func (this *Kucoin) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	var isSpot bool = false
 	var isContract bool = false
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order any = this.SafeDict(orders, i)
+		var order map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires a symbol for each order"))
@@ -6822,7 +6822,7 @@ func (this *Kucoin) cancelAllUtaOrdersBody(ch chan any, optionalArgs ...any) any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseOrders(orders, market, nil, nil, map[string]any{
@@ -6889,7 +6889,7 @@ func (this *Kucoin) fetchOrdersByStatusBody(ch chan any, status any, optionalArg
 			marketType = typeVar
 			params = this.Omit(params, "type")
 		} else {
-			var methodOptions any = this.SafeDict(this.Options, "fetchOrdersByStatus", map[string]any{})
+			var methodOptions map[string]any = SafeMapTyped(this.Options, "fetchOrdersByStatus")
 			var methodDefaultType *string = this.SafeString2(methodOptions, "defaultType", "type")
 			if methodDefaultType == nil {
 				marketType = DerefScalar(this.SafeString2(this.Options, "defaultType", "type", "spot"))
@@ -7055,7 +7055,7 @@ func (this *Kucoin) fetchSpotOrdersByStatusBody(ch chan any, status any, optiona
 		ch <- this.ParseOrders(listData, market, since, limit)
 		return nil
 	}
-	var responseData any = this.SafeDict(response, "data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(responseData, "items", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -7198,7 +7198,7 @@ func (this *Kucoin) fetchContractOrdersByStatusBody(ch chan any, status any, opt
 	//         }
 	//     }
 	//
-	var responseData any = this.SafeDict(response, "data", map[string]any{})
+	var responseData map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(responseData, "items", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -7357,7 +7357,7 @@ func (this *Kucoin) fetchUtaOrdersByStatusBody(ch chan any, status any, optional
 		response = (<-this.UtaPrivateGetAccountModeOrderHistory(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -8811,7 +8811,7 @@ func (this *Kucoin) fetchMyContractTradesBody(ch chan any, optionalArgs ...any) 
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "items", []any{})
 	var tradesList any = []any{}
 	if !IsEqual(trades, nil) {
@@ -8937,7 +8937,7 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "items", []any{})
 	var tradesList any = []any{}
 	if !IsEqual(trades, nil) {
@@ -9029,7 +9029,7 @@ func (this *Kucoin) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		//         }
 		//     }
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		trades = this.SafeList(data, "list", []any{})
 	} else if (IsEqual(typeVar, "spot")) || (IsEqual(typeVar, "margin")) {
 
@@ -9804,7 +9804,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchDeposits", "accountType", accountType)
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = GetValue(accountTypeparamsVariable, 1)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 	if IsEqual(accountType, "contract") {
 
@@ -9889,7 +9889,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransactions(items, currency, since, limit, map[string]any{
@@ -9971,7 +9971,7 @@ func (this *Kucoin) fetchContractDepositsBody(ch chan any, optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var responseData any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransactions(responseData, currency, since, limit, map[string]any{
@@ -10020,7 +10020,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	var accountTypeparamsVariable []any = this.HandleOptionAndParams(params, "fetchWithdrawals", "accountType", accountType)
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = GetValue(accountTypeparamsVariable, 1)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 	if IsEqual(accountType, "contract") {
 
@@ -10107,7 +10107,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransactions(items, currency, since, limit, map[string]any{
@@ -10189,7 +10189,7 @@ func (this *Kucoin) fetchContractWithdrawalsBody(ch chan any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var responseData any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransactions(responseData, currency, since, limit, map[string]any{
@@ -10264,7 +10264,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var requestedTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	requestedType = GetValue(requestedTypeparamsVariable, 0)
 	params = GetValue(requestedTypeparamsVariable, 1)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var typeVar any = DerefScalar(this.SafeString(accountsByType, requestedType, requestedType))
 	params = this.Omit(params, "type")
 	if IsEqual(typeVar, "contract") {
@@ -10550,7 +10550,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 		params = GetValue(marginModeparamsVariable, 1)
 		requestedType = marginMode
 	}
-	var utaAccountsByType any = this.SafeDict(this.Options, "utaAccountsByType", map[string]any{})
+	var utaAccountsByType map[string]any = SafeMapTyped(this.Options, "utaAccountsByType")
 	var typeVar any = nil
 	typeVar = DerefScalar(this.SafeString(utaAccountsByType, requestedType, requestedType))
 	var isIsolated bool = (IsEqual(typeVar, "ISOLATED"))
@@ -10630,7 +10630,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.UtaPrivateGetAccountBalance(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var result any = map[string]any{
 		"info":      response,
@@ -10652,7 +10652,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		var firstAccount any = this.SafeDict(accounts, 0, map[string]any{})
+		var firstAccount map[string]any = SafeMapTyped(accounts, 0)
 		var currencies any = this.SafeList(firstAccount, "currencies", []any{})
 		for i := 0; i < GetArrayLength(currencies); i++ {
 			var currencyEntry any = this.SafeDict(currencies, i, map[string]any{})
@@ -10802,7 +10802,7 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
 		request["toAccountSymbol"] = toId
 		toId = "ISOLATED"
 	}
-	var utaAccountsByType any = this.SafeDict(this.Options, "utaAccountsByType", map[string]any{})
+	var utaAccountsByType map[string]any = SafeMapTyped(this.Options, "utaAccountsByType")
 	fromId = DerefScalar(this.SafeString(utaAccountsByType, fromId, fromId))
 	toId = DerefScalar(this.SafeString(utaAccountsByType, toId, toId))
 	request["fromAccountType"] = ToUpper(fromId)
@@ -10821,7 +10821,7 @@ func (this *Kucoin) transferUtaBody(ch chan any, code any, amount any, fromAccou
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var transfer any = this.ParseTransfer(data, currency)
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		AddElementToObject(transfer, "amount", amount)
@@ -10932,7 +10932,7 @@ func (this *Kucoin) transferClassicBody(ch chan any, code any, amount any, fromA
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var transfer any = this.ParseTransfer(data, currency)
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		AddElementToObject(transfer, "amount", amount)
@@ -11032,7 +11032,7 @@ func (this *Kucoin) ParseTransfer(transfer any, optionalArgs ...any) any {
 		accountFromRaw = this.SafeStringLower(transfer, "payAccountType")
 		accountToRaw = this.SafeStringLower(transfer, "recAccountType")
 	}
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType")
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var accountFrom any = func() any {
 		if IsEqual(accountFromRaw, nil) {
 			return nil
@@ -11491,7 +11491,7 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.ParseLedger(dataList, currency, since, limit)
 		return nil
 	}
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList2(data, "items", "dataList", []any{})
 
 	ch <- this.ParseLedger(items, currency, since, limit)
@@ -11500,9 +11500,9 @@ func (this *Kucoin) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 func (this *Kucoin) CalculateRateLimiterCost(api any, method any, path any, params any, optionalArgs ...any) any {
 	config := GetArg(optionalArgs, 0, map[string]any{})
 	_ = config
-	var versions any = this.SafeDict(this.Options, "versions", map[string]any{})
-	var apiVersions any = this.SafeDict(versions, api, map[string]any{})
-	var methodVersions any = this.SafeDict(apiVersions, method, map[string]any{})
+	var versions map[string]any = SafeMapTyped(this.Options, "versions")
+	var apiVersions map[string]any = SafeMapTyped(versions, api)
+	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	if (version != nil && *version == "v3") && (InOp(config, "v3")) {
@@ -11689,7 +11689,7 @@ func (this *Kucoin) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var assets any = func() any {
 		if IsEqual(marginMode, "isolated") {
 			return this.SafeList(data, "assets", []any{})
@@ -11762,7 +11762,7 @@ func (this *Kucoin) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	}()
 	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")
-	var isolatedBase any = this.SafeDict(info, "baseAsset", map[string]any{})
+	var isolatedBase map[string]any = SafeMapTyped(info, "baseAsset")
 	var amountBorrowed *float64 = nil
 	var interest *float64 = nil
 	var currencyId any = nil
@@ -11860,7 +11860,7 @@ func (this *Kucoin) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseBorrowRateHistories(rows, codes, since, limit)
@@ -11939,7 +11939,7 @@ func (this *Kucoin) fetchBorrowRateHistoryBody(ch chan any, code any, optionalAr
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseBorrowRateHistory(rows, code, since, limit)
@@ -12544,7 +12544,7 @@ func (this *Kucoin) setContractLeverageBody(ch chan any, leverage any, optionalA
 		response = (<-this.FuturesPrivatePostChangeCrossUserLeverage(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var leverageNum *float64 = this.SafeNumber(data, "leverage")
 
 	ch <- map[string]any{
@@ -13394,7 +13394,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) 
 		response = (<-this.FuturesPrivateGetHistoryPositions(this.Extend(request, params)))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParsePositions(items, symbols)
@@ -13683,7 +13683,7 @@ func (this *Kucoin) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) 
 
 		response = (<-this.UtaPrivatePostAccountModeOrderCancelBatch(this.Extend(request, params)))
 		PanicOnError(response)
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		orders = this.SafeList(data, "items", []any{})
 	} else {
 		var requestKey any = func() any {
@@ -14621,7 +14621,7 @@ func (this *Kucoin) isUTAEnabledBody(ch chan any, optionalArgs ...any) any {
 
 		response := (<-this.UtaPrivateGetAccountMode(params))
 		PanicOnError(response)
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var accountMode *string = this.SafeString(data, "selfAccountMode")
 		uta = (accountMode != nil && *accountMode == "UNIFIED")
 		AddElementToObject(this.Options, "uta", uta)
@@ -14646,9 +14646,9 @@ func (this *Kucoin) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var versions any = this.SafeDict(this.Options, "versions", map[string]any{})
-	var apiVersions any = this.SafeDict(versions, api, map[string]any{})
-	var methodVersions any = this.SafeDict(apiVersions, method, map[string]any{})
+	var versions map[string]any = SafeMapTyped(this.Options, "versions")
+	var apiVersions map[string]any = SafeMapTyped(versions, api)
+	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
 	var defaultVersion *string = this.SafeString(methodVersions, path, GetValue(this.Options, "version"))
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	params = this.Omit(params, "version")
@@ -14872,7 +14872,7 @@ func (this *Kucoin) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransfers(items, currency, since, limit)

@@ -1638,7 +1638,7 @@ func (this *Blofin) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var details any = this.SafeList(data, "details", []any{})
 	for i := 0; i < GetArrayLength(details); i++ {
@@ -2593,15 +2593,15 @@ func (this *Blofin) NetworkCodeToChainId(networkCode any) any {
 	// the live venue identifies chains by display names; the suffix
 	// family is built here as prefix + space + parenthesized suffix
 	// because such literals are not transpiler-safe in source
-	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var direct *string = this.SafeString(networks, networkCode)
 	if direct != nil {
 		return direct
 	}
-	var prefixes any = this.SafeDict(this.Options, "networkPrefixes", map[string]any{})
+	var prefixes map[string]any = SafeMapTyped(this.Options, "networkPrefixes")
 	var prefix *string = this.SafeString(prefixes, networkCode)
 	if prefix != nil {
-		var suffixes any = this.SafeDict(this.Options, "networkSuffixes", map[string]any{})
+		var suffixes map[string]any = SafeMapTyped(this.Options, "networkSuffixes")
 		var suffix *string = this.SafeString(suffixes, networkCode, networkCode)
 		return Add(Add(Add(Add(prefix, " "), "("), suffix), ")")
 	}
@@ -2623,7 +2623,7 @@ func (this *Blofin) ChainIdToNetworkCode(chainId any) any {
 		var tail *string = this.SafeString(parts, 1, "")
 		var tailParts []string = Split(tail, ")")
 		var suffix *string = this.SafeString(tailParts, 0)
-		var bySuffix any = this.SafeDict(this.Options, "networkCodesBySuffix", map[string]any{})
+		var bySuffix map[string]any = SafeMapTyped(this.Options, "networkCodesBySuffix")
 		return this.SafeString(bySuffix, suffix, suffix)
 	}
 	// delegate the paren-free branch to the base resolver so the
@@ -3092,7 +3092,7 @@ func (this *Blofin) transferBody(ch chan any, code any, amount any, fromAccount 
 		PanicOnError(retRes240312)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -4104,7 +4104,7 @@ func (this *Blofin) HandleErrors(httpCode any, reason any, url any, method any, 
 	//  }
 	//
 	var data any = this.SafeList(response, "data")
-	var first any = this.SafeDict(data, 0)
+	var first map[string]any = SafeMapTyped(data, 0)
 	var insideMsg *string = this.SafeString(first, "msg")
 	var insideCode *string = this.SafeString(first, "code")
 	if (insideCode != nil) && (insideCode == nil || *insideCode != "0") {

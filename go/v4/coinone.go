@@ -1604,12 +1604,12 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//         }
 	//     }
 	//
-	var walletAddress any = this.SafeDict(response, "walletAddress", map[string]any{})
+	var walletAddress map[string]any = SafeMapTyped(response, "walletAddress")
 	var keys []string = ObjectKeys(walletAddress)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var value any = GetValue(walletAddress, key)
+		var value any = walletAddress[key]
 		if (IsEqual(value, nil)) || (IsEqual(value, nil)) || (IsEqual(value, "")) || (IsEqual(value, "-1")) {
 			continue
 		}

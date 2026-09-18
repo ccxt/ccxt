@@ -539,7 +539,7 @@ func (this *Delta) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicGetSettings(params))
 	PanicOnError(response)
 	// full response sample under `fetchStatus`
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.SafeIntegerProduct(result, "server_time", 0.001)
 	return nil
@@ -618,7 +618,7 @@ func (this *Delta) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//         "success": true
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var underMaintenance *string = this.SafeString(result, "under_maintenance")
 	var status any = func() any {
 		if underMaintenance != nil && *underMaintenance == "true" {
@@ -1023,10 +1023,10 @@ func (this *Delta) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			continue
 		}
 		// const settlingAsset = this.safeValue (market, 'settling_asset', {});
-		var quotingAsset any = this.SafeDict(market, "quoting_asset", map[string]any{})
-		var underlyingAsset any = this.SafeDict(market, "underlying_asset", map[string]any{})
-		var settlingAsset any = this.SafeDict(market, "settling_asset")
-		var productSpecs any = this.SafeDict(market, "product_specs", map[string]any{})
+		var quotingAsset map[string]any = SafeMapTyped(market, "quoting_asset")
+		var underlyingAsset map[string]any = SafeMapTyped(market, "underlying_asset")
+		var settlingAsset map[string]any = SafeMapTyped(market, "settling_asset")
+		var productSpecs map[string]any = SafeMapTyped(market, "product_specs")
 		var baseId *string = this.SafeString(underlyingAsset, "symbol")
 		var quoteId *string = this.SafeString(quotingAsset, "symbol")
 		var settleId *string = this.SafeString(settlingAsset, "symbol")
@@ -1275,7 +1275,7 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
 	var last *string = this.SafeString(ticker, "close")
-	var quotes any = this.SafeDict(ticker, "quotes", map[string]any{})
+	var quotes map[string]any = SafeMapTyped(ticker, "quotes")
 	// turnover_symbol names the currency turnover is denominated in, and on
 	// spot markets that is the base currency rather than the quote
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
@@ -1763,7 +1763,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 	timestamp = this.SafeIntegerProduct(trade, "timestamp", 0.001, timestamp)
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "size")
-	var product any = this.SafeDict(trade, "product", map[string]any{})
+	var product map[string]any = SafeMapTyped(trade, "product")
 	var marketId *string = this.SafeString(product, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var sellerRole *string = this.SafeString(trade, "seller_role")
@@ -1776,7 +1776,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 		}
 	}
 	var takerOrMaker *string = this.SafeString(trade, "role")
-	var metaData any = this.SafeDict(trade, "meta_data", map[string]any{})
+	var metaData map[string]any = SafeMapTyped(trade, "meta_data")
 	var typeVar any = DerefScalar(this.SafeString(metaData, "order_type"))
 	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
@@ -1784,7 +1784,7 @@ func (this *Delta) ParseTrade(trade any, optionalArgs ...any) any {
 	var feeCostString *string = this.SafeString(trade, "commission")
 	var fee any = nil
 	if feeCostString != nil {
-		var settlingAsset any = this.SafeDict(product, "settling_asset", map[string]any{})
+		var settlingAsset map[string]any = SafeMapTyped(product, "settling_asset")
 		var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
@@ -1982,7 +1982,7 @@ func (this *Delta) ParseBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId", map[string]any{})
+	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	for i := 0; i < GetArrayLength(balances); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId *string = this.SafeString(balance, "asset_id")
@@ -2301,7 +2301,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 		}
 	}
 	var marketId *string = this.SafeString(order, "product_id")
-	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId", map[string]any{})
+	var marketsByNumericId map[string]any = SafeMapTyped(this.Options, "marketsByNumericId")
 	market = this.SafeValue(marketsByNumericId, marketId, market)
 	var symbol any = func() any {
 		if IsEqual(market, nil) {
@@ -2324,7 +2324,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) any {
 	if feeCostString != nil {
 		var feeCurrencyCode any = nil
 		if !IsEqual(market, nil) {
-			var settlingAsset any = this.SafeDict(GetValue(market, "info"), "settling_asset", map[string]any{})
+			var settlingAsset map[string]any = SafeMapTyped(GetValue(market, "info"), "settling_asset")
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 			feeCurrencyCode = DerefScalar(this.SafeCurrencyCode(feeCurrencyId))
 		}
@@ -3055,7 +3055,7 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var id *string = this.SafeString(item, "uuid")
 	var direction any = nil
 	var account any = nil
-	var metaData any = this.SafeDict(item, "meta_data", map[string]any{})
+	var metaData map[string]any = SafeMapTyped(item, "meta_data")
 	var referenceId *string = this.SafeString(metaData, "transaction_id")
 	var referenceAccount any = nil
 	var typeVar *string = this.SafeString(item, "transaction_type")
@@ -3066,7 +3066,7 @@ func (this *Delta) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
 	var currencyId *string = this.SafeString(item, "asset_id")
-	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
+	var currenciesByNumericId map[string]any = SafeMapTyped(this.Options, "currenciesByNumericId")
 	currency = this.SafeValue(currenciesByNumericId, currencyId, currency)
 	var code any = func() any {
 		if IsEqual(currency, nil) {
@@ -4155,8 +4155,8 @@ func (this *Delta) ParseGreeks(greeks any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerProduct(greeks, "timestamp", 0.001)
 	var marketId *string = this.SafeString(greeks, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var stats any = this.SafeDict(greeks, "greeks", map[string]any{})
-	var quotes any = this.SafeDict(greeks, "quotes", map[string]any{})
+	var stats map[string]any = SafeMapTyped(greeks, "greeks")
+	var quotes map[string]any = SafeMapTyped(greeks, "quotes")
 	return map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,
@@ -4507,7 +4507,7 @@ func (this *Delta) ParseOption(chain any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(chain, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var quotes any = this.SafeDict(chain, "quotes", map[string]any{})
+	var quotes map[string]any = SafeMapTyped(chain, "quotes")
 	var timestamp *int64 = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return map[string]any{
 		"info":              chain,
@@ -4968,7 +4968,7 @@ func (this *Delta) HandleErrors(code any, reason any, url any, method any, heade
 	//
 	// {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
 	//
-	var error any = this.SafeDict(response, "error", map[string]any{})
+	var error map[string]any = SafeMapTyped(response, "error")
 	var errorCode *string = this.SafeString(error, "code")
 	if errorCode != nil {
 		var feedback any = Add(this.Id+" ", body)

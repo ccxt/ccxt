@@ -439,8 +439,8 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(rawCurrency, "symbol")
 	var name *string = this.SafeString(rawCurrency, "name")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var depositInfo any = this.SafeDict(rawCurrency, "deposit_info")
-	var withdrawInfo any = this.SafeDict(rawCurrency, "withdraw_info")
+	var depositInfo map[string]any = SafeMapTyped(rawCurrency, "deposit_info")
+	var withdrawInfo map[string]any = SafeMapTyped(rawCurrency, "withdraw_info")
 	var networks any = this.SafeList(rawCurrency, "networks", []any{})
 	var typeVar *string = this.SafeStringLower(rawCurrency, "type")
 	var parsedNetworks map[string]any = map[string]any{}
@@ -448,8 +448,8 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) any {
 		var network any = GetValue(networks, j)
 		var networkId *string = this.SafeString(network, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var networkWithdrawInfo any = this.SafeDict(network, "withdraw_info")
-		var networkDepositInfo any = this.SafeDict(network, "deposit_info")
+		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
+		var networkDepositInfo map[string]any = SafeMapTyped(network, "deposit_info")
 		var isWithdrawEnabled bool = IsEqual(this.SafeString(networkWithdrawInfo, "status"), "ENABLED")
 		var isDepositEnabled bool = IsEqual(this.SafeString(networkDepositInfo, "status"), "ENABLED")
 		if networkCode != nil {
@@ -1320,7 +1320,7 @@ func (this *Foxbit) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	}
 	var ordersRequests any = []any{}
 	for i := 0; i < GetArrayLength(orders); i++ {
-		var order any = this.SafeDict(orders, i)
+		var order map[string]any = SafeMapTyped(orders, i)
 		var symbol *string = this.SafeString(order, "symbol")
 		var market any = this.Market(symbol)
 		var typeVar *string = this.SafeStringUpper(order, "type")
@@ -1990,8 +1990,8 @@ func (this *Foxbit) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     "meta": {
 	//     }
 	// }
-	var data any = this.SafeDict(response, "data", map[string]any{})
-	var attributes any = this.SafeDict(data, "attributes", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
+	var attributes map[string]any = SafeMapTyped(data, "attributes")
 	var statusRaw *string = this.SafeString(attributes, "status")
 	var statusMap map[string]any = map[string]any{
 		"NORMAL":            "ok",
@@ -2215,14 +2215,14 @@ func (this *Foxbit) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Foxbit) ParseMarket(market any) any {
 	var id *string = this.SafeString(market, "symbol")
-	var baseAssets any = this.SafeDict(market, "base")
+	var baseAssets map[string]any = SafeMapTyped(market, "base")
 	var baseId *string = this.SafeString(baseAssets, "symbol")
-	var quoteAssets any = this.SafeDict(market, "quote")
+	var quoteAssets map[string]any = SafeMapTyped(market, "quote")
 	var quoteId *string = this.SafeString(quoteAssets, "symbol")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = Add(Add(base, "/"), quote)
-	var fees any = this.SafeDict(market, "default_fees")
+	var fees map[string]any = SafeMapTyped(market, "default_fees")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -2296,9 +2296,9 @@ func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString(ticker, "market_symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "spot")
 	var rolling_24h any = GetValue(ticker, "rolling_24h")
-	var best any = this.SafeDict(ticker, "best")
-	var bestAsk any = this.SafeDict(best, "ask")
-	var bestBid any = this.SafeDict(best, "bid")
+	var best map[string]any = SafeMapTyped(ticker, "best")
+	var bestAsk map[string]any = SafeMapTyped(best, "ask")
+	var bestBid map[string]any = SafeMapTyped(best, "bid")
 	var lastTrade any = GetValue(ticker, "last_trade")
 	var lastPrice *string = this.SafeString(lastTrade, "price")
 	return this.SafeTicker(map[string]any{
@@ -2433,7 +2433,7 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) any {
 func (this *Foxbit) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var network any = this.SafeDict(depositAddress, "network")
+	var network map[string]any = SafeMapTyped(depositAddress, "network")
 	var networkId *string = this.SafeString(network, "code")
 	var currencyCode *string = this.SafeCurrencyCode(nil, currency)
 	var unifiedNetwork any = this.NetworkIdToCode(networkId, currencyCode)
@@ -2469,7 +2469,7 @@ func (this *Foxbit) ParseTransaction(transaction any, optionalArgs ...any) any {
 	_ = since
 	limit := GetArg(optionalArgs, 2, nil)
 	_ = limit
-	var cryptoDetails any = this.SafeDict(transaction, "details_crypto")
+	var cryptoDetails map[string]any = SafeMapTyped(transaction, "details_crypto")
 	var address *string = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
 	var sn *string = this.SafeString(transaction, "sn")
 	var typeVar string = "withdrawal"

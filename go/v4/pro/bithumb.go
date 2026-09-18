@@ -549,7 +549,7 @@ func (this *Bithumb) HandleOrderBook(client any, message any) {
 	var content any = this.SafeDict(message, "content")
 	if !ccxt.IsEqual(content, nil) {
 		var list any = this.SafeList(content, "list", []any{})
-		var first any = this.SafeDict(list, 0, map[string]any{})
+		var first map[string]any = ccxt.SafeMapTyped(list, 0)
 		var legacyMarketId *string = this.SafeString(first, "symbol")
 		if legacyMarketId == nil {
 			return
@@ -754,7 +754,7 @@ func (this *Bithumb) HandleTrades(client any, message any) {
 	//         "stream_type": "REALTIME"
 	//     }
 	//
-	var content any = this.SafeDict(message, "content")
+	var content map[string]any = ccxt.SafeMapTyped(message, "content")
 	var rawTrades any = this.SafeList(content, "list")
 	if ccxt.IsEqual(rawTrades, nil) {
 		rawTrades = []any{message}

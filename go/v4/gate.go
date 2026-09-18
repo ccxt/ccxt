@@ -1990,7 +1990,7 @@ func (this *Gate) loadUnifiedStatusBody(ch chan any, optionalArgs ...any) any {
 
 				response := (<-this.PrivateAccountGetDetail(params))
 				PanicOnError(response)
-				var result any = this.SafeDict(response, "key", map[string]any{})
+				var result map[string]any = SafeMapTyped(response, "key")
 				AddElementToObject(this.Options, "unifiedAccount", IsEqual(this.SafeInteger(result, "mode"), 2))
 				return nil
 			}(this)
@@ -2167,7 +2167,7 @@ func (this *Gate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes138312)
 	}
 	var rawPromises any = []any{}
-	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var types any = this.SafeList(fetchMarketsOptions, "types", []any{"spot", "swap", "future", "option"})
 	for i := 0; i < GetArrayLength(types); i++ {
 		var marketType any = GetValue(types, i)
@@ -2758,7 +2758,7 @@ func (this *Gate) fetchOptionUnderlyingsBody(ch chan any) any {
 	//
 	var underlyings any = []any{}
 	for i := 0; i < GetArrayLength(underlyingsResponse); i++ {
-		var underlying any = this.SafeDict(underlyingsResponse, i, map[string]any{})
+		var underlying map[string]any = SafeMapTyped(underlyingsResponse, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
 			AppendToArray(&underlyings, name)
@@ -6980,7 +6980,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) any {
 	if lastTradeTimestampStr != nil {
 		lastTradeTimestamp = this.ParseToInt(lastTradeTimestampStr)
 	}
-	var initial any = this.SafeDict(order, "initial", map[string]any{})
+	var initial map[string]any = SafeMapTyped(order, "initial")
 	var reduceOnlyInitial *bool = this.SafeBool(initial, "is_reduce_only")
 	var reduceOnly *bool = this.SafeBool(order, "is_reduce_only", reduceOnlyInitial)
 	var clientOrderId *string = this.SafeString(order, "text")
@@ -7593,7 +7593,7 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan any, status any, optionalArgs 
 	if openSpotOrders {
 		var spotResult []any = []any{}
 		for i := 0; i < GetArrayLength(response); i++ {
-			var responseEntry any = this.SafeDict(response, i, map[string]any{})
+			var responseEntry map[string]any = SafeMapTyped(response, i)
 			var ordersInner any = this.SafeValue(responseEntry, "orders")
 			spotResult = this.ArrayConcat(spotResult, ordersInner)
 		}
@@ -10357,7 +10357,7 @@ func (this *Gate) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) an
 	//
 	var underlyings any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var underlying any = this.SafeDict(response, i, map[string]any{})
+		var underlying map[string]any = SafeMapTyped(response, i)
 		var name *string = this.SafeString(underlying, "name")
 		if name != nil {
 			AppendToArray(&underlyings, name)

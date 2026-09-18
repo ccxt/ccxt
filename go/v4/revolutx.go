@@ -635,7 +635,7 @@ func (this *Revolutx) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var metadata any = this.SafeDict(response, "metadata", map[string]any{})
+	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 	var result map[string]any = map[string]any{}
 	for i := 0; i < GetArrayLength(data); i++ {
@@ -754,7 +754,7 @@ func (this *Revolutx) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var metadata any = this.SafeDict(response, "metadata", map[string]any{})
+	var metadata map[string]any = SafeMapTyped(response, "metadata")
 	var timestamp *int64 = this.SafeInteger(metadata, "timestamp")
 
 	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
@@ -1015,7 +1015,7 @@ func (this *Revolutx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(data); i++ {
-		var balance any = this.SafeDict(data, i, map[string]any{})
+		var balance map[string]any = SafeMapTyped(data, i)
 		var currency *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currency)
 		if code == nil {

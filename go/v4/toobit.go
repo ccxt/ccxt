@@ -1210,9 +1210,9 @@ func (this *Toobit) ParseMarket(market any) any {
 	var active bool = (status != nil && *status == "TRADING")
 	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
-	var priceFilter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
-	var lotSizeFilter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
-	var minNotionalFilter any = this.SafeDict(filtersByType, "MIN_NOTIONAL", map[string]any{})
+	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
+	var lotSizeFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
+	var minNotionalFilter map[string]any = SafeMapTyped(filtersByType, "MIN_NOTIONAL")
 	var symbol any = Add(Add(base, "/"), quote)
 	var isContract bool = (InOp(market, "contractMultiplier"))
 	var inverse *bool = this.SafeBool2(market, "isInverse", "inverse")
@@ -2993,7 +2993,7 @@ func (this *Toobit) transferBody(ch chan any, code any, amount any, fromAccount 
 		PanicOnError(retRes255612)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{

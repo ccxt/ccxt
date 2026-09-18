@@ -687,7 +687,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var fees any = this.SafeDict(response, "Fees", map[string]any{})
+	var fees map[string]any = SafeMapTyped(response, "Fees")
 	var keys []string = ObjectKeys(fees)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {

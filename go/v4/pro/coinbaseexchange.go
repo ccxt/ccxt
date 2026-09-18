@@ -925,8 +925,8 @@ func (this *Coinbaseexchange) HandleOrder(client any, message any) {
 					}
 					if (!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil)) && (this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost") != nil) {
 						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.Sum(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), this.SafeNumber(ccxt.GetValue(trade, "fee"), "cost")))
-						var previousOrderFee any = this.SafeDict(previousOrder, "fee")
-						var tradeFee any = this.SafeDict(trade, "fee")
+						var previousOrderFee map[string]any = ccxt.SafeMapTyped(previousOrder, "fee")
+						var tradeFee map[string]any = ccxt.SafeMapTyped(trade, "fee")
 						ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(tradeFee, "cost"))))
 					}
 					// update the newUpdates count

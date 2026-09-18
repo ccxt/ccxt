@@ -732,7 +732,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		retRes56412 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes56412)
 	}
-	var timeframes any = this.SafeDict(this.Options, "timeframes")
+	var timeframes map[string]any = ccxt.SafeMapTyped(this.Options, "timeframes")
 	var interval *string = this.SafeString(timeframes, timeframe)
 	var channel any = nil
 	var market any = this.Market(symbol)
@@ -1817,7 +1817,7 @@ func (this *Bitget) HandlePositions(client any, message any) {
 	//         "ts": 1730711666652
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeString(arg, "instType", "")
 	if ccxt.IsEqual(this.Positions, nil) {
 		this.Positions = map[string]any{}
@@ -2194,7 +2194,7 @@ func (this *Bitget) HandleOrder(client any, message any) {
 	//         "ts": 1742367838124
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channel *string = this.SafeString2(arg, "channel", "topic", "")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var argInstId *string = this.SafeString(arg, "instId")
@@ -2207,7 +2207,7 @@ func (this *Bitget) HandleOrder(client any, message any) {
 		marketType = "contract"
 	}
 	var data any = this.SafeList(message, "data", []any{})
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var category *string = this.SafeStringLower(first, "category", instType)
 	var isLinearSwap bool = (category != nil && *category == "usdt-futures")
 	var isInverseSwap bool = (category != nil && *category == "coin-futures")
@@ -2756,7 +2756,7 @@ func (this *Bitget) HandleMyTrades(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var length int = ccxt.GetArrayLength(data)
 	var messageHash string = "myTrades"
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	for i := 0; i < length; i++ {
 		var trade any = ccxt.GetValue(data, i)
@@ -2961,7 +2961,7 @@ func (this *Bitget) HandleBalance(client any, message any) {
 	//         "ts": 1740546523244
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
@@ -3115,7 +3115,7 @@ func (this *Bitget) watchPublicMultipleBody(ch chan any, uta any, messageHashes 
 	}()
 	var sandboxMode *bool = this.SafeBool2(this.Options, "sandboxMode", "sandbox", false)
 	if sandboxMode != nil && *sandboxMode == true {
-		var argsArrayFirst any = this.SafeDict(argsArray, 0, map[string]any{})
+		var argsArrayFirst map[string]any = ccxt.SafeMapTyped(argsArray, 0)
 		var instType *string = this.SafeString(argsArrayFirst, "instType")
 		if (instType == nil || *instType != "SCOIN-FUTURES") && (instType == nil || *instType != "SUSDT-FUTURES") && (instType == nil || *instType != "SUSDC-FUTURES") {
 			url = func() any {
@@ -3436,7 +3436,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar any = func() any {
 		if instType != nil && *instType == "spot" {
@@ -3468,7 +3468,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar any = func() any {
 		if instType != nil && *instType == "spot" {
@@ -3500,7 +3500,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar any = func() any {
 		if instType != nil && *instType == "spot" {
@@ -3536,7 +3536,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
 	//
-	var arg any = this.SafeDict(message, "arg", map[string]any{})
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var instType *string = this.SafeStringLower(arg, "instType")
 	var typeVar any = func() any {
 		if instType != nil && *instType == "spot" {

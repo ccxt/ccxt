@@ -1029,13 +1029,13 @@ func (this *Bingx) HandleOHLCV(client any, message any) {
 			candles = this.SafeList(message, "data", []any{})
 		}
 	} else {
-		var data any = this.SafeDict(message, "data", map[string]any{})
+		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		candles = []any{this.SafeDict(data, "K", map[string]any{})}
 	}
 	var symbol any = ccxt.GetValue(market, "symbol")
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var rawTimeframe any = ccxt.GetValue(ccxt.Split(dataType, "_"), 1)
-	var marketOptions any = this.SafeDict(this.Options, marketType)
+	var marketOptions map[string]any = ccxt.SafeMapTyped(this.Options, marketType)
 	var timeframes any = this.SafeDict(marketOptions, "timeframes", map[string]any{})
 	var unifiedTimeframe any = this.FindTimeframe(rawTimeframe, timeframes)
 	if ccxt.IsEqual(this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), rawTimeframe), nil) {
@@ -2250,7 +2250,7 @@ func (this *Bingx) HandleBalance(client any, message any) {
 	//         }
 	//     }
 	//
-	var a any = this.SafeDict(message, "a", map[string]any{})
+	var a map[string]any = ccxt.SafeMapTyped(message, "a")
 	var data any = this.SafeList(a, "B", []any{})
 	var timestamp *int64 = this.SafeInteger2(message, "T", "E")
 	var spotUrl *string = this.SafeString(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot")

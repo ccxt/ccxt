@@ -1253,7 +1253,7 @@ func (this *Xt) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result")
+	var data map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.SafeInteger(data, "serverTime")
 	return nil
@@ -1333,7 +1333,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	// note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
 	//
 	var chainsData any = this.SafeList(chainsResponse, "result", []any{})
-	var currenciesResult any = this.SafeDict(currenciesResponse, "result", map[string]any{})
+	var currenciesResult map[string]any = SafeMapTyped(currenciesResponse, "result")
 	var currenciesData any = this.SafeList(currenciesResult, "currencies", []any{})
 	var chainsDataIndexed map[string]any = this.IndexBy(chainsData, "currency")
 	var result map[string]any = map[string]any{}
@@ -1341,7 +1341,7 @@ func (this *Xt) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 		var entry any = GetValue(currenciesData, i)
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var networkEntry any = this.SafeDict(chainsDataIndexed, currencyId, map[string]any{})
+		var networkEntry map[string]any = SafeMapTyped(chainsDataIndexed, currencyId)
 		var rawNetworks any = this.SafeList(networkEntry, "supportChains", []any{})
 		var networks map[string]any = map[string]any{}
 		for j := 0; j < GetArrayLength(rawNetworks); j++ {
@@ -1517,7 +1517,7 @@ func (this *Xt) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var symbols any = this.SafeList(data, "symbols", []any{})
 
 	ch <- this.ParseMarkets(symbols)
@@ -2829,7 +2829,7 @@ func (this *Xt) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -3130,7 +3130,7 @@ func (this *Xt) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	if (subType != nil) || isContractWallet {
 		balances = this.SafeList(response, "result", []any{})
 	} else {
-		var data any = this.SafeDict(response, "result", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "result")
 		balances = this.SafeList(data, "assets", []any{})
 	}
 
@@ -4023,7 +4023,7 @@ func (this *Xt) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -5175,7 +5175,7 @@ func (this *Xt) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var ledger any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseLedger(ledger, currency, since, limit)
@@ -5389,7 +5389,7 @@ func (this *Xt) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var deposits any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransactions(deposits, currency, since, limit, params)
@@ -5469,7 +5469,7 @@ func (this *Xt) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var withdrawals any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTransactions(withdrawals, currency, since, limit, params)
@@ -5514,7 +5514,7 @@ func (this *Xt) withdrawBody(ch chan any, code any, amount any, address any, opt
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var networkIdsByCodes any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networkIdsByCodes map[string]any = SafeMapTyped(this.Options, "networks")
 	var networkId *string = this.SafeString2(networkIdsByCodes, networkCode, code, code)
 	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
@@ -6155,7 +6155,7 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var items any = this.SafeList(result, "items", []any{})
 	var rates any = []any{}
 	for i := 0; i < GetArrayLength(items); i++ {
@@ -6618,7 +6618,7 @@ func (this *Xt) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var items any = this.SafeList(data, "items", []any{})
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(items); i++ {
@@ -6997,7 +6997,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var items any = this.SafeList(result, "items", []any{})
 	var positions any = this.ParsePositions(items, symbols)
 
@@ -7134,7 +7134,7 @@ func (this *Xt) transferBody(ch chan any, code any, amount any, fromAccount any,
 		PanicOnError(retRes557512)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsById")
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var fromAccountId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toAccountId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var amountString any = this.CurrencyToPrecision(code, amount)
@@ -7422,7 +7422,7 @@ func (this *Xt) HandleErrors(code any, reason any, url any, method any, headers 
 	var status *string = this.SafeStringUpper2(response, "msgInfo", "mc")
 	if (status != nil) && (status == nil || *status != "SUCCESS") {
 		var feedback any = Add(this.Id+" ", body)
-		var error any = this.SafeDict(response, "error", map[string]any{})
+		var error map[string]any = SafeMapTyped(response, "error")
 		var spotErrorCode *string = this.SafeString(response, "mc")
 		var errorCode *string = this.SafeString(error, "code", spotErrorCode)
 		var spotMessage *string = this.SafeString(response, "msgInfo")

@@ -1699,9 +1699,9 @@ func (this *Aster) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var time int64 = this.Milliseconds()
-	var lastAuthenticatedTimeOptions any = this.SafeDict(this.Options, "lastAuthenticatedTime", map[string]any{})
+	var lastAuthenticatedTimeOptions map[string]any = ccxt.SafeMapTyped(this.Options, "lastAuthenticatedTime")
 	var lastAuthenticatedTime *int64 = this.SafeInteger(lastAuthenticatedTimeOptions, typeVar, 0)
-	var listenKeyRefreshRateOptions any = this.SafeDict(this.Options, "listenKeyRefreshRate", map[string]any{})
+	var listenKeyRefreshRateOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKeyRefreshRate")
 	var listenKeyRefreshRate *int64 = this.SafeInteger(listenKeyRefreshRateOptions, typeVar, 3600000) // 1 hour
 	if ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), listenKeyRefreshRate) {
 		// single-flight leader election on a never-dialed client, see
@@ -1791,7 +1791,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar *string = this.SafeString(params, "type", "spot")
-	var listenKeyOptions any = this.SafeDict(this.Options, "listenKey", map[string]any{})
+	var listenKeyOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKey")
 	var listenKey *string = this.SafeString(listenKeyOptions, typeVar)
 	if listenKey == nil {
 
@@ -1837,7 +1837,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 
 	}
 	// whether or not to schedule another listenKey keepAlive request
-	var listenKeyRefreshOptions any = this.SafeDict(this.Options, "listenKeyRefresh", map[string]any{})
+	var listenKeyRefreshOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKeyRefresh")
 	var listenKeyRefreshRate *int64 = this.SafeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000)
 	this.Delay(listenKeyRefreshRate, this.KeepAliveListenKeyAsync, params)
 	return nil
@@ -1845,7 +1845,7 @@ func (this *Aster) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any 
 func (this *Aster) GetPrivateUrl(optionalArgs ...any) any {
 	typeVar := ccxt.GetArg(optionalArgs, 0, "spot")
 	_ = typeVar
-	var listenKeyOptions any = this.SafeDict(this.Options, "listenKey", map[string]any{})
+	var listenKeyOptions map[string]any = ccxt.SafeMapTyped(this.Options, "listenKey")
 	var listenKey *string = this.SafeString(listenKeyOptions, typeVar)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), typeVar), "/"), listenKey)
 	return url
@@ -2176,7 +2176,7 @@ func (this *Aster) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var data any = this.SafeDict(message, "a", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "a")
 	var rawPositions any = this.SafeList(data, "P", []any{})
 	var newPositions any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(rawPositions); i++ {

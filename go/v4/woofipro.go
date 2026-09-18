@@ -814,7 +814,7 @@ func (this *Woofipro) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": "1709274106602"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var status any = DerefScalar(this.SafeString(data, "status"))
 	if IsEqual(status, nil) {
 		status = "error"
@@ -1017,7 +1017,7 @@ func (this *Woofipro) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//   }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseMarkets(rows)
@@ -1071,9 +1071,9 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
 	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
 	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
-	var tokenData any = this.SafeDict(tokenResponse, "data", map[string]any{})
+	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
 	var tokenRows any = this.SafeList(tokenData, "rows", []any{})
-	var chainData any = this.SafeDict(chainResponse, "data", map[string]any{})
+	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
 	var chainRows any = this.SafeList(chainData, "rows", []any{})
 	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
 	for i := 0; i < GetArrayLength(tokenRows); i++ {
@@ -1096,7 +1096,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) any {
 	var currencyId *string = this.SafeString(token, "token")
 	var networks any = this.SafeList(token, "chain_details", []any{})
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var indexedChains any = this.SafeDict(rawCurrency, "_indexedChains", map[string]any{})
+	var indexedChains map[string]any = SafeMapTyped(rawCurrency, "_indexedChains")
 	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; j < GetArrayLength(networks); j++ {
 		var networkEntry any = GetValue(networks, j)
@@ -1294,7 +1294,7 @@ func (this *Woofipro) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(rows, market, since, limit)
@@ -1479,7 +1479,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseFundingRates(rows, symbols)
@@ -1649,7 +1649,7 @@ func (this *Woofipro) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result any = []any{}
@@ -1797,7 +1797,7 @@ func (this *Woofipro) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result any = []any{}
@@ -1896,7 +1896,7 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var result any = this.SafeList(data, "rows", []any{})
 	var rates any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
@@ -2043,7 +2043,7 @@ func (this *Woofipro) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseIncomes(rows, market, since, limit)
@@ -2103,7 +2103,7 @@ func (this *Woofipro) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var maker *string = this.SafeString(data, "futures_maker_fee_rate")
 	var taker *string = this.SafeString(data, "futures_taker_fee_rate")
 	var result map[string]any = map[string]any{}
@@ -2235,7 +2235,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 
 	response := (<-this.V1PrivateGetKline(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	//
 	// {
 	//     "success": true,
@@ -2680,7 +2680,7 @@ func (this *Woofipro) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseOrders(rows)
@@ -3438,7 +3438,7 @@ func (this *Woofipro) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
@@ -3536,7 +3536,7 @@ func (this *Woofipro) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
@@ -3672,7 +3672,7 @@ func (this *Woofipro) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) 
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- []any{currency, this.SafeList(data, "rows", []any{})}
 	return nil
@@ -3950,7 +3950,7 @@ func (this *Woofipro) getWithdrawNonceBody(ch chan any, optionalArgs ...any) any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeNumber(data, "withdraw_nonce")
 	return nil
@@ -4008,8 +4008,8 @@ func (this *Woofipro) withdrawBody(ch chan any, code any, amount any, address an
 	var currency any = this.Currency(code)
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
-	var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
-	var coinNetwork any = this.SafeDict(currencyNetworks, chainId, map[string]any{})
+	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
+	var coinNetwork map[string]any = SafeMapTyped(currencyNetworks, chainId)
 	var coinNetworkId *float64 = this.SafeNumber(coinNetwork, "id")
 	if coinNetworkId == nil {
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))
@@ -4143,7 +4143,7 @@ func (this *Woofipro) fetchMarginModesBody(ch chan any, optionalArgs ...any) any
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseMarginModes(rows, symbols, "symbol")
@@ -4692,7 +4692,7 @@ func (this *Woofipro) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(result, "rows", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)

@@ -362,7 +362,7 @@ func (this *Btcturk) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//        ],
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 
 	ch <- this.ParseMarkets(markets)
@@ -1100,7 +1100,7 @@ func (this *Btcturk) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var bids any = this.SafeList(data, "bids", []any{})
 	var asks any = this.SafeList(data, "asks", []any{})
 

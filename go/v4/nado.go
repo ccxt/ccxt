@@ -645,7 +645,7 @@ func (this *Nado) editOrderBody(ch chan any, id any, symbol any, typeVar any, si
 	//         "request_type": "execute_cancel_and_place"
 	//     }
 	//
-	var cancelAndPlace any = this.SafeDict(request, "cancel_and_place", map[string]any{})
+	var cancelAndPlace map[string]any = SafeMapTyped(request, "cancel_and_place")
 	var placeOrder any = this.SafeDict(cancelAndPlace, "place_order", map[string]any{})
 
 	ch <- this.ParseOrder(this.Extend(map[string]any{
@@ -704,7 +704,7 @@ func (this *Nado) editOrderRequestBody(ch chan any, id any, symbol any, typeVar 
 	if IsEqual(side, "sell") {
 		amountX18 = Precise.StringMul(amountX18, "-1")
 	}
-	var editOrderOptions any = this.SafeDict(this.Options, "editOrder", map[string]any{})
+	var editOrderOptions map[string]any = SafeMapTyped(this.Options, "editOrder")
 	var subaccount any = nil
 	var subaccountparamsVariable []any = this.HandleOptionAndParams(params, "editOrder", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
@@ -857,7 +857,7 @@ func (this *Nado) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.GatewayPrivatePostExecute(request))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(cancelledOrders); i++ {
@@ -986,7 +986,7 @@ func (this *Nado) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) an
 		response = (<-this.GatewayPrivatePostExecute(request))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(cancelledOrders); i++ {
@@ -1241,7 +1241,7 @@ func (this *Nado) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//     "request_type": "query_list_trigger_orders"
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1338,7 +1338,7 @@ func (this *Nado) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "request_type": "query_subaccount_orders"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orders any = this.SafeList(data, "orders", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit, map[string]any{
@@ -1943,13 +1943,13 @@ func (this *Nado) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         "request_type": "query_subaccount_info"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(data, "perp_balances", []any{})
 	var products any = this.SafeList(data, "perp_products", []any{})
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {
 		var position any = GetValue(positions, i)
-		var balance any = this.SafeDict(position, "balance", map[string]any{})
+		var balance map[string]any = SafeMapTyped(position, "balance")
 		var amount *string = this.SafeString(balance, "amount")
 		if (amount == nil) || Precise.StringEquals(amount, "0") {
 			continue
@@ -2149,7 +2149,7 @@ func (this *Nado) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var base *string = this.SafeCurrencyCode(this.RemoveMarketSuffix(rawBaseId))
 		var quote *string = this.SafeCurrencyCode(rawQuoteId)
 		var baseAsset any = this.SafeDict(assetsByCode, base, asset)
-		var quoteAsset any = this.SafeDict(assetsByCode, quote)
+		var quoteAsset map[string]any = SafeMapTyped(assetsByCode, quote)
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
 		var quoteId *string = this.SafeString(quoteAsset, "product_id", rawQuoteId)
 		var settleId any = func() any {
@@ -3249,7 +3249,7 @@ func (this *Nado) ParseBalance(response any) any {
 				code = DerefScalar(this.SafeString(market, "base", code))
 			}
 		}
-		var balance any = this.SafeDict(rawBalance, "balance", map[string]any{})
+		var balance map[string]any = SafeMapTyped(rawBalance, "balance")
 		var amount *string = Precise.StringDiv(this.SafeString(balance, "amount"), "1000000000000000000")
 		var account any = this.Account()
 		AddElementToObject(account, "total", amount)
@@ -3291,12 +3291,12 @@ func (this *Nado) ParseTransaction(transaction any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transaction, "product_id")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeTimestamp(transaction, "timestamp")
-	var preBalance any = this.SafeDict(transaction, "pre_balance", map[string]any{})
-	var postBalance any = this.SafeDict(transaction, "post_balance", map[string]any{})
-	var preSpot any = this.SafeDict(preBalance, "spot", map[string]any{})
-	var postSpot any = this.SafeDict(postBalance, "spot", map[string]any{})
-	var preSpotBalance any = this.SafeDict(preSpot, "balance", map[string]any{})
-	var postSpotBalance any = this.SafeDict(postSpot, "balance", map[string]any{})
+	var preBalance map[string]any = SafeMapTyped(transaction, "pre_balance")
+	var postBalance map[string]any = SafeMapTyped(transaction, "post_balance")
+	var preSpot map[string]any = SafeMapTyped(preBalance, "spot")
+	var postSpot map[string]any = SafeMapTyped(postBalance, "spot")
+	var preSpotBalance map[string]any = SafeMapTyped(preSpot, "balance")
+	var postSpotBalance map[string]any = SafeMapTyped(postSpot, "balance")
 	var preAmount *string = this.SafeString(preSpotBalance, "amount", "0")
 	var postAmount *string = this.SafeString(postSpotBalance, "amount", "0")
 	var amount any = this.ParseX18(Precise.StringAbs(Precise.StringSub(postAmount, preAmount)))
@@ -3345,10 +3345,10 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(position, "product_id")
 	market = this.SafeMarket(marketId, market)
-	var balance any = this.SafeDict(position, "balance", map[string]any{})
+	var balance map[string]any = SafeMapTyped(position, "balance")
 	var amountString *string = this.SafeString(balance, "amount")
-	var product any = this.SafeDict(position, "product", map[string]any{})
-	var risk any = this.SafeDict(product, "risk", map[string]any{})
+	var product map[string]any = SafeMapTyped(position, "product")
+	var risk map[string]any = SafeMapTyped(product, "risk")
 	var markPriceX18 *string = this.SafeString2(risk, "price_x18", "oracle_price_x18")
 	var vQuoteBalance *string = this.SafeString(balance, "v_quote_balance")
 	var side any = nil
@@ -3564,10 +3564,10 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) any {
 		status = DerefScalar(this.SafeString(order, "status", "open"))
 	} else {
 		var placeOrder any = this.SafeDict2(order, "place_order", "order", map[string]any{})
-		var rawOrder any = this.SafeDict(placeOrder, "order", map[string]any{})
+		var rawOrder map[string]any = SafeMapTyped(placeOrder, "order")
 		var marketId *string = this.SafeString(placeOrder, "product_id")
 		market = this.SafeMarket(marketId, market)
-		var data any = this.SafeDict(order, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(order, "data")
 		id = DerefScalar(this.SafeString(data, "digest"))
 		if IsEqual(id, nil) {
 			id = DerefScalar(this.SafeString(placeOrder, "digest"))

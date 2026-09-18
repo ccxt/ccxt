@@ -1076,7 +1076,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 			// the cached position for this symbol, otherwise appending would break
 			// the ccxt.ArrayCacheBySymbolBySide index (see issue #29001).
 			var symbol *string = this.SafeString(position, "symbol")
-			var cachedBySide any = this.SafeDict(cache.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
+			var cachedBySide map[string]any = ccxt.SafeMapTyped(cache.(*ccxt.ArrayCache).Hashmap, symbol)
 			var cachedSides []string = ccxt.ObjectKeys(cachedBySide)
 			var sidesLength int = len(cachedSides)
 			if sidesLength == 1 {
@@ -1864,7 +1864,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	// if it's an initial snapshot
 	if action != nil && *action == "partial" {
-		var filter any = this.SafeDict(message, "filter", map[string]any{})
+		var filter map[string]any = ccxt.SafeMapTyped(message, "filter")
 		var marketId any = this.SafeValue(filter, "symbol")
 		if ccxt.IsEqual(marketId, nil) {
 			return // protecting from weird update

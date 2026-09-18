@@ -1035,10 +1035,10 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var feeConfig any = this.SafeDict(fee, "fee_config", map[string]any{})
-	var apiFee any = this.SafeDict(feeConfig, "api_fee", map[string]any{})
-	var makerFee any = this.SafeDict(apiFee, "maker_fee", map[string]any{})
-	var takerFee any = this.SafeDict(apiFee, "taker_fee", map[string]any{})
+	var feeConfig map[string]any = SafeMapTyped(fee, "fee_config")
+	var apiFee map[string]any = SafeMapTyped(feeConfig, "api_fee")
+	var makerFee map[string]any = SafeMapTyped(apiFee, "maker_fee")
+	var takerFee map[string]any = SafeMapTyped(apiFee, "taker_fee")
 	return map[string]any{
 		"info":       fee,
 		"symbol":     GetValue(market, "symbol"),
@@ -3230,7 +3230,7 @@ func (this *Paradex) ParseBalance(response any) any {
 		"info": response,
 	}
 	for i := 0; i < GetArrayLength(response); i++ {
-		var balance any = this.SafeDict(response, i, map[string]any{})
+		var balance map[string]any = SafeMapTyped(response, i)
 		var currencyId *string = this.SafeString(balance, "token")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -4400,7 +4400,7 @@ func (this *Paradex) ParseGreeks(greeks any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, "option")
 	var symbol any = GetValue(market, "symbol")
 	var timestamp *int64 = this.SafeInteger(greeks, "created_at")
-	var greeksData any = this.SafeDict(greeks, "greeks", map[string]any{})
+	var greeksData map[string]any = SafeMapTyped(greeks, "greeks")
 	return map[string]any{
 		"symbol":                symbol,
 		"timestamp":             timestamp,

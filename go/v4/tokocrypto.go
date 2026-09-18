@@ -1306,7 +1306,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		//        "timestamp": 1787318052414
 		//    }
 		//
-		var data any = this.SafeDict(responseInner, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(responseInner, "data")
 		var list any = this.SafeList(data, "list", []any{})
 
 		ch <- this.ParseTrades(list, market, since, limit)
@@ -1515,7 +1515,7 @@ func (this *Tokocrypto) fetchTickersBody(ch chan any, optionalArgs ...any) any {
  * @returns {boolean} true when the symbol type of the market is known and is not 1
  */
 func (this *Tokocrypto) IsNativeMarket(market any) any {
-	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var symbolType *string = this.SafeString(marketInfo, "type")
 	// a market with an unknown symbol type falls back to the binance backed
 	// host, the route that answers with data for every symbol type 1 market
@@ -1773,7 +1773,7 @@ func (this *Tokocrypto) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		if !IsEqual(dataList, nil) {
 			data = dataList
 		} else {
-			var dataDict any = this.SafeDict(response, "data", map[string]any{})
+			var dataDict map[string]any = SafeMapTyped(response, "data")
 			data = this.SafeList(dataDict, "list", []any{})
 		}
 	}

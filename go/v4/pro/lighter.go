@@ -188,7 +188,7 @@ func (this *Lighter) HandleDeltas(bookside any, deltas any) {
 	}
 }
 func (this *Lighter) HandleOrderBookMessage(client any, message any, orderbook any) any {
-	var data any = this.SafeDict(message, "order_book", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "order_book")
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), this.SafeList(data, "asks", []any{}))
 	this.HandleDeltas(ccxt.GetValue(orderbook, "bids"), this.SafeList(data, "bids", []any{}))
 	ccxt.AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "offset"))
@@ -1028,7 +1028,7 @@ func (this *Lighter) HandleMyTrades(client any, message any) any {
 	var channel *string = this.SafeString(message, "channel", "")
 	var parts []string = ccxt.Split(channel, ":")
 	var accountIndex any = ccxt.GetValue(parts, 1)
-	var data any = this.SafeDict(message, "trades", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "trades")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var idsLength int = len(marketIds)
 	if idsLength == 0 {
@@ -1432,11 +1432,11 @@ func (this *Lighter) HandleBalance(client any, message any) any {
 	}
 	var balance any = this.SafeDict(this.Balance, typeVar, map[string]any{})
 	if typeVar == "spot" {
-		var assets any = this.SafeDict(message, "assets", map[string]any{})
+		var assets map[string]any = ccxt.SafeMapTyped(message, "assets")
 		var assetIds []string = ccxt.ObjectKeys(assets)
 		for i := 0; i < len(assetIds); i++ {
 			var assetId string = ccxt.GetValue(assetIds, i).(string)
-			var asset any = ccxt.GetValue(assets, assetId)
+			var asset any = assets[assetId]
 			var codeId *string = this.SafeString(asset, "symbol")
 			var code *string = this.SafeCurrencyCode(codeId)
 			var account any = this.Account()
@@ -1761,7 +1761,7 @@ func (this *Lighter) HandleOrders(client any, message any) any {
 	//        "type": "update/account_all_orders"
 	//    }
 	//
-	var data any = this.SafeDict(message, "orders", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "orders")
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var idsLength int = len(marketIds)
 	if idsLength == 0 {
@@ -1962,8 +1962,8 @@ func (this *Lighter) HandleTickerUnSubscription(client any, marketId any) {
 		for i := 0; i < len(subscriptionHashes); i++ {
 			var subscriptionHash string = ccxt.GetValue(subscriptionHashes, i).(string)
 			if ccxt.StartsWith(subscriptionHash, "ticker") {
-				var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
-				var subscriptionParams any = this.SafeDict(subscription, "params")
+				var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+				var subscriptionParams map[string]any = ccxt.SafeMapTyped(subscription, "params")
 				var subscribedChannel *string = this.SafeString(subscriptionParams, "channel")
 				if subscribedChannel != nil && *subscribedChannel == "market_stats/all" {
 					ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)

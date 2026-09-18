@@ -386,7 +386,7 @@ func (this *Binance) completeRawTopicsBody(ch chan any, rawTopics any) any {
 		var rawMarketsLength int = ccxt.GetArrayLength(rawMarkets)
 		var hasOutcomes bool = false
 		if rawMarketsLength > 0 {
-			var firstMarket any = this.SafeDict(rawMarkets, 0, map[string]any{})
+			var firstMarket map[string]any = ccxt.SafeMapTyped(rawMarkets, 0)
 			var firstOutcomes any = this.SafeList(firstMarket, "outcomes", []any{})
 			var firstOutcomesLength int = ccxt.GetArrayLength(firstOutcomes)
 			hasOutcomes = (firstOutcomesLength > 0)
@@ -925,7 +925,7 @@ func (this *Binance) fetchTickerBody(ch chan any, outcome any, optionalArgs ...a
 	retRes7568 := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(retRes7568)
 	var outcomeObj any = this.Outcome(outcome)
-	var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
+	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"marketId": this.SafeString(info, "marketId"),
 	}
@@ -959,7 +959,7 @@ func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
 	// the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
 	// any other outcome of a binary market mirrors as 1 - price
-	var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
+	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var outcomeIndex *string = this.SafeString(outcomeInfo, "index")
 	var isMirrored bool = false
 	if outcomeIndex != nil {
@@ -1037,7 +1037,7 @@ func (this *Binance) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var outcomesLength int = ccxt.GetArrayLength(outcomes)
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
+		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var marketId *string = this.SafeString(info, "marketId")
 		if marketId == nil {
 			continue
@@ -1087,7 +1087,7 @@ func (this *Binance) fetchOrderBookBody(ch chan any, outcome any, optionalArgs .
 	retRes8828 := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(retRes8828)
 	var outcomeObj any = this.Outcome(outcome)
-	var info any = this.SafeDict(outcomeObj, "info", map[string]any{})
+	var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var request map[string]any = map[string]any{
 		"vendor":   this.SafeString(info, "vendor", this.SafeString(this.Options, "defaultVendor")),
 		"marketId": this.SafeString(info, "marketId"),

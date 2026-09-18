@@ -2545,7 +2545,7 @@ func (this *Gate) HandleErrorMessage(client any, message any) any {
 	//         "requestId": "cdb02a8c0b61086b2fe6f8fad2f98c54"
 	//     }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var errs any = this.SafeDict(data, "errs")
 	var error any = this.SafeDict(message, "error", errs)
 	var code *string = this.SafeString2(error, "code", "label")
@@ -2812,7 +2812,7 @@ func (this *Gate) HandleMessage(client any, message any) {
 		return
 	}
 	if requestId != nil {
-		var data any = this.SafeDict(message, "data")
+		var data map[string]any = ccxt.SafeMapTyped(message, "data")
 		// use safeValue as result may be Array or an Object
 		var result any = this.SafeValue(data, "result")
 		var ack *bool = this.SafeBool(message, "ack")

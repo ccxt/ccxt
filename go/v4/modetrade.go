@@ -771,7 +771,7 @@ func (this *Modetrade) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": "1709274106602"
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var status any = DerefScalar(this.SafeString(data, "status"))
 	if IsEqual(status, nil) {
 		status = "error"
@@ -971,7 +971,7 @@ func (this *Modetrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//   }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseMarkets(rows)
@@ -1021,7 +1021,7 @@ func (this *Modetrade) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var tokenRows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseCurrencies(tokenRows)
@@ -1231,7 +1231,7 @@ func (this *Modetrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(rows, market, since, limit)
@@ -1427,7 +1427,7 @@ func (this *Modetrade) fetchFundingRatesBody(ch chan any, optionalArgs ...any) a
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseFundingRates(rows, symbols)
@@ -1513,7 +1513,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var result any = this.SafeList(data, "rows", []any{})
 	var rates any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
@@ -1660,7 +1660,7 @@ func (this *Modetrade) fetchFundingHistoryBody(ch chan any, optionalArgs ...any)
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseIncomes(rows, market, since, limit)
@@ -1720,7 +1720,7 @@ func (this *Modetrade) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var maker *string = this.SafeString(data, "futures_maker_fee_rate")
 	var taker *string = this.SafeString(data, "futures_taker_fee_rate")
 	var result map[string]any = map[string]any{}
@@ -1854,7 +1854,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 
 	response := (<-this.V1PrivateGetKline(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	//
 	// {
 	//     "success": true,
@@ -2314,7 +2314,7 @@ func (this *Modetrade) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseOrders(rows)
@@ -3059,7 +3059,7 @@ func (this *Modetrade) fetchOrderTradesBody(ch chan any, id any, optionalArgs ..
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
@@ -3157,7 +3157,7 @@ func (this *Modetrade) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
@@ -3293,7 +3293,7 @@ func (this *Modetrade) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any)
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- []any{currency, this.SafeList(data, "rows", []any{})}
 	return nil
@@ -3570,7 +3570,7 @@ func (this *Modetrade) getWithdrawNonceBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeNumber(data, "withdraw_nonce")
 	return nil
@@ -3628,7 +3628,7 @@ func (this *Modetrade) withdrawBody(ch chan any, code any, amount any, address a
 	var currency any = this.Currency(code)
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
-	var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
+	var currencyNetworks map[string]any = SafeMapTyped(currency, "networks")
 	var coinNetwork any = func() any {
 		if chainId == nil {
 			return map[string]any{}
@@ -4029,7 +4029,7 @@ func (this *Modetrade) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(result, "rows", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)

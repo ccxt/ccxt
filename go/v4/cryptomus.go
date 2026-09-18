@@ -1252,14 +1252,14 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var dateTime *string = this.SafeString(order, "createdAt")
 	var timestamp *int64 = this.Parse8601(dateTime)
-	var deal any = this.SafeDict(order, "deal", map[string]any{})
+	var deal map[string]any = SafeMapTyped(order, "deal")
 	var averageFilledPrice *float64 = this.SafeNumber(deal, "averageFilledPrice")
 	var typeVar *string = this.SafeString(order, "type")
 	var side *string = this.SafeString(order, "direction")
 	var price *float64 = this.SafeNumber(order, "price")
 	var transaction any = this.SafeList(deal, "transactions", []any{})
 	var fee any = nil
-	var firstTx any = this.SafeDict(transaction, 0)
+	var firstTx map[string]any = SafeMapTyped(transaction, 0)
 	var feeCurrency *string = this.SafeString(firstTx, "feeCurrency")
 	if feeCurrency != nil {
 		fee = map[string]any{
@@ -1382,8 +1382,8 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
-	var currentFeeTier any = this.SafeDict(data, "current_tariff_step", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
+	var currentFeeTier map[string]any = SafeMapTyped(data, "current_tariff_step")
 	var makerFee *string = this.SafeString(currentFeeTier, "maker_percent")
 	var takerFee *string = this.SafeString(currentFeeTier, "taker_percent")
 	makerFee = Precise.StringDiv(makerFee, "100")

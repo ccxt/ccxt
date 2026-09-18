@@ -574,7 +574,7 @@ func (this *Apex) HandleTicker(client any, message any) {
 		var marketId *string = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
 		var market any = this.SafeMarket(marketId, nil, nil)
 		symbol = ccxt.GetValue(market, "symbol")
-		var ticker any = this.SafeDict(this.Tickers, symbol, map[string]any{})
+		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = this.ParseTicker(merged)
@@ -1384,7 +1384,7 @@ func (this *Apex) HandlePing(client any, message any) {
 	this.Spawn(this.PongAsync, client, message)
 }
 func (this *Apex) HandleAccount(client any, message any) {
-	var contents any = this.SafeDict(message, "contents", map[string]any{})
+	var contents map[string]any = ccxt.SafeMapTyped(message, "contents")
 	var fills any = this.SafeList(contents, "fills", []any{})
 	if !ccxt.IsEqual(fills, nil) {
 		this.HandleMyTrades(client, fills)

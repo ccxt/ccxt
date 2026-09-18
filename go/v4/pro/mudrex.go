@@ -263,7 +263,7 @@ func (this *Mudrex) HandleMessage(client any, message any) {
 	}
 }
 func (this *Mudrex) HandleErrorMessage(client any, message any) {
-	var error any = this.SafeDict(message, "error", map[string]any{})
+	var error map[string]any = ccxt.SafeMapTyped(message, "error")
 	var code *string = this.SafeString(error, "code")
 	var msg *string = this.SafeString(error, "msg")
 	var feedback any = ccxt.Add(this.Id+" ", msg)
@@ -280,7 +280,7 @@ func (this *Mudrex) HandleOHLCV(client any, message any) {
 	var parts []string = ccxt.Split(stream, "@")
 	var interval any = ccxt.GetValue(parts, 1)
 	var tf any = this.FindTimeframe(interval)
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var s *string = this.SafeString(data, "s")
 	if s == nil {
 		return

@@ -784,7 +784,7 @@ func (this *Coinspot) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	PanicOnError(response)
 	var id any = DerefScalar(this.SafeString(market, "id", ""))
 	id = ToLower(id)
-	var prices any = this.SafeDict(response, "prices", map[string]any{})
+	var prices map[string]any = SafeMapTyped(response, "prices")
 	//
 	//     {
 	//         "status":"ok",
@@ -850,14 +850,14 @@ func (this *Coinspot) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var result map[string]any = map[string]any{}
-	var prices any = this.SafeDict(response, "prices", map[string]any{})
+	var prices map[string]any = SafeMapTyped(response, "prices")
 	var ids []string = ObjectKeys(prices)
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
 		if IsEqual(GetValue(market, "spot"), true) {
 			var symbol any = GetValue(market, "symbol")
-			var ticker any = GetValue(prices, id)
+			var ticker any = prices[id]
 			AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 		}
 	}

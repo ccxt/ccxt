@@ -749,8 +749,8 @@ func (this *Bigone) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
-		var baseAsset any = this.SafeDict(market, "base_asset", map[string]any{})
-		var quoteAsset any = this.SafeDict(market, "quote_asset", map[string]any{})
+		var baseAsset map[string]any = SafeMapTyped(market, "base_asset")
+		var quoteAsset map[string]any = SafeMapTyped(market, "quote_asset")
 		var baseId *string = this.SafeString(baseAsset, "symbol")
 		var quoteId *string = this.SafeString(quoteAsset, "symbol")
 		var base *string = this.SafeCurrencyCode(baseId)
@@ -928,8 +928,8 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) any {
 	var marketId *string = this.SafeString2(ticker, "asset_pair_name", "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-", marketType)
 	var close *string = this.SafeString2(ticker, "close", "latestPrice")
-	var bid any = this.SafeDict(ticker, "bid", map[string]any{})
-	var ask any = this.SafeDict(ticker, "ask", map[string]any{})
+	var bid map[string]any = SafeMapTyped(ticker, "bid")
+	var ask map[string]any = SafeMapTyped(ticker, "ask")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -1137,7 +1137,7 @@ func (this *Bigone) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(data, "Timestamp")
 	if timestamp == nil {
 		panic(ExchangeError(this.Id + " fetchTime() missing timestamp"))
@@ -2042,7 +2042,7 @@ func (this *Bigone) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var cancelled any = this.SafeList(data, "cancelled", []any{})
 	var failed any = this.SafeList(data, "failed", []any{})
 	var result any = []any{}
@@ -2452,7 +2452,7 @@ func (this *Bigone) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	}
 	var chainsIndexedById map[string]any = this.IndexBy(data, "chain")
 	var selectedNetworkId any = this.SelectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById)
-	var addressObject any = this.SafeDict(chainsIndexedById, selectedNetworkId, map[string]any{})
+	var addressObject map[string]any = SafeMapTyped(chainsIndexedById, selectedNetworkId)
 	var address *string = this.SafeString(addressObject, "value")
 	var tag *string = this.SafeString(addressObject, "memo")
 	this.CheckAddress(address)
@@ -2741,7 +2741,7 @@ func (this *Bigone) transferBody(ch chan any, code any, amount any, fromAccount 
 		PanicOnError(retRes228112)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
@@ -2762,7 +2762,7 @@ func (this *Bigone) transferBody(ch chan any, code any, amount any, fromAccount 
 	//     }
 	//
 	var transfer any = this.ParseTransfer(response, currency)
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		AddElementToObject(transfer, "fromAccount", fromAccount)

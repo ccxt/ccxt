@@ -701,7 +701,7 @@ func (this *Bitrue) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 	if !ccxt.IsEqual(ccxt.GetValue(market, "swap"), true) {
 		panic(ccxt.NotSupported(this.Id + " watchOHLCV is only supported for swap markets"))
 	}
-	var futuresTimeframes any = this.SafeDict(this.Options, "futuresTimeframes", map[string]any{})
+	var futuresTimeframes map[string]any = ccxt.SafeMapTyped(this.Options, "futuresTimeframes")
 	var interval *string = this.SafeString(futuresTimeframes, timeframe)
 	if interval == nil {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id+" watchOHLCV does not support timeframe ", timeframe)))

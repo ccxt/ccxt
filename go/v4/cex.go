@@ -440,11 +440,11 @@ func (this *Cex) ParseCurrency(rawCurrency any) any {
 	}()
 	var currencyPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
 	var networks map[string]any = map[string]any{}
-	var rawNetworks any = this.SafeDict(rawCurrency, "blockchains", map[string]any{})
+	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "blockchains")
 	var keys []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(keys); j++ {
 		var networkId string = GetValue(keys, j).(string)
-		var rawNetwork any = GetValue(rawNetworks, networkId)
+		var rawNetwork any = rawNetworks[networkId]
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var deposit bool = IsEqual(this.SafeString(rawNetwork, "deposit"), "enabled")
 		var withdraw bool = IsEqual(this.SafeString(rawNetwork, "withdrawal"), "enabled")
@@ -634,7 +634,7 @@ func (this *Cex) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 
 	ch <- timestamp
@@ -831,7 +831,7 @@ func (this *Cex) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//                },
 	//                ... followed by older trades
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "trades", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -1065,7 +1065,7 @@ func (this *Cex) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//                },
 	//                ...
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var fees any = this.SafeDict(data, "tradingFee", map[string]any{})
 
 	ch <- this.ParseTradingFees(fees, true)
@@ -1147,7 +1147,7 @@ func (this *Cex) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var balances any = this.SafeDict(data, "balancesPerAccounts", map[string]any{})
 	var arrays []any = this.ToArray(balances)
 
@@ -1209,8 +1209,8 @@ func (this *Cex) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		//                    },
 		//                    ....
 		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var balances any = this.SafeDict(data, "balancesPerAccounts", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
+		var balances map[string]any = SafeMapTyped(data, "balancesPerAccounts")
 		accountBalance = this.SafeDict(balances, accountName, map[string]any{})
 	} else {
 
@@ -1241,7 +1241,7 @@ func (this *Cex) ParseBalance(response any) any {
 	var keys []string = ObjectKeys(response)
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var balance any = this.SafeDict(response, key, map[string]any{})
+		var balance map[string]any = SafeMapTyped(response, key)
 		var code *string = this.SafeCurrencyCode(key)
 		var account map[string]any = map[string]any{
 			"used":  this.SafeString(balance, "balanceOnHold"),
@@ -1811,7 +1811,7 @@ func (this *Cex) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var ids any = this.SafeList(data, "clientOrderIds", []any{})
 	var orders any = []any{}
 	for i := 0; i < GetArrayLength(ids); i++ {
@@ -2389,7 +2389,7 @@ func (this *Cex) HandleErrors(code any, reason any, url any, method any, headers
 	}
 	// check errors in order-engine (the responses are not standard, so we parse here)
 	if GetIndexOf(url, "do_my_new_order") >= 0 {
-		var data any = this.SafeDict(response, "data", map[string]any{})
+		var data map[string]any = SafeMapTyped(response, "data")
 		var rejectReason *string = this.SafeString(data, "rejectReason")
 		if rejectReason != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], rejectReason, rejectReason)

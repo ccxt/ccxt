@@ -401,11 +401,11 @@ func (this *Bitbns) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var quoteId *string = this.SafeString(market, "quote")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
-		var marketPrecision any = this.SafeDict(market, "precision", map[string]any{})
-		var marketLimits any = this.SafeDict(market, "limits", map[string]any{})
-		var amountLimits any = this.SafeDict(marketLimits, "amount", map[string]any{})
-		var priceLimits any = this.SafeDict(marketLimits, "price", map[string]any{})
-		var costLimits any = this.SafeDict(marketLimits, "cost", map[string]any{})
+		var marketPrecision map[string]any = SafeMapTyped(market, "precision")
+		var marketLimits map[string]any = SafeMapTyped(market, "limits")
+		var amountLimits map[string]any = SafeMapTyped(marketLimits, "amount")
+		var priceLimits map[string]any = SafeMapTyped(marketLimits, "price")
+		var costLimits map[string]any = SafeMapTyped(marketLimits, "cost")
 		var usdt bool = (quoteId != nil && *quoteId == "USDT")
 		// INR markets don't need a _INR prefix
 		var uppercaseId any = func() any {
@@ -660,7 +660,7 @@ func (this *Bitbns) ParseBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var keys []string = ObjectKeys(data)
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
@@ -1504,7 +1504,7 @@ func (this *Bitbns) ParseTransactionStatusByType(status any, optionalArgs ...any
 			"6": "ok",
 		},
 	}
-	var statuses any = this.SafeDict(statusesByType, typeVar, map[string]any{})
+	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bitbns) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -1620,7 +1620,7 @@ func (this *Bitbns) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	//         "error":null
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var address *string = this.SafeString(data, "token")
 	var tag *string = this.SafeString(data, "tag")
 	this.CheckAddress(address)

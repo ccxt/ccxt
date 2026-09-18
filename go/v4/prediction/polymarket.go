@@ -695,7 +695,7 @@ func (this *Polymarket) fetchRawEventsBySearchBody(ch chan any, queries any, opt
 		ccxt.PanicOnError(first)
 		var firstEvents any = this.SafeList(first, "events", []any{})
 		var firstEventsLength int = ccxt.GetArrayLength(firstEvents)
-		var pagination any = this.SafeDict(first, "pagination", map[string]any{})
+		var pagination map[string]any = ccxt.SafeMapTyped(first, "pagination")
 		var totalResults *int64 = this.SafeInteger(pagination, "totalResults", firstEventsLength)
 		var totalPages any = ccxt.MathCeil(ccxt.Divide(totalResults, pageSize))
 		// only page as far as `limit` needs (applyEventFetchParams slices to it afterwards)
@@ -1594,8 +1594,8 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var midpointData any = this.SafeDict(ticker, "midpoint", map[string]any{})
-	var bookData any = this.SafeDict(ticker, "book", map[string]any{})
+	var midpointData map[string]any = ccxt.SafeMapTyped(ticker, "midpoint")
+	var bookData map[string]any = ccxt.SafeMapTyped(ticker, "book")
 	var mid *float64 = this.SafeNumber(midpointData, "mid")
 	var bids any = this.SafeList(bookData, "bids", []any{})
 	var asks any = this.SafeList(bookData, "asks", []any{})
@@ -1618,7 +1618,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) a
 	// on the complementary token it is the OTHER side's price, so only the per-token
 	// last-trade-price endpoint value is usable here; that endpoint reports "0" for a
 	// never-traded token, which also falls back to the mid
-	var lastTradeData any = this.SafeDict(ticker, "lastTrade", map[string]any{})
+	var lastTradeData map[string]any = ccxt.SafeMapTyped(ticker, "lastTrade")
 	var last *float64 = this.SafeNumber(lastTradeData, "price")
 	if (last == nil) || (last != nil && *last == 0) {
 		last = mid
@@ -1966,7 +1966,7 @@ func (this *Polymarket) fetchOpenInterestBody(ch chan any, outcome any, optional
 
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
-	var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
+	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" fetchOpenInterest() requires outcome.info.conditionId for ", outcome)))
@@ -2091,7 +2091,7 @@ func (this *Polymarket) fetchTradesBody(ch chan any, outcome any, optionalArgs .
 	outcomeObj := (<-this.LoadOutcomeAsync(outcome))
 	ccxt.PanicOnError(outcomeObj)
 	var tokenId any = ccxt.GetValue(outcomeObj, "outcomeId")
-	var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
+	var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var conditionId *string = this.SafeString(outcomeInfo, "conditionId")
 	if conditionId == nil {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id+" fetchTrades() requires outcome.info.conditionId for an outcome ", tokenId)))
@@ -2217,7 +2217,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(trades); i++ {
 		var trade any = ccxt.GetValue(trades, i)
-		var info any = this.SafeDict(trade, "info", map[string]any{})
+		var info map[string]any = ccxt.SafeMapTyped(trade, "info")
 		var belongs bool = (ccxt.IsEqual(this.SafeString(trade, "order"), id)) || (ccxt.IsEqual(this.SafeString(info, "taker_order_id"), id))
 		var makerOrders any = this.SafeList(info, "maker_orders", []any{})
 		for j := 0; j < ccxt.GetArrayLength(makerOrders); j++ {
@@ -2427,7 +2427,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		var position any = ccxt.GetValue(parsed, i)
-		var info any = this.SafeDict(position, "info", map[string]any{})
+		var info map[string]any = ccxt.SafeMapTyped(position, "info")
 		var assetId *string = this.SafeString(info, "asset")
 		if (assetId != nil) && (ccxt.InOp(wantedIds, assetId)) {
 			ccxt.AppendToArray(&result, position)
@@ -2873,7 +2873,7 @@ func (this *Polymarket) BuildClobOrderBody(outcome any, typeVar any, side any, a
 	}
 	// tick size + neg-risk flag drive the rounding and the verifying contract; both are read from the
 	// outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
-	var outcomePrecision any = this.SafeDict(outcomeObj, "precision", map[string]any{})
+	var outcomePrecision map[string]any = ccxt.SafeMapTyped(outcomeObj, "precision")
 	var tickSize *string = this.SafeString(params, "tickSize", this.NumberToString(this.SafeNumber(outcomePrecision, "price", 0.01)))
 	var negRisk *bool = this.SafeBool(params, "negRisk", this.SafeBool(outcomeObj, "negRisk", false))
 	// maker-only: the CLOB rejects the order if it would immediately take
@@ -3244,7 +3244,7 @@ func (this *Polymarket) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	ccxt.PanicOnError(response)
 	// the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
 	// fields, so report the cancellation outcome explicitly rather than parsing an empty order
-	var notCanceled any = this.SafeDict(response, "not_canceled", map[string]any{})
+	var notCanceled map[string]any = ccxt.SafeMapTyped(response, "not_canceled")
 	var failureReason *string = this.SafeString(notCanceled, id)
 	var status any = func() any {
 		if failureReason == nil {
@@ -4616,7 +4616,7 @@ func (this *Polymarket) TokenIdToSymbol(tokenId any) any {
 	}
 	// safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
 	// but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)
-	var market any = this.SafeDict(this.Markets_by_id, tokenId)
+	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
 	return this.SafeString2(market, "market", "symbol")
 }
 func (this *Polymarket) ParsePolyTimestamp(raw any) any {

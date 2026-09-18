@@ -1474,7 +1474,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
-	var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+	var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var timestamp *int64 = this.SafeInteger(message, "timestamp")
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
@@ -1736,7 +1736,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), messageHash+"futures")
 	}
 	if !ccxt.IsEqual(flexFutures, nil) {
-		var flexFutureCurrencies any = this.SafeDict(flexFutures, "currencies", map[string]any{})
+		var flexFutureCurrencies map[string]any = ccxt.SafeMapTyped(flexFutures, "currencies")
 		var flexFuturesKeys []string = ccxt.ObjectKeys(flexFutureCurrencies) // multi-collateral margin account
 		var flexFuturesResult map[string]any = map[string]any{
 			"info":      message,

@@ -711,7 +711,7 @@ func (this *Digifinex) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 }
 func (this *Digifinex) ParseCurrency(rawCurrency any) any {
 	var networkEntries any = rawCurrency
-	var firstEntry any = this.SafeDict(networkEntries, 0, map[string]any{}) // it must have at least one entry
+	var firstEntry map[string]any = SafeMapTyped(networkEntries, 0) // it must have at least one entry
 	var id *string = this.SafeString(firstEntry, "currency")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}

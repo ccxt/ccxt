@@ -605,7 +605,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	var markets any = this.SafeList(response, "payload", []any{})
-	var currencies any = this.SafeDict(this.Options, "cachedCurrencies")
+	var currencies map[string]any = SafeMapTyped(this.Options, "cachedCurrencies")
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -649,7 +649,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"maker": makerFees,
 		}
 		fee["tiers"] = tiers
-		var baseCurrency any = this.SafeDict(currencies, base)
+		var baseCurrency map[string]any = SafeMapTyped(currencies, base)
 		AppendToArray(&result, this.SafeMarketStructure(this.Extend(map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(base, "/"), quote),
@@ -750,8 +750,8 @@ func (this *Bitso) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	//                         "type": "crypto"
 	//                     }, ...
 	//
-	var payload any = this.SafeDict(catalogues, "payload")
-	var currencies any = this.SafeDict(payload, "currencies")
+	var payload map[string]any = SafeMapTyped(catalogues, "payload")
+	var currencies map[string]any = SafeMapTyped(payload, "currencies")
 	var metadata any = this.SafeList(currencies, "metadata", []any{})
 
 	ch <- this.ParseCurrencies(metadata)
@@ -1449,7 +1449,7 @@ func (this *Bitso) createOrderBody(ch chan any, symbol any, typeVar any, side an
 
 	response := (<-this.PrivatePostOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var payload any = this.SafeDict(response, "payload", map[string]any{})
+	var payload map[string]any = SafeMapTyped(response, "payload")
 	var id *string = this.SafeString(payload, "oid")
 
 	ch <- this.SafeOrder(map[string]any{
@@ -1976,7 +1976,7 @@ func (this *Bitso) fetchDepositAddressBody(ch chan any, code any, optionalArgs .
 
 	response := (<-this.PrivateGetFundingDestination(this.Extend(request, params)))
 	PanicOnError(response)
-	var payload any = this.SafeDict(response, "payload", map[string]any{})
+	var payload map[string]any = SafeMapTyped(response, "payload")
 	var address *string = this.SafeString(payload, "account_identifier")
 	var tag any = nil
 	if GetIndexOf(address, "?dt=") >= 0 {

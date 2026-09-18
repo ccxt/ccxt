@@ -425,12 +425,12 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "status": true
 	//     }
 	//
-	var pairs any = this.SafeDict(response, "pairs", map[string]any{})
+	var pairs map[string]any = SafeMapTyped(response, "pairs")
 	var keys []string = ObjectKeys(pairs)
 	var result any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var market any = GetValue(pairs, key)
+		var market any = pairs[key]
 		var baseId *string = this.SafeString(market, "pair_base")
 		var quoteId *string = this.SafeString(market, "pair_2")
 		var base any = this.CommonCurrencyCode(ToUpper(baseId))
@@ -594,7 +594,7 @@ func (this *Hollaex) ParseCurrency(rawCurrency any) any {
 		}
 		return "other"
 	}()
-	var rawNetworks any = this.SafeDict(rawCurrency, "withdrawal_fees", map[string]any{})
+	var rawNetworks map[string]any = SafeMapTyped(rawCurrency, "withdrawal_fees")
 	var networks map[string]any = map[string]any{}
 	var networkIds []string = ObjectKeys(rawNetworks)
 	for j := 0; j < len(networkIds); j++ {

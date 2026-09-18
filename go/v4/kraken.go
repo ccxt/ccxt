@@ -748,7 +748,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var markets any = this.SafeDict(assetsResponse, "result", map[string]any{})
+	var markets map[string]any = SafeMapTyped(assetsResponse, "result")
 	var cachedCurrencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
 	var keys []string = ObjectKeys(markets)
 	var result any = []any{}
@@ -758,7 +758,7 @@ func (this *Kraken) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if GetIndexOf(id, ":BTNL") >= 0 {
 			isSynthetic = true
 		}
-		var market any = GetValue(markets, id)
+		var market any = markets[id]
 		var baseIdRaw *string = this.SafeString(market, "base")
 		var quoteIdRaw *string = this.SafeString(market, "quote")
 		var baseId *string = this.SafeCurrencyCode(baseIdRaw)
@@ -894,7 +894,7 @@ func (this *Kraken) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
 	// }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 	var statusRaw *string = this.SafeString(result, "status")
 
 	ch <- map[string]any{
@@ -1336,14 +1336,14 @@ func (this *Kraken) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
 	PanicOnError(response)
-	var tickers any = this.SafeDict(response, "result", map[string]any{})
+	var tickers map[string]any = SafeMapTyped(response, "result")
 	var ids []string = ObjectKeys(tickers)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(ids); i++ {
 		var id string = GetValue(ids, i).(string)
 		var market any = this.SafeMarket(id)
 		var symbol any = GetValue(market, "symbol")
-		var ticker any = GetValue(tickers, id)
+		var ticker any = tickers[id]
 		AddElementToObject(result, symbol, this.ParseTicker(ticker, market))
 	}
 
@@ -1382,7 +1382,7 @@ func (this *Kraken) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any
 
 	response := (<-this.PublicGetTicker(this.Extend(request, params)))
 	PanicOnError(response)
-	var tickerResult any = this.SafeDict(response, "result", map[string]any{})
+	var tickerResult map[string]any = SafeMapTyped(response, "result")
 	var ticker any = this.SafeValue(tickerResult, GetValue(market, "id"))
 
 	ch <- this.ParseTicker(ticker, market)
@@ -1621,12 +1621,12 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//                                                    "fee": "0.0050000000",
 	//                                                "balance": "0.0000051000"           },
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var ledger any = this.SafeDict(result, "ledger", map[string]any{})
+	var ledger map[string]any = SafeMapTyped(result, "ledger")
 	var keys []string = ObjectKeys(ledger)
 	var items any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var value any = GetValue(ledger, key)
+		var value any = ledger[key]
 		AddElementToObject(value, "id", key)
 		AppendToArray(&items, value)
 	}
@@ -1668,12 +1668,12 @@ func (this *Kraken) fetchLedgerEntriesByIdsBody(ch chan any, ids any, optionalAr
 	//                                       "amount": "-0.2805800000",
 	//                                          "fee": "0.0050000000",
 	//                                      "balance": "0.0000051000"           } } }
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var keys []string = ObjectKeys(result)
 	var items any = []any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var value any = GetValue(result, key)
+		var value any = result[key]
 		AddElementToObject(value, "id", key)
 		AppendToArray(&items, value)
 	}
@@ -1925,7 +1925,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeValue(result, id)
 	// trades is a sorted array: last (most recent trade) goes last
 	var length int = GetArrayLength(trades)
@@ -1943,7 +1943,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	return nil
 }
 func (this *Kraken) ParseBalance(response any) any {
-	var balances any = this.SafeDict(response, "result", map[string]any{})
+	var balances map[string]any = SafeMapTyped(response, "result")
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -2236,7 +2236,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	//       ]
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 
 	ch <- this.ParseOrders(this.SafeList(result, "orders"))
 	return nil
@@ -2412,7 +2412,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var isUsingCost *bool = this.SafeBool(order, "usingCost", false)
 	order = this.Omit(order, "usingCost")
-	var description any = this.SafeDict(order, "descr", map[string]any{})
+	var description map[string]any = SafeMapTyped(order, "descr")
 	var orderDescriptionObj any = this.SafeDict(order, "descr") // can be null
 	var orderDescription any = nil
 	if !IsEqual(orderDescriptionObj, nil) {
@@ -3066,12 +3066,12 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 		"txid":   Join(ids, ","),
 	}, params)))
 	PanicOnError(response)
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var orders any = []any{}
 	var orderIds []string = ObjectKeys(result)
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
-		var item any = GetValue(result, id)
+		var item any = result[id]
 		var order any = this.ParseOrder(this.Extend(map[string]any{
 			"id": id,
 		}, item))
@@ -3157,7 +3157,7 @@ func (this *Kraken) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         },
 	//     }
 	//
-	var tradesResult any = this.SafeDict(response, "result", map[string]any{})
+	var tradesResult map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeDict(tradesResult, "trades", map[string]any{})
 	var ids []string = ObjectKeys(trades)
 	for i := 0; i < len(ids); i++ {
@@ -3486,13 +3486,13 @@ func (this *Kraken) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var result any = this.SafeDict(response, "result", map[string]any{})
-	var open any = this.SafeDict(result, "open", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
+	var open map[string]any = SafeMapTyped(result, "open")
 	var orders any = []any{}
 	var orderIds []string = ObjectKeys(open)
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
-		var item any = GetValue(open, id)
+		var item any = open[id]
 		AppendToArray(&orders, this.Extend(map[string]any{
 			"id": id,
 		}, item))
@@ -3600,13 +3600,13 @@ func (this *Kraken) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any 
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var result any = this.SafeDict(response, "result", map[string]any{})
-	var closed any = this.SafeDict(result, "closed", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
+	var closed map[string]any = SafeMapTyped(result, "closed")
 	var orders any = []any{}
 	var orderIds []string = ObjectKeys(closed)
 	for i := 0; i < len(orderIds); i++ {
 		var id string = GetValue(orderIds, i).(string)
-		var item any = GetValue(closed, id)
+		var item any = closed[id]
 		AppendToArray(&orders, this.Extend(map[string]any{
 			"id": id,
 		}, item))

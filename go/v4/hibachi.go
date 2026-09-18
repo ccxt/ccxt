@@ -562,8 +562,8 @@ func (this *Hibachi) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *Hibachi) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var prices any = this.SafeDict(ticker, "prices")
-	var stats any = this.SafeDict(ticker, "stats")
+	var prices map[string]any = SafeMapTyped(ticker, "prices")
+	var stats map[string]any = SafeMapTyped(ticker, "stats")
 	var bid *float64 = this.SafeNumber(prices, "bidPrice")
 	var ask *float64 = this.SafeNumber(prices, "askPrice")
 	var last *float64 = this.SafeNumber(prices, "tradePrice")
@@ -994,7 +994,7 @@ func (this *Hibachi) OrderMessage(market any, nonce any, feeRate any, typeVar an
 	// - FeeRate: Internal = External * (10^8)
 	var amountStr any = this.AmountToPrecision(this.SafeString(market, "symbol"), amount)
 	var feeRateStr *string = this.NumberToString(feeRate)
-	var info any = this.SafeDict(market, "info")
+	var info map[string]any = SafeMapTyped(market, "info")
 	var underlying any = Add("1e", this.SafeString(info, "underlyingDecimals"))
 	var settlement any = Add("1e", this.SafeString(info, "settlementDecimals"))
 	var one string = "1"
@@ -1587,7 +1587,7 @@ func (this *Hibachi) withdrawBody(ch chan any, code any, amount any, address any
 	//          "withdrawalFees": "0.012050"
 	//    },
 	// }
-	var feeConfig any = this.SafeDict(exchangeInfo, "feeConfig")
+	var feeConfig map[string]any = SafeMapTyped(exchangeInfo, "feeConfig")
 	var maxFees *float64 = this.SafeNumber(feeConfig, "withdrawalFees")
 	// Generate the signature
 	var message any = this.EncodeWithdrawMessage(amount, maxFees, withdrawAddress)

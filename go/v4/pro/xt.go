@@ -169,7 +169,7 @@ func (this *Xt) getListenKeyBody(ch chan any, isContract any) any {
 					//        }
 					//    }
 					//
-					var result any = this.SafeDict(response, "result")
+					var result map[string]any = ccxt.SafeMapTyped(response, "result")
 					listenKey = ccxt.DerefScalar(this.SafeString(result, "accessToken"))
 				}
 				if ccxt.IsEqual(listenKey, nil) {
@@ -1119,7 +1119,7 @@ func (this *Xt) HandleFundingRate(client any, message any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data")
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "s")
 	if marketId != nil {
 		var raw map[string]any = map[string]any{
@@ -1382,7 +1382,7 @@ func (this *Xt) HandleTickers(client any, message any) any {
 	//    }
 	//
 	var data any = this.SafeList(message, "data", []any{})
-	var firstTicker any = this.SafeDict(data, 0)
+	var firstTicker map[string]any = ccxt.SafeMapTyped(data, 0)
 	var spotTest *string = this.SafeString2(firstTicker, "cv", "aq")
 	var tradeType any = func() any {
 		if spotTest != nil {
@@ -1615,7 +1615,7 @@ func (this *Xt) HandleOrderBook(client any, message any) {
 		var obBids any = this.SafeList(data, "b")
 		var messageHash any = ccxt.Add(ccxt.Add(event, "::"), tradeType)
 		if !(ccxt.InOp(this.Orderbooks, symbol)) {
-			var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
+			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 			var limit *int64 = this.SafeInteger(subscription, "limit")
 			ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		}

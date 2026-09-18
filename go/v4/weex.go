@@ -2001,8 +2001,8 @@ func (this *Weex) fetchContractOHLCVBody(ch chan any, symbol any, optionalArgs .
 	var historicalparamsVariable []any = this.HandleOptionAndParams(params, "fetchOHLCV", "historical")
 	historical = GetValue(historicalparamsVariable, 0)
 	params = GetValue(historicalparamsVariable, 1)
-	var timeframeOption any = this.SafeDict(this.Options, "timeframes", map[string]any{})
-	var contractTimeframes any = this.SafeDict(timeframeOption, "contract", map[string]any{})
+	var timeframeOption map[string]any = SafeMapTyped(this.Options, "timeframes")
+	var contractTimeframes map[string]any = SafeMapTyped(timeframeOption, "contract")
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
@@ -2598,7 +2598,7 @@ func (this *Weex) ParseBalance(response any) any {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var balances any = this.SafeList(response, "balances", response)
 	for i := 0; i < GetArrayLength(balances); i++ {
-		var entry any = this.SafeDict(balances, i)
+		var entry map[string]any = SafeMapTyped(balances, i)
 		var currencyId any = DerefScalar(this.SafeString(entry, "asset"))
 		if (sandboxMode != nil && *sandboxMode == true) && (IsEqual(currencyId, "SUSDT")) {
 			currencyId = "USDT" // demo trading balances are denominated in the demo asset SUSDT
@@ -4370,7 +4370,7 @@ func (this *Weex) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var accountTypeparamsVariable []any = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	accountType = GetValue(accountTypeparamsVariable, 0)
 	params = GetValue(accountTypeparamsVariable, 1)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	accountType = DerefScalar(this.SafeString(accountsByType, accountType, accountType))
 	var request any = map[string]any{}
 	var items any = nil
@@ -5397,7 +5397,7 @@ func (this *Weex) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.ContractPrivateGetCapiV3AccountSymbolConfig(this.Extend(request, params)))
 	PanicOnError(response)
-	var entry any = this.SafeDict(response, 0, map[string]any{})
+	var entry map[string]any = SafeMapTyped(response, 0)
 	var separatedType *string = this.SafeString(entry, "separatedType")
 
 	ch <- map[string]any{

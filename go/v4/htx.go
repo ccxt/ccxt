@@ -8649,7 +8649,7 @@ func (this *Htx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var id *string = this.SafeString2(transfer, "transfer_id", "data")
 	var currencyId *string = this.SafeString(transfer, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -9686,10 +9686,10 @@ func (this *Htx) HandleErrors(httpCode any, reason any, url any, method any, hea
 		var code *string = this.SafeString(response, "code")
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, feedback)
 	}
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 	var errorsList any = this.SafeList(data, "errors")
 	if !IsEqual(errorsList, nil) {
-		var first any = this.SafeDict(errorsList, 0)
+		var first map[string]any = SafeMapTyped(errorsList, 0)
 		var errcode *string = this.SafeString(first, "err_code")
 		var errmessage *string = this.SafeString(first, "err_msg")
 		var feedBack any = Add(this.Id+" ", body)

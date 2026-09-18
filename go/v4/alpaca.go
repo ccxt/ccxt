@@ -1006,7 +1006,7 @@ func (this *Alpaca) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 	//       }
 	//   }
 	//
-	var orderbooks any = this.SafeDict(response, "orderbooks", map[string]any{})
+	var orderbooks map[string]any = SafeMapTyped(response, "orderbooks")
 	var rawOrderbook any = this.SafeDict(orderbooks, id, map[string]any{})
 	var timestamp *int64 = this.Parse8601(this.SafeString(rawOrderbook, "t"))
 
@@ -1320,16 +1320,16 @@ func (this *Alpaca) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var results any = []any{}
-	var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
+	var snapshots map[string]any = SafeMapTyped(response, "snapshots")
 	var marketIds []string = ObjectKeys(snapshots)
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = GetValue(marketIds, i).(string)
 		var market any = this.SafeMarket(marketId)
 		var entry any = this.SafeDict(snapshots, marketId)
-		var dailyBar any = this.SafeDict(entry, "dailyBar", map[string]any{})
-		var prevDailyBar any = this.SafeDict(entry, "prevDailyBar", map[string]any{})
-		var latestQuote any = this.SafeDict(entry, "latestQuote", map[string]any{})
-		var latestTrade any = this.SafeDict(entry, "latestTrade", map[string]any{})
+		var dailyBar map[string]any = SafeMapTyped(entry, "dailyBar")
+		var prevDailyBar map[string]any = SafeMapTyped(entry, "prevDailyBar")
+		var latestQuote map[string]any = SafeMapTyped(entry, "latestQuote")
+		var latestTrade map[string]any = SafeMapTyped(entry, "latestTrade")
 		var datetime *string = this.SafeString(latestQuote, "t")
 		var ticker any = this.SafeTicker(map[string]any{
 			"info":          entry,

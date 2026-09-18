@@ -3219,7 +3219,7 @@ func (this *Bydfi) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
 	//         "success": true
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var hedged bool = IsEqual(this.SafeString(data, "positionType"), "HEDGE")
 
 	ch <- map[string]any{
@@ -3377,7 +3377,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
 		PanicOnError(retRes264312)
 	}
 	var currency any = this.Currency(code)
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
 	var request map[string]any = map[string]any{
@@ -3397,7 +3397,7 @@ func (this *Bydfi) transferBody(ch chan any, code any, amount any, fromAccount a
 	//     }
 	//
 	var transfer any = this.ParseTransfer(response, currency)
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		var timestamp int64 = this.Milliseconds()
@@ -3533,7 +3533,7 @@ func (this *Bydfi) ParseTransfer(transfer any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var status *string = this.SafeStringUpper2(transfer, "message", "status")
-	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var accountsById map[string]any = SafeMapTyped(this.Options, "accountsById")
 	var fromId *string = this.SafeStringUpper(transfer, "sourceWallet")
 	var toId *string = this.SafeStringUpper(transfer, "targetWallet")
 	var fromAccount *string = this.SafeString(accountsById, fromId, fromId)

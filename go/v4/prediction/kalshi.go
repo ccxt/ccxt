@@ -835,7 +835,7 @@ func (this *Kalshi) ParseMarket(raw any) any {
 	// e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
 	// used tick_size (in cents). amount is a whole number of contracts
 	var priceRanges any = this.SafeList(raw, "price_ranges", []any{})
-	var firstRange any = this.SafeDict(priceRanges, 0, map[string]any{})
+	var firstRange map[string]any = ccxt.SafeMapTyped(priceRanges, 0)
 	var stepDollars *string = this.SafeString(firstRange, "step")
 	var pricePrecision any = this.ParseNumber(ccxt.Precise.StringDiv(this.SafeString(raw, "tick_size", "1"), "100"))
 	if stepDollars != nil {
@@ -1637,7 +1637,7 @@ func (this *Kalshi) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ...any
 	var usableCandles any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
-		var priceObj any = this.SafeDict(candle, "price", map[string]any{})
+		var priceObj map[string]any = ccxt.SafeMapTyped(candle, "price")
 		var openPrice *float64 = this.SafeNumber(priceObj, "open_dollars")
 		var previousPrice *float64 = this.SafeNumber(priceObj, "previous_dollars")
 		if (openPrice != nil) || (previousPrice != nil) {
@@ -1693,7 +1693,7 @@ func (this *Kalshi) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var price any = this.SafeDict(ohlcv, "price", map[string]any{})
+	var price map[string]any = ccxt.SafeMapTyped(ohlcv, "price")
 	// no-trade periods carry only previous_dollars (last trade price) → flat candle
 	var previous *float64 = this.SafeNumber(price, "previous_dollars")
 	// the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
@@ -1787,7 +1787,7 @@ func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	var rawSide *string = this.SafeStringLower(trade, "taker_side")
 	var marketAny any = market
 	var outcomeObj any = this.SafeOutcome(this.SafeString(marketAny, "outcome"), marketAny)
-	var marketInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
+	var marketInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 	var requestedOutcomeLabel *string = this.SafeStringLower(outcomeObj, "label", this.SafeStringLower(marketInfo, "outcomeLabel"))
 	var outcomeSymbol *string = this.SafeString(outcomeObj, "outcome")
 	var outcomeId *string = this.SafeString2(outcomeObj, "outcomeId", "id")
@@ -2096,7 +2096,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	}
 	for i := 0; i < ccxt.GetArrayLength(outcomes); i++ {
 		var outcomeObj any = this.Outcome(ccxt.GetValue(outcomes, i))
-		var outcomeInfo any = this.SafeDict(outcomeObj, "info", map[string]any{})
+		var outcomeInfo map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
 		var marketTicker *string = this.SafeString(outcomeInfo, "ticker")
 		if marketTicker != nil {
 			ccxt.AddElementToObject(wantedTickers, marketTicker, true)
@@ -2105,7 +2105,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(parsed); i++ {
 		var position any = ccxt.GetValue(parsed, i)
-		var positionInfo any = this.SafeDict(position, "info", map[string]any{})
+		var positionInfo map[string]any = ccxt.SafeMapTyped(position, "info")
 		var positionTicker *string = this.SafeString(positionInfo, "ticker")
 		if (positionTicker != nil) && (ccxt.InOp(wantedTickers, positionTicker)) {
 			ccxt.AppendToArray(&result, position)

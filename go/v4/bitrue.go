@@ -1104,8 +1104,8 @@ func (this *Bitrue) ParseMarket(market any) any {
 	var filters any = this.SafeList(market, "filters", []any{})
 	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var status *string = this.SafeString(market, "status")
-	var priceFilter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
-	var amountFilter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
+	var priceFilter map[string]any = SafeMapTyped(filtersByType, "PRICE_FILTER")
+	var amountFilter map[string]any = SafeMapTyped(filtersByType, "LOT_SIZE")
 	var defaultPricePrecision *string = this.SafeString(market, "pricePrecision")
 	var defaultAmountPrecision *string = this.SafeString(market, "quantityPrecision")
 	var pricePrecision *string = this.SafeString(priceFilter, "priceScale", defaultPricePrecision)
@@ -1601,11 +1601,11 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		PanicOnError(retRes146612)
 	}
 	var market any = this.Market(symbol)
-	var timeframes any = this.SafeDict(this.Options, "timeframes", map[string]any{})
+	var timeframes map[string]any = SafeMapTyped(this.Options, "timeframes")
 	var response any = nil
 	var data any = []any{}
 	if IsEqual(GetValue(market, "swap"), true) {
-		var timeframesFuture any = this.SafeDict(timeframes, "future", map[string]any{})
+		var timeframesFuture map[string]any = SafeMapTyped(timeframes, "future")
 		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 			"interval":     this.SafeString(timeframesFuture, timeframe, "1min"),
@@ -1624,7 +1624,7 @@ func (this *Bitrue) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 		}
 		data = response
 	} else if IsEqual(GetValue(market, "spot"), true) {
-		var timeframesSpot any = this.SafeDict(timeframes, "spot", map[string]any{})
+		var timeframesSpot map[string]any = SafeMapTyped(timeframes, "spot")
 		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"scale":  this.SafeString(timeframesSpot, timeframe, "1m"),
@@ -3187,7 +3187,7 @@ func (this *Bitrue) ParseTransactionStatusByType(status any, optionalArgs ...any
 			"6": "canceled",
 		},
 	}
-	var statuses any = this.SafeDict(statusesByType, typeVar, map[string]any{})
+	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bitrue) ParseTransaction(transaction any, optionalArgs ...any) any {
@@ -3634,7 +3634,7 @@ func (this *Bitrue) transferBody(ch chan any, code any, amount any, fromAccount 
 		PanicOnError(retRes313612)
 	}
 	var currency any = this.Currency(code)
-	var accountTypes any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountTypes map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountTypes, toAccount, toAccount)
 	var request map[string]any = map[string]any{

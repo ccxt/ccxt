@@ -386,7 +386,7 @@ func (this *Toobit) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes a
 	}
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1")
 	var messageHashes any = []any{}
-	var timeframes any = this.SafeDict(ccxt.GetValue(this.Options, "ws"), "timeframes", map[string]any{})
+	var timeframes map[string]any = ccxt.SafeMapTyped(ccxt.GetValue(this.Options, "ws"), "timeframes")
 	var marketIds any = []any{}
 	var selectedTimeframe any = nil
 	for i := 0; i < ccxt.GetArrayLength(symbolsAndTimeframes); i++ {
@@ -450,7 +450,7 @@ func (this *Toobit) HandleOHLCV(client any, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.Market(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var params any = this.SafeDict(message, "params", map[string]any{})
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var timeframeId *string = this.SafeString(params, "klineType")
 	var timeframe any = this.FindTimeframe(timeframeId)
 	if !(ccxt.InOp(this.Ohlcvs, symbol)) {

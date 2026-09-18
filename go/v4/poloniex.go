@@ -4396,7 +4396,7 @@ func (this *Poloniex) fetchPositionModeBody(ch chan any, optionalArgs ...any) an
 	//        }
 	//    }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var posMode *string = this.SafeString(data, "posMode")
 	var hedged bool = (posMode != nil && *posMode == "HEDGE")
 

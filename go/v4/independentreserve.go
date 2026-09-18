@@ -1460,8 +1460,8 @@ func (this *Independentreserve) ParseTransaction(transaction any, optionalArgs .
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var amount any = this.SafeDict(transaction, "Amount")
-	var destination any = this.SafeDict(transaction, "Destination")
+	var amount map[string]any = SafeMapTyped(transaction, "Amount")
+	var destination map[string]any = SafeMapTyped(transaction, "Destination")
 	var currencyId *string = this.SafeString(transaction, "PrimaryCurrencyCode")
 	var datetime *string = this.SafeString(transaction, "CreatedTimestampUtc")
 	var address *string = this.SafeString(destination, "Address")

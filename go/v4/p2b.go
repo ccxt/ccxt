@@ -404,7 +404,7 @@ func (this *P2b) ParseMarket(market any) any {
 	var quoteId *string = this.SafeString(market, "money")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
-	var limits any = this.SafeDict(market, "limits")
+	var limits map[string]any = SafeMapTyped(market, "limits")
 	var maxAmount *string = this.SafeString(limits, "max_amount")
 	var maxPrice *string = this.SafeString(limits, "max_price")
 	return map[string]any{

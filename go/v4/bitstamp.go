@@ -2153,7 +2153,7 @@ func (this *Bitstamp) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "market")
-	var fees any = this.SafeDict(fee, "fees", map[string]any{})
+	var fees map[string]any = SafeMapTyped(fee, "fees")
 	return map[string]any{
 		"info":       fee,
 		"symbol":     this.SafeSymbol(marketId, market),

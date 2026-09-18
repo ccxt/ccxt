@@ -1199,9 +1199,9 @@ func (this *Hashkey) ParseMarket(market any) any {
 	}
 	var filtersList any = this.SafeList(market, "filters", []any{})
 	var filters map[string]any = this.IndexBy(filtersList, "filterType")
-	var priceFilter any = this.SafeDict(filters, "PRICE_FILTER", map[string]any{})
-	var amountFilter any = this.SafeDict(filters, "LOT_SIZE", map[string]any{})
-	var costFilter any = this.SafeDict(filters, "MIN_NOTIONAL", map[string]any{})
+	var priceFilter map[string]any = SafeMapTyped(filters, "PRICE_FILTER")
+	var amountFilter map[string]any = SafeMapTyped(filters, "LOT_SIZE")
+	var costFilter map[string]any = SafeMapTyped(filters, "MIN_NOTIONAL")
 	var minCostString any = this.OmitZero(this.SafeString(costFilter, "min_notional"))
 	var contractSizeString *string = this.SafeString(market, "contractMultiplier")
 	var amountPrecisionString *string = this.SafeString(amountFilter, "stepSize")
@@ -1215,9 +1215,9 @@ func (this *Hashkey) ParseMarket(market any) any {
 		amountMaxLimitString = Precise.StringDiv(amountMaxLimitString, contractSizeString)
 		var riskLimits any = this.SafeList(market, "riskLimits")
 		if !IsEqual(riskLimits, nil) {
-			var first any = this.SafeDict(riskLimits, 0)
+			var first map[string]any = SafeMapTyped(riskLimits, 0)
 			var arrayLength int = GetArrayLength(riskLimits)
-			var last any = this.SafeDict(riskLimits, Subtract(arrayLength, 1))
+			var last map[string]any = SafeMapTyped(riskLimits, Subtract(arrayLength, 1))
 			var minInitialMargin any = DerefScalar(this.SafeString(first, "initialMargin"))
 			var maxInitialMargin any = DerefScalar(this.SafeString(last, "initialMargin"))
 			if Precise.StringGt(minInitialMargin, maxInitialMargin) {
@@ -1229,7 +1229,7 @@ func (this *Hashkey) ParseMarket(market any) any {
 			maxLeverage = this.ParseToInt(Precise.StringDiv("1", minInitialMargin))
 		}
 	}
-	var tradingFees any = this.SafeDict(this.Fees, "trading")
+	var tradingFees map[string]any = SafeMapTyped(this.Fees, "trading")
 	var fees any = func() any {
 		if isSpot {
 			return this.SafeDict(tradingFees, "spot")
@@ -3385,7 +3385,7 @@ func (this *Hashkey) createOrdersBody(ch chan any, orders any, optionalArgs ...a
 	var result any = this.SafeList(response, "result", []any{})
 	var responseOrders any = []any{}
 	for i := 0; i < GetArrayLength(result); i++ {
-		var responseEntry any = this.SafeDict(result, i, map[string]any{})
+		var responseEntry map[string]any = SafeMapTyped(result, i)
 		var responseOrder any = this.SafeDict(responseEntry, "order", map[string]any{})
 		AppendToArray(&responseOrders, responseOrder)
 	}
@@ -5251,7 +5251,7 @@ func (this *Hashkey) HandleErrors(code any, reason any, url any, method any, hea
 	if responseCodeInteger != nil && *responseCodeInteger == 0 {
 		var result any = this.SafeList(response, "result", []any{}) // for batch methods
 		for i := 0; i < GetArrayLength(result); i++ {
-			var entry any = this.SafeDict(result, i)
+			var entry map[string]any = SafeMapTyped(result, i)
 			var entryCodeInteger *int64 = this.SafeInteger(entry, "code")
 			if entryCodeInteger == nil || *entryCodeInteger != 0 {
 				errorInArray = true

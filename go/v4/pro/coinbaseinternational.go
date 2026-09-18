@@ -722,7 +722,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan any, symbol
 	trades := (<-this.SubscribeMultipleAsync("MATCH", symbols, params))
 	ccxt.PanicOnError(trades)
 	if ccxt.EvalTruthy(this.NewUpdates) {
-		var first any = this.SafeDict(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}

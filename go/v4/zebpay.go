@@ -465,7 +465,7 @@ func (this *Zebpay) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var promisesUnresolved any = []any{}
-	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
+	var fetchMarketsOptions map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var defaultMarkets []any = []any{"spot", "swap"}
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultMarkets)
 	for i := 0; i < GetArrayLength(types); i++ {
@@ -1186,7 +1186,7 @@ func (this *Zebpay) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateSwapGetV1TradeHistory(params))
 		PanicOnError(response)
 	}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var items any = this.SafeList(data, "items", []any{})
 
 	ch <- this.ParseTrades(items, market, since, limit)
@@ -2231,7 +2231,7 @@ func (this *Zebpay) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var result any = []any{}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)
@@ -2322,7 +2322,7 @@ func (this *Zebpay) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var result any = []any{}
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var markets any = this.SafeList(data, "symbols", []any{})
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market any = GetValue(markets, i)

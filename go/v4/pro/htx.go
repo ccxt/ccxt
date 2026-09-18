@@ -1000,7 +1000,7 @@ func (this *Htx) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "ch")
-	var tick any = this.SafeDict(message, "tick")
+	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
 	var event *string = this.SafeString(tick, "event")
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
@@ -2383,7 +2383,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 			return
 		}
 		if topic != nil && *topic == "account" {
-			var accountData any = this.SafeDict(message, "data", map[string]any{})
+			var accountData map[string]any = ccxt.SafeMapTyped(message, "data")
 			var details any = this.SafeList(accountData, "details", []any{})
 			var detailsLength int = ccxt.GetArrayLength(details)
 			for i := 0; i < detailsLength; i++ {

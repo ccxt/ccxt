@@ -908,7 +908,7 @@ func (this *Cryptocom) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//        }
 	//    }
 	//
-	var resultData any = this.SafeDict(response, "result", map[string]any{})
+	var resultData map[string]any = SafeMapTyped(response, "result")
 	var currencyMap any = this.SafeDict(resultData, "currency_map", map[string]any{})
 	var enhancedArray any = this.AddKeyInArrayItems(currencyMap, "_coin_id")
 
@@ -1072,7 +1072,7 @@ func (this *Cryptocom) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var resultResponse any = this.SafeDict(response, "result", map[string]any{})
+	var resultResponse map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(resultResponse, "data", []any{})
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(data); i++ {
@@ -1271,7 +1271,7 @@ func (this *Cryptocom) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParseTickers(data, symbols)
@@ -1415,7 +1415,7 @@ func (this *Cryptocom) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(data, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -1503,7 +1503,7 @@ func (this *Cryptocom) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -1605,7 +1605,7 @@ func (this *Cryptocom) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
@@ -1667,7 +1667,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 	var orderBook any = this.SafeValue(data, 0)
 	var timestamp *int64 = this.SafeInteger(orderBook, "t")
@@ -1676,7 +1676,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	return nil
 }
 func (this *Cryptocom) ParseBalance(response any) any {
-	var responseResult any = this.SafeDict(response, "result", map[string]any{})
+	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(responseResult, "data", []any{})
 	var positionBalances any = this.SafeList(GetValue(data, 0), "position_balances", []any{})
 	var result map[string]any = map[string]any{
@@ -2585,7 +2585,7 @@ func (this *Cryptocom) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var orders any = this.SafeList(data, "data", []any{})
 
 	ch <- this.ParseOrders(orders, market, since, limit)
@@ -2686,7 +2686,7 @@ func (this *Cryptocom) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var trades any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -2832,7 +2832,7 @@ func (this *Cryptocom) fetchDepositAddressesByNetworkBody(ch chan any, code any,
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var addresses any = this.SafeList(data, "deposit_address_list", []any{})
 	var addressesLength int = GetArrayLength(addresses)
 	if addressesLength == 0 {
@@ -2977,7 +2977,7 @@ func (this *Cryptocom) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var depositList any = this.SafeList(data, "deposit_list", []any{})
 
 	ch <- this.ParseTransactions(depositList, currency, since, limit)
@@ -3062,7 +3062,7 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "result", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "result")
 	var withdrawalList any = this.SafeList(data, "withdrawal_list", []any{})
 
 	ch <- this.ParseTransactions(withdrawalList, currency, since, limit)
@@ -3649,7 +3649,7 @@ func (this *Cryptocom) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var ledger any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParseLedger(ledger, currency, since, limit)
@@ -3795,7 +3795,7 @@ func (this *Cryptocom) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var masterAccount any = this.SafeDict(result, "master_account", map[string]any{})
 	var accounts any = this.SafeList(result, "sub_account_list", []any{})
 	AppendToArray(&accounts, masterAccount)
@@ -3905,7 +3905,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 	var settlements any = this.ParseSettlements(data, market)
 	var sorted []any = this.SortBy(settlements, "timestamp")
@@ -4002,7 +4002,7 @@ func (this *Cryptocom) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 	var entry any = this.SafeDict(data, 0, map[string]any{})
 
@@ -4131,7 +4131,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 	var marketId *string = this.SafeString(result, "instrument_name")
 	var rates any = []any{}
@@ -4205,7 +4205,7 @@ func (this *Cryptocom) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	//         }
 	//     }
 	//
-	var result any = this.SafeDict(response, "result", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "result")
 	var data any = this.SafeList(result, "data", []any{})
 
 	ch <- this.ParsePosition(this.SafeDict(data, 0), market)
@@ -4280,7 +4280,7 @@ func (this *Cryptocom) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	//         }
 	//     }
 	//
-	var responseResult any = this.SafeDict(response, "result", map[string]any{})
+	var responseResult map[string]any = SafeMapTyped(response, "result")
 	var positions any = this.SafeList(responseResult, "data", []any{})
 	var result any = []any{}
 	for i := 0; i < GetArrayLength(positions); i++ {

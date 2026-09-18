@@ -202,7 +202,7 @@ func (this *Nado) watchTradesForSymbolsBody(ch chan any, symbols any, optionalAr
 	trades := (<-this.WatchPublicMultipleAsync("trade", markets, messageHashes, params))
 	ccxt.PanicOnError(trades)
 	if ccxt.EvalTruthy(this.NewUpdates) {
-		var first any = this.SafeDict(trades, 0)
+		var first map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var tradeSymbol *string = this.SafeString(first, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
@@ -1372,7 +1372,7 @@ func (this *Nado) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, 
 	//         "id": 100
 	//     }
 	//
-	var cancelAndPlace any = this.SafeDict(request, "cancel_and_place", map[string]any{})
+	var cancelAndPlace map[string]any = ccxt.SafeMapTyped(request, "cancel_and_place")
 	var placeOrder any = this.SafeDict(cancelAndPlace, "place_order", map[string]any{})
 
 	ch <- this.ParseOrder(this.Extend(map[string]any{
@@ -1477,7 +1477,7 @@ func (this *Nado) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) 
 	//         "id": 100
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(cancelledOrders); i++ {
@@ -1539,7 +1539,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.WatchExecuteRequestAsync(requestIdString, request))
 	ccxt.PanicOnError(response)
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(response, "data")
 	var cancelledOrders any = this.SafeList(data, "cancelled_orders", []any{})
 	var result any = []any{}
 	for i := 0; i < ccxt.GetArrayLength(cancelledOrders); i++ {
@@ -2320,7 +2320,7 @@ func (this *Nado) ParseWsAllBidsAsks(message any) any {
 	//     }
 	//
 	var timestamp *int64 = this.SafeInteger(message, "time")
-	var bbos any = this.SafeDict(message, "bbos", map[string]any{})
+	var bbos map[string]any = ccxt.SafeMapTyped(message, "bbos")
 	var marketIds []string = ccxt.ObjectKeys(bbos)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(marketIds); i++ {
@@ -2389,7 +2389,7 @@ func (this *Nado) HandleOrderBook(client any, message any) {
 		var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; i < len(subscriptions); i++ {
 			var subscriptionHash string = ccxt.GetValue(subscriptions, i).(string)
-			var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+			var subscription map[string]any = ccxt.SafeMapTyped(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
 			var streamType *string = this.SafeString(subscription, "streamType")
 			var subscriptionSymbol *string = this.SafeString(subscription, "symbol")
 			if (streamType != nil && *streamType == "book_depth") && (ccxt.IsEqual(subscriptionSymbol, symbol)) {
@@ -2561,7 +2561,7 @@ func (this *Nado) HandlePong(client any, message any) any {
 	//         "id": 10
 	//     }
 	//
-	var result any = this.SafeDict(message, "result", map[string]any{})
+	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(result, "server_time", this.Milliseconds()))
 	return message
 }

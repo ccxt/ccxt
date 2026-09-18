@@ -413,7 +413,7 @@ func (this *Zaif) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var funds any = this.SafeDict(balances, "funds", map[string]any{})
+	var funds map[string]any = SafeMapTyped(balances, "funds")
 	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; i < len(currencyIds); i++ {
 		var currencyId string = GetValue(currencyIds, i).(string)
@@ -689,7 +689,7 @@ func (this *Zaif) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) 
 	var trades []any = this.ToArray(response)
 	var numTrades int = len(trades)
 	if numTrades == 1 {
-		var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
+		var firstTrade map[string]any = SafeMapTyped(trades, 0)
 		if len(ObjectKeys(firstTrade)) == 0 {
 			trades = []any{}
 		}
@@ -747,11 +747,11 @@ func (this *Zaif) createOrderBody(ch chan any, symbol any, typeVar any, side any
 
 	response := (<-this.PrivatePostTrade(this.Extend(request, params)))
 	PanicOnError(response)
-	var data any = this.SafeDict(response, "return", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "return")
 
 	ch <- this.SafeOrder(map[string]any{
 		"info": response,
-		"id":   ToString(GetValue(data, "order_id")),
+		"id":   ToString(data["order_id"]),
 	}, market)
 	return nil
 }

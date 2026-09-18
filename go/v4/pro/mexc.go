@@ -544,7 +544,7 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var data any = this.SafeDict(ticker, "d")
+	var data map[string]any = ccxt.SafeMapTyped(ticker, "d")
 	var marketId *string = this.SafeString(ticker, "s")
 	market = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(market, "symbol")

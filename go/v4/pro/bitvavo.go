@@ -2399,7 +2399,7 @@ func (this *Bitvavo) HandleSubscriptionStatus(client any, message any) any {
 	//         }
 	//     }
 	//
-	var subscriptions any = this.SafeDict(message, "subscriptions", map[string]any{})
+	var subscriptions map[string]any = ccxt.SafeMapTyped(message, "subscriptions")
 	var methods map[string]any = map[string]any{
 		"book": this.HandleOrderBookSubscriptions,
 	}

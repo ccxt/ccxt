@@ -483,7 +483,7 @@ func (this *Coinbaseinternational) handlePortfolioAndParamsBody(ch chan any, met
 	PanicOnError(accounts)
 	for i := 0; i < GetArrayLength(accounts); i++ {
 		var account any = GetValue(accounts, i)
-		var info any = this.SafeDict(account, "info", map[string]any{})
+		var info map[string]any = SafeMapTyped(account, "info")
 		if IsEqual(this.SafeBool(info, "is_default"), true) {
 			var portfolioId *string = this.SafeString(info, "portfolio_id")
 			AddElementToObject(this.Options, "portfolio", portfolioId)
@@ -1021,9 +1021,9 @@ func (this *Coinbaseinternational) ParseTransfer(transfer any, optionalArgs ...a
 	var timestamp *int64 = this.Parse8601(datetime)
 	var currencyId *string = this.SafeString(transfer, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var fromPorfolio any = this.SafeDict(transfer, "from_portfolio", map[string]any{})
+	var fromPorfolio map[string]any = SafeMapTyped(transfer, "from_portfolio")
 	var fromId *string = this.SafeString(fromPorfolio, "id")
-	var toPorfolio any = this.SafeDict(transfer, "to_portfolio", map[string]any{})
+	var toPorfolio map[string]any = SafeMapTyped(transfer, "to_portfolio")
 	var toId *string = this.SafeString(toPorfolio, "id")
 	return map[string]any{
 		"info":        transfer,
@@ -1673,9 +1673,9 @@ func (this *Coinbaseinternational) ParseTransaction(transaction any, optionalArg
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var datetime *string = this.SafeString(transaction, "updated_at")
-	var fromPorfolio any = this.SafeDict(transaction, "from_portfolio", map[string]any{})
+	var fromPorfolio map[string]any = SafeMapTyped(transaction, "from_portfolio")
 	var addressFrom *string = this.SafeStringN(transaction, []any{"from_address", "from_cb_account", this.SafeStringN(fromPorfolio, []any{"id", "uuid", "name"}), "from_counterparty_id"})
-	var toPorfolio any = this.SafeDict(transaction, "from_portfolio", map[string]any{})
+	var toPorfolio map[string]any = SafeMapTyped(transaction, "from_portfolio")
 	var addressTo *string = this.SafeStringN(transaction, []any{"to_address", "to_cb_account", this.SafeStringN(toPorfolio, []any{"id", "uuid", "name"}), "to_counterparty_id"})
 	var code *string = this.SafeString(currency, "code")
 	return map[string]any{

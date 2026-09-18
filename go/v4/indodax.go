@@ -502,7 +502,7 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Indodax) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "return", map[string]any{})
-	var free any = this.SafeDict(balances, "balance", map[string]any{})
+	var free map[string]any = SafeMapTyped(balances, "balance")
 	var used any = this.SafeValue(balances, "balance_hold", map[string]any{})
 	var timestamp *int64 = this.SafeTimestamp(balances, "server_time")
 	var result map[string]any = map[string]any{
@@ -763,12 +763,12 @@ func (this *Indodax) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PublicGetApiTickerAll(params))
 	PanicOnError(response)
-	var tickers any = this.SafeDict(response, "tickers", map[string]any{})
+	var tickers map[string]any = SafeMapTyped(response, "tickers")
 	var keys []string = ObjectKeys(tickers)
 	var parsedTickers map[string]any = map[string]any{}
 	for i := 0; i < len(keys); i++ {
 		var key string = GetValue(keys, i).(string)
-		var rawTicker any = GetValue(tickers, key)
+		var rawTicker any = tickers[key]
 		var marketId string = Replace(key, "_", "")
 		var market any = this.SafeMarket(marketId)
 		var parsed any = this.ParseTicker(rawTicker, market)
@@ -1075,10 +1075,10 @@ func (this *Indodax) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 
 	response := (<-this.PrivatePostGetOrder(this.Extend(request, params)))
 	PanicOnError(response)
-	var orders any = this.SafeDict(response, "return", map[string]any{})
+	var orders map[string]any = SafeMapTyped(response, "return")
 	var order any = this.ParseOrder(this.Extend(map[string]any{
 		"id": id,
-	}, GetValue(orders, "order")), market)
+	}, orders["order"]), market)
 	AddElementToObject(order, "info", response)
 
 	ch <- order
@@ -1126,8 +1126,8 @@ func (this *Indodax) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivatePostOpenOrders(this.Extend(request, params)))
 	PanicOnError(response)
-	var openOrdersResult any = this.SafeDict(response, "return", map[string]any{})
-	var rawOrders any = GetValue(openOrdersResult, "orders")
+	var openOrdersResult map[string]any = SafeMapTyped(response, "return")
+	var rawOrders any = openOrdersResult["orders"]
 	// { success: 1, return: { orders: null }} if no orders
 	if (IsEqual(rawOrders, nil)) || (IsEqual(rawOrders, nil)) {
 
@@ -1197,8 +1197,8 @@ func (this *Indodax) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.PrivatePostOrderHistory(this.Extend(request, params)))
 	PanicOnError(response)
-	var historyResult any = this.SafeDict(response, "return", map[string]any{})
-	var orders any = this.ParseOrders(GetValue(historyResult, "orders"), market)
+	var historyResult map[string]any = SafeMapTyped(response, "return")
+	var orders any = this.ParseOrders(historyResult["orders"], market)
 	orders = this.FilterBy(orders, "status", "closed")
 
 	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
@@ -1451,7 +1451,7 @@ func (this *Indodax) fetchDepositWithdrawFeeBody(ch chan any, code any, optional
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "return", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "return")
 	var result any = this.DepositWithdrawFee(response)
 	AddElementToObject(GetValue(result, "withdraw"), "fee", this.SafeNumber(data, "withdraw_fee"))
 	AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
@@ -1561,20 +1561,20 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeValue(response, "return", map[string]any{})
-	var withdraw any = this.SafeDict(data, "withdraw", map[string]any{})
-	var deposit any = this.SafeDict(data, "deposit", map[string]any{})
+	var withdraw map[string]any = SafeMapTyped(data, "withdraw")
+	var deposit map[string]any = SafeMapTyped(data, "deposit")
 	var transactions []any = []any{}
 	var currency any = nil
 	if code == nil {
 		var keys []string = ObjectKeys(withdraw)
 		for i := 0; i < len(keys); i++ {
 			var key string = GetValue(keys, i).(string)
-			transactions = this.ArrayConcat(transactions, GetValue(withdraw, key))
+			transactions = this.ArrayConcat(transactions, withdraw[key])
 		}
 		keys = ObjectKeys(deposit)
 		for i := 0; i < len(keys); i++ {
 			var key string = GetValue(keys, i).(string)
-			transactions = this.ArrayConcat(transactions, GetValue(deposit, key))
+			transactions = this.ArrayConcat(transactions, deposit[key])
 		}
 	} else {
 		currency = this.Currency(code)
@@ -1815,7 +1815,7 @@ func (this *Indodax) fetchDepositAddressesBody(ch chan any, optionalArgs ...any)
 	//    }
 	//
 	var data any = this.SafeDict(response, "return")
-	var addresses any = this.SafeDict(data, "address", map[string]any{})
+	var addresses map[string]any = SafeMapTyped(data, "address")
 	var networks any = this.SafeDict(data, "network", map[string]any{})
 	var addressKeys []string = ObjectKeys(addresses)
 	var result map[string]any = map[string]any{

@@ -3227,7 +3227,7 @@ func (this *Mexc) createSwapOrderBody(ch chan any, market any, typeVar any, side
 	//
 	// {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
 	//
-	var data any = this.SafeDict(response, "data")
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- this.SafeOrder(map[string]any{
 		"id":        this.SafeString(data, "orderId"),
@@ -6979,7 +6979,7 @@ func (this *Mexc) withdrawBody(ch chan any, code any, amount any, address any, o
 		ch <- this.ParseTransaction(responseForInternal, currency)
 		return nil
 	}
-	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network any = DerefScalar(this.SafeString2(params, "network", "netWork")) // this line allows the user to specify either ERC20 or ETH
 	network = DerefScalar(this.SafeString(networks, network, network))            // handle ETH > ERC-20 alias
 	network = this.NetworkCodeToId(network, GetValue(currency, "code"))

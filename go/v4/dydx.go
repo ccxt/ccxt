@@ -1672,11 +1672,11 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
 	var priceStr any = this.PriceToPrecision(symbol, price)
-	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
-	var atomicResolution any = GetValue(marketInfo, "atomicResolution")
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var atomicResolution any = marketInfo["atomicResolution"]
 	var quantumScale any = this.Pow("10", Precise.StringNeg(atomicResolution))
 	var quantums *string = Precise.StringMul(amountStr, quantumScale)
-	var quantumConversionExponent any = GetValue(marketInfo, "quantumConversionExponent")
+	var quantumConversionExponent any = marketInfo["quantumConversionExponent"]
 	var priceScale any = this.Pow("10", Precise.StringSub(Precise.StringSub(atomicResolution, quantumConversionExponent), "-6"))
 	var subticks *string = Precise.StringMul(priceStr, priceScale)
 	var clientMetadata int = 0
@@ -1763,7 +1763,7 @@ func (this *Dydx) CreateOrderRequest(symbol any, typeVar any, side any, amount a
 				},
 				"clientId":   clientOrderId,
 				"orderFlags": orderFlag,
-				"clobPairId": GetValue(marketInfo, "clobPairId"),
+				"clobPairId": marketInfo["clobPairId"],
 			},
 			"side":                            sideNumber,
 			"quantums":                        this.ToDydxLong(quantums),
@@ -1846,8 +1846,8 @@ func (this *Dydx) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...any) a
 	//     }
 	// }
 	//
-	var result any = this.SafeDict(response, "result")
-	var info any = this.SafeDict(result, "response")
+	var result map[string]any = SafeMapTyped(response, "result")
+	var info map[string]any = SafeMapTyped(result, "response")
 	var height *int64 = this.SafeInteger(info, "last_block_height")
 	if height == nil {
 		panic(ExchangeError(this.Id + " fetchLatestBlockHeight() could not parse last_block_height"))
@@ -2262,8 +2262,8 @@ func (this *Dydx) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}
 	var amount *string = this.SafeString(item, "size")
 	var timestamp *int64 = this.Parse8601(this.SafeString(item, "createdAt"))
-	var sender any = this.SafeDict(item, "sender")
-	var recipient any = this.SafeDict(item, "recipient")
+	var sender map[string]any = SafeMapTyped(item, "sender")
+	var recipient map[string]any = SafeMapTyped(item, "recipient")
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
@@ -2372,15 +2372,15 @@ func (this *Dydx) estimateTxFeeBody(ch chan any, message any, memo any, account 
 	}
 	var defaultFeeDenom *string = this.SafeString(this.Options, "defaultFeeDenom")
 	var defaultFeeMultiplier *string = this.SafeString(this.Options, "defaultFeeMultiplier")
-	var feeDenom any = this.SafeDict(this.Options, "feeDenom", map[string]any{})
+	var feeDenom map[string]any = SafeMapTyped(this.Options, "feeDenom")
 	var gasPrice any = nil
 	var denom any = nil
 	if defaultFeeDenom != nil && *defaultFeeDenom == "uusdc" {
-		gasPrice = GetValue(feeDenom, "USDC_GAS_PRICE")
-		denom = GetValue(feeDenom, "USDC_DENOM")
+		gasPrice = feeDenom["USDC_GAS_PRICE"]
+		denom = feeDenom["USDC_DENOM"]
 	} else {
-		gasPrice = GetValue(feeDenom, "CHAINTOKEN_GAS_PRICE")
-		denom = GetValue(feeDenom, "CHAINTOKEN_DENOM")
+		gasPrice = feeDenom["CHAINTOKEN_GAS_PRICE"]
+		denom = feeDenom["CHAINTOKEN_DENOM"]
 	}
 	var gasLimit float64 = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 	var feeAmount *string = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
@@ -2544,8 +2544,8 @@ func (this *Dydx) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transfer, "symbol")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var amount *float64 = this.SafeNumber(transfer, "size")
-	var sender any = this.SafeDict(transfer, "sender")
-	var recipient any = this.SafeDict(transfer, "recipient")
+	var sender map[string]any = SafeMapTyped(transfer, "sender")
+	var recipient map[string]any = SafeMapTyped(transfer, "recipient")
 	var fromAccount *string = this.SafeString(sender, "address")
 	var toAccount *string = this.SafeString(recipient, "address")
 	var timestamp *int64 = this.Parse8601(this.SafeString(transfer, "createdAt"))
@@ -2635,8 +2635,8 @@ func (this *Dydx) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString(transaction, "id")
-	var sender any = this.SafeDict(transaction, "sender")
-	var recipient any = this.SafeDict(transaction, "recipient")
+	var sender map[string]any = SafeMapTyped(transaction, "sender")
+	var recipient map[string]any = SafeMapTyped(transaction, "recipient")
 	var addressTo *string = this.SafeString(recipient, "address")
 	var addressFrom *string = this.SafeString(sender, "address")
 	var txid *string = this.SafeString(transaction, "transactionHash")
@@ -3228,7 +3228,7 @@ func (this *Dydx) HandleErrors(httpCode any, reason any, url any, method any, he
 	// rest response
 	// { "code": 123 }
 	//
-	var result any = this.SafeDict(response, "result")
+	var result map[string]any = SafeMapTyped(response, "result")
 	var errorCode *string = this.SafeString(result, "code")
 	if (errorCode == nil) || (errorCode != nil && *errorCode == "") {
 		errorCode = this.SafeString(response, "code")

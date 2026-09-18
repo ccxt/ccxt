@@ -943,7 +943,7 @@ func (this *Woo) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1751442989564
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var status any = DerefScalar(this.SafeString(data, "status"))
 	if IsEqual(status, nil) {
 		status = "error"
@@ -1058,7 +1058,7 @@ func (this *Woo) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1751512951338
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseMarkets(rows)
@@ -1209,7 +1209,7 @@ func (this *Woo) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         "timestamp": 1751513988543
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(rows, market, since, limit)
@@ -1432,7 +1432,7 @@ func (this *Woo) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1752062807915
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var maker *string = this.SafeString(data, "makerFeeRate")
 	var taker *string = this.SafeString(data, "takerFeeRate")
 	var result map[string]any = map[string]any{}
@@ -2924,7 +2924,7 @@ func (this *Woo) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         "timestamp": 1786690534921
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 	var first any = this.SafeDict(rows, 0)
 	if IsEqual(first, nil) {
@@ -2994,7 +2994,7 @@ func (this *Woo) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	// same as fetchTicker, with multiple rows
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 	var timestamp *int64 = this.SafeInteger(response, "timestamp")
 	var result any = []any{}
@@ -3092,7 +3092,7 @@ func (this *Woo) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) an
 	//         "timestamp": 1751622205410
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
@@ -3264,7 +3264,7 @@ func (this *Woo) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1752055545121
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var trades any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit, params)
@@ -3341,7 +3341,7 @@ func (this *Woo) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	subAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 1)
 	var mainData any = this.SafeDict(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
-	var subData any = this.SafeDict(subAccountResponse, "data", map[string]any{})
+	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
 	var subRows any = this.SafeList(subData, "rows", []any{})
 	var rows []any = this.ArrayConcat(mainRows, subRows)
 
@@ -3631,7 +3631,7 @@ func (this *Woo) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1752485344719
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 
 	ch <- []any{currency, this.SafeList(data, "rows", []any{})}
 	return nil
@@ -3987,7 +3987,7 @@ func (this *Woo) transferBody(ch chan any, code any, amount any, fromAccount any
 	AddElementToObject(data, "token", GetValue(currency, "id"))
 	AddElementToObject(data, "status", "ok")
 	var transfer any = this.ParseTransfer(data, currency)
-	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
+	var transferOptions map[string]any = SafeMapTyped(this.Options, "transfer")
 	var fillResponseFromRequest *bool = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if fillResponseFromRequest != nil && *fillResponseFromRequest == true {
 		AddElementToObject(transfer, "amount", amount)
@@ -4077,7 +4077,7 @@ func (this *Woo) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1721295317627
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseTransfers(rows, currency, since, limit, params)
@@ -4135,8 +4135,8 @@ func (this *Woo) ParseTransfer(transfer any, optionalArgs ...any) any {
 			return "failed"
 		}()
 	}
-	var fromAccount any = this.SafeDict(transfer, "from", map[string]any{})
-	var toAccount any = this.SafeDict(transfer, "to", map[string]any{})
+	var fromAccount map[string]any = SafeMapTyped(transfer, "from")
+	var toAccount map[string]any = SafeMapTyped(transfer, "to")
 	return map[string]any{
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,
@@ -4535,7 +4535,7 @@ func (this *Woo) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1721351502594
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseIncomes(rows, market, since, limit)
@@ -4673,7 +4673,7 @@ func (this *Woo) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...a
 	//         "timestamp": 1751624037798
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 	var first any = this.SafeDict(rows, 0, map[string]any{})
 
@@ -4731,7 +4731,7 @@ func (this *Woo) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1751624037798
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseFundingRates(rows, symbols)
@@ -4822,7 +4822,7 @@ func (this *Woo) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 	//         "timestamp": 1751632390031
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 	var rates any = []any{}
 	for i := 0; i < GetArrayLength(rows); i++ {
@@ -4955,7 +4955,7 @@ func (this *Woo) ParseLeverage(leverage any, optionalArgs ...any) any {
 	var shortLeverage any = spotLeverage
 	var details any = this.SafeList(leverage, "details", []any{})
 	for i := 0; i < GetArrayLength(details); i++ {
-		var position any = this.SafeDict(details, i, map[string]any{})
+		var position map[string]any = SafeMapTyped(details, i)
 		var positionLeverage *int64 = this.SafeInteger(position, "leverage")
 		var side *string = this.SafeString(position, "positionSide")
 		if side != nil && *side == "BOTH" {
@@ -5182,7 +5182,7 @@ func (this *Woo) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any)
 	//         "timestamp": 1752500579848
 	//     }
 	//
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(result, "positions", []any{})
 	var first any = this.SafeDict(positions, 0, map[string]any{})
 
@@ -5259,7 +5259,7 @@ func (this *Woo) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//         "timestamp": 1752500579848
 	//     }
 	//
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(result, "positions", []any{})
 
 	ch <- this.ParsePositions(positions, symbols)
@@ -5615,7 +5615,7 @@ func (this *Woo) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "tradeVos", []any{})
 
 	ch <- this.ParseConversions(rows, code, "sellAsset", "buyAsset", since, limit)
@@ -5830,7 +5830,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) any
 	//         "timestamp": 1768049428472
 	//     }
 	//
-	var result any = this.SafeDict(response, "data", map[string]any{})
+	var result map[string]any = SafeMapTyped(response, "data")
 	var positions any = this.SafeList(result, "positions", []any{})
 
 	ch <- this.ParseADLRanks(positions, symbols)

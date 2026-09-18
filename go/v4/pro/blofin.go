@@ -149,7 +149,7 @@ func (this *Blofin) watchTradesForSymbolsBody(ch chan any, symbols any, optional
 	trades := (<-this.WatchMultipleWrapperAsync(true, "trades", "watchTradesForSymbols", symbols, params))
 	ccxt.PanicOnError(trades)
 	if ccxt.EvalTruthy(this.NewUpdates) {
-		var firstMarket any = this.SafeDict(trades, 0)
+		var firstMarket map[string]any = ccxt.SafeMapTyped(trades, 0)
 		var firstSymbol *string = this.SafeString(firstMarket, "symbol")
 		limit = ccxt.ToGetsLimit(trades).GetLimit(firstSymbol, limit)
 	}
@@ -171,7 +171,7 @@ func (this *Blofin) HandleTrades(client any, message any) {
 	//       ]
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg")
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data")
 	if ccxt.IsEqual(data, nil) {
@@ -292,7 +292,7 @@ func (this *Blofin) HandleOrderBook(client any, message any) {
 	//     },
 	// }
 	//
-	var arg any = this.SafeDict(message, "arg")
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeDict(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
@@ -404,7 +404,7 @@ func (this *Blofin) HandleTicker(client any, message any) {
 	//     }
 	//
 	this.HandleBidAsk(client, message)
-	var arg any = this.SafeDict(message, "arg")
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data")
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
@@ -606,7 +606,7 @@ func (this *Blofin) HandleOHLCV(client any, message any) {
 	//         ],
 	//     }
 	//
-	var arg any = this.SafeDict(message, "arg")
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data")
 	var marketId *string = this.SafeString(arg, "instId")
@@ -810,7 +810,7 @@ func (this *Blofin) HandleOrders(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var arg any = this.SafeDict(message, "arg")
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data")
 	for i := 0; i < ccxt.GetArrayLength(data); i++ {
@@ -888,7 +888,7 @@ func (this *Blofin) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var arg any = this.SafeDict(message, "arg")
+	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 	var channelName *string = this.SafeString(arg, "channel")
 	var data any = this.SafeList(message, "data")
 	var newPositions any = []any{}
@@ -1113,7 +1113,7 @@ func (this *Blofin) HandleMessage(client any, message any) {
 		} else if event != nil && *event == "error" {
 			panic(ccxt.ExchangeError(ccxt.Add(this.Id+" error: ", this.Json(message))))
 		}
-		var arg any = this.SafeDict(message, "arg")
+		var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
 		var channelName *string = this.SafeString(arg, "channel")
 		method = this.SafeValue(methods, channelName)
 		if (ccxt.IsEqual(method, nil)) && (ccxt.GetIndexOf(channelName, "candle") >= 0) {

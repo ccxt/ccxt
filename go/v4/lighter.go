@@ -499,7 +499,7 @@ func (this *Lighter) loadAccountBody(ch chan any, chainId any, privateKey any, a
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.InitAuthObject(accountIndex, apiKeyIndex)
-	var cachedAuths any = this.SafeDict(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex)
+	var cachedAuths map[string]any = SafeMapTyped(GetValue(GetValue(this.Options, "auths"), accountIndex), apiKeyIndex)
 	var signer any = this.SafeValue(cachedAuths, "signer")
 	if !IsEqual(signer, nil) {
 
@@ -763,9 +763,9 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 		var res []any = this.HandleOptionAndParams2(map[string]any{}, "createAuth", "accountIndex", "account_index")
 		accountIndex = this.SafeString(res, 0)
 	}
-	var auths any = this.SafeDict(this.Options, "auths")
-	var accountAuths any = this.SafeDict(auths, accountIndex)
-	var cachedAuth any = this.SafeDict(accountAuths, apiKeyIndex)
+	var auths map[string]any = SafeMapTyped(this.Options, "auths")
+	var accountAuths map[string]any = SafeMapTyped(auths, accountIndex)
+	var cachedAuth map[string]any = SafeMapTyped(accountAuths, apiKeyIndex)
 	var cachedDeadline *int64 = this.SafeInteger(cachedAuth, "deadline")
 	if cachedDeadline != nil {
 		var minimumDeadline any = Add(this.Seconds(), this.SafeInteger(this.Options, "authDeadlineMinimumRemaining", 60))
@@ -1087,11 +1087,11 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			}
 		}
 	}
-	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
 	var amountStr any = nil
 	var priceStr any = this.PriceToPrecision(symbol, price)
-	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
-	var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
+	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
+	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPriceStr any = "0"                       // default is 0
 	var defaultClientOrderId int64 = this.RandNumber(9) // c# only support int32 2147483647.
 	var clientOrderId *int64 = this.SafeInteger2(params, "client_order_index", "clientOrderId", defaultClientOrderId)
@@ -1392,9 +1392,9 @@ func (this *Lighter) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	signer := (<-this.LoadAccountAsync(GetValue(this.Options, "chainId"), this.GetLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params))
 	PanicOnError(signer)
 	var market any = this.Market(symbol)
-	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
-	var amountScale any = this.Pow("10", GetValue(marketInfo, "size_decimals"))
-	var priceScale any = this.Pow("10", GetValue(marketInfo, "price_decimals"))
+	var marketInfo map[string]any = SafeMapTyped(market, "info")
+	var amountScale any = this.Pow("10", marketInfo["size_decimals"])
+	var priceScale any = this.Pow("10", marketInfo["price_decimals"])
 	var triggerPrice *string = this.SafeStringN(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	var amountStr any = nil
@@ -3395,8 +3395,8 @@ func (this *Lighter) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var currencyId *string = this.SafeString(transfer, "asset_id")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transfer, "timestamp")
-	var fromAccount any = this.SafeDict(transfer, "from", map[string]any{})
-	var toAccount any = this.SafeDict(transfer, "to", map[string]any{})
+	var fromAccount map[string]any = SafeMapTyped(transfer, "from")
+	var toAccount map[string]any = SafeMapTyped(transfer, "to")
 	return map[string]any{
 		"id":          this.SafeString(transfer, "id"),
 		"timestamp":   timestamp,

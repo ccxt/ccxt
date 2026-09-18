@@ -1219,8 +1219,8 @@ func (this *Pacifica) ParseLeverageFromSetting(symbol any, setting any) any {
 	}
 }
 func (this *Pacifica) ParseLeverageFromMarket(market any) any {
-	var marketLimits any = this.SafeDict(market, "limits", map[string]any{})
-	var leverageLimits any = this.SafeDict(marketLimits, "leverage", map[string]any{})
+	var marketLimits map[string]any = SafeMapTyped(market, "limits")
+	var leverageLimits map[string]any = SafeMapTyped(marketLimits, "leverage")
 	return map[string]any{
 		"info":          market,
 		"symbol":        this.SafeString(market, "symbol"),
@@ -1476,7 +1476,7 @@ func (this *Pacifica) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	//   "error": null,
 	//   "code": null
 	// }
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var levels any = this.SafeList(data, "l", []any{})
 	var result map[string]any = map[string]any{
 		"bids": this.SafeList(levels, 0, []any{}),
@@ -2040,7 +2040,7 @@ func (this *Pacifica) createOrderBody(ch chan any, symbol any, typeVar any, side
 	} else {
 		status = "open"
 	}
-	var order any = this.SafeDict(response, "data", map[string]any{})
+	var order map[string]any = SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(order, "order_id")
 
 	ch <- this.SafeOrder(map[string]any{
@@ -2291,7 +2291,7 @@ func (this *Pacifica) createOrdersBody(ch chan any, orders any, optionalArgs ...
 	//     "code": null
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var results any = this.SafeList(data, "results", []any{})
 	var ordersToReturn any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
@@ -2375,7 +2375,7 @@ func (this *Pacifica) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	//     "code": null
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var results any = this.SafeList(data, "results", []any{})
 	var ordersToReturn any = []any{}
 	for i := 0; i < GetArrayLength(results); i++ {
@@ -2650,7 +2650,7 @@ func (this *Pacifica) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	//     }
 	// }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var orderId *string = this.SafeString(data, "order_id")
 
 	ch <- this.SafeOrder(map[string]any{

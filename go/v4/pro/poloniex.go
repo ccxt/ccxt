@@ -1640,7 +1640,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message any) any {
 	var id *string = this.SafeString(message, "id")
 	var event *string = this.SafeString(message, "event")
 	var data any = this.SafeList(message, "data")
-	var first any = this.SafeDict(data, 0)
+	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var orderId *string = this.SafeString(first, "orderId")
 	if (event != nil && *event == "error") || (orderId != nil && *orderId == "0") {
 

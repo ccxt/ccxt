@@ -1611,7 +1611,7 @@ func (this *Lbank) ParseBalance(response any) any {
 	var toBtc any = this.SafeValue(data, "toBtc")
 	if !IsEqual(toBtc, nil) {
 		var used any = this.SafeValue(data, "freeze", map[string]any{})
-		var free any = this.SafeDict(data, "free", map[string]any{})
+		var free map[string]any = SafeMapTyped(data, "free")
 		var currencies []string = ObjectKeys(free)
 		for i := 0; i < len(currencies); i++ {
 			var currencyId string = GetValue(currencies, i).(string)

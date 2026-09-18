@@ -1332,7 +1332,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var v2ProductsData any = this.SafeDict(v2Products, "data", map[string]any{})
+	var v2ProductsData map[string]any = SafeMapTyped(v2Products, "data")
 	var products any = this.SafeList(v2ProductsData, "products", []any{})
 	var perpetualProductsV2 any = this.SafeList(v2ProductsData, "perpProductsV2", []any{})
 	products = this.ArrayConcat(products, perpetualProductsV2)
@@ -1356,7 +1356,7 @@ func (this *Phemex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			market = this.ParseSwapMarket(market)
 		} else {
 			var baseCurrency *string = this.SafeString(market, "baseCurrency")
-			var currencyValues any = this.SafeDict(currenciesByCode, baseCurrency, map[string]any{})
+			var currencyValues map[string]any = SafeMapTyped(currenciesByCode, baseCurrency)
 			var valueScale *string = this.SafeString(currencyValues, "valueScale", "8")
 			market = this.Extend(market, map[string]any{
 				"valueScale": valueScale,
@@ -4248,9 +4248,9 @@ func (this *Phemex) fetchDepositAddressBody(ch chan any, code any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
-	var defaultNetworks any = this.SafeDict(this.Options, "defaultNetworks")
+	var defaultNetworks map[string]any = SafeMapTyped(this.Options, "defaultNetworks")
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, code)
-	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+	var networks map[string]any = SafeMapTyped(this.Options, "networks")
 	var network *string = this.SafeStringUpper2(params, "network", "chainName", defaultNetwork)
 	network = this.SafeString(networks, network, network)
 	if network == nil {
@@ -6512,7 +6512,7 @@ func (this *Phemex) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...an
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = SafeMapTyped(response, "data")
 	var rows any = this.SafeList(data, "rows", []any{})
 
 	ch <- this.ParseConversions(rows, code, "fromCurrency", "toCurrency", since, limit)

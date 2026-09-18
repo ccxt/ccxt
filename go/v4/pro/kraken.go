@@ -150,8 +150,8 @@ func (this *Kraken) OrderRequestWs(method any, symbol any, typeVar any, request 
 	if cost != nil {
 		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "order_qty", this.ParseToNumeric(this.CostToPrecision(symbol, cost)))
 	}
-	var stopLoss any = this.SafeDict(params, "stopLoss", map[string]any{})
-	var takeProfit any = this.SafeDict(params, "takeProfit", map[string]any{})
+	var stopLoss map[string]any = ccxt.SafeMapTyped(params, "stopLoss")
+	var takeProfit map[string]any = ccxt.SafeMapTyped(params, "takeProfit")
 	var presetStopLoss *string = this.SafeString(stopLoss, "triggerPrice")
 	var presetTakeProfit *string = this.SafeString(takeProfit, "triggerPrice")
 	var presetStopLossLimit *string = this.SafeString(stopLoss, "price")
@@ -1216,7 +1216,7 @@ func (this *Kraken) HandleOrderBook(client any, message any) {
 	//
 	var typeVar *string = this.SafeString(message, "type")
 	var data any = this.SafeList(message, "data", []any{})
-	var first any = this.SafeDict(data, 0, map[string]any{})
+	var first map[string]any = ccxt.SafeMapTyped(data, 0)
 	var symbol *string = this.SafeString(first, "symbol")
 	var a any = this.SafeList(first, "asks", []any{})
 	var b any = this.SafeValue(first, "bids", []any{})
@@ -1615,7 +1615,7 @@ func (this *Kraken) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var fee any = nil
 	if ccxt.InOp(trade, "fees") {
 		var fees any = this.SafeList(trade, "fees", []any{})
-		var firstFee any = this.SafeDict(fees, 0, map[string]any{})
+		var firstFee map[string]any = ccxt.SafeMapTyped(fees, 0)
 		fee = map[string]any{
 			"cost":     this.SafeNumber(firstFee, "qty"),
 			"currency": this.SafeString(firstFee, "asset"),
@@ -2051,7 +2051,7 @@ func (this *Kraken) HandleMessage(client any, message any) {
 	if !ccxt.IsEqual(channel, nil) {
 		if ccxt.IsEqual(channel, "executions") {
 			var data any = this.SafeList(message, "data", []any{})
-			var first any = this.SafeDict(data, 0, map[string]any{})
+			var first map[string]any = ccxt.SafeMapTyped(data, 0)
 			var execType *string = this.SafeString(first, "exec_type")
 			channel = func() any {
 				if execType != nil && *execType == "trade" {

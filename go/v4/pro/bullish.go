@@ -225,7 +225,7 @@ func (this *Bullish) HandleTrades(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var market any = this.Market(symbol)
@@ -331,7 +331,7 @@ func (this *Bullish) HandleTicker(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var parsed any = this.ParseTicker(data, market)
 	if updateType != nil && *updateType == "update" {
-		var ticker any = this.SafeDict(this.Tickers, symbol, map[string]any{})
+		var ticker map[string]any = ccxt.SafeMapTyped(this.Tickers, symbol)
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
 		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = this.ParseTicker(merged, market)
@@ -405,7 +405,7 @@ func (this *Bullish) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	// current channel is 'l2Orderbook' which returns only snapshots
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var symbol *string = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("orderbook::", symbol)

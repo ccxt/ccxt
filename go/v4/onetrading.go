@@ -620,8 +620,8 @@ func (this *Onetrading) ParseMarket(market any) any {
 	//      "state": "ACTIVE"
 	//  }
 	//
-	var baseAsset any = this.SafeDict(market, "base", map[string]any{})
-	var quoteAsset any = this.SafeDict(market, "quote", map[string]any{})
+	var baseAsset map[string]any = SafeMapTyped(market, "base")
+	var quoteAsset map[string]any = SafeMapTyped(market, "quote")
 	var baseId *string = this.SafeString(baseAsset, "code")
 	var quoteId *string = this.SafeString(quoteAsset, "code")
 	var id *string = this.SafeString(market, "id")
@@ -818,7 +818,7 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan any, optionalArgs ...
 	// ];
 	//
 	var spotFees any = this.SafeDict(response, 0, map[string]any{})
-	var futuresFees any = this.SafeDict(response, 1, map[string]any{})
+	var futuresFees map[string]any = SafeMapTyped(response, 1)
 	var spotFeeTiers any = this.SafeList(spotFees, "fee_tiers", []any{})
 	var futuresFeeTiers any = this.SafeList(futuresFees, "fee_tiers", []any{})
 	var spotTiers any = this.ParseFeeTiers(spotFeeTiers)
@@ -900,8 +900,8 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan any, optionalArgs ..
 	// }
 	//
 	var activeFeeTier any = this.SafeList(response, "active_fee_tiers")
-	var spotFees any = this.SafeDict(activeFeeTier, 0, map[string]any{})
-	var futuresFees any = this.SafeDict(activeFeeTier, 1, map[string]any{})
+	var spotFees map[string]any = SafeMapTyped(activeFeeTier, 0)
+	var futuresFees map[string]any = SafeMapTyped(activeFeeTier, 1)
 	var spotMakerFee *string = this.SafeString(spotFees, "maker_fee")
 	var spotTakerFee *string = this.SafeString(spotFees, "taker_fee")
 	spotMakerFee = Precise.StringDiv(spotMakerFee, "100")

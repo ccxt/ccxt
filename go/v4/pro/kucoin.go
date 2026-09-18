@@ -188,9 +188,9 @@ func (this *Kucoin) negotiateHelperBody(ch chan any, privateChannel any, connect
 				response = (<-this.FuturesPublicPostBulletPublic(params))
 				ccxt.PanicOnError(response)
 			}
-			var data any = this.SafeDict(response, "data", map[string]any{})
+			var data map[string]any = ccxt.SafeMapTyped(response, "data")
 			var instanceServers any = this.SafeList(data, "instanceServers", []any{})
-			var firstInstanceServer any = this.SafeDict(instanceServers, 0)
+			var firstInstanceServer map[string]any = ccxt.SafeMapTyped(instanceServers, 0)
 			var pingInterval *int64 = this.SafeInteger(firstInstanceServer, "pingInterval")
 			var endpoint *string = this.SafeString(firstInstanceServer, "endpoint")
 			var token *string = this.SafeString(data, "token")
@@ -415,7 +415,7 @@ func (this *Kucoin) authenticateUtaBody(ch chan any) any {
 						"version": "v2",
 					}))
 					ccxt.PanicOnError(response)
-					var data any = this.SafeDict(response, "data", map[string]any{})
+					var data map[string]any = ccxt.SafeMapTyped(response, "data")
 					var utaTokenString *string = this.SafeString(data, "token")
 					ccxt.AddElementToObject(this.Options, "utaTokenLastUpdate", now)
 					ccxt.AddElementToObject(this.Options, "utaToken", utaTokenString)
@@ -1425,7 +1425,7 @@ func (this *Kucoin) HandleOHLCV(client any, message any) {
 	//        "subject":"candle.stick"
 	//    }
 	//
-	var data any = this.SafeDict(message, "data", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "data")
 	var marketId *string = this.SafeString(data, "symbol")
 	var candles any = this.SafeList(data, "candles", []any{})
 	var topic *string = this.SafeString(message, "topic")
@@ -1474,7 +1474,7 @@ func (this *Kucoin) HandleUtaOHLCV(client any, message any) {
 	//         }
 	//     }
 	//
-	var data any = this.SafeDict(message, "d", map[string]any{})
+	var data map[string]any = ccxt.SafeMapTyped(message, "d")
 	var marketId *string = this.SafeString(data, "s")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -3283,7 +3283,7 @@ func (this *Kucoin) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		typeVar = ccxt.DerefScalar(this.SafeString(params, "type", defaultType))
 	}
 	params = this.Omit(params, "type")
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var accountsByType map[string]any = ccxt.SafeMapTyped(this.Options, "accountsByType")
 	var uniformType *string = this.SafeString(accountsByType, typeVar, typeVar)
 	var isClassicFuturesMethod bool = (uniformType != nil && *uniformType == "contract")
 	var subscriptionHash any = func() any {
@@ -3465,7 +3465,7 @@ func (this *Kucoin) HandleBalance(client any, message any) {
 	if topic != nil && *topic == "/contractAccount/wallet" {
 		requestAccountType = "contract"
 	}
-	var accountsByType any = this.SafeDict(this.Options, "accountsByType")
+	var accountsByType map[string]any = ccxt.SafeMapTyped(this.Options, "accountsByType")
 	var uniformType *string = this.SafeString(accountsByType, requestAccountType, "trade")
 	if !(ccxt.InOp(this.Balance, uniformType)) {
 		ccxt.AddElementToObject(this.Balance, uniformType, map[string]any{})

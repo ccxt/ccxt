@@ -182,7 +182,7 @@ func (this *P2b) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) a
 		retRes13112 := (<-this.LoadMarketsAsync())
 		ccxt.PanicOnError(retRes13112)
 	}
-	var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
+	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTicker", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
@@ -229,7 +229,7 @@ func (this *P2b) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.PanicOnError(retRes15812)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
+	var watchTickerOptions map[string]any = ccxt.SafeMapTyped(this.Options, "watchTicker")
 	var name any = ccxt.DerefScalar(this.SafeString(watchTickerOptions, "name", "state")) // or price
 	var nameparamsVariable []any = this.HandleOptionAndParams(params, "watchTickers", "name", name)
 	name = ccxt.GetValue(nameparamsVariable, 0)
@@ -550,7 +550,7 @@ func (this *P2b) HandleOrderBook(client any, message any) {
 	//
 	var params any = this.SafeList(message, "params", []any{})
 	var isFullUpdate *bool = this.SafeBool(params, 0, false)
-	var data any = this.SafeDict(params, 1)
+	var data map[string]any = ccxt.SafeMapTyped(params, 1)
 	var asks any = this.SafeList(data, "asks")
 	var bids any = this.SafeList(data, "bids")
 	var marketId *string = this.SafeString(params, 2)
