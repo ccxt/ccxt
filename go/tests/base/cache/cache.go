@@ -153,7 +153,7 @@ func TestWsCache() {
 		cacheSymbolId5.Append(map[string]any{
 			"symbol": "BTC/USDT",
 			"id":     ToString(i),
-			"i":      Add(i, 10),
+			"i":      i + 10,
 		})
 	}
 	Assert(Equals(cacheSymbolId5, []any{map[string]any{
@@ -235,7 +235,7 @@ func TestWsCache() {
 		cacheSymbolId5.Append(map[string]any{
 			"symbol": "BTC/USDT",
 			"id":     ToString(i),
-			"i":      Add(i, 10),
+			"i":      i + 10,
 		})
 	}
 	Assert(Equals(cacheSymbolId5, []any{map[string]any{
