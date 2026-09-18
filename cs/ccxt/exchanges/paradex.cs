@@ -1836,7 +1836,7 @@ public partial class paradex : Exchange
         return ((Dictionary<string, object>)((object)(response)));
     }
 
-    public async virtual Task<object> authenticateRest(object parameters = null)
+    public async virtual Task<string?> authenticateRest(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? cachedToken = this.safeString(this.options, "authToken");
