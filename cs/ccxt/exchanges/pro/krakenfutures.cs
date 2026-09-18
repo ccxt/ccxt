@@ -399,7 +399,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1760,7 +1760,7 @@ public partial class krakenfutures : ccxt.krakenfutures
             }
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        int length = getArrayLength(rawSubs);
+        int length = (rawSubs?.Count ?? 0);
         if (length > 0)
         {
             request = new Dictionary<string, object>() {

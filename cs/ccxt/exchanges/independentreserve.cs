@@ -434,12 +434,12 @@ public partial class independentreserve : Exchange
         List<object> result = new List<object>() {};
         IList<object> baseCurrencyIds = this.toArray(baseCurrencies);
         IList<object> quoteCurrencyIds = this.toArray(quoteCurrencies);
-        for (int i = 0; i < getArrayLength(baseCurrencyIds); postFixIncrement(ref i))
+        for (int i = 0; i < (baseCurrencyIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object baseId = getValue(baseCurrencyIds, i);
             object bs = this.safeCurrencyCode(baseId);
             double? minAmount = this.safeNumber(limits, baseId);
-            for (int j = 0; j < getArrayLength(quoteCurrencyIds); postFixIncrement(ref j))
+            for (int j = 0; j < (quoteCurrencyIds?.Count ?? 0); postFixIncrement(ref j))
             {
                 object quoteId = getValue(quoteCurrencyIds, j);
                 string? quote = this.safeCurrencyCode(quoteId);
@@ -1038,7 +1038,7 @@ public partial class independentreserve : Exchange
         //
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
         IList<object> rows = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             object fee = getValue(rows, i);
             string? currencyId = this.safeString(fee, "CurrencyCode");
@@ -1054,7 +1054,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);

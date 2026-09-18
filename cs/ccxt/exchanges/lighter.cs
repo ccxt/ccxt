@@ -1462,7 +1462,7 @@ public partial class lighter : Exchange
         List<object> swapMarkets = this.safeList(response, "order_book_details", new List<object>() {});
         List<object> markets = this.arrayConcat(spotMarkets, swapMarkets);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < (markets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");

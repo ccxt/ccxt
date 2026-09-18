@@ -1009,17 +1009,17 @@ public partial class gemini : ccxt.gemini
                     ((IList<object>)collectedEventsOfTrades).Add(getValue(events, i));
                 }
             }
-            int lengthBa = getArrayLength(bidaskItems);
+            int lengthBa = (bidaskItems?.Count ?? 0);
             if (lengthBa > 0)
             {
                 this.handleBidsAsksForMultidata(client as WebSocketClient, bidaskItems, ts, eventId);
             }
-            int lengthOb = getArrayLength(orderBookItems);
+            int lengthOb = (orderBookItems?.Count ?? 0);
             if (lengthOb > 0)
             {
                 this.handleOrderBookForMultidata(client as WebSocketClient, orderBookItems, ts, eventId);
             }
-            int lengthTrades = getArrayLength(collectedEventsOfTrades);
+            int lengthTrades = (collectedEventsOfTrades?.Count ?? 0);
             if (lengthTrades > 0)
             {
                 this.handleTradesForMultidata(client as WebSocketClient, collectedEventsOfTrades, ts);

@@ -700,7 +700,7 @@ public partial class bithumb : ccxt.bithumb
         {
             rawTrades = new List<object>() {message};
         }
-        for (int i = 0; i < getArrayLength(rawTrades); postFixIncrement(ref i))
+        for (int i = 0; i < (rawTrades?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawTrade = getValue(rawTrades, i);
             string? marketId = this.safeString2(rawTrade, "symbol", "code");

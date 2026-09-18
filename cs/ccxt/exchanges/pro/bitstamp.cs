@@ -938,7 +938,7 @@ public partial class bitstamp : ccxt.bitstamp
     public virtual object pruneCachedBySymbols(object newCache, object cache, object symbols)
     {
         IList<object> entries = this.toArray(cache);
-        for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+        for (int i = 0; i < (entries?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(entries, i);
             string? entrySymbol = this.safeString(entry, "symbol");

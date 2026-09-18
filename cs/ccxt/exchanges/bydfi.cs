@@ -743,7 +743,7 @@ public partial class bydfi : Exchange
     {
         List<object> limits = new List<object>() {5, 10, 20, 50, 100, 500, 1000};
         object result = 1000;
-        for (int i = 0; i < getArrayLength(limits); postFixIncrement(ref i))
+        for (int i = 0; i < (limits?.Count ?? 0); postFixIncrement(ref i))
         {
             if (isEqual(limit, null))
             {

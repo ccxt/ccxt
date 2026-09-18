@@ -1563,7 +1563,7 @@ public partial class bitteam : Exchange
         {
             rawTickers = response;
         }
-        for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
+        for (int i = 0; i < (rawTickers?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawTicker = getValue(rawTickers, i);
             Dictionary<string, object> ticker = this.parseTicker(rawTicker);

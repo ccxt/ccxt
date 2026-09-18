@@ -728,7 +728,7 @@ public partial class hitbtc : ccxt.hitbtc
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tradesArray); postFixIncrement(ref i))
+        for (int i = 0; i < (tradesArray?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> trade = this.extend(this.parseWsTrade(getValue(tradesArray, i), market), parameters);
             ((IList<object>)result).Add(trade);
@@ -864,7 +864,7 @@ public partial class hitbtc : ccxt.hitbtc
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
             List<object> ohlcvs = this.parseWsOHLCVs(getValue(data, marketId), market);
-            for (int j = 0; j < getArrayLength(ohlcvs); postFixIncrement(ref j))
+            for (int j = 0; j < (ohlcvs?.Count ?? 0); postFixIncrement(ref j))
             {
                 callDynamically(stored, "append", new object[] {getValue(ohlcvs, j)});
             }

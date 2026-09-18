@@ -1339,7 +1339,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
         Dictionary<string, object> currenciesByCode = this.indexBy(currencies, "currency");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(products); postFixIncrement(ref i))
+        for (int i = 0; i < (products?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(products, i);
             string? type = this.safeStringLower(market, "type");
@@ -1469,7 +1469,7 @@ public partial class phemex : Exchange
             { "nonce", null },
         };
         List<object> sides = new List<object>() {bidsKey, asksKey};
-        for (int i = 0; i < getArrayLength(sides); postFixIncrement(ref i))
+        for (int i = 0; i < (sides?.Count ?? 0); postFixIncrement(ref i))
         {
             object side = getValue(sides, i);
             List<object> orders = new List<object>() {};

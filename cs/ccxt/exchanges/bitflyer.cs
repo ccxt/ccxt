@@ -365,7 +365,7 @@ public partial class bitflyer : Exchange
         List<object> markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
         markets = this.arrayConcat(markets, this.toArray(eu_markets));
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < (markets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "product_code");

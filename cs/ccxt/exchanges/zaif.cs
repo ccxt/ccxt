@@ -620,7 +620,7 @@ public partial class zaif : Exchange
         //      ]
         //
         IList<object> trades = this.toArray(response);
-        int numTrades = getArrayLength(trades);
+        int numTrades = (trades?.Count ?? 0);
         if ((numTrades == 1))
         {
             IDictionary<string, object> firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});

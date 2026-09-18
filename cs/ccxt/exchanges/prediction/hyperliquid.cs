@@ -316,7 +316,7 @@ public partial class hyperliquid : PredictionExchange
                             ((IList<object>)thresholds).Add(trimmed);
                         }
                     }
-                    int thresholdsLength = getArrayLength(thresholds);
+                    int thresholdsLength = (thresholds?.Count ?? 0);
                     Int64? index = this.parseToInt(indexStr);
                     if (thresholdsLength > 0 && !isEqual(index, null))
                     {
@@ -1315,7 +1315,7 @@ public partial class hyperliquid : PredictionExchange
                 ((IList<object>)candidates).Add(this.outcomeCoin(this.outcomeEncoding(numeric, 1))); // raw outcome id -> NO encoding
             }
         }
-        for (int i = 0; i < getArrayLength(candidates); postFixIncrement(ref i))
+        for (int i = 0; i < (candidates?.Count ?? 0); postFixIncrement(ref i))
         {
             object key = getValue(candidates, i);
             if (inOp(this.outcomes, key))
@@ -2125,13 +2125,13 @@ public partial class hyperliquid : PredictionExchange
             throw new ExchangeError ((string)(this.id + " fetchEvents() missing queries")) ;
         }
         List<object> lowerQueries = new List<object>() {};
-        for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
+        for (int i = 0; i < (queries?.Count ?? 0); postFixIncrement(ref i))
         {
             string queryString = ((string)getValue(queries, i));
             ((IList<object>)lowerQueries).Add(((string)queryString).ToLower());
         }
-        int lowerQueriesLength = getArrayLength(lowerQueries);
-        for (int i = 0; i < getArrayLength(marketValues); postFixIncrement(ref i))
+        int lowerQueriesLength = (lowerQueries?.Count ?? 0);
+        for (int i = 0; i < (marketValues?.Count ?? 0); postFixIncrement(ref i))
         {
             object mkt = getValue(marketValues, i);
             if (!isTrue(this.safeBool(mkt, "prediction", false)))
@@ -2150,7 +2150,7 @@ public partial class hyperliquid : PredictionExchange
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 string haystack = ((description + " ") + symLower);
                 bool matches = false;
-                for (int qi = 0; qi < getArrayLength(lowerQueries); postFixIncrement(ref qi))
+                for (int qi = 0; qi < (lowerQueries?.Count ?? 0); postFixIncrement(ref qi))
                 {
                     List<object> words = ((string)getValue(lowerQueries, qi)).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
                     int wordsLength = words.Count;
@@ -2227,7 +2227,7 @@ public partial class hyperliquid : PredictionExchange
         string? parentSymbol = this.safeString(raw, "parentSymbol");
         IList<object> markets = (IList<object>)(this.safeList(raw, "markets", new List<object>() {}));
         // Extract info from first market
-        int marketsLength = getArrayLength(markets);
+        int marketsLength = (markets?.Count ?? 0);
         object firstMarket = ((bool) (marketsLength > 0)) ? getValue(markets, 0) : new Dictionary<string, object>() {};
         IDictionary<string, object> firstInfo = this.safeDict(firstMarket, "info", new Dictionary<string, object>() {});
         IDictionary<string, object> desc = this.safeDict(firstInfo, "parsedDescription", new Dictionary<string, object>() {});

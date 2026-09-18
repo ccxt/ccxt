@@ -2454,7 +2454,7 @@ public partial class htx : Exchange
             }
         }
         promises = await promiseAll(promises);
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < (promises?.Count ?? 0); postFixIncrement(ref i))
         {
             allMarkets = this.arrayConcat(allMarkets, getValue(promises, i));
         }
@@ -2833,7 +2833,7 @@ public partial class htx : Exchange
             { "quarter", "CQ" },
             { "next_quarter", "NQ" },
         };
-        for (int i = 0; i < getArrayLength(futureMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < (futureMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(futureMarkets, i);
             object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
@@ -7506,7 +7506,7 @@ public partial class htx : Exchange
                 { "clientOrderId", this.safeString(order, "client_order_id") },
             }));
         }
-        for (int i = 0; i < getArrayLength(success); postFixIncrement(ref i))
+        for (int i = 0; i < (success?.Count ?? 0); postFixIncrement(ref i))
         {
             object order = getValue(success, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {

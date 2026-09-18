@@ -920,7 +920,7 @@ public partial class bitrue : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+        for (int i = 0; i < (types?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketType = getValue(types, i);
             if (isEqual(marketType, "spot"))
@@ -1802,7 +1802,7 @@ public partial class bitrue : Exchange
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
             // skip entries without a symbol: an undefined market id would become a null

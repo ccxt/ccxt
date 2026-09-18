@@ -1367,7 +1367,7 @@ public partial class woo : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -3386,7 +3386,7 @@ public partial class woo : Exchange
         } else
         {
             List<object> parts = ((string)networkizedCode).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            int partsLength = getArrayLength(parts);
+            int partsLength = (parts?.Count ?? 0);
             string? firstPart = this.safeString(parts, 0);
             object currencyId = this.safeString(parts, 1, firstPart);
             if (isGreaterThan(partsLength, 2))

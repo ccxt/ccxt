@@ -1402,7 +1402,7 @@ public partial class weex : Exchange
             response = new List<object>() {response};
         }
         List<object> results = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawTicker = getValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker

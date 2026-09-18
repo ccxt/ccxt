@@ -1566,7 +1566,7 @@ public partial class modetrade : Exchange
         List<object> symbols = this.symbols;
         if ((symbols != null))
         {
-            for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+            for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {

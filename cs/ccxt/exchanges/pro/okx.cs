@@ -482,7 +482,7 @@ public partial class okx : ccxt.okx
         // ]
         //
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawfr = getValue(data, i);
             object fundingRate = this.parseFundingRate(rawfr);
@@ -948,7 +948,7 @@ public partial class okx : ccxt.okx
         //    }
         //
         List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(rawLiquidations); postFixIncrement(ref i))
+        for (int i = 0; i < (rawLiquidations?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             Dictionary<string, object> liquidation = ((Dictionary<string, object>)this.parseWsLiquidation(rawLiquidation));
@@ -1056,7 +1056,7 @@ public partial class okx : ccxt.okx
         //    }
         //
         List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(rawLiquidations); postFixIncrement(ref i))
+        for (int i = 0; i < (rawLiquidations?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             string? eventType = this.safeString(rawLiquidation, "eventType");
@@ -1733,7 +1733,7 @@ public partial class okx : ccxt.okx
         object messageHash = add(add(channel, ":"), symbol);
         if ((action == "snapshot"))
         {
-            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+            for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
             {
                 object update = getValue(data, i);
                 ccxt.pro.OrderBook orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
@@ -1751,7 +1751,7 @@ public partial class okx : ccxt.okx
             if (inOp(this.orderbooks, symbol))
             {
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-                for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+                for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
                 {
                     object update = getValue(data, i);
                     this.handleOrderBookMessage(client as WebSocketClient, update, orderbook, messageHash, market);
@@ -1776,7 +1776,7 @@ public partial class okx : ccxt.okx
                     ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
                 }
                 ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-                for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+                for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
                 {
                     object update = getValue(data, i);
                     Int64? timestamp = this.safeInteger(update, "ts");
@@ -2352,7 +2352,7 @@ public partial class okx : ccxt.okx
             object stored = ((bool) (isEqual(channel, "orders-algo"))) ? this.triggerOrders : this.orders;
             List<object> marketIds = new List<object>() {};
             IList<object> parsed = this.parseOrders(orders);
-            for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+            for (int i = 0; i < (parsed?.Count ?? 0); postFixIncrement(ref i))
             {
                 object order = getValue(parsed, i);
                 callDynamically(stored, "append", new object[] {order});
@@ -2361,7 +2361,7 @@ public partial class okx : ccxt.okx
                 ((IList<object>)marketIds).Add(getValue(market, "id"));
             }
             (client as WebSocketClient).resolve(stored, channel);
-            for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+            for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
             {
                 object messageHash = add(add(channel, ":"), getValue(marketIds, i));
                 (client as WebSocketClient).resolve(stored, messageHash);
@@ -2440,7 +2440,7 @@ public partial class okx : ccxt.okx
                 ((IList<object>)filteredOrders).Add(order);
             }
         }
-        int tradesLength = getArrayLength(filteredOrders);
+        int tradesLength = (filteredOrders?.Count ?? 0);
         if ((tradesLength == 0))
         {
             return;
@@ -2452,7 +2452,7 @@ public partial class okx : ccxt.okx
         }
         object myTrades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(filteredOrders); postFixIncrement(ref i))
+        for (int i = 0; i < (filteredOrders?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> rawTrade = ((Dictionary<string, object>)getValue(filteredOrders, i));
             object trade = this.orderToTrade(rawTrade);
@@ -2827,7 +2827,7 @@ public partial class okx : ccxt.okx
                 } else
                 {
                     List<object> data = this.safeList(message, "data", new List<object>() {});
-                    for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+                    for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
                     {
                         object d = getValue(data, i);
                         errorCode = this.safeString(d, "sCode");

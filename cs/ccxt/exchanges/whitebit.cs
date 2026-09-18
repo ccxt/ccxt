@@ -963,7 +963,7 @@ public partial class whitebit : Exchange
         IDictionary<string, object> depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
         IDictionary<string, object> withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
         List<object> allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-        for (int j = 0; j < getArrayLength(allNetworks); postFixIncrement(ref j))
+        for (int j = 0; j < (allNetworks?.Count ?? 0); postFixIncrement(ref j))
         {
             object networkId = getValue(allNetworks, j);
             object networkCode = this.networkIdToCode(networkId, code);
@@ -1287,7 +1287,7 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -1801,7 +1801,7 @@ public partial class whitebit : Exchange
                 List<object> response = await this.v4PrivatePostOrders(this.extend(request, parameters));
                 // Search for order in active orders response (array format)
                 IList<object> orders = this.toArray(response);
-                for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+                for (int i = 0; i < (orders?.Count ?? 0); postFixIncrement(ref i))
                 {
                     object order = getValue(orders, i);
                     string? orderId = this.safeString(order, "orderId");
@@ -2761,7 +2761,7 @@ public partial class whitebit : Exchange
         // Sort by timestamp (most recent first)
         List<object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
-        if (!isEqual(limit, null) && isGreaterThan(getArrayLength(sortedOrders), limit))
+        if (!isEqual(limit, null) && isGreaterThan((sortedOrders?.Count ?? 0), limit))
         {
             return ccxt.BaseExchange.ToOrderList(slice(sortedOrders, 0, limit));
         }

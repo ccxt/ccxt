@@ -1238,7 +1238,7 @@ public partial class deribit : Exchange
                 ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
             }
         }
-        for (int i = 0; i < getArrayLength(instrumentsResponses); postFixIncrement(ref i))
+        for (int i = 0; i < (instrumentsResponses?.Count ?? 0); postFixIncrement(ref i))
         {
             List<object> instrumentsResult = this.safeList(getValue(instrumentsResponses, i), "result", new List<object>() {});
             for (int k = 0; k < instrumentsResult.Count; postFixIncrement(ref k))
@@ -1387,7 +1387,7 @@ public partial class deribit : Exchange
         {
             summaries = new List<object>() {balance};
         }
-        for (int i = 0; i < getArrayLength(summaries); postFixIncrement(ref i))
+        for (int i = 0; i < (summaries?.Count ?? 0); postFixIncrement(ref i))
         {
             object data = getValue(summaries, i);
             string? currencyId = this.safeString(data, "currency");
@@ -2172,7 +2172,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> parsedFees = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);

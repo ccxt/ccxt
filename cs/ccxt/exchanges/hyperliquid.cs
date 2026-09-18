@@ -554,7 +554,7 @@ public partial class hyperliquid : Exchange
         }
         List<object> promises = await promiseAll(rawPromises);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < (promises?.Count ?? 0); postFixIncrement(ref i))
         {
             result = this.arrayConcat(result, getValue(promises, i));
         }
@@ -640,7 +640,7 @@ public partial class hyperliquid : Exchange
             }
         }
         List<object> rawPromises = new List<object>() {};
-        for (int i = 0; i < getArrayLength(fetchDexesList); postFixIncrement(ref i))
+        for (int i = 0; i < (fetchDexesList?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "type", "metaAndAssetCtxs" },
@@ -651,7 +651,7 @@ public partial class hyperliquid : Exchange
         List<object> promises = await promiseAll(rawPromises);
         ((IDictionary<string,object>)this.options)["hip3TokensByName"] = new Dictionary<string, object>() {};
         List<object> markets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < (promises?.Count ?? 0); postFixIncrement(ref i))
         {
             object dexName = getValue(fetchDexesList, i);
             object offset = getValue(perpDexesOffset, dexName);
@@ -5162,7 +5162,7 @@ public partial class hyperliquid : Exchange
         object deposits = new List<object>() {};
         if ((vaultAddress != null))
         {
-            for (int i = 0; i < getArrayLength(records); postFixIncrement(ref i))
+            for (int i = 0; i < (records?.Count ?? 0); postFixIncrement(ref i))
             {
                 object record = getValue(records, i);
                 if (isEqual(getValue(record, "type"), "vaultDeposit"))
@@ -5247,7 +5247,7 @@ public partial class hyperliquid : Exchange
         object withdrawals = new List<object>() {};
         if ((vaultAddress != null))
         {
-            for (int i = 0; i < getArrayLength(records); postFixIncrement(ref i))
+            for (int i = 0; i < (records?.Count ?? 0); postFixIncrement(ref i))
             {
                 object record = getValue(records, i);
                 if (isEqual(getValue(record, "type"), "vaultWithdraw"))

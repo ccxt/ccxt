@@ -197,7 +197,7 @@ public partial class bullish : ccxt.bullish
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArrayCache;
         }
         object tradesArray = getValue(this.trades, symbol);
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < (trades?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(tradesArray, "append", new object[] {getValue(trades, i)});
         }
@@ -494,7 +494,7 @@ public partial class bullish : ccxt.bullish
         {
             rawOrders = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of orders
         }
-        int numRawOrders = getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        int numRawOrders = (rawOrders?.Count ?? 0); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (numRawOrders > 0)
         {
             if (isEqual(this.orders, null))
@@ -504,7 +504,7 @@ public partial class bullish : ccxt.bullish
             }
             object orders = this.orders;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(rawOrders); postFixIncrement(ref i))
+            for (int i = 0; i < (rawOrders?.Count ?? 0); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(rawOrders, i);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
@@ -621,7 +621,7 @@ public partial class bullish : ccxt.bullish
         {
             rawTrades = this.safeList(message, "data", new List<object>() {}); // snapshot is a list of trades
         }
-        int numRawTrades = getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        int numRawTrades = (rawTrades?.Count ?? 0); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (numRawTrades > 0)
         {
             if (isEqual(this.myTrades, null))
@@ -631,7 +631,7 @@ public partial class bullish : ccxt.bullish
             }
             object trades = this.myTrades;
             Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-            for (int i = 0; i < getArrayLength(rawTrades); postFixIncrement(ref i))
+            for (int i = 0; i < (rawTrades?.Count ?? 0); postFixIncrement(ref i))
             {
                 object rawTrade = getValue(rawTrades, i);
                 Dictionary<string, object> parsedTrade = this.parseTrade(rawTrade);
@@ -819,7 +819,7 @@ public partial class bullish : ccxt.bullish
         }
         object positions = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawPositions); postFixIncrement(ref i))
+        for (int i = 0; i < (rawPositions?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = this.parsePosition(rawPosition);
@@ -827,7 +827,7 @@ public partial class bullish : ccxt.bullish
             ((IList<object>)newPositions).Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

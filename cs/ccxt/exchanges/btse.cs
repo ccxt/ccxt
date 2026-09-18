@@ -1312,7 +1312,7 @@ public partial class btse : Exchange
             data = new List<object>() {single};
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1773,7 +1773,7 @@ public partial class btse : Exchange
             return ccxt.BaseExchange.ToTradeList(trades);
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < (trades?.Count ?? 0); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             Int64? timestamp = this.safeInteger(trade, "timestamp");
@@ -3147,7 +3147,7 @@ public partial class btse : Exchange
         List<object> rows = this.safeList(response, "data", ((object)response));
         List<object> responseList = this.arrayConcat(new List<object>() {}, rows);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(responseList); postFixIncrement(ref i))
+        for (int i = 0; i < (responseList?.Count ?? 0); postFixIncrement(ref i))
         {
             object feeInfo = getValue(responseList, i);
             string? marketId = this.safeString(feeInfo, "symbol");
@@ -4039,7 +4039,7 @@ public partial class btse : Exchange
         Int64? longLeverage = null;
         Int64? shortLeverage = null;
         string? marginMode = null;
-        for (int i = 0; i < getArrayLength(safeResponse); postFixIncrement(ref i))
+        for (int i = 0; i < (safeResponse?.Count ?? 0); postFixIncrement(ref i))
         {
             object entrty = getValue(safeResponse, i);
             Int64? leverageValue = this.safeInteger(entrty, "leverage");

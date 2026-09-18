@@ -561,7 +561,7 @@ public partial class weex : ccxt.weex
             ((IList<object>)newTrades).Add(trade);
         }
         List<object> sorted = this.sortBy(newTrades, "timestamp");
-        for (int j = 0; j < getArrayLength(sorted); postFixIncrement(ref j))
+        for (int j = 0; j < (sorted?.Count ?? 0); postFixIncrement(ref j))
         {
             object sortedTrade = getValue(sorted, j);
             callDynamically(tradesArray, "append", new object[] {sortedTrade});
@@ -2088,7 +2088,7 @@ public partial class weex : ccxt.weex
             ((IList<object>)newPositions).Add(position);
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

@@ -443,7 +443,7 @@ public partial class binance : ccxt.binance
         {
             throw new NotSupported ((string)(this.id + " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
         }
-        int numSubscriptions = getArrayLength(subscriptionHashes);
+        int numSubscriptions = (subscriptionHashes?.Count ?? 0);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream(type, streamHash, numSubscriptions));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -852,7 +852,7 @@ public partial class binance : ccxt.binance
             object symbolHash = add(add(add(subscriptionHash, "@"), ((object)watchOrderBookRate).ToString()), "ms");
             ((IList<object>)subParams).Add(symbolHash);
         }
-        int messageHashesLength = getArrayLength(messageHashes);
+        int messageHashesLength = (messageHashes?.Count ?? 0);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -925,7 +925,7 @@ public partial class binance : ccxt.binance
             object symbolHash = add(add(add(subscriptionHash, "@"), watchOrderBookRate), "ms");
             ((IList<object>)subParams).Add(symbolHash);
         }
-        int messageHashesLength = getArrayLength(subMessageHashes);
+        int messageHashesLength = (subMessageHashes?.Count ?? 0);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1429,7 +1429,7 @@ public partial class binance : ccxt.binance
             }
         }
         object query = this.omit(parameters, "type");
-        int subParamsLength = getArrayLength(subParams);
+        int subParamsLength = (subParams?.Count ?? 0);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1532,7 +1532,7 @@ public partial class binance : ccxt.binance
             }
         }
         object query = this.omit(parameters, "type");
-        int subParamsLength = getArrayLength(subParams);
+        int subParamsLength = (subParams?.Count ?? 0);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
         Int64 requestId = ((Int64)this.requestId(url));
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3129,7 +3129,7 @@ public partial class binance : ccxt.binance
             (client as WebSocketClient).resolve(parsedTicker, messageHash);
         }
         // resolve batch endpoint
-        int length = getArrayLength(resolvedMessageHashes);
+        int length = (resolvedMessageHashes?.Count ?? 0);
         if (length > 0)
         {
             object batchMessageHash = add(add(unifiedPrefix, "s:"), channelName);
@@ -5807,7 +5807,7 @@ public partial class binance : ccxt.binance
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -6414,7 +6414,7 @@ public partial class binance : ccxt.binance
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (accountType + ":positions::"));
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

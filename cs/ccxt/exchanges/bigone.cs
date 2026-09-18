@@ -788,7 +788,7 @@ public partial class bigone : Exchange
             }));
         }
         IList<object> contractMarkets = this.toArray(contractResponse);
-        for (int i = 0; i < getArrayLength(contractMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < (contractMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(contractMarkets, i);
             string? baseId = this.safeString(market, "baseCurrency");

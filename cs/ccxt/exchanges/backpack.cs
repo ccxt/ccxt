@@ -1360,7 +1360,7 @@ public partial class backpack : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> rawRates = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawRates); postFixIncrement(ref i))
+        for (int i = 0; i < (rawRates?.Count ?? 0); postFixIncrement(ref i))
         {
             object rate = getValue(rawRates, i);
             string? datetime = this.safeString(rate, "intervalEndTimestamp");

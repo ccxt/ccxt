@@ -1408,7 +1408,7 @@ public partial class bitmex : Exchange
             { "nonce", null },
         };
         IList<object> orders = this.toArray(response);
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < (orders?.Count ?? 0); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string side = ((bool) (isEqual(getValue(order, "side"), "Sell"))) ? "asks" : "bids";
@@ -2030,7 +2030,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
+        for (int i = 0; i < (rawTickers?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
             string? symbol = this.safeString(ticker, "symbol");
@@ -2185,7 +2185,7 @@ public partial class bitmex : Exchange
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
-            for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+            for (int i = 0; i < (result?.Count ?? 0); postFixIncrement(ref i))
             {
                 ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(getValue(result, i), 0)), duration);
             }
@@ -2582,7 +2582,7 @@ public partial class bitmex : Exchange
         {
             ((IList<object>)execInstructions).Add("ParticipateDoNotInitiate");
         }
-        int execInstLength = getArrayLength(execInstructions);
+        int execInstLength = (execInstructions?.Count ?? 0);
         if (execInstLength > 0)
         {
             ((IDictionary<string,object>)request)["execInst"] = String.Join(",", ((IList<object>)execInstructions).ToArray());
@@ -3285,7 +3285,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         List<object> filteredResponse = new List<object>() {};
         IList<object> rawItems = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawItems); postFixIncrement(ref i))
+        for (int i = 0; i < (rawItems?.Count ?? 0); postFixIncrement(ref i))
         {
             object item = getValue(rawItems, i);
             string? marketId = this.safeString(item, "symbol");

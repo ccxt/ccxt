@@ -579,7 +579,7 @@ public partial class bithumb : Exchange
             //         },
             //     ]
             //
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 string? marketId = this.safeString(entry, "market");
@@ -1124,7 +1124,7 @@ public partial class bithumb : Exchange
                 Dictionary<string, object> market = this.market(getValue(symbolsForMarketIds, i));
                 ((IList<object>)marketIds).Add(this.getGen2MarketId(market));
             }
-            int marketIdsLength = getArrayLength(marketIds);
+            int marketIdsLength = (marketIds?.Count ?? 0);
             if ((marketIdsLength == 0))
             {
                 return ccxt.BaseExchange.ToTickers(result);
@@ -1147,7 +1147,7 @@ public partial class bithumb : Exchange
                 for (int i = 0; i < marketIdsLength; postFixIncrement(ref i))
                 {
                     ((IList<object>)marketIdsChunk).Add(getValue(marketIds, i));
-                    int marketIdsChunkLength = getArrayLength(marketIdsChunk);
+                    int marketIdsChunkLength = (marketIdsChunk?.Count ?? 0);
                     bool isLastMarketId = (isEqual(i, ((marketIdsLength - 1))));
                     if ((isGreaterThanOrEqual(marketIdsChunkLength, maxMarketIdsPerRequest)) || isLastMarketId)
                     {
@@ -1191,7 +1191,7 @@ public partial class bithumb : Exchange
             //     ]
             //
             List<object> responses = await promiseAll(promises);
-            int responsesLength = getArrayLength(responses);
+            int responsesLength = (responses?.Count ?? 0);
             for (int i = 0; i < responsesLength; postFixIncrement(ref i))
             {
                 object response = getValue(responses, i);
@@ -1272,13 +1272,13 @@ public partial class bithumb : Exchange
                 }
             }
             List<object> promises = new List<object>() {};
-            for (int i = 0; i < getArrayLength(quotes); postFixIncrement(ref i))
+            for (int i = 0; i < (quotes?.Count ?? 0); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)request)["quoteId"] = getValue(quotes, i);
                 ((IList<object>)promises).Add(this.publicGetPublicTickerALLQuoteId(this.extend(request, parameters)));
             }
             List<object> responses = await promiseAll(promises);
-            for (int i = 0; i < getArrayLength(quotes); postFixIncrement(ref i))
+            for (int i = 0; i < (quotes?.Count ?? 0); postFixIncrement(ref i))
             {
                 object quote = getValue(quotes, i);
                 object response = getValue(responses, i);

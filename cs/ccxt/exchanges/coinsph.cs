@@ -2145,7 +2145,7 @@ public partial class coinsph : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> fees = this.toArray(response);
-        for (int i = 0; i < getArrayLength(fees); postFixIncrement(ref i))
+        for (int i = 0; i < (fees?.Count ?? 0); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");

@@ -467,7 +467,7 @@ public partial class testMainClass : BaseTest
                 {
                     return;
                 }
-                for (int i = 0; i < getArrayLength(decimalNumbers); postFixIncrement(ref i))
+                for (int i = 0; i < (decimalNumbers?.Count ?? 0); postFixIncrement(ref i))
                 {
                     string? num = ((string)getValue(decimalNumbers, i));
                     string? numStr = num;
@@ -531,7 +531,7 @@ public partial class testMainClass : BaseTest
             object sinceTime = subtract(exchange.milliseconds(), (multiply(1000, 60) * 5));
             // iterate
             List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
-            for (int i = 0; i < getArrayLength(methods_singular); postFixIncrement(ref i))
+            for (int i = 0; i < (methods_singular?.Count ?? 0); postFixIncrement(ref i))
             {
                 string? singularFetchName = ((string)getValue(methods_singular, i));
                 if ((!isEqual(getValue(exchange.has, singularFetchName), null)) && (!isEqual(getValue(exchange.has, singularFetchName), false)))
@@ -550,7 +550,7 @@ public partial class testMainClass : BaseTest
             if ((fetchedOrder == null))
             {
                 List<object> methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
-                for (int i = 0; i < getArrayLength(methods_plural); postFixIncrement(ref i))
+                for (int i = 0; i < (methods_plural?.Count ?? 0); postFixIncrement(ref i))
                 {
                     string? pluralFetchName = ((string)getValue(methods_plural, i));
                     if ((!isEqual(getValue(exchange.has, pluralFetchName), null)) && (!isEqual(getValue(exchange.has, pluralFetchName), false)))

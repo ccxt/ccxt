@@ -1005,7 +1005,7 @@ public partial class bit2c : Exchange
     {
         object newString = "";
         List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-        for (int i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, (strParts?.Count ?? 0)); postFixIncrement(ref i))
         {
             newString = add(newString, getValue(strParts, i));
         }

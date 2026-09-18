@@ -2266,7 +2266,7 @@ public partial class gate : Exchange
                 { "settle", settleId },
             };
             List<object> response = await this.publicFuturesGetSettleContracts(this.extend(request, parameters));
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
             {
                 IDictionary<string, object> contract = this.safeDict(response, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsedMarket = this.parseContractMarket(contract, settleId);
@@ -2292,7 +2292,7 @@ public partial class gate : Exchange
                 { "settle", settleId },
             };
             List<object> response = await this.publicDeliveryGetSettleContracts(this.extend(request, parameters));
-            for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+            for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
             {
                 IDictionary<string, object> contract = this.safeDict(response, i, new Dictionary<string, object>() {});
                 Dictionary<string, object> parsedMarket = this.parseContractMarket(contract, settleId);
@@ -2542,7 +2542,7 @@ public partial class gate : Exchange
             //        }
             //    ]
             //
-            for (int j = 0; j < getArrayLength(response); postFixIncrement(ref j))
+            for (int j = 0; j < (response?.Count ?? 0); postFixIncrement(ref j))
             {
                 IDictionary<string, object> market = this.safeDict(response, j, new Dictionary<string, object>() {});
                 string? id = this.safeString(market, "name");
@@ -2638,7 +2638,7 @@ public partial class gate : Exchange
         //    ]
         //
         List<object> underlyings = new List<object>() {};
-        for (int i = 0; i < getArrayLength(underlyingsResponse); postFixIncrement(ref i))
+        for (int i = 0; i < (underlyingsResponse?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> underlying = this.safeDict(underlyingsResponse, i, new Dictionary<string, object>() {});
             string? name = this.safeString(underlying, "name");
@@ -3357,7 +3357,7 @@ public partial class gate : Exchange
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -3435,7 +3435,7 @@ public partial class gate : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object withdrawFees = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             withdrawFees = new Dictionary<string, object>() {};
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -4576,7 +4576,7 @@ public partial class gate : Exchange
         //     }
         //
         List<object> rates = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             Int64? timestamp = this.safeTimestamp(entry, "t");
@@ -6470,7 +6470,7 @@ public partial class gate : Exchange
                 { "cost", Precise.stringNeg(rebate) },
             });
         }
-        int numFeeCurrencies = getArrayLength(fees);
+        int numFeeCurrencies = (fees?.Count ?? 0);
         bool multipleFeeCurrencies = numFeeCurrencies > 1;
         string? status = this.parseOrderStatus(rawStatus);
         string? remaining = Precise.stringAbs(remainingString);
@@ -8565,7 +8565,7 @@ public partial class gate : Exchange
             // remove the first element from params
             List<object> newParams = new List<object>() {};
             IList<object> anyParams = this.toArray(parameters);
-            for (int i = 1; i < getArrayLength(anyParams); postFixIncrement(ref i))
+            for (int i = 1; i < (anyParams?.Count ?? 0); postFixIncrement(ref i))
             {
                 ((IList<object>)newParams).Add(getValue(parameters, i));
             }
@@ -9466,7 +9466,7 @@ public partial class gate : Exchange
         //    ]
         //
         List<object> underlyings = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> underlying = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? name = this.safeString(underlying, "name");
@@ -9760,7 +9760,7 @@ public partial class gate : Exchange
         //     ]
         //
         string? marketId = ((string)getValue(market, "id"));
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? entryMarketId = this.safeString(entry, "name");

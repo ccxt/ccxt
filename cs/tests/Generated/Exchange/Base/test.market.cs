@@ -140,7 +140,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
-        for (int i = 0; i < getArrayLength(checkedTypes); postFixIncrement(ref i))
+        for (int i = 0; i < (checkedTypes?.Count ?? 0); postFixIncrement(ref i))
         {
             string? type = ((string)getValue(checkedTypes, i));
             if (isEqual(getValue(market, type), true))
@@ -152,7 +152,7 @@ public partial class testMainClass : BaseTest
         if ((isEqual(swap, true)) || (isEqual(future, true)))
         {
             List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
-            for (int i = 0; i < getArrayLength(checkedSubTypes); postFixIncrement(ref i))
+            for (int i = 0; i < (checkedSubTypes?.Count ?? 0); postFixIncrement(ref i))
             {
                 string? subType = ((string)getValue(checkedSubTypes, i));
                 if (isEqual(getValue(market, subType), true))

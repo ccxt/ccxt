@@ -1353,7 +1353,7 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = await this.publicGetMarketFundingRateHistory(this.extend(request, parameters));
         List<object> rates = new List<object>() {};
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             object rate = getValue(data, i);
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
@@ -1497,7 +1497,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(data, "ts");
         List<object> details = this.safeList(data, "details", new List<object>() {});
-        for (int i = 0; i < getArrayLength(details); postFixIncrement(ref i))
+        for (int i = 0; i < (details?.Count ?? 0); postFixIncrement(ref i))
         {
             object balance = getValue(details, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1543,7 +1543,7 @@ public partial class blofin : Exchange
             { "info", response },
         };
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "currency");

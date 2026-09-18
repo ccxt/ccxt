@@ -898,7 +898,7 @@ public partial class apex : ccxt.apex
         List<object> promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < (promises?.Count ?? 0); postFixIncrement(ref i))
         {
             object positions = getValue(promises, i);
             for (int ii = 0; ii < getArrayLength(positions); postFixIncrement(ref ii))
@@ -970,7 +970,7 @@ public partial class apex : ccxt.apex
             }
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

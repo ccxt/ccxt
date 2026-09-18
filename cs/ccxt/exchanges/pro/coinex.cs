@@ -166,7 +166,7 @@ public partial class coinex : ccxt.coinex
             ((IDictionary<string,object>)newTickers)[(string)symbol] = parsedTicker;
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "tickers::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -372,7 +372,7 @@ public partial class coinex : ccxt.coinex
             }
             info = rawBalances;
         }
-        for (int i = 0; i < getArrayLength(rawBalances); postFixIncrement(ref i))
+        for (int i = 0; i < (rawBalances?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(rawBalances, i);
             this.parseWsBalance(entry, account);

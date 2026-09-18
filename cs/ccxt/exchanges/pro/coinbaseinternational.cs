@@ -99,7 +99,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             IList<object> parsedSymbols = this.marketSymbols(symbols);
             IList<object> marketIds = this.marketIds(parsedSymbols);
             productIds = marketIds;
-            for (int i = 0; i < getArrayLength(parsedSymbols); postFixIncrement(ref i))
+            for (int i = 0; i < (parsedSymbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(parsedSymbols, i)));
             }
@@ -264,7 +264,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
     {
         List<object> symbols = this.symbols;
         List<object> output = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);

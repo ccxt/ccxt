@@ -497,7 +497,7 @@ public partial class cryptocom : ccxt.cryptocom
             return;
         }
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; j < getArrayLength(parsedTrades); postFixIncrement(ref j))
+        for (int j = 0; j < (parsedTrades?.Count ?? 0); postFixIncrement(ref j))
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
@@ -604,7 +604,7 @@ public partial class cryptocom : ccxt.cryptocom
         symbols = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             ((IList<object>)messageHashes).Add(add("ticker.", marketId));
@@ -648,7 +648,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object symbol = getValue(symbols, i);
@@ -770,7 +770,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
         IList<object> marketIds = this.marketIds(symbols);
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             ((IList<object>)messageHashes).Add(add("bidask.", getValue(symbols, i)));
@@ -1012,7 +1012,7 @@ public partial class cryptocom : ccxt.cryptocom
             }
             object stored = this.orders;
             IList<object> parsed = this.parseOrders(orders);
-            for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+            for (int i = 0; i < (parsed?.Count ?? 0); postFixIncrement(ref i))
             {
                 callDynamically(stored, "append", new object[] {getValue(parsed, i)});
             }
@@ -1163,7 +1163,7 @@ public partial class cryptocom : ccxt.cryptocom
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

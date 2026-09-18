@@ -1386,7 +1386,7 @@ public partial class bitstamp : Exchange
         // fetchCurrencies invocations in the multi threaded runtimes
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> arr = this.toArray(rawCurrencies);
-        for (int i = 0; i < getArrayLength(arr); postFixIncrement(ref i))
+        for (int i = 0; i < (arr?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(arr, i);
             var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
@@ -3575,7 +3575,7 @@ public partial class bitstamp : Exchange
                 throw new AuthenticationError ((string)(this.id + " invalid signature, use the uid for the main account if you have subaccounts")) ;
             }
             string feedback = add((this.id + " "), body);
-            for (int i = 0; i < getArrayLength(errors); postFixIncrement(ref i))
+            for (int i = 0; i < (errors?.Count ?? 0); postFixIncrement(ref i))
             {
                 object value = getValue(errors, i);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), value, feedback);

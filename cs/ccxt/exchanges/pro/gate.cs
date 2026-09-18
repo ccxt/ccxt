@@ -981,7 +981,7 @@ public partial class gate : ccxt.gate
             results = new List<object>() {rawTicker};
         }
         bool isTicker = (isEqual(objectName, "ticker")); // whether ticker or bid-ask
-        for (int i = 0; i < getArrayLength(results); postFixIncrement(ref i))
+        for (int i = 0; i < (results?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawTicker = getValue(results, i);
             string? marketId = this.safeString(rawTicker, "s");
@@ -1140,7 +1140,7 @@ public partial class gate : ccxt.gate
             result = new List<object>() {result};
         }
         IList<object> parsedTrades = this.parseTrades(result);
-        for (int i = 0; i < getArrayLength(parsedTrades); postFixIncrement(ref i))
+        for (int i = 0; i < (parsedTrades?.Count ?? 0); postFixIncrement(ref i))
         {
             object trade = getValue(parsedTrades, i);
             object symbol = getValue(trade, "symbol");
@@ -1368,7 +1368,7 @@ public partial class gate : ccxt.gate
         }
         IList<object> parsed = this.parseTrades(result);
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+        for (int i = 0; i < (parsed?.Count ?? 0); postFixIncrement(ref i))
         {
             object trade = getValue(parsed, i);
             callDynamically(cachedTrades, "append", new object[] {trade});
@@ -1723,7 +1723,7 @@ public partial class gate : ccxt.gate
             }
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1884,7 +1884,7 @@ public partial class gate : ccxt.gate
         object stored = ((bool) isTrigger) ? this.triggerOrders : this.orders;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         IList<object> parsedOrders = this.parseOrders(orders);
-        for (int i = 0; i < getArrayLength(parsedOrders); postFixIncrement(ref i))
+        for (int i = 0; i < (parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
             object parsed = getValue(parsedOrders, i);
             // inject order status

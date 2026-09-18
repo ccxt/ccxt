@@ -847,7 +847,7 @@ public partial class btcbox : Exchange
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
         if (isEqual(type, "open"))
         {
-            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+            for (int i = 0; i < (orders?.Count ?? 0); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)getValue(orders, i))["status"] = "open";
             }

@@ -1690,7 +1690,7 @@ public partial class bullish : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> result = this.toArray(response);
-        for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+        for (int i = 0; i < (result?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
@@ -2583,7 +2583,7 @@ public partial class bullish : Exchange
         {
             List<object> response = await this.privateGetV1AccountsTradingAccounts(parameters);
             IList<object> accounts = this.toArray(response);
-            for (int i = 0; i < getArrayLength(accounts); postFixIncrement(ref i))
+            for (int i = 0; i < (accounts?.Count ?? 0); postFixIncrement(ref i))
             {
                 object account = getValue(accounts, i);
                 string? name = this.safeString(account, "tradingAccountName");
@@ -2736,7 +2736,7 @@ public partial class bullish : Exchange
         //     ]
         //
         IList<object> safeResponse = this.toArray(response);
-        int length = getArrayLength(safeResponse);
+        int length = (safeResponse?.Count ?? 0);
         IDictionary<string, object> data = this.safeDict(safeResponse, 0, new Dictionary<string, object>() {});
         object network = null;
         IList<object> networkparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
@@ -2754,7 +2754,7 @@ public partial class bullish : Exchange
             if ((network != null))
             {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
-                for (int i = 0; i < getArrayLength(safeResponse); postFixIncrement(ref i))
+                for (int i = 0; i < (safeResponse?.Count ?? 0); postFixIncrement(ref i))
                 {
                     IDictionary<string, object> entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     string? networkId = this.safeString(entry, "network");

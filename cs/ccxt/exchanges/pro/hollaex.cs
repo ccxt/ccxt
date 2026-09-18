@@ -185,7 +185,7 @@ public partial class hollaex : ccxt.hollaex
         }
         object data = this.safeValue(message, "data", new List<object>() {});
         IList<object> parsedTrades = this.parseTrades(data, market);
-        for (int j = 0; j < getArrayLength(parsedTrades); postFixIncrement(ref j))
+        for (int j = 0; j < (parsedTrades?.Count ?? 0); postFixIncrement(ref j))
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }

@@ -1492,7 +1492,7 @@ public partial class ndax : Exchange
         //     [ 449 ] // comma-separated list of account ids
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             string? accountId = this.safeString(response, i);
             ((IList<object>)result).Add(new Dictionary<string, object>() {

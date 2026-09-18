@@ -833,7 +833,7 @@ public partial class digifinex : Exchange
         object swapData = this.safeValue(swapMarkets, "data", new List<object>() {});
         List<object> response = this.arrayConcat(spotData, swapData);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(response); postFixIncrement(ref i))
+        for (int i = 0; i < (response?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
             string? id = this.safeString2(market, "symbol", "instrument_id");

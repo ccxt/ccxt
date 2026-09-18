@@ -1874,7 +1874,7 @@ public partial class nado : Exchange
         List<object> response = await this.gatewayV2PublicGetAssets(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> assets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(assets); postFixIncrement(ref i))
+        for (int i = 0; i < (assets?.Count ?? 0); postFixIncrement(ref i))
         {
             object currency = getValue(assets, i);
             Dictionary<string, object> parsed = this.parseCurrency(currency);
@@ -3201,7 +3201,7 @@ public partial class nado : Exchange
             subaccount = "default";
         }
         string address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
-        if ((getArrayLength(address) != 40))
+        if (((address?.Length ?? 0) != 40))
         {
             throw new BadRequest ((string)(this.id + " createOrder() requires a 20-byte walletAddress")) ;
         }

@@ -574,7 +574,7 @@ public partial class deribit : ccxt.deribit
         }
         IList<object> parsed = this.parseTrades(trades);
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+        for (int i = 0; i < (parsed?.Count ?? 0); postFixIncrement(ref i))
         {
             object trade = getValue(parsed, i);
             callDynamically(cachedTrades, "append", new object[] {trade});
@@ -875,7 +875,7 @@ public partial class deribit : ccxt.deribit
             orders = new List<object>() {order};
         }
         object cachedOrders = this.orders;
-        for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+        for (int i = 0; i < (orders?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(cachedOrders, "append", new object[] {getValue(orders, i)});
         }

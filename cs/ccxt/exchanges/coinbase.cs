@@ -1828,7 +1828,7 @@ public partial class coinbase : Exchange
             ((IList<object>)result).Add(this.parseContractMarket(getValue(perpetualData, i), perpetualFeeTier));
         }
         List<object> newMarkets = new List<object>() {};
-        for (int i = 0; i < getArrayLength(result); postFixIncrement(ref i))
+        for (int i = 0; i < (result?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> market = ((Dictionary<string, object>)getValue(result, i));
             object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
@@ -2242,7 +2242,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         Dictionary<string, object> networksById = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(currencies); postFixIncrement(ref i))
+        for (int i = 0; i < (currencies?.Count ?? 0); postFixIncrement(ref i))
         {
             object currency = getValue(currencies, i);
             string? assetId = this.safeString(currency, "asset_id");
@@ -2935,7 +2935,7 @@ public partial class coinbase : Exchange
         Dictionary<string, object> response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> ledger = this.parseLedger(data, currency, since, limit);
-        int length = getArrayLength(ledger);
+        int length = (ledger?.Count ?? 0);
         if ((length == 0))
         {
             return ccxt.BaseExchange.ToLedgerEntryList(ledger);

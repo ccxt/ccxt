@@ -1257,7 +1257,7 @@ public partial class cex : ccxt.cex
         Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
         var stored = new ArrayCacheByTimestamp(limit);
         List<object> sorted = this.sortBy(data, 0);
-        for (int i = 0; i < getArrayLength(sorted); postFixIncrement(ref i))
+        for (int i = 0; i < (sorted?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(stored, "append", new object[] {this.parseOHLCV(getValue(sorted, i), market)});
         }

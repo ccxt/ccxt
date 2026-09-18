@@ -448,7 +448,7 @@ public partial class upbit : ccxt.upbit
         List<object> message = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        for (int i = 0; i < getArrayLength(requests); postFixIncrement(ref i))
+        for (int i = 0; i < (requests?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)message).Add(getValue(requests, i));
         }

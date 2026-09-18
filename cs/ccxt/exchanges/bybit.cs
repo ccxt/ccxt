@@ -2803,7 +2803,7 @@ public partial class bybit : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+        for (int i = 0; i < (types?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketType = getValue(types, i);
             if (isEqual(marketType, "spot"))
@@ -2836,7 +2836,7 @@ public partial class bybit : Exchange
         }
         List<object> promises = await promiseAll(promisesUnresolved);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < (promises?.Count ?? 0); postFixIncrement(ref i))
         {
             object parsedMarket = getValue(promises, i);
             result = this.arrayConcat(result, parsedMarket);
@@ -3073,7 +3073,7 @@ public partial class bybit : Exchange
         markets = this.arrayConcat(markets, preLaunchMarketsList);
         List<object> result = new List<object>() {};
         string? category = this.safeString(data, "category");
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < (markets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             if ((category == null))
@@ -3272,7 +3272,7 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(markets); postFixIncrement(ref i))
+        for (int i = 0; i < (markets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");

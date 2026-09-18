@@ -352,7 +352,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         object amountLimits = this.safeValue(this.options, "limits", new Dictionary<string, object>() {});
         IList<object> coins = this.toArray(response);
-        for (int i = 0; i < getArrayLength(coins); postFixIncrement(ref i))
+        for (int i = 0; i < (coins?.Count ?? 0); postFixIncrement(ref i))
         {
             object coin = getValue(coins, i);
             object baseId = coin;

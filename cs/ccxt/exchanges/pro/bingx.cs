@@ -954,7 +954,7 @@ public partial class bingx : ccxt.bingx
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)unifiedTimeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)unifiedTimeframe));
-        for (int i = 0; i < getArrayLength(candles); postFixIncrement(ref i))
+        for (int i = 0; i < (candles?.Count ?? 0); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             object parsed = this.parseWsOHLCV(candle, market);
@@ -1566,7 +1566,7 @@ public partial class bingx : ccxt.bingx
         }
         List<object> rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rawPositions); postFixIncrement(ref i))
+        for (int i = 0; i < (rawPositions?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             Dictionary<string, object> position = ((Dictionary<string, object>)this.parseWsPosition(rawPosition));
@@ -1582,7 +1582,7 @@ public partial class bingx : ccxt.bingx
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "swap:positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1640,7 +1640,7 @@ public partial class bingx : ccxt.bingx
         } catch(Exception error)
         {
             List<object> types = new List<object>() {"spot", "linear", "inverse"};
-            for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+            for (int i = 0; i < (types?.Count ?? 0); postFixIncrement(ref i))
             {
                 string? type = ((string)getValue(types, i));
                 object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
@@ -1976,7 +1976,7 @@ public partial class bingx : ccxt.bingx
         ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
         ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "a");
@@ -2092,7 +2092,7 @@ public partial class bingx : ccxt.bingx
     {
         List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);
             object subHash = getValue(subMessageHashes, i);

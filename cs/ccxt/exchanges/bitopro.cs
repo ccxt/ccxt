@@ -917,7 +917,7 @@ public partial class bitopro : Exchange
         double? maker = this.safeNumber(first, "makerFee");
         double? taker = this.safeNumber(first, "takerFee");
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1047,7 +1047,7 @@ public partial class bitopro : Exchange
                 ((IList<object>)result).Add(copy);
             }
             timestamp = this.sum(timestamp, multiply(distance, 1000));
-            resultLength = getArrayLength(result);
+            resultLength = (result?.Count ?? 0);
             copyFrom = getValue(result, subtract(resultLength, 1));
         }
         return result;

@@ -741,7 +741,7 @@ public partial class onetrading : Exchange
         IDictionary<string, object> firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -813,7 +813,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // const tiers = this.parseFeeTiers (feeTiers);
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -989,7 +989,7 @@ public partial class onetrading : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawTickers); postFixIncrement(ref i))
+        for (int i = 0; i < (rawTickers?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> ticker = this.parseTicker(getValue(rawTickers, i));
             object symbol = getValue(ticker, "symbol");

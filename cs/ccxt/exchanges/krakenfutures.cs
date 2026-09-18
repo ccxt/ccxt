@@ -949,7 +949,7 @@ public partial class krakenfutures : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);
@@ -2657,11 +2657,11 @@ public partial class krakenfutures : Exchange
         string? remaining = this.safeString(details, "unfilledSize");
         string? average = null;
         string filled2 = "0.0";
-        int tradesLength = getArrayLength(trades);
+        int tradesLength = (trades?.Count ?? 0);
         if (tradesLength > 0)
         {
             string vwapSum = "0.0";
-            for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+            for (int i = 0; i < (trades?.Count ?? 0); postFixIncrement(ref i))
             {
                 object trade = getValue(trades, i);
                 string? tradeAmount = this.safeString(trade, "amount");
@@ -3766,7 +3766,7 @@ public partial class krakenfutures : Exchange
             double? minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (!isEqual(i, 0))
             {
-                int tiersLength = getArrayLength(tiers);
+                int tiersLength = (tiers?.Count ?? 0);
                 object previousTier = getValue(tiers, (tiersLength - 1));
                 ((IDictionary<string,object>)previousTier)["maxNotional"] = minNotional;
             }

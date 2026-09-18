@@ -825,7 +825,7 @@ public partial class coinbaseexchange : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (int i = 0; i < getArrayLength(rawMarkets); postFixIncrement(ref i))
+        for (int i = 0; i < (rawMarkets?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -2178,7 +2178,7 @@ public partial class coinbaseexchange : Exchange
         }
         List<object> response = await this.privateGetAccountsIdLedger(this.extend(request, parameters));
         IList<object> entries = this.toArray(response);
-        for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+        for (int i = 0; i < (entries?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(entries, i))["currency"] = code;
         }

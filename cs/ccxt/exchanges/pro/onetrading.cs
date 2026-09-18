@@ -1059,7 +1059,7 @@ public partial class onetrading : ccxt.onetrading
         (client as WebSocketClient).resolve(this.orders, "orders");
         // update balance
         List<object> balanceKeys = new List<object>() {"locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"};
-        for (int i = 0; i < getArrayLength(balanceKeys); postFixIncrement(ref i))
+        for (int i = 0; i < (balanceKeys?.Count ?? 0); postFixIncrement(ref i))
         {
             object newBalance = this.safeValue(update, getValue(balanceKeys, i));
             if ((newBalance != null))
@@ -1433,7 +1433,7 @@ public partial class onetrading : ccxt.onetrading
             subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if ((subscription != null))
             {
-                for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+                for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
                     bool? marketSubscribed = this.safeBool(subscription, marketId, false);
@@ -1448,7 +1448,7 @@ public partial class onetrading : ccxt.onetrading
                 subscription = new Dictionary<string, object>() {};
             }
         }
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             ((IDictionary<string,object>)subscription)[(string)marketId] = true;

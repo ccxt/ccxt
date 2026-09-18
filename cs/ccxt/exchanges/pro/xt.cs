@@ -924,7 +924,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> position = this.parsePosition(data);
         callDynamically(cache, "append", new object[] {position});
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1108,7 +1108,7 @@ public partial class xt : ccxt.xt
         }
         string messageHashStart = ((this.safeString(message, "topic") + "::") + tradeType);
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, (messageHashStart + "::"));
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

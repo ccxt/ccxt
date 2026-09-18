@@ -318,7 +318,7 @@ public partial class hashkey : ccxt.hashkey
         if ((data != null))
         {
             data = this.sortBy(data, "t");
-            for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+            for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
             {
                 IDictionary<string, object> trade = this.safeDict(data, i);
                 Dictionary<string, object> parsed = ((Dictionary<string, object>)this.parseWsTrade(trade, market));

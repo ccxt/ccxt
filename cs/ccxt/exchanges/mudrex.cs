@@ -577,11 +577,11 @@ public partial class mudrex : Exchange
             {
                 items = this.safeList(data, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                int itemsLength = getArrayLength(items);
+                int itemsLength = (items?.Count ?? 0);
                 if ((isEqual(itemsLength, null)) || ((itemsLength == 0)))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
-                    itemsLength = getArrayLength(items);
+                    itemsLength = (items?.Count ?? 0);
                 }
                 if (((itemsLength == 0)) && (inOp(data, "symbol")))
                 {
@@ -591,7 +591,7 @@ public partial class mudrex : Exchange
             {
                 items = this.toArray(data);
             }
-            int numItems = getArrayLength(items);
+            int numItems = (items?.Count ?? 0);
             if ((isEqual(numItems, null)) || ((numItems == 0)))
             {
                 paging = false;
@@ -611,7 +611,7 @@ public partial class mudrex : Exchange
             }
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(aggregated); postFixIncrement(ref i))
+        for (int i = 0; i < (aggregated?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseMarket(getValue(aggregated, i)));
         }
@@ -1160,7 +1160,7 @@ public partial class mudrex : Exchange
             market = this.market(symbol);
         }
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)orders).Add(this.parseOrder(getValue(rows, i), market));
         }
@@ -1244,7 +1244,7 @@ public partial class mudrex : Exchange
         }
         IList<object> rows = this.toArray(data);
         List<object> outPos = new List<object>() {};
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             object p = getValue(rows, i);
             string? symRaw = this.safeString(p, "symbol");
@@ -1570,7 +1570,7 @@ public partial class mudrex : Exchange
         List<object> rebateAmounts = new List<object>() {};
         List<object> transactions = new List<object>() {};
         List<object> transactionKeys = new List<object>() {};
-        for (int i = 0; i < getArrayLength(allRows); postFixIncrement(ref i))
+        for (int i = 0; i < (allRows?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(allRows, i);
             string? feeType = this.safeString(entry, "fee_type");
@@ -1586,10 +1586,10 @@ public partial class mudrex : Exchange
             }
         }
         List<object> rows = new List<object>() {};
-        for (int i = 0; i < getArrayLength(transactions); postFixIncrement(ref i))
+        for (int i = 0; i < (transactions?.Count ?? 0); postFixIncrement(ref i))
         {
             object rebate = null;
-            for (int j = 0; j < getArrayLength(rebateKeys); postFixIncrement(ref j))
+            for (int j = 0; j < (rebateKeys?.Count ?? 0); postFixIncrement(ref j))
             {
                 if (isEqual(getValue(rebateKeys, j), getValue(transactionKeys, i)))
                 {

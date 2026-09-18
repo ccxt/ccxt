@@ -1914,10 +1914,10 @@ public partial class htx : ccxt.htx
         if (isTrue(this.isEmpty(rawPositions)))
         {
             List<object> prefixes = new List<object>() {"cross:positions", "isolated:positions"};
-            for (int i = 0; i < getArrayLength(prefixes); postFixIncrement(ref i))
+            for (int i = 0; i < (prefixes?.Count ?? 0); postFixIncrement(ref i))
             {
                 List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, getValue(prefixes, i));
-                for (int j = 0; j < getArrayLength(messageHashes); postFixIncrement(ref j))
+                for (int j = 0; j < (messageHashes?.Count ?? 0); postFixIncrement(ref j))
                 {
                     (client as WebSocketClient).resolve(new List<object>() {}, getValue(messageHashes, j));
                 }
@@ -1955,7 +1955,7 @@ public partial class htx : ccxt.htx
             object marginMode = getValue(marginModes, i);
             object marginModePositions = this.safeValue(positionsByMarginMode, marginMode, new List<object>() {});
             List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(marginMode, ":positions::"));
-            for (int j = 0; j < getArrayLength(messageHashes); postFixIncrement(ref j))
+            for (int j = 0; j < (messageHashes?.Count ?? 0); postFixIncrement(ref j))
             {
                 object messageHash = getValue(messageHashes, j);
                 List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

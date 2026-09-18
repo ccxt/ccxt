@@ -1314,7 +1314,7 @@ public partial class bingx : Exchange
         string? name = this.safeString(rawCurrency, "name");
         List<object> networkList = this.safeList(rawCurrency, "networkList");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (int j = 0; j < getArrayLength(networkList); postFixIncrement(ref j))
+        for (int j = 0; j < (networkList?.Count ?? 0); postFixIncrement(ref j))
         {
             object rawNetwork = getValue(networkList, j);
             string? network = this.safeString(rawNetwork, "network");
@@ -3152,7 +3152,7 @@ public partial class bingx : Exchange
         List<object> spotBalances = this.safeList2(spotData, "balances", "assets", new List<object>() {});
         if (isContract)
         {
-            for (int i = 0; i < getArrayLength(contractBalances); postFixIncrement(ref i))
+            for (int i = 0; i < (contractBalances?.Count ?? 0); postFixIncrement(ref i))
             {
                 object balance = getValue(contractBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
@@ -3172,7 +3172,7 @@ public partial class bingx : Exchange
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(spotBalances); postFixIncrement(ref i))
+            for (int i = 0; i < (spotBalances?.Count ?? 0); postFixIncrement(ref i))
             {
                 object balance = getValue(spotBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
@@ -4047,7 +4047,7 @@ public partial class bingx : Exchange
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         IList<object> symbols = this.marketSymbols(marketIds, null, false, true, true);
-        int symbolsLength = getArrayLength(symbols);
+        int symbolsLength = (symbols?.Count ?? 0);
         Dictionary<string, object> market = this.market(getValue(symbols, 0));
         if (isEqual(getValue(market, "inverse"), true))
         {
@@ -6759,7 +6759,7 @@ public partial class bingx : Exchange
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> success = this.safeList(data, "success", new List<object>() {});
         List<object> positions = new List<object>() {};
-        for (int i = 0; i < getArrayLength(success); postFixIncrement(ref i))
+        for (int i = 0; i < (success?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> position = this.parsePosition(new Dictionary<string, object>() {
                 { "positionId", getValue(success, i) },

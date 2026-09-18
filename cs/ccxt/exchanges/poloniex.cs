@@ -2952,7 +2952,7 @@ public partial class poloniex : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -3460,7 +3460,7 @@ public partial class poloniex : Exchange
         {
             entries = response;
         }
-        for (int i = 0; i < getArrayLength(entries); postFixIncrement(ref i))
+        for (int i = 0; i < (entries?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(entries, i);
             List<object> currencies = new List<object>(((IDictionary<string,object>)entry).Keys);

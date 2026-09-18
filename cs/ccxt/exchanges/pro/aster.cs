@@ -1847,7 +1847,7 @@ public partial class aster : ccxt.aster
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            for (int i = 0; i < getArrayLength(newPositions); postFixIncrement(ref i))
+            for (int i = 0; i < (newPositions?.Count ?? 0); postFixIncrement(ref i))
             {
                 object position = getValue(newPositions, i);
                 object symbol = getValue(position, "symbol");

@@ -255,7 +255,7 @@ public partial class bydfi : ccxt.bydfi
             // we need to unsubscribe from all ticker channels
             List<object> subHashes = this.getMessageHashesForTickersUnsubscription();
             ((IDictionary<string,object>)subscription)["subHashIsPrefix"] = true;
-            for (int i = 0; i < getArrayLength(subHashes); postFixIncrement(ref i))
+            for (int i = 0; i < (subHashes?.Count ?? 0); postFixIncrement(ref i))
             {
                 string? subHash = this.safeString(subHashes, i);
                 if ((subHash != null))

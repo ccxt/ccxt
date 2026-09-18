@@ -461,7 +461,7 @@ public partial class coincheck : Exchange
         object rawOrders = this.safeValue(response, "orders", new List<object>() {});
         IList<object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(parsedOrders); postFixIncrement(ref i))
+        for (int i = 0; i < (parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.extend(getValue(parsedOrders, i), new Dictionary<string, object>() {
                 { "status", "open" },
@@ -844,7 +844,7 @@ public partial class coincheck : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             Dictionary<string, object> market = this.market(symbol);

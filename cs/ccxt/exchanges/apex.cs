@@ -1652,7 +1652,7 @@ public partial class apex : Exchange
         {
             assets = spotAssets;
         }
-        for (int i = 0; i < getArrayLength(assets); postFixIncrement(ref i))
+        for (int i = 0; i < (assets?.Count ?? 0); postFixIncrement(ref i))
         {
             if (isEqual(this.safeString(getValue(assets, i), "token", ""), code))
             {

@@ -195,7 +195,7 @@ public partial class bitopro : ccxt.bitopro
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(limit);
         }
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < (trades?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(tradesCache, "append", new object[] {getValue(trades, i)});
         }

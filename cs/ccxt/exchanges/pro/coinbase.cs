@@ -923,7 +923,7 @@ public partial class coinbase : ccxt.coinbase
                 callDynamically(cachedOrders, "append", new object[] {parsed});
             }
         }
-        for (int i = 0; i < getArrayLength(marketIds); postFixIncrement(ref i))
+        for (int i = 0; i < (marketIds?.Count ?? 0); postFixIncrement(ref i))
         {
             string? marketId = ((string)getValue(marketIds, i));
             string? symbol = this.safeSymbol(marketId);

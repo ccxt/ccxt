@@ -778,7 +778,7 @@ public partial class upbit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> orderbooks = this.toArray(response);
-        for (int i = 0; i < getArrayLength(orderbooks); postFixIncrement(ref i))
+        for (int i = 0; i < (orderbooks?.Count ?? 0); postFixIncrement(ref i))
         {
             object orderbook = getValue(orderbooks, i);
             string? marketId = this.safeString(orderbook, "market");
@@ -899,7 +899,7 @@ public partial class upbit : Exchange
             // ticker/all returns every market of the requested quote currencies with a single request
             List<object> quoteIds = new List<object>() {};
             List<object> marketSymbols = this.symbols;
-            for (int i = 0; i < getArrayLength(marketSymbols); postFixIncrement(ref i))
+            for (int i = 0; i < (marketSymbols?.Count ?? 0); postFixIncrement(ref i))
             {
                 Dictionary<string, object> market = this.market(getValue(marketSymbols, i));
                 string? quoteId = ((string)getValue(market, "quoteId"));
@@ -927,7 +927,7 @@ public partial class upbit : Exchange
             IList<object> ids = this.marketIds(symbols);
             List<object> promises = new List<object>() {};
             List<object> queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
-            for (int i = 0; i < getArrayLength(queries); postFixIncrement(ref i))
+            for (int i = 0; i < (queries?.Count ?? 0); postFixIncrement(ref i))
             {
                 object idsQuery = getValue(queries, i);
                 ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
@@ -2136,7 +2136,7 @@ public partial class upbit : Exchange
             { "order", id },
             { "type", type },
         });
-        int numTrades = getArrayLength(trades);
+        int numTrades = (trades?.Count ?? 0);
         if (numTrades > 0)
         {
             // the timestamp in fetchOrder trades is missing

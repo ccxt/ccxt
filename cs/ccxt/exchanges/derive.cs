@@ -1330,7 +1330,7 @@ public partial class derive : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(tradesArray); postFixIncrement(ref i))
+        for (int i = 0; i < (tradesArray?.Count ?? 0); postFixIncrement(ref i))
         {
             object rawTrade = getValue(tradesArray, i);
             bool isFetchTrades = !(inOp(rawTrade, "order_id"));

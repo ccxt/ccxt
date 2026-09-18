@@ -56,7 +56,7 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        assert((getArrayLength(returnedSymbols) == getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
+        assert(((returnedSymbols?.Count ?? 0) == getArrayLength(symbols)), add(add(logText, "only received part of symbols: "), exchange.json(returnedSymbols)));
         return true;
     }
 

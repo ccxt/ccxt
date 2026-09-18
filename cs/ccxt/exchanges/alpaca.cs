@@ -1067,7 +1067,7 @@ public partial class alpaca : Exchange
                 string? pageToken = this.safeString(response, "next_page_token");
                 for (int i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
                 {
-                    int ohlcvsLength = getArrayLength(ohlcvs);
+                    int ohlcvsLength = (ohlcvs?.Count ?? 0);
                     if (((pageToken == null)) || ((!isEqual(limit, null)) && (isGreaterThanOrEqual(ohlcvsLength, limit))))
                     {
                         break;
@@ -2161,7 +2161,7 @@ public partial class alpaca : Exchange
             {
                 ledger = activities;
             }
-            for (int i = 0; i < getArrayLength(ledger); postFixIncrement(ref i))
+            for (int i = 0; i < (ledger?.Count ?? 0); postFixIncrement(ref i))
             {
                 object entry = getValue(ledger, i);
                 string? activityType = this.safeString(entry, "activity_type");
@@ -2199,7 +2199,7 @@ public partial class alpaca : Exchange
         {
             transfers = response;
         }
-        for (int i = 0; i < getArrayLength(transfers); postFixIncrement(ref i))
+        for (int i = 0; i < (transfers?.Count ?? 0); postFixIncrement(ref i))
         {
             object entry = getValue(transfers, i);
             string? direction = this.safeString(entry, "direction");

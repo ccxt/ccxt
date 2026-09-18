@@ -2885,7 +2885,7 @@ public partial class pacifica : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         // return last state
         List<object> sorted = this.sortBy(data, "created_at", true);
-        int lastIdx = getArrayLength(sorted);
+        int lastIdx = (sorted?.Count ?? 0);
         object lastInfo = new Dictionary<string, object>() {};
         if (lastIdx > 0)
         {

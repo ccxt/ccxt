@@ -372,7 +372,7 @@ public partial class luno : ccxt.luno
         }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
         List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
-        for (int j = 0; j < getArrayLength(handlers); postFixIncrement(ref j))
+        for (int j = 0; j < (handlers?.Count ?? 0); postFixIncrement(ref j))
         {
             object handler = getValue(handlers, j);
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message, getValue(subscriptions, 0)});

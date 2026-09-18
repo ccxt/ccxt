@@ -1137,7 +1137,7 @@ public partial class toobit : Exchange
         List<object> contracts = this.safeList(response, "contracts", new List<object>() {});
         List<object> all = this.arrayConcat(symbols, contracts);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(all); postFixIncrement(ref i))
+        for (int i = 0; i < (all?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(all, i);
             Dictionary<string, object> parsed = this.parseMarket(market);
@@ -2639,7 +2639,7 @@ public partial class toobit : Exchange
         {
             responseList = response;
         }
-        for (int i = 0; i < getArrayLength(responseList); postFixIncrement(ref i))
+        for (int i = 0; i < (responseList?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
                 { "result", getValue(responseList, i) },

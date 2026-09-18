@@ -106,7 +106,7 @@ public partial class BaseTest
             //
             List<object> keys = new List<object>() {"chrome", "chrome39", "chrome100"};
             Assert(!isEqual(exchangeProp(exchange, "userAgents"), null));
-            for (int i = 0; i < getArrayLength(keys); postFixIncrement(ref i))
+            for (int i = 0; i < (keys?.Count ?? 0); postFixIncrement(ref i))
             {
                 string? key = ((string)getValue(keys, i));
                 object userAgent = getValue(exchangeProp(exchange, "userAgents"), key);
@@ -208,7 +208,7 @@ public partial class BaseTest
             List<object> httpExceptionKeys = new List<object>() {"400", "401", "403", "404", "405", "407", "408", "409", "410", "418", "422", "429", "451", "500", "501", "502", "503", "504", "511", "520", "521", "522", "525", "526", "530"};
             // php errors with below, bcz integer key cast
             // AssertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchangeProp (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
-            Assert((((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))).Count == getArrayLength(httpExceptionKeys)), (("httpExceptions should have " + ((object)(getArrayLength(httpExceptionKeys))).ToString()) + " keys"));
+            Assert((((new List<object>(((IDictionary<string,object>)exchangeProp(exchange, "httpExceptions")).Keys))).Count == (httpExceptionKeys?.Count ?? 0)), (("httpExceptions should have " + ((object)((httpExceptionKeys?.Count ?? 0))).ToString()) + " keys"));
             Dictionary<string, object> limits = new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
                     { "min", null },

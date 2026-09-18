@@ -359,7 +359,7 @@ public partial class kalshi : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> queries = this.parseSearchQueries(parameters);
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = (queries?.Count ?? 0);
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
         // force a client-side scan of every open market (thousands, paged 1000 at a time, which
         // hangs). Resolve the query against the events endpoint instead — it is bounded by
@@ -416,7 +416,7 @@ public partial class kalshi : PredictionExchange
                 string? eventTicker = this.safeString(raw, "event_ticker");
                 string? eventTitle = this.safeString(raw, "title", eventTicker);
                 string? eventKey = ((bool) ((eventTitle != null) && (eventTitle != ""))) ? this.shortenSlug(eventTitle) : null;
-                for (int j = 0; j < getArrayLength(parsed); postFixIncrement(ref j))
+                for (int j = 0; j < (parsed?.Count ?? 0); postFixIncrement(ref j))
                 {
                     object m = getValue(parsed, j);
                     ((IList<object>)flatMarkets).Add(m);
@@ -443,14 +443,14 @@ public partial class kalshi : PredictionExchange
                 }
             }
             cursor = this.safeString(response, "cursor");
-            int collectedLength = getArrayLength(flatMarkets);
+            int collectedLength = (flatMarkets?.Count ?? 0);
             if (((cursor == null) || isEqual(cursor, "")) || isLessThan(rawMarketsLength, limit) || isGreaterThanOrEqual(collectedLength, maxMarkets))
             {
                 break;
             }
         }
         this.events = eventsDict;
-        int flatMarketsLength = getArrayLength(flatMarkets);
+        int flatMarketsLength = (flatMarkets?.Count ?? 0);
         if (isGreaterThan(flatMarketsLength, maxMarkets))
         {
             return ccxt.BaseExchange.ToMarketInterfaceList(this.arraySlice(flatMarkets, 0, maxMarkets));
@@ -595,7 +595,7 @@ public partial class kalshi : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         Int64? chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 100);
-        int tickersLength = getArrayLength(tickers);
+        int tickersLength = (tickers?.Count ?? 0);
         object startIndex = 0;
         while (isLessThan(startIndex, tickersLength))
         {
@@ -758,7 +758,7 @@ public partial class kalshi : PredictionExchange
             eventParts = ((string)eventTicker).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         }
         string? seriesTicker = eventTicker;
-        int eventPartsLength = getArrayLength(eventParts);
+        int eventPartsLength = (eventParts?.Count ?? 0);
         if (eventPartsLength > 1)
         {
             object seriesParts = this.arraySlice(eventParts, 0, (eventPartsLength - 1));
@@ -787,7 +787,7 @@ public partial class kalshi : PredictionExchange
         List<object> outcomeIds = new List<object>() {ticker, add(ticker, "-NO")};
         List<object> outcomes = new List<object>() {};
         object resolvedOutcome = null;
-        for (int oi = 0; oi < getArrayLength(outcomeLabels); postFixIncrement(ref oi))
+        for (int oi = 0; oi < (outcomeLabels?.Count ?? 0); postFixIncrement(ref oi))
         {
             string? label = ((string)getValue(outcomeLabels, oi));
             object outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
@@ -1203,7 +1203,7 @@ public partial class kalshi : PredictionExchange
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Dictionary<string, object> outcomesByTicker = new Dictionary<string, object>() {};
         List<object> tickers = new List<object>() {};
-        for (int i = 0; i < getArrayLength(targets); postFixIncrement(ref i))
+        for (int i = 0; i < (targets?.Count ?? 0); postFixIncrement(ref i))
         {
             IDictionary<string, object> outcomeObj = this.outcome(getValue(targets, i));
             string? ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
@@ -1223,7 +1223,7 @@ public partial class kalshi : PredictionExchange
         }
         Int64? chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        int tickersLength = getArrayLength(tickers);
+        int tickersLength = (tickers?.Count ?? 0);
         object startIndex = 0;
         while (isLessThan(startIndex, tickersLength))
         {
@@ -1688,7 +1688,7 @@ public partial class kalshi : PredictionExchange
             wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(trades); postFixIncrement(ref i))
+        for (int i = 0; i < (trades?.Count ?? 0); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             if (((wantedOutcome == null)) || (isEqual(this.safeString(trade, "outcome"), wantedOutcome)))
@@ -1928,7 +1928,7 @@ public partial class kalshi : PredictionExchange
             wantedOutcome = this.safeString(this.outcome(outcome), "outcome");
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+        for (int i = 0; i < (parsed?.Count ?? 0); postFixIncrement(ref i))
         {
             Dictionary<string, object> settlement = ((Dictionary<string, object>)getValue(parsed, i));
             if (((wantedOutcome == null)) || (isEqual(this.safeString(settlement, "outcome"), wantedOutcome)))
@@ -2548,7 +2548,7 @@ public partial class kalshi : PredictionExchange
         {
             throw new ExchangeError ((string)(this.id + " fetchEvents() missing queries")) ;
         }
-        int queriesLength = getArrayLength(queries);
+        int queriesLength = (queries?.Count ?? 0);
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
@@ -2667,10 +2667,10 @@ public partial class kalshi : PredictionExchange
             }
         }
         List<object> rawEvents = new List<object>() {};
-        int eventTickersLength = getArrayLength(eventTickers);
+        int eventTickersLength = (eventTickers?.Count ?? 0);
         for (int ei = 0; ei < eventTickersLength; postFixIncrement(ref ei))
         {
-            int collectedLength = getArrayLength(rawEvents);
+            int collectedLength = (rawEvents?.Count ?? 0);
             if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedLength, limit)))
             {
                 break;
@@ -2778,7 +2778,7 @@ public partial class kalshi : PredictionExchange
         // deduplicate preserving order
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> ordered = new List<object>() {};
-        int collectedLength = getArrayLength(collected);
+        int collectedLength = (collected?.Count ?? 0);
         for (int ci = 0; ci < collectedLength; postFixIncrement(ref ci))
         {
             object st = getValue(collected, ci);
@@ -2812,7 +2812,7 @@ public partial class kalshi : PredictionExchange
         Int64? maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         for (int si = 0; si < seriesTickersLength; postFixIncrement(ref si))
         {
-            int collectedLength = getArrayLength(rawEvents);
+            int collectedLength = (rawEvents?.Count ?? 0);
             if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedLength, limit)))
             {
                 break;
@@ -2823,7 +2823,7 @@ public partial class kalshi : PredictionExchange
                 object reqLimit = pageLimit;
                 if (!isEqual(limit, null))
                 {
-                    object remaining = subtract(limit, getArrayLength(rawEvents));
+                    object remaining = subtract(limit, (rawEvents?.Count ?? 0));
                     if (isLessThan(remaining, reqLimit))
                     {
                         reqLimit = remaining;
@@ -2851,7 +2851,7 @@ public partial class kalshi : PredictionExchange
                     ((IList<object>)rawEvents).Add(getValue(pageEvents, ei));
                 }
                 cursor = this.safeString(response, "cursor");
-                int collectedAfterPage = getArrayLength(rawEvents);
+                int collectedAfterPage = (rawEvents?.Count ?? 0);
                 if ((!isEqual(limit, null)) && (isGreaterThanOrEqual(collectedAfterPage, limit)))
                 {
                     break;
@@ -2998,7 +2998,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         // the aggregates only mean something when the payload nested any markets at all
-        int marketsCount = getArrayLength(marketsList);
+        int marketsCount = (marketsList?.Count ?? 0);
         bool? active = null;
         if (marketsCount > 0)
         {

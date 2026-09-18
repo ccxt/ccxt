@@ -553,12 +553,12 @@ public partial class deepcoin : Exchange
         }
         List<object> promises = new List<object>() {};
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(types); postFixIncrement(ref i))
+        for (int i = 0; i < (types?.Count ?? 0); postFixIncrement(ref i))
         {
             ((IList<object>)promises).Add(this.FetchMarketsByType(getValue(types, i), parameters));
         }
         promises = await promiseAll(promises);
-        for (int i = 0; i < getArrayLength(promises); postFixIncrement(ref i))
+        for (int i = 0; i < (promises?.Count ?? 0); postFixIncrement(ref i))
         {
             result = this.arrayConcat(result, getValue(promises, i));
         }
@@ -1182,7 +1182,7 @@ public partial class deepcoin : Exchange
             { "datetime", null },
         };
         List<object> balances = this.safeList(response, "data", new List<object>() {});
-        for (int i = 0; i < getArrayLength(balances); postFixIncrement(ref i))
+        for (int i = 0; i < (balances?.Count ?? 0); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? symbol = this.safeString(balance, "ccy");
@@ -2244,7 +2244,7 @@ public partial class deepcoin : Exchange
         };
         Dictionary<string, object> response = await this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        int length = getArrayLength(data);
+        int length = (data?.Count ?? 0);
         if ((length == 0))
         {
             throw new OrderNotFound ((string)add((this.id + " fetchOpenOrder() could not find order id "), id)) ;

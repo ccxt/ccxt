@@ -2242,7 +2242,7 @@ public partial class kucoin : Exchange
         List<object> tickerItems = this.safeList(this.safeDict(tickersResponse, "data", new Dictionary<string, object>() {}), "ticker", new List<object>() {});
         Dictionary<string, object> tickersById = this.indexBy(tickerItems, "symbol");
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsData); postFixIncrement(ref i))
+        for (int i = 0; i < (symbolsData?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(symbolsData, i);
             string? id = this.safeString(market, "symbol");
@@ -2583,7 +2583,7 @@ public partial class kucoin : Exchange
         List<object> contractSymbolsData = this.safeList(contractData, "list", new List<object>() {});
         List<object> symbolsData = this.arrayConcat(spotData, contractSymbolsData);
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbolsData); postFixIncrement(ref i))
+        for (int i = 0; i < (symbolsData?.Count ?? 0); postFixIncrement(ref i))
         {
             object market = getValue(symbolsData, i);
             string? id = this.safeString(market, "symbol");
@@ -2931,7 +2931,7 @@ public partial class kucoin : Exchange
             data = this.safeList(response, "data", new List<object>() {});
         }
         List<object> result = new List<object>() {};
-        for (int i = 0; i < getArrayLength(data); postFixIncrement(ref i))
+        for (int i = 0; i < (data?.Count ?? 0); postFixIncrement(ref i))
         {
             object account = getValue(data, i);
             string? accountId = this.safeString(account, "id");
@@ -11825,7 +11825,7 @@ public partial class kucoin : Exchange
             dataList = this.safeList(data, "dataList", new List<object>() {});
         }
         List<object> fees = new List<object>() {};
-        for (int i = 0; i < getArrayLength(dataList); postFixIncrement(ref i))
+        for (int i = 0; i < (dataList?.Count ?? 0); postFixIncrement(ref i))
         {
             object listItem = getValue(dataList, i);
             Int64? timestamp = this.safeInteger2(listItem, "timePoint", "settlementTime");

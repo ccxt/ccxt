@@ -979,7 +979,7 @@ public partial class cex : Exchange
             }
         }
         List<object> symbols = this.symbols;
-        for (int i = 0; i < getArrayLength(symbols); postFixIncrement(ref i))
+        for (int i = 0; i < (symbols?.Count ?? 0); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             if (!(inOp(result, symbol)))

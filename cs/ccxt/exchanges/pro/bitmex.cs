@@ -704,7 +704,7 @@ public partial class bitmex : ccxt.bitmex
                 stored = new ArrayCache(limit);
                 ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
             }
-            for (int j = 0; j < getArrayLength(trades); postFixIncrement(ref j))
+            for (int j = 0; j < (trades?.Count ?? 0); postFixIncrement(ref j))
             {
                 callDynamically(stored, "append", new object[] {getValue(trades, j)});
             }
@@ -998,7 +998,7 @@ public partial class bitmex : ccxt.bitmex
             callDynamically(cache, "append", new object[] {position});
         }
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1357,14 +1357,14 @@ public partial class bitmex : ccxt.bitmex
         }
         object stored = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int j = 0; j < getArrayLength(trades); postFixIncrement(ref j))
+        for (int j = 0; j < (trades?.Count ?? 0); postFixIncrement(ref j))
         {
             object trade = getValue(trades, j);
             object symbol = getValue(trade, "symbol");
             callDynamically(stored, "append", new object[] {trade});
             ((IDictionary<string,object>)symbols)[(string)((string)symbol)] = trade;
         }
-        int numTrades = getArrayLength(trades);
+        int numTrades = (trades?.Count ?? 0);
         if (numTrades > 0)
         {
             (client as WebSocketClient).resolve(stored, messageHash);

@@ -1251,7 +1251,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             timestamp = this.safeInteger(clearinghouseState, "time");
             this.handlePositions(client as WebSocketClient, message);
         }
-        for (int i = 0; i < getArrayLength(rawBalances); postFixIncrement(ref i))
+        for (int i = 0; i < (rawBalances?.Count ?? 0); postFixIncrement(ref i))
         {
             this.parseWsBalance(getValue(rawBalances, i), account);
         }
@@ -1417,7 +1417,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         string baseMessageHash = "clearinghouseState::positions";
         List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, baseMessageHash);
-        for (int i = 0; i < getArrayLength(messageHashes); postFixIncrement(ref i))
+        for (int i = 0; i < (messageHashes?.Count ?? 0); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();

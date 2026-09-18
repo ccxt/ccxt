@@ -1025,7 +1025,7 @@ public partial class coinbaseinternational : Exchange
     public virtual object findDefaultNetwork(object networks)
     {
         IList<object> networksArray = this.toArray(networks);
-        for (int i = 0; i < getArrayLength(networksArray); postFixIncrement(ref i))
+        for (int i = 0; i < (networksArray?.Count ?? 0); postFixIncrement(ref i))
         {
             object info = getValue(getValue(networksArray, i), "info");
             bool? is_default = this.safeBool(info, "is_default", false);
@@ -1830,7 +1830,7 @@ public partial class coinbaseinternational : Exchange
         {
             rows = instruments;
         }
-        for (int i = 0; i < getArrayLength(rows); postFixIncrement(ref i))
+        for (int i = 0; i < (rows?.Count ?? 0); postFixIncrement(ref i))
         {
             object instrument = getValue(rows, i);
             string? marketId = this.safeString(instrument, "symbol");

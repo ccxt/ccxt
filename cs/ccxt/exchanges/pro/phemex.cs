@@ -310,7 +310,7 @@ public partial class phemex : ccxt.phemex
                 ((IList<object>)tickers).Add(this.parsePerpetualTicker(getValue(data, i)));
             }
         }
-        for (int i = 0; i < getArrayLength(tickers); postFixIncrement(ref i))
+        for (int i = 0; i < (tickers?.Count ?? 0); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
             object symbol = getValue(ticker, "symbol");
@@ -476,7 +476,7 @@ public partial class phemex : ccxt.phemex
         }
         object trades = this.safeValue2(message, "trades", "trades_p", new List<object>() {});
         IList<object> parsed = this.parseTrades(trades, market);
-        for (int i = 0; i < getArrayLength(parsed); postFixIncrement(ref i))
+        for (int i = 0; i < (parsed?.Count ?? 0); postFixIncrement(ref i))
         {
             callDynamically(stored, "append", new object[] {getValue(parsed, i)});
         }
@@ -535,7 +535,7 @@ public partial class phemex : ccxt.phemex
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
-            for (int i = 0; i < getArrayLength(ohlcvs); postFixIncrement(ref i))
+            for (int i = 0; i < (ohlcvs?.Count ?? 0); postFixIncrement(ref i))
             {
                 object candle = getValue(ohlcvs, i);
                 callDynamically(stored, "append", new object[] {candle});
@@ -1272,13 +1272,13 @@ public partial class phemex : ccxt.phemex
             object closed = this.safeValue(message, "closed", new List<object>() {});
             object open = this.safeValue(message, "open", new List<object>() {});
             List<object> orders = this.arrayConcat(open, closed);
-            int ordersLength = getArrayLength(orders);
+            int ordersLength = (orders?.Count ?? 0);
             if ((ordersLength == 0))
             {
                 return;
             }
             trades = this.safeList(message, "fills", new List<object>() {});
-            for (int i = 0; i < getArrayLength(orders); postFixIncrement(ref i))
+            for (int i = 0; i < (orders?.Count ?? 0); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
                 Dictionary<string, object> parsedOrder = this.parseOrder(rawOrder);
@@ -1313,7 +1313,7 @@ public partial class phemex : ccxt.phemex
         }
         object type = null;
         object stored = this.orders;
-        for (int i = 0; i < getArrayLength(parsedOrders); postFixIncrement(ref i))
+        for (int i = 0; i < (parsedOrders?.Count ?? 0); postFixIncrement(ref i))
         {
             object parsed = getValue(parsedOrders, i);
             callDynamically(stored, "append", new object[] {parsed});
