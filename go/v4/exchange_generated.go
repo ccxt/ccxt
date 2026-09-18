@@ -3835,7 +3835,7 @@ func (this *BaseExchange) MarketSymbols(optionalArgs ...any) any {
 			panic(BadRequest(Add(Add(this.Id+" symbols must be of the same type ", typeVar), ". If the type is incorrect you can change it in options or the params of the request")))
 		}
 		marketType = GetValue(market, "type")
-		if !IsEqual(GetValue(market, "spot"), true) {
+		if GetValue(market, "spot") != true {
 			isLinearSubType = GetValue(market, "linear")
 		}
 		var symbol *string = this.SafeString(market, "symbol", GetValue(symbols, i))
@@ -5154,7 +5154,7 @@ func (this *BaseExchange) CheckRequiredCredentials(optionalArgs ...any) bool {
 		var key string = GetValue(keys, i).(string)
 		var credentialValue any = GetValue(this, key)
 		var credentialMissing bool = (IsEqual(credentialValue, nil)) || (IsEqual(credentialValue, nil)) || (credentialValue == false) || (credentialValue == "")
-		if (IsEqual(this.RequiredCredentials[key], true)) && credentialMissing {
+		if (this.RequiredCredentials[key] == true) && credentialMissing {
 			if EvalTruthy(error) {
 				panic(AuthenticationError(this.Id + " requires \"" + key + "\" credential"))
 			} else {
@@ -5565,9 +5565,9 @@ func (this *BaseExchange) HandleSubTypeAndParams(methodName any, optionalArgs ..
 	} else {
 		// at first, check from market object
 		if !IsEqual(market, nil) {
-			if IsEqual(GetValue(market, "linear"), true) {
+			if GetValue(market, "linear") == true {
 				subType = "linear"
-			} else if IsEqual(GetValue(market, "inverse"), true) {
+			} else if GetValue(market, "inverse") == true {
 				subType = "inverse"
 			}
 		}
@@ -6575,7 +6575,7 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan any, symbol any, 
 
 		var market any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
-		if !IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchMarketLeverageTiers() supports contract markets only"))
 		}
 
@@ -7123,7 +7123,7 @@ func (this *BaseExchange) fetchFundingRateBody(ch chan any, symbol any, optional
 		var market any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = GetValue(market, "symbol")
-		if !IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchFundingRate() supports contract markets only"))
 		}
 
@@ -7159,7 +7159,7 @@ func (this *BaseExchange) fetchFundingIntervalBody(ch chan any, symbol any, opti
 		var market any = this.DerivedExchange.Market(symbol)
 		PanicOnError(market)
 		symbol = GetValue(market, "symbol")
-		if !IsEqual(GetValue(market, "contract"), true) {
+		if GetValue(market, "contract") != true {
 			panic(BadSymbol(this.Id + " fetchFundingInterval() supports contract markets only"))
 		}
 
